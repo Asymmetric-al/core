@@ -2,7 +2,7 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Recurring Donation State Reflects The Subscription Lifecycle
+### Requirement: Legacy Recurring Reflection Does Not Define The Target Topology
 
 The platform MUST reflect recurring donation execution from the explicit
 recurring-giving group, destination lines, compatible billing cohorts,
@@ -90,7 +90,7 @@ separately dispatched and verified.
   commands; a subscription or dashboard setting cannot select retry timing or
   budget
 
-#### Scenario: A recurring executor is cancelled at the provider
+#### Scenario: A subscription is cancelled at the provider
 
 - WHEN current provider evidence confirms a recurring cohort executor is
   cancelled

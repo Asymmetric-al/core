@@ -1,0 +1,195 @@
+{
+  "status": "passed",
+  "date": "2026-09-14",
+  "checksPassed": 44,
+  "checks": [
+    {
+      "check": "28exactclauses",
+      "passed": true
+    },
+    {
+      "check": "23explicitcategories",
+      "passed": true
+    },
+    {
+      "check": "everycategorymaterialstatus",
+      "passed": true
+    },
+    {
+      "check": "32requiredreleasegroups",
+      "passed": true
+    },
+    {
+      "check": "fivecontrols",
+      "passed": true
+    },
+    {
+      "check": "14dataand14Tiptapcontracts",
+      "passed": true
+    },
+    {
+      "check": "allclausesmappedtoproof",
+      "passed": true
+    },
+    {
+      "check": "selectednotratified",
+      "passed": true
+    },
+    {
+      "check": "allruntimeproofunexecuted",
+      "passed": true
+    },
+    {
+      "check": "F01unknownsaveexit",
+      "passed": true
+    },
+    {
+      "check": "F02pendingbytesguard",
+      "passed": true
+    },
+    {
+      "check": "F03titleonlysearch",
+      "passed": true
+    },
+    {
+      "check": "F04D10originandtarget",
+      "passed": true
+    },
+    {
+      "check": "F05IMEandhydration",
+      "passed": true
+    },
+    {
+      "check": "F06actualsourcebound",
+      "passed": true
+    },
+    {
+      "check": "boundednumericsqualified",
+      "passed": true
+    },
+    {
+      "check": "no sidebarcountandbodypreview",
+      "passed": true
+    },
+    {
+      "check": "seam explicit",
+      "passed": true
+    },
+    {
+      "check": "two scoped terms",
+      "passed": true
+    },
+    {
+      "check": "prior glossary preserved",
+      "passed": true
+    },
+    {
+      "check": "ADRselectedscope",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.mdcurrentD37",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.mdoldhistorypreserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.mdcurrentD37",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.mdoldhistorypreserved",
+      "passed": true
+    },
+    {
+      "check": "questionanswerednotice",
+      "passed": true
+    },
+    {
+      "check": "originalquestionbodypreserved",
+      "passed": true
+    },
+    {
+      "check": "prior unrelatedfilespreserved",
+      "passed": true
+    },
+    {
+      "check": "21sourcepinsverified",
+      "passed": true
+    },
+    {
+      "check": "11acceptedsourcehashes",
+      "passed": true
+    },
+    {
+      "check": "currentHEADremote",
+      "passed": true
+    },
+    {
+      "check": "fiveopenPRs",
+      "passed": true
+    },
+    {
+      "check": "eightlibraryobservations",
+      "passed": true
+    },
+    {
+      "check": "Tiptapsourcehashes",
+      "passed": true
+    },
+    {
+      "check": "Tiptapversionevidencedistinct",
+      "passed": true
+    },
+    {
+      "check": "phase26-d37-final-data-review.mdfinalpass",
+      "passed": true
+    },
+    {
+      "check": "phase26-d37-final-tiptap-review.mdfinalpass",
+      "passed": true
+    },
+    {
+      "check": "phase26-d37-final-ux-review.mdfinalpass",
+      "passed": true
+    },
+    {
+      "check": "noADR0038",
+      "passed": true
+    },
+    {
+      "check": "trackedsourceunchanged",
+      "passed": true
+    },
+    {
+      "check": "alllocallinksresolve",
+      "passed": true
+    },
+    {
+      "check": "allmirrorsidentical",
+      "passed": true
+    },
+    {
+      "check": "scopedformatpass",
+      "passed": true
+    },
+    {
+      "check": "trackedwhitespacepass",
+      "passed": true
+    }
+  ],
+  "D37": "A selected; detailed amendments proposed",
+  "Q38": "not opened",
+  "clauses": 28,
+  "categories": 23,
+  "sourceFiles": 21,
+  "acceptedSourceHashes": 11,
+  "installedLibraryObservations": 8,
+  "runtimeProofGroupsExecuted": 0,
+  "runtimeProofGroupsRequired": 32,
+  "operatingControls": 5,
+  "mirrorsBeforeThisArtifact": 20,
+  "realMessagesSent": false
+}

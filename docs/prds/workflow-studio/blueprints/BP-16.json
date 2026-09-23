@@ -1,0 +1,88 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-16",
+  "recipeId": "GEN-09",
+  "name": "Document renewal with durable source wait",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "document_renewal",
+  "subject": "renewal_requirement",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "documents.renewal.source-required@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "replacementAccepted": "documents.current-renewal-replacement.accepted@1"
+    },
+    "tasks": {},
+    "evidence": {},
+    "actions": {
+      "request": "documents.request-approved-renewal@1"
+    },
+    "roles": {},
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "crm",
+    "documents",
+    "messages",
+    "private-files",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["renewal_flow"]
+    }
+  ],
+  "root": {
+    "id": "renewal_flow",
+    "kind": "sequence",
+    "label": "Renewal flow",
+    "steps": [
+      {
+        "id": "request_renewal",
+        "kind": "action",
+        "label": "Request renewal",
+        "contract": "request",
+        "inputs": {}
+      },
+      {
+        "id": "await_source_acceptance",
+        "kind": "wait",
+        "label": "Wait for source-accepted replacement",
+        "condition": {
+          "op": "compare",
+          "operator": "eq",
+          "left": {
+            "ref": {
+              "scope": "fact",
+              "key": "replacementAccepted"
+            }
+          },
+          "right": {
+            "literal": true
+          }
+        },
+        "onUnknown": "wait",
+        "onTimeout": "block"
+      },
+      {
+        "id": "renewal_done",
+        "kind": "finish",
+        "label": "Renewal done",
+        "lifecycle": "complete",
+        "outcome": "renewal_source_accepted"
+      }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-16",
+  "issue": 1861,
+  "sourcePr": 1340,
+  "priorCapturedHead": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+  "amendmentHead": "db7a5e519ee062d28d05f68e5f8aff707de6e209",
+  "sourcePrStateAtRead": "open",
+  "adoptedMeaning": "Hard Phase 23 core dependencies are 2/3/5. P10/P12/P22 qualify affected consumer/safety seams and are not blanket core merge gates.",
+  "integrationCorrections": [
+    "Use actual Phase 2 Site/Locale/Currency and Phase 3 minimum-permission names instead of inherited Tenants/Sites labels.",
+    "Preserve jointly adopted P22 planning status; the source branch's untouched or retained future (needs PRD) row does not reverse that adoption.",
+    "Keep current-source original PR state separate from accepted planning and qualified implementation."
+  ],
+  "sources": [
+    {
+      "pr": 1340,
+      "head": "db7a5e519ee062d28d05f68e5f8aff707de6e209",
+      "priorHead": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/phase-23-web-studio-cms.md",
+      "sha256": "80d69f7ae89595880cce4117750fe1c9e88d064460081185c1f14272fcbe3b65",
+      "gitBlob": "ec2f4ada7a125adfe7a2a93caa5189d91cf5d370"
+    },
+    {
+      "pr": 1340,
+      "head": "db7a5e519ee062d28d05f68e5f8aff707de6e209",
+      "priorHead": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "d370b869ee5a7855ad0e9873ae720a57139263cfb7ed59abc88261ed221e1077",
+      "gitBlob": "ad5c2556cfffdefa1a3ab0cea07e8baff8828b58"
+    }
+  ],
+  "derivedUpdates": ["docs/prds/sitestacker-parity/phase-map.md"],
+  "provenanceRule": "This adds a newer immutable source capture. It does not relabel 9069dcad hashes or the initial reconciliation import generation."
+}

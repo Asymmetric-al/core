@@ -1,8 +1,21 @@
-import { DELIVERABILITY_HELP_URLS, RESEND_ERROR_CODES } from "../constants";
+import {
+  DELIVERABILITY_HELP_URLS,
+  HTTP_STATUS,
+  RESEND_ERROR_CODES,
+  RESEND_LIMITS,
+  RETRY_CONFIG,
+} from "../constants";
 import { getFirstBlockingDeliverabilityWarning } from "../deliverability-warnings";
-import { extractResendErrorDetails, mapResendErrorCode } from "./errors";
+import {
+  calculateResendRetryDelayMs,
+  extractResendErrorDetails,
+  extractRetryAfterSeconds,
+  mapResendErrorCode,
+  sleep,
+} from "./errors";
 import {
   asBoolean,
+  asIdString,
   asNumber,
   asString,
   extractRows,
@@ -161,6 +174,18 @@ function getVerifiedDomainNames(
         .map((domain) => normalizeDomainToken(domain.domain)),
     ),
   ];
+}
+
+function isSenderDomainVerified(
+  defaultFromEmail: string | undefined,
+  verifiedDomainNames: readonly string[],
+): boolean {
+  if (!defaultFromEmail) {
+    return false;
+  }
+
+  const senderDomain = getEmailDomain(defaultFromEmail);
+  return senderDomain != null && verifiedDomainNames.includes(senderDomain);
 }
 
 function getSenderDomainMismatchWarning(
@@ -354,26 +379,128 @@ export function parseResendValidationSnapshot(
 export function isResendValidationSendReady(
   snapshot: Pick<ResendValidationSnapshot, "domainAuthenticated" | "warnings">,
 ): boolean {
+  const domainsUnobservable = snapshot.warnings.some(
+    (warning) => warning.code === "RESTRICTED_API_KEY",
+  );
   return (
-    snapshot.domainAuthenticated &&
+    (snapshot.domainAuthenticated || domainsUnobservable) &&
     !getFirstBlockingDeliverabilityWarning(snapshot.warnings)
   );
+}
+
+function listHasMore(payload: unknown): boolean {
+  return isJsonRecord(payload) && asBoolean(payload.has_more) === true;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(concurrency, items.length);
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < items.length) {
+        const current = nextIndex;
+        nextIndex += 1;
+        results[current] = await mapper(items[current]!);
+      }
+    }),
+  );
+
+  return results;
+}
+
+async function listAllDomainPages(resend: Resend): Promise<{
+  error: unknown;
+  rows: JsonRecord[];
+  truncated: boolean;
+}> {
+  const rows: JsonRecord[] = [];
+  let after: string | undefined;
+
+  for (let page = 0; page < RESEND_LIMITS.maxDomainListPages; page++) {
+    const response = after
+      ? await resend.domains.list({ limit: 100, after })
+      : await resend.domains.list({ limit: 100 });
+
+    if (response.error) {
+      return { error: response.error, rows, truncated: false };
+    }
+
+    const pageRows = extractRows(response.data);
+    rows.push(...pageRows);
+
+    if (!listHasMore(response.data)) {
+      return { error: null, rows, truncated: false };
+    }
+
+    const lastId = asIdString(pageRows[pageRows.length - 1]?.id);
+    if (!lastId) {
+      return { error: null, rows, truncated: true };
+    }
+    after = lastId;
+  }
+
+  return { error: null, rows, truncated: true };
+}
+
+async function getDomainWithRetry(
+  resend: Resend,
+  domainId: string,
+): Promise<{ data: unknown; error: unknown; headers?: unknown }> {
+  let lastResponse: { data: unknown; error: unknown; headers?: unknown } = {
+    data: null,
+    error: { message: "Domain lookup failed" },
+  };
+
+  for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+    lastResponse = await resend.domains.get(domainId);
+    if (!lastResponse.error) {
+      return lastResponse;
+    }
+
+    const details = extractResendErrorDetails(lastResponse.error);
+    details.retryAfter ??= extractRetryAfterSeconds(lastResponse.headers);
+    const retryable =
+      details.name === "rate_limit_exceeded" ||
+      details.statusCode === HTTP_STATUS.TOO_MANY_REQUESTS;
+    if (!retryable || attempt === RETRY_CONFIG.maxRetries) {
+      return lastResponse;
+    }
+
+    await sleep(calculateResendRetryDelayMs(attempt, details.retryAfter));
+  }
+
+  return lastResponse;
 }
 
 async function enrichDomainRowsWithDetails(
   resend: Resend,
   domainRows: JsonRecord[],
-): Promise<JsonRecord[]> {
-  return Promise.all(
-    domainRows.map(async (domainRow) => {
-      const domainId = asString(domainRow.id);
+): Promise<{ rows: JsonRecord[]; incomplete: boolean }> {
+  let incomplete = false;
+
+  const rows = await mapWithConcurrency(
+    domainRows,
+    RESEND_LIMITS.defaultRequestsPerSecond,
+    async (domainRow) => {
+      const domainId = asIdString(domainRow.id);
       if (!domainId) {
         return domainRow;
       }
 
       try {
-        const domainResponse = await resend.domains.get(domainId);
+        const domainResponse = await getDomainWithRetry(resend, domainId);
         if (domainResponse.error || !isJsonRecord(domainResponse.data)) {
+          incomplete = true;
           return domainRow;
         }
 
@@ -382,10 +509,13 @@ async function enrichDomainRowsWithDetails(
           ...domainResponse.data,
         };
       } catch {
+        incomplete = true;
         return domainRow;
       }
-    }),
+    },
   );
+
+  return { rows, incomplete };
 }
 
 export async function validateResendApiKey(
@@ -413,21 +543,45 @@ export async function validateResendApiKey(
   let permissions: string[] | undefined;
 
   try {
-    const domainsResponse = await resend.domains.list({ limit: 100 });
-    if (domainsResponse.error) {
-      const details = extractResendErrorDetails(domainsResponse.error);
-      const code = mapResendErrorCode(details.name, details.statusCode);
-      return {
-        valid: false,
-        error: details.message,
-        errorCode: code,
-      };
+    const listedDomains = await listAllDomainPages(resend);
+    const restrictedListing =
+      listedDomains.error != null &&
+      extractResendErrorDetails(listedDomains.error).name ===
+        "restricted_api_key";
+    if (listedDomains.error) {
+      if (restrictedListing) {
+        warnings.push({
+          code: "RESTRICTED_API_KEY",
+          message:
+            "This API key cannot list domains. Sending can still work if the key has send permission and the default from-address domain is verified.",
+          severity: "warning",
+          helpUrl: DELIVERABILITY_HELP_URLS.API_KEY,
+        });
+      } else {
+        const details = extractResendErrorDetails(listedDomains.error);
+        const code = mapResendErrorCode(details.name, details.statusCode);
+        return {
+          valid: false,
+          error: details.message,
+          errorCode: code,
+        };
+      }
     }
 
-    const domainRows = await enrichDomainRowsWithDetails(
-      resend,
-      extractRows(domainsResponse.data),
-    );
+    const listedRows = listedDomains.error ? [] : listedDomains.rows;
+    const skipDomainCompletenessWarnings =
+      restrictedListing || listedDomains.truncated;
+    const { rows: domainRows, incomplete: domainDetailsIncomplete } =
+      await enrichDomainRowsWithDetails(resend, listedRows);
+    if (domainDetailsIncomplete) {
+      warnings.push({
+        code: "DOMAIN_DETAILS_INCOMPLETE",
+        message:
+          "Some domain authentication details could not be loaded. Domain status may be incomplete.",
+        severity: "warning",
+        helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
+      });
+    }
     const domainAuthentication = domainRows
       .map((domain, index) => mapDomainAuthentication(domain, index))
       .filter((domain): domain is DomainAuthentication => Boolean(domain));
@@ -440,7 +594,26 @@ export async function validateResendApiKey(
     );
     const verifiedDomainNames = getVerifiedDomainNames(domainAuthentication);
 
-    if (domainAuthentication.length === 0) {
+    if (listedDomains.truncated) {
+      warnings.push({
+        code: "DOMAIN_LIST_INCOMPLETE",
+        message:
+          "Domain listing stopped before Resend reported completion. Domain status may be incomplete.",
+        severity: isSenderDomainVerified(
+          options.defaultFromEmail,
+          verifiedDomainNames,
+        )
+          ? "warning"
+          : "error",
+        helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
+      });
+    }
+
+    if (
+      !skipDomainCompletenessWarnings &&
+      !listedDomains.error &&
+      domainAuthentication.length === 0
+    ) {
       warnings.push({
         code: "NO_DOMAINS",
         message:
@@ -448,7 +621,11 @@ export async function validateResendApiKey(
         severity: "warning",
         helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
       });
-    } else if (verifiedDomains.length === 0) {
+    } else if (
+      !skipDomainCompletenessWarnings &&
+      !listedDomains.error &&
+      verifiedDomains.length === 0
+    ) {
       warnings.push({
         code: "DOMAIN_NOT_VERIFIED",
         message:
@@ -458,12 +635,14 @@ export async function validateResendApiKey(
       });
     }
 
-    const senderDomainMismatchWarning = getSenderDomainMismatchWarning(
-      options.defaultFromEmail,
-      verifiedDomainNames,
-    );
-    if (senderDomainMismatchWarning) {
-      warnings.push(senderDomainMismatchWarning);
+    if (!skipDomainCompletenessWarnings) {
+      const senderDomainMismatchWarning = getSenderDomainMismatchWarning(
+        options.defaultFromEmail,
+        verifiedDomainNames,
+      );
+      if (senderDomainMismatchWarning) {
+        warnings.push(senderDomainMismatchWarning);
+      }
     }
 
     // Metadata scope lookup is optional. We do not infer permissions when this fails.

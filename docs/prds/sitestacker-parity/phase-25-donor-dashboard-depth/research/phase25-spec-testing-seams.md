@@ -1,0 +1,38 @@
+> Historical research record adopted for AL-1563. Scope and testing are ratified; earlier pending decisions and research-only workflow restrictions below preserve chronology. The [implementation specification](../../phase-25-donor-dashboard-depth.md) and its owner contracts are the implementation authority for this proposal. No historical synthetic/source check certifies target runtime behavior.
+
+# Phase 25 specification — testing-seam confirmation
+
+Status: proposed for the single confirmation required by `/to-spec`, 9 September 2026. The product scope remains Q01–Q29 plus accepted Q30 and final F01–F14 clarifications. This document selects proof boundaries; it is not the feature spec or an implementation change.
+
+## Recommendation
+
+Use **one primary acceptance surface: complete donor journeys through the real donor application and canonical APIs**, exercised in the existing Playwright harness. Extend existing owner-boundary tests only where a browser cannot prove the required guarantee. Do not introduce a new test framework, a second donor application, or one test stack per question.
+
+1. **Complete donor journeys — primary.** Use the repository's main Playwright configuration and existing desktop/mobile projects. Exercise actual route admission, source-backed reads and accepted commands against isolated test data; do not mock the canonical response being accepted as correct. Assert exact visible state, action availability, scope, navigation/Back/focus, current documents and eventual source result. Integrate axe, actual keyboard/focus and screen-reader/reflow checks; use existing navigation and Web Vitals patterns for the agreed performance requirements. Critical money/Auth paths do not qualify through demo-auth bypass. External provider doubles may make ordinary deterministic regression fast, but must be clearly labeled and cannot substitute for provider qualification.
+2. **Public API and domain-owner contracts — focused supporting proof.** Extend existing Vitest Request/Response and owner-command tests for authoritative outcomes, partial success, lost responses, retry identities, freezes/deadlines and out-of-order callbacks. Stub external boundaries deliberately, not the business rule under test. Assert externally meaningful response, persisted state, admitted side effects and no unauthorized effect. Avoid implementation-shaped private-helper/call-order tests when the same result is provable at the public contract. Financial clocks and race cases use deterministic controls rather than waiting days or relying on screenshots.
+3. **Actual PostgreSQL authorization, integrity and concurrency — supporting proof.** Reuse the disposable local migration infrastructure and apply the real relevant schema/migrations. Add executable role/claim-based SQL and public-command integration cases for Tenant/subject/field scope, grants, RLS old/new row checks, direct RPC/Storage paths where applicable, unique/foreign-key/check constraints, atomic failure and competing writers. Source-text migration assertions and fluent-client mocks are not RLS proof. Supabase compatibility bootstrap schema is not native Supabase Auth or hosted policy proof; qualify the matching real services where the boundary depends on them. No live tenant database or production money is used.
+4. **Provider and artifact qualification — narrow release proof at existing owners.** Exercise the exact supported Supabase native Auth endpoints/target configuration, payment account/mode/rail, signed email/provider hooks and canonical generated-document boundary in dedicated nonproduction environments with synthetic fixtures. Verify actual provider/artifact outcomes separately from presentation. G01's native linking guarantee remains an explicit unresolved prerequisite, not a callback-mock pass; other provider profiles and document purposes activate only on positive qualified evidence. The ordinary application suite remains deterministic. Missing credentials or prerequisites are reported as not qualified, not silently skipped green.
+
+These are one composed acceptance approach using existing framework and owner boundaries. The supporting checks establish different observable guarantees and cannot be collapsed into a browser screenshot or an invented all-purpose integration harness.
+
+## Concrete acceptance example
+
+Maria opens an exact represented recurring-gift link, signs in, returns to that same authorized subject, replaces only selected uses, recovers from a lost provider response, explicitly reviews removal separately, opens the correct document and changes only the applicable receipt-email preference. The browser proves the coherent journey. Owner tests prove one durable effect and truthful partial/unknown outcomes. Actual database tests prove no cross-Tenant/subject mutation or removal/new-use race. Provider qualification proves the real native operation and document result. A screenshot of “Success” proves none of those lower-boundary effects by itself.
+
+## Inspected prior art and its limits
+
+Source checkpoint: Core research worktree at `7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd`. Root AGENTS, CONTEXT/CONTEXT-MAP, mapped contribution context, platform boundaries/principles, relevant ADRs, OpenSpec conventions, tracker configuration, tests and package scripts were inspected.
+
+- Main `playwright.config.ts`, committed donor history/donation/session specs and testing rulebook supply the browser seam. The older donor-specific boneyard config is not the primary Phase25 harness.
+- Existing giving-history smoke accepts either live or unlinked UI. Donation smoke uses a demo session, stubs donation configuration and stops at the payment step. These are useful smoke patterns, not accepted Phase25 behavioral proof.
+- Existing donor portal auth/ownership Request/Response tests and Stripe webhook tests supply API prior art; they mock Auth/database/provider boundaries. Preserve their useful seam, not obsolete role checks or assumptions.
+- Existing migration verifier applies forward migrations to disposable local PostgreSQL. A successful migration run or text-based membership contract test does not prove deployed P12/RLS/native Auth behavior.
+- Existing accessibility and development smoke suites have narrower current coverage. Extend real donor task coverage rather than claiming current public/login checks already certify the new portal.
+
+Implementation follows repository TDD for substantive behavior. This documentation-only specification task uses structural validation, traceability coverage and live publication verification; it does not implement features or manufacture runtime test results.
+
+## Publication preparation
+
+The configured tracker is GitHub `Asymmetric-al/core`. Current title searches found no existing Phase25/donor-dashboard spec issue to update. Repository configuration maps the skill's `ready-for-agent` role to `status:ready`, with `type:feature` and `complexity:hard` for this broad specification. Use that configured mapping rather than inventing a parallel triage flow. The final spec must distinguish a fully specified activation gate from evidence that the integration has passed it.
+
+After testing-seam confirmation, synthesize the full specified behavior and owner amendments, validate story-to-decision/test traceability, reconcile the active OpenSpec planning convention, publish the complete specification through the configured tracker and verify the resulting live content and labels. Do not implement the feature, reopen settled product decisions or mark source/provider qualification complete without evidence.

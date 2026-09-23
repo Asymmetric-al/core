@@ -7,7 +7,7 @@
 **Issue:** #429
 
 **Builds on:** ADR-0018, ADR-0019, ADR-0020, ADR-0021, ADR-0022,
-ADR-0024, and ADR-0026
+ADR-0024, and [ADR-0062 — eve standalone runtime foundation](./0062-eve-standalone-runtime-foundation.md)
 
 ## Context
 

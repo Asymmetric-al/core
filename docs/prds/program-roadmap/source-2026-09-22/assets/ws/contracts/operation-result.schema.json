@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:asym:workflow:operation-result:v1",
+  "title": "Source operation result for Studio",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "operationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "fence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "state": {
+      "enum": [
+        "confirmed",
+        "suppressed",
+        "blocked",
+        "proven_not_applied",
+        "outcome_unknown"
+      ]
+    },
+    "sourceOutcomeRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "safeReasonCode": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.]{0,100}$"
+    },
+    "retrySafe": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "operationId",
+    "fence",
+    "state",
+    "safeReasonCode",
+    "retrySafe"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "outcome_unknown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "retrySafe": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "confirmed"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "sourceOutcomeRef"
+        ]
+      }
+    }
+  ]
+}

@@ -1,34 +1,32 @@
-# ADR-CD-030: Receipt delivery is proposed by requester and confirmed by approver
+# ADR-CD-030: Approval rechecks proposed receipt follow-up through its owners
 
-**Status:** Accepted (grill session 2026-05-29)
+**Status:** Accepted 2026-05-29; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Some receipt-affecting corrections require approval before they become effective. The staff member requesting the correction often knows the donor context and should be able to propose how to handle the updated receipt. The approver still needs final control over any donor-facing receipt action.
+Recording donor-care context does not give a requester issuance or sending authority.
 
 ## Decision
 
-For corrections that require approval, updated receipt delivery follows a simple proposal-and-confirmation model:
-
-1. **Requester proposes:** When submitting the correction request, the requester chooses the intended receipt delivery action: email, PDF, or defer with reason.
-2. **Approver confirms:** When approving the correction, the approver sees the proposed receipt delivery action and can confirm or change it before the correction becomes effective.
-3. **Approval applies both:** Once approved, the correction and confirmed receipt delivery action are processed through the same contribution operations result.
-
-Modern practice requirements:
-
-- The proposal must show whether email is available based on donor email address and donor email preference.
-- If email is unavailable or disallowed, the UI should guide the requester and approver toward PDF generation.
-- Any approver change to the proposed delivery action must be audited with before/after values and reason when required.
-- Rejection does not send or generate the updated receipt; it records the proposed delivery action only as request context.
-- The operation result clearly distinguishes the requested delivery action from the confirmed delivery action.
+- Store the exact proposed follow-up as non-executing correction-request
+  context, not an artifact or message intent.
+- On decision, recheck Phase 12/13 approval and Phase 7/18 purpose, source,
+  artifact and recipient access. Changed choices are explicit and audited.
+- Approval invokes only the admitted owner command. Artifact readiness and
+  Phase 17/6 preparation/delivery remain separate results and repair paths.
+- Rejection never issues, generates or sends; it preserves protected proposal
+  context and follows the rejection/follow-up contract.
+- Pending provider effects reconcile their existing identity, not another send
+  or issuance on repeated approval.
 
 ## Consequences
 
-- Requesters can capture donor-care context while the approver remains the final gate for donor-facing receipt delivery.
-- Receipt delivery does not need a separate approval workflow.
-- Approved corrections stay one workflow: approve correction, apply adjustment, and run the confirmed receipt outcome.
+One contextual flow may show multiple honest owner states; it must not collapse approval, money, PDF and email into one success flag or retry the whole bundle.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Requester-only delivery decision:** Too much authority for donor-facing receipt action when the correction itself requires approval.
-- **Approver-only delivery decision:** Loses context captured by the staff member making the correction.
+The [original 2026-05-29 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0030-receipt-delivery-proposal-confirmation.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

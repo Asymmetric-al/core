@@ -1,0 +1,429 @@
+[
+  {
+    "id": "1.1",
+    "title": "Reconcile the corrected baseline and exact owner amendments",
+    "owner": "Architecture/Web Studio owner",
+    "dependencies": [],
+    "deliverable": "Record HA-A1–HA-A4 with preserved D1–D36 semantics, a verified issue overlap map and current evidence. No feature code or invented ratification.",
+    "proof": "Changed-doc consistency and dependency review; required amendments accepted before implementation.",
+    "requirements": [
+      "HW-001",
+      "HW-002"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "1.2",
+    "title": "Qualify the engine/editor/toolchain cohort",
+    "owner": "CMS adapter maintainer",
+    "dependencies": [
+      "1.1"
+    ],
+    "deliverable": "One exact supported Payload-major-compatible cohort and Puck candidate evaluated; no forced peers or dependency channel mixing.",
+    "proof": "Real startup, forms, transactions, auth, preview, version restore and migration proof under Q01.",
+    "requirements": [
+      "HW-003"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "1.3",
+    "title": "Prove the authoritative actor/service and physical transaction boundary",
+    "owner": "API/Auth/CMS adapter owners",
+    "dependencies": [
+      "1.2"
+    ],
+    "deliverable": "One save tracer commits content/revision/lease/receipt together; exact server context and no raw provider path.",
+    "proof": "Red-green tests plus real Postgres grants/RLS, rollback injection, same-user tab and lost-response proof (Q02).",
+    "requirements": [
+      "HW-004",
+      "HW-039",
+      "HW-040",
+      "HW-041"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "2.1",
+    "title": "Extract the canonical semantic contract without changing existing content meaning",
+    "owner": "Catalog owner",
+    "dependencies": [
+      "1.1"
+    ],
+    "deliverable": "One code-owned catalog adapter for current semantic types, identities and explicit versions.",
+    "proof": "Existing valid fixtures remain equivalent; unknown type/version rejects without omission.",
+    "requirements": [
+      "HW-005"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "2.2",
+    "title": "Implement the bounded v2 composition grammar and reversible canvas projection",
+    "owner": "Catalog/composer owner",
+    "dependencies": [
+      "1.2",
+      "2.1"
+    ],
+    "deliverable": "Exact approved Page grammar; v1/Article unchanged; one lossless projection for the actual pinned adapter.",
+    "proof": "Positive/boundary/malicious grammar tests and actual Puck canonical round-trip, not only the reference validator.",
+    "requirements": [
+      "HW-006",
+      "HW-007"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "2.3",
+    "title": "Ship the presentation SDK and registered editor/public bindings",
+    "owner": "Presentation SDK maintainer",
+    "dependencies": [
+      "2.1"
+    ],
+    "deliverable": "Pure versioned public types, safe capabilities, declarative controls and separate client/public entrypoints.",
+    "proof": "Type/import graph, binding visibility, SSR/no-JS/hydration and representative local setup tests.",
+    "requirements": [
+      "HW-008",
+      "HW-028"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "2.4",
+    "title": "Establish compatibility fixtures and the standard rendering path",
+    "owner": "Catalog/public runtime owners",
+    "dependencies": [
+      "2.2",
+      "2.3"
+    ],
+    "deliverable": "Standard renderers and historical/locale/reduced-motion/failure fixtures for all admitted semantic and layout profiles.",
+    "proof": "No silent drop across versions; explicit fallback and incompatible-state proof.",
+    "requirements": [
+      "HW-009"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "3.1",
+    "title": "Deliver acknowledged editorial saving and fenced recovery",
+    "owner": "CMS/editor owners",
+    "dependencies": [
+      "1.3",
+      "2.1"
+    ],
+    "deliverable": "Asym form projection uses D12 receipts, serialized autosave, incomplete drafts, compare and restore-as-draft.",
+    "proof": "Strict real-stack edit/save/retry/takeover/revocation tracer; separate axes do not mutate one another.",
+    "requirements": [
+      "HW-010",
+      "HW-011",
+      "HW-012"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "3.2",
+    "title": "Deliver the visual composer and equivalent non-drag controls",
+    "owner": "Shared UI/composer owner",
+    "dependencies": [
+      "2.2",
+      "2.4",
+      "3.1"
+    ],
+    "deliverable": "Base Maia outline/canvas/inspector with insertion, move, duplicate, remove and finite controls.",
+    "proof": "Real tasks with keyboard/pointer/touch, focus/announcements, screen reader and narrow reflow.",
+    "requirements": [
+      "HW-013"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "3.3",
+    "title": "Integrate the isolated composer and click-to-edit preview bridge",
+    "owner": "Security/composer/public runtime owners",
+    "dependencies": [
+      "2.3",
+      "3.1"
+    ],
+    "deliverable": "Whole composer on approved isolated origin with minimal projection, validated bridge and editor-only source mappings.",
+    "proof": "Cross-origin attack/replay tests, supported-browser auth/cookie behavior and current content selection.",
+    "requirements": [
+      "HW-014",
+      "HW-015"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "3.4",
+    "title": "Connect qualified media and canonical links/capabilities",
+    "owner": "CMS/media/public capability owners",
+    "dependencies": [
+      "3.1",
+      "3.3"
+    ],
+    "deliverable": "Pickers and render bindings reference owner-approved media and link identities; no copied operational records.",
+    "proof": "Revocation/expiry races, alt/crop/localization and side-effect-dark Give/form preview.",
+    "requirements": [
+      "HW-016"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "3.5",
+    "title": "Connect root reuse and exact-locale editing",
+    "owner": "CMS/reuse/locale owners",
+    "dependencies": [
+      "3.1",
+      "3.2"
+    ],
+    "deliverable": "Existing owner operations exposed through visual UI with exact scopes and explicit impact.",
+    "proof": "Reference depth/scope denial, copy independence, missing-locale no-fallback and source-change preservation.",
+    "requirements": [
+      "HW-017",
+      "HW-018"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "3.6",
+    "title": "Connect Page variants and separately governed Site appearance",
+    "owner": "Site/appearance/composer owners",
+    "dependencies": [
+      "3.2",
+      "2.3"
+    ],
+    "deliverable": "Finite instance settings and separate appearance work; no hidden brand, navigation or route writes.",
+    "proof": "Per-instance/Site-axis isolation and actual affected-scope review.",
+    "requirements": [
+      "HW-019"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "4.1",
+    "title": "Connect and manage the ministry-owned source repository",
+    "owner": "Platform integration owner",
+    "dependencies": [
+      "1.3"
+    ],
+    "deliverable": "Selected-repository GitHub App consent, durable scope/identity/epoch and deliberate disconnect/rebind UX.",
+    "proof": "Forged callback, replay, unrelated repository, rename/transfer/removal and source-independent CMS behavior.",
+    "requirements": [
+      "HW-021",
+      "HW-022",
+      "HW-042"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "4.2",
+    "title": "Ingest exact source from durable authenticated events",
+    "owner": "Integration/build owner",
+    "dependencies": [
+      "4.1"
+    ],
+    "deliverable": "Raw webhook verification, durable event/dispatch receipt, bounded source capture and credential stripping.",
+    "proof": "Missed/duplicate/out-of-order events, symlink/archive abuse, submodule/LFS policy and reconnect fences.",
+    "requirements": [
+      "HW-023",
+      "HW-024"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "4.3",
+    "title": "Ship a professional developer starter and handoff guide",
+    "owner": "SDK/developer experience owner",
+    "dependencies": [
+      "2.3",
+      "2.4"
+    ],
+    "deliverable": "Conventional project, local commands, safe fixtures, optional external-agent guide and clear source rights.",
+    "proof": "Fresh clone in clean supported environment without internal Core source, hosted AI or proprietary IDE.",
+    "requirements": [
+      "HW-020",
+      "HW-025",
+      "HW-046"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "4.4",
+    "title": "Run clean isolated builds with bounded supervision",
+    "owner": "Build/runtime owner",
+    "dependencies": [
+      "4.2",
+      "4.3"
+    ],
+    "deliverable": "Frozen toolchain/dependency execution, claim fencing, independent evidence collection and truthful cancellation.",
+    "proof": "Hostile scripts/egress, poisoned cache, interrupted and duplicated execution, resource ceilings.",
+    "requirements": [
+      "HW-026"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "4.5",
+    "title": "Attach independent admission to the existing package owner",
+    "owner": "Presentation qualification owner",
+    "dependencies": [
+      "4.4",
+      "2.4"
+    ],
+    "deliverable": "Extend existing #1365 responsibilities with exact source origin and hybrid binding evidence; no duplicate certifier.",
+    "proof": "Customer-controlled false green cannot admit; exact artifact and maintainer/license/compatibility evidence required.",
+    "requirements": [
+      "HW-027"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "5.1",
+    "title": "Prepare exact private working and whole-site review previews",
+    "owner": "D25/public runtime owner",
+    "dependencies": [
+      "3.3",
+      "3.4",
+      "2.4"
+    ],
+    "deliverable": "Distinguish fast working canvas from complete sealed candidate; actual-content review reauthorized per request.",
+    "proof": "Later private edits stay excluded; partial candidate cannot browse; unknown routes do not fall through to Live.",
+    "requirements": [
+      "HW-029",
+      "HW-030"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "5.2",
+    "title": "Make admitted renderers available through a versioned managed runtime registry",
+    "owner": "Public runtime/release owner",
+    "dependencies": [
+      "4.5"
+    ],
+    "deliverable": "Controlled code release installs exact admitted artifacts and retains required old versions.",
+    "proof": "No auto activation, remote module or private runtime import; mixed-version readiness is explicit.",
+    "requirements": [
+      "HW-031"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "5.3",
+    "title": "Join editorial and complete-cohort design activation to existing owners",
+    "owner": "D1/D10 release owners",
+    "dependencies": [
+      "5.1",
+      "5.2",
+      "3.5",
+      "3.6"
+    ],
+    "deliverable": "Reuse #1350/#1366/#1367 responsibilities; exact head and cohort fences, receipts, restore successor.",
+    "proof": "All-or-none real Postgres races, preserved unrelated content, failed activation byte-stability and current-safety restore.",
+    "requirements": [
+      "HW-032",
+      "HW-033",
+      "HW-034"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "5.4",
+    "title": "Expose existing exact publication appointments and shared execution",
+    "owner": "D13/workflow execution owners",
+    "dependencies": [
+      "3.1",
+      "5.1"
+    ],
+    "deliverable": "Schedule UI over exact owner operation, time-zone disambiguation, horizon handoff and shared overdue recovery.",
+    "proof": "No-before execution, duplicate event beyond provider dedupe, cancel/execute race and organization authorization semantics.",
+    "requirements": [
+      "HW-035",
+      "HW-036"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "5.5",
+    "title": "Wire release convergence and immediate adverse containment",
+    "owner": "Public projection/safety owners",
+    "dependencies": [
+      "5.3"
+    ],
+    "deliverable": "Identifier-only outbox to existing projections; current adverse eligibility before rendering.",
+    "proof": "Delayed old favorable events cannot restore withdrawn content; projection failure never invents publication.",
+    "requirements": [
+      "HW-037"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "6.1",
+    "title": "Deliver cause-owned operations, bounded capacity and artifact retention",
+    "owner": "Runtime/integration/custody owners",
+    "dependencies": [
+      "4.4",
+      "5.1"
+    ],
+    "deliverable": "Receipt lookup, bounded retry/claim supervision, safe diagnostics, reference-aware cleanup and documented controls.",
+    "proof": "Unknown external outcomes, fairness/load, expired previews and incomplete-use no-purge proof.",
+    "requirements": [
+      "HW-038",
+      "HW-044",
+      "HW-045"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "6.2",
+    "title": "Prove migration, upgrade and one-authority cutover",
+    "owner": "CMS/database/catalog owners",
+    "dependencies": [
+      "1.3",
+      "2.4",
+      "5.3"
+    ],
+    "deliverable": "No-write census/plan, exact schema/content successors, expand-contract and legacy retirement.",
+    "proof": "Old/new code/schema matrix, editor race, interrupted backfill, restoration and no competing writer.",
+    "requirements": [
+      "HW-043"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "6.3",
+    "title": "Prove visual/developer handoff with representative staff",
+    "owner": "Product/UX/SDK owner",
+    "dependencies": [
+      "3.2",
+      "3.4",
+      "3.5",
+      "3.6",
+      "4.3",
+      "5.3"
+    ],
+    "deliverable": "Staff complete named tasks after real custom redesign; maintainer replacement and export explanation tested.",
+    "proof": "Moderated actual target-user tasks; synthetic demos alone cannot qualify experience.",
+    "requirements": [
+      "HW-047"
+    ],
+    "status": "not-started"
+  },
+  {
+    "id": "6.4",
+    "title": "Complete end-to-end, capacity and release admission evidence",
+    "owner": "Release owner",
+    "dependencies": [
+      "5.4",
+      "5.5",
+      "6.1",
+      "6.2",
+      "6.3"
+    ],
+    "deliverable": "Cross-journey evidence maps every HW requirement and scenario to exact versioned results and owner.",
+    "proof": "Run applicable Core gates and strict real-stack/security/a11y/capacity tests; activate only proved profiles.",
+    "requirements": [
+      "HW-048"
+    ],
+    "status": "not-started"
+  }
+]

@@ -1,5 +1,17 @@
 # Phase 3 — Minimum Permission & Role-Scoped Projection Foundation
 
+**Current context amendment — 2026-09-23.** The accepted Phase 12
+D12/D14 and ship-first context rules govern the current authorization target:
+capabilities are evaluated inside one server-validated Tenant Authorization
+Context, never by joining a person’s unrelated active memberships. This
+reconciles the earlier multi-hat shorthand with the
+[owning Phase 12 contract](./phase-12-full-role-permission-configuration.md#b-principals-the-tenant-axis-and-revocation-d12d14--the-ship-first-amendments)
+and its [September 21 integrated source](https://github.com/Asymmetric-al/core/blob/a54f236a26bd4b0749c724173966738461ed340b/docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md).
+The Phase 3 code-registry/read-only UI foundation and capability-table deferral
+remain its early delivery scope; this correction adds no backward dependency
+on completion of the Phase 12 product and invents no private-participant
+admission model.
+
 **Program:** SiteStacker Parity · **Phase:** 3 · **Status:** Groomed; tracked by epic #489 + children
 
 > Buildable synthesis of the Phase 3 grill (decisions D1–D12) plus a nonprofit-CRM/CMS best-practice validation and a gap-check verified against the live schema on this branch. Grounded in the repo as of drafting; **specific file/line references may drift** — treat them as pointers, not contracts. New canonical terms are reconciled in **Glossary & OpenSpec** below and must be added to the repo-root `CONTEXT.md`.
@@ -55,7 +67,7 @@ Build the **full conceptual projection model now, integrated with the systems th
 
 1. **`field_policies`** — one field-only static lookup keyed `(record_type, field_key, surface, tenant_id)` → `{visible, editable, exportable, sensitivity_category}`. Fail-closed: no row ⇒ invisible/non-exportable outside Mission Control.
 2. **A surface-generic, subtract-only projection resolver** — the single read/write chokepoint. Effective access = `field_policies ∩ tenant boundary ∩ Legal Entity scope ∩ row-scope ∩ record-flags ∩ record-state`. It can only ever _remove_ access, never grant it. All conditional/row logic (Legal Entity, ownership, gift anonymity, relationship-scope, record-state, consent) lives here, **never** in `field_policies`.
-3. **A code-source-of-truth capability registry** — generalizes the existing contributions-only capability pattern; effective capability = union across a user's active memberships (multi-hat). Capability _tables_ are deferred (D12); code is the sole authority and Mission Control renders it read-only.
+3. **A code-source-of-truth capability registry** — generalizes the existing contributions-only capability pattern. Aggregate only the applicable grant sources inside one current, server-validated Tenant Authorization Context, then apply the subtract-only floors. For a membership-backed human, that context selects one active Tenant assignment; another staff/donor/missionary hat is not an additional source of authority for the request. Phase 12 defines the public-only, single-Tenant NHI and audited operator variants. Capability _tables_ remain deferred from Phase 3’s early registry generation to Phase 12; code remains authoritative and the Phase 3 UI renders the registry read-only.
 4. **One unified export-governance layer** — a single policy source + shared `csvSafeCell` + one consent gate + identifiers-only audit, governing CSV, receipts, and email now, with Mailchimp as a fully-specified contract.
 5. **A change-controlled Mission Control permissions UI** — three routes where **widening a projection is a maker-checker reviewed event** (reusing the existing contribution correction-approval engine) and **narrowing is immediate** (fail-safe direction).
 
@@ -93,7 +105,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 - **A2 — Single projection chokepoint.** Every narrow-surface read/write and every governed export flows through one resolver in `packages/api`. Surfaces stop hand-rolling `SELECT`s. Enforced by a lint that bans direct `.from('<sensitive-table>').select()` outside the resolver module (a callsite/import check — **not** column-string static analysis, which is deferred).
 - **A3 — `field_policies` is a field-only static lookup, never a rules engine.** No conditions, no dotted-path evaluation, no per-value provenance. → **ADR-A**.
 - **A4 — The resolver is the only home for conditional/row logic and it only subtracts.** Tenant boundary, Legal Entity scope, ownership, gift anonymity, relationship-scope, record-state, member-care author-only, and consent live here as composing predicates. `effective = field_policies ∩ tenant_boundary ∩ legal_entity_scope ∩ row_scope ∩ record_flags ∩ record_state`; the resolver never grants. Legal Entity is evaluated only for entity-bearing records, never inferred from Site, designation, processor account, or a mutable tenant default.
-- **A5 — Capabilities are code source-of-truth; capability tables deferred (D12).** One exhaustive typed registry (`capability → meta`, `role/subrole → capability[]`), effective = union across active memberships, with a dormant `tenantOverrides` param so per-tenant grants are additive later. `/minimum` renders the code map read-only. → **ADR-B**.
+- **A5 — Capabilities are code source-of-truth; capability tables deferred (Phase 3 D12).** One exhaustive typed registry (`capability → meta`, `role/subrole → capability[]`) supplies the early read-only foundation. Resolution uses one validated Tenant Authorization Context, as specified by the later Phase 12 owner: a membership-backed request aggregates only grant sources applicable to its selected active assignment, never all memberships held by the same person. Public, NHI and operator contexts retain their distinct source restrictions. The dormant `tenantOverrides` seam does not merge hats or widen a floor. `/minimum` renders the code map read-only; Phase 12 later owns generated capability tables and its grant product. → **ADR-B** (early registry rationale retained).
 - **A6 — Export is governed through one policy source; `exportable` is authoritative, serializers are consumers.** Any egress emits a field only if `exportable = true` and its category is allowed for the channel; `internal`/`care`/`security` never leave externally; payment identifiers are never bulk-exported. → **ADR-D**.
 - **A7 — Audit is identifiers-only with a typed payload and a system-actor path.** Field **keys**, not values; a nullable actor for transactional/system events. This is an _enforced_ property of the logging helper, not an assumed database protection (see Data model note on `audit_logs`).
 - **A8 — Widening is a maker-checker reviewed event; narrowing is immediate.** The fail-safe asymmetry, enforced systemically (server-side classification + distinct-human approval), not by UI copy. → **ADR-C**.
@@ -146,7 +158,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 
 **Module 3 — Surface-generic projection resolver** _(the subtract-only core)_
 
-- Responsibility: the single chokepoint. Given `(surface, recordType, row, auth, policies, scope?)`, return only policy-visible fields, then subtract via row-scope/record-flags/record-state. Never adds a field absent from `field_policies`. Every derived/projection output column must declare a category; absent ⇒ `internal`.
+- Responsibility: the single chokepoint. Given `(surface, recordType, row, auth, policies, scope?)`, consume `auth` from one current, server-validated Tenant Authorization Context, return only policy-visible fields, then subtract via row-scope/record-flags/record-state. A list of loaded memberships is discovery input, not an authorization union. The Phase 12 owner defines the context variants and verification/fire-time rules; do not introduce another resolver or a fallback actor. Never add a field absent from `field_policies`. Every derived/projection output column must declare a category; absent ⇒ `internal`.
 - Interface:
   ```ts
   interface RowScope {
@@ -197,7 +209,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
   }): Promise<{
     allowed: boolean;
     reason: "ok" | "do_not_email" | "do_not_contact" | "suppressed";
-  }>; // self ⇒ always allowed
+  }>; // self-service access is not contact; current PDP/source access still applies
   function emitGovernedCsv<Row>(input: {
     surface;
     recordType;
@@ -211,9 +223,14 @@ The governing principle throughout is **least privilege / need-to-know**: restri
     rowCount: number;
   }>;
   ```
-- Enforce-now: CSV, receipt (text), `sendEmail()`. Contract-only: Mailchimp and
-  receipt-PDF generation. The historical “future `notification_queue` worker”
-  idea is superseded by the dated Phase 17 amendment below and must not be built.
+- Foundation enforcement covers governed CSV/JSON and the shared projection/
+  consent boundary. Communications consume Phase 17 preparation and Phase 6
+  sole dispatch; official receipt/statement output consumes Phase 7 facts and
+  Phase 18 admitted artifacts. The original text-receipt, direct-send and ad hoc
+  receipt-PDF paths are superseded targets. Their dependent official output
+  remains unavailable until exact owner qualification; unrelated foundation
+  work does not wait for the whole later phases. Mailchimp retains its later
+  governed contract. No historical `notification_queue` worker is created.
 - Prior art: `crm/reports/export.ts` (already audited via `audit.log('crm_export_created')`); the three live-vulnerable serializers to converge.
 
 **Module 5 — `field_policy_change_requests` + `widen()` classifier + Mission Control change-control** _(the largest work item)_
@@ -266,10 +283,10 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 
 - **Read chokepoint** — `resolveProjection` is the required path for donor-portal (promote `DONOR_SELECT`), missionary-portal (promote `DONOR_RELATIONSHIP_SELECT`), and export. **Promotion-parity guard (must-fix):** seed policies so each promoted surface's post-resolver field set **equals its current hardcoded `SELECT`** (minus deliberately-narrowed fields, listed explicitly), asserted by a golden-snapshot test in CI **before** enforcement is enabled — the analog of Phase 2's lossless-backfill rule, so fail-closed promotion can't silently regress a live portal.
 - **Write chokepoint (D6)** — `assertEditableForSurface` wraps the donor/missionary **mutation entrypoints** (portal profile/preference update handlers — enumerated in the ticket) so a write to a field not editable-for-that-surface is rejected (the tamper-symmetric twin of the read chokepoint). Sensitive-category edits capture a reason (reusable component); reason-capture is generic, blocking _approval_ stays domain-specific (corrections).
-- **Export governance** — `resolvePolicy` + `csvSafeCell` + consent + audit across CSV/receipt/`sendEmail()` now; Mailchimp and receipt-PDF remain contracts (the Mailchimp contract includes the inbound `unsubscribed|cleaned → do_not_email` writer). The historical `notification_queue` carries no worker or transport contract: implementation must classify/migrate and retire it, or retain it only after proving the one bounded non-transport owner required below. The CRM CSV serializer's columns are driven by the resolved exportable projection.
+- **Export governance** — `resolvePolicy` + the one shared `csvSafeCell` + current consent + audit govern CSV/JSON and the common egress boundary. Phase 17/6 communication and Phase 7/18 official documents consume that boundary through their exact qualified contracts, never a parallel direct sender or prototype text/PDF renderer. Mailchimp retains its governed inbound suppression contract. The historical `notification_queue` carries no worker or transport contract: implementation must classify/migrate and retire it, or retain it only after proving the one bounded non-transport owner required below. The CRM CSV serializer's columns are driven by the resolved exportable projection.
 - **Change-control flow** — reason → server-computed diff-preview (`widen()` + blast-radius rollup) → direction branch → approval-on-widening (distinct human at profile-id level) → base-fingerprint recheck → apply → audit → rollback-as-inverse-edit.
 - **Baseline guard** — a dedicated `assertCanEditBaselinePolicy` (explicit super-admin check; **rejects `tenant_id NULL` writes routed through the tenant-scoped `requireCrmAccess` path**, which `??`-falls-back and would otherwise pass for any staff).
-- **Meta-capabilities** — `permissions.view` / `permissions.propose_widening` / `permissions.approve_widening` on the **contribution capability resolver** (graduated so propose ≠ approve), not the flat staff-capability union.
+- **Meta-capabilities** — `permissions.view` / `permissions.propose_widening` / `permissions.approve_widening` resolve through the **one shared PDP** under the selected validated context (graduated so propose ≠ approve). The historical contribution resolver and flat staff-capability union are not alternate authorities.
 - **Anti-drift CI** — extend `verify:data-boundary` with the callsite lint (A2); the client DataTable CSV export **throws on any governed/sensitive column**.
 - **Surface-exposure lattice (ruling).** `mission_control` (least exposed) `<` `donor` ≈ `missionary` (peers, **incomparable**) `<` `public` (most exposed); `export` is governed by the separate stricter `exportable` flag. Moving a field between two incomparable surfaces (e.g. donor→missionary) is a **widen** (fail-closed). Any surface pair not comparable in the lattice ⇒ `widen`.
 - **Anonymity (ruling).** Mask donor identity on `missionary` + `public`; **retain** for finance/admin/receipt/audit. The resolver masks only from an explicit, purpose-scoped gift-anonymity fact. Every accepted online guest gift resolves or creates its known Party/legal donor before the contribution is accepted; guest giving is never a null-donor shortcut. A null donor is valid only for the explicit `unknown_offline` source-intent case (for example, anonymous cash or an unmarked offering), which remains non-receiptable until source-owned identity evidence is later supplied. Grounded in the AFP Donor Bill of Rights (not the retracted `CONTEXT.md` citation — see Further Notes).
@@ -293,7 +310,7 @@ A good test here exercises **external behavior through each module's stable inte
 - **Export governance** — `csvSafeCell` neutralizes leading `=`/`+`/`-`/`@`/TAB/CR/LF then RFC-4180-quotes (fixtures for all three serializers incl. the donor-**name** label column and the Phase-2 `source_code` debt), emits CRLF + BOM; `emitGovernedCsv` emits only `exportable=true` fields and drops `internal`/`care`/`security` + payment identifiers; the rewired serializer's columns equal the `exportable` projection (proves the two sources can't disagree); audited `rowCount` == rows emitted; JSON export obeys the same field set (format-agnostic); merge-tag render can't inject other-party/internal fields.
 - **Consent gate** — staff/system email/CSV to a `do_not_email`/`do_not_contact`/suppressed donor is blocked fail-closed; a donor's self-service access to their own receipt is not blocked.
 - **Maker-checker** — narrow/neutral publishes immediately + audited; widen writes pending and the resolver keeps serving the old policy until approval; requester can't approve own request (survives multi-hat at profile-id level); base-fingerprint recheck rejects when the live row moved; concurrent decide → 409; confused-deputy allowlist rejects widening a financial/care/security field to an external surface; baseline row editable only by super-admin.
-- **Capabilities** — effective = union across memberships; propose ≠ approve (four-eyes can't collapse); dormant `tenantOverrides` yields platform defaults unchanged.
+- **Capabilities** — changing or adding an unrelated active membership cannot change a request’s authority under its selected validated assignment; test same-user multiple hats, wrong-Tenant assignments and explicit authorized context switching. Aggregate only applicable grant sources inside that context before the floors. Under the Phase 12 integration contract, public-only contexts cannot acquire internal grants, NHI authority shrinks with the current human-owner ceiling, and operator authority stays bound to its exact audited grant. Deferred member work re-resolves the selected assignment; service/operator work re-resolves its own source context, never a fabricated member assignment. Propose ≠ approve (the same human cannot satisfy a distinct-human check by switching hats); dormant `tenantOverrides` yields the selected context’s platform defaults unchanged.
 - **Audit envelope** — sensitive edits/exports/consent-suppressed-sends/denied-sensitive-access and policy propose/approve/reject/publish/rollback write identifiers-only details; `care`+`security` reads audited, others not; the system-actor path writes a row with `user_id NULL`.
 - **Boundary CI** — the callsite lint forbids raw sensitive-table `SELECT` outside the resolver; the client DataTable CSV export throws on governed columns.
 
@@ -357,7 +374,7 @@ Ticket shape (filed via `/to-issues`):
 1. `field_policies` table + column census/seed + fail-closed default.
 2. Surface-generic resolver + promote both portal `SELECT`s + **promotion-parity golden snapshot** + extend `verify:data-boundary` chokepoint lint + client-DataTable-export gate.
 3. Code-only capabilities registry + 3 meta-caps + `/minimum` read view.
-4. Unified export-governance + rewire CRM CSV serializer to policy + consent gate on `sendEmail()` + receipt + merge-tag surface gate (consumes the P0 `csvSafeCell`).
+4. Unified export governance + rewire CRM CSV serializer to policy + canonical consent boundary and typed Phase 17 message / Phase 18 document-field projection (consumes the one shared `csvSafeCell`; later source output activates only under its exact owner qualification).
 5. Narrow-surface write chokepoint + enumerated mutation entrypoints + reason-capture component (D6).
 6. `field_policy_change_requests` + `widen()` classifier + surface-exposure lattice + `/projections` change-control UI + baseline guard.
 7. `/audit` read-only viewer + `logPolicyChange` + typed identifiers-only audit payload + system-actor path.
@@ -784,3 +801,209 @@ representation and provenance. The package compiler consumes only allow-listed
 owner projections and never performs a generic table dump. An owner-domain
 reference cannot be expanded through Phase 21 authority. Package staging and
 delivery remain Phase 29 execution behind this governed projection contract.
+
+## Dated Phase 22 D13 public-discovery projection amendment (2026-08-06)
+
+Phase 3 registers D13 Discovery Profile Versions, immutable Public Ministry
+Directory Projection generations and current heads, complete membership
+coverage, bounded public card/query results, and private cause-owned diagnostics
+as distinct projection families. The subtract-only Phase 3 field floor and
+current Phase 10 public ceiling apply before membership, indexing, search,
+filters, counts, ordering, pagination, cursor issuance, cache fill, logs,
+metrics, or diagnostics. Denied and absent pages leave no result, count, facet,
+cursor, timing, error-shape, or Realtime shadow.
+
+Anonymous visitors may receive only the narrow D13 server result for the trusted
+Site and exact locale. They never query raw CMS, Party, `public.locations`,
+profile/projection, or operational tables and never subscribe to raw database
+Realtime. Client-supplied Tenant, Site, locale, Page Family, public ID, query,
+filter, cursor, or cache state cannot establish scope or widen the server-owned
+family constraint. Staff diagnostics separately require current Phase 12
+purpose authorization and expose only the minimum source-owned exclusion cause.
+
+## Dated Phase 22 D14 search-and-sharing projection amendment (2026-08-06)
+
+Phase 3 registers the D14 Public Search & Sharing Presentation Manifest, Search
+Presentation result, Share Presentation result, stable public Ministry Update
+permalink presentation/posture, compiler generation, complete coverage proof,
+local readiness evidence, external-effect intent, and external-outcome
+observation as distinct record and projection families. D8 Public Page Route
+Effect Manifests remain a separate route-consequence family that may reference
+D14 artifacts; neither family is a release head.
+
+Anonymous callers receive only the code-compiled exact public HTML/head,
+crawler, sitemap, card, asset, and share outputs admitted for the current D2
+reach and Phase 10 ceiling. They never enumerate or query raw manifest,
+projection, CMS, CRM, Storage, provider-operation, profile, diagnostic, or
+observation tables and never subscribe to raw Realtime. Every positive result
+and cache identity structurally includes Tenant, Legal Entity, environment,
+Site, verified host, locale, content identity, presentation/feed, release,
+reach, route/effect, media, audience/placement, safety/containment, compiler,
+renderer, and complete coverage generations.
+
+Phase 3's subtract-only field floor and Phase 10 egress filtering apply
+independently before visible body, head metadata, canonical/alternate links,
+JSON-LD, sitemap/IndexNow fields, card media/alt, share payloads, logs, metrics,
+errors, and accessibility output. Negative tests must prove wrong-scope denial,
+no raw-table/Realtime path, full reach/placement matrices, no cross-Site or
+unsafe-locale fallback, no stale-generation resurrection, and affected-positive-
+first removal with append-only recovery.
+
+## Dated Phase 22 D15 measurement-projection amendment (2026-08-06)
+
+Phase 3 registers the D15 Measurement Profile Version, private transient
+Measurement Occurrence and idempotency evidence, sealed daily Activity
+Aggregate and correction, coverage fact, and Public Page Activity Projection as
+separate record families. The subtract-only field floor applies before intake,
+aggregation, suppression, report composition, export, logs, metrics, errors,
+and diagnostics. No browser, raw-table, Realtime, JWT-metadata, inferred-
+relationship, or service-role path grants access; current Phase 12 staff or
+exact D1 page-assignment authority is re-proved by the server and defended by
+structurally complete RLS for every read and export.
+
+## Dated Phase 22 D16 writing-assistance projection amendment (2026-08-06)
+
+Phase 3 registers D16's Public Page Writing Source Package, private short-lived
+Suggestion Version, body-free Invocation/Application evidence, and ordinary D1
+successor revision as distinct record families. The AI provider receives no
+general contributor, staff, public, CMS, Party, supporter, financial, or Page
+projection. One purpose-specific server projection subtracts to the exact D3
+narrative target, deliberately supplied answers, and individually selected
+Phase-10-admitted facts named in the Phase 21 D10 Egress Manifest for the exact
+`public-profile drafting` binding.
+
+Suggestions and translation warnings are private authoring facts and never
+enter anonymous public, directory, search/share, measurement, supporter, or
+financial projections. Every invoke, result read, and apply re-proves current
+Phase 12 and exact D1/staff target authority; service roles, raw table access,
+Realtime, browser locale, provider detection, cached source, or a prior
+suggestion grant nothing. **Translate to English** adds exact source and target
+locale/direction dimensions but creates no Phase 24 locale or translation-
+status projection.
+
+## Dated Phase 22 D17 typed Page-subject projection amendment (2026-08-06)
+
+Phase 3 registers Page Subject Binding lineage and each D2 release-pinned
+privacy-safe subject snapshot as distinct Phase 22 projections. The owner-domain
+source remains outside the Page projection: the CRM operational layer owns
+Ministry Projects, and Phase 13 owns Giving Campaigns and Designations. D17 may
+project only the exact source identity/version, lifecycle evidence, safe display
+material admitted by Phase 10, binding version, and complete Tenant, Legal
+Entity, environment, Site, Page Family, Page, actor, reason, and time scope
+required by the exact consumer.
+
+Anonymous users, browsers, Payload, Realtime, cached public identifiers, and
+service-role defaults never query raw Ministry Project, Campaign, Designation,
+or binding rows. Public serving consumes only the immutable release-pinned safe
+snapshot. Contributor, displayed-person, project/team, Campaign-owner, fund-
+manager, relationship, or subject status grants no projection; every staff read
+and mutation re-proves the exact Phase 12 capability and same-scope structural
+relationships.
+
+## Dated Phase 22 D18 current-serving and convergence projection amendment (2026-08-06)
+
+Phase 3 registers D18's **current-serving evaluation** as a small, disposable,
+exact-scope evaluation of independently authoritative D2 reach, Phase 10 safety
+and containment, and D8 route heads. It returns only **serve current release**,
+**privacy-safe absence**, **same-page redirect**, or **temporarily unavailable**.
+It is not a new persisted reach, safety, route, release, publication, or
+authorization fact. Any materialized accelerator carries the exact owner
+generations and cannot yield **serve current release** when an owner generation
+is missing, mismatched, stale, contradictory, or uncertain; an owner-labelled
+adverse fact advances local denial before asynchronous cache or provider
+convergence begins.
+
+Phase 3 also registers each append-only **Public Ministry Surface Convergence
+Operation** and its rebuildable, privacy-minimized current projection. The
+operation references one code-owned applicable-surface coverage plan and the
+existing D8, D9, D13, and D14 effect records; it never recreates or advances
+their heads. Requested, provider-accepted, controlled-response-observed,
+not-verifiable, and external-observation evidence remain separate. Anonymous
+traffic may consume only the minimum current-serving result and admitted
+release-bound presentation. It receives no operation, residual, provider,
+internal identifier, safety reason, or diagnostic row, and D15 measurement is
+structurally absent from render, cache, crawler, social, probe, and repair work.
+
+## Dated Phase 22 D19 Ministry Assignment projection amendment (2026-08-06)
+
+Phase 3 registers CRM Ministry Assignment identity/lifecycle, Ministry
+Assignment Participant Membership, D1 Missionary Page Subject Binding and
+public-safe snapshot, optional Ministry Assignment Support Binding Version,
+and each Phase 21 support projection as distinct families. It does not collapse
+them into one missionary profile, relationship graph, account view, broad
+tenant role, or cached assignment object.
+
+Anonymous presentation receives only the exact current Phase 10-admitted
+release snapshot. An authenticated Page contributor receives only D1's bounded
+editor projection. An authenticated support viewer receives only the exact
+Phase 12-authorized purpose, projection, target, fields, history floor, Legal
+Entity, Support Assignment, and separately ISO-labelled balances permitted by
+the applicable Phase 21 D9 profile. No projection is inferred from Ministry
+Assignment or Support Assignment membership, marriage, household, team,
+display, contributor status, binding, Designation, progress, preference, JWT,
+service role, or raw-table visibility.
+
+Raw identity, membership, binding, grant, supporter, activity, and financial
+relations remain browser-inaccessible. Forced coarse Tenant RLS and same-scope
+composite constraints are defense in depth; the sole server-side Phase 12 PDP
+owns current fine-grained selection. Realtime carries only an opaque private
+resource/version signal followed by a newly authorized server projection read.
+
+## Dated Phase 22 D21 private-adoption projection amendment (2026-08-14)
+
+Phase 3 registers the D21 Public Ministry Surface Adoption Case, immutable
+Adoption Plan Version, tenant-instance Adoption Coverage Manifest, cutover
+receipt, and selected reader-generation head as distinct operational families.
+The tenant manifest references one immutable code-owned coverage-plan/build
+generation for reader, API, fixture, test, and import-path completeness; it does
+not duplicate source-code inventory as mutable per-tenant rows. Resumable work
+appends immutable plan or manifest successors and selects exactly one candidate
+for a cutover attempt; it never edits readiness truth in place.
+
+Raw source censuses, legacy names and paths, Phase 10 causes, subject and
+Designation mappings, media evidence, content digests, authorization epochs,
+and residual diagnostics remain browser-inaccessible. Authorized staff receive
+only a current, privacy-minimized exception projection with the exact Site and
+language, visitor-safe consequence, owner-correct action, and the three D21
+preparation dispositions. Ordinary contributors receive only their existing
+D1/D18 Page projection plus a calm explanatory substatus; anonymous users
+receive no adoption, migration, manifest, generation, cause, or existence fact.
+
+Every read and command re-proves the current Principal, Active Tenant
+Assignment, exact D21 capability, cohort, owner generations, and authorization
+epoch through the Phase 12 decision point. Forced same-tenant RLS, composite
+scope keys, indexed policy predicates, private security-invoker projections,
+and no raw `anon` or `authenticated` grants remain defense in depth; neither RLS
+visibility, a client-selected cohort, JWT metadata, CMS role, service key, table
+ownership, nor `BYPASSRLS` grants adoption access or authority.
+
+## Dated Phase 22 D22 Public Page operations projection amendment (2026-08-14)
+
+Phase 3 registers privacy-safe projected references to owner-domain causes and
+exact Page/Ministry Update impacts as two separate private, disposable,
+rebuildable projection families. Every projected cause reference pins
+complete Tenant, Legal Entity, environment, Site, locale, owner domain, cause
+contract generation, stable source reference, monotonic owner version,
+responsible-owner generation, actionability, code-owned action kind, coverage,
+and through-time. Impact membership pins the exact Page or Update and only the
+privacy-safe visitor consequence currently permitted for the consumer. One
+cause may therefore affect many Pages without one row/task/notification per
+Page, while several causes on one Page remain independent.
+
+The application cannot write a resolved, dismissed, healthy, acknowledged,
+ignored, snoozed, or forced state into either family. Only a newer owner version
+may resolve, supersede, or reopen a cause. Consumers apply versions
+idempotently, reject older updates, expose incomplete coverage honestly, and
+use periodic count/digest reconciliation plus smallest-scope rebuild. An
+optional shared-task reference is collaboration metadata only and cannot
+change projection membership or owner truth.
+
+Every row, impact, group, count, search, sort, filter, export, subscription,
+badge, notification input, cache entry, and Realtime-triggered refetch passes
+through the same current Phase 10/12 purpose, field, target, scope, and
+authorization decision before filtering and before aggregation. Raw projection
+tables and privileged projector paths remain browser-inaccessible; exposed
+views use invoker behavior, explicit least-privilege grants, indexed default-
+deny RLS, complete non-null scope keys, and permission-consistent keyset
+pagination. Unauthorized or restricted Pages contribute no distinguishable
+row, total, timing, empty state, URL, or cache artifact.

@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D1-D26 fully ratified; Q27 unanswered",
+  "D26FullyRatified": true,
+  "D26RatifiedClauses": 30,
+  "D26CategoryFindings": 23,
+  "D26RequiredUnexecutedProofGroups": 50,
+  "D26OperationalControls": 6,
+  "D26RatifiedGlossaryTerms": 4,
+  "D26SubstantivePrimaryDocumentsPreserved": 4,
+  "D26HistoricalEvidenceUnchanged": 7,
+  "priorDecisionArtifactsPreserved": 173,
+  "priorADRsPreserved": 25,
+  "priorGlossaryDefinitionsPreserved": true,
+  "priorValidationRecordsUnchanged": 2,
+  "Q27Options": [
+    "A - Find approved public guidance in Support",
+    "B - Keep saved replies and manual links",
+    "C - Find public and internal staff guidance"
+  ],
+  "Q27Recommendation": "A",
+  "Q27Answered": false,
+  "FeatureADR0027Created": false,
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashesVerifiedIncludingIndependentManifest": 56,
+  "upstreamEvidencePinsVerified": 1,
+  "mirrorPairs": 20,
+  "immutableCoreSourceLinksChecked": 65,
+  "uniqueImmutableCoreSourceLinksChecked": 39,
+  "localLinksChecked": 601,
+  "outputLinksChecked": 565,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentReviews": [
+    "D26 ratified Email Studio seam",
+    "Q27 gap selection and real CMS/internal-owner boundaries",
+    "Q27 current primary guidance/saved-reply/internal-content comparisons",
+    "Q27 final actual-options and recommendation review"
+  ],
+  "limits": [
+    "D26 original four synthetic source observations unchanged; no new runtime experiment",
+    "No DB/provider/browser/AT or representative staff usability proof",
+    "All D26 implementation/release proof remains required and unexecuted",
+    "Q27 remains unanswered; no new accepted guidance capability",
+    "No formal specification, implementation, tickets, publishing, GitHub/provider/DNS/inbox changes or real messages"
+  ]
+}

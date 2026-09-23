@@ -1,32 +1,33 @@
-# ADR-CD-013: Receipts are gift-level and designation-line-aware
+# ADR-CD-013: Receipt presentation consumes exact source and artifact authority
 
-**Status:** Accepted (grill session 2026-05-28)
+**Status:** Accepted 2026-05-28; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-One gift can have multiple equal designation lines. Receipts need to preserve that designation truth without making one donor gift look like multiple independent gifts.
-
-Corrections can happen after a receipt is sent, so contribution detail must distinguish the current effective designation set from what the donor already received.
+Staff need truthful document context, including why a receipt is present, absent, corrected or governed by a different issuer/purpose plan.
 
 ## Decision
 
-Use one receipt object/status per gift, with line-aware receipt content.
-
-- Receipt state is gift-level.
-- Receipt content lists every designation line equally.
-- Audit records which designation lines and effective values were included in a sent receipt.
-- Later corrections that affect sent receipt content mark the receipt as affected.
-- Policy determines whether affected receipts require reissue, suppression, review, or no action with reason.
-- Later decision ADR-CD-029 specifies the simple correction-time delivery choice for updated receipts: email when allowed, PDF when email is unavailable/disallowed or chosen by staff, or defer with reason when policy permits.
+- Phase 7 owns legal donor, eligibility, immutable facts, issuer/purpose and
+  correction/issuance authority. An annual-cumulative cash plan excludes
+  per-gift official issuance; one receipt per gift is not universal.
+- Phase 18 alone owns requests, exact artifacts, logical current heads and
+  access. Phase 19 owns statement runs and fulfillment.
+- Detail shows authorized source/artifact references and separate requested,
+  ready, superseded, unavailable and delivery states.
+- Present line-aware facts as permitted by the purpose; renderer/UI cannot
+  decide eligibility or require every line in every output.
+- Corrections emit exact source facts. Never regenerate a local snapshot or
+  declare a document current because a staff action succeeded.
 
 ## Consequences
 
-- The detail API needs current effective designation lines and receipt content snapshot references.
-- Correction workflows need to report whether a saved adjustment affects a sent receipt.
-- Receipt resend/reissue UI must explain whether it is sending the original receipt, an updated receipt, or a policy-approved replacement.
+Current/download/replacement actions reauthorize exact artifact and purpose. No generic PDF fallback, live rerender, receipt-per-line default or local receipt object becomes another document authority.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **One receipt per designation:** Fragments one donor gift and increases donor confusion.
-- **Single receipt without line awareness:** Loses multi-designation truth.
-- **Tenant-configurable receipt granularity:** Too much variation for a core tax-receipt contract unless a future legal/accounting need requires it.
+The [original 2026-05-28 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0013-gift-level-line-aware-receipts.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

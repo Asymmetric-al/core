@@ -1,0 +1,96 @@
+{
+  "date": "2026-09-13",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "headAndOriginDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "relatedPRs": [
+    {
+      "number": 1335,
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    {
+      "number": 1336,
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    {
+      "number": 1564,
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    },
+    {
+      "number": 1340,
+      "state": "OPEN",
+      "head": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6"
+    },
+    {
+      "number": 1558,
+      "state": "OPEN",
+      "head": "ab1a1703a725be454376990a7fe68aef2e048026"
+    }
+  ],
+  "stage": "D1-D27 including D27-C fully ratified; Q28 feedback resumed unanswered",
+  "files": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/report-aggregations.ts",
+      "sha256": "3af2e383d1dd5b58cb62dba6b1f269f8a3b6ee7302c54fbaa1a9467f7dfc5528",
+      "lines": 612
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d",
+      "lines": 51
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21",
+      "lines": 137
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md",
+      "sha256": "2bdf280e2a79a2dd2a7a4cc48420e32d744728709618381fcaa42708bd7cb39b",
+      "lines": 765
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d",
+      "lines": 3236
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203",
+      "lines": 4227
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e",
+      "lines": 110
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/identity-and-access/spec.md",
+      "sha256": "c2d1e411ff413c61549fdd56ed174fb983f2ae6c2818dd0dbf6033d93fc4dba5",
+      "lines": 149
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4",
+      "lines": 407
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/collections/support-hub.ts",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2",
+      "lines": 2429
+    }
+  ],
+  "limits": "Fresh source/PR and primary product-documentation checks plus independent ratified-seam/resumed-question reviews. No new survey/runtime/database/provider/browser/AT/usability test or selected feedback design."
+}

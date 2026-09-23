@@ -1,4 +1,3 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -256,16 +255,15 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
     return resolveUnauthenticatedOrE2EContext(bearerToken, request);
   }
 
-  const adminClient = getAdminClient().client;
-  const profileReader = adminClient ?? supabase;
-
-  const { data: profile } = await profileReader
+  // Resolve the caller under their own RLS authority. A CMS service credential
+  // must not change identity resolution or the database grants it requires.
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, tenant_id, role")
     .eq("user_id", user.id)
     .single();
 
-  if (!profile) {
+  if (profileError || !profile) {
     return {
       userId: user.id,
       email: typeof user.email === "string" ? user.email : null,
@@ -286,11 +284,10 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
       : profileRole === "super_admin"
         ? DEMO_TENANT_ID
         : null;
-  const memberships = await loadMembershipsForTenant(
-    adminClient ?? supabase,
-    user.id,
-    tenantId,
-  );
+  const memberships = await loadMembershipsForTenant(supabase, tenantId);
+  if (!memberships) {
+    return createUnauthenticatedContext();
+  }
   const role = derivePrimaryRole({ profileRole, memberships });
 
   return {
@@ -307,25 +304,26 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
 
 async function loadMembershipsForTenant(
   supabase: SupabaseClient,
-  userId: string,
   tenantId: string | null,
-): Promise<AuthMembership[]> {
+): Promise<AuthMembership[] | null> {
   if (!tenantId) {
     return [];
   }
 
-  const { data: rows } = await supabase
-    .schema("authz")
-    .from("memberships")
-    .select("tenant_id, role, staff_role, is_active")
-    .eq("user_id", userId)
-    .eq("tenant_id", tenantId)
-    .eq("is_active", true);
+  // authz is deliberately private; this RPC binds its rows to auth.uid().
+  const { data: rows, error } = await supabase.rpc("current_user_memberships", {
+    target_tenant: tenantId,
+  });
+
+  if (error) {
+    return null;
+  }
 
   return ((rows ?? []) as MembershipRow[])
     .filter(
       (row): row is MembershipRow & { tenant_id: string; role: string } =>
-        typeof row.tenant_id === "string" &&
+        row.tenant_id === tenantId &&
+        row.is_active === true &&
         typeof row.role === "string" &&
         MEMBERSHIP_ROLES.has(row.role),
     )

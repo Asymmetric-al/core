@@ -13,6 +13,144 @@
 - **Phase 19 amendment (2026-07-24):** the three former generic statement
   planning keys are replaced by five finite Phase 19 meanings; this census now
   contains 18 Target Live candidates and 20 Reserved keys
+- **Phase 24 D44–D45 amendment (2026-08-29):** two tenant-scoped staff
+  access-governance meanings are added as Target Live candidates with required
+  in-product and optional Tenant-default-Off email steps; this census now
+  contains 20 Target Live candidates and 20 Reserved keys. Their normative
+  Reserved manifest profile exists, but both keys remain runtime `Reserved`
+  until generated code, OpenSpec, publication/readiness, migrations, and the
+  complete proof package pass together
+- **Phase 24 D46 amendment (2026-08-29):** no access-request reminder meaning or
+  key is added because D43 owns no source temporal requirement. Counts remain
+  20 Target Live candidates and 20 Reserved keys. A later census may add a
+  reminder only after Phase 12 ratifies its source time, stable meaning,
+  cancellation/usefulness, recipient, and durable-idempotency contract; no
+  placeholder row reserves that future decision
+- **Phase 24 D47 amendment (2026-08-29):** a bounded candidate may become
+  evidence-qualified and a separately activated Tenant profile may later become
+  Phase 12 source policy, default Off and
+  limited to one courtesy occurrence without deadline/access meaning. D47 adds
+  no reminder key or executable artifact; counts remain 20 Target Live
+  candidates and 20 Reserved keys until a complete D46/D47 admission and
+  activation package—including the evidence gate, D48 cohort, D49 recipient,
+  D50 clock, D51 policy-change/cancellation, D52 bounded usefulness, stable
+  meaning, and
+  channel proofs—independently earns a census row
+- **Phase 24 D48 amendment (2026-08-29):** first cadence application is limited
+  to genuine D43 request creations ordered after the first successful non-Off
+  Phase 12 policy boundary. Existing requests cannot enter through age,
+  timestamps, task/notification state, migration, replay, restore, or backfill.
+  D48 adds no reminder key or executable artifact; counts remain 20 Target Live
+  candidates and 20 Reserved keys. D49 recipient binding and D50 request-
+  anchored elapsed eligibility and D51 policy Off/edit/re-enable behavior are
+  now defined; D52 also supplies bounded late-usefulness. Stable meaning and
+  channel proof remain required before any
+  reminder census row can be proposed
+- **Phase 24 D49 amendment (2026-08-29):** the one possible source occurrence
+  seals the exact then-current D44 responsibility cohort once and every later
+  presentation/channel may only narrow it. Proved zero is terminal;
+  indeterminate releases nothing and retries the same occurrence; later route
+  additions never backfill it. D49 creates no reminder key, manifest row, task,
+  plan, channel, worker, or UI, so counts remain 20 Target Live candidates and
+  20 Reserved keys. D50 now supplies request-anchored elapsed eligibility and
+  D51 supplies source-fenced Off/prospective re-enable; D52 now supplies finite
+  usefulness, while the remaining content/channel activation proof is still required before any
+  reminder census row can be proposed
+- **Phase 24 D50 amendment (2026-08-29):** one future D48-admitted request uses
+  an immutable request-anchored elapsed eligibility instant: a trusted database
+  source-created instant captured after D48 serialization plus an exact code-
+  owned bounded whole-second duration yields one finite UTC not-before instant.
+  Civil/working calendars, time zones, DST, weekends, D44/task changes,
+  providers, and executors cannot move it; it is neither Due/Overdue nor a send
+  promise. D50 adds no reminder key or executable artifact, so counts remain 20
+  Target Live candidates and 20 Reserved keys. D51 now defines policy
+  cancellation and D52 now defines bounded usefulness; exact timing profiles,
+  stable meaning/content, channel, and activation proof remain required before
+  any reminder census row can be proposed
+- **Phase 24 D51 amendment (2026-08-29):** each successful Active-to-Off
+  publication advances one monotonic source cancellation epoch; D48 admissions
+  pin it, non-Off edits do not advance it, and re-enable carries it forward.
+  Off-first prevents D49 seal and every later registered irreversible-effect
+  admission; a boundary that commits first remains truthful
+  history, including ambiguous external evidence, with no post-Off provider I/O
+  or false recall. Off creates no current-work census/fanout, task, notification,
+  message, provider mutation, or executable artifact. Counts remain 20 Target
+  Live candidates and 20 Reserved keys. D52 now supplies useful-lateness; exact
+  profiles, stable meaning/content, channels, and full activation proof remain
+  required before any reminder census row can be proposed. The current email model's
+  boundary is its pre-I/O submission-attempt fence; every future channel must
+  separately prove its own boundary rather than inherit email assumptions
+- **Phase 24 D52 amendment (2026-08-29):** each later activated complete timing
+  profile must pin one finite product-owned half-open source interval
+  `[not_before, useful_until)` in the successful D43 transaction. D49 seal and
+  every still-unreleased reminder member/channel admission require a fresh
+  trusted primary-database claim inside that interval plus all D43/D48/D49/D51
+  and current authorization/privacy/channel gates. Equality at `useful_until`
+  is terminal expiry; D49 indeterminate closes usefulness-expired/no-release
+  without being guessed to zero, and no replay, restore, route repair,
+  re-enable, worker, or provider retry creates catch-up. A pre-expiry external
+  attempt's one admitted initial provider call may start, finish, or reconcile
+  after expiry only as the immediate bounded continuation of the same pre-I/O
+  critical section; a stalled/restarted process makes no call or retry. No new
+  attempt or follow-up call may be admitted; a
+  provider TTL may only narrow delivery. D52 adds no reminder key, profile,
+  value, manifest row, task, message, plan, channel, worker, provider request,
+  schema, OpenSpec, UI, or telemetry artifact. Counts remain 20 Target Live
+  candidates and 20 Reserved keys. D53 exact complete pairs, stable meaning/
+  content, channels, and full activation proof remain required before any
+  reminder census row can be proposed
+- **Phase 24 D53 amendment (2026-08-29):** cadence remains Off by normative
+  absence until an exact complete timing pair passes D47's preregistered
+  representative-evidence gate. A pass creates only an evidence-qualified
+  proposal; it does not add a profile, key, manifest/census row, policy, plan,
+  step, worker, flag, setting, placeholder, or runtime evidence system. A later
+  independently reviewed activation package must also close D46–D55 source
+  semantics, stable meaning/content, every channel included in that activation
+  package, authorization/RLS/privacy,
+  retention, accessibility/localization, concurrency/idempotency, load,
+  migration/mixed-version, disable/repair, OpenSpec, manifest, tests, and
+  release evidence before the exact immutable code-owned identity/revision can
+  become selectable. Every later channel requires its own complete proof.
+  Tenant policy may reference only a fully activated
+  identity, never author timing values. Counts remain 20 Target Live
+  candidates and 20 Reserved keys
+- **Phase 24 D54 amendment (2026-08-29):** one later activated reminder source
+  occurrence may atomically create at most one distinct required local item for
+  each exact still-qualified D49 sealed member and place it only in a deterministic recipient-
+  private Access-review attention group for the same Tenant, exact D43 request,
+  role/surface/privacy boundary, and uninterrupted D44 responsibility lineage.
+  An eligible `holder_access_review_requested_v1` item may be the other child;
+  the multi-request `access_request_responsibility_updated_v1` aggregate never
+  joins. A missing initial child stays missing and yields a complete one-child
+  group. Each child keeps independent engagement/history; only the new child
+  receives fresh unread state, while the group contributes at most one derived
+  unread badge and owns no business/engagement truth. The later activation must
+  atomically prove D43/D48/D49/D51/D52/current authorization and register one
+  reminder-specific source-end rule. It must not inherit D45's initial-email
+  family plan; local presentation is required and external reminder steps stay
+  absent until separately admitted. D54 names/reserves no key and adds no
+  manifest row, profile, plan, step, renderer, publication, schema, OpenSpec,
+  runtime, or UI. Counts remain exactly 20 Target Live candidates and 20
+  Reserved keys; no placeholder key exists
+- **Phase 24 D55 amendment (2026-08-29):** one future activated timing-profile
+  revision may be subject to one irreversible, append-only platform safety
+  withdrawal that preserves every Tenant-selected policy head while making the
+  derived effective cadence Off. It is exact-revision-specific, narrowing only,
+  terminal, and distinct from retirement, Tenant Off, a feature flag, provider
+  pause, or fallback selection. Every selection, D43 admission, D49 seal, local
+  release, and external irreversible boundary must atomically prove it absent;
+  missing/unknown/stale safety proof fails closed only for the optional reminder.
+  Unreleased work closes safety-withdrawn/no-release, a released local reminder
+  loses active/unread contribution under its own source-end rule, definitely
+  unsubmitted external work suppresses, and already admitted ambiguous provider
+  work only completes/reconciles its one frozen call. The future settings
+  projection preserves **[Profile] — unavailable** outside selectable choices
+  and allows only deliberate Off/another-activated-profile Save; no Tenant-head
+  rewrite, mass fanout, notification, task, clear, substitute, or catch-up is
+  permitted. D56 must still settle authority/evidence review. D55 adds no key,
+  profile, withdrawal row, manifest entry, plan/step, schema/RLS, OpenSpec,
+  runtime, UI, flag, worker, telemetry, or count. Counts remain exactly 20
+  Target Live candidates and 20 Reserved keys
 
 ## Purpose and Truth Posture
 
@@ -23,15 +161,20 @@ This is the durable M0 inventory required by D16. It answers four different ques
 3. Which product-message obligations have a deliberate key or deferral?
 4. What must a mechanical closure gate prove before any key becomes Live?
 
-The answers below are **specified**, not implemented. “Target Live” is a delivery target, not current runtime truth. All 38 planning keys begin `Reserved`; a Target Live candidate becomes `Live` only after its complete key-specific proof pack passes. No row below proves a producer has migrated, a tenant is ready, a provider submission is safe, or a feature is available.
+The answers below are **specified**, not implemented. “Target Live” is a delivery target, not current runtime truth. All 40 planning keys begin `Reserved`; a Target Live candidate becomes `Live` only after its complete key-specific proof pack passes. No row below proves a producer has migrated, a tenant is ready, a provider submission is safe, or a feature is available.
 
-Every one of the 18 Target Live keys in this census is explicitly tenant scope
-through its named executable-manifest profile. None may infer scope from a
-recipient or publication. Eve/platform-operator meanings remain deferred until
-an exact platform profile and stable key pass the separate platform-scope proof
-gate. Asym customer-account bootstrap/security mail is also deferred, but it is
-not an Eve recipient branch: its future owner must define a separate verified
-app-account recipient/trigger authority before it can enter the catalog.
+The original 18 Target Live keys in this census are explicitly tenant scope
+through their named executable-manifest profiles. The two Phase 24 D44–D45 keys
+are also explicitly tenant-scoped catalog candidates. Their normative Reserved
+`profile.access_governance_attention@1` and required manifest fields now exist,
+but grant no activation authority until generated code, OpenSpec, migrations,
+publication/readiness, and every key-specific proof pass together. No key may
+infer scope from a recipient or
+publication. Eve/platform-operator meanings remain deferred until an exact
+platform profile and stable key pass the separate platform-scope proof gate.
+Asym customer-account bootstrap/security mail is also deferred, but it is not
+an Eve recipient branch: its future owner must define a separate verified app-
+account recipient/trigger authority before it can enter the catalog.
 
 The runtime SHA is intentionally separate from the planning-package commit. Code
 anchors describe what was observed at that runtime baseline; the checked-in
@@ -138,32 +281,34 @@ Hook and no production `notification_queue` worker. These are bounded
 observations, not permanent truths. A changed codebase invalidates the conclusion
 until the mechanical census is rerun.
 
-## Thirty-Eight-Key Planning Catalog
+## Forty-Key Planning Catalog
 
-There are exactly 18 Target Live candidates and 20 Reserved keys in this planning generation. There are zero fresh-build Retired keys. Runtime lifecycle is initially `Reserved` for every row.
+There are exactly 20 Target Live candidates and 20 Reserved keys in this planning generation. There are zero fresh-build Retired keys. Runtime lifecycle is initially `Reserved` for every row.
 
 ### Target Live Candidates — Initially Reserved
 
-| Row       | Stable key                                        | Owner/source meaning                                                             | Required activation proof focus                                                                                                      |
-| --------- | ------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `KEY-L01` | `giving_receipt_issued_v1`                        | Phase 7 successful issuance facts plus Phase 18 exact current receipt artifact   | Receipt tracer; legal recipient, protected receipt facts/action, required email, Giving sender/reply purpose, no engagement-as-truth |
-| `KEY-L02` | `giving_receipt_replaced_v1`                      | Phase 7 replacement authorization plus Phase 18 exact current successor artifact | Supersession identity and current artifact; prior history immutable                                                                  |
-| `KEY-L03` | `contribution_refund_failed_v1`                   | Terminal failed refund operation                                                 | Failed is not refunded; no raw decline; support action; no false money movement                                                      |
-| `KEY-L04` | `contribution_refund_completed_v1`                | Completed refund with unspecified refund kind                                    | Generic predicate excludes known partial/full occurrences; amount/date/finality protected                                            |
-| `KEY-L05` | `contribution_partial_refund_completed_v1`        | Completed partial refund                                                         | Original/refund/remainder source facts and mutually exclusive predicate                                                              |
-| `KEY-L06` | `contribution_full_refund_completed_v1`           | Completed full refund                                                            | Source-confirmed zero remainder/finality and receipt impact                                                                          |
-| `KEY-L07` | `contribution_amount_corrected_v1`                | Posted contribution amount corrected                                             | Old/new money and artifact consequence source-owned                                                                                  |
-| `KEY-L08` | `contribution_designation_changed_v1`             | Posted designation corrected                                                     | Previous/current designation subject to recipient privacy projection                                                                 |
-| `KEY-L09` | `contribution_receipt_corrected_v1`               | Phase 7 correction effect produced a Phase 18 successor artifact                 | Exact Phase 18 current-artifact action; mutually exclusive with generic replacement for one source identity                          |
-| `KEY-L10` | `contribution_payment_state_corrected_v1`         | Provider-confirmed payment truth corrected                                       | Old/new state, finality, receipt/statement impact; no inferred settlement                                                            |
-| `KEY-L11` | `contribution_donor_relinked_v1`                  | Contribution Party association corrected                                         | Permitted affected recipient; no previous/new Party identity disclosure                                                              |
-| `KEY-L12` | `contribution_approval_requested_v1`              | Approval requires staff attention                                                | Exact eligible approver role; required in-product item; source task owns completion                                                  |
-| `KEY-L13` | `contribution_approval_reminder_v1`               | Existing approval remains due at producer-owned reminder point                   | No tenant timer, duplicate task, or fabricated urgency                                                                               |
-| `KEY-L14` | `contribution_approval_escalated_v1`              | Producer marks approval escalated                                                | Exact escalation recipient and state; no automatic approval                                                                          |
-| `KEY-L15` | `contribution_approval_outcome_v1`                | Requester receives final approval decision                                       | Exact requester/decision; notification engagement changes nothing                                                                    |
-| `KEY-L16` | `system_message_publication_review_requested_v1`  | Protected publication candidate needs independent review                         | Exact Phase 12 reviewer, immutable candidate, in-product action, no approval by email click                                          |
-| `KEY-L17` | `system_message_publication_changes_requested_v1` | Reviewer requested changes                                                       | Exact candidate/editors and metadata; comment/body stays on authorized surface                                                       |
-| `KEY-L18` | `system_message_delivery_needs_attention_v1`      | D10/D15 repair case meaningfully changed                                         | Grouped cause/owner/action; required in-product path independent of broken email; no credentials/content                             |
+| Row       | Stable key                                        | Owner/source meaning                                                                               | Required activation proof focus                                                                                                                                                                                                                                                                                          |
+| --------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `KEY-L01` | `giving_receipt_issued_v1`                        | Phase 7 successful issuance facts plus Phase 18 exact current receipt artifact                     | Receipt tracer; legal recipient, protected receipt facts/action, required email, Giving sender/reply purpose, no engagement-as-truth                                                                                                                                                                                     |
+| `KEY-L02` | `giving_receipt_replaced_v1`                      | Phase 7 replacement authorization plus Phase 18 exact current successor artifact                   | Supersession identity and current artifact; prior history immutable                                                                                                                                                                                                                                                      |
+| `KEY-L03` | `contribution_refund_failed_v1`                   | Terminal failed refund operation                                                                   | Failed is not refunded; no raw decline; support action; no false money movement                                                                                                                                                                                                                                          |
+| `KEY-L04` | `contribution_refund_completed_v1`                | Completed refund with unspecified refund kind                                                      | Generic predicate excludes known partial/full occurrences; amount/date/finality protected                                                                                                                                                                                                                                |
+| `KEY-L05` | `contribution_partial_refund_completed_v1`        | Completed partial refund                                                                           | Original/refund/remainder source facts and mutually exclusive predicate                                                                                                                                                                                                                                                  |
+| `KEY-L06` | `contribution_full_refund_completed_v1`           | Completed full refund                                                                              | Source-confirmed zero remainder/finality and receipt impact                                                                                                                                                                                                                                                              |
+| `KEY-L07` | `contribution_amount_corrected_v1`                | Posted contribution amount corrected                                                               | Old/new money and artifact consequence source-owned                                                                                                                                                                                                                                                                      |
+| `KEY-L08` | `contribution_designation_changed_v1`             | Posted designation corrected                                                                       | Previous/current designation subject to recipient privacy projection                                                                                                                                                                                                                                                     |
+| `KEY-L09` | `contribution_receipt_corrected_v1`               | Phase 7 correction effect produced a Phase 18 successor artifact                                   | Exact Phase 18 current-artifact action; mutually exclusive with generic replacement for one source identity                                                                                                                                                                                                              |
+| `KEY-L10` | `contribution_payment_state_corrected_v1`         | Provider-confirmed payment truth corrected                                                         | Old/new state, finality, receipt/statement impact; no inferred settlement                                                                                                                                                                                                                                                |
+| `KEY-L11` | `contribution_donor_relinked_v1`                  | Contribution Party association corrected                                                           | Permitted affected recipient; no previous/new Party identity disclosure                                                                                                                                                                                                                                                  |
+| `KEY-L12` | `contribution_approval_requested_v1`              | Approval requires staff attention                                                                  | Exact eligible approver role; required in-product item; source task owns completion                                                                                                                                                                                                                                      |
+| `KEY-L13` | `contribution_approval_reminder_v1`               | Existing approval remains due at producer-owned reminder point                                     | No tenant timer, duplicate task, or fabricated urgency                                                                                                                                                                                                                                                                   |
+| `KEY-L14` | `contribution_approval_escalated_v1`              | Producer marks approval escalated                                                                  | Exact escalation recipient and state; no automatic approval                                                                                                                                                                                                                                                              |
+| `KEY-L15` | `contribution_approval_outcome_v1`                | Requester receives final approval decision                                                         | Exact requester/decision; notification engagement changes nothing                                                                                                                                                                                                                                                        |
+| `KEY-L16` | `system_message_publication_review_requested_v1`  | Protected publication candidate needs independent review                                           | Exact Phase 12 reviewer, immutable candidate, in-product action, no approval by email click                                                                                                                                                                                                                              |
+| `KEY-L17` | `system_message_publication_changes_requested_v1` | Reviewer requested changes                                                                         | Exact candidate/editors and metadata; comment/body stays on authorized surface                                                                                                                                                                                                                                           |
+| `KEY-L18` | `system_message_delivery_needs_attention_v1`      | D10/D15 repair case meaningfully changed                                                           | Grouped cause/owner/action; required in-product path independent of broken email; no credentials/content                                                                                                                                                                                                                 |
+| `KEY-L19` | `holder_access_review_requested_v1`               | A D43 holder direct-grant review becomes personally actionable to a newly admitted D44 coordinator | Exact current D44 recipient generation; required in-product plus optional immediate email with Tenant default Off and recipient `inherit                                                                                                                                                                                 | disabled` narrowing; authenticated source action; source-end mapping; generic email with no request/grant body, tracking, or inline decision |
+| `KEY-L20` | `access_request_responsibility_updated_v1`        | A D44 route revision newly admits one coordinator to existing pending reviews                      | One safe aggregate recipient occurrence with sealed child set/end proof; required in-product plus at most one optional grouped email per recipient/application generation under the Tenant-default-Off and self opt-out policy; no per-request bell/email fanout, continuing/removed-recipient notice, or task authority |
 
 ### Reserved Planning Keys — No Runtime Path
 
@@ -258,7 +403,7 @@ The following are intentionally outside the system-message catalog:
 ## Fresh-Build and Activation Semantics
 
 1. Catalog keys are code-governed and immutable in meaning. A material semantic change creates a successor key.
-2. The fresh-build target contains 38 keys: 18 Target Live candidates, 20 Reserved, and zero Retired.
+2. The fresh-build target contains 40 keys: 20 Target Live candidates, 20 Reserved, and zero Retired.
 3. Database projection or UI presence never makes a key Live. `is_active`, a legacy binding, a published template, a provider template, or a tenant toggle is insufficient.
 4. Reserved keys generate no tenant content row, binding, editor, preview, test send, readiness control, Phase 6 intent, provider submission, or product communication history.
 5. Target Live candidates also begin Reserved. Activation is per exact catalog/contract generation and requires the complete source, recipient, fact, publication, locale, layout, sender, reply, plan, retention, recovery, migration, security, accessibility, and end-to-end proof bundle.
@@ -276,7 +421,7 @@ For one recorded code SHA and catalog generation, CI must generate and hash:
 
 - the AST/import graph of every Resend SDK construction/send call and every production `sendEmail` import/caller;
 - every Phase 6 product intent producer, scheduled/background sender, Supabase Send Email Hook, provider webhook route, template/binding reader, history writer, and legacy queue row type;
-- the expanded 38-key manifest and generated trigger-binding projection;
+- the expanded 40-key manifest and generated trigger-binding projection;
 - canonical `phase17-runtime-census-closure@1`, containing every discovered
   `RUN-*` row in ascending numeric order as `{row_id, repository_anchor,
 symbol, observed_role, disposition, required_closure}`. `disposition` is one

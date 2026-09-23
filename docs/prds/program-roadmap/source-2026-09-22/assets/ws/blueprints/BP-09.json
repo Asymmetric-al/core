@@ -1,0 +1,94 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-09",
+  "recipeId": "CARE-01",
+  "name": "Sealed member-care intake",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "care_intake",
+  "subject": "care_intake",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "care.intake.source-accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {},
+    "evidence": {
+      "intake": "care.intake.source-accepted-evidence@1",
+      "handoff": "care.receiving-carer.acknowledged@1"
+    },
+    "actions": {
+      "assign": "care.request-source-qualified-assignment@1",
+      "ack": "care.request-approved-safe-acknowledgment@1"
+    },
+    "roles": {
+      "assigned_carer": "roles.source-authorized-carer@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "documents",
+    "identity",
+    "member-care",
+    "sensitive-safety",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": [
+        "care_flow"
+      ]
+    }
+  ],
+  "root": {
+    "id": "care_flow",
+    "kind": "sequence",
+    "label": "Care flow",
+    "steps": [
+      {
+        "id": "qualified_assignment",
+        "kind": "action",
+        "label": "Qualified assignment",
+        "contract": "assign",
+        "inputs": {}
+      },
+      {
+        "id": "safe_acknowledgment",
+        "kind": "action",
+        "label": "Safe acknowledgment",
+        "contract": "ack",
+        "inputs": {}
+      },
+      {
+        "id": "source_intake",
+        "kind": "evidence",
+        "label": "Source intake",
+        "contract": "intake",
+        "role": "assigned_carer"
+      },
+      {
+        "id": "care_handoff",
+        "kind": "evidence",
+        "label": "Care handoff",
+        "contract": "handoff",
+        "role": "assigned_carer"
+      },
+      {
+        "id": "intake_done",
+        "kind": "finish",
+        "label": "Intake done",
+        "lifecycle": "complete",
+        "outcome": "care_intake_handoff_complete"
+      }
+    ]
+  }
+}

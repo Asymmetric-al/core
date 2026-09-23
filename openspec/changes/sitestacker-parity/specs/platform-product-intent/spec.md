@@ -13,7 +13,8 @@ admin depth into donor or missionary surfaces. Each parity area MUST be
 benchmarked against cited official SiteStacker documentation (or explicitly
 marked not-yet-sourced) and MUST be tracked in the parity matrix with its built,
 live, and confirmed status recorded separately. Per-area behavior MUST be
-specified in its own change when that area is built, not defined up front. Child
+specified in its own accepted change before dispatch. Planning MAY precede
+implementation and MUST NOT be represented as shipped functionality. Child
 sponsorship is out of scope.
 
 #### Scenario: A parity capability is proposed
@@ -28,15 +29,15 @@ sponsorship is out of scope.
 #### Scenario: A parity area moves into active build
 
 - WHEN a parity area moves from tracked to actually being built
-- THEN its detailed behavior is specified in its own OpenSpec change and PRD at
-  that time
+- THEN its detailed behavior is already specified in its accepted OpenSpec change and PRD
+  before dispatch
 - AND the parity matrix records its built, live, and confirmed status separately
 
 ### Requirement: The Parity Program's Phase Architecture Is Governed By One Roadmap
 
 The SiteStacker parity program MUST govern its phase set, numbering,
 ordering, and dependencies through a single roadmap source of truth
-(`docs/prds/sitestacker-parity/roadmap.md`, Roadmap v2 adopted 2026-07-07;
+(`docs/prds/sitestacker-parity/roadmap.md`, Roadmap v3 adopted 2026-09-22, 45 phases numbered 0–44;
 `phase-map.md` is its compact mirror and loses on conflict). New PRDs, issues,
 and tickets MUST cite phases as "Phase N (Name)" — never a bare number — and
 MUST start from the roadmap's per-phase scope section. Dependencies gate phase
@@ -60,6 +61,16 @@ retroactively where they are historical records.
 - THEN the change lands as a roadmap revision with an old→new mapping table and
   a same-commit congruence sweep of live PRDs, program docs, and open issues
 - AND no document or issue is left citing a moved number without the mapping
+
+#### Scenario: The Studio program is scheduled
+
+- WHEN the accepted later-phase scope is divided into delivery checkpoints
+- THEN Phase 34 CORE is independently qualified before Phase 41 mobilization
+- AND the GIVING, EVENTS, CARE and FULL checkpoints do not become CORE prerequisites
+- AND Phase 42 runs after its exact CMS/permission/source gates without waiting
+  for Phases 34, 40 or 41; WEB-VISUAL does not wait for Git
+- AND Phase 31 connection foundations and Phase 32 native email remain complete
+  without Phase 43 SMS or Phase 44 enterprise consumers
 
 ### Requirement: Donor-Credit Recognition Stays Structurally Separate From Money Truth
 

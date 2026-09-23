@@ -1,0 +1,298 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-12",
+  "recipeId": "GEN-10",
+  "name": "Registration and source-owned capacity",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "event_participation",
+  "subject": "registration",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "events.registration.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "capacityStatus": "events.accepted-capacity-status@1",
+      "waitlistResolved": "events.waitlist-source-disposition.final@1",
+      "finalCapacityStatus": "events.final-capacity-status@1"
+    },
+    "tasks": {},
+    "evidence": {
+      "entry": "events.registration-requirements.satisfied@1",
+      "capacity_outcome": "events.capacity.source-outcome@1",
+      "waitlist_disposition": "events.waitlist.final-source-outcome@1"
+    },
+    "actions": {
+      "capacity": "events.request-source-capacity-decision@1",
+      "confirm": "communications.registration-confirmation.request@1",
+      "waitlist": "communications.waitlist-notice.request@1",
+      "final_notice": "communications.registration-final-disposition.request@1"
+    },
+    "roles": {
+      "participant": "roles.registration-participant@1",
+      "event_owner": "roles.event-owner@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "capacity",
+    "communications",
+    "crm",
+    "events",
+    "messages",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": [
+        "registration_flow"
+      ]
+    }
+  ],
+  "root": {
+    "id": "registration_flow",
+    "kind": "sequence",
+    "label": "Registration flow",
+    "steps": [
+      {
+        "id": "entry_requirements",
+        "kind": "evidence",
+        "label": "Entry requirements",
+        "contract": "entry",
+        "role": "participant"
+      },
+      {
+        "id": "capacity_request",
+        "kind": "action",
+        "label": "Capacity request",
+        "contract": "capacity",
+        "inputs": {}
+      },
+      {
+        "id": "capacity_evidence",
+        "kind": "evidence",
+        "label": "Capacity evidence",
+        "contract": "capacity_outcome",
+        "role": "event_owner"
+      },
+      {
+        "id": "capacity_path",
+        "kind": "choose_one",
+        "label": "Capacity path",
+        "cases": [
+          {
+            "id": "confirmed",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "capacityStatus"
+                }
+              },
+              "right": {
+                "literal": "confirmed"
+              }
+            },
+            "then": {
+              "id": "confirmed_registration",
+              "kind": "sequence",
+              "label": "Confirmed registration",
+              "steps": [
+                {
+                  "id": "confirmation",
+                  "kind": "action",
+                  "label": "Confirmation",
+                  "contract": "confirm",
+                  "inputs": {}
+                },
+                {
+                  "id": "registered",
+                  "kind": "finish",
+                  "label": "Registered",
+                  "lifecycle": "complete",
+                  "outcome": "registration_confirmed"
+                }
+              ]
+            }
+          },
+          {
+            "id": "waitlisted",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "capacityStatus"
+                }
+              },
+              "right": {
+                "literal": "waitlisted"
+              }
+            },
+            "then": {
+              "id": "waitlisted_registration",
+              "kind": "sequence",
+              "label": "Waitlisted registration",
+              "steps": [
+                {
+                  "id": "waitlist_notice",
+                  "kind": "action",
+                  "label": "Waitlist notice",
+                  "contract": "waitlist",
+                  "inputs": {}
+                },
+                {
+                  "id": "await_waitlist_resolution",
+                  "kind": "wait",
+                  "label": "Wait for source-owned offer/response disposition",
+                  "condition": {
+                    "op": "compare",
+                    "operator": "eq",
+                    "left": {
+                      "ref": {
+                        "scope": "fact",
+                        "key": "waitlistResolved"
+                      }
+                    },
+                    "right": {
+                      "literal": true
+                    }
+                  },
+                  "onUnknown": "wait",
+                  "onTimeout": "block"
+                },
+                {
+                  "id": "waitlist_source_evidence",
+                  "kind": "evidence",
+                  "label": "Waitlist source evidence",
+                  "contract": "waitlist_disposition",
+                  "role": "event_owner"
+                },
+                {
+                  "id": "waitlist_final_path",
+                  "kind": "choose_one",
+                  "label": "Waitlist final path",
+                  "cases": [
+                    {
+                      "id": "confirmed",
+                      "when": {
+                        "op": "compare",
+                        "operator": "eq",
+                        "left": {
+                          "ref": {
+                            "scope": "fact",
+                            "key": "finalCapacityStatus"
+                          }
+                        },
+                        "right": {
+                          "literal": "confirmed"
+                        }
+                      },
+                      "then": {
+                        "id": "waitlist_confirmed",
+                        "kind": "sequence",
+                        "label": "Waitlist confirmed",
+                        "steps": [
+                          {
+                            "id": "confirmation_after_wait",
+                            "kind": "action",
+                            "label": "Confirmation after wait",
+                            "contract": "confirm",
+                            "inputs": {}
+                          },
+                          {
+                            "id": "registered_after_wait",
+                            "kind": "finish",
+                            "label": "Registered after wait",
+                            "lifecycle": "complete",
+                            "outcome": "registration_confirmed"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "closed",
+                      "when": {
+                        "op": "compare",
+                        "operator": "in",
+                        "left": {
+                          "ref": {
+                            "scope": "fact",
+                            "key": "finalCapacityStatus"
+                          }
+                        },
+                        "right": [
+                          {
+                            "literal": "declined"
+                          },
+                          {
+                            "literal": "withdrawn"
+                          },
+                          {
+                            "literal": "expired"
+                          },
+                          {
+                            "literal": "canceled"
+                          }
+                        ]
+                      },
+                      "then": {
+                        "id": "waitlist_closed",
+                        "kind": "sequence",
+                        "label": "Waitlist closed",
+                        "steps": [
+                          {
+                            "id": "final_disposition_notice",
+                            "kind": "action",
+                            "label": "Final disposition notice",
+                            "contract": "final_notice",
+                            "inputs": {}
+                          },
+                          {
+                            "id": "registration_closed",
+                            "kind": "finish",
+                            "label": "Registration closed",
+                            "lifecycle": "discontinued",
+                            "outcome": "source_closed"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "otherwise": {
+                    "id": "waitlist_review",
+                    "kind": "finish",
+                    "label": "Waitlist review",
+                    "lifecycle": "on_hold",
+                    "outcome": "source_disposition_needs_review"
+                  },
+                  "onUnknown": "block"
+                }
+              ]
+            }
+          }
+        ],
+        "otherwise": {
+          "id": "capacity_attention",
+          "kind": "finish",
+          "label": "Capacity attention",
+          "lifecycle": "on_hold",
+          "outcome": "capacity_needs_review"
+        },
+        "onUnknown": "block"
+      }
+    ]
+  }
+}

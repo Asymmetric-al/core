@@ -4,6 +4,37 @@
 
 This project runs API routes with a Node.js runtime policy, and Next.js 16 Cache Components enabled (`cacheComponents: true`). In this mode, route segment config exports are disabled across App Router segment files, and route-level runtime exports can trigger build failures. Several handlers and shared implementations depend on Node-only behavior, including admin access paths that rely on `SUPABASE_SERVICE_ROLE_KEY`, request/session flows that use `next/headers` `cookies()`, payment flows that use the Stripe SDK, and GraphQL endpoints that use `graphql-yoga`.
 
+## Triggers
+
+Use this map before adding or changing an App Router segment or any Phase 22
+D10-D18 preview, public-read, cache, metadata, media, measurement, authoring,
+subject-composition, or containment path.
+
+## Workflow
+
+1. Identify the exact Tenant, Legal Entity, environment, Site, Page Family, Page,
+   locale, and applicable D10-D18 owner contract; for public serving identify the
+   exact release generation, and for preview identify the exact saved revision or
+   immutable candidate.
+2. For preview, re-prove D10 exact-target authorization before private no-store
+   output. For public serving, re-prove D2 release, Phase 10 safety, D8 route, and
+   current-serving admission before cache access or public output.
+3. Invoke the owner boundary. Public positive output may use only the admitted
+   release; preview may use only its selected authorized target and never the
+   published cache. Adverse or unknown facts deny the affected output before
+   broader rebuild.
+4. Run the applicable structural and runtime checks, then record exact changed
+   paths and blast radius.
+
+## Checklist
+
+- [ ] No forbidden route-segment export was added.
+- [ ] Preview authorization occurs before private output, and public
+      current-serving admission occurs before public cache access or output.
+- [ ] Adverse or unknown changes contain positive output first, with no stale
+      fallback restoring it.
+- [ ] Exact changed paths, blast radius, and verification results are recorded.
+
 ## Rule
 
 For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while `cacheComponents` is enabled:
@@ -36,9 +67,51 @@ ADRs 0026–0030):
   outside `use cache` and passed as arguments.
 - **No route-segment cache config.** The segment-config rule above is a hard
   contract for the public app: no `revalidate`/`dynamic`/etc. anywhere in
-  public routes — a structural CI assertion enforces it. Draft Mode preview
-  requests are dynamic by construction and never populate the published
-  cache.
+  public routes — a structural CI assertion enforces it. Draft Mode is a
+  dynamic-rendering switch only. Phase 22 D10 independently requires current
+  exact Phase 12 authorization for one saved revision or immutable candidate,
+  re-proved on every HTML/data/media/refresh request, plus private/no-store and
+  non-indexable response handling. A Draft Mode cookie grants no authority and
+  preview never populates the published cache.
+- **Phase 22 D14 presentation split.** The Phase 22 compiler owns the immutable
+  release-bound Public Search & Sharing Presentation Manifest and its distinct
+  Search/Share semantics; the Phase 5 runtime owns exact verified-host/Site/
+  locale HTTP, complete initial HTML/head, `GET`/`HEAD`, canonical/alternate,
+  robots and sharded-sitemap, certified-card/asset, and cache transport. Every
+  output resolves one current manifest coverage digest. There is no client-only
+  or bot-only metadata authority, root/cross-Site/unsafe-locale fallback, raw
+  CMS/CRM/Storage read, or provider-index state as truth. Current global SEO
+  helpers, raw/name-derived worker URLs, generic JSON-LD, fictional Update share
+  URLs, and inert Share controls are migration evidence, not D14 compliance.
+- **Phase 22 D15 transport split.** Phase 5 may serve only one same-origin,
+  fixed-schema, best-effort post-render or explicit-action `POST` seam; D15
+  owns the four metric meanings, exact release re-resolution, admission,
+  idempotency, aggregation, correction, retention, and report coverage. `GET`,
+  `HEAD`, render, RSC/prefetch, preview, sitemap, crawler, social-card, scanner,
+  monitor, and provider requests never emit a Measurement Occurrence. Share and
+  Give behavior runs first and never awaits measurement, so D15 failure cannot
+  change the response, cache, public action, cart, or checkout. Current public-
+  route Session Replay is an activation blocker and independent telemetry, not
+  D15 history or transport.
+- **Phase 22 D16 authoring/API split.** Missionary and staff editors are thin
+  clients for one server-owned semantic authoring boundary in `packages/api`.
+  They send opaque target/action identities; the server derives Tenant and actor
+  scope, reauthorizes the exact D1 working revision and D3 field/block, resolves
+  Phase 10 and the exact Phase 21 D10 binding, reloads the minimum source, and
+  invokes a certified provider adapter. Provider credentials, raw hidden
+  context, source prose in job payloads, and acceptance logic never live in
+  client code or generic Tiptap/Lexical toolbars. Apply independently re-proves
+  the target digest and CAS-creates one ordinary working revision. Translate to
+  English additionally pins one certified source-language → existing exact
+  Phase 24 English-locale pair; it creates no locale or release state.
+- **Phase 22 D18 runtime-composition split.** Phase 5 executes the public
+  runtime and cache mechanics; Phase 22 owns Public Ministry semantics,
+  current-serving admission, and adverse-first convergence across controlled
+  surfaces. No Asym-controlled HTML, RSC/data, metadata, sitemap, search,
+  media, redirect, or CDN response may bypass the current-serving evaluation,
+  and no Payload state, cache, deployment, provider result, or worker becomes a
+  second public authority. See
+  [ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
 
 ## Shared Health Contract
 
@@ -241,3 +314,110 @@ full inventory around long dynamic path names.
 | admin | `/api/admin/contribution-operations/actions`                                  | Node.js (no `runtime` segment export) | Contribution operation action executor    |
 | admin | `/api/admin/contribution-operations/correction-requests/[requestId]/decision` | Node.js (no `runtime` segment export) | Contribution correction approval decision |
 | admin | `/api/admin/contribution-operations/receipt-snapshots/[snapshotId]/pdf`       | Node.js (no `runtime` segment export) | Updated receipt snapshot PDF download     |
+
+## Phase 22 D17 public-subject runtime split
+
+The CRM operational layer owns Ministry Project identity/lifecycle; Phase 13
+owns Giving Campaign and Designation sources; Phase 22 owns the exact typed Page
+Subject Binding; Payload owns authored presentation; and Phase 5 serves only the
+current release-pinned Phase-10-safe subject snapshot. The current public CMS
+Project Page route and `fundId` serializer are migration evidence, not this
+contract. No anonymous route may query raw source or binding tables, and D7
+remains the independent CTA/Giving authority even when the same Designation is
+also the Page subject.
+
+## Phase 22 D19 Missionary subject and support-access split
+
+The CRM operational layer owns Ministry Assignment identity and effective-dated
+Party memberships; Phase 22 owns the Missionary Page Subject Binding plus
+separate display/contributor facts; Phase 21 owns any finance-authorized
+Ministry-Assignment-to-Support-Assignment binding; and Phase 12 is the sole
+server-side policy decision point for each person's exact Support Workspace
+projection. The public runtime consumes only the release-pinned Phase-10-safe
+Missionary subject snapshot. Authenticated support reads use coarse Tenant RLS
+as defense in depth and then re-prove current purpose, target, module, field,
+currency, history floor, and authorization epoch server-side. Raw financial
+tables and Realtime payloads are never browser authorities, and a page,
+membership, marriage, team relationship, Designation, notification preference,
+or Support Binding grants no financial access.
+
+## Phase 22 D20-D21 Public Ministry catalog and reader transition
+
+The current generic Payload blocks, mock `/workers` data, published-only public
+handlers, duplicated serializers, and donor fetch caches are prototype and
+migration seams. D20 requires one immutable family-qualified semantic catalog
+generation for each Page family and an exact-generation-pinned D2 release; D21
+then adopts the smallest complete Site/verified-host/locale dependency closure
+through private, non-authoritative preparation and one CAS-guarded reader-
+generation transition. The final transaction compares precomputed immutable
+digests and owner epochs, appends its receipt, and emits a D18 cause; it does not
+rescan the cohort or lock Payload, Vercel, crawlers, or social providers.
+
+After that transition, the Phase 5/D18 gateway is the only public reader. Old
+deployments and cache namespaces must honor the current cohort head or fail
+closed; runtime rollback, collection flags, provider status, or cache purge
+cannot restore the pre-Phase-22 reader. A frozen compatible-legacy renderer may
+serve only an immutable D2 release normalized into the current gateway and may
+never perform request-time raw legacy reads or accept later legacy edits.
+
+## Phase 22 D22 Public Page operations projection split
+
+Current Payload collection lists and `_status`, the public directory, and the
+generic Mission Control `/api/admin/mission-control/needs-attention` and task
+surfaces are migration or UI evidence only; D22 is not implemented by them.
+D22 privately derives permission-filtered source causes and Page impacts into
+exactly three stable views: **To review**, **Needs attention**, and **All
+pages**. It creates no Page health or resolution state. Its actions route to the
+applicable current source-owner command boundary, and an optional same-scope
+shared task may coordinate follow-up only. Task completion, dismissal, or
+deletion closes no source cause or Page impact.
+
+## Phase 22 D23 Public Page setup/settings projection split
+
+The current mutable `org-settings` JSON, Payload preferences and collection
+defaults, tenant-only pickers, and browser settings forms are not D23 authority.
+D23 privately composes exact source-owned profile versions and capability facts
+for one complete authorized scope. One literal Change action re-proves current
+owner truth and invokes only that owner's typed immutable-successor command.
+The projection stores no setting, public-serving state, readiness, activation,
+operations resolution, AI credential, or per-Page choice. Missing or unavailable
+owner truth fails honestly without changing the public runtime.
+
+## Phase 22 D24 staff-revision command split
+
+The browser and Web Studio editor remain thin. Payload may prepare one private,
+structurally inert content version under the authenticated actor with
+`overrideAccess: false` and `overrideLock: false`; its roles, locks, autosaves,
+status, restore, and native publish controls are not authority. One Phase 22
+server command re-proves the exact Phase 12 staff edit capability and D3/D20
+allowlist, records actor/predecessor/content-source provenance, and idempotently
+CAS-advances the D1 working head. Ambiguous outcomes use authoritative readback
+and inspect-before-retry; abandoned prepares use orphan reconciliation. D4/D5
+and D2 remain the only review and release lane.
+
+## Phase 22 D25 derived-action and recovery split
+
+The browser receives only a permission-filtered, disposable Editorial
+Actionability Evaluation; it never decides whether stored work is actionable.
+The Phase 22 server resolver reads current D1-D24 owner heads, and the selected
+owner command repeats its exact proof at commit. Operational Postgres receives
+no D25 status, queue, recovery body, per-autosave event, expiry scan, or
+materialized projection.
+
+Payload may store one private mutable recovery buffer for the exact Page and
+locale beneath the expected coherent working head and editor lease. Only an
+immutable sealed semantic version and digest may enter a D1 revision or D4/D5
+candidate reference. D24's reference-safe reconciler owns scratch and inert-
+prepare cleanup; ambiguity preserves the item. Review or reuse routes back
+through one newly attributed, same-scope D1 successor and never restores,
+merges, submits, publishes, or creates a second head.
+
+## Phase 22 D26 candidate-attestation split
+
+Current browser copy, upload completion, Payload roles, terms, `_status`, and
+native publish create no D26 evidence. The Phase 22 server's existing final
+submit/publish command alone re-proves the actual actor and exact scope, then
+atomically records the immutable candidate and constant-size Public Content
+Sharing Attestation. D2 or D11 references it at release; the public runtime
+performs no attestation lookup. There is no new table, checkbox, mutable Page
+flag, inherited evidence, or provider bypass.

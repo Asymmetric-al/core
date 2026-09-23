@@ -1,33 +1,35 @@
-# ADR-CD-004: Corrections and refunds use adjustment records
+# ADR-CD-004: Corrections use the canonical append-only contribution ledger
 
-**Status:** Accepted (grill session 2026-05-28)
+**Status:** Accepted 2026-05-28; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Contribution detail must support corrections and refund state without duplicate data, crossed wires, or hidden sync delay. Existing donations already store payment/refund summary fields, and staged gift audit events exist, but the repo does not yet have a first-class correction model for staff-entered contribution detail changes.
+Staff need auditable effective gift values without losing original facts. Source acceptance, optional approval and downstream results are separate.
 
 ## Decision
 
-Persist corrections and refunds as separate adjustment records linked to `donation.id`.
-
-- Original donation rows remain intact.
-- Current effective values are derived from the original donation plus applied adjustments.
-- Contribution detail shows original and effective values when corrections materially changed what staff see or report.
-- Routine staff-safe corrections can apply immediately when permissions and state allow.
-- High-risk corrections create correction requests that require approval before becoming effective.
-- Every adjustment and correction request appears in the audit trail with actor, reason, source surface, before/after values, and downstream effects.
-- Corrections use the same backend operation contract regardless of whether staff entered from CRM donor gift history, Contributions Hub, contribution detail, or an inline row action.
+- Phase 13 D2/D3 owns header identity, designation lines, append-only postings
+  and one effective fold. The atomic cutover preserves legacy UUIDs and
+  reconciles old adjustment evidence into postings.
+- Money corrections append exact per-line/source postings through the shared
+  command. Never patch settled money, replace a whole line array or retain a
+  parallel feature-local adjustment ledger.
+- Phase 13 D5/Phase 12 requires action capability, reason and active audit.
+  Second approval is optional/off by default; enabled separation of duties
+  excludes the requester. Nonfinancial fields follow their owning command.
+- A refund request/approval is not refunded money. Only the exact provider-
+  confirmed source event creates the corresponding ledger effect.
+- CRM, Hub, detail and reporting consume the same effective fold and expose
+  original versus effective values when useful, with source/audit lineage.
 
 ## Consequences
 
-- Detail APIs need to return original values, effective values, adjustment history, and pending correction requests.
-- Reporting, CRM display surfaces, and receipt workflows must consume effective values intentionally rather than reading donation rows blindly.
-- The UI must explain whether a correction is applied, pending approval, rejected, or superseded.
-- The correction model can support reversals without mutating history.
-- CRM donor gift history may introduce inline contribution edits only when they submit the same backend operation contract, collect the same required reasons/fields, enforce the same permissions, and produce the same audit/operation result as contribution detail.
+Detail returns posting/source revisions, pending approval when required and independent downstream outcomes. Idempotency, current authorization and stale-version checks apply to inline and full-detail commands.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **In-place amendment:** Simpler queries but weak audit semantics and higher risk around receipts/CRM/reconciliation.
-- **Versioned donation snapshots only:** Useful for technical history, but less explicit for finance users who need named adjustment events and reasons.
-- **All corrections as approval requests:** Too slow for low-risk metadata corrections and note updates.
+The [original 2026-05-28 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0004-adjustment-records-for-corrections.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

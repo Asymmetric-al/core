@@ -1,0 +1,521 @@
+{
+  "schemaVersion": 1,
+  "phase": 44,
+  "slug": "enterprise-identity-integration",
+  "title": "Enterprise Sign-In & Directory Integration",
+  "adoptionIssue": 1892,
+  "status": "adopted-roadmap-planning-not-implementation",
+  "source": {
+    "path": "docs/prds/program-roadmap/source-2026-09-22/supplied-roadmap.md",
+    "anchor": "phase-44",
+    "reviewedPart": "program-roadmap.md",
+    "reviewedPartSha256": "3fa5a9276ac306cdd0dc6f187a208ec6c07e95744707733520aab4c2a9f861ab",
+    "normalizedChapterSha256": "760cf52546c344ca03b5c118da2c7750b7bd1cbb3916cd2fecec44e018154cbb",
+    "sourceResearchDate": "2026-09-16",
+    "adoptionDate": "2026-09-22"
+  },
+  "checkpoints": ["ID-SIGNIN", "ID-DIRECTORY", "ID-OPERATIONS"],
+  "checkpointRule": "Capability prerequisites may be qualified before their whole checkpoint completes. Full phase completion requires all checkpoints and selected profiles; no backward gate on predecessor phases.",
+  "packages": [
+    {
+      "id": "EID-W01",
+      "outcome": "Qualify current identity/PDP substrate, reserved seams, exact support matrix and adopted successor",
+      "dependsOn": [],
+      "sourceDependencyClause": "None; foundation owners required",
+      "acceptanceCases": ["EID-AT-01", "EID-AT-02"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W02",
+      "outcome": "Verified connection/trust configuration and nonprivileged end-to-end test setup",
+      "dependsOn": ["EID-W01"],
+      "sourceDependencyClause": "W01",
+      "acceptanceCases": ["EID-AT-03", "EID-AT-04", "EID-AT-21"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W03",
+      "outcome": "Shared application-initiated SAML callback/session path and exact provider/tenant binding",
+      "dependsOn": ["EID-W02"],
+      "sourceDependencyClause": "W02",
+      "acceptanceCases": ["EID-AT-05", "EID-AT-06", "EID-AT-07", "EID-AT-08"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W04",
+      "outcome": "Reviewed existing-account transition and concurrent login/provisioning identity convergence",
+      "dependsOn": ["EID-W03"],
+      "sourceDependencyClause": "W03",
+      "acceptanceCases": ["EID-AT-09", "EID-AT-10", "EID-AT-11", "EID-AT-12"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W05",
+      "outcome": "Scoped SCIM protocol, discovery, Users lifecycle, current source mutation and honest errors",
+      "dependsOn": ["EID-W01", "EID-W02"],
+      "sourceDependencyClause": "W01, W02",
+      "acceptanceCases": ["EID-AT-13", "EID-AT-14", "EID-AT-15"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W06",
+      "outcome": "Stable group mappings, reviewed permission impact and source-provenanced membership changes",
+      "dependsOn": ["EID-W05"],
+      "sourceDependencyClause": "W05",
+      "acceptanceCases": ["EID-AT-16", "EID-AT-17", "EID-AT-18"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W07",
+      "outcome": "Lifecycle-aware deactivation/reactivation, current epoch/stream denial and unmatched-event recovery",
+      "dependsOn": ["EID-W04", "EID-W06"],
+      "sourceDependencyClause": "W04–W06",
+      "acceptanceCases": ["EID-AT-19", "EID-AT-20", "EID-AT-22", "EID-AT-23"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W08",
+      "outcome": "Optional/required staff enforcement, tested step-up and controlled administrator recovery",
+      "dependsOn": ["EID-W04", "EID-W07"],
+      "sourceDependencyClause": "W04, W07",
+      "acceptanceCases": ["EID-AT-08", "EID-AT-24", "EID-AT-25", "EID-AT-26"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W09",
+      "outcome": "Complete directory reconciliation, operational freshness and safe mapping-change review",
+      "dependsOn": ["EID-W06", "EID-W07"],
+      "sourceDependencyClause": "W06, W07",
+      "acceptanceCases": ["EID-AT-27", "EID-AT-28"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W10",
+      "outcome": "Certificate/provider succession, scoped disconnection, privacy and restore controls",
+      "dependsOn": ["EID-W08", "EID-W09"],
+      "sourceDependencyClause": "W08, W09",
+      "acceptanceCases": ["EID-AT-21", "EID-AT-29", "EID-AT-30"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W11",
+      "outcome": "Downstream authority propagation through source tasks, workflows, finance and content",
+      "dependsOn": ["EID-W07", "EID-W10"],
+      "sourceDependencyClause": "W07, W10; exact selected consumers",
+      "acceptanceCases": ["EID-AT-31", "EID-AT-32"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "EID-W12",
+      "outcome": "Certified provider interoperability, accessibility, fault/load tests, user pilot and operating release",
+      "dependsOn": ["EID-W11"],
+      "sourceDependencyClause": "W11",
+      "acceptanceCases": ["EID-AT-33", "EID-AT-34"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    }
+  ],
+  "acceptanceCases": [
+    {
+      "id": "EID-AT-01",
+      "requiredProof": "The Phase 12 reserved generation remains inert for sign-in/provision-up while its qualified active=false safety adapter still works independently.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-02",
+      "requiredProof": "One adopted enterprise profile cannot activate a different protocol, nested groups, ABAC, tenant provisioning or another tenant's connection.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-03",
+      "requiredProof": "A real administrator configures and tests the correct tenant/provider; spoofed domains, posted provider IDs and wrong-account control cannot bind.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-04",
+      "requiredProof": "Hostile metadata, private-network URLs, invalid trust, replayed assertions, expired signatures and audience/recipient mismatches fail safely.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-05",
+      "requiredProof": "Application-initiated SAML and an IdP bookmark through that path preserve PKCE and the approved redirect without a separate app-local auth client.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-06",
+      "requiredProof": "Verified provider/session evidence binds the correct principal and tenant; user metadata, email domain, role label and array ordering cannot grant access.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-07",
+      "requiredProof": "A new authenticated but unadmitted identity has no operational permissions; any permitted starter uses the current approved membership command.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-08",
+      "requiredProof": "Required SSO applies across relevant protected app routes and existing sessions; an old password/social token or alternate callback cannot bypass it.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-09",
+      "requiredProof": "Existing regular and SSO accounts sharing an email require the approved proof/binding transition; they do not silently merge or union grants.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-10",
+      "requiredProof": "Identity/email succession preserves attribution, protects financial history and suspends/re-attests sensitive grants under the predecessor contract.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-11",
+      "requiredProof": "Concurrent first login, SCIM creation, repeated callback and response loss converge on one source binding without duplicate privileged accounts.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-12",
+      "requiredProof": "Partial external-auth creation before local acceptance remains unentitled and recoverable; an orphaned provider account cannot acquire authority.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-13",
+      "requiredProof": "The real selected IdP completes supported SCIM discovery, lookup, create, update and PATCH cases with correct resource and error semantics.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-14",
+      "requiredProof": "Credential/body/path scope mismatch, cross-tenant external IDs, token replay after rotation and unbounded/hostile filters cannot enumerate or mutate.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-15",
+      "requiredProof": "Null/omitted/removed attributes, case rules, pagination and supported version conditions match the declared profile; unsupported operations never report false success.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-16",
+      "requiredProof": "Stable external group IDs map only to approved flat groups; a rename, recycled name, nested group or forged claim cannot expand permissions.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-17",
+      "requiredProof": "Removing a mapping removes its attributable membership effect without erasing unrelated grants; the existing privacy/purpose/entity floors still subtract.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-18",
+      "requiredProof": "Directory changes cannot self-approve clearance, sensitive elevation, named care access or a financial operation through a friendly group label.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-19",
+      "requiredProof": "Received active=false denies applicable tenant assignments within the existing Phase 12 enforcement bound and invalidates protected streams and queued user authority.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-20",
+      "requiredProof": "Deactivate → reactivate → deactivate is processed correctly; duplicate old messages and stale positive updates cannot swallow the second revocation.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-21",
+      "requiredProof": "Certificate rotation, expired metadata and issuer/provider replacement use exact reviewed trust generations; no unrelated tenant is changed.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-22",
+      "requiredProof": "Unmatched deactivation is durably visible, repairable and fences a later first login/create; valid negative security events are not delayed by optional workflow or campaign limits.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-23",
+      "requiredProof": "SCIM deletion/deactivation in tenant A does not delete Party/gifts or tenant B authority; any broader provider reauthentication effect is accurately disclosed.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-24",
+      "requiredProof": "Required assurance and step-up are actually proved; SSO, asserted MFA, SMS availability and provider logout cannot substitute for local authorization.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-25",
+      "requiredProof": "A tested authorized administrator recovery works during IdP failure without a permanent shared bypass or automatic sealed-data access.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-26",
+      "requiredProof": "Last-owner protection and legitimate emergency/deprovisioning follow the approved owner policy; unsafe access is not retained silently for convenience.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-27",
+      "requiredProof": "Incomplete directory snapshots, provider silence, removed scope and upstream deletion quarantine remain visible uncertainty, not mass local deletion.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-28",
+      "requiredProof": "Reviewed mapping changes show exact impact; concurrent native edits or changed authorization invalidate stale plans instead of overwriting current grants.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-29",
+      "requiredProof": "Disconnect/reconnect and provider transition fence old positive work, reject newly presented retired credentials, retain accepted safe revocation/recovery and do not automatically enable password fallback.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-30",
+      "requiredProof": "Privacy and backup restore retain required minimal revocation/identity evidence without restoring deleted contents, old tokens or revoked memberships.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-31",
+      "requiredProof": "A revoked workflow human owner cannot authorize a queued NHI action; no automation ownership or task responsibility transfers by directory inference.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-32",
+      "requiredProof": "Legitimate organization-owned content appointments follow their source policy; directory changes cannot erase finance/care history or redirect money.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-33",
+      "requiredProof": "Administrator and staff finish setup, sign-in, denied-access recovery and required migration using keyboard, screen reader and narrow-screen layouts.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "EID-AT-34",
+      "requiredProof": "All selected Entra/Google sign-in and selected SCIM profiles complete the three checkpoints, production-shaped fault/load tests and documented user pilot.",
+      "status": "specified-not-executed"
+    }
+  ],
+  "coverage": {
+    "packageCount": 12,
+    "acceptanceCaseCount": 34,
+    "allCasesMapped": true,
+    "internalGraphAcyclic": true
+  },
+  "dispatchRule": "Reconcile existing issues and exact owner contracts, close the affected qualification decisions, then publish bounded implementation tickets. Null githubIssue means no issue has been created.",
+  "openSpec": {
+    "change": "add-enterprise-identity-integration",
+    "capability": "enterprise-identity",
+    "path": "openspec/changes/add-enterprise-identity-integration/specs/enterprise-identity/spec.md",
+    "acceptanceBindings": [
+      {
+        "case": "EID-AT-01",
+        "requirement": "EID-W01 Qualify current identity/PDP substrate, reserved seams, exact support matrix and adopted successor",
+        "scenario": "EID-AT-01 source acceptance",
+        "workPackages": ["EID-W01"]
+      },
+      {
+        "case": "EID-AT-02",
+        "requirement": "EID-W01 Qualify current identity/PDP substrate, reserved seams, exact support matrix and adopted successor",
+        "scenario": "EID-AT-02 source acceptance",
+        "workPackages": ["EID-W01"]
+      },
+      {
+        "case": "EID-AT-03",
+        "requirement": "EID-W02 Verified connection/trust configuration and nonprivileged end-to-end test setup",
+        "scenario": "EID-AT-03 source acceptance",
+        "workPackages": ["EID-W02"]
+      },
+      {
+        "case": "EID-AT-04",
+        "requirement": "EID-W02 Verified connection/trust configuration and nonprivileged end-to-end test setup",
+        "scenario": "EID-AT-04 source acceptance",
+        "workPackages": ["EID-W02"]
+      },
+      {
+        "case": "EID-AT-21",
+        "requirement": "EID-W02 Verified connection/trust configuration and nonprivileged end-to-end test setup",
+        "scenario": "EID-AT-21 source acceptance",
+        "workPackages": ["EID-W02", "EID-W10"]
+      },
+      {
+        "case": "EID-AT-05",
+        "requirement": "EID-W03 Shared application-initiated SAML callback/session path and exact provider/tenant binding",
+        "scenario": "EID-AT-05 source acceptance",
+        "workPackages": ["EID-W03"]
+      },
+      {
+        "case": "EID-AT-06",
+        "requirement": "EID-W03 Shared application-initiated SAML callback/session path and exact provider/tenant binding",
+        "scenario": "EID-AT-06 source acceptance",
+        "workPackages": ["EID-W03"]
+      },
+      {
+        "case": "EID-AT-07",
+        "requirement": "EID-W03 Shared application-initiated SAML callback/session path and exact provider/tenant binding",
+        "scenario": "EID-AT-07 source acceptance",
+        "workPackages": ["EID-W03"]
+      },
+      {
+        "case": "EID-AT-08",
+        "requirement": "EID-W03 Shared application-initiated SAML callback/session path and exact provider/tenant binding",
+        "scenario": "EID-AT-08 source acceptance",
+        "workPackages": ["EID-W03", "EID-W08"]
+      },
+      {
+        "case": "EID-AT-09",
+        "requirement": "EID-W04 Reviewed existing-account transition and concurrent login/provisioning identity convergence",
+        "scenario": "EID-AT-09 source acceptance",
+        "workPackages": ["EID-W04"]
+      },
+      {
+        "case": "EID-AT-10",
+        "requirement": "EID-W04 Reviewed existing-account transition and concurrent login/provisioning identity convergence",
+        "scenario": "EID-AT-10 source acceptance",
+        "workPackages": ["EID-W04"]
+      },
+      {
+        "case": "EID-AT-11",
+        "requirement": "EID-W04 Reviewed existing-account transition and concurrent login/provisioning identity convergence",
+        "scenario": "EID-AT-11 source acceptance",
+        "workPackages": ["EID-W04"]
+      },
+      {
+        "case": "EID-AT-12",
+        "requirement": "EID-W04 Reviewed existing-account transition and concurrent login/provisioning identity convergence",
+        "scenario": "EID-AT-12 source acceptance",
+        "workPackages": ["EID-W04"]
+      },
+      {
+        "case": "EID-AT-13",
+        "requirement": "EID-W05 Scoped SCIM protocol, discovery, Users lifecycle, current source mutation and honest errors",
+        "scenario": "EID-AT-13 source acceptance",
+        "workPackages": ["EID-W05"]
+      },
+      {
+        "case": "EID-AT-14",
+        "requirement": "EID-W05 Scoped SCIM protocol, discovery, Users lifecycle, current source mutation and honest errors",
+        "scenario": "EID-AT-14 source acceptance",
+        "workPackages": ["EID-W05"]
+      },
+      {
+        "case": "EID-AT-15",
+        "requirement": "EID-W05 Scoped SCIM protocol, discovery, Users lifecycle, current source mutation and honest errors",
+        "scenario": "EID-AT-15 source acceptance",
+        "workPackages": ["EID-W05"]
+      },
+      {
+        "case": "EID-AT-16",
+        "requirement": "EID-W06 Stable group mappings, reviewed permission impact and source-provenanced membership changes",
+        "scenario": "EID-AT-16 source acceptance",
+        "workPackages": ["EID-W06"]
+      },
+      {
+        "case": "EID-AT-17",
+        "requirement": "EID-W06 Stable group mappings, reviewed permission impact and source-provenanced membership changes",
+        "scenario": "EID-AT-17 source acceptance",
+        "workPackages": ["EID-W06"]
+      },
+      {
+        "case": "EID-AT-18",
+        "requirement": "EID-W06 Stable group mappings, reviewed permission impact and source-provenanced membership changes",
+        "scenario": "EID-AT-18 source acceptance",
+        "workPackages": ["EID-W06"]
+      },
+      {
+        "case": "EID-AT-19",
+        "requirement": "EID-W07 Lifecycle-aware deactivation/reactivation, current epoch/stream denial and unmatched-event recovery",
+        "scenario": "EID-AT-19 source acceptance",
+        "workPackages": ["EID-W07"]
+      },
+      {
+        "case": "EID-AT-20",
+        "requirement": "EID-W07 Lifecycle-aware deactivation/reactivation, current epoch/stream denial and unmatched-event recovery",
+        "scenario": "EID-AT-20 source acceptance",
+        "workPackages": ["EID-W07"]
+      },
+      {
+        "case": "EID-AT-22",
+        "requirement": "EID-W07 Lifecycle-aware deactivation/reactivation, current epoch/stream denial and unmatched-event recovery",
+        "scenario": "EID-AT-22 source acceptance",
+        "workPackages": ["EID-W07"]
+      },
+      {
+        "case": "EID-AT-23",
+        "requirement": "EID-W07 Lifecycle-aware deactivation/reactivation, current epoch/stream denial and unmatched-event recovery",
+        "scenario": "EID-AT-23 source acceptance",
+        "workPackages": ["EID-W07"]
+      },
+      {
+        "case": "EID-AT-24",
+        "requirement": "EID-W08 Optional/required staff enforcement, tested step-up and controlled administrator recovery",
+        "scenario": "EID-AT-24 source acceptance",
+        "workPackages": ["EID-W08"]
+      },
+      {
+        "case": "EID-AT-25",
+        "requirement": "EID-W08 Optional/required staff enforcement, tested step-up and controlled administrator recovery",
+        "scenario": "EID-AT-25 source acceptance",
+        "workPackages": ["EID-W08"]
+      },
+      {
+        "case": "EID-AT-26",
+        "requirement": "EID-W08 Optional/required staff enforcement, tested step-up and controlled administrator recovery",
+        "scenario": "EID-AT-26 source acceptance",
+        "workPackages": ["EID-W08"]
+      },
+      {
+        "case": "EID-AT-27",
+        "requirement": "EID-W09 Complete directory reconciliation, operational freshness and safe mapping-change review",
+        "scenario": "EID-AT-27 source acceptance",
+        "workPackages": ["EID-W09"]
+      },
+      {
+        "case": "EID-AT-28",
+        "requirement": "EID-W09 Complete directory reconciliation, operational freshness and safe mapping-change review",
+        "scenario": "EID-AT-28 source acceptance",
+        "workPackages": ["EID-W09"]
+      },
+      {
+        "case": "EID-AT-29",
+        "requirement": "EID-W10 Certificate/provider succession, scoped disconnection, privacy and restore controls",
+        "scenario": "EID-AT-29 source acceptance",
+        "workPackages": ["EID-W10"]
+      },
+      {
+        "case": "EID-AT-30",
+        "requirement": "EID-W10 Certificate/provider succession, scoped disconnection, privacy and restore controls",
+        "scenario": "EID-AT-30 source acceptance",
+        "workPackages": ["EID-W10"]
+      },
+      {
+        "case": "EID-AT-31",
+        "requirement": "EID-W11 Downstream authority propagation through source tasks, workflows, finance and content",
+        "scenario": "EID-AT-31 source acceptance",
+        "workPackages": ["EID-W11"]
+      },
+      {
+        "case": "EID-AT-32",
+        "requirement": "EID-W11 Downstream authority propagation through source tasks, workflows, finance and content",
+        "scenario": "EID-AT-32 source acceptance",
+        "workPackages": ["EID-W11"]
+      },
+      {
+        "case": "EID-AT-33",
+        "requirement": "EID-W12 Certified provider interoperability, accessibility, fault/load tests, user pilot and operating release",
+        "scenario": "EID-AT-33 source acceptance",
+        "workPackages": ["EID-W12"]
+      },
+      {
+        "case": "EID-AT-34",
+        "requirement": "EID-W12 Certified provider interoperability, accessibility, fault/load tests, user pilot and operating release",
+        "scenario": "EID-AT-34 source acceptance",
+        "workPackages": ["EID-W12"]
+      }
+    ],
+    "status": "active-planning-implementation-unchecked"
+  },
+  "packageDirectory": "docs/prds/enterprise-identity"
+}

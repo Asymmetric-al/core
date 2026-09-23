@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "date": "2026-09-11",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "D13": "Selected A; Accept with required amendments; complete amendments proposed pending founder ratification",
+  "requirements": 26,
+  "proofGroupsSpecifiedNotExecuted": 38,
+  "categoryResults": 23,
+  "independentCorrectionsAdopted": 18,
+  "operationalSignalsWithOwnerThresholdResponse": 9,
+  "priorD1D12ArtifactsPreserved": 45,
+  "priorADRsPreserved": 12,
+  "priorGlossaryPreserved": true,
+  "D12RatificationValidationPreserved": true,
+  "newADR": "0013 proposed",
+  "noADR0014": true,
+  "mirrorsMatched": 9,
+  "localLinksChecked": 134,
+  "immutableSourceLinksChecked": 29,
+  "sourceHashesVerified": 5,
+  "cliDryRun": {
+    "version": "resend-cli v2.16.0",
+    "syntheticOnly": true,
+    "providerCalls": 0,
+    "actualCompilerOrDeliveryProof": false
+  },
+  "formatAndDiffCheck": "passed",
+  "productFilesChanged": false,
+  "limits": "Documentation and installed CLI request-construction proof only; runtime source-auth/P17/DB/RLS/concurrency/provider/MIME/client/accessibility/usability/deployment proof remains required before activation."
+}

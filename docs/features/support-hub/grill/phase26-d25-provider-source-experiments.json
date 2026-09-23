@@ -1,0 +1,59 @@
+{
+  "checked": "2026-09-12",
+  "coreHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sdk": "resend@6.11.0",
+  "sourcePath": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10/packages/email/resend.ts",
+  "sourceSha256": "3ee9089037a5a9bcf03f771c77a03b65353e2cf5722e200bc3a779a26074c784",
+  "execution": "Actual Core exported helpers, synthetic intercepted fetch responses, no env/provider/DNS/message access; no production behavior claim.",
+  "count": 3,
+  "calls": 3,
+  "fixturesRemaining": 0,
+  "results": [
+    {
+      "name": "empty object is reported as successful retrieval",
+      "observed": {
+        "success": true,
+        "data": {}
+      },
+      "counterexample": true
+    },
+    {
+      "name": "attachment helper discards remaining-page signal",
+      "observed": {
+        "success": true,
+        "data": [
+          {
+            "id": "attachment-fixture-1",
+            "filename": "one.txt",
+            "download_url": "https://fixture.invalid/one",
+            "expires_at": "2026-09-12T12:00:00Z"
+          }
+        ]
+      },
+      "counterexample": true
+    },
+    {
+      "name": "SDK response cast preserves new fields but request omits html_format",
+      "observed": {
+        "success": true,
+        "data": {
+          "object": "email",
+          "id": "email-fixture-3",
+          "html_format": "cid",
+          "received_for": ["care@fixture.invalid"],
+          "headers": {
+            "received": "one flattened header"
+          },
+          "raw": {
+            "download_url": "https://fixture.invalid/raw",
+            "expires_at": "2026-09-12T12:00:00Z"
+          },
+          "html": "<p>Fixture</p>",
+          "text": "Fixture"
+        }
+      },
+      "request": "https://api.resend.com/emails/receiving/email-fixture-3",
+      "counterexample": true
+    }
+  ]
+}

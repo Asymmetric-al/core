@@ -1,0 +1,1306 @@
+{
+  "date": "2026-09-15",
+  "status": "Pass",
+  "method": "Independent full-ratification actual incorporation, historical-body and evidence preservation, source-pin and mirror documentary verification; no new runtime proof",
+  "checksPassed": 287,
+  "checksTotal": 287,
+  "checks": [
+    {
+      "name": "independent baseline 0040-recoverable-unwanted-correspondence-and-future-mail-holds.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline CONTEXT.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-address-probe.json",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-address-probe.json",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-completion-audit.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-completion-audit.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-data-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-data-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-evidence.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-evidence.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-final-data-review.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-final-data-review.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-final-data-reviewed-files.json",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-final-data-reviewed-files.json",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-final-lifecycle-review.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-final-lifecycle-review.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-final-ux-review.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-final-ux-review.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-lifecycle-seam-review.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-lifecycle-seam-review.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-lifecycle-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-lifecycle-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-proof-and-operations.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-proof-and-operations.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-review-corrections.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-review-corrections.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-selection.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-selection.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-ux-blueprint.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-ux-blueprint.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-ux-research.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-ux-research.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-d40-validation.json",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-d40-validation.json",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-grill-log.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-grill-log.md",
+      "pass": true
+    },
+    {
+      "name": "independent baseline phase26-session-handoff.md",
+      "pass": true
+    },
+    {
+      "name": "matches root baseline phase26-session-handoff.md",
+      "pass": true
+    },
+    {
+      "name": "adversarial-review exact IDs",
+      "pass": true
+    },
+    {
+      "name": "data-contract exact IDs",
+      "pass": true
+    },
+    {
+      "name": "lifecycle-seam-review exact IDs",
+      "pass": true
+    },
+    {
+      "name": "ux-blueprint exact IDs",
+      "pass": true
+    },
+    {
+      "name": "proof-and-operations exact IDs",
+      "pass": true
+    },
+    {
+      "name": "proof-and-operations exact IDs",
+      "pass": true
+    },
+    {
+      "name": "review-corrections exact IDs",
+      "pass": true
+    },
+    {
+      "name": "23 categories",
+      "pass": true
+    },
+    {
+      "name": "22 lifecycle traces",
+      "pass": true
+    },
+    {
+      "name": "14 UX outcomes",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-address-probe.json original bytes",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-adversarial-review.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-adversarial-review.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-completion-audit.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-completion-audit.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-data-contract.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-data-contract.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-data-source-evidence.json original bytes",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-evidence.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-evidence.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-final-data-review.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-final-data-review.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-final-data-reviewed-files.json original bytes",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-final-lifecycle-review.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-final-lifecycle-review.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-final-ux-review.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-final-ux-review.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-lifecycle-seam-review.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-lifecycle-seam-review.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-lifecycle-source-evidence.json original bytes",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-proof-and-operations.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-proof-and-operations.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-review-corrections.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-review-corrections.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-selection.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-selection.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-source-evidence.json original bytes",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-ux-blueprint.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-ux-blueprint.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-ux-research.md substantive body preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-ux-research.md current ratification notice",
+      "pass": true
+    },
+    {
+      "name": "phase26-d40-validation.json original bytes",
+      "pass": true
+    },
+    {
+      "name": "glossary heading only",
+      "pass": true
+    },
+    {
+      "name": "glossary full ratification",
+      "pass": true
+    },
+    {
+      "name": "two terms unchanged",
+      "pass": true
+    },
+    {
+      "name": "ADR body preserved",
+      "pass": true
+    },
+    {
+      "name": "ADR current accepted",
+      "pass": true
+    },
+    {
+      "name": "phase26-grill-log.md old history preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-grill-log.md D1-D40 current",
+      "pass": true
+    },
+    {
+      "name": "phase26-grill-log.md Q41 unanswered",
+      "pass": true
+    },
+    {
+      "name": "phase26-session-handoff.md old history preserved",
+      "pass": true
+    },
+    {
+      "name": "phase26-session-handoff.md D1-D40 current",
+      "pass": true
+    },
+    {
+      "name": "phase26-session-handoff.md Q41 unanswered",
+      "pass": true
+    },
+    {
+      "name": "master incorporates R01\u2013R30",
+      "pass": true
+    },
+    {
+      "name": "master incorporates C01\u2013C18",
+      "pass": true
+    },
+    {
+      "name": "master incorporates L01\u2013L16",
+      "pass": true
+    },
+    {
+      "name": "master incorporates UX01\u2013UX15",
+      "pass": true
+    },
+    {
+      "name": "master incorporates F01\u2013F04",
+      "pass": true
+    },
+    {
+      "name": "master incorporates P01\u2013P40",
+      "pass": true
+    },
+    {
+      "name": "master incorporates O01\u2013O06",
+      "pass": true
+    },
+    {
+      "name": "master incorporates in-product",
+      "pass": true
+    },
+    {
+      "name": "master incorporates P17",
+      "pass": true
+    },
+    {
+      "name": "master incorporates P6",
+      "pass": true
+    },
+    {
+      "name": "master incorporates D19",
+      "pass": true
+    },
+    {
+      "name": "master incorporates D38",
+      "pass": true
+    },
+    {
+      "name": "master incorporates D39",
+      "pass": true
+    },
+    {
+      "name": "master incorporates D15",
+      "pass": true
+    },
+    {
+      "name": "master incorporates all-Unwanted",
+      "pass": true
+    },
+    {
+      "name": "master incorporates receiving inbox",
+      "pass": true
+    },
+    {
+      "name": "master incorporates first durable",
+      "pass": true
+    },
+    {
+      "name": "master incorporates unexecuted",
+      "pass": true
+    },
+    {
+      "name": "master incorporates 31",
+      "pass": true
+    },
+    {
+      "name": "master incorporates 59",
+      "pass": true
+    },
+    {
+      "name": "master incorporates 57",
+      "pass": true
+    },
+    {
+      "name": "master full incorporation",
+      "pass": true
+    },
+    {
+      "name": "master known UX17 cross-reference clarified",
+      "pass": true
+    },
+    {
+      "name": "master no next answer",
+      "pass": true
+    },
+    {
+      "name": "no next-decision ADR",
+      "pass": true
+    },
+    {
+      "name": "historical31checks",
+      "pass": true
+    },
+    {
+      "name": "historical59pins57paths",
+      "pass": true
+    },
+    {
+      "name": "runtime40unexecuted",
+      "pass": true
+    },
+    {
+      "name": "data pin hash AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash docs/ai/rules/backend.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range docs/ai/rules/backend.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash supabase/AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range supabase/AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/database/AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/database/AGENTS.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash docs/guides/architecture/data-access-boundary.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range docs/guides/architecture/data-access-boundary.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash openspec/project.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range openspec/project.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash openspec/specs/platform-principles/spec.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range openspec/specs/platform-principles/spec.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash openspec/specs/platform-boundaries/spec.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range openspec/specs/platform-boundaries/spec.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash openspec/specs/identity-and-access/spec.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range openspec/specs/identity-and-access/spec.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash supabase/config.toml",
+      "pass": true
+    },
+    {
+      "name": "data pin range supabase/config.toml",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/workflows/adapters/inbound-routing.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/workflows/adapters/inbound-routing.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/admin/support-hub/inbound-routes.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/admin/support-hub/inbound-routes.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/admin/support-hub/inbound-route.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/admin/support-hub/inbound-route.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/workflows/adapters/inbound-email.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/workflows/adapters/inbound-email.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/admin/support-hub/inbound-router.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/admin/support-hub/inbound-router.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/email/webhooks/resend.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/email/webhooks/resend.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/email/address.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/email/address.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash supabase/migrations/20260611183000_support_inbound_routes.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin range supabase/migrations/20260611183000_support_inbound_routes.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin hash supabase/migrations/20260426100000_resend_email_rls_grants.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin range supabase/migrations/20260426100000_resend_email_rls_grants.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin hash supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin range supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin hash supabase/migrations/20260402090000_resend_email_foundation_backfill.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin range supabase/migrations/20260402090000_resend_email_foundation_backfill.sql",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/auth/context.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/auth/context.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/admin/support-hub/audit.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/admin/support-hub/audit.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash packages/api/src/workflows/functions/inbound-email-processing.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin range packages/api/src/workflows/functions/inbound-email-processing.ts",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d1-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d1-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d10-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d10-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d16-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d16-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d17-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d17-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d19-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d19-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d19-data-lifecycle-contract.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d19-data-lifecycle-contract.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d19-email-studio-integration.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d19-email-studio-integration.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d28-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d28-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "data pin hash outputs/phase26-d39-full-ratification.md",
+      "pass": true
+    },
+    {
+      "name": "data pin range outputs/phase26-d39-full-ratification.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash packages/api/src/admin/support-hub/inbound-route.ts",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges packages/api/src/admin/support-hub/inbound-route.ts",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d3-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d3-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d4-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d4-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d5-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d5-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d10-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d10-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d14-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d14-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d15-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d15-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d19-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d19-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/grill/phase26-d28-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/grill/phase26-d28-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/docs/adr/0011-retained-support-responsibility-and-shared-internal-work.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/docs/adr/0011-retained-support-responsibility-and-shared-internal-work.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/docs/adr/0037-private-source-owned-support-reply-drafts.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/docs/adr/0037-private-source-owned-support-reply-drafts.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/docs/adr/0038-private-autosaved-new-internal-note-drafts.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/docs/adr/0038-private-autosaved-new-internal-note-drafts.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle pin hash docs/features/support-hub/docs/adr/0039-personal-conversation-read-unread.md",
+      "pass": true
+    },
+    {
+      "name": "lifecycle exact ranges docs/features/support-hub/docs/adr/0039-personal-conversation-read-unread.md",
+      "pass": true
+    },
+    {
+      "name": "UI pin apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx",
+      "pass": true
+    },
+    {
+      "name": "UI pin apps/admin/features/support-hub/components/workspace/SupportSettingsLayout.tsx",
+      "pass": true
+    },
+    {
+      "name": "UI pin apps/admin/features/support-hub/components/workspace/SupportSubNav.tsx",
+      "pass": true
+    },
+    {
+      "name": "UI pin apps/admin/features/support-hub/components/detail/ConversationHeader.tsx",
+      "pass": true
+    },
+    {
+      "name": "UI pin packages/ui/components.json",
+      "pass": true
+    },
+    {
+      "name": "all59currentpins57paths",
+      "pass": true
+    },
+    {
+      "name": "six unchanged-function observations",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-proof-and-operations.md",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-data-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-lifecycle-seam-review.md",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-ux-blueprint.md",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-review-corrections.md",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-address-probe.json",
+      "pass": true
+    },
+    {
+      "name": "historical data review hash phase26-d40-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-proof-and-operations.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-lifecycle-seam-review.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-ux-blueprint.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-review-corrections.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-address-probe.json",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-lifecycle-review.md phase26-d40-lifecycle-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-proof-and-operations.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-lifecycle-seam-review.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-ux-blueprint.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-ux-research.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-review-corrections.md",
+      "pass": true
+    },
+    {
+      "name": "historical review hash phase26-d40-final-ux-review.md phase26-d40-address-probe.json",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-address-probe.json",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-adversarial-review.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-completion-audit.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-data-contract.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-data-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-evidence.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-final-data-review.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-final-data-reviewed-files.json",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-final-lifecycle-review.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-final-ux-review.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-lifecycle-seam-review.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-lifecycle-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-proof-and-operations.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-review-corrections.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-selection.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-source-evidence.json",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-ux-blueprint.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-ux-research.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-validation.json",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-d40-full-ratification.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-grill-log.md",
+      "pass": true
+    },
+    {
+      "name": "Core mirror phase26-session-handoff.md",
+      "pass": true
+    }
+  ],
+  "failed": [],
+  "bannerOnlyFiles": [
+    "phase26-d40-adversarial-review.md",
+    "phase26-d40-completion-audit.md",
+    "phase26-d40-data-contract.md",
+    "phase26-d40-evidence.md",
+    "phase26-d40-final-data-review.md",
+    "phase26-d40-final-lifecycle-review.md",
+    "phase26-d40-final-ux-review.md",
+    "phase26-d40-lifecycle-seam-review.md",
+    "phase26-d40-proof-and-operations.md",
+    "phase26-d40-review-corrections.md",
+    "phase26-d40-selection.md",
+    "phase26-d40-ux-blueprint.md",
+    "phase26-d40-ux-research.md"
+  ],
+  "byteIdenticalEvidence": [
+    "phase26-d40-address-probe.json",
+    "phase26-d40-data-source-evidence.json",
+    "phase26-d40-final-data-reviewed-files.json",
+    "phase26-d40-lifecycle-source-evidence.json",
+    "phase26-d40-source-evidence.json",
+    "phase26-d40-validation.json"
+  ],
+  "mirrors": [
+    "phase26-d40-address-probe.json",
+    "phase26-d40-adversarial-review.md",
+    "phase26-d40-completion-audit.md",
+    "phase26-d40-data-contract.md",
+    "phase26-d40-data-source-evidence.json",
+    "phase26-d40-evidence.md",
+    "phase26-d40-final-data-review.md",
+    "phase26-d40-final-data-reviewed-files.json",
+    "phase26-d40-final-lifecycle-review.md",
+    "phase26-d40-final-ux-review.md",
+    "phase26-d40-lifecycle-seam-review.md",
+    "phase26-d40-lifecycle-source-evidence.json",
+    "phase26-d40-proof-and-operations.md",
+    "phase26-d40-review-corrections.md",
+    "phase26-d40-selection.md",
+    "phase26-d40-source-evidence.json",
+    "phase26-d40-ux-blueprint.md",
+    "phase26-d40-ux-research.md",
+    "phase26-d40-validation.json",
+    "phase26-d40-full-ratification.md",
+    "phase26-grill-log.md",
+    "phase26-session-handoff.md"
+  ],
+  "incorporation": {
+    "R": 30,
+    "C": 18,
+    "L": 16,
+    "UX": 15,
+    "categories": 23,
+    "F": 4,
+    "P": 40,
+    "O": 6,
+    "terms": 2,
+    "lifecycleTraces": 22,
+    "UXJourneys": 14
+  },
+  "historicalDocumentaryGroups": 31,
+  "historicalPinRecords": 59,
+  "distinctSourcePaths": 57,
+  "actualHelperObservations": 6,
+  "runtimeGroupsRequired": 40,
+  "runtimeGroupsExecuted": 0,
+  "reviewedFiles": [
+    {
+      "name": "phase26-d40-address-probe.json",
+      "sha256": "63970814f34b93e9066b3fd025afcd272b124449a2793e042214cac2d58db8f2"
+    },
+    {
+      "name": "phase26-d40-adversarial-review.md",
+      "sha256": "285261f8751989f43241a9fe53b9c3d2114b7051331dcaf4e296cbd2cc11bf80"
+    },
+    {
+      "name": "phase26-d40-completion-audit.md",
+      "sha256": "96b235f06582858d1e98a9f3ed5be7b9c5798b80d6bc6aec6e3e56c2c7af4b8e"
+    },
+    {
+      "name": "phase26-d40-data-contract.md",
+      "sha256": "e345f6367ad85a28bf23e1bd7bfc739545d2a1f6b7a400f0da54a9ee34b22129"
+    },
+    {
+      "name": "phase26-d40-data-source-evidence.json",
+      "sha256": "735fe133f2633141dd58a946cbc56bd07850c521ae6b48e477feb782d4b19b2f"
+    },
+    {
+      "name": "phase26-d40-evidence.md",
+      "sha256": "07c8ec48875e9486dcf0df7218015a5c1a9326fd4f49500ff90bc7a2e97900c2"
+    },
+    {
+      "name": "phase26-d40-final-data-review.md",
+      "sha256": "5b9022e3b314f17ce7d44f56238f15dee97851ecb906f8d4a8cbb06109342dfe"
+    },
+    {
+      "name": "phase26-d40-final-data-reviewed-files.json",
+      "sha256": "3725ea6d9bd5741aa31abf056d6fe8e18379064068538a8c2cc9f866a0749763"
+    },
+    {
+      "name": "phase26-d40-final-lifecycle-review.md",
+      "sha256": "c2b67d5f9044bb2c1b1eaa42e37f6cde93f6698f8d3dbaf4823513e2ddc211f1"
+    },
+    {
+      "name": "phase26-d40-final-ux-review.md",
+      "sha256": "844daa9eb2507b35af1a0ab2882571944134a4a2cf4e9a2e9c64be5d167ba670"
+    },
+    {
+      "name": "phase26-d40-full-ratification.md",
+      "sha256": "52527c12f912b0c720e2ef251a084d85fc3d11aea2aebc70333df7b083f1a204"
+    },
+    {
+      "name": "phase26-d40-lifecycle-seam-review.md",
+      "sha256": "2220799ec7d549aad761e24dc48906b5ecbce1c5c040bf3820f2859f6a587c35"
+    },
+    {
+      "name": "phase26-d40-lifecycle-source-evidence.json",
+      "sha256": "85f42730dfdf208a3ecf73e158688727c5a48b00ba58b4cb62fbcae5db34e2d4"
+    },
+    {
+      "name": "phase26-d40-proof-and-operations.md",
+      "sha256": "96b9271f6504d686c911e634c9d34cd6f9a55991c677d7c98d526dbb9e37a145"
+    },
+    {
+      "name": "phase26-d40-review-corrections.md",
+      "sha256": "90943ddbdf01ee8f70394b56289612f8bfee021e57ebe54cdbdf0383335bb46c"
+    },
+    {
+      "name": "phase26-d40-selection.md",
+      "sha256": "94652f50efdab628630d34e6b3b844b702229455d16ac97f73b53f5f38689a7a"
+    },
+    {
+      "name": "phase26-d40-source-evidence.json",
+      "sha256": "048c212fb2b6c25af213de0c0dce88173b4c5199a065a33ddccc868675a79c61"
+    },
+    {
+      "name": "phase26-d40-ux-blueprint.md",
+      "sha256": "afd01a85840a2b6a74ebc6ee75a6fd4635280bc4cf67f2f80b0c2c8f74f3cdea"
+    },
+    {
+      "name": "phase26-d40-ux-research.md",
+      "sha256": "aff796f478d4fcb7c6e2eba8537ea667fd62cfe63ec1cab9ec62b1eaa55839d2"
+    },
+    {
+      "name": "phase26-d40-validation.json",
+      "sha256": "2b74fa9461c5cb3e10971fbf48b90c3357ee9ff812b2a366c13f61d4e4310a55"
+    }
+  ]
+}

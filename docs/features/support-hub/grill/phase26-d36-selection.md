@@ -1,0 +1,13 @@
+# D36 — Deliberate quotation in Support replies
+
+**Current status — full founder ratification, 14 September 2026:** D36 A and every amendment, addition, adjustment, change and final correction are fully ratified. This includes R01–R26, all23category outcomes, the complete C01–C15/ES01–ES10 prose as reconciled by F01–F03, two glossary terms,30required release groups and five operating controls. D1–D36 including D29-X01 are fully ratified. Earlier proposed/pending/no-Q37 wording is historical. The [full ratification](phase26-d36-full-ratification.md) is incorporated in full; actual runtime proof remains required and unexecuted.
+
+14 September 2026: the founder selected **A — New reply only; add a quote when useful**, with a simple, discoverable, beautiful and seamless optional quoting experience. The default intent is accepted. Detailed researched amendments are under review and are not yet fully ratified. D1–D35 and all prior amendments remain fully ratified. Q36 is answered at intent level; no Q37 is opened.
+
+Support owns selection and authorization of source context and the actual audience. Email Studio/P17 owns governed complete-message preparation, and P6 owns dispatch and reconciliation. Reading layout, email threading, Reply-all and signature policies remain separate. No formal specification, implementation tickets, product implementation or external mutation is authorized by this record.
+
+## Full founder ratification — 14 September 2026
+
+The founder explicitly ratifies this complete substantive record and every adopted amendment, addition, adjustment, change and final correction, as reconciled by [the full D36 ratification](phase26-d36-full-ratification.md). R01–R26, all23category consequences, complete source/data/editor/UX/CRM/Email Studio/privacy/retention/recovery/migration contracts, F01–F03, two unchanged terms, P01–P30 and O01–O05 are accepted. Preliminary alternatives and text-only attribution shorthand are resolved by the final clauses; evidence remains evidence rather than a mandatory vendor feature.
+
+Support retains private source/draft/target/audience authority. P17/Email Studio prepares the complete reviewed canonical reply and P6 owns immutable dispatch/reconciliation. No draft/quote edit sends, publishes a template, adds hidden history/recipients/files, creates CRM truth or rewrites sent evidence. The actual41prior documentary checks and four-assertion source counterexample remain preserved; all30runtime release groups remain required and unexecuted. Continue to one genuinely unresolved researched next question without reopening D36. This ratification creates no formal spec, tickets, implementation or external mutation.

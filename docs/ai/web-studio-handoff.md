@@ -1,19 +1,19 @@
 # Web Studio — AI agent handoff (index)
 
-**Goal:** Fast orientation for the next agent. Full detail: [`docs/guides/architecture/web-studio-living-spec.md`](../guides/architecture/web-studio-living-spec.md).
+**Goal:** Fast orientation for the next agent. Use the [document-authority guide](document-authority.md), [Phase 23 owner contract](../prds/sitestacker-parity/phase-23-web-studio-cms.md), and [Phase 42 hybrid authoring contract](../prds/web-studio-hybrid/README.md) for intended behavior. The [living specification](../guides/architecture/web-studio-living-spec.md) distinguishes dated implementation observations from adopted targets; source presence does not prove runtime qualification.
 
 ---
 
 ## Invariants (do not break)
 
-1. **Tenant safety:** public CMS routes use `resolveTenantFromRequest` + `published` filters; never leak cross-tenant.
+1. **Public serving:** use the sole `PublishedContentReader` and its independent public-read policy. Re-prove the exact trusted Tenant, Site, locale, generation and current safety dimensions required by the affected owner. A Tenant resolver or Payload `published` filter alone does not satisfy the adopted Phase 22/23/24 release and serving contract.
 2. **Data boundary:** `apps/*/app/api/**/*.ts` — no direct `@asym/database/supabase/*` imports; delegate to `packages/api`.
-3. **Payload owns document forms:** do not put main collection fields on TanStack Form.
-4. **Single Payload runtime** in `apps/admin` — no second CMS stack.
+3. **One editorial state owner:** current Payload-controlled document forms must not be wrapped in a competing TanStack Form session. Phase 42 permits Asym-owned inspectors with one authoritative form session and a qualified canonical/Puck adapter; saves, leases, history and recovery still use Phase 23 D12. Replace a resource writer only after the required parity and isolation evidence passes.
+4. **One private Payload runtime** in `apps/admin`; inject its adapter through provider-neutral ports. Phase 42's isolated composer receives bounded authorized data and edit intents, not CMS credentials, another content authority or public-release permission.
 
 ---
 
-## Key paths
+## Existing implementation orientation paths
 
 | Area                        | Path                                                                     |
 | --------------------------- | ------------------------------------------------------------------------ |
@@ -33,11 +33,13 @@
 
 ---
 
-## Key flows
+## Existing implementation flows
 
 1. **List/edit:** Collection `admin.components.views` → native components wrap Payload `DefaultEditView` / list hooks.
 2. **Templates:** `/web-studio/templates` → wizard routes → `POST /api/web-studio/create-from-template` → redirect to new document.
-3. **Public read:** `apps/admin/app/api/cms/public/*` → `getPayloadClient` + `resolveTenantFromRequest`.
+3. **Public read:** `apps/admin/app/api/cms/public/*` → the sole `PublishedContentReader` with the independent public-read policy; internal Payload access remains behind the private reader adapter. Preserve current protections while qualifying the adopted exact-generation serving contract.
+
+These paths describe the existing prototype surface. They do not make raw Payload forms, publish controls or provider APIs the required final product. The Phase 42 implementation must qualify its Asym-owned editor, isolated composer and owner commands before enabling them; a UI failure must not expose raw Payload Admin.
 
 ---
 
@@ -62,6 +64,7 @@ bun run verify:data-boundary
 
 ## Docs to update when you change behavior
 
-- `docs/guides/architecture/web-studio-living-spec.md` (primary)
+- The affected Phase 22/23/24 owner PRD, ADR and OpenSpec; Phase 42 canonical contract/projections when its successor scope changes
+- `docs/guides/architecture/web-studio-living-spec.md` (implementation narrative)
 - `docs/guides/architecture/cms-runtime.md` (API tables)
 - `docs/guides/development/site-studio-payload.md` (dev workflow)

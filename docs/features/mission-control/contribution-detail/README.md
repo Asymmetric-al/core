@@ -1,0 +1,31 @@
+# Contribution detail — current owners and historical decisions
+
+This feature retains the shared staff experience developed in May–June 2026:
+CRM and Contributions Hub use one action/read-model boundary, current permissions,
+line-aware presentation, auditable operations and the same returned truth. The
+historical [grill record](grill-session.md) preserves the original interview.
+The amended [local ADRs](docs/adr/README.md), [feature PRD](PRD.md) and
+[current program PRDs](../../../prds/mission-control-contribution-operations/README.md)
+now apply the ratified owner models in their actual requirements and decisions.
+
+Read the [document authority guide](../../../ai/document-authority.md) before
+using an older decision as a new implementation target. The following already
+ratified owner decisions govern their stated scope. Their documentation does not
+prove that the planned migrations or target services are implemented.
+
+| Subject                               | Current intended owner and rule                                                                                                                                                                                                                                                                                    | Historical material retained here                                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gift identity, money and corrections  | [Phase 13 — Contribution Ledger](../../../prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md), D2/D3: header identity, designation lines, append-only postings and one effective fold; legacy UUIDs remain stable through the specified atomic cutover                       | `donations` rows plus adjustment overlays describe the earlier implementation, not another target ledger                                          |
+| Campaign and Fund                     | Phase 13 D13: a Giving Campaign is a fundraising effort and attribution/reporting axis, separate from the giving destination; one campaign can span many designations                                                                                                                                              | The May definition of Campaign as a short-lived Fund is superseded                                                                                |
+| Money approval default                | Phase 13 D5 and [Phase 12 — Permissions](../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md): finance capability, required reason and immutable active audit; second approval is optional per tenant and off by default; enabled separation of duties forbids requester self-approval | ADR-CD-005's default approval with superadmin suppression is superseded for this target; current runtime policy must be inspected before a change |
+| Recurring support                     | [Phase 16 — Pledges and Recurring Commitments](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md) owns recurring commitment/group/line/cohort identity, lifecycle and recovery                                                                                                            | “Recurring agreement” is earlier local wording, not a second business object or a Stripe subscription                                             |
+| Receipt eligibility and legal meaning | [Phase 7 — Compliance and Donor Credit](../../../prds/sitestacker-parity/phase-07-receipt-statement-compliance-and-donor-credit.md) selects the exact governed document purpose and issuance/correction policy                                                                                                     | A receipt per gift, every-line receipt content, PDF fallback or a staff click is not a universal issuance rule                                    |
+| Generated documents and statements    | [Phase 18 — Document Production](../../../prds/sitestacker-parity/phase-18-receipt-pdf-template-system.md) owns exact artifacts, access and current heads; [Phase 19 — Statement Operations](../../../prds/sitestacker-parity/phase-19-year-end-statement-operations.md) owns statement runs/fulfillment           | Local receipt snapshots and direct generation are predecessor mechanisms, not an alternate renderer or issuance authority                         |
+| Notifications and delivery            | [Phase 17 — System Messages](../../../prds/sitestacker-parity/phase-17-system-messages-template-management.md) owns protected preparation/presentation; [Phase 6 — Communication Events](../../../prds/sitestacker-parity/phase-06-shared-communication-event-model.md) owns dispatch/history                      | Correction and approval events supply typed source facts; they do not create a second template, transport, notification or consent authority      |
+| CRM                                   | [Platform ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md): Asym Postgres owns CRM truth; Twenty is retired                                                                                                                                                                             | CRM-post/repost/sync references retain historical evidence only and authorize no new Twenty path                                                  |
+
+The [current glossary](CONTEXT.md), [feature PRD](PRD.md), program PRDs and
+amended ADR Decision sections use these owner contracts directly. Each changed
+ADR links its immutable original rationale and identifies the September 16
+amendment. Valid UI, access, audit, idempotency and concurrency decisions remain
+in the current bodies. A historical task, status label or screen is not release proof.

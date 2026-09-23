@@ -1,143 +1,38 @@
-# Phase 04 - First Domain And Mission Control
+# Retired Twenty CRM plan: Phase 04 - First Domain And Mission Control
 
-> **Status (2026-07-06): Superseded — Twenty CRM retired** by
-> [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md).
-> Asym Postgres is the system of record for all CRM truth (people,
-> relationships, notes, tasks, activity); see the
-> [Phase 1 ownership matrix](../../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md).
-> No product surface reads from or depends on Twenty; the one-way mirror never
-> turns on; sync code is dormant pending a scheduled cleanup ticket. This
-> document is preserved for historical reference — do not execute its phases
-> or runbooks. The Twenty-backed notes read path it describes is exactly what
-> the ruling forbids product surfaces from depending on.
+Twenty CRM is retired. Asym Postgres owns CRM records, including native notes
+and relationships; Mission Control reads and writes through the existing
+`packages/api` domain services. The native replacement and removal of Twenty
+clients, routes, webhooks, synchronization and environment-schema fields merged
+into `develop` through [PR #1325](https://github.com/Asymmetric-al/core/pull/1325)
+on 2026-08-19.
 
-## Trigger
+The old integration sequence is withdrawn. There is no Twenty production
+cutover, mirror activation, replay, rollback-to-Twenty or new-domain rollout
+to execute. Repository removal is complete; only the independently recorded
+external cleanup proof remains outstanding.
 
-Use this phase when the gateway, identity model, and sync foundation are ready and the team wants the first user-facing Twenty-backed CRM capability.
+## Current ownership and remaining work
 
-## Goal
+- [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+  fixes native CRM ownership and prohibits reintroducing Twenty.
+- The [Phase 1 ownership matrix](../../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)
+  identifies the record owners; new CRM work follows those existing boundaries.
+- The [data-access boundary](../../architecture/data-access-boundary.md)
+  governs API services, authorized projections and browser access.
+- [Complete Twenty CRM retirement](../../../../openspec/changes/complete-twenty-crm-retirement/tasks.md)
+  records the merged implementation separately from the still-unverified
+  external Vercel/Twenty Cloud cleanup. Its remaining external proof does not
+  mean the repository integration is still present or that credentials were
+  removed from every provider.
+- Existing compatibility records and retained business/audit facts keep their
+  owning-domain retention rules. Retiring the vendor is not permission to
+  delete those records or edit old migrations.
 
-Cut over one safe CRM domain into native Mission Control while preserving Asym's UI, auth, tenant scope, and data-access boundary.
+## Historical record
 
-## Recommended First Domains
-
-Use this order unless product leadership chooses differently:
-
-1. Notes
-2. Tasks
-3. People read
-4. People write
-
-These domains exercise the integration without moving payment truth, receipts, statements, CMS publish state, or care plans.
-
-## Scope
-
-- Native Mission Control CRM routes for the first domain.
-- TanStack Query, Table, DB, and Virtual patterns where useful.
-- Server-side search, filters, sorting, pagination, and stable row IDs.
-- Append note and create task flows after read-only parity is stable.
-- Staff-only permission states.
-- Audit and replay coverage for the first write path.
-
-## Not In Scope
-
-- Raw Twenty UI as the primary staff CRM.
-- Donor or missionary surface changes.
-- Pledge authority transfer.
-- Bulk cutover of all people/church/org records.
-- Finance, care, CMS, or automation ownership changes.
-
-## Workflow
-
-1. Start with read-only list/detail screens for the first domain.
-2. Compare Twenty-backed records with current Asym records in non-production.
-3. Add create/update commands only after read parity and audit logging work.
-4. Use native Mission Control UI and shared table primitives.
-5. Keep app routes thin and call `@asym/api`.
-6. Add permission-denied and empty states.
-7. Add UI tests for list, search, filters, detail, and first write action.
-8. Run shadow comparison before enabling staff write access.
-
-## Checklist
-
-- [x] Native Mission Control route exists for the first domain.
-- [x] Staff auth and tenant scope are enforced server-side.
-- [x] Query keys include filters, sort, pagination, and search.
-- [x] Tables use stable row IDs.
-- [x] Large lists use virtualization where needed.
-- [x] Writes create command log entries.
-- [x] Webhook side effects are replayable.
-- [x] Permission-denied states are clear.
-- [x] No donor or missionary staff controls leak into narrow surfaces.
-- [x] Existing Asym paths can be restored if the domain rolls back.
-
-## Phase 04 Artifact Status
-
-The first native Mission Control CRM domain is Notes.
-
-### Native Surface
-
-- Route: `apps/admin/app/(app)/crm/notes/page.tsx`
-- Client: `apps/admin/app/(app)/crm/notes/page-client.tsx`
-- Columns: `apps/admin/app/(app)/crm/notes/columns.tsx`
-- Entry point: `apps/admin/app/(app)/crm/page-client.tsx` links the CRM dashboard to
-  `/crm/notes`
-
-The surface keeps the existing Mission Control shell and shared table patterns.
-It does not expose raw Twenty UI, donor controls, missionary controls, care
-controls, finance controls, CMS controls, or public-surface CRM controls.
-
-### Server Boundary
-
-- Thin route handler: `apps/admin/app/api/admin/crm/notes/route.ts`
-- Package API: `packages/api/src/admin/crm/notes/index.ts`
-- Service boundary: `packages/api/src/admin/crm/notes/service.ts`
-- Query parsing: `packages/api/src/admin/crm/notes/query.ts`
-- Read model normalization: `packages/api/src/admin/crm/notes/model.ts`
-
-The app route only re-exports `GET` and `POST` from `@asym/api`. Twenty access
-stays server-side behind `packages/api`, and browser code uses only the
-Mission Control route handler.
-
-### Read Path
-
-`GET /api/admin/crm/notes` requires staff/admin/super-admin access and
-`crm.note.read`. It reads Twenty notes only when the server-only Twenty env
-contract is configured. In non-configured environments it returns an empty,
-queue-only response with missing configuration metadata instead of exposing
-credentials or failing the page.
-
-The service sends a tenant filter to Twenty and applies a second server-side
-tenant filter after normalizing the response. Search, sort, cursor, and limit
-state are included in the TanStack Query key in
-`packages/database/hooks/admin-crm-notes.ts`.
-
-### Write, Audit, Replay
-
-`POST /api/admin/crm/notes` requires staff/admin/super-admin access and
-`crm.note.create`. It validates the body, writes a `crm.note.create` command
-log entry, queues a `notes` outbound job with a deterministic idempotency key,
-and appends a CRM sync log entry.
-
-Replay uses the existing Phase 03 outbound replay path:
-`/api/admin/crm/sync/replay` with the returned outbound job id. Webhook side
-effects remain replayable through the durable webhook event path added in
-Phase 03.
-
-### Rollback
-
-The existing `/crm` Mission Control path remains intact. To roll back the
-Notes cutover, pause the `notes` domain in `crm_sync_settings` for outbound and
-replay, remove or hide the `/crm/notes` entry point, and continue operating on
-the previous CRM surface. No donor, missionary, finance, CMS, care, public, or
-payment authority is moved by this phase.
-
-### Tests
-
-- `tests/unit/packages/api/admin/crm-notes-query.test.ts`
-- `tests/unit/packages/api/crm-notes.test.ts`
-- `tests/unit/packages/api/crm-boundary.test.ts`
-
-## Exit Gate
-
-Do not proceed until one domain is usable in Mission Control, covered by tests, audited, replayable, and rollback-ready.
+The [exact former document at `7abd2c11`](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/guides/features/twenty-crm-integration/phase-04-first-domain-mission-control.md)
+preserves the withdrawn plan, original claims, commands and evidence in Git.
+It is an immutable historical source, not an operational runbook. This stable
+document path remains as the current retirement entry so existing links do not
+route an implementer into obsolete setup instructions.

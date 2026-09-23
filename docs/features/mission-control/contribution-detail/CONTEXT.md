@@ -1,27 +1,23 @@
 # Mission Control — Contribution Detail
 
-> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
-> referenced in this glossary target the now-retired Twenty pipeline and are
-> dormant per
-> [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-> (2026-07-06); "CRM post" survives only as a label over the dormant
-> staged-gift pipeline pending the Phase 8 re-groom.
-
-Staff-facing view of a single platform donation: financial truth, workflow state, and allowed actions. Opened from CRM donor history or Contributions Hub by the same `donation.id`.
+Staff-facing view of one gift through the shared contribution contract. The
+[current owner map](README.md) and amended ADR Decisions govern the terms
+below. Original May–June wording remains in immutable linked Git records. Stable gift URLs survive the
+Phase 13 ledger cutover because its header reuses the legacy identifier.
 
 ## Language
 
 **Gift**:
-The staff-facing unit of work for one payment attempt or completion, backed by a platform donation record.
-_Avoid_: Contribution (UI label only), transaction (processor jargon), payment (too broad)
+A donor gift event identified by the Phase 13 contribution header, with one or more designation lines and source-owned effective money facts.
+_Avoid_: donation-row-as-the-gift, processor transaction as business identity
 
 **Donation**:
-The platform ledger row that holds payment truth (amount, status, Stripe references, fund/missionary on record).
-_Avoid_: Gift (staff term; donation is the persisted entity name)
+The legacy persisted donation entity name in the pre-Phase-13 implementation. New financial contracts use Contribution (gift), header, designation lines and postings as defined by Phase 13.
+_Avoid_: a second target ledger, a flat row as effective money truth
 
 **Fund**:
-The donor-facing giving destination. A fund can represent a missionary, a project, or a campaign.
-_Avoid_: Restriction, memo, generic bucket
+A giving destination for a permitted purpose, distinct from the campaign effort that prompted a gift.
+_Avoid_: Campaign, restriction, memo, generic bucket
 
 **General Fund**:
 The default fund used when a donor does not provide a specific giving designation.
@@ -33,22 +29,22 @@ _Avoid_: Campaign, project fund
 
 **Project fund**:
 A fund for a specific ministry project or purpose, which may be ongoing or long term and may or may not have a fundraising goal.
-_Avoid_: Campaign when there is no defined season/goal
+_Avoid_: Campaign (a separate effort, independent of the project lifetime)
 
 **Campaign**:
-A short-lived fund with a specific fundraising goal and defined fundraising season, start/end date, or progress tracking.
-_Avoid_: Project fund, missionary fund
+A staff-defined fundraising effort with goals and reporting rollups, as defined by Phase 13. It can span multiple giving destinations and is not itself a Fund or Designation.
+_Avoid_: short-lived Fund, email blast, public page, source code
 
 **Staged gift**:
-Workflow envelope for finance review, CRM posting, and receipt orchestration; joined to a donation and may be absent.
-_Avoid_: Gift (alone), contribution record
+A predecessor intake/review envelope. Its source-owned review evidence may remain relevant, but it is neither canonical gift identity, receipt authority nor a prerequisite for every current command.
+_Avoid_: gift ledger, CRM posting authority
 
 **Recurring agreement**:
-The internal Mission Control business object for an ongoing donor commitment, including cadence, amount, designation, status, and linked gift history.
-_Avoid_: Stripe subscription (provider object), recurring payment (too broad)
+Historical contribution-detail wording for recurring support. Phase 16 Recurring Commitment, group and line definitions govern the current target; this label does not establish another recurring record or lifecycle.
+_Avoid_: Stripe subscription as intent, a feature-local recurring authority
 
 **Designation**:
-One donor-intent allocation line on a gift, with its own amount and exactly one fund destination. A gift can have multiple designations, and no designation is primary by default.
+One donor-intent allocation line on a gift, with its own amount and one eligible giving destination under Phase 13. A gift can have multiple designations, and no designation is primary by default.
 _Avoid_: Primary fund, primary missionary, hidden split, legal restriction, unassigned designation
 
 **Designation set**:
@@ -68,7 +64,7 @@ Implementation-facing term for a designation row. Use **Designation** in staff-f
 _Avoid_: Split (as noun), allocation (in UI copy unless finance users prefer it)
 
 **Stripe reference**:
-A provider identifier or dashboard link used as technical/payment evidence for a gift or recurring agreement.
+A provider identifier or dashboard link used as technical/payment evidence for a gift or Phase 16 recurring commitment.
 _Avoid_: Recurring agreement, gift identity
 
 **Stripe operations**:
@@ -80,8 +76,8 @@ The backend response after a contribution detail action, including updated detai
 _Avoid_: Minimal success response
 
 **Downstream effect**:
-A consequence of a save/action that affects another workflow, such as receipt review, CRM repost, reconciliation review, recurring agreement review, or provider sync.
-_Avoid_: Side effect (too vague for staff-facing product language)
+An independently owned consequence of an accepted source action, such as a document correction request, Phase 16 recovery case, message intent or provider operation. Request, readiness and completion remain distinct.
+_Avoid_: one success flag for every owner
 
 **Progressive disclosure**:
 The UI pattern for showing staff a simple result first while hiding technical proof, ids, and system metadata behind expandable or role-gated details.
@@ -92,8 +88,8 @@ The default top-level contribution detail view: amount, payment status, donor, d
 _Avoid_: Operations console
 
 **Workflow chip**:
-A compact visible status indicator for receipt, CRM post, refund, recurring, correction, or approval state.
-_Avoid_: Technical badge when the chip is staff-facing
+A compact projection of an actual source-owned posting, document, refund, recurring or approval state.
+_Avoid_: a second persisted status, retired CRM-post state
 
 **Next-best action**:
 The safest valid action Mission Control recommends for the gift's current state and the staff member's role.
@@ -144,16 +140,16 @@ The default Hub search path for everyday lookup by donor, amount, date, fund/des
 _Avoid_: Advanced filter drawer
 
 **Advanced contribution filters**:
-Operational and financial filters used to find gifts by receipt state, CRM post state, refund state, correction/approval state, recurring agreement, fund type, memo/check text, or audit/action id.
-_Avoid_: Default search noise
+Source-qualified filters for exact posting, document, refund, correction/approval, recurring, giving-destination, campaign-attribution and audit facts.
+_Avoid_: retired CRM-post filters, client-invented financial states
 
 **CRM gift history row**:
 The compact donor-page table row for a gift, showing amount/date/designation summary plus meaningful issue indicators before staff open contribution detail.
 _Avoid_: Mini contribution detail
 
 **Issue indicator**:
-A compact CRM row signal that a gift needs attention, such as receipt affected, CRM post failed, pending approval, refund state, or designation issue.
-_Avoid_: Full action workflow in the row
+A safe row projection of a current source-owned need, such as required approval, document repair, provider exception or designation integrity.
+_Avoid_: CRM-copy failure, inferred source completion
 
 **Column preference**:
 A per-user saved table configuration that controls which CRM gift history columns are visible.
@@ -236,20 +232,20 @@ The row or button that opened contribution detail and should receive focus again
 _Avoid_: Focus loss
 
 **Donor-care staff**:
-Staff role focused on donor support workflows; can view gift context and request corrections but does not directly perform high-risk financial/provider actions.
-_Avoid_: Finance staff
+Staff responsible for donor support. Actual read/request/mutation rights come from current Phase 12 capabilities and source scope, not this role label.
+_Avoid_: implicit finance or provider authority
 
 **Finance staff**:
-Staff role responsible for contribution operations such as designation corrections, receipt state, CRM post retries, and finance audit review.
-_Avoid_: Donor-care staff
+Staff responsible for source-authorized money operations and finance review. Current Phase 12/13 action capabilities determine authority.
+_Avoid_: a role name as a permission bypass
 
 **Finance approver**:
-Role that can approve high-risk correction requests and policy-allowed overrides.
-_Avoid_: Super admin when the action is workflow approval rather than settings ownership
+A person currently eligible under the owner policy to decide an approval-required request. Enabled separation of duties excludes the requester.
+_Avoid_: automatic authority from a role label
 
 **Super admin**:
-Tenant-level administrator who can manage contribution operation settings, including approval suppression policy.
-_Avoid_: Finance approver for routine workflow approvals
+A tenant administration role whose settings and source actions remain subject to current capabilities, scope and non-bypassable owner rules.
+_Avoid_: blanket approval suppression or financial bypass
 
 **Capability**:
 A backend-enforced permission for one action or class of actions, such as applying corrections, approving corrections, managing receipts, replaying Stripe events, or changing settings.
@@ -264,8 +260,8 @@ The audit record for a tenant-level CRM gift-history view default change, includ
 _Avoid_: Approval request for routine view settings
 
 **Contribution detail**:
-The shared detail experience for one `donation.id`, regardless of whether staff arrived from Hub or CRM.
-_Avoid_: Detail sheet (implementation shape), gift drawer
+The shared view and operation context for one Phase 13 contribution header, whether opened from CRM or Hub.
+_Avoid_: a second gift object
 
 **Contribution detail overlay**:
 The route-aware overlay that presents contribution detail while preserving the staff member's current Mission Control context.
@@ -284,8 +280,8 @@ A contribution operation launched directly from a row or compact surface, such a
 _Avoid_: Inline shortcut with different validation
 
 **Risky inline operation**:
-An inline contribution operation that can affect financial truth, donor-facing receipts, approvals, refunds, provider actions, or CRM/Twenty post state and therefore requires contextual review before submission.
-_Avoid_: One-click risky action
+An owner command requiring complete contextual review before submission, including exact current source values, proposed effects, capability and required reason/confirmation.
+_Avoid_: one-click policy bypass
 
 **Contextual operation dialog**:
 A compact dialog or drawer launched from an inline action that shows current values, proposed change, downstream effects, required reason/confirmation, and operation result before submitting a risky operation.
@@ -316,7 +312,7 @@ The UI entry point for an operation, such as a row button, menu item, form, or d
 _Avoid_: Separate operation
 
 **Canonical contribution link**:
-The durable share/bookmark URL for a gift: `/contributions/{donation.id}`.
+The durable share/bookmark URL for a gift: `/contributions/{giftId}` (the stable contribution-header UUID).
 _Avoid_: CRM-context gift links as permanent references
 
 **Context-preserving gift link**:
@@ -324,72 +320,72 @@ A URL that keeps the staff workspace open while selecting a gift, such as `/crm?
 _Avoid_: Share link (use canonical contribution link for sharing)
 
 **Payment status**:
-Donation lifecycle state: completed, pending, failed, refunded.
-_Avoid_: Receipt status, CRM post status, staged gift status
+The current source-qualified payment/execution fact in the Phase 13 orthogonal state model, displayed separately from posting, provider-control, document, deposit and approval facts.
+_Avoid_: one mutable completed/pending/refunded status for every lifecycle
 
 **Receipt status**:
-Whether a tax receipt was sent, pending, failed, or suppressed for this gift.
-_Avoid_: Payment status, email delivery (implementation)
+A presentation of separately owned eligibility/issuance, current artifact and delivery facts for an exact purpose and subject.
+_Avoid_: one sent/pending flag as receipt authority
 
 **Receipt content snapshot**:
-The designation lines and effective gift values represented by a sent receipt.
-_Avoid_: Current designation set (when corrections have happened after send)
+The immutable Phase 7 source facts and exact Phase 18 artifact lineage for an admitted document. This term does not name a feature-local snapshot store.
+_Avoid_: current gift values as an old receipt, local rerender
 
 **Receipt affected**:
-State shown when a later correction changes values that were already represented on a sent receipt.
-_Avoid_: Receipt invalid (too strong unless policy/legal review says so)
+The current source-owned correction impact requiring Phase 7 eligibility/issuance review or an exact document successor. It does not itself issue or invalidate a document.
+_Avoid_: UI-generated legal verdict
 
 **Updated receipt**:
-A new receipt representation generated after a correction changes values that were already included on a sent receipt.
-_Avoid_: Original receipt resend
+An exact source-authorized document successor produced and resolved through Phase 18 under the governing Phase 7 purpose.
+_Avoid_: rerendered current gift, original receipt resend
 
 **Receipt delivery choice**:
-The staff selection made during a receipt-affecting correction: send updated receipt by email, generate updated receipt PDF, or defer with reason when policy allows.
-_Avoid_: Automatic receipt send
+An explicit selection among currently admitted owner follow-ups: exact artifact access/delivery, source-authorized issuance/replacement request, or permitted audited suppression/defer.
+_Avoid_: unconditional PDF fallback, correction-save-implies-send
 
 **Receipt delivery proposal**:
-The requester's selected updated receipt delivery action on a correction request before an approver confirms it.
-_Avoid_: Final receipt action
+Non-executing source context proposing an exact document/message follow-up for current-authority review.
+_Avoid_: issued document, prepared or sent message
 
 **Confirmed receipt delivery**:
-The updated receipt delivery action approved with the correction request and processed when the correction becomes effective.
-_Avoid_: Suggested receipt action
+The exact authorized follow-up instruction admitted after current owner checks. Its preparation, provider submission and delivery results are still separate.
+_Avoid_: approval proves receipt delivered
 
 **Updated receipt delivery policy**:
-Tenant-level settings that define default receipt delivery choice, defer rules, role guardrails, and donor email opt-out handling for updated receipts.
-_Avoid_: Generic automation rules
+Tenant defaults constrained by Phase 7 purpose/issuance, Phase 18 artifact/access and Phase 17/6 recipient/requiredness rules.
+_Avoid_: a second receipt policy engine, marketing preference as official suppression
 
 **Receipt delivery defer reason**:
-The staff-provided explanation required when policy allows delaying updated receipt email or PDF generation after a receipt-affecting correction.
-_Avoid_: Blank defer, skip receipt
+A protected source explanation recorded only where the exact owner policy permits deferring follow-up.
+_Avoid_: blank defer, arbitrary permission to skip required work
 
 **Updated receipt PDF**:
-A generated PDF receipt snapshot used when email is unavailable, disallowed by donor preference, or not selected by staff.
-_Avoid_: Screenshot, ad hoc printout
+The exact accessible Phase 18 artifact of an admitted source-authorized successor. Missing email never creates generation authority.
+_Avoid_: local receipt snapshot, generic fallback document
 
 **Donor email preference**:
-The donor's communication choice that controls whether Mission Control may send receipts by email.
-_Avoid_: Staff notification preference
+A purpose-scoped communication choice applied by the owning recipient/consent policy. It does not automatically suppress required official messages or alter document eligibility.
+_Avoid_: global receipt opt-out, staff attention preference
 
 **CRM post status**:
-Downstream Twenty sync state for a staged gift; workflow metadata, not payment truth.
-_Avoid_: Payment status, reconciliation (broader finance term)
+A retired Twenty-integration term retained only to interpret dated evidence. It has no current workflow, filter, capability or retry command.
+_Avoid_: current CRM or payment state
 
 **CRM gift record**:
-The parent CRM record representing one donor gift/donation.
-_Avoid_: Designation record, payment truth
+The authorized CRM presentation of a Phase 13 contribution header through the shared effective read model. It is not a copied CRM ledger entity.
+_Avoid_: second gift store, vendor parent record
 
 **CRM designation record**:
-The child CRM record representing one designation line under a CRM gift record.
-_Avoid_: Separate gift, primary designation
+The authorized CRM presentation of one stable Phase 13 designation line under its gift header.
+_Avoid_: separately posted child gift, primary designation
 
 **CRM post scope**:
-Whether a CRM/Twenty post event applies to the parent gift record or a child designation record.
-_Avoid_: Generic CRM status when line-level status matters
+A retired vendor-posting concept used only in historical evidence. Current source recovery uses exact owning gift/line/provider identities and commands.
+_Avoid_: current retry scope, native CRM replication
 
 **Shared contribution read model**:
-The database-backed contribution view used by Contributions Hub, contribution detail, and CRM donor gift history for shared gift fields.
-_Avoid_: Duplicate CRM copy, internal replication layer
+The source-qualified projection of the one Phase 13 effective fold and separately owned current facts, used across Hub, detail and native CRM.
+_Avoid_: duplicate CRM copy, second effective-value computation
 
 **Shared contribution row contract**:
 The field contract for contribution values that appear in more than one surface, ensuring the same value, label, formatting, and status vocabulary wherever the field is shown.
@@ -420,52 +416,52 @@ A browser/cache freshness problem where one surface has not refetched the latest
 _Avoid_: CRM data-transfer failure
 
 **Financial truth**:
-Fields derived from the platform donation (and authoritative processor refs), not from CRM or receipt logs alone.
-_Avoid_: Source of truth (use only in reconciliation docs)
+The source-owned effective contribution facts from the canonical ledger and independently authoritative provider execution evidence. CRM presentation, receipt history and original base-row amounts do not independently derive money truth.
+_Avoid_: processor status as the gift, a second effective fold
 
 **Correction**:
-An audited staff-initiated change to gift context or externally reported state, saved through the contribution detail contract and linked to the original donation.
-_Avoid_: Edit (too casual), overwrite, fix-up
+An audited, authorized change submitted through the shared contribution contract. Phase 13 governs append-only money corrections; affected identity, document and communication owners retain their own facts and commands.
+_Avoid_: overwrite, fix-up, changing another owner through a local snapshot
 
 **Adjustment**:
-An immutable record that changes the current effective gift view while preserving the original donation row.
-_Avoid_: Donation rewrite, direct mutation
+Historical name for the predecessor correction overlay. Phase 13 supersedes that storage model with append-only postings and the canonical effective fold while preserving the correction history.
+_Avoid_: a parallel target overlay, donation rewrite, direct money mutation
 
 **Correction request**:
-A pending approval item for a high-risk correction; it is not effective until approved.
-_Avoid_: Draft correction (too ambiguous)
+A pending correction awaiting approval when the applicable current owner policy requires it. Its presence is not proof that a money operation is effective.
+_Avoid_: every high-risk operation requires second approval by default
 
 **Approval policy**:
-Tenant-level rules that decide whether externally visible corrections require approval before becoming effective.
-_Avoid_: Per-form approval toggle
+The current owner rule for admitting a correction. Under Phase 13 D5 and Phase 12, money operations require capability, reason and active audit; an additional approver is optional per tenant and off by default.
+_Avoid_: approval suppression as the default model, per-form policy
 
 **Approval ownership policy**:
-Tenant-level rules that decide who can approve a correction request, including whether self-approval is allowed and when stronger approval is required.
-_Avoid_: Informal approver choice
+The current Phase 12 policy determining eligible approvers when approval is required. Enabled Phase 13 separation of duties excludes the requester; a historical local setting cannot bypass that rule.
+_Avoid_: informal approver choice, self-approval when separation of duties applies
 
 **Separation of duties**:
 An approval rule where the correction requester cannot approve their own high-risk correction.
 _Avoid_: Self-approval
 
 **Approval suppression**:
-A super-admin settings choice that allows specified externally visible corrections to apply without an approval request while preserving audit and downstream warnings.
-_Avoid_: Disable audit, skip controls, bypass
+Historical predecessor setting from ADR-CD-005, superseded for the Phase 13 target by explicitly enabled optional second approval through Phase 12. It grants no bypass of capability, reason, audit or provider requirements.
+_Avoid_: current approval default, disable audit, skip controls
 
 **Approval task**:
 A durable Mission Control task created for a pending correction request so approvers have a tracked work item linked to the gift.
 _Avoid_: Notification only, inbox item
 
 **Correction approval notification**:
-An alert to eligible approvers that a high-risk correction request needs review, delivered through configured channels such as in-app and email.
-_Avoid_: Generic system alert
+The exact Phase 17 attention projection of an actual source-required approval, with required in-product and independently qualified optional email steps.
+_Avoid_: notification creates or completes approval
 
 **Approval notification preferences**:
-Per-user settings that control how correction approval events reach that user and whether those events create a task for them.
+Per-user settings for eligible correction-approval notification presentation under Phase 17. They do not create, suppress or complete source-owned approval work; task creation and assignment follow the shared task owner contract.
 _Avoid_: Global tenant-only routing with no personal choice
 
 **Correction approval outcome**:
-The approve or reject decision recorded for a correction request, including actor, decision time, reason when present, and resulting task/notification state.
-_Avoid_: Silent status update
+The source approve/reject decision and its exact revision. Linked task resolution, ledger/provider execution, document creation and message delivery remain separate facts.
+_Avoid_: approved means every downstream effect succeeded
 
 **Rejection reason**:
 The required explanation an approver provides when rejecting a correction request.
@@ -508,40 +504,25 @@ Expandable audit detail for authorized finance/admin users, including request id
 _Avoid_: Raw logs (do not imply unrestricted payload exposure)
 
 **Recurring link warning**:
-A reconciliation warning shown when provider data indicates a recurring relationship but no internal recurring agreement is linked.
+A Phase 16 source-reconciliation warning for an unproved or conflicting recurring-provider mapping. Provider evidence alone neither creates a commitment nor authorizes collection.
 _Avoid_: Broken subscription (provider-specific and too narrow)
 
 **Correction reason**:
-The staff-provided explanation required before saving a correction that affects designation, receipt, CRM post, tax-deductible amount, or reconciliation review.
-_Avoid_: Note (too broad)
+The source-required explanation for a consequential command, recorded under its exact action/risk policy.
+_Avoid_: optional note used to bypass a mandatory reason
 
 **Override**:
-An admin-only correction that bypasses a normal lock, still audited and still explicit about downstream effects.
-_Avoid_: Force save
+A separately authorized exceptional owner command within current scope and non-bypassable invariants. It cannot defeat money conservation, protected access or enabled separation of duties.
+_Avoid_: force save, arbitrary admin lock bypass
 
 **Mission Control design language**:
 The shared admin UI look and interaction system built from repo design tokens, shadcn primitives, and existing sheet/card/action patterns.
 _Avoid_: One-off contribution-detail styling, hardcoded colors
 
-## Flagged ambiguities
+## Historical terminology record
 
-**Transaction ID (UI label today):** Currently maps to Stripe payment intent / charge / donation id fallback. Product should distinguish **processor payment intent**, **charge id**, and **platform donation id** in detail — not one blurred field.
-
-**Twenty (UI label today):** Label means CRM post status; rename to staff language (**CRM post** or **Twenty sync**) in detail spec.
-
-**Correction vs refund:** A correction changes gift metadata or reporting context; a refund changes money movement/payment state. Do not use "correction" to mean "refund."
-
-**Primary designation:** Rejected language for contribution detail. Multiple designations are equal; summary labels may be derived for compact list views but must not imply one line owns the gift.
-
-**Restriction vs designation:** A normal donor designation to a missionary fund, project fund, or campaign is not automatically a legal restriction. Use **restriction** only when legal/accounting treatment requires it.
-
-**Memo vs fund:** Donor memo text can help identify the intended fund, but the memo itself is not the fund or designation.
-
-**Unassigned designation:** Rejected as a final state. If donor intent is unspecified, assign the designation line to **General Fund**.
-
-## Example dialogue
-
-**Staff:** “Open this gift from the donor’s CRM history.”  
-**System:** Loads contribution detail for `donation.id=…`, same payload as Hub.  
-**Staff:** “Why can’t I approve it?”  
-**System:** “No staged gift on this donation — read-only financial view. Manual gifts post through [path TBD].”
+The [original May 2026 glossary](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/CONTEXT.md)
+preserves its flagged ambiguities, example dialogue and predecessor names.
+The definitions above are the amended current language. The original request to
+rename Twenty sync, Campaign-as-Fund and donation-row examples is not a current
+implementation instruction.

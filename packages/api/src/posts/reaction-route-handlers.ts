@@ -3,29 +3,21 @@ import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
 import {
-  revalidatePostReactionTags,
-  resolveReactionRouteContext,
-} from "./reaction-route-utils";
+  applyMinistryUpdateReaction,
+  type MinistryUpdateReactionKind,
+} from "./ministry-update-reaction";
+import { resolveReactionRouteContext } from "./reaction-route-utils";
 import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
 
 import type { NextRequest } from "next/server";
 
 /**
- * The atomic reaction RPCs are service_role-only by migration grant
- * (REVOKEd from anon/authenticated), so every handler must go through the
- * admin client after the request-scoped auth and tenant validation.
+ * HTTP adapters name the Ministry Update Reaction Command kind and own
+ * surface copy. The command owns RPC names and cache revalidation.
  */
-type ReactionRpcName =
-  | "atomic_like_post"
-  | "atomic_unlike_post"
-  | "atomic_pray_for_post"
-  | "atomic_unpray_for_post"
-  | "atomic_fire_post"
-  | "atomic_unfire_post";
-
 interface ReactionMutationConfig {
-  rpc: ReactionRpcName;
-  /** 500 body when the RPC fails for any reason other than P0002. */
+  kind: MinistryUpdateReactionKind;
+  /** 500 body when the command reports a non-not-found failure. */
   failureMessage: string;
   /** Fallback message for unexpected errors anywhere in the handler. */
   fallbackMessage: string;
@@ -57,27 +49,33 @@ function createReactionMutationHandler(
         throw new ApiHttpError(503, adminError || "Admin client unavailable");
       }
 
-      const { data, error } = await supabaseAdmin.rpc(config.rpc, {
-        p_post_id: postId,
-        p_user_id: userId,
-        p_tenant_id: tenantId,
+      const result = await applyMinistryUpdateReaction({
+        rpc: async (name, rpcArgs) => {
+          const response = await supabaseAdmin.rpc(name, rpcArgs as never);
+          return { data: response.data, error: response.error };
+        },
+        kind: config.kind,
+        postId,
+        userId,
+        tenantId,
       });
 
-      if (error) {
-        if (error.code === "P0002") {
-          throw new ApiHttpError(404, "Post not found");
+      if (!result.ok) {
+        switch (result.code) {
+          case "not_found":
+            throw new ApiHttpError(404, "Post not found");
+          case "failed":
+            throw new ApiHttpError(500, config.failureMessage);
+          default: {
+            const _exhaustive: never = result;
+            throw new ApiHttpError(500, String(_exhaustive));
+          }
         }
-        throw new ApiHttpError(500, config.failureMessage);
-      }
-
-      const result = (data ?? null) as { applied?: boolean } | null;
-      if (result?.applied) {
-        revalidatePostReactionTags({ postId, tenantId });
       }
 
       return NextResponse.json({
         success: true,
-        applied: Boolean(result?.applied),
+        applied: result.applied,
       });
     } catch (error) {
       return toErrorResponse(error, config.fallbackMessage);

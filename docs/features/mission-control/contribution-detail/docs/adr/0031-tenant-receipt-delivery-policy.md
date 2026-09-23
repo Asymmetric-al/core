@@ -1,39 +1,34 @@
-# ADR-CD-031: Tenant policy controls updated receipt delivery defaults and guardrails
+# ADR-CD-031: Tenant receipt defaults stay inside exact purpose and delivery policy
 
-**Status:** Accepted (grill session 2026-05-29)
+**Status:** Accepted 2026-05-29; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Updated receipt delivery affects donor communication and tax-receipt operations. Tenants may have different finance and donor-care policies, but staff should not need to reason through a complex policy system while making a correction.
-
-ADR-CD-029 defines the correction-time delivery choices, and ADR-CD-030 defines requester proposal plus approver confirmation when approval is required. This decision defines the tenant-level guardrails around those choices.
+Tenant defaults should simplify follow-up while preserving the exact legal, source, artifact and communication contract.
 
 ## Decision
 
-Super admins can configure simple tenant-level updated receipt delivery policy:
-
-1. **Default delivery choice:** Default to email when allowed, PDF, or defer when policy permits.
-2. **Defer guardrail:** Decide whether staff may defer updated receipt delivery and whether a reason is required.
-3. **Required receipt action:** Decide whether receipt-affecting corrections must select email or PDF before completion.
-4. **Role guardrails:** Decide which roles can send updated receipt email and which roles can generate updated receipt PDF.
-5. **Donor email opt-out:** Decide whether donor email opt-out blocks email absolutely; default should be absolute block.
-
-Modern practice requirements:
-
-- Keep the correction UI simple: show the allowed choices, default the safest policy-backed option, and explain blocked choices inline.
-- Enforce policy server-side; UI state is only guidance.
-- Audit policy changes with actor, timestamp, old/new values, and reason.
-- Audit delivery decisions with the effective policy version used at the time.
-- Default conservatively: respect donor email opt-out, allow PDF fallback, and require a reason when deferring receipt follow-up.
+- Configure defaults only among options admitted by Phase 7 purpose/issuance,
+  Phase 18 artifact/access and Phase 17/6 delivery policy.
+- Recheck recipient eligibility and requiredness. Marketing/general preferences
+  cannot disable a required official message.
+- Corrected-receipt source suppression requires capability, reason and audit;
+  no generic content/settings suppression applies.
+- An email-unavailable path may offer an existing authorized artifact or an
+  admitted source request, never unconditional PDF generation.
+- Defer and follow-up rules cannot override annual-cumulative coverage, legal
+  issuer or document class.
+- Authorize/audit settings independently. Their capability grants no money,
+  issuance, artifact-access or provider-send permission.
 
 ## Consequences
 
-- Tenants can match their receipt operations without forking the core correction workflow.
-- Staff get a small set of allowed actions rather than raw settings complexity.
-- Receipt delivery remains preference-aware and auditable.
+Show only permitted choices and actual readiness. Missing facts, artifacts or content creates owned repair, not a weaker fallback or local receipt engine.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Always allow every choice:** Too loose for donor communication and tax-receipt operations.
-- **Defaults only:** Does not let tenants enforce required receipt action or role restrictions.
-- **Full automation/rules builder:** Too heavy for this phase and unnecessary for the core receipt workflow.
+The [original 2026-05-29 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0031-tenant-receipt-delivery-policy.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

@@ -6,6 +6,7 @@ import {
   getReceivedEmail,
   isResendValidationSendReady,
   parseResendValidationSnapshot,
+  parseResendWebhookEnvelope,
   sendEmail,
   sendTestEmail,
   validateResendApiKey,
@@ -24,7 +25,10 @@ import {
   parseResendValidationSnapshot as parseResendValidationSnapshotFromModule,
   validateResendApiKey as validateResendApiKeyFromModule,
 } from "../../../../packages/email/resend/validate";
-import { verifyResendWebhookSignature as verifyResendWebhookSignatureFromModule } from "../../../../packages/email/resend/webhook";
+import {
+  parseResendWebhookEnvelope as parseResendWebhookEnvelopeFromModule,
+  verifyResendWebhookSignature as verifyResendWebhookSignatureFromModule,
+} from "../../../../packages/email/resend/webhook";
 
 describe("Resend adapter module seams", () => {
   it("keeps sendEmail on the send module", () => {
@@ -38,6 +42,9 @@ describe("Resend adapter module seams", () => {
   it("keeps Resend webhook authority verification on the webhook module", () => {
     expect(verifyResendWebhookSignatureFromModule).toBe(
       verifyResendWebhookSignature,
+    );
+    expect(parseResendWebhookEnvelopeFromModule).toBe(
+      parseResendWebhookEnvelope,
     );
   });
 

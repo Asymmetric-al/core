@@ -3,42 +3,45 @@
 ## Why
 
 ADR-0001 and issue #602 retire Twenty CRM as a product dependency. Asym
-Postgres already owns application truth, but `crm-core` still described Twenty
-as the backing implementation, and live Mission Control notes and relationships
-still called Twenty. The CRM capability remains. Twenty does not.
+Postgres owns application and CRM truth. The native notes/relationships
+replacement and vendor runtime removal merged into develop through PR #1325
+on 2026-08-19. The durable `crm-core` specification now reflects that accepted
+direction in the AL-1861 reconciliation.
 
-## What Changes
+Before the August replacement, live notes/relationships still called Twenty
+and the durable spec described the retired architecture. That is historical
+context, not the current implementation or a remaining vendor cutover plan.
 
-- Make Asym Postgres the sole CRM record authority for persons, donors,
-  missionaries, households, organizations, churches, relationships, notes,
-  tasks, activity, duplicate state, and merge state.
-- Keep Mission Control as the native staff CRM experience and `packages/api`
-  as the business boundary.
-- Replace Twenty-backed relationship reads and queued-to-Twenty notes with
-  tenant-safe local reads and authoritative local writes.
-- Remove live Twenty clients, routes, webhooks, projections, sync, health
-  checks, environment fields, and staff-facing Twenty ownership labels.
-- Preserve historical OpenSpec archives, ADR-0001, and dated evidence.
-- Add a CI non-regression guard against restoring Twenty runtime dependencies.
-- Keep `crm-core`. Do not use `retire_capabilities: true`.
+## Accepted Changes
 
-## Capabilities
+- Asym Postgres owns persons, donors, missionaries, households, organizations,
+  churches, relationships, notes, tasks, activity, duplicate and merge state.
+- Mission Control is the native staff CRM experience; `packages/api` owns the
+  business boundary, tenant-safe local reads and authoritative local writes.
+- Live Twenty clients, routes, webhooks, sync, projections, health checks and
+  environment fields were removed; the non-regression guard rejects restoration.
+- `crm-core` remains an active capability. Provider identifiers retained for
+  compatibility are references, never vendor authority or permission to sync.
+- ADR-0001, archived OpenSpec and dated evidence retain historical provenance.
 
-- `crm-core`: Asym Postgres CRM truth, local notes and relationships, Twenty
-  prohibition, provider links as references.
+## Remaining Work
 
-## Impact
+The external Vercel variable and Twenty Cloud key/workspace cleanup is not
+proved complete. Verify exact environments with authorized tooling and record
+the result in `tasks.md`; do not expose secrets or infer cleanup from code
+deletion. This change stays active for that explicit closeout work.
 
-- Mission Control CRM notes and relationships screens.
-- `packages/api` CRM services, env schema, migrations, and verification
-  scripts.
-- Durable `crm-core` specification after this change is synced.
+## Capabilities And Impact
+
+`crm-core` governs native Asym CRM truth, local notes/relationships, Twenty
+prohibition and provider links as references. The accepted implementation
+affected CRM services, environment schema, forward migrations and verification.
+AL-1861 corrects documentation; it does not claim a new deployment or data change.
 
 ## Non-goals
 
-- Retiring the CRM capability
-- A generic provider-sync platform or CRM adapter architecture
-- Rewriting historical Twenty archives to pretend Twenty was never considered
-- Eve write authority or an Eve upgrade
-- Dropping reusable Asym-owned CRM helpers (`crm_command_logs`, merge
-  candidates, native grids)
+- Retiring the CRM capability or introducing a generic provider-sync platform.
+- Restoring Twenty through a fallback, rollback or new credential.
+- Rewriting historical archives to pretend Twenty was never considered.
+- Dropping reusable Asym-owned command, merge, link or native-grid contracts.
+- Changing Eve authority or implementing an unrelated CRM/Party migration.

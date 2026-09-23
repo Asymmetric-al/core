@@ -1,0 +1,118 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-13",
+  "recipeId": "DON-10",
+  "name": "Recurring occurrence service follow-up",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "recurring_service",
+  "subject": "recurring_occurrence",
+  "enrollment": {
+    "mode": "once_per_event",
+    "triggerContract": "recurring.named-attention.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "staffFollowupAllowed": "recurring.staff-followup.eligible@1"
+    },
+    "tasks": {
+      "followup": "recurring.source-permitted-service-followup@1"
+    },
+    "evidence": {
+      "outcome": "recurring.source-attention.disposition-recorded@1"
+    },
+    "actions": {},
+    "roles": {
+      "service_owner": "roles.donor-service-owner@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "contributions",
+    "crm",
+    "messages",
+    "recognition",
+    "recurring-commitments",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["recurring_flow"]
+    }
+  ],
+  "root": {
+    "id": "recurring_flow",
+    "kind": "sequence",
+    "label": "Recurring flow",
+    "steps": [
+      {
+        "id": "supplementary_followup_allowed",
+        "kind": "choose_one",
+        "label": "Supplementary followup allowed",
+        "cases": [
+          {
+            "id": "permitted",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "staffFollowupAllowed"
+                }
+              },
+              "right": {
+                "literal": true
+              }
+            },
+            "then": {
+              "id": "permitted_followup",
+              "kind": "sequence",
+              "label": "Permitted followup",
+              "steps": [
+                {
+                  "id": "service_followup",
+                  "kind": "task",
+                  "label": "Service followup",
+                  "contract": "followup",
+                  "role": "service_owner"
+                },
+                {
+                  "id": "source_outcome",
+                  "kind": "evidence",
+                  "label": "Source outcome",
+                  "contract": "outcome",
+                  "role": "service_owner"
+                },
+                {
+                  "id": "followup_done",
+                  "kind": "finish",
+                  "label": "Followup done",
+                  "lifecycle": "complete",
+                  "outcome": "service_followup_recorded"
+                }
+              ]
+            }
+          }
+        ],
+        "otherwise": {
+          "id": "source_managed",
+          "kind": "finish",
+          "label": "Source managed",
+          "lifecycle": "complete",
+          "outcome": "no_supplementary_followup"
+        },
+        "onUnknown": "block"
+      }
+    ]
+  }
+}

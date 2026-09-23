@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D1-D24 fully ratified; Q25 unanswered",
+  "D24FullyRatified": true,
+  "D24RatifiedClauses": 30,
+  "D24CategoryFindings": 23,
+  "D24RequiredUnexecutedProofGroups": 50,
+  "D24OperationalControls": 5,
+  "D24RatifiedGlossaryTerms": 4,
+  "D24SubstantivePrimaryDocumentsPreserved": 4,
+  "D24HistoricalEvidenceUnchanged": 7,
+  "priorDecisionArtifactsPreserved": 147,
+  "priorADRsPreserved": 23,
+  "priorGlossaryDefinitionsPreserved": true,
+  "priorValidationUnchanged": true,
+  "Q25Options": [
+    "A - Keep an existing Support address first",
+    "B - Create a dedicated Support address first",
+    "C - Present both paths equally"
+  ],
+  "Q25Recommendation": "A",
+  "Q25Answered": false,
+  "ADR0025Created": false,
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashesVerified": 22,
+  "mirrorPairs": 18,
+  "immutableSourceLinksChecked": 55,
+  "uniqueImmutableSourceLinksChecked": 37,
+  "localLinksChecked": 515,
+  "outputLinksChecked": 483,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentReviews": [
+    "D24 Email Studio seam: no material discrepancy; 17 existing pins verified",
+    "Q25 gap selection against all current coverage and competing topics",
+    "Q25 primary vendor/use/setup journey comparison",
+    "Q25 root question/evidence: no material discrepancy, current owner scope preserved"
+  ],
+  "limits": [
+    "Historical four synthetic source cases are unchanged; no new runtime experiment",
+    "No live forwarding/DNS/provider, browser/AT or staff usability proof",
+    "All applicable D24 implementation/release proof remains required and unexecuted",
+    "No formal specification, implementation, tickets, GitHub/provider/DNS/inbox changes or real messages"
+  ]
+}

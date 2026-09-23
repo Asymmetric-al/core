@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "headAndOriginDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "relatedPRs": [
+    {
+      "number": 1335,
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    {
+      "number": 1336,
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    {
+      "number": 1564,
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
+      "sha256": "e714e9d2e99d84e8c4fc9aa78149c437d2ec9c28158cafa992c6438ce9f263a9"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx",
+      "sha256": "fcca26a34fee7569c763e8d831fd238536085921165094b8edec6fb5f622143d"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/inbound-routes.ts",
+      "sha256": "d4378d27790e4679e8e12b5bc5ae25c85c85ee6b553a57d8ed8bf67fd9a6340f"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/move-service.ts",
+      "sha256": "856d77dc019bde8ef9f920ad0eca2c8f25e6980bfb9d56bbf0cde8004f08f40a"
+    }
+  ],
+  "stage": "D1-D24 fully ratified; Q25 unanswered",
+  "limits": "Current source/primary documentation only. No inbox/provider/DNS test, runtime implementation or staff usability proof."
+}

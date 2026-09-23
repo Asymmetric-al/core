@@ -1,0 +1,79 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-11",
+  "recipeId": "GEN-06",
+  "name": "Private document request and review",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "document_collection",
+  "subject": "document_requirement",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "documents.requirement.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {},
+    "evidence": {
+      "document": "documents.private-clean-upload.received@1",
+      "accepted": "documents.current-evidence.source-accepted@1"
+    },
+    "actions": {},
+    "roles": {
+      "participant": "roles.document-source-participant@1",
+      "reviewer": "roles.document-source-reviewer@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "crm",
+    "documents",
+    "messages",
+    "private-files",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": [
+        "document_flow"
+      ]
+    }
+  ],
+  "root": {
+    "id": "document_flow",
+    "kind": "sequence",
+    "label": "Document flow",
+    "steps": [
+      {
+        "id": "request_private_evidence",
+        "kind": "evidence",
+        "label": "Request private evidence",
+        "contract": "document",
+        "role": "participant"
+      },
+      {
+        "id": "qualified_review",
+        "kind": "evidence",
+        "label": "Qualified review",
+        "contract": "accepted",
+        "role": "reviewer"
+      },
+      {
+        "id": "document_done",
+        "kind": "finish",
+        "label": "Document done",
+        "lifecycle": "complete",
+        "outcome": "document_requirement_satisfied"
+      }
+    ]
+  }
+}

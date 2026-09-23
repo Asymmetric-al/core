@@ -1,0 +1,404 @@
+{
+  "status": "passed",
+  "date": "2026-09-14",
+  "checksPassed": 79,
+  "checksTotal": 79,
+  "scope": "Independent documentary full-ratification and ownership audit; no runtime proof",
+  "checks": [
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-editor-seam-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-review-corrections.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-adversarial-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-source-data-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-proof-and-operations.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-selection.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-evidence.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-validation.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-ux-blueprint.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-final-editor-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-final-ux-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-ux-research.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-source-evidence.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-current-serializer-probe.json",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-final-data-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original full body preserved after removing authorized status additions: phase26-d36-completion-audit.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "R normative IDs preserved",
+      "passed": true,
+      "detail": "26"
+    },
+    {
+      "check": "C normative IDs preserved",
+      "passed": true,
+      "detail": "15"
+    },
+    {
+      "check": "ES normative IDs preserved",
+      "passed": true,
+      "detail": "10"
+    },
+    {
+      "check": "P normative IDs preserved",
+      "passed": true,
+      "detail": "30"
+    },
+    {
+      "check": "O normative IDs preserved",
+      "passed": true,
+      "detail": "5"
+    },
+    {
+      "check": "F normative IDs preserved",
+      "passed": true,
+      "detail": "3"
+    },
+    {
+      "check": "all 23 category rows retained",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: Fully founder-ratified",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: D1–D36",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: D29-X01",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: C01–C15",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: ES01–ES10",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: P01–P30",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: O01–O05",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: F01–F03",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: intervening explanatory paragraphs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: required and unexecuted",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: Support owns",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: Email Studio/P17",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: P6 owns",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: D16/D17",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: CRM continuity",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full acceptance includes: no repeat approval gate",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-adversarial-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-ux-blueprint.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-source-data-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-editor-seam-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-proof-and-operations.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-review-corrections.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-selection.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-completion-audit.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current ratification notice: phase26-d36-evidence.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "ADR0036 current full acceptance",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "original ADR body preserved after authorized status additions",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "glossary current D36 full acceptance",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "entire original glossary unchanged except D36 status",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "exact glossary definition retained: Support reply quotation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "exact glossary definition retained: Edited excerpt",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current session D36 full acceptance: phase26-grill-log.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "next question unanswered: phase26-grill-log.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "entire prior session history preserved: phase26-grill-log.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "current session D36 full acceptance: phase26-session-handoff.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "next question unanswered: phase26-session-handoff.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "entire prior session history preserved: phase26-session-handoff.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-adversarial-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-ux-blueprint.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-source-data-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-editor-seam-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-proof-and-operations.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-review-corrections.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-selection.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-completion-audit.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-evidence.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-d36-full-ratification.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-grill-log.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Core grill mirror byte-identical: phase26-session-handoff.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "final independent correction pass preserved: phase26-d36-final-data-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "final independent correction pass preserved: phase26-d36-final-editor-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "final independent correction pass preserved: phase26-d36-final-ux-review.md",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "old documentary validation remains 41",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "actual release proof remains unexecuted",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "synthetic probe remains four assertions and not runtime proof",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "no ADR0037 selected",
+      "passed": true,
+      "detail": ""
+    }
+  ]
+}

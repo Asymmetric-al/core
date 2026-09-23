@@ -1,0 +1,127 @@
+{
+  "repository": "Asymmetric-al/core",
+  "adoptionIssue": 1892,
+  "verifiedOn": "2026-09-22",
+  "amendments": [
+    {
+      "issue": 686,
+      "url": "https://github.com/Asymmetric-al/core/issues/686",
+      "originalBodySha256": "283c21ae210fa6f993a60521f4ee804c70c78d49438fa9e0a1349003f3fc0c00",
+      "publishedBodySha256": "bb1f7416703750b0d47f2dd6358f969dce6531e95ee3bb419a4d2ecf9f188130",
+      "verifiedUpdatedAt": "2026-09-22T06:22:41Z",
+      "nativeBlockedBy": [],
+      "stableIdsPreserved": true,
+      "checkboxStatesPreserved": true,
+      "labelsTitleStateAndDependenciesUnchanged": true,
+      "status": "published-and-exact-readback-verified",
+      "rationale": "Name the explicit enterprise successor and prevent the existing deactivation-only Boolean key from being copied into a full reactivate/deactivate lifecycle. Preserve historical D9 quote, inert configuration, independent safety adapter, all original acceptance items and native dependencies."
+    },
+    {
+      "issue": 892,
+      "url": "https://github.com/Asymmetric-al/core/issues/892",
+      "originalBodySha256": "fd82bc8063793f642c73ccbca2d6fe37f9f676f0f2f048795553e15638d78cec",
+      "publishedBodySha256": "e817084e41202ddb72521107443eee390fe478e56cff83ec85c3c923a4772308",
+      "verifiedUpdatedAt": "2026-09-22T06:22:52Z",
+      "nativeBlockedBy": [
+        {
+          "id": 4924472325,
+          "number": 875
+        },
+        {
+          "id": 4924472420,
+          "number": 876
+        }
+      ],
+      "stableIdsPreserved": true,
+      "checkboxStatesPreserved": true,
+      "labelsTitleStateAndDependenciesUnchanged": true,
+      "status": "published-and-exact-readback-verified",
+      "rationale": "The assertion that the successor is unnumbered is stale after adoption of Phase43. Assign the actual planning owner while preserving every Phase17 evidence-only and negative requirement; do not claim new child issues or SMS activation."
+    },
+    {
+      "issue": 1339,
+      "url": "https://github.com/Asymmetric-al/core/issues/1339",
+      "originalBodySha256": "61dd4fee7aea0bc2c1199c63605a28d6c7ef2f7a3b43f4f324c1552647fd7030",
+      "publishedBodySha256": "20310f4d21cfb0240eabbcc3ed42a58049c71dbca19116288d370229d7a89bfb",
+      "verifiedUpdatedAt": "2026-09-22T06:23:03Z",
+      "nativeBlockedBy": [],
+      "stableIdsPreserved": true,
+      "checkboxStatesPreserved": true,
+      "labelsTitleStateAndDependenciesUnchanged": true,
+      "status": "published-and-exact-readback-verified",
+      "rationale": "Remove the obsolete blanket P22/CONTEXT synchronization hold already resolved by the explicitly reviewed #1891 stack. Bind the later hybrid consumer while preserving exact P23 owner contracts, flat launch profile and native-CMS independence. Also scope flat composition and no-source-management wording to the Phase 23 launch/ordinary-editor lane, preserving the explicit additive Phase 42 successor, independent D9/D10 authority and no backward gate."
+    },
+    {
+      "issue": 1358,
+      "url": "https://github.com/Asymmetric-al/core/issues/1358",
+      "originalBodySha256": "a9989a23229bbc17c12f7921de8fe96e0a1c1a6e449707fc329702344984700b",
+      "publishedBodySha256": "611ec821dc79f15d124516998a191d47af6171471d52f4eff165b3ff5bdeadf2",
+      "verifiedUpdatedAt": "2026-09-22T06:23:11Z",
+      "nativeBlockedBy": [
+        {
+          "id": 5235559836,
+          "number": 1353
+        }
+      ],
+      "stableIdsPreserved": true,
+      "checkboxStatesPreserved": true,
+      "labelsTitleStateAndDependenciesUnchanged": true,
+      "status": "published-and-exact-readback-verified",
+      "rationale": "Keep the P23 flat-v1 implementation tracer while identifying the separately adopted bounded P42 composition/2 successor; preserve every original test and no backward dependency."
+    },
+    {
+      "issue": 1365,
+      "url": "https://github.com/Asymmetric-al/core/issues/1365",
+      "originalBodySha256": "7bf1c7b91e7aec87a8658a1a1bc6ae4ba83455284b2ff8b6e3124ec9fd7f8dbe",
+      "publishedBodySha256": "1f93a9606c64e75609070610b120c7781b1e04e471bb8d27c321010fa9eb3324",
+      "verifiedUpdatedAt": "2026-09-22T06:23:21Z",
+      "nativeBlockedBy": [
+        {
+          "id": 5235579300,
+          "number": 1364
+        }
+      ],
+      "stableIdsPreserved": true,
+      "checkboxStatesPreserved": true,
+      "labelsTitleStateAndDependenciesUnchanged": true,
+      "status": "published-and-exact-readback-verified",
+      "rationale": "Scope ordinary-editor no-source-management wording without forbidding separately authorized P42 source managers; preserve original P23 admission, public-view, SSR/isolation and D10 cohort checks."
+    },
+    {
+      "issue": 1366,
+      "url": "https://github.com/Asymmetric-al/core/issues/1366",
+      "originalBodySha256": "ad55c9cba3bc0e9bdd24bbcd9266f7804f5f1e3108d2870a0b9bed9f4e3bc13b",
+      "publishedBodySha256": "68ba1c8c765f98b46ffa2ef9151116f1c51fb57717f0f6f4b7ce4ddcc8612564",
+      "verifiedUpdatedAt": "2026-09-22T06:23:28Z",
+      "nativeBlockedBy": [
+        {
+          "id": 5235581879,
+          "number": 1365
+        }
+      ],
+      "stableIdsPreserved": true,
+      "checkboxStatesPreserved": true,
+      "labelsTitleStateAndDependenciesUnchanged": true,
+      "status": "published-and-exact-readback-verified",
+      "rationale": "Scope ordinary-editor no-source-management wording without forbidding separately authorized P42 source managers; preserve original P23 admission, public-view, SSR/isolation and D10 cohort checks."
+    },
+    {
+      "issue": 1367,
+      "url": "https://github.com/Asymmetric-al/core/issues/1367",
+      "originalBodySha256": "0126aed42bee7989bb33c123dad0f64bbb82124749db36c83460bb929fa119dd",
+      "publishedBodySha256": "3148679fc557dcc0964d791a8f83fc79b578e49ed5dfeaf4e4481beec26d7b9e",
+      "verifiedUpdatedAt": "2026-09-22T06:23:35Z",
+      "nativeBlockedBy": [
+        {
+          "id": 5235583704,
+          "number": 1366
+        }
+      ],
+      "stableIdsPreserved": true,
+      "checkboxStatesPreserved": true,
+      "labelsTitleStateAndDependenciesUnchanged": true,
+      "status": "published-and-exact-readback-verified",
+      "rationale": "Scope ordinary-editor no-source-management wording without forbidding separately authorized P42 source managers; preserve original P23 admission, public-view, SSR/isolation and D10 cohort checks."
+    }
+  ]
+}

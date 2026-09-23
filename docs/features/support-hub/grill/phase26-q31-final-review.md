@@ -1,0 +1,44 @@
+# Q31 — Final independent question and owner review
+
+**13 September 2026. D1–D30 and every adopted amendment are fully founder-ratified. Q31 is unanswered.** Reviewed the actual [question](phase26-q31-follow-up-time-choices.md) and [evidence](phase26-q31-evidence.md), the ratified D3-R06/R07 and D24-R05 boundaries, and the actual current detail/bulk time-choice source in the verified WSL worktree.
+
+**Final result: Pass. The one initial clarification is resolved in the actual root question and evidence.** The historical finding below explains the correction. This review does not choose A or a preset time, reopen D3, add a product feature or claim runtime conformance.
+
+## F31-O1 — Keep D24's closed shortcut patch free of reminder presets
+
+**Status: resolved in the actual question and evidence.** The following preserves the initial finding and its exact correction.
+
+**Material concern: yes. Severity medium; likelihood plausible from the current shorthand.** The question refers to “D24-assisted review,” and the evidence says the time control may supply reviewed work intent inside a D4/D24-assisted reply. [D24-R05](phase26-d24-adversarial-review.md) expressly excludes a snooze/reminder preset from its fixed desired-state patch. Without an explicit qualification, a later implementer could add saved reminder fields to the shortcut because this question appears to list that as an entry point.
+
+The intended convenience does not require that expansion: staff can use the ordinary permitted reminder control while composing, under its existing owner contract. C's reusable personal time choices likewise do not become D24 shortcut instructions.
+
+**Exact correction for the brief and evidence:**
+
+> D24 shortcuts remain unable to store or apply reminder presets. Any reminder choice while a reply is being composed is a separate deliberate use of the existing qualified D3/D4 control; it does not extend the shortcut patch or add a combined-send operation.
+
+This narrows the wording to the existing accepted boundary. It neither removes access to ordinary reminder controls nor adds another confirmation step or reminder owner.
+
+## Confirmed checks
+
+| Check                                 | Assessment                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Genuinely unresolved choice           | **Pass.** D3-R07 guarantees exact date/time input but expressly leaves morning hour, default delay and personal preference hierarchy open. Q31 decides quick-choice/personalization breadth rather than whether reminders or their mandatory safety work should exist.                                                               |
+| A is an actual option                 | **Pass.** A supplies a small ready-made consistent quick menu plus Custom, with exact resolved result visible. It does not silently preselect tenant/inbox configuration administration.                                                                                                                                             |
+| B is a fair strong alternative        | **Pass.** B opens the exact date/time control directly, retaining all D3 scheduling/recovery safeguards. It has fewer concepts/settings and is credible for appointment-like commitments, with real extra repetition for common delays.                                                                                              |
+| C is a fair strong alternative        | **Pass.** C starts with useful defaults and permits maintained personal reusable time definitions plus Custom. It does not force setup, create private reminders or turn personal choice definitions into team policy. Custody, edits, reset/delete and versioning are acknowledged costs rather than a caricature of customization. |
+| Single recommendation and assumptions | **Pass.** A alone is recommended for common-case simplicity; cases favoring B or C are stated. No measured Asym timing habit, productivity result or universal ministry working schedule is claimed. The scenario is illustrative.                                                                                                   |
+| No premature time/default decision    | **Pass.** Exact menu names/count, hours, morning time, timezone hierarchy and calendar-resolution behavior remain for the selected-answer review. Vendor nine-o'clock behavior is not adopted. Explicit Custom remains available in every option.                                                                                    |
+| Exact result without needless modal   | **Pass.** All options require the resolved date/time/zone before the committing action, including visible DST adjustment where applicable; none necessarily adds another confirmation modal. Calendar intent and elapsed duration are distinct.                                                                                      |
+| Same shared D3 reminder               | **Pass.** One shared conversation reminder, actual work status, due Open/review, cancellation/replacement/new-input/Resolve/generation/retry and current authorization remain governed by D3. C changes input definitions, not reminder ownership. No recurring series, personal alarm, second task or competing timer is selected.  |
+| D14 and calendar boundary             | **Pass.** No target pause, SLA, business-hours budget, implicit workweek or holiday roll-forward is imported. A future chosen calendar-aware convenience needs explicit visible meaning and its correct shared owner. A reminder is not a public response promise.                                                                   |
+| CRM and messaging                     | **Pass; F31-O1 resolved.** The canonical Support reminder stays visible through authorized CRM detail without a second task/due-state/Activity. Choosing time sends or prepares no email, schedules no send, creates no provider call and triggers no D13/D28/D29 family. Existing send authorization remains independent.           |
+| Current source claims                 | **Pass.** Re-read ConversationSnoozeMenu: 1 hour, 4 hours, Tomorrow morning = 16 elapsed hours, 7 days = 168 hours; direct browser timestamp addition and no Custom branch. Re-read bulk-actions: Snooze 24h, using browser Date.now + 24 hours. No one-hour bulk claim or assertion that these defaults are ratified appears.       |
+| Status and proof                      | **Pass.** D1–D30 are ratified; Q31 remains unanswered, with no exact menu, D31 decision, accepted glossary term or runtime qualification claimed. Source/arithmetic examples demonstrate only their stated limited observations.                                                                                                     |
+
+Source basis is Core `7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd`. The root evidence owns its fresh remote/hash/vendor checks; this bounded final review independently inspected the actual question, owner clauses and local source facts rather than claiming a new vendor/runtime test. No source, database, provider, DNS, inbox, GitHub or real-message operation was performed.
+
+## Final actual-document verification — Pass
+
+Re-read the root question and evidence after the correction. The question's Consistent allowed entry points paragraph now explicitly states that D24 shortcuts cannot store or apply reminder presets and that any ordinary choice while composing remains a separate deliberate qualified D3/D4 control, without extending the shortcut patch or adding a combined-send operation. The evidence repeats the exact D24-R05 exclusion and preserves separate P17/P6 authorization. This resolves F31-O1 without changing A/B/C, the shared reminder, the recommended A or the no-extra-modal requirement.
+
+No feature ADR0031 exists in the inspected feature ADR directory; Q31 remains unanswered and no exact menu/hour/zone hierarchy is selected. All other checks above remain valid. No material correction remains to the actual root question/evidence. The UX researcher aligned the older D4/D24 shorthand, and this reviewer rechecked all three corrected passages and the final clarification in the actual UX research file. Comparison evidence remains intact without implying a new shortcut effect. The full question/evidence/UX alignment is Pass.

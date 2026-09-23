@@ -138,19 +138,65 @@ self-service topology is replaced by this Phase 16 line/cohort command contract.
 
 ### Requirement: Donors Manage Payment Methods Through Stripe
 
-The donor portal MUST let a donor add, remove, and set a default payment
-method through Stripe-managed flows. Raw card or bank credentials MUST never
-reach Asym servers, and removing a method in use by an active recurring billing
-cohort MUST require choosing a compatible replacement for every affected line
-first.
+The donor portal MUST support independent Add, selected-use Replace, explicit
+Remove and optional new-gift payment-preference commands through their current
+Phase 13/16 owner boundaries. Stripe-managed credential capture/setup remains
+the payment-provider boundary; raw card or bank credentials MUST never reach
+Asym servers. A donor's new-gift payment preference MUST be an actor-scoped
+checkout suggestion, not a Stripe Customer billing default, recurring-method
+change, collection mandate or automatic charge.
+
+Replacement MUST identify the exact selected, currently permitted recurring
+groups/lines and obtain each required authorization through the existing
+revision-fenced owner commands. It MUST NOT mutate unselected siblings or
+automatically detach the old method. Remove MUST be separately requested and
+MUST remain blocked while any owner-certified live dependency, in-flight use,
+competing accepted use or indeterminate provider effect prevents removal. A
+historical reference or preference pointer alone MUST NOT become a permanent
+removal blocker. Successful replacement is one way to resolve a live
+dependency; it is not a blanket prerequisite when no such dependency exists.
+The shared method-use/removal fence MUST prevent a new use from racing a
+permitted removal. Removal outcomes MUST distinguish accepted/applying,
+provider-confirmed success, known no-effect failure and indeterminate effect;
+same-operation reconciliation MUST NOT issue another detach.
+
+**Supersession (2026-09-09, Phase 25 / AL-1563):** the former provider-default
+and combined replacement/removal wording is replaced here, in this active
+normative requirement, by the ratified Phase 25 Wallet contract. The requirement
+name remains stable for existing references. The provider credential boundary
+and recurring authorization, history, idempotency and sibling-safety rules
+remain in force.
 
 #### Scenario: A donor replaces the card behind an active recurring gift
 
-- WHEN a donor removes a payment method attached to an active recurring cohort
-- THEN the portal requires selecting or adding a replacement method first
-- AND the portal shows every affected line and required authorization effect
-- AND the provider executor continues without a silent payment failure or
-  sibling-line mutation
+- **WHEN** a donor deliberately replaces the method for selected permitted
+  recurring groups or lines
+- **THEN** the portal reviews the exact selected uses and required
+  authorizations before their individual source commands are accepted
+- **AND** unselected uses remain unchanged and the old method is retained
+- **AND** the result distinguishes accepted changes, provider-confirmed
+  outcomes and independently failed or indeterminate children
+
+#### Scenario: A donor adds a preferred method for new gifts
+
+- **WHEN** a donor adds a method and chooses the optional new-gift preference
+- **THEN** provider-qualified setup and preference outcomes remain independent
+- **AND** no recurring agreement, Stripe Customer billing default or charge is
+  changed by that choice
+
+#### Scenario: A donor separately removes a method
+
+- **GIVEN** the donor deliberately requests Remove for an admitted method
+- **WHEN** the owner checks all live dependencies under the shared use/removal
+  fence
+- **THEN** any live or unresolved dependency blocks removal without changing
+  existing financial instructions
+- **AND** absence of live dependencies permits the qualified removal command
+  without demanding an unnecessary replacement
+- **AND** historical evidence is retained and an obsolete preference pointer
+  does not make removal permanently impossible
+- **AND** a lost provider response remains indeterminate until same-operation
+  reconciliation establishes the outcome, without another detach
 
 ### Requirement: Donors Receive Annual Giving Statements
 

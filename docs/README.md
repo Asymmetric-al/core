@@ -2,6 +2,11 @@
 
 Welcome to the Asymmetric.al Core documentation! This directory contains all project documentation organized by category.
 
+Start with [Document authority and current contracts](./ai/document-authority.md)
+for product decisions, phase packages, supersession and generated source ownership.
+For CRM, Asym Postgres is authoritative; Twenty integration records are retired
+research/history, not setup or rollback instructions.
+
 ---
 
 ## 📁 Directory Structure

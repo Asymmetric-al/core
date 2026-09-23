@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:asym:proposal:presentation-manifest:1",
+  "title": "Proposed presentation candidate manifest — structural subset",
+  "type": "object",
+  "properties": {
+    "manifestVersion": {
+      "const": 1
+    },
+    "packageId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "packageVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "repositoryId": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}([a-f0-9]{24})?$"
+        },
+        "tree": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}([a-f0-9]{24})?$"
+        },
+        "archiveDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "packageRoot": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "repositoryId",
+        "commit",
+        "tree",
+        "archiveDigest",
+        "packageRoot"
+      ],
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "siteId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        }
+      },
+      "required": [
+        "tenantId",
+        "environment",
+        "siteId"
+      ],
+      "additionalProperties": false
+    },
+    "compatibility": {
+      "type": "object",
+      "properties": {
+        "sdkVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "catalogVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "compositionProfiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "asym.page-composition/1",
+              "asym.page-composition/2"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "families": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "page",
+              "article"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "locales": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "publicRuntimeProfile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "sdkVersion",
+        "catalogVersion",
+        "compositionProfiles",
+        "families",
+        "locales",
+        "publicRuntimeProfile"
+      ],
+      "additionalProperties": false
+    },
+    "renderers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "semanticType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "rendererKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "settingsSchemaDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "semanticType",
+          "schemaVersion",
+          "rendererKey",
+          "settingsSchemaDigest"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "serverDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "editorDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "digest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "mediaType": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "path",
+              "digest",
+              "mediaType",
+              "bytes"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "serverDigest",
+        "editorDigest",
+        "assets"
+      ],
+      "additionalProperties": false
+    },
+    "maintainer": {
+      "type": "object",
+      "properties": {
+        "subjectRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        },
+        "supportPolicyRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        },
+        "rightsRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        }
+      },
+      "required": [
+        "subjectRef",
+        "supportPolicyRef",
+        "rightsRef"
+      ],
+      "additionalProperties": false
+    },
+    "qualification": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "admitted",
+            "rejected",
+            "withdrawn"
+          ]
+        },
+        "policyRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "status",
+        "policyRef",
+        "evidenceRefs"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "manifestVersion",
+    "packageId",
+    "packageVersion",
+    "source",
+    "target",
+    "compatibility",
+    "renderers",
+    "artifacts",
+    "maintainer",
+    "qualification"
+  ],
+  "additionalProperties": false
+}

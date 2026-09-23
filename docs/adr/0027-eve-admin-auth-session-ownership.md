@@ -6,7 +6,7 @@
 
 **Issue:** #426
 
-**Builds on:** ADR-0018, ADR-0019, ADR-0020, ADR-0023, ADR-0024, ADR-0025, ADR-0062
+**Builds on:** ADR-0018, ADR-0019, ADR-0020, ADR-0023, ADR-0024, [ADR-0025 — eve retention replay lifecycle](./0025-eve-retention-replay-lifecycle.md), ADR-0062
 
 ## Context
 
@@ -64,10 +64,10 @@ production session.
 - ADR-0020 owns audit content and redaction.
 - ADR-0023 owns private admin memory.
 - ADR-0024 owns approval and budget policy.
-- ADR-0025 owns retention and replay lifecycle.
+- [ADR-0025 — eve retention replay lifecycle](./0025-eve-retention-replay-lifecycle.md) owns retention and replay lifecycle.
 - ADR-0062 owns Eve session durability and the disabled runtime foundation.
 - #428 owns the Next.js admin mount and transport compatibility.
-- ADR-0027 owns verified route identity and authorization bindings only.
+- [ADR-0027 — eve admin auth session ownership](./0027-eve-admin-auth-session-ownership.md) owns verified route identity and authorization bindings only.
 
 ## Consequences
 
