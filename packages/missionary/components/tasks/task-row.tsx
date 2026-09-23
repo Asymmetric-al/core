@@ -83,6 +83,7 @@ export function TaskRow({
     >
       <div className="mt-1.5 relative z-10">
         <Checkbox
+          aria-label={`Complete ${task.title}`}
           checked={isCompleted}
           onCheckedChange={onComplete}
           className="size-6 rounded-lg border-[oklch(0.915_0.003_265)] data-checked:bg-[oklch(0.205_0.015_265)] data-checked:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer"

@@ -53,7 +53,7 @@ import {
   Globe,
   AlertTriangle,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 
 // --- Types ---
 type TabId = "profile" | "notifications" | "security";
@@ -122,6 +122,8 @@ const PasswordInput = ({
 const COMING_SOON = "Coming soon — not editable here yet.";
 
 const ProfileTab = () => {
+  const pendingActionLabelId = useId();
+
   const snapshot = useDonorPortalSnapshot();
   const update = useUpdateDonorPortal();
 
@@ -424,6 +426,8 @@ const ProfileTab = () => {
           </p>
           <div className="flex gap-3 w-full sm:w-auto">
             <Button
+              aria-labelledby={`${pendingActionLabelId}-19`}
+              focusableWhenDisabled={saving}
               onClick={handleSave}
               disabled={saving}
               className={cn(
@@ -436,7 +440,9 @@ const ProfileTab = () => {
               ) : success ? (
                 <Check className="mr-2 size-3" />
               ) : null}
-              {saving ? "Saving..." : success ? "Saved" : "Save Changes"}
+              <span id={`${pendingActionLabelId}-19`}>
+                {saving ? "Saving..." : success ? "Saved" : "Save Changes"}
+              </span>
             </Button>
           </div>
         </CardFooter>
@@ -472,6 +478,8 @@ interface NotificationCategory {
 }
 
 const NotificationsTab = () => {
+  const pendingActionLabelId = useId();
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -636,6 +644,8 @@ const NotificationsTab = () => {
           System alerts cannot be disabled.
         </p>
         <Button
+          aria-labelledby={`${pendingActionLabelId}-20`}
+          focusableWhenDisabled={loading}
           onClick={handleSave}
           disabled={loading || success}
           className={cn(
@@ -650,11 +660,13 @@ const NotificationsTab = () => {
           ) : success ? (
             <Check className="mr-2 size-3" />
           ) : null}
-          {loading
-            ? "Saving..."
-            : success
-              ? "Changes Saved"
-              : "Save Preferences"}
+          <span id={`${pendingActionLabelId}-20`}>
+            {loading
+              ? "Saving..."
+              : success
+                ? "Changes Saved"
+                : "Save Preferences"}
+          </span>
         </Button>
       </CardFooter>
     </Card>
@@ -662,6 +674,8 @@ const NotificationsTab = () => {
 };
 
 const SecurityTab = () => {
+  const pendingActionLabelId = useId();
+
   const [passwords, setPasswords] = useState({
     current: "",
     new: "",
@@ -809,6 +823,8 @@ const SecurityTab = () => {
         </CardContent>
         <CardFooter className="bg-zinc-50/50 border-t border-zinc-100 p-4 flex justify-end">
           <Button
+            aria-labelledby={`${pendingActionLabelId}-21`}
+            focusableWhenDisabled={loading}
             onClick={handleUpdate}
             disabled={
               loading ||
@@ -827,11 +843,13 @@ const SecurityTab = () => {
             ) : success ? (
               <Check className="mr-2 size-3" />
             ) : null}
-            {loading
-              ? "Updating..."
-              : success
-                ? "Password Updated"
-                : "Update Password"}
+            <span id={`${pendingActionLabelId}-21`}>
+              {loading
+                ? "Updating..."
+                : success
+                  ? "Password Updated"
+                  : "Update Password"}
+            </span>
           </Button>
         </CardFooter>
       </Card>

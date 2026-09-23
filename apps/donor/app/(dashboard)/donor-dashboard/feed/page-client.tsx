@@ -16,6 +16,7 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -167,64 +168,67 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
           }
         />
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-            Share Update
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {typeof navigator !== "undefined" &&
-            typeof navigator.share === "function" && (
-              <DropdownMenuItem onClick={handleNativeShare}>
-                <Share2 className="mr-2 size-4" /> Share via…
-              </DropdownMenuItem>
-            )}
-          <DropdownMenuItem onClick={handleCopyLink}>
-            {copied ? (
-              <Check className="mr-2 size-4 text-green-600" />
-            ) : (
-              <LinkIcon className="mr-2 size-4" />
-            )}
-            {copied ? "Copied!" : "Copy Link"}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-                "_blank",
-              )
-            }
-          >
-            <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
-                "_blank",
-              )
-            }
-          >
-            <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-                "_blank",
-              )
-            }
-          >
-            <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `mailto:?subject=${encodeURIComponent(post.title || "Update from Give Hope")}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
-              )
-            }
-          >
-            <Mail className="mr-2 size-4" /> Email
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              Share Update
+            </DropdownMenuLabel>
+
+            <DropdownMenuSeparator />
+            {typeof navigator !== "undefined" &&
+              typeof navigator.share === "function" && (
+                <DropdownMenuItem onClick={handleNativeShare}>
+                  <Share2 className="mr-2 size-4" /> Share via…
+                </DropdownMenuItem>
+              )}
+            <DropdownMenuItem onClick={handleCopyLink}>
+              {copied ? (
+                <Check className="mr-2 size-4 text-green-600" />
+              ) : (
+                <LinkIcon className="mr-2 size-4" />
+              )}
+              {copied ? "Copied!" : "Copy Link"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                  "_blank",
+                )
+              }
+            >
+              <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+                  "_blank",
+                )
+              }
+            >
+              <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                  "_blank",
+                )
+              }
+            >
+              <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `mailto:?subject=${encodeURIComponent(post.title || "Update from Give Hope")}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
+                )
+              }
+            >
+              <Mail className="mr-2 size-4" /> Email
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

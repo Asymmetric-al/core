@@ -20,6 +20,8 @@ Use this when creating or refining unstyled primitive components and behavior-he
 - **Tailwind compatibility:** Base UI examples target Tailwind v4. If a target package uses v3, convert unsupported utilities to v3-safe equivalents.
 - **Composable APIs:** Favor controlled/uncontrolled patterns, small props, and clear slots over monolithic components.
 - **A11y is non-negotiable:** Keep labels, descriptions, focus handling, keyboard support, and ARIA relationships intact.
+- **Styled wrapper contracts:** Preserve state-based `className`/`style`, `render`, refs, and cancelable events. Use `packages/ui/lib/base-ui.ts` to merge a Base UI class callback after receiving state; ordinary `cn`/CVA calls do not evaluate it.
+- **Forms:** Keep TanStack Form as the validation/submission owner. Base UI Field can supply accessible relationships without adding a second Form state system. Group labels name a group; they are not labels for Select/Combobox controls.
 
 ## Workflow
 
@@ -52,6 +54,8 @@ Use this when creating or refining unstyled primitive components and behavior-he
 ### Wrapper-first composition
 
 ```tsx
+import { Field } from "@base-ui/react/field";
+
 type FieldShellProps = {
   label: string;
   error?: string;
@@ -60,14 +64,23 @@ type FieldShellProps = {
 
 export function FieldShell({ label, error, children }: FieldShellProps) {
   return (
-    <div className="grid gap-1.5">
-      <span className="text-sm font-medium">{label}</span>
+    <Field.Root invalid={Boolean(error)} className="grid gap-1.5">
+      <Field.Label className="text-sm font-medium">{label}</Field.Label>
       {children}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+      {error ? (
+        <Field.Error match className="text-sm text-destructive">
+          {error}
+        </Field.Error>
+      ) : null}
+    </Field.Root>
   );
 }
 ```
+
+Use a Base UI-aware control such as the shared `Input` inside this shell. Core's
+existing TanStack adapter already handles the product form case; reuse it instead
+of adding another field wrapper. The static shadcn Field layout parts also support
+display-only content and should not be globally replaced with behavioral Field.
 
 ### Tailwind v4 to v3 guardrail
 

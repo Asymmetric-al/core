@@ -23,6 +23,7 @@ function makeDisplayDate(value?: string | number | Date): Date {
 }
 
 interface DataGridCellProps {
+  label: string;
   value: unknown;
   cellType: DataGridCellType;
   isEditing: boolean;
@@ -36,6 +37,7 @@ interface DataGridCellProps {
 }
 
 export function DataGridCell({
+  label,
   value,
   cellType,
   isEditing,
@@ -84,6 +86,7 @@ export function DataGridCell({
     return (
       <div className={cn(cellClassName, "flex items-center justify-center")}>
         <Checkbox
+          aria-label={label}
           checked={Boolean(value)}
           onCheckedChange={(checked) => onChange(checked)}
         />
@@ -114,15 +117,25 @@ export function DataGridCell({
 
     return (
       <Select
+        items={[
+          ...options.map((option) => ({
+            value: option.value,
+            label: option.label,
+          })),
+        ]}
         value={String(value ?? "")}
         onValueChange={(val) => {
+          if (val === null) return;
           onChange(val);
           onEndEdit();
         }}
         open={isEditing}
         onOpenChange={(open) => !open && onEndEdit()}
       >
-        <SelectTrigger className={cn(cellClassName, "border-0 h-full")}>
+        <SelectTrigger
+          aria-label={label}
+          className={cn(cellClassName, "border-0 h-full")}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
@@ -166,6 +179,7 @@ export function DataGridCell({
 
   return (
     <Input
+      aria-label={label}
       ref={inputRef}
       type={
         cellType === "number" ? "number" : cellType === "date" ? "date" : "text"

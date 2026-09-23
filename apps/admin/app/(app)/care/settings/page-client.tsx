@@ -31,7 +31,7 @@ import {
   Check,
   ExternalLink,
 } from "lucide-react";
-import React from "react";
+import React, { useId } from "react";
 import { toast } from "sonner";
 
 interface ConnectedService {
@@ -122,8 +122,19 @@ function RegionalLocalizationCard() {
             >
               Default Region
             </Label>
-            <Select defaultValue="se-asia">
-              <SelectTrigger className="h-10 border-zinc-200 rounded-xl">
+            <Select
+              items={[
+                { value: "africa", label: "Africa" },
+                { value: "se-asia", label: "SE Asia" },
+                { value: "europe", label: "Europe" },
+                { value: "latin-america", label: "Latin America" },
+              ]}
+              defaultValue="se-asia"
+            >
+              <SelectTrigger
+                id="region"
+                className="h-10 border-zinc-200 rounded-xl"
+              >
                 <SelectValue placeholder="Select region" />
               </SelectTrigger>
               <SelectContent>
@@ -141,8 +152,19 @@ function RegionalLocalizationCard() {
             >
               My Timezone
             </Label>
-            <Select defaultValue="utc-5">
-              <SelectTrigger className="h-10 border-zinc-200 rounded-xl">
+            <Select
+              items={[
+                { value: "utc-8", label: "Pacific Time (PT)" },
+                { value: "utc-5", label: "Eastern Time (ET)" },
+                { value: "utc-0", label: "London (GMT)" },
+                { value: "utc+7", label: "Bangkok (ICT)" },
+              ]}
+              defaultValue="utc-5"
+            >
+              <SelectTrigger
+                id="timezone"
+                className="h-10 border-zinc-200 rounded-xl"
+              >
                 <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
               <SelectContent>
@@ -223,6 +245,7 @@ function ConnectedServicesCard() {
 }
 
 function AlertPreferencesCard() {
+  const preferenceId = React.useId();
   return (
     <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
       <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
@@ -242,12 +265,17 @@ function AlertPreferencesCard() {
         {ALERT_PREFERENCES.map((pref) => (
           <div key={pref.label} className="flex items-center justify-between">
             <div className="space-y-0.5 text-left">
-              <Label className="text-sm font-semibold text-zinc-900">
+              <Label
+                htmlFor={`${preferenceId}-${pref.label.replace(/\W+/g, "-")}`}
+                className="text-sm font-semibold text-zinc-900"
+              >
                 {pref.label}
               </Label>
               <p className="text-xs font-medium text-zinc-400">{pref.desc}</p>
             </div>
             <Switch
+              id={`${preferenceId}-${pref.label.replace(/\W+/g, "-")}`}
+              aria-label={pref.label}
               defaultChecked={pref.defaultChecked}
               className="data-checked:bg-zinc-900"
             />
@@ -264,6 +292,8 @@ interface SaveChangesCardProps {
 }
 
 function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
+  const pendingActionLabelId = useId();
+
   return (
     <Card className="border-zinc-900 bg-zinc-900 text-white shadow-xl shadow-zinc-300/40 overflow-hidden rounded-2xl sticky top-6">
       <CardContent className="p-6 space-y-5">
@@ -275,10 +305,15 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
           </p>
         </div>
         <Button
+          aria-labelledby={`${pendingActionLabelId}-0`}
+          focusableWhenDisabled={saving}
           onClick={onSave}
           disabled={saving}
           className="w-full bg-white text-zinc-900 hover:bg-zinc-100 font-semibold h-10 shadow-lg rounded-xl"
         >
+          <span id={`${pendingActionLabelId}-0`} className="sr-only">
+            {saving ? "Updating..." : "Update Settings"}
+          </span>
           {saving ? (
             "Updating..."
           ) : (

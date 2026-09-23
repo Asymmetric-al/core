@@ -3,13 +3,7 @@
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
@@ -206,8 +200,13 @@ function MinistryUpdateCreateViewContent() {
           <form.Field name="missionaryProfileId">
             {(field) => (
               <div className="flex flex-col gap-2">
-                <Label>Missionary profile</Label>
-                <Select
+                <SearchableSelect
+                  items={[
+                    ...(profiles ?? []).map((p) => ({
+                      value: String(p.id),
+                      label: p.fullName ?? p.slug ?? String(p.id),
+                    })),
+                  ]}
                   value={field.state.value || null}
                   onValueChange={(v) => {
                     if (v === null) {
@@ -216,18 +215,9 @@ function MinistryUpdateCreateViewContent() {
                     field.handleChange(v);
                   }}
                   disabled={profilesIsPending || profilesIsError}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select profile" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(profiles ?? []).map((p) => (
-                      <SelectItem key={String(p.id)} value={String(p.id)}>
-                        {p.fullName ?? p.slug ?? String(p.id)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select profile"
+                  label="Missionary profile"
+                />
               </div>
             )}
           </form.Field>

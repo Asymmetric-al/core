@@ -114,6 +114,7 @@ export function SaveViewDialog({
           <div className="space-y-2">
             <Label>Scope</Label>
             <RadioGroup
+              aria-label="Scope"
               value={scope}
               onValueChange={(next) =>
                 setScope(next as "personal" | "workspace")
@@ -150,6 +151,7 @@ export function SaveViewDialog({
             Cancel
           </Button>
           <Button
+            focusableWhenDisabled={saveSavedView.isPending}
             type="button"
             onClick={handleSave}
             disabled={saveSavedView.isPending || trimmed.length === 0}

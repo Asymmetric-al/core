@@ -52,6 +52,7 @@ export function SupportFailureBanner() {
           size="sm"
           onClick={() => void handleRetry()}
           disabled={retrying}
+          focusableWhenDisabled={retrying}
           className="h-8 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100"
         >
           <RefreshCw

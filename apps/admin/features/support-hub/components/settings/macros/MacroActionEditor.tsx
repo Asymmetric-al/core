@@ -6,6 +6,7 @@ import {
 } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import {
   Select,
   SelectContent,
@@ -106,12 +107,21 @@ export function MacroActionEditor({
               className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2"
             >
               <Select
+                items={[
+                  ...ACTION_KINDS.map((kind) => ({
+                    value: kind,
+                    label: labelForKind(kind),
+                  })),
+                ]}
                 value={action.kind}
-                onValueChange={(value) =>
-                  handleKindChange(index, value as SupportMacroAction["kind"])
-                }
+                onValueChange={(value) => {
+                  if (value !== null) handleKindChange(index, value);
+                }}
               >
-                <SelectTrigger className="h-8 min-w-[170px] text-[12px]">
+                <SelectTrigger
+                  aria-label={`Action ${index + 1} type`}
+                  className="h-8 min-w-[170px] text-[12px]"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,18 +135,25 @@ export function MacroActionEditor({
 
               {action.kind === "set_status" ? (
                 <Select
+                  items={[
+                    ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
+                      value: status,
+                      label: status,
+                    })),
+                  ]}
                   value={action.status}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    if (value === null) return;
                     handlePatch(index, {
                       kind: "set_status",
-                      status: value as Extract<
-                        SupportMacroAction,
-                        { kind: "set_status" }
-                      >["status"],
-                    })
-                  }
+                      status: value,
+                    });
+                  }}
                 >
-                  <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+                  <SelectTrigger
+                    aria-label={`Action ${index + 1} status`}
+                    className="h-8 min-w-[140px] text-[12px]"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -151,18 +168,25 @@ export function MacroActionEditor({
 
               {action.kind === "set_priority" ? (
                 <Select
+                  items={[
+                    ...SUPPORT_PRIORITIES.map((priority) => ({
+                      value: priority,
+                      label: priority,
+                    })),
+                  ]}
                   value={action.priority}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    if (value === null) return;
                     handlePatch(index, {
                       kind: "set_priority",
-                      priority: value as Extract<
-                        SupportMacroAction,
-                        { kind: "set_priority" }
-                      >["priority"],
-                    })
-                  }
+                      priority: value,
+                    });
+                  }}
                 >
-                  <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+                  <SelectTrigger
+                    aria-label={`Action ${index + 1} priority`}
+                    className="h-8 min-w-[140px] text-[12px]"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -176,7 +200,13 @@ export function MacroActionEditor({
               ) : null}
 
               {action.kind === "assign_agent" ? (
-                <Select
+                <SearchableSelect
+                  items={[
+                    ...agents.map((agent) => ({
+                      value: agent.id,
+                      label: agent.name,
+                    })),
+                  ]}
                   value={action.agentId}
                   onValueChange={(value) => {
                     if (value === null) {
@@ -187,22 +217,20 @@ export function MacroActionEditor({
                       agentId: value,
                     });
                   }}
-                >
-                  <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
-                    <SelectValue placeholder="Pick an agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  aria-label={`Action ${index + 1} agent`}
+                  className="h-8 min-w-[200px] text-[12px]"
+                  placeholder="Pick an agent"
+                />
               ) : null}
 
               {action.kind === "assign_team" ? (
-                <Select
+                <SearchableSelect
+                  items={[
+                    ...(teams.data ?? []).map((team) => ({
+                      value: team.id,
+                      label: team.name,
+                    })),
+                  ]}
                   value={action.teamId}
                   onValueChange={(value) => {
                     if (value === null) {
@@ -210,22 +238,20 @@ export function MacroActionEditor({
                     }
                     handlePatch(index, { kind: "assign_team", teamId: value });
                   }}
-                >
-                  <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
-                    <SelectValue placeholder="Pick a team" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(teams.data ?? []).map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  aria-label={`Action ${index + 1} team`}
+                  className="h-8 min-w-[200px] text-[12px]"
+                  placeholder="Pick a team"
+                />
               ) : null}
 
               {action.kind === "add_label" || action.kind === "remove_label" ? (
-                <Select
+                <SearchableSelect
+                  items={[
+                    ...labels.map((label) => ({
+                      value: label.id,
+                      label: label.name,
+                    })),
+                  ]}
                   value={action.labelId}
                   onValueChange={(value) => {
                     if (value === null) {
@@ -236,22 +262,20 @@ export function MacroActionEditor({
                       labelId: value,
                     } as SupportMacroAction);
                   }}
-                >
-                  <SelectTrigger className="h-8 min-w-[180px] text-[12px]">
-                    <SelectValue placeholder="Pick a label" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {labels.map((label) => (
-                      <SelectItem key={label.id} value={label.id}>
-                        {label.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  aria-label={`Action ${index + 1} label`}
+                  className="h-8 min-w-[180px] text-[12px]"
+                  placeholder="Pick a label"
+                />
               ) : null}
 
               {action.kind === "send_canned_response" ? (
-                <Select
+                <SearchableSelect
+                  items={[
+                    ...cannedResponses.map((row) => ({
+                      value: row.id,
+                      label: row.title,
+                    })),
+                  ]}
                   value={action.cannedResponseId}
                   onValueChange={(value) => {
                     if (value === null) {
@@ -262,18 +286,10 @@ export function MacroActionEditor({
                       cannedResponseId: value,
                     });
                   }}
-                >
-                  <SelectTrigger className="h-8 min-w-[220px] text-[12px]">
-                    <SelectValue placeholder="Pick a canned response" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cannedResponses.map((row) => (
-                      <SelectItem key={row.id} value={row.id}>
-                        {row.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  aria-label={`Action ${index + 1} canned response`}
+                  className="h-8 min-w-[220px] text-[12px]"
+                  placeholder="Pick a canned response"
+                />
               ) : null}
 
               {action.kind === "snooze" ? (

@@ -7,7 +7,10 @@ import {
   FieldContent,
   FieldError,
   FieldLabel,
+  FieldPrimitive,
+  FieldTitle,
 } from "@asym/ui/components/shadcn/field";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import {
   Select,
   SelectContent,
@@ -25,6 +28,7 @@ import {
 } from "@asym/ui/components/shadcn/sheet";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Loader2, Trash2 } from "lucide-react";
+import { useId } from "react";
 import { z } from "zod";
 
 import { useLinkedEntities, useUpsertLocation } from "../hooks/use-locations";
@@ -97,6 +101,7 @@ export function LocationEditor({
   onOpenChange,
   onDelete,
 }: LocationEditorProps) {
+  const publishedId = useId();
   const { mutateAsync: upsertLocation, isPending: isSaving } =
     useUpsertLocation();
   const { data: linkedEntities } = useLinkedEntities();
@@ -177,23 +182,41 @@ export function LocationEditor({
               const errors = toFieldErrors(field.state.meta.errors, showErrors);
 
               return (
-                <Field data-invalid={errors.length > 0}>
-                  <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                <FieldPrimitive.Root
+                  name={field.name}
+                  dirty={field.state.meta.isDirty}
+                  touched={field.state.meta.isTouched}
+                  invalid={errors.length > 0}
+                  render={<Field data-invalid={errors.length > 0} />}
+                >
+                  <FieldPrimitive.Label
+                    nativeLabel={false}
+                    render={<FieldTitle />}
+                    className="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                  >
                     Marker Type
-                  </FieldLabel>
+                  </FieldPrimitive.Label>
                   <FieldContent>
-                    <Select
+                    <Select<LocationFormValues["type"]>
+                      items={[
+                        { value: "missionary", label: "Missionary" },
+                        { value: "project", label: "Project" },
+                        { value: "custom", label: "Custom" },
+                      ]}
                       onOpenChange={(open) => {
                         if (!open) {
                           field.handleBlur();
                         }
                       }}
-                      onValueChange={(value) =>
-                        field.handleChange(value as LocationFormValues["type"])
-                      }
+                      onValueChange={(value) => {
+                        if (value !== null) field.handleChange(value);
+                      }}
                       value={field.state.value}
                     >
-                      <SelectTrigger className="rounded-xl border-zinc-200">
+                      <SelectTrigger
+                        aria-label="Location type"
+                        className="rounded-xl border-zinc-200"
+                      >
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -202,9 +225,12 @@ export function LocationEditor({
                         <SelectItem value="custom">Custom</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FieldError errors={errors} />
+                    <FieldPrimitive.Error
+                      match={errors.length > 0}
+                      render={<FieldError errors={errors} />}
+                    />
                   </FieldContent>
-                </Field>
+                </FieldPrimitive.Root>
               );
             }}
           </form.Field>
@@ -221,60 +247,67 @@ export function LocationEditor({
                       field.state.meta.errors,
                       showErrors,
                     );
-                    const options =
-                      selectedType === "missionary"
-                        ? (linkedEntities?.missionaries ?? []).map(
-                            (missionary) => (
-                              <SelectItem
-                                key={missionary.id}
-                                value={missionary.id}
-                              >
-                                {missionary.full_name}
-                              </SelectItem>
-                            ),
-                          )
-                        : [
-                            <SelectItem
-                              disabled
-                              key="no-projects"
-                              value="__empty"
-                            >
-                              No projects found
-                            </SelectItem>,
-                          ];
 
                     return (
-                      <Field data-invalid={errors.length > 0}>
-                        <FieldLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      <FieldPrimitive.Root
+                        name={field.name}
+                        dirty={field.state.meta.isDirty}
+                        touched={field.state.meta.isTouched}
+                        invalid={errors.length > 0}
+                        render={<Field data-invalid={errors.length > 0} />}
+                      >
+                        <FieldPrimitive.Label
+                          nativeLabel={false}
+                          render={<FieldTitle />}
+                          className="text-[10px] font-black uppercase tracking-widest text-zinc-400"
+                        >
                           Link to{" "}
                           {selectedType === "missionary"
                             ? "Missionary"
                             : "Project"}
-                        </FieldLabel>
+                        </FieldPrimitive.Label>
                         <FieldContent>
-                          <Select
+                          <SearchableSelect
+                            items={
+                              selectedType === "missionary"
+                                ? (linkedEntities?.missionaries ?? []).map(
+                                    (missionary) => ({
+                                      value: missionary.id,
+                                      label:
+                                        missionary.full_name?.trim() ||
+                                        missionary.id,
+                                    }),
+                                  )
+                                : [
+                                    {
+                                      value: "__empty",
+                                      label: "No projects found",
+                                      disabled: true,
+                                    },
+                                  ]
+                            }
                             onOpenChange={(open) => {
                               if (!open) {
                                 field.handleBlur();
                               }
                             }}
-                            onValueChange={(value) =>
+                            onValueChange={(value) => {
+                              if (value === null) return;
                               field.handleChange(
                                 value === "__empty" ? null : value,
-                              )
-                            }
+                              );
+                            }}
                             value={field.state.value ?? null}
-                          >
-                            <SelectTrigger className="rounded-xl border-zinc-200">
-                              <SelectValue
-                                placeholder={`Select ${selectedType}`}
-                              />
-                            </SelectTrigger>
-                            <SelectContent>{options}</SelectContent>
-                          </Select>
-                          <FieldError errors={errors} />
+                            aria-label={`Link to ${selectedType === "missionary" ? "Missionary" : "Project"}`}
+                            className="rounded-xl border-zinc-200"
+                            placeholder={`Select ${selectedType}`}
+                          />
+                          <FieldPrimitive.Error
+                            match={errors.length > 0}
+                            render={<FieldError errors={errors} />}
+                          />
                         </FieldContent>
-                      </Field>
+                      </FieldPrimitive.Root>
                     );
                   }}
                 </form.Field>
@@ -299,7 +332,7 @@ export function LocationEditor({
                 className="rounded-[1.25rem] border border-zinc-100 bg-zinc-50/50 p-4"
                 orientation="horizontal"
               >
-                <FieldLabel className="flex-1">
+                <FieldLabel htmlFor={publishedId} className="flex-1">
                   <div className="space-y-0.5">
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-900">
                       Published
@@ -311,6 +344,8 @@ export function LocationEditor({
                 </FieldLabel>
                 <FieldContent className="flex-none">
                   <Switch
+                    id={publishedId}
+                    aria-label="Published"
                     checked={field.state.value === "published"}
                     onBlur={field.handleBlur}
                     onCheckedChange={(checked) =>
@@ -331,6 +366,7 @@ export function LocationEditor({
             >
               {({ canSubmit, isSubmitting }) => (
                 <Button
+                  focusableWhenDisabled={isSaving || isSubmitting}
                   className="h-12 w-full rounded-xl bg-zinc-900 text-[11px] font-bold uppercase tracking-widest"
                   disabled={!canSubmit || isSaving || isSubmitting}
                   type="submit"

@@ -25,6 +25,7 @@ import {
   Wand2,
 } from "lucide-react";
 import Image from "next/image";
+import { useId } from "react";
 
 export interface ProjectPage {
   id: string;
@@ -260,6 +261,8 @@ export function WebStudioHeader({
   onViewChange,
   onSave,
 }: WebStudioHeaderProps) {
+  const pendingActionLabelId = useId();
+
   return (
     <header className="h-14 bg-white border-b border-zinc-200 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
       <div className="flex items-center gap-4">
@@ -305,6 +308,8 @@ export function WebStudioHeader({
           <Eye className="size-3.5 mr-1.5" /> View Live
         </Button>
         <Button
+          aria-labelledby={`${pendingActionLabelId}-12`}
+          focusableWhenDisabled={isSaving}
           size="sm"
           onClick={onSave}
           disabled={isSaving}
@@ -315,7 +320,9 @@ export function WebStudioHeader({
           ) : (
             <Save className="size-3.5 mr-1.5" />
           )}
-          {isSaving ? "Saving..." : "Save Changes"}
+          <span id={`${pendingActionLabelId}-12`}>
+            {isSaving ? "Saving..." : "Save Changes"}
+          </span>
         </Button>
       </div>
     </header>

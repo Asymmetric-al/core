@@ -32,6 +32,14 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectControlLabel,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -210,12 +218,14 @@ function PolicyLifecycleRow({
   activePolicyId,
   canManage,
   isPending,
+  isEvaluating,
   onMutate,
   policy,
 }: {
   activePolicyId?: string;
   canManage: boolean;
   isPending: boolean;
+  isEvaluating: boolean;
   onMutate: (mutation: EveModelPolicyMutation) => void;
   policy: EveModelPolicyRecord;
 }) {
@@ -266,6 +276,7 @@ function PolicyLifecycleRow({
             <Button
               size="sm"
               variant="outline"
+              focusableWhenDisabled={isEvaluating}
               disabled={isPending}
               onClick={() =>
                 onMutate({
@@ -501,6 +512,12 @@ export function EveModelPolicyPanel() {
                   activePolicyId={data.activePolicy?.id}
                   canManage={data.canManage}
                   isPending={mutation.isPending}
+                  isEvaluating={
+                    mutation.isPending &&
+                    mutation.variables?.method === "PATCH" &&
+                    mutation.variables.body.action === "evaluate" &&
+                    mutation.variables.body.policyId === policy.id
+                  }
                   onMutate={(nextMutation) => mutation.mutate(nextMutation)}
                   policy={policy}
                 />
@@ -526,7 +543,13 @@ export function EveModelPolicyPanel() {
               value={draftText}
               onChange={(event) => setDraftText(event.target.value)}
             />
-            <Button disabled={mutation.isPending} onClick={submitDraft}>
+            <Button
+              focusableWhenDisabled={
+                mutation.isPending && mutation.variables?.method === "POST"
+              }
+              disabled={mutation.isPending}
+              onClick={submitDraft}
+            >
               Create immutable draft
             </Button>
           </CardContent>
@@ -547,20 +570,22 @@ export function EveModelPolicyPanel() {
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="eve-override-scope-type">Scope type</Label>
-              <select
-                id="eve-override-scope-type"
-                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              <Select<"role" | "subagent">
+                items={{ role: "Role", subagent: "Subagent" }}
                 value={overrideScopeType}
-                onChange={(event) =>
-                  setOverrideScopeType(
-                    event.target.value as "role" | "subagent",
-                  )
-                }
+                onValueChange={(value) => {
+                  if (value !== null) setOverrideScopeType(value);
+                }}
               >
-                <option value="role">Role</option>
-                <option value="subagent">Subagent</option>
-              </select>
+                <SelectControlLabel>Scope type</SelectControlLabel>
+                <SelectTrigger id="eve-override-scope-type" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="role">Role</SelectItem>
+                  <SelectItem value="subagent">Subagent</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="eve-override-scope-id">Scope identifier</Label>

@@ -6,6 +6,7 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -54,21 +55,24 @@ export function DataTableViewOptions<TData extends RowData>({
         }
       />
       <DropdownMenuContent align="end" className="w-48 rounded-xl">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {columns.map((column) => {
-          const columnMeta = column.columnDef.meta;
-          return (
-            <DropdownMenuCheckboxItem
-              key={column.id}
-              className="capitalize rounded-lg"
-              checked={column.getIsVisible()}
-              onCheckedChange={(value) => column.toggleVisibility(!!value)}
-            >
-              {columnMeta?.label ?? column.id}
-            </DropdownMenuCheckboxItem>
-          );
-        })}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+          {columns.map((column) => {
+            const columnMeta = column.columnDef.meta;
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                className="capitalize rounded-lg"
+                checked={column.getIsVisible()}
+                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+              >
+                {columnMeta?.label ?? column.id}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -8,6 +8,8 @@ import { cn } from "@asym/ui/lib/utils";
 import { Label } from "./label";
 import { Separator } from "./separator";
 
+export { Field as FieldPrimitive } from "@base-ui/react/field";
+
 function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
   return (
     <fieldset

@@ -25,8 +25,13 @@ import { getUrlFromString } from "./helpers";
 import { Button } from "../button";
 import { Input } from "../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
-import { Separator } from "../separator";
 import { Toggle } from "../toggle";
+import {
+  Toolbar,
+  ToolbarGroup,
+  ToolbarButton as ToolbarItem,
+  ToolbarSeparator,
+} from "../toolbar";
 import {
   Tooltip,
   TooltipContent,
@@ -149,7 +154,7 @@ export function EditorToolbar({
 
   if (formatting) {
     sections.push(
-      <div key="formatting" className="flex items-center gap-0.5">
+      <ToolbarGroup key="formatting" aria-label="Text style">
         {has("bold") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -177,13 +182,13 @@ export function EditorToolbar({
             <Underline className="size-3.5" />
           </ToolbarButton>
         )}
-      </div>,
+      </ToolbarGroup>,
     );
   }
 
   if (headings) {
     sections.push(
-      <div key="headings" className="flex items-center gap-0.5">
+      <ToolbarGroup key="headings" aria-label="Paragraph style">
         {has("heading") && (
           <>
             <ToolbarButton
@@ -215,13 +220,13 @@ export function EditorToolbar({
             <Quote className="size-3.5" />
           </ToolbarButton>
         )}
-      </div>,
+      </ToolbarGroup>,
     );
   }
 
   if (lists) {
     sections.push(
-      <div key="lists" className="flex items-center gap-0.5">
+      <ToolbarGroup key="lists" aria-label="Lists">
         {has("bulletList") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -240,13 +245,13 @@ export function EditorToolbar({
             <ListOrdered className="size-3.5" />
           </ToolbarButton>
         )}
-      </div>,
+      </ToolbarGroup>,
     );
   }
 
   if (media) {
     sections.push(
-      <div key="media" className="flex items-center gap-0.5">
+      <ToolbarGroup key="media" aria-label="Links and media">
         {has("link") && (
           <LinkButton
             editor={editor}
@@ -260,17 +265,16 @@ export function EditorToolbar({
         {has("image") && !onImageClick && onImageUpload && (
           <ImageButton editor={editor} onUpload={onImageUpload} />
         )}
-      </div>,
+      </ToolbarGroup>,
     );
   }
 
   if (history) {
     sections.push(
-      <div key="history" className="flex items-center gap-0.5">
+      <ToolbarGroup key="history" aria-label="History">
         {has("undo") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().undo().run()}
-            active={false}
             disabled={!toolbarState.canUndo}
             tooltip="Undo (Ctrl+Z)"
           >
@@ -280,21 +284,23 @@ export function EditorToolbar({
         {has("redo") && (
           <ToolbarButton
             onClick={() => editor.chain().focus().redo().run()}
-            active={false}
             disabled={!toolbarState.canRedo}
             tooltip="Redo (Ctrl+Shift+Z)"
           >
             <Redo2 className="size-3.5" />
           </ToolbarButton>
         )}
-      </div>,
+      </ToolbarGroup>,
     );
   }
 
   return (
     <TooltipProvider delay={0}>
       <div className="sticky top-0 z-10 border-b border-border bg-muted/40 backdrop-blur-sm">
-        <div className="flex items-center gap-0.5 overflow-x-auto px-3 sm:px-4 py-2">
+        <Toolbar
+          aria-label="Text formatting"
+          className="gap-0.5 overflow-x-auto px-3 sm:px-4 py-2"
+        >
           {sections.map((section, i) => {
             const sectionKey =
               (section as React.ReactElement<{ key?: React.Key }>).key ??
@@ -302,7 +308,7 @@ export function EditorToolbar({
             return (
               <React.Fragment key={sectionKey}>
                 {i > 0 && (
-                  <Separator
+                  <ToolbarSeparator
                     orientation="vertical"
                     className="h-4 mx-1.5 bg-border/60"
                   />
@@ -311,7 +317,7 @@ export function EditorToolbar({
               </React.Fragment>
             );
           })}
-        </div>
+        </Toolbar>
 
         {actions && (
           <div className="border-t border-border px-3 sm:px-4 py-3">
@@ -332,7 +338,7 @@ function ToolbarButton({
   className,
 }: {
   onClick: () => void;
-  active: boolean;
+  active?: boolean;
   tooltip: string;
   disabled?: boolean;
   children: React.ReactNode;
@@ -342,12 +348,17 @@ function ToolbarButton({
     <Tooltip>
       <TooltipTrigger
         render={
-          <Toggle
-            aria-label={tooltip}
-            size="sm"
-            pressed={active}
-            onPressedChange={onClick}
+          <ToolbarItem
             disabled={disabled}
+            focusableWhenDisabled={false}
+            aria-label={tooltip}
+            render={
+              active === undefined ? (
+                <Button variant="ghost" size="sm" onClick={onClick} />
+              ) : (
+                <Toggle size="sm" pressed={active} onPressedChange={onClick} />
+              )
+            }
             className={cn(
               "size-7 p-0 rounded-md transition-colors",
               active
@@ -358,7 +369,7 @@ function ToolbarButton({
             )}
           >
             {children}
-          </Toggle>
+          </ToolbarItem>
         }
       />
       <TooltipContent side="top" className="text-xs">
@@ -415,22 +426,26 @@ function LinkButton({
       <Tooltip>
         <TooltipTrigger
           render={
-            <PopoverTrigger
+            <ToolbarItem
               render={
-                <Button
-                  type="button"
-                  aria-label={isActive ? "Edit link" : "Add link"}
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "size-7 p-0 rounded-md transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <LinkIcon className="size-3.5" />
-                </Button>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      aria-label={isActive ? "Edit link" : "Add link"}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "size-7 p-0 rounded-md transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <LinkIcon className="size-3.5" />
+                    </Button>
+                  }
+                />
               }
             />
           }
@@ -492,16 +507,15 @@ function ImageClickButton({ onClick }: { onClick: () => void }) {
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button
+          <ToolbarItem
+            render={<Button variant="ghost" size="sm" />}
             aria-label="Insert image"
-            variant="ghost"
-            size="sm"
             className="size-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
             type="button"
             onClick={onClick}
           >
             <ImageIcon className="size-3.5" />
-          </Button>
+          </ToolbarItem>
         }
       />
       <TooltipContent side="top" className="text-xs">
@@ -518,6 +532,7 @@ function ImageButton({
   editor: Editor;
   onUpload: (file: File) => Promise<string>;
 }) {
+  const imageActionLabelId = React.useId();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -553,10 +568,10 @@ function ImageButton({
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button
-              aria-label={isUploading ? "Uploading image" : "Upload image"}
-              variant="ghost"
-              size="sm"
+            <ToolbarItem
+              render={<Button variant="ghost" size="sm" />}
+              aria-labelledby={imageActionLabelId}
+              focusableWhenDisabled={isUploading}
               className={cn(
                 "size-7 p-0 rounded-md transition-colors",
                 "hover:bg-muted text-muted-foreground hover:text-foreground",
@@ -566,8 +581,11 @@ function ImageButton({
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
             >
+              <span id={imageActionLabelId} className="sr-only">
+                {isUploading ? "Uploading image" : "Upload image"}
+              </span>
               <ImageIcon className="size-3.5" />
-            </Button>
+            </ToolbarItem>
           }
         />
         <TooltipContent side="top" className="text-xs">

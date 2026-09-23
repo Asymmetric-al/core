@@ -179,6 +179,7 @@ export function DonorTasks({
                   >
                     <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
                       <Checkbox
+                        aria-label={`Complete ${task.title}`}
                         checked={false}
                         onCheckedChange={() => handleComplete(task)}
                         className="size-5 rounded-md"
@@ -231,6 +232,7 @@ export function DonorTasks({
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger
+                        aria-label="Open actions"
                         render={
                           <Button
                             variant="ghost"
@@ -296,6 +298,7 @@ export function DonorTasks({
                   >
                     <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
                       <Checkbox
+                        aria-label={`Complete ${task.title}`}
                         checked={true}
                         onCheckedChange={() => handleComplete(task)}
                         className="size-5 rounded-md data-checked:border-emerald-500 data-checked:bg-emerald-500"

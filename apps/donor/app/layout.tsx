@@ -157,30 +157,32 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
-          storageKey="donor-theme"
-          disableTransitionOnChange
-        >
-          <TooltipProvider delay={0}>
-            <QueryProvider>
-              <MotionProvider>
-                {/* Do not wrap this tree in <Suspense>: a boundary here drops
-                    every donor route out of the static shell, so public HTML
-                    ships inside <div hidden> and only appears once inline JS
-                    runs. Pinned by
-                    tests/unit/apps/donor/static-shell-contract.test.ts. */}
-                <NuqsAdapter>
-                  <BoneyardRegistry />
-                  <OpenPolicyProvider>{children}</OpenPolicyProvider>
-                </NuqsAdapter>
-              </MotionProvider>
-            </QueryProvider>
-          </TooltipProvider>
-        </ThemeProvider>
+        <div className="app-root">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            forcedTheme="light"
+            enableSystem={false}
+            storageKey="donor-theme"
+            disableTransitionOnChange
+          >
+            <TooltipProvider delay={0}>
+              <QueryProvider>
+                <MotionProvider>
+                  {/* Do not wrap this tree in <Suspense>: a boundary here drops
+                      every donor route out of the static shell, so public HTML
+                      ships inside <div hidden> and only appears once inline JS
+                      runs. Pinned by
+                      tests/unit/apps/donor/static-shell-contract.test.ts. */}
+                  <NuqsAdapter>
+                    <BoneyardRegistry />
+                    <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                  </NuqsAdapter>
+                </MotionProvider>
+              </QueryProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </div>
         <Toaster />
       </body>
     </html>

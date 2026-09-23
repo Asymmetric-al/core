@@ -283,6 +283,43 @@ describe("ContributionDetailSheet refund entry point", () => {
     expect(onRefund).not.toHaveBeenCalled();
   });
 
+  it("does not make blocked refund focusable while another action is pending", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        actionAvailability={[blockedRefundEntry]}
+        onRefund={vi.fn()}
+        isActionPending
+      />,
+    );
+
+    const refundButton = view.getByRole("button", { name: /refund gift/i });
+    expect(refundButton).toHaveProperty("disabled", true);
+    expect(refundButton.getAttribute("tabindex")).not.toBe("0");
+  });
+
+  it("does not make a missing-staged-gift receipt action focusable while another action is pending", () => {
+    const contribution = {
+      ...boneyardContributionsFixture[0]!,
+      stagedGiftId: null,
+      receiptSent: false,
+    };
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        onSendReceipt={vi.fn()}
+        isActionPending
+      />,
+    );
+
+    const receiptButton = view.getByRole("button", { name: /send receipt/i });
+    expect(receiptButton).toHaveProperty("disabled", true);
+    expect(receiptButton.getAttribute("tabindex")).not.toBe("0");
+  });
+
   it("renders no refund affordance without an onRefund handler or refund entry", () => {
     const withoutHandler = render(
       <ContributionDetailSheet
@@ -307,6 +344,167 @@ describe("ContributionDetailSheet refund entry point", () => {
     expect(
       withoutEntry.queryByRole("button", { name: /refund gift/i }),
     ).toBeNull();
+  });
+});
+
+describe("ContributionDetailSheet pending action focus", () => {
+  const receiptEntry = {
+    actionType: "resend_receipt" as const,
+    available: true,
+    blockedReason: null,
+    nextStep: null,
+    riskLevel: "low" as const,
+  };
+  const refundEntry = {
+    actionType: "refund" as const,
+    available: true,
+    blockedReason: null,
+    nextStep: null,
+    riskLevel: "high" as const,
+  };
+
+  it("keeps only the receipt initiator focusable and blocks repeat or peer activation", () => {
+    const contribution = {
+      ...boneyardContributionsFixture[0]!,
+      stagedGiftId: "staged-receipt",
+      receiptSent: false,
+    };
+    const onSendReceipt = vi.fn();
+    const onRefund = vi.fn();
+    const props = {
+      contribution,
+      onClose: vi.fn(),
+      actionAvailability: [receiptEntry, refundEntry],
+      onSendReceipt,
+      onRefund,
+    };
+    const view = render(<ContributionDetailSheet {...props} />);
+    const receipt = view.getByRole("button", { name: "Send Receipt" });
+    const refund = view.getByRole("button", { name: "Refund Gift" });
+    receipt.focus();
+    fireEvent.click(receipt);
+    expect(onSendReceipt).toHaveBeenCalledExactlyOnceWith(
+      "staged-receipt",
+      contribution.id,
+    );
+
+    view.rerender(
+      <ContributionDetailSheet
+        {...props}
+        isActionPending
+        pendingAction={{
+          actionType: "resend_receipt",
+          contributionId: contribution.id,
+          stagedGiftId: "staged-receipt",
+        }}
+      />,
+    );
+
+    expect(document.activeElement).toBe(receipt);
+    expect(receipt).toHaveProperty("disabled", false);
+    expect(receipt.getAttribute("aria-disabled")).toBe("true");
+    expect(refund).toHaveProperty("disabled", true);
+    fireEvent.click(receipt);
+    fireEvent.click(refund);
+    expect(onSendReceipt).toHaveBeenCalledTimes(1);
+    expect(onRefund).not.toHaveBeenCalled();
+
+    view.rerender(<ContributionDetailSheet {...props} />);
+    expect(receipt.getAttribute("aria-disabled")).not.toBe("true");
+    expect(refund).toHaveProperty("disabled", false);
+    fireEvent.click(receipt);
+    expect(onSendReceipt).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps readiness-blocked receipt and refund controls natively disabled during another action", () => {
+    const onSendReceipt = vi.fn();
+    const onRefund = vi.fn();
+    const contribution = {
+      ...boneyardContributionsFixture[0]!,
+      stagedGiftId: null,
+      receiptSent: false,
+    };
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        onSendReceipt={onSendReceipt}
+        onRefund={onRefund}
+        isActionPending
+      />,
+    );
+    const receipt = view.getByRole("button", { name: "Send Receipt" });
+    expect(receipt).toHaveProperty("disabled", true);
+    fireEvent.click(receipt);
+    expect(onSendReceipt).not.toHaveBeenCalled();
+
+    view.rerender(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        onRefund={onRefund}
+        actionAvailability={[{ ...refundEntry, available: false }]}
+        isActionPending
+      />,
+    );
+    const refund = view.getByRole("button", { name: "Refund Gift" });
+    expect(refund).toHaveProperty("disabled", true);
+    fireEvent.click(refund);
+    expect(onRefund).not.toHaveBeenCalled();
+  });
+
+  it("does not retain another gift's pending receipt as a focusable action", () => {
+    const contribution = {
+      ...boneyardContributionsFixture[0]!,
+      stagedGiftId: "staged-current",
+      receiptSent: false,
+    };
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        onSendReceipt={vi.fn()}
+        actionAvailability={[receiptEntry]}
+        isActionPending
+        pendingAction={{
+          actionType: "resend_receipt",
+          contributionId: "previous-contribution",
+          stagedGiftId: "staged-current",
+        }}
+      />,
+    );
+
+    expect(view.getByRole("button", { name: "Send Receipt" })).toHaveProperty(
+      "disabled",
+      true,
+    );
+  });
+  it("does not retain a stale staged-gift action on the current contribution", () => {
+    const contribution = {
+      ...boneyardContributionsFixture[0]!,
+      stagedGiftId: "staged-current",
+      receiptSent: false,
+    };
+    const onSendReceipt = vi.fn();
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        onSendReceipt={onSendReceipt}
+        actionAvailability={[receiptEntry]}
+        isActionPending
+        pendingAction={{
+          actionType: "resend_receipt",
+          contributionId: contribution.id,
+          stagedGiftId: "staged-previous",
+        }}
+      />,
+    );
+
+    const receipt = view.getByRole("button", { name: "Send Receipt" });
+    expect(receipt).toHaveProperty("disabled", true);
+    fireEvent.click(receipt);
+    expect(onSendReceipt).not.toHaveBeenCalled();
   });
 });
 

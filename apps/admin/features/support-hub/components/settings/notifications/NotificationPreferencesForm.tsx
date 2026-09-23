@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import * as React from "react";
 import { toast } from "sonner";
@@ -112,21 +106,21 @@ export function NotificationPreferencesForm() {
       description="Email + in-app channels for donor care alerts. Applied at the agent level."
     >
       <SettingsRow
+        control
         label="Agent"
         description="Notification preferences are stored per agent."
       >
-        <Select value={agentId} onValueChange={(value) => setAgentId(value)}>
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {agents.map((agent) => (
-              <SelectItem key={agent.id} value={agent.id}>
-                {agent.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          items={[
+            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
+          ]}
+          value={agentId}
+          onValueChange={(value) => {
+            if (value !== null) setAgentId(value);
+          }}
+          aria-label="Agent"
+          className="h-9 max-w-sm text-[12px]"
+        />
       </SettingsRow>
 
       <div className="rounded-xl border border-zinc-100">

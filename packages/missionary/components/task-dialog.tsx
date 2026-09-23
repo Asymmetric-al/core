@@ -3,21 +3,8 @@
 import { createBrowserClient } from "@asym/database/supabase";
 import { useAuth } from "@asym/lib/hooks";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Calendar } from "@asym/ui/components/shadcn/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@asym/ui/components/shadcn/command";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +21,7 @@ import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Select,
   SelectContent,
+  SelectControlLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -43,15 +31,12 @@ import { format } from "date-fns";
 import {
   Bell,
   CalendarIcon,
-  Check,
   CheckSquare,
-  ChevronsUpDown,
   Flag,
   Heart,
   Loader2,
   Mail,
   Phone,
-  User,
   UserPlus,
   Users,
   X,
@@ -64,7 +49,9 @@ import {
   taskSchema,
   toMissionaryTaskPayload,
 } from "./task-form-model";
+import { TaskPartnerSelect } from "./task-partner-select";
 
+import type { TaskPartner } from "./task-partner-select";
 import type { Task, TaskPriority, TaskStatus, TaskType } from "../types";
 
 const TASK_TYPES: {
@@ -129,13 +116,6 @@ const TASK_PRIORITIES: {
   { value: "medium", label: "Medium", color: "text-amber-500" },
   { value: "high", label: "High", color: "text-rose-500" },
 ];
-
-interface SimpleDonor {
-  avatar_url?: string;
-  email?: string;
-  id: string;
-  name: string;
-}
 
 export interface TaskDialogProps {
   task?: Task | null;
@@ -273,18 +253,21 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
 
         return (
           <div className="grid gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-              Task Type
-            </span>
             <Select
+              items={TASK_TYPES}
               onOpenChange={(open) => {
                 if (!open) {
                   field.handleBlur();
                 }
               }}
-              onValueChange={(value) => field.handleChange(value as TaskType)}
+              onValueChange={(value) => {
+                if (value !== null) field.handleChange(value);
+              }}
               value={field.state.value}
             >
+              <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                Task Type
+              </SelectControlLabel>
               <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                 <SelectValue placeholder="Select type">
                   {selectedTaskType ? (
@@ -336,18 +319,21 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
     <form.Field name="priority">
       {(field) => (
         <div className="grid gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-            Priority
-          </span>
           <Select
+            items={TASK_PRIORITIES}
             onOpenChange={(open) => {
               if (!open) {
                 field.handleBlur();
               }
             }}
-            onValueChange={(value) => field.handleChange(value as TaskPriority)}
+            onValueChange={(value) => {
+              if (value !== null) field.handleChange(value);
+            }}
             value={field.state.value}
           >
+            <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              Priority
+            </SelectControlLabel>
             <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
@@ -438,18 +424,21 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
     <form.Field name="status">
       {(field) => (
         <div className="grid gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-            Status
-          </span>
           <Select
+            items={TASK_STATUSES}
             onOpenChange={(open) => {
               if (!open) {
                 field.handleBlur();
               }
             }}
-            onValueChange={(value) => field.handleChange(value as TaskStatus)}
+            onValueChange={(value) => {
+              if (value !== null) field.handleChange(value);
+            }}
             value={field.state.value}
           >
+            <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              Status
+            </SelectControlLabel>
             <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
@@ -472,168 +461,34 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
 }
 
 function DonorSelectorField({
-  donorListboxId,
   donorSearchOpen,
   donors,
+  selectedPartner,
   form,
   loadingDonors,
   onDonorSearchOpenChange,
 }: {
-  donorListboxId: string;
   donorSearchOpen: boolean;
-  donors: SimpleDonor[];
+  donors: TaskPartner[];
+  selectedPartner?: TaskPartner | null;
   form: MissionaryTaskFormApi;
   loadingDonors: boolean;
   onDonorSearchOpenChange: (open: boolean) => void;
 }) {
   return (
     <form.Field name="donor_id">
-      {(field) => {
-        const selectedDonor = donors.find(
-          (donor) => donor.id === field.state.value,
-        );
-
-        return (
-          <div className="grid gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-              Associated Partner
-            </span>
-
-            <Popover
-              onOpenChange={onDonorSearchOpenChange}
-              open={donorSearchOpen}
-            >
-              <PopoverTrigger
-                render={
-                  <Button
-                    aria-controls={donorListboxId}
-                    aria-expanded={donorSearchOpen}
-                    className={cn(
-                      "h-12 justify-between rounded-xl border-transparent bg-zinc-50 font-medium transition-colors hover:bg-zinc-100",
-                      !field.state.value && "text-zinc-400",
-                    )}
-                    role="combobox"
-                    type="button"
-                    variant="outline"
-                  >
-                    {selectedDonor ? (
-                      <div className="flex items-center gap-2">
-                        <Avatar className="size-6">
-                          <AvatarImage
-                            src={selectedDonor.avatar_url || undefined}
-                          />
-                          <AvatarFallback className="bg-zinc-200 text-[10px] font-bold">
-                            {selectedDonor.name
-                              .split(" ")
-                              .map((name) => name[0])
-                              .join("")
-                              .slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{selectedDonor.name}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <User className="size-4" />
-                        <span>Select partner (optional)</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-1">
-                      {field.state.value ? (
-                        <X
-                          className="size-4 text-zinc-400 hover:text-zinc-600"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            field.handleChange("");
-                          }}
-                        />
-                      ) : null}
-                      <ChevronsUpDown className="size-4 opacity-50" />
-                    </div>
-                  </Button>
-                }
-              />
-
-              <PopoverContent
-                align="start"
-                className="w-[400px] rounded-xl p-0"
-              >
-                <Command className="rounded-xl">
-                  <CommandInput
-                    className="h-11"
-                    placeholder="Search partners..."
-                  />
-                  <CommandList id={donorListboxId}>
-                    <CommandEmpty>
-                      {loadingDonors ? (
-                        <div className="flex items-center justify-center py-6">
-                          <Loader2 className="size-4 animate-spin text-zinc-400" />
-                        </div>
-                      ) : (
-                        "No partners found."
-                      )}
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {donors.map((donor) => (
-                        <CommandItem
-                          className="rounded-lg"
-                          key={donor.id}
-                          onSelect={() => {
-                            field.handleChange(
-                              donor.id === field.state.value ? "" : donor.id,
-                            );
-                            field.handleBlur();
-                            onDonorSearchOpenChange(false);
-                          }}
-                          value={donor.name}
-                        >
-                          <div className="flex flex-1 items-center gap-3">
-                            <Avatar className="size-8">
-                              <AvatarImage
-                                src={donor.avatar_url || undefined}
-                              />
-                              <AvatarFallback className="bg-zinc-100 text-[10px] font-bold">
-                                {donor.name
-                                  .split(" ")
-                                  .map((name) => name[0])
-                                  .join("")
-                                  .slice(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium">
-                                {donor.name}
-                              </p>
-                              {donor.email ? (
-                                <p className="truncate text-xs text-zinc-400">
-                                  {donor.email}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                          <Check
-                            className={cn(
-                              "size-4 shrink-0",
-                              field.state.value === donor.id
-                                ? "opacity-100"
-                                : "opacity-0",
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-
-            <p className="text-xs text-zinc-400">
-              Link this task to a specific partner for easy tracking
-            </p>
-          </div>
-        );
-      }}
+      {(field) => (
+        <TaskPartnerSelect
+          donors={donors}
+          selectedPartner={selectedPartner}
+          value={field.state.value}
+          loading={loadingDonors}
+          onChange={field.handleChange}
+          onBlur={field.handleBlur}
+          open={donorSearchOpen}
+          onOpenChange={onDonorSearchOpenChange}
+        />
+      )}
     </form.Field>
   );
 }
@@ -688,10 +543,9 @@ export function TaskDialog({
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen;
 
-  const [donors, setDonors] = React.useState<SimpleDonor[]>([]);
+  const [donors, setDonors] = React.useState<TaskPartner[]>([]);
   const [loadingDonors, setLoadingDonors] = React.useState(false);
   const [donorSearchOpen, setDonorSearchOpen] = React.useState(false);
-  const donorListboxId = React.useId();
 
   const isEditing = !!task;
   const initialFormValues = React.useMemo(
@@ -821,9 +675,9 @@ export function TaskDialog({
               <StatusSelectField form={form} />
 
               <DonorSelectorField
-                donorListboxId={donorListboxId}
                 donorSearchOpen={donorSearchOpen}
                 donors={donors}
+                selectedPartner={task?.donor}
                 form={form}
                 loadingDonors={loadingDonors}
                 onDonorSearchOpenChange={setDonorSearchOpen}

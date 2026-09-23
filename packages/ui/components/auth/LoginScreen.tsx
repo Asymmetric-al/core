@@ -71,6 +71,7 @@ export function LoginScreen({
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const submissionInFlight = React.useRef(false);
   const [isDemoSubmitting, setIsDemoSubmitting] = React.useState(false);
 
   const demoAvailabilityQuery = useQuery({
@@ -140,6 +141,8 @@ export function LoginScreen({
   const handleFullLogin = React.useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      if (submissionInFlight.current) return;
+      submissionInFlight.current = true;
       setError(null);
       setIsSubmitting(true);
 
@@ -159,6 +162,7 @@ export function LoginScreen({
       } catch (cause) {
         setError(toSafeUiError(cause, "Unable to sign in."));
       } finally {
+        submissionInFlight.current = false;
         setIsSubmitting(false);
       }
     },

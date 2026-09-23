@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import * as React from "react";
 import { toast } from "sonner";
@@ -91,10 +85,14 @@ export function AssignmentRulesForm() {
         </div>
       </SettingsRow>
       <SettingsRow
+        control
         label="Fallback agent"
         description="Pick an agent to receive a conversation if round-robin can't find anyone. (Applied by the Phase 7 server-side evaluator.)"
       >
-        <Select
+        <SearchableSelect
+          items={[
+            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
+          ]}
           value={fallbackAgent}
           onValueChange={(value) => {
             if (value === null) {
@@ -103,18 +101,10 @@ export function AssignmentRulesForm() {
             setFallbackAgent(value);
           }}
           disabled
-        >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
-            <SelectValue placeholder="Configured in a later phase" />
-          </SelectTrigger>
-          <SelectContent>
-            {agents.map((agent) => (
-              <SelectItem key={agent.id} value={agent.id}>
-                {agent.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Fallback agent"
+          className="h-9 max-w-sm text-[12px]"
+          placeholder="Configured in a later phase"
+        />
       </SettingsRow>
       <SettingsToolbar
         isDirty={isDirty}

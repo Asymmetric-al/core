@@ -13,13 +13,14 @@ import { SidebarTrigger } from "@asym/ui/components/shadcn/sidebar";
 import { Moon, Sun, Bell, LifeBuoy, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useTransition } from "react";
+import { useId, useTransition } from "react";
 
 interface AppHeaderProps {
   title?: string;
 }
 
 export function AppHeader({ title }: AppHeaderProps) {
+  const signOutLabelId = useId();
   const { setTheme } = useTheme();
   const [isSigningOut, startSigningOut] = useTransition();
 
@@ -102,9 +103,13 @@ export function AppHeader({ title }: AppHeaderProps) {
           className="h-8 px-2 text-xs"
           onClick={handleSignOut}
           disabled={isSigningOut}
+          focusableWhenDisabled={isSigningOut}
+          aria-labelledby={signOutLabelId}
         >
           <LogOut className="mr-1 size-3.5" />
-          {isSigningOut ? "Signing out…" : "Sign out"}
+          <span id={signOutLabelId}>
+            {isSigningOut ? "Signing out…" : "Sign out"}
+          </span>
         </Button>
       </div>
     </header>

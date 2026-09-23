@@ -10,6 +10,7 @@ import type { RowData } from "../tanstack";
 import type { CheckboxCellProps } from "./types";
 
 export function CheckboxCell<TData extends RowData>({
+  cell,
   value,
   onValueChange,
   onEditComplete,
@@ -34,7 +35,9 @@ export function CheckboxCell<TData extends RowData>({
         onCheckedChange={handleChange}
         disabled={disabled}
         className="shrink-0"
-        aria-label={label ?? "Toggle"}
+        aria-label={
+          label ?? cell.column.columnDef.meta?.label ?? cell.column.id
+        }
       />
       {label && <span className="text-sm truncate">{label}</span>}
     </div>

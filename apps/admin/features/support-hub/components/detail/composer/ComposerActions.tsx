@@ -2,12 +2,17 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Loader2, Save, Send, StickyNote } from "lucide-react";
+import { useId } from "react";
 
-import type { ComposerMode } from "./use-conversation-composer";
+import type {
+  ComposerMode,
+  ConversationComposerHandlers,
+} from "./use-conversation-composer";
 
 interface ComposerActionsProps {
   mode: ComposerMode;
   isPending: boolean;
+  pendingAction: ConversationComposerHandlers["pendingAction"];
   isDirty: boolean;
   onSend: () => void;
   onSaveDraft: () => void;
@@ -24,14 +29,19 @@ interface ComposerActionsProps {
 export function ComposerActions({
   mode,
   isPending,
+  pendingAction,
   isDirty,
   onSend,
   onSaveDraft,
   onCancel,
   beforeSend,
 }: ComposerActionsProps) {
+  const pendingActionLabelId = useId();
+
   const isReply = mode === "reply";
-  const sendIcon = isPending ? (
+  const isSending = pendingAction === "send";
+  const isSavingDraft = pendingAction === "draft";
+  const sendIcon = isSending ? (
     <Loader2 className="size-3.5 animate-spin" />
   ) : isReply ? (
     <Send className="size-3.5" />
@@ -40,12 +50,19 @@ export function ComposerActions({
   );
 
   const sendLabel = isReply
-    ? isPending
+    ? isSending
       ? "Sending"
       : "Send reply"
-    : isPending
+    : isSending
       ? "Saving"
       : "Add note";
+  const sendAccessibleLabel = isReply
+    ? isSending
+      ? "Sending reply to donor"
+      : "Send reply to donor"
+    : isSending
+      ? "Saving internal note"
+      : "Add internal note";
 
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-2">
@@ -72,6 +89,9 @@ export function ComposerActions({
         ) : null}
         {isReply ? (
           <Button
+            focusableWhenDisabled={isSavingDraft}
+            aria-labelledby={`${pendingActionLabelId}-draft`}
+            aria-busy={isSavingDraft}
             type="button"
             variant="outline"
             size="sm"
@@ -80,19 +100,25 @@ export function ComposerActions({
             className="h-8 gap-1.5 rounded-lg border-zinc-200 px-3 text-xs"
           >
             <Save className="size-3.5" />
-            Save draft
+            <span id={`${pendingActionLabelId}-draft`}>
+              {isSavingDraft ? "Saving draft" : "Save draft"}
+            </span>
           </Button>
         ) : null}
         <Button
+          aria-labelledby={`${pendingActionLabelId}-17`}
+          focusableWhenDisabled={isSending}
           type="button"
           size="sm"
           disabled={isPending || !isDirty}
-          aria-busy={isPending}
-          aria-label={isReply ? "Send reply to donor" : "Add internal note"}
+          aria-busy={isSending}
           onClick={onSend}
           className="h-8 gap-1.5 rounded-lg bg-zinc-900 px-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800"
         >
           {sendIcon}
+          <span id={`${pendingActionLabelId}-17`} className="sr-only">
+            {sendAccessibleLabel}
+          </span>
           {sendLabel}
         </Button>
       </div>

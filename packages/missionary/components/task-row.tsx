@@ -217,6 +217,7 @@ export function TaskRow({
     >
       <div className="mt-1 relative">
         <Checkbox
+          aria-label={`Complete ${task.title}`}
           checked={isCompleted}
           onCheckedChange={onComplete}
           className="size-5 rounded-md border-zinc-300 data-checked:bg-emerald-500 data-checked:border-emerald-500"
@@ -321,6 +322,7 @@ export function TaskRow({
 
       <DropdownMenu>
         <DropdownMenuTrigger
+          aria-label="Open actions"
           render={
             <Button
               variant="ghost"

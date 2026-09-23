@@ -295,7 +295,11 @@ export const ReactEmailEditor = forwardRef<
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 Loading email editor…
               </div>
-              <Progress value={65} className="h-1.5" />
+              <Progress
+                aria-label="Loading email editor"
+                value={null}
+                className="h-1.5"
+              />
             </div>
           </div>
         </div>

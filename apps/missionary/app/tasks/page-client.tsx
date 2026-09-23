@@ -20,6 +20,7 @@ import {
 } from "@asym/ui/components/shadcn/alert-dialog";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
@@ -450,37 +451,43 @@ function TasksFilterBar({
               align="end"
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
             >
-              <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                Task Type
-              </DropdownMenuLabel>
-              {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
-                <DropdownMenuCheckboxItem
-                  key={value}
-                  checked={typeFilter === value}
-                  onCheckedChange={() => setTypeFilter(value as TaskType)}
-                  className="rounded-lg px-3 py-2 text-sm font-medium"
-                >
-                  <config.icon className={cn("size-3.5 mr-2", config.color)} />
-                  {config.label}
-                </DropdownMenuCheckboxItem>
-              ))}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  Task Type
+                </DropdownMenuLabel>
+                {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
+                  <DropdownMenuCheckboxItem
+                    key={value}
+                    checked={typeFilter === value}
+                    onCheckedChange={() => setTypeFilter(value as TaskType)}
+                    className="rounded-lg px-3 py-2 text-sm font-medium"
+                  >
+                    <config.icon
+                      className={cn("size-3.5 mr-2", config.color)}
+                    />
+                    {config.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-zinc-100 mx-1 my-2" />
-              <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                Priority
-              </DropdownMenuLabel>
-              {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
-                <DropdownMenuCheckboxItem
-                  key={value}
-                  checked={priorityFilter === value}
-                  onCheckedChange={() =>
-                    setPriorityFilter(value as TaskPriority)
-                  }
-                  className="rounded-lg px-3 py-2 text-sm font-medium"
-                >
-                  <Flag className={cn("size-3.5 mr-2", config.color)} />
-                  {config.label}
-                </DropdownMenuCheckboxItem>
-              ))}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  Priority
+                </DropdownMenuLabel>
+                {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
+                  <DropdownMenuCheckboxItem
+                    key={value}
+                    checked={priorityFilter === value}
+                    onCheckedChange={() =>
+                      setPriorityFilter(value as TaskPriority)
+                    }
+                    className="rounded-lg px-3 py-2 text-sm font-medium"
+                  >
+                    <Flag className={cn("size-3.5 mr-2", config.color)} />
+                    {config.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

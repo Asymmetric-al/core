@@ -6,6 +6,7 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "./button";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
@@ -30,8 +31,8 @@ function AlertDialogOverlay({
   return (
     <AlertDialogPrimitive.Backdrop
       data-slot="alert-dialog-overlay"
-      className={cn(
-        "fixed inset-0 z-50 bg-black/50 data-closed:animate-out data-closed:fade-out-0 data-open:animate-in data-open:fade-in-0 duration-[var(--duration-modal)]",
+      className={mergeBaseUIClassName(
+        "absolute inset-0 z-50 min-h-dvh bg-black/50 data-closed:animate-out data-closed:fade-out-0 data-open:animate-in data-open:fade-in-0 duration-[var(--duration-modal)]",
         className,
       )}
       {...props}
@@ -52,7 +53,7 @@ function AlertDialogContent({
       <AlertDialogPrimitive.Popup
         data-slot="alert-dialog-content"
         data-size={size}
-        className={cn(
+        className={mergeBaseUIClassName(
           "group/alert-dialog-content fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-[var(--duration-modal)] outline-none data-[size=sm]:max-w-xs data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[size=default]:sm:max-w-lg",
           className,
         )}
@@ -101,7 +102,7 @@ function AlertDialogTitle({
   return (
     <AlertDialogPrimitive.Title
       data-slot="alert-dialog-title"
-      className={cn(
+      className={mergeBaseUIClassName(
         "text-lg font-semibold sm:group-data-[size=default]/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2",
         className,
       )}
@@ -117,7 +118,10 @@ function AlertDialogDescription({
   return (
     <AlertDialogPrimitive.Description
       data-slot="alert-dialog-description"
-      className={cn("text-sm text-muted-foreground", className)}
+      className={mergeBaseUIClassName(
+        "text-sm text-muted-foreground",
+        className,
+      )}
       {...props}
     />
   );
@@ -149,7 +153,7 @@ function AlertDialogAction({
   return (
     <AlertDialogPrimitive.Close
       data-slot="alert-dialog-action"
-      className={cn(className)}
+      className={mergeBaseUIClassName("", className)}
       render={<Button variant={variant} size={size} />}
       {...props}
     />
@@ -166,7 +170,7 @@ function AlertDialogCancel({
   return (
     <AlertDialogPrimitive.Close
       data-slot="alert-dialog-cancel"
-      className={cn(className)}
+      className={mergeBaseUIClassName("", className)}
       render={<Button variant={variant} size={size} />}
       {...props}
     />

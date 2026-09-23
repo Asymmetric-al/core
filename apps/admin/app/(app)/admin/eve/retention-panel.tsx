@@ -132,6 +132,10 @@ export function EveRetentionPanel() {
             <Button
               size="sm"
               variant="outline"
+              focusableWhenDisabled={
+                mutation.isPending &&
+                mutation.variables?.action === "run_expiry"
+              }
               disabled={mutation.isPending}
               onClick={() =>
                 mutation.mutate({ action: "run_expiry", limit: 100 })
@@ -195,6 +199,11 @@ export function EveRetentionPanel() {
                     <Button
                       size="sm"
                       variant="outline"
+                      focusableWhenDisabled={
+                        mutation.isPending &&
+                        mutation.variables?.action === "clear_hold" &&
+                        mutation.variables.holdId === hold.id
+                      }
                       disabled={mutation.isPending}
                       onClick={() =>
                         mutation.mutate({

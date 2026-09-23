@@ -16,6 +16,10 @@ import {
   FieldContent,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 import {
   CircleAlert,
@@ -24,7 +28,7 @@ import {
   LoaderCircle,
   Receipt,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useId, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import {
@@ -92,6 +96,8 @@ function OfflineGiftEntryForm({
   onClose: () => void;
   onRecorded?: (result: OfflineGiftEntryResult) => void;
 }) {
+  const pendingActionLabelId = useId();
+
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [recorded, setRecorded] = useState<OfflineGiftEntryResult | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -267,7 +273,15 @@ function OfflineGiftEntryForm({
           })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button disabled={!canSubmit || isSubmitting} type="submit">
+            <Button
+              aria-labelledby={`${pendingActionLabelId}-2`}
+              focusableWhenDisabled={isSubmitting}
+              disabled={!canSubmit || isSubmitting}
+              type="submit"
+            >
+              <span id={`${pendingActionLabelId}-2`} className="sr-only">
+                {isSubmitting ? "Recording…" : "Record gift"}
+              </span>
               {isSubmitting ? (
                 <>
                   <LoaderCircle className="size-4 animate-spin" />
@@ -378,20 +392,28 @@ function ModeToggle({
   return (
     <fieldset>
       <legend className={cn(LABEL_CLASS, "mb-2")}>Donor</legend>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <ToggleGroup
+        aria-label="Donor mode"
+        value={[value]}
+        onValueChange={(values) => {
+          const next = values[0];
+          if (next === "known" || next === "unknown_offline") onChange(next);
+        }}
+        spacing={2}
+        className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2"
+      >
         {options.map((option) => {
           const active = option.mode === value;
           return (
-            <button
-              aria-pressed={active}
+            <ToggleGroupItem
+              value={option.mode}
               className={cn(
-                "flex flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors",
+                "flex h-auto flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors data-pressed:bg-primary/5 data-pressed:text-foreground",
                 active
                   ? "border-primary bg-primary/5 ring-1 ring-primary/40"
                   : "border-border bg-card hover:bg-accent",
               )}
               key={option.mode}
-              onClick={() => onChange(option.mode)}
               type="button"
             >
               <span className="text-sm font-medium text-foreground">
@@ -400,10 +422,10 @@ function ModeToggle({
               <span className="text-xs text-muted-foreground">
                 {option.hint}
               </span>
-            </button>
+            </ToggleGroupItem>
           );
         })}
-      </div>
+      </ToggleGroup>
     </fieldset>
   );
 }

@@ -12,7 +12,7 @@ import {
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Progress } from "@asym/ui/components/shadcn/progress";
+import { Meter } from "@asym/ui/components/shadcn/meter";
 import {
   Tabs,
   TabsContent,
@@ -435,7 +435,8 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         {formatCurrency(worker.goal || 0)}
                       </span>
                     </div>
-                    <Progress
+                    <Meter
+                      aria-label="Funding goal"
                       value={percentRaised}
                       className="h-2.5 bg-zinc-100"
                     />
