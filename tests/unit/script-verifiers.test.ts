@@ -1235,6 +1235,233 @@ describe("refresh-upstream-skills", () => {
     );
   });
 
+  it("rolls back canonical Emil refreshes when the clone lock update fails", async () => {
+    const tempRoot = await createTempRepo("refresh-emil-lock-atomic");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    await writeFile(
+      copiedScriptPath,
+      copiedScript.replace(
+        "async function writeSkillsLock(lockfile) {\n",
+        [
+          "async function writeSkillsLock(lockfile) {",
+          '  if (process.env.CORE_SKILLS_FAIL_LOCK_WRITE === "1") {',
+          '    throw new Error("simulated lock write failure");',
+          "  }",
+          "",
+        ].join("\n"),
+      ),
+    );
+
+    const minimalEmilSkill = (skillName: string, extraLines: string[] = []) =>
+      [
+        "---",
+        `name: ${skillName}`,
+        "description: fixture",
+        "---",
+        "",
+        ...extraLines,
+      ].join("\n");
+    const emilFixtures = {
+      animate: {
+        "SKILL.md": minimalEmilSkill("animate", ["# Building Animations", ""]),
+      },
+      "animate-expo": {
+        "SKILL.md": minimalEmilSkill("animate-expo", [
+          "# Building Animations in Expo",
+          "",
+        ]),
+      },
+      "animation-vocabulary": {
+        "SKILL.md": rawAnimationVocabularySkill,
+      },
+      "apple-design": {
+        "SKILL.md": [
+          "# Apple design",
+          "",
+          "```",
+          "relativeVelocity = gestureVelocity / (targetValue − currentValue)",
+          "```",
+          "",
+        ].join("\n"),
+      },
+      "ask-sonner": {
+        "SKILL.md": minimalEmilSkill("ask-sonner", [
+          "# Working With Sonner",
+          "",
+          'import { Toaster } from "sonner"; // once, in layout',
+          "",
+        ]),
+      },
+      "emil-design-eng": {
+        "SKILL.md": [
+          "---",
+          "name: emil-design-eng",
+          "description: This skill encodes Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the invisible details that make software feel great.",
+          "---",
+          "",
+          "# Emil design engineering",
+          "",
+          "import { useSpring } from 'framer-motion';",
+          "",
+        ].join("\n"),
+      },
+      "emil-prototype": {
+        "SKILL.md": [
+          "---",
+          "name: prototype",
+          "description: Build multiple genuinely different versions of a UI piece.",
+          "---",
+          "",
+        ].join("\n"),
+      },
+      "improve-animations": {
+        "AUDIT.md": [
+          "# Audit",
+          "",
+          "Duration budgets — **UI animations stay under 300ms**:",
+          "",
+          "Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).",
+          "",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
+          "",
+        ].join("\n"),
+        "PLAN-TEMPLATE.md": [
+          "# Plan",
+          "",
+          "```markdown",
+          "# NNN — <Short imperative title>",
+          "",
+          "- **Estimated scope**: <n files, rough size>",
+          "",
+          "## Problem",
+          "",
+          "\u200B```css",
+          "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);",
+          "  transform-origin: var(--transform-origin);",
+          "\u200B```",
+          "",
+          "## Target",
+          "",
+          "\u200B```css",
+          "/* second example */",
+          "\u200B```",
+          "",
+          "## Steps",
+          "",
+          "1. <One concrete edit per step: file, what changes, resulting code.>",
+          "",
+          "## Verification",
+          "",
+          "- **Done when**: <machine- or eye-checkable completion criteria>.",
+          "```",
+          "",
+          "## Notes for the plan author",
+          "",
+        ].join("\n"),
+        "SKILL.md": "# Improve animations\n",
+      },
+      "mobile-native": {
+        "SKILL.md": minimalEmilSkill("mobile-native", [
+          "# Feeling Native On Mobile",
+          "",
+        ]),
+      },
+      "pick-ui-library": {
+        "SKILL.md": [
+          "---",
+          "name: pick-ui-library",
+          "description: Pick a library.",
+          "---",
+          "",
+          [
+            "| One-time ",
+            "pass",
+            "word",
+            " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+          ].join(""),
+          "",
+        ].join("\n"),
+      },
+      "review-animations": {
+        "SKILL.md": "# Review animations\n",
+        "STANDARDS.md": [
+          "# Standards",
+          "",
+          "**Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
+          "",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
+          "",
+        ].join("\n"),
+      },
+      "write-swift": {
+        "SKILL.md": minimalEmilSkill("write-swift", ["# Write Swift", ""]),
+      },
+    } as const;
+
+    for (const [skillName, files] of Object.entries(emilFixtures)) {
+      const sourceRoot = path.join(tempRoot, ".agents/skills", skillName);
+      const canonicalRoot = path.join(tempRoot, "docs/ai/skills", skillName);
+      await mkdir(sourceRoot, { recursive: true });
+      await mkdir(canonicalRoot, { recursive: true });
+      for (const [fileName, content] of Object.entries(files)) {
+        await writeFile(path.join(sourceRoot, fileName), content);
+      }
+      await writeFile(
+        path.join(canonicalRoot, "SKILL.md"),
+        `canonical ${skillName} stays intact\n`,
+      );
+    }
+
+    await writeJson(path.join(tempRoot, "skills-lock.json"), {
+      version: 1,
+      skills: Object.fromEntries(
+        Object.keys(emilFixtures).map((skillName) => [
+          skillName,
+          {
+            source: "emilkowalski/skills",
+            sourceType: "github",
+            skillPath: `skills/${skillName}/SKILL.md`,
+            computedHash: "stale-emil-clone-hash",
+          },
+        ]),
+      ),
+    });
+
+    let failure: unknown;
+    try {
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=emilkowalski/skills"],
+        {
+          CORE_SKILLS_FAIL_LOCK_WRITE: "1",
+        },
+      );
+    } catch (error) {
+      failure = error;
+    }
+    expect(String(failure)).toContain(
+      "failed without changing canonical skills",
+    );
+    expect(String(failure)).toContain("simulated lock write failure");
+
+    await expect(
+      readFile(path.join(tempRoot, "docs/ai/skills/animate/SKILL.md"), "utf8"),
+    ).resolves.toBe("canonical animate stays intact\n");
+    const lockAfterFailure = JSON.parse(
+      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
+    ) as { skills: Record<string, { computedHash?: string }> };
+    expect(lockAfterFailure.skills.animate?.computedHash).toBe(
+      "stale-emil-clone-hash",
+    );
+  });
+
   it("keeps Emil discovery replacements idempotent across repeated focused refreshes", async () => {
     const tempRoot = await createTempRepo("refresh-emil-idempotent");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");

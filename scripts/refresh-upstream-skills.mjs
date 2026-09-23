@@ -2193,13 +2193,17 @@ async function rollbackSwappedRefresh(swappedRefresh) {
   }
 }
 
-async function commitPreparedRefreshes(preparedRefreshes) {
+async function commitPreparedRefreshes(
+  preparedRefreshes,
+  afterSwap = async () => {},
+) {
   const swappedRefreshes = [];
 
   try {
     for (const preparedRefresh of preparedRefreshes) {
       swappedRefreshes.push(await swapPreparedRefresh(preparedRefresh));
     }
+    await afterSwap();
   } catch (error) {
     for (const swappedRefresh of swappedRefreshes.reverse()) {
       await rollbackSwappedRefresh(swappedRefresh);
@@ -2229,8 +2233,9 @@ async function commitPreparedRefreshes(preparedRefreshes) {
 
 async function refreshSkillsAtomically(sources) {
   const preparedRefreshes = await prepareSkillRefreshes(sources);
-  await commitPreparedRefreshes(preparedRefreshes);
-  await updateEmilCloneSkillLockHashes(preparedRefreshes);
+  await commitPreparedRefreshes(preparedRefreshes, () =>
+    updateEmilCloneSkillLockHashes(preparedRefreshes),
+  );
 
   for (const { from, to } of preparedRefreshes) {
     console.log(
