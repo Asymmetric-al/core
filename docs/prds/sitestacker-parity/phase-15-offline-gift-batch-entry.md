@@ -1232,19 +1232,34 @@ The asymmetry is the only way Mod 3 coexists with IRS Pub 1771 and P13 without e
 
 The inspector classifies the amend _before_ the user commits it and says so plainly:
 
-- **Receipt-affecting amend** (amount, legal donor, designation that changes deductibility, tax year) → produces a **versioned corrected/void receipt** through the same Mod 2 receipt rail, records the original and corrected values per IRS practice, and carries the same single confirm. A receipt-impact preview is shown before the amend commits.
+- **Receipt-affecting amend** (amount, legal donor, designation that changes deductibility, tax year) → emits the exact compensating source occurrence for **Phase 7 evaluation** through the same Mod 2 source handoff. The inspector previews receipt impact before the single confirm. Only source-authorized corrected/void facts may admit a Phase 18 successor and any required Phase 17/6 notice; classifying an amend as receipt-affecting does not itself authorize issuance or prove that a prior artifact exists.
 - **Non-affecting amend** (e.g. an internal fund reclassification with no donor-facing change) → contacts no donor, and the UI states this explicitly before the click.
 
-The corrected/void operation appends Phase 7 source correction/issuance facts, requests a Phase 18 successor document while retaining the prior artifact and currentness history, and gives Phase 17 the exact successor handoff for any required notice. No phase edits or revives the prior artifact/message.
+The correction operation appends the Phase 13 financial correction and emits
+its exact source evidence for Phase 7. Phase 7 alone determines corrected/void
+facts and whether an issuance or document transition is authorized. Phase 18
+alone creates any admitted artifact transition and retains existing artifact
+and currentness history; Phase 17/6 owns any required exact-artifact notice.
+No phase edits or revives a prior artifact/message, fabricates a predecessor,
+or turns a source hold or missing authorization into a successful receipt.
+
+For an `annual_cumulative_cash` gift not yet covered by an issued cumulative
+document, the correction preserves the frozen plan and source-owned year-end
+readiness; it creates no per-gift receipt authorization, artifact or delivery.
+If existing issued cumulative coverage is affected, its exact source-owned
+coverage and correction rules still apply. Annual mode is not permission to
+ignore an existing document's correction duties or substitute a per-gift
+receipt. Current issuer/purpose admission and source recovery remain binding.
+This distinction does not choose C-01's staff-correction approval policy.
 
 #### The void/correct + batch-reverse ops ship WITH the default [D5 Amd 5]
 
-Because Mod 1's auto-post removes the pre-post second approver by default, the _undo_ must ship in the same phase as the auto-send default — never as a follow-on. Two named D5 acceptance criteria:
+Because Mod 1 posts ordinary accepted gifts without a blanket pre-post reviewer, the append-only correction and batch-reverse paths must ship in the same phase as that posting default and its qualified receipt handoff. Two named D5 acceptance criteria:
 
-1. **Corrected/void-receipt op** — one-click from any posted gift, records original + corrected, versioned P7 fact.
-2. **Batch-scoped reverse** — compensating postings + bulk corrected/void receipts across a whole posted batch, driven by the existing `contribution_operation_batches` bulk-ops infrastructure (chunked claim, stale-running recovery, follow-up task). This is the systematic-error remedy: a whole mis-posted batch reverses through append-only compensation.
+1. **Corrected/void-receipt op** — one action from a posted gift appends source correction evidence, preserves original facts and obtains the exact Phase 7 determination. Only an authorized document transition proceeds through Phase 18 and the governed notice owners.
+2. **Batch-scoped reverse** — compensating postings and exact per-source correction evaluation across a whole posted batch, driven by the existing `contribution_operation_batches` infrastructure (chunked claim, stale-running recovery, follow-up task). Only eligible owner-authorized corrected/void document transitions and notices proceed; a batch operation cannot manufacture receipt eligibility or coverage. This is the systematic-error remedy through append-only compensation.
 
-The safety of Mod 2's immediate send is entirely a function of how cheap this undo is; that is why it is co-scheduled, not deferred.
+The correction path complements Mod 2's source admission, bounded authorization catch-window and independently governed generation/delivery. It is co-scheduled so staff can correct mistakes; it is not a substitute for those preventive controls or a promise to recall an already submitted communication.
 
 #### Build-order dependency gate [D5 Amd 6, build-order BLOCKER]
 
@@ -1353,9 +1368,9 @@ FORWARD (groomed-not-built; a dependency this section gates on):
 The phase's required **policy × tender × receipt-timing × control-total × escape-valve** matrix includes, for this section:
 
 - Settled tender (check/cash/settled card) + auto-post + plan/policy-admitted individual receipt → source authorization intent commits in-transaction, then Phase 7 authorizes, Phase 18 generates, and Phase 17 delivers idempotently — the golden happy path. Annual-cumulative occurrences create no per-gift intent or document.
-- Payment-backed ACH `processing` → provider evidence only and no contribution or receipt intent. On source-owned `succeeded`, the contribution/posting and any plan-admitted settlement-gated authorization intent commit exactly once; Phase 7/18/17 may then progress it. A later return appends the inverse and runs the source correction → successor document → governed notice chain.
+- Payment-backed ACH `processing` → provider evidence only and no contribution or receipt intent. On source-owned `succeeded`, the contribution/posting and any plan-admitted settlement-gated authorization intent commit exactly once; Phase 7/18/17 may then progress it. A later return appends the inverse and emits exact Phase 7 correction evidence; only owner-authorized artifact transitions and notices follow, under the same receipt-plan and coverage boundaries.
 - Rolled-back post → zero receipt-eligibility rows.
-- Post-commit amend → append-only correction only; raw `UPDATE` of a posted row fails (property test); receipt-affecting amend → versioned corrected/void receipt.
+- Post-commit amend → append-only correction only; raw `UPDATE` of a posted row fails (property test); receipt-affecting amend → exact Phase 7 source evaluation, with only authorized Phase 18 artifact transitions and Phase 17/6 notices. Uncovered annual-cumulative gifts create no per-gift output; existing issued cumulative coverage retains its source-owned correction duties.
 - Verified-U.S.-issuer year-boundary property test: a Dec-30-postmark / Jan-3-received check lands in the prior tax year when postmark is present; skipped postmark stamps `delivery_basis = received` and fires the nudge inside the window only. A missing policy/timezone fails closed, and a non-U.S. issuer never inherits this case.
 - Three-document-wall test: official-receipt processing never mutates P14 acknowledgment facts; an acknowledgment send never creates Phase 7 receipt authorization or a Phase 18 official generated-document request.
 
@@ -2279,7 +2294,7 @@ only exact successor revisions may advance. These tests do not change C-01.
 11. **Tenant composite FK + FORCE RLS on every new table**, `tenant_id = current_tenant()`; a cross-tenant reference is DB-impossible (poison fixture). [D3 Amd6, D6 HD-4, D7 H4]
 12. **Validation non-mutating + revision-bound.** Any material edit bumps `revision` and invalidates validation + approval; commit accepts only `validated_revision == HEAD` re-checked inside the post txn under the per-batch advisory lock. [D2, D5 Amd2]
 13. **Control-total balance precedes post.** Balance is a predicate inside validate; unbalanced blocks post absent a governed override (distinct capability + reason + FROZEN original totals). [D2, D5]
-14. **Amend-posted = compensating correction.** Post-commit single-gift amend routes through the AL-261 correction spine (append-only), never a raw `UPDATE`; pre-commit draft = free edit; receipt-affecting amend → versioned corrected/void receipt. [D5 Amd7]
+14. **Amend-posted = compensating correction.** Post-commit single-gift amend routes through the AL-261 correction spine (append-only), never a raw `UPDATE`; pre-commit draft = free edit; receipt-affecting amend → exact Phase 7 source evaluation, with only authorized Phase 18 artifact transitions and Phase 17/6 notices. Uncovered annual-cumulative gifts create no per-gift output; existing issued cumulative coverage retains its source-owned correction duties. [D5 Amd7]
 15. **gift_method = P13 single vocab source; P15 is a subset**; `moto` is a capture-channel attribute, not a method; new values are additive-only and row-creation-gated. [D4 A1]
 16. **Money = integer minor units; closed sets = TEXT+CHECK, never native enums.** [house]
 17. **Idempotent autosave.** Row-commit-granular UPSERT keyed `UNIQUE(tenant_id, batch_id, client_row_id)` with a per-row `row_seq`; stale retries rejected; server responses merge by row id, never wholesale-replace. [D3 Amd4]

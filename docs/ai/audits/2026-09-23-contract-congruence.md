@@ -165,6 +165,26 @@ are not newly invented conflicts, nor does this audit close them. No audit can
 prove the absence of every possible prose conflict; the coverage and limits above
 state what was actually checked.
 
+## Receipt qualification continuation
+
+A fresh read of #766 found remaining unconditional corrected-receipt outcomes
+in its interface and regression expectations, despite the current Phase 7/18
+admission boundary. Its [additional readback](2026-09-23-receipt-qualification-readback.json)
+records the synchronized P15 D5 Mod3/source grid and ticket, with all nine
+acceptance-checkbox states, issue metadata, dependency snapshots and C-01
+requester/approver clauses preserved. The original 50-issue publication remains
+dated evidence; the later #766 body has its own exact hash and readback.
+
+The matching P15 OpenSpec requirement now distinguishes non-money-writing
+validation from the guarded commit while preserving the single confirmation,
+audit, risk review and control-total rules. Staff-assisted Stripe payments keep
+their provider-owned Phase 13 posting path. Six explicit scenarios preserve
+those boundaries and distinguish uncovered annual-cumulative gifts from already
+issued cumulative coverage. Receipt-affecting classification alone cannot
+authorize issuance, fabricate a predecessor artifact or bypass a source hold.
+This corrects existing-contract projections; it does not settle C-01 or prove
+the target runtime exists.
+
 ## Verification and publication boundaries
 
 - `bun run verify:program-roadmap` passed the 45-phase source, projection,

@@ -274,7 +274,7 @@
     "docs/adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md": "3d72bd0f8edbd00d38e25aa3662944fbdea1c5a15386d3e5f40213618494d691",
     "docs/prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md": "139b514af5726fe0b0a6d7744462def760318ff05bbb8afe3b127030f33b1461",
     "docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md": "72ccbde35bba464599189ea00f4d9fbc2f8e471a0e19511d867716c64ce37982",
-    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "5085a833b3268498570da8c4b41e16887334ebcd8f54dc75b46e9e73fb504b95",
+    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "a42a45c57c8427e099cbde4b509801d534d6389164969a637c9d1d398d2dc541",
     "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md": "54b5c4bd594098a4ee4023cfdbb26aacfd542c02ddf51de1f96cc05cb4410457"
   },
   "evidenceLimit": "Exact source and issue readback evidence, not implementation, provider, database, migration or activation proof.",
@@ -681,5 +681,15 @@
     ],
     "issueBodiesChanged": false,
     "bodyReadback": "All16 current body hashes match a fresh explicit UTF-8 GraphQL read. Title encoding was repaired from provider captures without changing GitHub titles or body hashes."
-  }
+  },
+  "laterOwnerContractAmendments": [
+    {
+      "sourcePath": "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md",
+      "priorHead": "d50bcb4325b1ce4ad5e2b221f604902e270a2d75",
+      "priorSha256": "5085a833b3268498570da8c4b41e16887334ebcd8f54dc75b46e9e73fb504b95",
+      "currentSha256": "a42a45c57c8427e099cbde4b509801d534d6389164969a637c9d1d398d2dc541",
+      "evidence": "2026-09-23-receipt-qualification-readback.json",
+      "reason": "Qualify receipt/correction outputs under already accepted owner contracts. C02 immutable-row choice and C01 pending approval policy are unchanged."
+    }
+  ]
 }
