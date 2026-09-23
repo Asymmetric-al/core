@@ -207,7 +207,7 @@ function HistoryPageHeader({
         </p>
       </div>
       <div className="flex flex-wrap gap-3">
-        <div className="relative w-[140px]">
+        <div className="relative w-35">
           <Select
             value={yearFilter}
             onValueChange={(value) => {
@@ -357,7 +357,7 @@ function HistoryFiltersToolbar({
             render={
               <Button
                 variant="outline"
-                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
+                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest rounded-lg"
               >
                 <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
                 {typeFilter !== "All" && (
@@ -402,7 +402,7 @@ function HistoryFiltersToolbar({
             render={
               <Button
                 variant="outline"
-                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
+                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest rounded-lg"
               >
                 Status{" "}
                 {statusFilter !== "All" && (

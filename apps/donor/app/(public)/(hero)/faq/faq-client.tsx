@@ -280,7 +280,7 @@ export function FAQPageClient() {
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-none shadow-none focus-visible:ring-0 text-base h-12 bg-transparent"
+                  className="border-none shadow-none focus-visible:ring-0 h-12"
                   placeholder="Search for answers..."
                 />
                 {searchQuery && (
@@ -334,7 +334,7 @@ export function FAQPageClient() {
           />
         </div>
 
-        <div className="space-y-4 min-h-[400px]">
+        <div className="space-y-4 min-h-100">
           <AnimatePresence mode="wait">
             {filteredData.length > 0 ? (
               filteredData.map((item, idx) => (

@@ -26,6 +26,9 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
   the canonical repository has no `main` branch; do not create or target one.
 - **Package manager:** `bun` pinned via `package.json#packageManager` (currently `bun@1.3.14`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions.
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
+- **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
+  Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)
+  for raw findings, shared-consumer checks, exceptions, and legacy debt.
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Mission Control in Cursor Cloud:** `bun run setup:mission-control:cloud && bun run dev:mission-control` (writes gitignored dev placeholders only).
 - **Access:** organization members developing Core need Write or higher access;

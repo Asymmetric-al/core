@@ -126,7 +126,7 @@ export function GiftInlineActionControls({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-2 text-xs"
+          className="gap-2 text-xs"
           title={resolved.explanation ?? undefined}
           onClick={() => onRunOperation(rowAction)}
         >

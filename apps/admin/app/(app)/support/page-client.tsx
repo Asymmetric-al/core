@@ -239,7 +239,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                     <Search className="size-4" aria-hidden="true" />
                     <span className="sr-only">Search support tickets</span>
                     <Input
-                      className="h-auto border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+                      className="h-auto border-0 p-0 shadow-none focus-visible:ring-0"
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Search tickets, contacts, tags"
                       value={search}

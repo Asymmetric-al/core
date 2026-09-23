@@ -18,7 +18,7 @@ export function SupportInboxSkeleton() {
         ))}
       </div>
       <div className="flex items-center justify-between gap-3">
-        <Skeleton className="h-10 w-[420px] rounded-xl" />
+        <Skeleton className="h-10 w-105 rounded-xl" />
         <div className="flex items-center gap-2">
           <Skeleton className="h-10 w-32 rounded-xl" />
           <Skeleton className="h-10 w-24 rounded-xl" />
@@ -27,7 +27,7 @@ export function SupportInboxSkeleton() {
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="flex flex-1 flex-col gap-3">
           <Skeleton className="h-10 w-full rounded-xl" />
-          <div className="grid h-[480px] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid h-120 grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, columnIndex) => (
               <Skeleton
                 key={`support-column-${columnIndex}`}
@@ -36,7 +36,7 @@ export function SupportInboxSkeleton() {
             ))}
           </div>
         </div>
-        <Skeleton className="h-[480px] w-full rounded-2xl lg:w-[360px]" />
+        <Skeleton className="h-120 w-full rounded-2xl lg:w-90" />
       </div>
     </div>
   );

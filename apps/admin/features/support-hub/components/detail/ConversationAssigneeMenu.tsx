@@ -44,7 +44,7 @@ export function ConversationAssigneeMenu({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-8 gap-2 rounded-lg px-2 text-[12px] font-medium text-zinc-700"
+            className="gap-2 rounded-lg px-2 text-[12px] text-zinc-700"
             aria-label={
               assignee ? `Assigned to ${assignee.name}` : "Unassigned"
             }

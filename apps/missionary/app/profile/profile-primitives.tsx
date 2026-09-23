@@ -326,13 +326,15 @@ export function PreviewToggle({
   return (
     <div className="relative bg-zinc-100 border border-zinc-200 p-1 rounded-lg flex">
       <motion.div
-        className="absolute top-1 bottom-1 bg-white rounded-md shadow-sm"
+        className="absolute top-1 bottom-1 left-(--preview-indicator-left) bg-white rounded-md shadow-sm"
         layout
         transition={springTransition}
-        style={{
-          left: value === "mobile" ? 4 : "50%",
-          width: "calc(50% - 4px)",
-        }}
+        style={
+          {
+            "--preview-indicator-left": value === "mobile" ? "4px" : "50%",
+            width: "calc(50% - 4px)",
+          } as React.CSSProperties
+        }
       />
       <button
         type="button"
@@ -409,10 +411,10 @@ export function MobilePreviewFrame({
   return (
     <div ref={containerRef} className="w-full flex justify-center">
       <div
+        className="overflow-hidden"
         style={{
           width: MOBILE_PREVIEW_WIDTH * scale,
           height: MOBILE_PREVIEW_HEIGHT * scale,
-          overflow: "hidden",
         }}
       >
         <div
@@ -459,10 +461,10 @@ export function DesktopPreviewFrame({
   return (
     <div ref={containerRef} className="w-full flex justify-center">
       <div
+        className="overflow-hidden"
         style={{
           width: DESKTOP_PREVIEW_WIDTH * scale,
           height: DESKTOP_PREVIEW_HEIGHT * scale,
-          overflow: "hidden",
         }}
       >
         <div
@@ -510,7 +512,7 @@ export function ProfileHeaderActions({
               variant="outline"
               size="sm"
               onClick={handleCopyLink}
-              className="h-9 px-3 text-xs font-medium"
+              className="h-9 text-xs"
             >
               <AnimatePresence mode="wait">
                 {copiedLink ? (
@@ -575,7 +577,7 @@ export function ProfileHeaderActions({
               variant="ghost"
               size="sm"
               onClick={handleDiscard}
-              className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
+              className="h-9 text-xs text-zinc-500 hover:text-zinc-900"
             >
               <RotateCcw className="mr-1.5 size-4" />
               Discard
@@ -594,7 +596,7 @@ export function ProfileHeaderActions({
           disabled={isSaving || !hasChanges}
           size="sm"
           className={cn(
-            "h-9 px-4 text-xs font-medium min-w-[100px] transition-colors duration-200",
+            "h-9 px-4 text-xs font-medium min-w-25 transition-colors duration-200",
             saveSuccess && "bg-emerald-600 hover:bg-emerald-600",
           )}
         >

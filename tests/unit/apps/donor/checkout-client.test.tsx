@@ -952,6 +952,23 @@ describe("CheckoutPageClient idempotency retry keys", () => {
   });
 });
 
+describe("CheckoutPageClient shared form composition", () => {
+  it("focuses the custom amount field when its currency prefix is clicked", () => {
+    renderCheckout();
+    const input = screen.getByRole("textbox", { name: "Custom amount" });
+    fireEvent.click(screen.getByText("$", { exact: true }));
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("exposes a label for the disabled country field", () => {
+    renderCheckout();
+    advanceToPayment();
+    const country = screen.getByRole("textbox", { name: "Country" });
+    expect(country).toHaveProperty("disabled", true);
+    expect(country).toHaveProperty("value", "United States");
+  });
+});
+
 describe("CheckoutPageClient Gift processing-fee policy", () => {
   it("posts the donor-entered gift when cover-fees is on, not a client gross-up", async () => {
     fetchMock().mockImplementation(initializedDonationResponse);

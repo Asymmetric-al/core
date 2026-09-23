@@ -193,7 +193,7 @@ export default function SettingsPage() {
           disabled={!hasChanges}
           onClick={() => setHasChanges(false)}
           size="sm"
-          className="h-9 px-4 text-xs font-medium disabled:opacity-50"
+          className="h-9 px-4 text-xs"
         >
           <Save className="mr-2 size-4" />
           Save Preferences
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-900 hover:bg-white"
+                      className="rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-900 hover:bg-white"
                     >
                       Configure
                     </Button>
@@ -274,7 +274,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="lg:col-span-4 space-y-8">
-          <Card className="border-zinc-200 bg-white shadow-sm rounded-[2rem] overflow-hidden">
+          <Card className="border-zinc-200 bg-white shadow-sm rounded-4xl overflow-hidden">
             <CardHeader className="pt-8 px-8">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-2xl bg-zinc-50 flex items-center justify-center">
@@ -309,7 +309,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-[2rem] overflow-hidden relative group">
+          <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-4xl overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700">
               <Layout className="size-32" />
             </div>
@@ -352,7 +352,7 @@ export default function SettingsPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10"
+                  className="rounded-lg text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10"
                 >
                   Link
                 </Button>
@@ -367,7 +367,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-zinc-200 bg-white shadow-sm rounded-[2rem] overflow-hidden">
+          <Card className="border-zinc-200 bg-white shadow-sm rounded-4xl overflow-hidden">
             <CardHeader className="pt-8 px-8">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-2xl bg-violet-50 flex items-center justify-center">

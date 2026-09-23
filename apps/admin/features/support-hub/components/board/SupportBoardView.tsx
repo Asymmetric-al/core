@@ -91,7 +91,7 @@ export function SupportBoardView({
 
   return (
     <div
-      className="flex h-full min-h-[480px] gap-3 overflow-x-auto pb-2"
+      className="flex h-full min-h-120 gap-3 overflow-x-auto pb-2"
       role="region"
       aria-label="Donor care board view"
     >

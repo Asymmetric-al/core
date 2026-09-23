@@ -41,7 +41,7 @@ export const QuickActionCard = memo(function QuickActionCard({
           <h3 className="text-sm font-medium transition-colors group-hover:text-primary">
             {title}
           </h3>
-          <p className="text-muted-foreground max-w-[180px] text-xs">
+          <p className="text-muted-foreground max-w-45 text-xs">
             {description}
           </p>
         </div>

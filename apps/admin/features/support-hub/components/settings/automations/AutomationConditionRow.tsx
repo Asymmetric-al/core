@@ -45,7 +45,7 @@ export function AutomationConditionRow({
           handleKindChange(value as SupportAutomationCondition["kind"])
         }
       >
-        <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+        <SelectTrigger className="h-8 min-w-50 text-[12px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -67,7 +67,7 @@ export function AutomationConditionRow({
             onChange({ kind: "inbox_is", inboxId: value });
           }}
         >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-50 text-[12px]">
             <SelectValue placeholder="Pick an inbox" />
           </SelectTrigger>
           <SelectContent>
@@ -90,7 +90,7 @@ export function AutomationConditionRow({
             onChange({ kind: "label_includes", labelId: value });
           }}
         >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-50 text-[12px]">
             <SelectValue placeholder="Pick a label" />
           </SelectTrigger>
           <SelectContent>
@@ -110,7 +110,7 @@ export function AutomationConditionRow({
             onChange({ kind: "from_domain_equals", domain: event.target.value })
           }
           placeholder="example.org"
-          className="h-8 min-w-[200px] font-mono text-[12px]"
+          className="h-8 min-w-50 font-mono text-[12px]"
         />
       ) : null}
 
@@ -145,7 +145,7 @@ export function AutomationConditionRow({
             } as SupportAutomationCondition)
           }
           placeholder="keyword"
-          className="h-8 min-w-[200px] text-[12px]"
+          className="h-8 min-w-50 text-[12px]"
         />
       ) : null}
 

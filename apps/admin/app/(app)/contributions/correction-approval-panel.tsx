@@ -309,13 +309,13 @@ function CorrectionApprovalRequestCard({
         <div className="flex flex-wrap justify-end gap-2">
           <Button
             variant="outline"
-            className="h-9"
+            className=""
             onClick={() => submitDecision("reject")}
           >
             Reject
           </Button>
           <Button
-            className="h-9"
+            className=""
             disabled={Boolean(deliveryError)}
             onClick={() => submitDecision("approve")}
           >

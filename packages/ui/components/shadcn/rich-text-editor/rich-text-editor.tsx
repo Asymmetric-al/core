@@ -76,7 +76,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       editorProps: {
         attributes: {
           class: cn(
-            "tiptap prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-[150px] p-4",
+            "tiptap prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-37.5 p-4",
             proseInvert && "dark:prose-invert",
             editorClassName,
           ),

@@ -104,7 +104,7 @@ export default function CrmRelationshipsPageClient() {
           </Link>
           <Button
             variant="outline"
-            className="gap-2"
+            className=""
             onClick={() => void onRefresh()}
           >
             <RefreshCcw className="size-4" />

@@ -44,9 +44,7 @@ export function ProgressCell<TData extends RowData>({
   }, [percentage, variant]);
 
   return (
-    <div
-      className={cn("flex items-center gap-2 w-full min-w-[80px]", className)}
-    >
+    <div className={cn("flex items-center gap-2 w-full min-w-20", className)}>
       <Progress
         value={percentage}
         className={cn(

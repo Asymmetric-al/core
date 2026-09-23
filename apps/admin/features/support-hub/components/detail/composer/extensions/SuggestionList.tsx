@@ -77,7 +77,7 @@ export const SuggestionList = React.forwardRef<
     <div
       role="listbox"
       className={cn(
-        "z-50 min-w-[220px] max-w-sm overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-lg",
+        "z-50 min-w-55 max-w-sm overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-lg",
       )}
     >
       {heading ? (

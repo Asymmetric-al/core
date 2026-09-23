@@ -5,12 +5,23 @@
   "description": "Shared ESLint configuration for Asymmetric.al monorepo (flat config exports)",
   "main": "base.mjs",
   "exports": {
+    "./workspace.mjs": "./workspace.mjs",
+    "./design-system.mjs": "./design-system.mjs",
+    "./turbo.json": "./turbo.json",
     "./base.mjs": "./base.mjs",
     "./nextjs.mjs": "./nextjs.mjs",
     "./library.mjs": "./library.mjs",
     "./restricted-imports.mjs": "./restricted-imports.mjs"
   },
   "files": [
+    "patches",
+    "workspace.mjs",
+    "design-system-exceptions.mjs",
+    "health.mjs",
+    "lint.mjs",
+    "suppressions.json",
+    "design-system.mjs",
+    "turbo.json",
     "base.mjs",
     "nextjs.mjs",
     "library.mjs",
@@ -19,7 +30,7 @@
   "peerDependencies": {
     "@typescript-eslint/eslint-plugin": "*",
     "@typescript-eslint/parser": "*",
-    "eslint": "^9.0.0",
+    "eslint": "^9.39.2",
     "eslint-config-next": "*",
     "eslint-plugin-import-x": "*",
     "eslint-plugin-react-hooks": "*",
@@ -53,6 +64,7 @@
     }
   },
   "dependencies": {
+    "@shadcn/lint": "0.2.0",
     "eslint-config-next": "16.3.0-preview.9"
   }
 }

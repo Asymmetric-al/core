@@ -81,7 +81,7 @@ export function getCrmNoteColumns(): ColumnDef<CrmNoteRow>[] {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="State" />
       ),
-      cell: ({ row }) => (
+      cell: () => (
         <Badge
           variant="outline"
           className="h-5 rounded-md text-[10px] font-semibold uppercase tracking-wide shadow-none"

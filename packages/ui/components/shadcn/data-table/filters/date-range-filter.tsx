@@ -243,7 +243,7 @@ export function DateRangeFilter({
           <Button
             variant="outline"
             className={cn(
-              "h-8 w-[240px] justify-start px-2 text-left text-sm font-normal",
+              "h-8 w-60 justify-start px-2 text-left text-sm font-normal",
               !displayValue && "text-muted-foreground",
               className,
             )}
@@ -255,7 +255,7 @@ export function DateRangeFilter({
       />
       <PopoverContent className="w-auto p-0" align={align}>
         <div className="flex">
-          <div className="border-r p-2 w-[140px]">
+          <div className="border-r p-2 w-35">
             <div className="text-xs font-medium text-muted-foreground mb-2 px-2">
               Quick select
             </div>
@@ -353,7 +353,7 @@ export function QuickDateFilter({
         handleChange(presetId);
       }}
     >
-      <SelectTrigger className={cn("h-8 w-[160px] text-sm", className)}>
+      <SelectTrigger className={cn("h-8 w-40 text-sm", className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

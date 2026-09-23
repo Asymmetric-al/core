@@ -431,7 +431,7 @@ function PDFStudioHeaderSection({
         <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground min-w-0">
           <span className="shrink-0">Templates</span>
           <ChevronRight className="size-3 shrink-0" />
-          <span className="font-medium text-foreground truncate max-w-[180px]">
+          <span className="font-medium text-foreground truncate max-w-45">
             {metadata.name}
           </span>
           {hasUnsavedChanges && (
@@ -555,7 +555,7 @@ function PDFStudioHeaderSection({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5"
+                      className=""
                       disabled={!isEditorReady || isExporting}
                     >
                       {isExporting ? (
@@ -598,7 +598,7 @@ function PDFStudioHeaderSection({
           size="sm"
           onClick={onSaveClick}
           disabled={!isEditorReady || isSaving}
-          className="h-8 px-3 md:px-4 gap-1.5"
+          className="md:px-4"
         >
           {isSaving ? (
             <>
@@ -709,7 +709,7 @@ function PDFSaveDialogSection({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-130">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-violet-500/10">
@@ -890,7 +890,7 @@ function PDFExportDialogSection({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[680px]">
+      <DialogContent className="sm:max-w-170">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-violet-500/10">
@@ -929,7 +929,7 @@ function PDFExportDialogSection({
                 {copiedHtml ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <pre className="bg-zinc-950 text-zinc-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
+            <pre className="bg-zinc-950 text-zinc-100 p-4 rounded-xl text-xs overflow-auto max-h-80 font-mono leading-relaxed">
               {exportedHtml.slice(0, 3000)}
               {exportedHtml.length > 3000 && (
                 <span className="text-zinc-500">
@@ -1027,7 +1027,7 @@ function PDFTemplatePickerDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-140">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="rounded-lg bg-violet-500/10 p-2">
@@ -1039,7 +1039,7 @@ function PDFTemplatePickerDialog({
             Reopen a tenant PDF template from Mission Control storage.
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[420px] overflow-y-auto py-2">
+        <div className="max-h-105 overflow-y-auto py-2">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

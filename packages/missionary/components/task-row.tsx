@@ -257,7 +257,7 @@ export function TaskRow({
                 </Badge>
               )}
               {task.is_auto_generated && !isCompleted && (
-                <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-[9px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
+                <Badge className="bg-violet-50 text-violet-700 border-violet-200 text-[9px] font-black uppercase tracking-widest px-1.5 h-4">
                   <Sparkles className="size-2.5" />
                   Auto
                 </Badge>
@@ -333,7 +333,7 @@ export function TaskRow({
         />
         <DropdownMenuContent
           align="end"
-          className="rounded-xl border-zinc-200 p-1.5 shadow-xl min-w-[160px]"
+          className="rounded-xl border-zinc-200 p-1.5 shadow-xl min-w-40"
         >
           <DropdownMenuItem
             onClick={onEdit}

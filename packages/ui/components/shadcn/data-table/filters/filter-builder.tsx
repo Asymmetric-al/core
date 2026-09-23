@@ -105,10 +105,7 @@ export function FilterBuilder({
           />
         }
       />
-      <PopoverContent
-        className="w-auto min-w-[400px] max-w-[600px] p-4"
-        align={align}
-      >
+      <PopoverContent className="w-auto min-w-100 max-w-150 p-4" align={align}>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Filters</h4>

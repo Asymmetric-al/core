@@ -36,8 +36,8 @@ export default function CareProfilePage() {
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-64 w-full rounded-xl" />
         <div className="grid gap-6 md:grid-cols-3">
-          <Skeleton className="md:col-span-2 h-[400px] w-full rounded-xl" />
-          <Skeleton className="h-[400px] w-full rounded-xl" />
+          <Skeleton className="md:col-span-2 h-100 w-full rounded-xl" />
+          <Skeleton className="h-100 w-full rounded-xl" />
         </div>
       </div>
     );
@@ -70,7 +70,7 @@ export default function CareProfilePage() {
           <Button
             variant="outline"
             size="sm"
-            className="h-8 font-semibold border-zinc-200"
+            className="font-semibold border-zinc-200"
           >
             <Edit className="mr-2 size-3.5 text-zinc-400" /> Edit Profile
           </Button>

@@ -110,7 +110,7 @@ export function FilterRow({
           handleFieldChange(newFieldId);
         }}
       >
-        <SelectTrigger className="h-8 w-[160px] text-sm">
+        <SelectTrigger className="h-8 w-40 text-sm">
           <SelectValue placeholder="Select field" />
         </SelectTrigger>
         <SelectContent>
@@ -129,7 +129,7 @@ export function FilterRow({
           handleOperatorChange(newOperator);
         }}
       >
-        <SelectTrigger className="h-8 w-[160px] text-sm">
+        <SelectTrigger className="h-8 w-40 text-sm">
           <SelectValue placeholder="Select operator" />
         </SelectTrigger>
         <SelectContent>

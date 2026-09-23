@@ -1,13 +1,23 @@
 "use client";
 
 import { tiles } from "@asym/config/tiles";
-import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@asym/ui/components/shadcn/alert";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
@@ -26,16 +36,27 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -204,16 +225,16 @@ const TileIcon = React.memo(function TileIcon({
   return <DynamicIcon name={iconName} className="size-4" />;
 });
 
-function getPermissionColor(level: string) {
+function getPermissionVariant(
+  level: string,
+): "default" | "secondary" | "outline" {
   switch (level) {
     case "Admin":
-      return "text-rose-600 bg-rose-50 border-rose-100";
+      return "default";
     case "Manage":
-      return "text-amber-600 bg-amber-50 border-amber-100";
-    case "View":
-      return "text-blue-600 bg-blue-50 border-blue-100";
+      return "secondary";
     default:
-      return "text-zinc-400 bg-zinc-50 border-zinc-100";
+      return "outline";
   }
 }
 
@@ -223,13 +244,13 @@ export function TeamsPageActions() {
     <Dialog>
       <DialogTrigger
         render={
-          <Button className="h-11 rounded-xl bg-zinc-900 font-semibold uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
-            <Plus className="mr-2 size-4" />
+          <Button variant="maia" size="lg">
+            <Plus data-icon="inline-start" />
             Create Team
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent scrollable className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
           <DialogDescription>
@@ -237,16 +258,16 @@ export function TeamsPageActions() {
             creation.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Team Name</Label>
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="name">Team Name</FieldLabel>
             <Input id="name" placeholder="e.g. Marketing, Crisis Response" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="description">Description</FieldLabel>
             <Input id="description" placeholder="Brief purpose of this team" />
-          </div>
-        </div>
+          </Field>
+        </FieldGroup>
         <DialogFooter>
           <Button type="submit">Create Team</Button>
         </DialogFooter>
@@ -257,26 +278,17 @@ export function TeamsPageActions() {
 
 function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
   return (
-    <TabsContent value="permissions" className="flex-1 overflow-y-auto p-6 m-0">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-100 p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg text-white">
-              <Info className="size-4" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-blue-900">
-                Granular Access Control
-              </span>
-              <span className="text-xs text-blue-700 font-medium leading-relaxed">
-                Changes here apply to all members assigned to this team.
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-400">
+    <TabsContent value="permissions" className="min-h-0 overflow-y-auto p-4">
+      <div className="flex flex-col gap-6">
+        <Alert>
+          <Info />
+          <AlertTitle>Granular Access Control</AlertTitle>
+          <AlertDescription>
+            Changes here apply to all members assigned to this team.
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Module Access
           </h3>
           <div className="grid gap-2">
@@ -285,56 +297,49 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
               return (
                 <div
                   key={tile.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 hover:border-zinc-200 bg-white shadow-sm transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md group"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 border border-zinc-100 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
                       <TileIcon iconName={tile.icon} />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-zinc-900">
+                    <div className="flex min-w-0 flex-col">
+                      <span className="break-words font-semibold text-foreground">
                         {tile.title}
                       </span>
-                      <span className="text-[11px] text-zinc-500 font-medium">
+                      <span className="text-xs text-muted-foreground">
                         /{tile.id}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Select defaultValue={currentLevel}>
-                      <SelectTrigger className="w-[110px] h-8 text-[11px] font-semibold border-zinc-200">
+                    <Select
+                      defaultValue={currentLevel}
+                      items={[
+                        { value: "None", label: "None" },
+                        { value: "View", label: "View" },
+                        { value: "Manage", label: "Manage" },
+                        { value: "Admin", label: "Admin" },
+                      ]}
+                    >
+                      <SelectTrigger
+                        size="sm"
+                        aria-label={`${tile.title} access level`}
+                      >
                         <SelectValue placeholder="Access Level" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem
-                          value="None"
-                          className="text-[11px] font-semibold"
-                        >
-                          None
-                        </SelectItem>
-                        <SelectItem
-                          value="View"
-                          className="text-[11px] font-semibold"
-                        >
-                          View
-                        </SelectItem>
-                        <SelectItem
-                          value="Manage"
-                          className="text-[11px] font-semibold"
-                        >
-                          Manage
-                        </SelectItem>
-                        <SelectItem
-                          value="Admin"
-                          className="text-[11px] font-semibold"
-                        >
-                          Admin
-                        </SelectItem>
+                        <SelectGroup>
+                          <SelectItem value="None">None</SelectItem>
+                          <SelectItem value="View">View</SelectItem>
+                          <SelectItem value="Manage">Manage</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
-                    <div className="flex items-center justify-center size-8 rounded-lg bg-zinc-50 border border-zinc-100 text-zinc-400">
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-muted text-foreground">
                       {currentLevel === "Admin" ? (
-                        <ShieldCheck className="size-4 text-emerald-600" />
+                        <ShieldCheck className="size-4" />
                       ) : (
                         <Lock className="size-4" />
                       )}
@@ -358,18 +363,15 @@ function TeamMembersTab({
   members: Member[];
 }) {
   return (
-    <TabsContent value="members" className="flex-1 overflow-y-auto p-6 m-0">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-400">
+    <TabsContent value="members" className="min-h-0 overflow-y-auto p-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Team Members
           </h3>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 rounded-lg border-zinc-200 text-xs font-semibold"
-          >
-            <UserPlus className="size-3.5 mr-1" /> Add Member
+          <Button variant="outline" size="sm">
+            <UserPlus data-icon="inline-start" />
+            Add Member
           </Button>
         </div>
         <div className="grid gap-3">
@@ -378,37 +380,29 @@ function TeamMembersTab({
             .map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-3 rounded-xl border border-zinc-100 bg-white shadow-sm"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3"
               >
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-9 border-2 border-white shadow-sm">
-                    <AvatarFallback className="bg-zinc-100 text-zinc-600 font-semibold text-xs">
-                      {member.name.charAt(0)}
-                    </AvatarFallback>
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar>
+                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-zinc-900 text-sm">
+                  <div className="flex min-w-0 flex-col">
+                    <span className="break-words text-sm font-semibold text-foreground">
                       {member.name}
                     </span>
-                    <span className="text-[11px] text-zinc-500 font-medium">
+                    <span className="break-all text-xs text-muted-foreground">
                       {member.email}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge
-                    variant="secondary"
-                    className="text-[10px] font-semibold px-1.5 py-0 bg-zinc-100 text-zinc-600 border-transparent shadow-none"
-                  >
-                    {member.role}
-                  </Badge>
+                  <Badge variant="secondary">{member.role}</Badge>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     aria-label={`Open actions for ${member.name}`}
-                    className="size-7 text-zinc-500 hover:text-zinc-900"
                   >
-                    <MoreHorizontal className="size-3.5" />
+                    <MoreHorizontal />
                   </Button>
                 </div>
               </div>
@@ -420,44 +414,36 @@ function TeamMembersTab({
 }
 
 function TeamSettingsTab({ selectedTeam }: { selectedTeam: Team }) {
+  const id = React.useId();
   return (
-    <TabsContent value="settings" className="flex-1 overflow-y-auto p-6 m-0">
-      <div className="space-y-6">
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label className="text-xs font-semibold text-zinc-500 uppercase">
-              Team Branding Name
-            </Label>
-            <Input
-              defaultValue={selectedTeam.name}
-              className="h-10 font-semibold border-zinc-200"
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label className="text-xs font-semibold text-zinc-500 uppercase">
+    <TabsContent value="settings" className="min-h-0 overflow-y-auto p-4">
+      <div className="flex flex-col gap-6">
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor={`${id}-name`}>Team Branding Name</FieldLabel>
+            <Input id={`${id}-name`} defaultValue={selectedTeam.name} />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${id}-description`}>
               Team Description
-            </Label>
+            </FieldLabel>
             <Input
+              id={`${id}-description`}
               defaultValue={selectedTeam.description}
-              className="h-10 font-medium border-zinc-200"
             />
-          </div>
-        </div>
-        <Separator className="border-zinc-100" />
-        <div className="bg-rose-50/50 border border-rose-100 p-4 rounded-xl space-y-3">
-          <div className="flex items-center gap-2 text-rose-800">
-            <Trash2 className="size-4" />
-            <span className="text-sm font-semibold">Danger Zone</span>
-          </div>
-          <p className="text-[11px] text-rose-700 font-medium">
-            Deleting this team will immediately revoke access for all members
-            assigned to it. This action cannot be undone.
-          </p>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="h-8 text-[11px] font-semibold bg-rose-600 hover:bg-rose-700 shadow-sm"
-          >
+          </Field>
+        </FieldGroup>
+        <Separator />
+        <div className="flex flex-col items-start gap-3">
+          <Alert variant="destructive">
+            <Trash2 />
+            <AlertTitle>Danger Zone</AlertTitle>
+            <AlertDescription>
+              Deleting this team will immediately revoke access for all members
+              assigned to it. This action cannot be undone.
+            </AlertDescription>
+          </Alert>
+          <Button variant="destructive" size="sm">
             Permanently Delete Team
           </Button>
         </div>
@@ -476,85 +462,66 @@ function TeamManagementSheet({
   onClose: () => void;
 }) {
   return (
-    <SheetContent className="sm:max-w-xl p-0">
+    <SheetContent className="w-full sm:max-w-xl">
       {selectedTeam && (
-        <div className="flex flex-col h-full">
-          <SheetHeader className="p-6 pb-2 bg-zinc-50/80 border-b border-zinc-100">
-            <div className="flex items-center gap-4">
-              <div
-                className={`flex size-12 shrink-0 items-center justify-center rounded-2xl font-semibold text-lg shadow-md ${selectedTeam.color}`}
-              >
-                {selectedTeam.avatar}
-              </div>
-              <div>
-                <SheetTitle className="text-2xl font-semibold text-zinc-900">
-                  {selectedTeam.name}
-                </SheetTitle>
-                <SheetDescription className="text-zinc-500 font-medium">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <SheetHeader>
+            <div className="flex min-w-0 items-center gap-3 pr-6">
+              <Avatar size="lg">
+                <AvatarFallback>{selectedTeam.avatar}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 break-words">
+                <SheetTitle className="text-xl">{selectedTeam.name}</SheetTitle>
+                <SheetDescription>
                   Manage members and granular access for this team.
                 </SheetDescription>
               </div>
             </div>
           </SheetHeader>
-
-          <Tabs
-            defaultValue="permissions"
-            className="flex-1 overflow-hidden flex flex-col"
-          >
-            <div className="px-6 bg-zinc-50/80 border-b border-zinc-100">
-              <TabsList className="bg-transparent h-12 gap-6 rounded-none p-0 border-b-0">
-                <TabsTrigger
-                  value="permissions"
-                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:bg-transparent data-active:shadow-none font-semibold text-zinc-500 data-active:text-zinc-900 px-0 h-12"
-                >
-                  <ShieldCheck className="size-4 mr-2" /> Permissions
+          <Tabs defaultValue="permissions" className="min-h-0 flex-1">
+            <div
+              className="overflow-x-auto scroll-px-4 px-4 pb-2"
+              onFocus={(event) => {
+                event.target.scrollIntoView({
+                  block: "nearest",
+                  inline: "nearest",
+                });
+              }}
+            >
+              <TabsList variant="line">
+                <TabsTrigger value="permissions">
+                  <ShieldCheck />
+                  Permissions
                 </TabsTrigger>
-                <TabsTrigger
-                  value="members"
-                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:bg-transparent data-active:shadow-none font-semibold text-zinc-500 data-active:text-zinc-900 px-0 h-12"
-                >
-                  <Users className="size-4 mr-2" /> Members (
-                  {selectedTeam.membersCount})
+                <TabsTrigger value="members">
+                  <Users />
+                  Members ({selectedTeam.membersCount})
                 </TabsTrigger>
-                <TabsTrigger
-                  value="settings"
-                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:bg-transparent data-active:shadow-none font-semibold text-zinc-500 data-active:text-zinc-900 px-0 h-12"
-                >
-                  <Settings2 className="size-4 mr-2" /> Settings
+                <TabsTrigger value="settings">
+                  <Settings2 />
+                  Settings
                 </TabsTrigger>
               </TabsList>
             </div>
-
             <TeamPermissionsTab selectedTeam={selectedTeam} />
             <TeamMembersTab selectedTeam={selectedTeam} members={members} />
             <TeamSettingsTab selectedTeam={selectedTeam} />
           </Tabs>
-
-          <SheetFooter className="p-6 pt-4 bg-zinc-50/80 border-t border-zinc-100 mt-auto">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 text-zinc-500">
+          <SheetFooter>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Activity className="size-3.5" />
-                <span className="text-xs font-medium">
-                  Last edit: 2 mins ago
-                </span>
+                <span className="text-xs">Last edit: 2 mins ago</span>
               </div>
               <div className="flex gap-2">
                 <SheetClose
                   render={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 px-4 text-xs font-semibold border-zinc-200 shadow-none"
-                    >
+                    <Button variant="outline" size="sm">
                       Cancel
                     </Button>
                   }
                 />
-                <Button
-                  size="sm"
-                  className="h-9 px-6 text-xs font-semibold bg-zinc-900 text-white shadow-lg shadow-zinc-200"
-                  onClick={onClose}
-                >
+                <Button size="sm" onClick={onClose}>
                   Save Changes
                 </Button>
               </div>
@@ -593,17 +560,15 @@ export function TeamsTableCard({
           <DataTableColumnHeader column={column} title="Team Name" />
         ),
         cell: ({ row }) => (
-          <div className="flex items-center gap-3 py-1">
-            <div
-              className={`flex size-10 shrink-0 items-center justify-center rounded-xl font-semibold text-xs shadow-sm ${row.original.color}`}
-            >
-              {row.original.avatar}
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-zinc-900">
+          <div className="flex min-w-0 items-center gap-3 py-1">
+            <Avatar size="lg">
+              <AvatarFallback>{row.original.avatar}</AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-col">
+              <span className="break-words font-semibold text-foreground">
                 {row.original.name}
               </span>
-              <span className="text-xs text-zinc-500 line-clamp-1">
+              <span className="line-clamp-1 text-xs text-muted-foreground">
                 {row.original.description}
               </span>
             </div>
@@ -622,17 +587,13 @@ export function TeamsTableCard({
               .map(([key, level]) => (
                 <Badge
                   key={key}
-                  variant="outline"
-                  className={`text-[10px] px-1.5 py-0 capitalize border-zinc-200 font-medium ${getPermissionColor(level as string)}`}
+                  variant={getPermissionVariant(level as string)}
                 >
                   {key}: {level}
                 </Badge>
               ))}
             {Object.keys(row.original.permissions).length > 3 && (
-              <Badge
-                variant="outline"
-                className="text-[10px] px-1.5 py-0 border-zinc-200 text-zinc-400"
-              >
+              <Badge variant="outline">
                 +{Object.keys(row.original.permissions).length - 3} more
               </Badge>
             )}
@@ -646,17 +607,14 @@ export function TeamsTableCard({
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <div className="flex -gap-x-2 mr-2">
+            <AvatarGroup>
               {["A", "B", "C"].map((initial) => (
-                <div
-                  key={initial}
-                  className="size-6 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-semibold text-zinc-500 shadow-sm"
-                >
-                  {initial}
-                </div>
+                <Avatar key={initial} size="sm">
+                  <AvatarFallback>{initial}</AvatarFallback>
+                </Avatar>
               ))}
-            </div>
-            <span className="text-xs font-semibold text-zinc-600">
+            </AvatarGroup>
+            <span className="text-xs font-semibold text-foreground">
               {row.original.membersCount}
             </span>
           </div>
@@ -664,149 +622,151 @@ export function TeamsTableCard({
       },
       {
         id: "actions",
+        header: () => <span className="sr-only">Team actions</span>,
         cell: ({ row }) => (
-          <div className="flex justify-end pr-2">
-            <Sheet onOpenChange={(open) => !open && onSelectTeam(null)}>
-              <SheetTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 hover:bg-zinc-200/50 font-semibold text-zinc-600 gap-1"
-                    onClick={() => onSelectTeam(row.original)}
-                  >
-                    Manage <ChevronRight className="size-4" />
-                  </Button>
-                }
-              />
-              <TeamManagementSheet
-                selectedTeam={selectedTeam}
-                members={members}
-                onClose={() => onSelectTeam(null)}
-              />
-            </Sheet>
+          <div className="flex justify-end">
+            <SheetTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSelectTeam(row.original)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.stopPropagation();
+                    }
+                  }}
+                >
+                  Manage
+                  <ChevronRight data-icon="inline-end" />
+                </Button>
+              }
+            />
           </div>
         ),
       },
     ],
-    [members, onSelectTeam, selectedTeam],
+    [onSelectTeam],
   );
-
   return (
-    <Card className="border-zinc-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between gap-y-0 bg-zinc-50/50 border-b border-zinc-100 py-4">
-        <div>
-          <CardTitle className="text-lg font-semibold">
-            Organization Teams
-          </CardTitle>
-          <CardDescription>
-            Managed permission groups for Mission Control.
-          </CardDescription>
-        </div>
-        <div className="relative w-64">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-zinc-500" />
-          <Input
-            placeholder="Search teams..."
-            className="pl-9 bg-white border-zinc-200 h-9"
-            value={searchTerm}
-            onChange={(event) => onSearchTermChange(event.target.value)}
-          />
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <DataTableWrapper
-          columns={columns}
-          data={teams}
-          isLoading={isLoading}
-          config={{
-            enableRowSelection: false,
-            enableColumnVisibility: false,
-            enablePagination: true,
-            enableFilters: false,
-            enableSorting: true,
-          }}
-          emptyState={{
-            title: "No teams found",
-            description: "Adjust the current search to find a team.",
-          }}
-        />
-      </CardContent>
-    </Card>
+    <Sheet
+      open={selectedTeam !== null}
+      onOpenChange={(open) => !open && onSelectTeam(null)}
+    >
+      <Card className="min-w-0">
+        <CardHeader>
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <CardTitle>Organization Teams</CardTitle>
+              <CardDescription>
+                Managed permission groups for Mission Control.
+              </CardDescription>
+            </div>
+            <div className="w-full sm:w-64">
+              <InputGroup>
+                <InputGroupAddon>
+                  <Search />
+                </InputGroupAddon>
+                <InputGroupInput
+                  aria-label="Search teams"
+                  placeholder="Search teams..."
+                  value={searchTerm}
+                  onChange={(event) => onSearchTermChange(event.target.value)}
+                />
+              </InputGroup>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="min-w-0">
+          <div className="max-w-full overflow-x-auto">
+            <DataTableWrapper
+              columns={columns}
+              data={teams}
+              isLoading={isLoading}
+              config={{
+                enableRowSelection: false,
+                enableColumnVisibility: false,
+                enablePagination: true,
+                enableFilters: false,
+                enableSorting: true,
+              }}
+              emptyState={{
+                title: "No teams found",
+                description: "Adjust the current search to find a team.",
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      <TeamManagementSheet
+        selectedTeam={selectedTeam}
+        members={members}
+        onClose={() => onSelectTeam(null)}
+      />
+    </Sheet>
   );
 }
 
 export function SystemUsersCard({ members }: { members: Member[] }) {
   return (
-    <Card className="border-zinc-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between gap-y-0 border-b border-zinc-50 py-4">
-        <div>
-          <CardTitle className="text-lg font-semibold">System Users</CardTitle>
-          <CardDescription>
-            Manage individual user access and roles across teams.
-          </CardDescription>
+    <Card className="min-w-0">
+      <CardHeader>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <CardTitle>System Users</CardTitle>
+            <CardDescription>
+              Manage individual user access and roles across teams.
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm">
+            <UserPlus data-icon="inline-start" />
+            Invite User
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white border-zinc-200 h-9 font-semibold text-zinc-700"
-        >
-          <UserPlus className="mr-2 size-4" /> Invite User
-        </Button>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="divide-y divide-zinc-50">
+      <CardContent className="min-w-0">
+        <div className="divide-y divide-border">
           {members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 transition-colors hover:bg-zinc-50/50"
+              className="flex min-w-0 flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex items-center gap-3">
-                <Avatar className="size-10 border-2 border-white shadow-sm">
-                  <AvatarFallback className="bg-zinc-200 text-zinc-600 font-semibold">
-                    {member.name.charAt(0)}
-                  </AvatarFallback>
+              <div className="flex min-w-0 items-center gap-3">
+                <Avatar size="lg">
+                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-zinc-900">
+                <div className="flex min-w-0 flex-col">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="break-words font-semibold text-foreground">
                       {member.name}
                     </span>
-                    {member.role === "Owner" && (
-                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[10px] h-4 font-semibold">
-                        OWNER
-                      </Badge>
-                    )}
+                    {member.role === "Owner" && <Badge>OWNER</Badge>}
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
-                    <Mail className="size-3" />
-                    {member.email}
+                  <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                    <Mail className="size-3 shrink-0" />
+                    <span className="break-all">{member.email}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
-                <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="hidden min-w-0 flex-col items-end sm:flex">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground">
                     Team
                   </span>
-                  <span className="text-xs font-semibold text-zinc-700">
+                  <span className="break-words text-xs font-semibold text-foreground">
                     {member.team}
                   </span>
                 </div>
-                <div className="hidden sm:flex flex-col items-end mr-4">
-                  <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">
+                <div className="hidden flex-col items-end sm:flex">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground">
                     Role
                   </span>
-                  <span className="text-xs font-semibold text-zinc-700">
+                  <span className="text-xs font-semibold text-foreground">
                     {member.role}
                   </span>
                 </div>
                 <Badge
                   variant={member.status === "Active" ? "secondary" : "outline"}
-                  className={
-                    member.status === "Active"
-                      ? "bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-100 text-[10px] font-semibold"
-                      : "text-zinc-400 border-zinc-200 text-[10px] font-semibold"
-                  }
                 >
                   {member.status}
                 </Badge>
@@ -815,50 +775,50 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                     render={
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="size-8 text-zinc-400 hover:text-zinc-900"
+                        size="icon-sm"
+                        aria-label={`Open user options for ${member.name}`}
                       >
-                        <MoreHorizontal className="size-4" />
+                        <MoreHorizontal />
                       </Button>
                     }
                   />
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel className="font-semibold text-xs">
-                      User Options
-                    </DropdownMenuLabel>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>User Options</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <UserCog />
+                        Change Role
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Shield />
+                        Assign Team
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Settings2 />
+                        User Settings
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <UserCog className="mr-2 size-4 text-zinc-400" /> Change
-                      Role
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <Shield className="mr-2 size-4 text-zinc-400" /> Assign
-                      Team
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <Settings2 className="mr-2 size-4 text-zinc-400" /> User
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer font-semibold text-xs py-2">
-                      <Trash2 className="mr-2 size-4" /> Remove Access
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem variant="destructive">
+                        <Trash2 />
+                        Remove Access
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
           ))}
         </div>
-        <div className="p-4 border-t border-zinc-50 flex justify-center bg-zinc-50/30">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-zinc-500 hover:text-zinc-900 font-semibold text-xs"
-          >
-            View All 124 System Users <ExternalLink className="ml-2 size-3.5" />
-          </Button>
-        </div>
       </CardContent>
+      <CardFooter className="justify-center">
+        <Button variant="ghost" size="sm">
+          View All 124 System Users
+          <ExternalLink data-icon="inline-end" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

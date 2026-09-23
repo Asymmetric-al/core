@@ -44,7 +44,7 @@ export default function ContentModerationPage() {
             <Button
               variant="outline"
               size="icon"
-              className="size-9 rounded-xl"
+              className="rounded-xl"
               onClick={handleRefresh}
               disabled={isRefreshing}
               aria-label="Refresh moderation queue"
@@ -58,7 +58,7 @@ export default function ContentModerationPage() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 gap-2 rounded-xl border-border text-sm font-medium"
+              className="h-9 gap-2 rounded-xl border-border"
             >
               <Download className="size-4" />
               <span className="hidden sm:inline">Export</span>
@@ -66,7 +66,7 @@ export default function ContentModerationPage() {
           </motion.div>
           <Link href="/mc/feed/org-updates">
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button className="h-9 gap-2 rounded-xl font-semibold">
+              <Button className="rounded-xl font-semibold">
                 <PenSquare className="size-4" />
                 <span className="hidden sm:inline">Org Updates</span>
               </Button>

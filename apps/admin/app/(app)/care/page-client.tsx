@@ -48,8 +48,8 @@ export default function MemberCareDashboardPage() {
           )}
         </div>
         <div className="grid-12">
-          <Skeleton className="lg:col-span-8 h-[600px] w-full rounded-2xl" />
-          <Skeleton className="lg:col-span-4 h-[600px] w-full rounded-2xl" />
+          <Skeleton className="lg:col-span-8 h-150 w-full rounded-2xl" />
+          <Skeleton className="lg:col-span-4 h-150 w-full rounded-2xl" />
         </div>
       </div>
     );
@@ -64,13 +64,13 @@ export default function MemberCareDashboardPage() {
         <>
           <Button
             variant="outline"
-            className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
+            className="h-10 rounded-xl border-zinc-200 font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
             <BookOpen className="mr-2 size-4 text-muted-foreground" />
             <span className="hide-mobile">Knowledge Base</span>
             <span className="show-mobile-only">Docs</span>
           </Button>
-          <Button className="h-10 rounded-xl bg-zinc-900 px-4 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800">
+          <Button className="h-10 rounded-xl bg-zinc-900 font-semibold text-white shadow-sm hover:bg-zinc-800">
             <Heart className="mr-2 size-4 fill-current" />
             New Care Record
           </Button>

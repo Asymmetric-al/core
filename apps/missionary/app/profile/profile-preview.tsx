@@ -61,7 +61,7 @@ export function MobileProfilePreview({
           height: MOBILE_PREVIEW_HEIGHT,
         }}
       >
-        <div className="absolute top-0 left-0 right-0 h-[120px]">
+        <div className="absolute top-0 left-0 right-0 h-30">
           <motion.img
             key={profile.coverUrl || "placeholder"}
             src={profile.coverUrl || PLACEHOLDER_COVER}
@@ -74,9 +74,9 @@ export function MobileProfilePreview({
           <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
         </div>
 
-        <div className="absolute top-[72px] left-0 right-0 flex justify-center">
+        <div className="absolute top-18 left-0 right-0 flex justify-center">
           <motion.div
-            className="h-[72px] w-[72px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
+            className="h-18 w-18 rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
             layout
             transition={springTransition}
           >
@@ -89,7 +89,7 @@ export function MobileProfilePreview({
           </motion.div>
         </div>
 
-        <div className="absolute top-[152px] left-0 right-0 bottom-0 px-5 text-center flex flex-col overflow-hidden">
+        <div className="absolute top-38 left-0 right-0 bottom-0 px-5 text-center flex flex-col overflow-hidden">
           <div className="flex-shrink-0">
             <div className="flex items-center justify-center gap-1.5">
               <h2 className="text-lg font-semibold text-zinc-900 tracking-tight">
@@ -237,7 +237,7 @@ export function DesktopProfilePreview({
           height: DESKTOP_PREVIEW_HEIGHT,
         }}
       >
-        <div className="h-[24px] bg-zinc-100 border-b border-zinc-200 flex items-center px-3 gap-1.5">
+        <div className="h-6 bg-zinc-100 border-b border-zinc-200 flex items-center px-3 gap-1.5">
           <div className="size-2 rounded-full bg-zinc-300" />
           <div className="size-2 rounded-full bg-zinc-300" />
           <div className="size-2 rounded-full bg-zinc-300" />
@@ -247,7 +247,7 @@ export function DesktopProfilePreview({
           className="relative"
           style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}
         >
-          <div className="h-[72px]">
+          <div className="h-18">
             <Image
               src={profile.coverUrl || PLACEHOLDER_COVER}
               alt="Cover"
@@ -256,7 +256,7 @@ export function DesktopProfilePreview({
               unoptimized
               className="size-full object-cover"
             />
-            <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-18 bg-gradient-to-t from-white/40 via-transparent to-transparent" />
           </div>
 
           <div className="px-5 pb-4">

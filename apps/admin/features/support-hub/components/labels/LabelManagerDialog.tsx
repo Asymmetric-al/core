@@ -164,7 +164,7 @@ export function LabelManagerDialog({
             variant="outline"
             size="sm"
             onClick={() => setEditing("new")}
-            className="h-8 gap-1.5 rounded-lg px-3 text-xs"
+            className="rounded-lg text-xs"
           >
             <Plus className="size-3.5" />
             New label
@@ -173,7 +173,7 @@ export function LabelManagerDialog({
             type="button"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="h-8 rounded-lg px-3 text-xs"
+            className="rounded-lg text-xs"
           >
             Done
           </Button>

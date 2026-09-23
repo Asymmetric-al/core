@@ -123,10 +123,7 @@ export function DonorTasks({
           }}
           onSuccess={handleTaskSuccess}
           trigger={
-            <Button
-              size="sm"
-              className="h-8 rounded-xl px-3 text-xs hover-scale-subtle"
-            >
+            <Button size="sm" className="rounded-xl text-xs hover-scale-subtle">
               <Plus className="mr-1.5 size-3.5" /> Add Task
             </Button>
           }
@@ -142,7 +139,7 @@ export function DonorTasks({
             <ListTodo className="size-6 text-zinc-300" />
           </div>
           <p className="text-sm font-semibold text-zinc-900">No tasks yet</p>
-          <p className="mt-1 max-w-[240px] text-xs text-zinc-400">
+          <p className="mt-1 max-w-60 text-xs text-zinc-400">
             Create a task to track follow-ups with this partner.
           </p>
         </motion.div>

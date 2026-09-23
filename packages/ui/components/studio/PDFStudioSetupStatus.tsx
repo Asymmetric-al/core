@@ -97,7 +97,7 @@ export function PDFStudioSetupStatus({
             </button>
           }
         />
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-125">
           <DialogHeader>
             <DialogTitle>PDF Studio Configuration</DialogTitle>
             <DialogDescription>{status.message}</DialogDescription>
@@ -131,7 +131,7 @@ export function PDFStudioSetupStatus({
                 </Button>
               }
             />
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-125">
               <DialogHeader>
                 <DialogTitle>PDF Studio Configuration</DialogTitle>
                 <DialogDescription>
@@ -215,7 +215,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
               <Badge
                 key={feature}
                 variant="outline"
-                className="bg-muted text-muted-foreground border-border text-[10px]"
+                className="bg-muted text-muted-foreground text-[10px]"
               >
                 <Zap className="size-3 mr-1 opacity-50" />
                 {feature}

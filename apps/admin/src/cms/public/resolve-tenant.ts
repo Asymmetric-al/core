@@ -1,6 +1,6 @@
-import { getPayloadClient } from "../get-payload";
-
 import { resolveDeploymentEnvironment } from "@asym/env/target-env";
+
+import { getPayloadClient } from "../get-payload";
 
 import type { PublicRequestContext } from "@asym/api/cms/public";
 import type { NextRequest } from "next/server";

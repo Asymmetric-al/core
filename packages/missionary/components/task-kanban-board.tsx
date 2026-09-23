@@ -219,7 +219,7 @@ export function TaskKanbanBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-6 overflow-x-auto pb-6 h-[calc(100vh-320px)] min-h-[500px] items-start scrollbar-hide">
+      <div className="flex gap-6 overflow-x-auto pb-6 h-[calc(100vh-320px)] min-h-125 items-start">
         {COLUMNS.map((column) => (
           <KanbanColumn
             key={column.id}
@@ -248,7 +248,7 @@ export function TaskKanbanBoard({
         }}
       >
         {activeTask ? (
-          <div className="w-[320px] rotate-2 scale-105 transition-transform">
+          <div className="w-80 rotate-2 scale-105 transition-transform">
             <KanbanCard
               task={activeTask}
               isOverlay
@@ -287,7 +287,7 @@ function KanbanColumn({
   onCreateTask,
 }: KanbanColumnProps) {
   return (
-    <div className="flex flex-col w-[320px] shrink-0 h-full">
+    <div className="flex flex-col w-80 shrink-0 h-full">
       <div className="flex items-center justify-between mb-4 px-2">
         <div className="flex items-center gap-2">
           <div className={cn("p-2 rounded-xl", color)}>
@@ -315,7 +315,7 @@ function KanbanColumn({
         items={tasks.map((t) => t.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-[150px] rounded-3xl group bg-zinc-100/30 p-2 border border-transparent hover:border-zinc-200/50 transition-colors">
+        <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-37.5 rounded-3xl group bg-zinc-100/30 p-2 border border-transparent hover:border-zinc-200/50 transition-colors">
           {tasks.map((task) => (
             <KanbanCard
               key={task.id}
@@ -366,7 +366,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
       <div
         ref={setNodeRef}
         style={style}
-        className="h-[140px] rounded-2xl bg-zinc-100/50 border-2 border-dashed border-zinc-300"
+        className="h-35 rounded-2xl bg-zinc-100/50 border-2 border-dashed border-zinc-300"
       />
     );
   }
@@ -438,7 +438,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
         <div className="flex items-center justify-between pt-2 border-t border-zinc-50">
           <div className="flex items-center gap-2">
             {task.donor && (
-              <div className="flex items-center gap-2 max-w-[140px]">
+              <div className="flex items-center gap-2 max-w-35">
                 <Avatar className="size-5 ring-2 ring-white">
                   <AvatarImage src={task.donor.avatar_url ?? undefined} />
                   <AvatarFallback className="text-[8px] font-semibold uppercase">

@@ -71,7 +71,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
             {activeCount > 0 ? (
               <Badge
                 variant="secondary"
-                className="h-5 min-w-[1.25rem] justify-center rounded-md border-transparent bg-zinc-900 px-1.5 text-[11px] font-semibold tabular-nums text-white"
+                className="h-5 min-w-[1.25rem] rounded-md bg-zinc-900 px-1.5 text-[11px] font-semibold tabular-nums text-white"
               >
                 {activeCount}
               </Badge>
@@ -117,7 +117,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-full justify-center text-xs font-medium"
+                  className="w-full text-xs"
                   onClick={() => onValueChange([])}
                 >
                   Clear filters
@@ -133,7 +133,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                   setOpen(false);
                   setIsManagerOpen(true);
                 }}
-                className="h-8 w-full justify-center gap-1.5 text-xs font-medium text-zinc-600"
+                className="w-full text-xs text-zinc-600"
               >
                 <Settings2 className="size-3.5" />
                 Manage labels

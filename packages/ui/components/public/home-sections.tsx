@@ -16,6 +16,8 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { HomeHeroAnimated } from "./home-hero-animated";
 
+import type { CSSProperties } from "react";
+
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop";
 const MISSION_IMAGE =
@@ -107,7 +109,7 @@ export function HomeMission() {
       className="py-24 md:py-40 bg-white relative overflow-hidden"
     >
       <div
-        className="absolute top-0 right-0 w-[800px] h-[800px] bg-zinc-50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 -z-10"
+        className="absolute top-0 right-0 w-200 h-200 bg-zinc-50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 -z-10"
         aria-hidden="true"
       />
 
@@ -183,7 +185,7 @@ export function HomeMission() {
           </div>
 
           <figure className="relative lg:ml-auto group size-full">
-            <div className="relative z-10 h-[420px] sm:h-[520px] lg:h-[640px] w-full rounded-3xl overflow-hidden bg-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
+            <div className="relative z-10 h-105 sm:h-130 lg:h-160 w-full rounded-3xl overflow-hidden bg-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
               <Image
                 src={MISSION_IMAGE}
                 alt="Field workers providing humanitarian aid in communities"
@@ -206,7 +208,7 @@ export function HomeMission() {
               </figcaption>
             </div>
 
-            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-zinc-100 max-w-[200px] hidden xl:block">
+            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-zinc-100 max-w-50 hidden xl:block">
               <Sparkles
                 className="size-5 text-zinc-400 mb-3"
                 aria-hidden="true"
@@ -272,7 +274,7 @@ export function HomeStats() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <article className="md:col-span-8 group bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-2xl hover:bg-white/10 transition-colors duration-300 ease-out flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
+          <article className="md:col-span-8 group bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-2xl hover:bg-white/10 transition-colors duration-300 ease-out flex flex-col justify-between min-h-75 md:min-h-100">
             <div>
               <Activity
                 className="size-8 text-zinc-400 mb-8"
@@ -435,10 +437,12 @@ export function HomeFeatured() {
                         width and scale it horizontally based on raised %.
                       */}
                       <div
-                        className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                        style={{
-                          transform: `scaleX(${parseInt(item.raised) / 100})`,
-                        }}
+                        className="size-full origin-left bg-white transform-(--impact-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                        style={
+                          {
+                            "--impact-progress-transform": `scaleX(${parseInt(item.raised) / 100})`,
+                          } as CSSProperties
+                        }
                       />
                     </div>
                   </div>
@@ -478,8 +482,8 @@ export function HomeCTA() {
         className="absolute inset-0 opacity-40 pointer-events-none"
         aria-hidden="true"
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-zinc-600/30 rounded-full blur-[200px]" />
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-zinc-600/20 rounded-full blur-[180px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-300 h-300 bg-zinc-600/30 rounded-full blur-[200px]" />
+        <div className="absolute top-0 right-0 w-200 h-200 bg-zinc-600/20 rounded-full blur-[180px]" />
       </div>
 
       <div className="container mx-auto px-6 relative z-10 max-w-5xl">

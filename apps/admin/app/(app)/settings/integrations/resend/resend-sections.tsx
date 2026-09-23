@@ -429,7 +429,7 @@ export function ResendDisconnectedView({
                         value={field.state.value}
                       />
                       <Button
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                        className="absolute right-0 top-0 h-full hover:bg-transparent"
                         onClick={onToggleApiKeyVisibility}
                         size="sm"
                         type="button"
@@ -525,7 +525,7 @@ export function ResendDisconnectedView({
           >
             {({ canSubmit, isSubmitting }) => (
               <Button
-                className="min-w-[140px] bg-blue-600 hover:bg-blue-700"
+                className="min-w-35 bg-blue-600 hover:bg-blue-700"
                 disabled={!canSubmit || isSubmitting}
                 onClick={handleConnectSubmit}
                 type="button"

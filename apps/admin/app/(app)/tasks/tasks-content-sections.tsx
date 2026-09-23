@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
@@ -26,12 +27,6 @@ import {
 import type { Task } from "./types";
 import type { ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import type React from "react";
-
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
 
 export type TasksViewTab = "all" | "my" | "overdue";
 
@@ -63,20 +58,18 @@ function StatCard({
   isActive?: boolean;
 }) {
   return (
-    <motion.button
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={springTransition}
+    <button
+      type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-1 cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-left shadow-sm transition-[border-color,box-shadow,transform]",
+        "flex flex-1 cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-left shadow-sm press-feedback hover-lift",
         color,
         isActive
-          ? "border-zinc-900 ring-2 ring-zinc-900/10"
-          : "border-zinc-100/70 bg-white",
+          ? "border-primary ring-2 ring-primary/20"
+          : "border-border bg-card",
       )}
     >
-      <div className="rounded-xl bg-white/70 p-2 shadow-sm ring-1 ring-black/5">
+      <div className="rounded-xl bg-background/70 p-2 shadow-sm ring-1 ring-border">
         <Icon className="size-5" />
       </div>
       <div className="flex min-w-0 flex-col">
@@ -88,14 +81,14 @@ function StatCard({
         >
           {value}
         </motion.span>
-        <span className="mt-0.5 text-sm font-bold leading-none text-zinc-900">
+        <span className="mt-0.5 text-sm font-bold leading-none text-foreground">
           {label}
         </span>
-        <span className="mt-1 text-xs font-medium leading-snug text-zinc-600">
+        <span className="mt-1 text-xs font-medium leading-snug text-muted-foreground">
           {helper}
         </span>
       </div>
-    </motion.button>
+    </button>
   );
 }
 
@@ -117,7 +110,7 @@ export function TasksStatsCardsSection({
         value={stats.overdue}
         helper="Past due and still open"
         icon={AlertCircle}
-        color="bg-rose-50/70 text-rose-700"
+        color="bg-destructive/10 text-destructive"
         isActive={activeTab === "overdue"}
         onClick={onOverdueClick}
       />
@@ -126,21 +119,21 @@ export function TasksStatsCardsSection({
         value={stats.dueToday}
         helper="Scheduled for today"
         icon={Clock}
-        color="bg-amber-50/70 text-amber-700"
+        color="bg-accent text-accent-foreground"
       />
       <StatCard
         label="In Progress"
         value={stats.inProgress}
         helper="Currently being worked"
         icon={ListTodo}
-        color="bg-blue-50/70 text-blue-700"
+        color="bg-primary/10 text-primary"
       />
       <StatCard
         label="Completed"
         value={stats.completed}
         helper="Closed mission tasks"
         icon={CheckSquare}
-        color="bg-emerald-50/70 text-emerald-700"
+        color="bg-secondary text-secondary-foreground"
       />
     </div>
   );
@@ -180,50 +173,33 @@ export function TasksFilterSection({
               }
             }}
           >
-            <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
-              <TabsTrigger
-                value="all"
-                className="rounded-lg px-4 text-xs font-semibold data-active:bg-white data-active:shadow-sm"
-              >
-                All Missions
-              </TabsTrigger>
-              <TabsTrigger
-                value="my"
-                className="rounded-lg px-4 text-xs font-semibold data-active:bg-white data-active:shadow-sm"
-              >
-                My Work
-              </TabsTrigger>
+            <TabsList>
+              <TabsTrigger value="all">All Missions</TabsTrigger>
+              <TabsTrigger value="my">My Work</TabsTrigger>
             </TabsList>
           </Tabs>
 
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button
-                  variant="outline"
-                  className="h-11 gap-2 rounded-xl border-zinc-200 text-xs font-semibold"
-                >
-                  <ListFilter className="size-4 text-zinc-500" />
+                <Button variant="outline">
+                  <ListFilter className="size-4 text-muted-foreground" />
                   Display
                 </Button>
               }
             />
-            <DropdownMenuContent
-              align="end"
-              className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
-            >
-              <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold text-zinc-600">
-                View Settings
-              </DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                checked={showCompleted}
-                onCheckedChange={(value) =>
-                  onShowCompletedChange(Boolean(value))
-                }
-                className="rounded-lg px-3 py-2 text-sm font-medium"
-              >
-                Include Completed
-              </DropdownMenuCheckboxItem>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>View Settings</DropdownMenuLabel>
+                <DropdownMenuCheckboxItem
+                  checked={showCompleted}
+                  onCheckedChange={(value) =>
+                    onShowCompletedChange(Boolean(value))
+                  }
+                >
+                  Include Completed
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -246,7 +222,7 @@ export function TasksTableSection({
   onCreateTask,
 }: TasksTableSectionProps) {
   return (
-    <Card className="rounded-2xl border-zinc-100/80 bg-white shadow-sm">
+    <Card>
       <div className="p-1">
         <DataTableWrapper
           columns={columns}
@@ -267,13 +243,9 @@ export function TasksTableSection({
             title: "No missions found",
             description:
               "Try adjusting your search or filters to coordinate tasks.",
-            icon: <CircleCheckBig className="size-10 text-zinc-200" />,
+            icon: <CircleCheckBig className="size-10 text-muted-foreground" />,
             action: (
-              <Button
-                onClick={onCreateTask}
-                variant="outline"
-                className="mt-4 rounded-xl text-xs font-semibold"
-              >
+              <Button onClick={onCreateTask} variant="outline" className="mt-4">
                 Create First Task
               </Button>
             ),

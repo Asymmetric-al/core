@@ -31,6 +31,7 @@
     "start:missionary": "turbo run start --filter=@asym/missionary-app",
     "start:donor": "turbo run start --filter=@asym/donor",
     "lint": "turbo run lint",
+    "lint:ui": "node tooling/eslint-config/lint.mjs",
     "lint:admin": "turbo run lint --filter=@asym/admin",
     "lint:missionary": "turbo run lint --filter=@asym/missionary-app",
     "lint:donor": "turbo run lint --filter=@asym/donor",
@@ -49,7 +50,7 @@
     "test:unit:cms": "vitest run tests/unit/cms",
     "test:e2e": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test --grep-invert \"@perf|@manual|@cms\"",
     "test:e2e:strict": "node node_modules/@playwright/test/cli.js test --grep-invert \"@perf|@manual|@cms\"",
-    "test:e2e:production-gate": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/usability-smoke.spec.ts tests/e2e/donate.spec.ts tests/e2e/support-hub.smoke.spec.ts --project=chromium --workers=1",
+    "test:e2e:production-gate": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/usability-smoke.spec.ts tests/e2e/donate.spec.ts tests/e2e/support-hub.smoke.spec.ts tests/e2e/dialog-dismissal.spec.ts tests/e2e/shared-primitive-contrast.spec.ts tests/e2e/giving-breakdown-skeleton.spec.ts tests/e2e/missionary-summary-layout.spec.ts tests/e2e/data-table-accessibility.spec.ts tests/e2e/popover-positioning.spec.ts tests/e2e/public-about-layout.spec.ts tests/e2e/teams-surface.spec.ts tests/e2e/missionary-dashboard-charts.spec.ts tests/e2e/donor-wallet-layout.spec.ts --project=chromium --workers=1",
     "test:e2e:cms": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test --grep \"@cms\" --grep-invert \"@manual|@cms-local\"",
     "test:e2e:cms:strict": "node node_modules/@playwright/test/cli.js test --grep \"@cms\" --grep-invert \"@manual|@cms-local\"",
     "test:e2e:auth-preflight": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/demo-auth-preflight.spec.ts --project=chromium",
@@ -203,7 +204,7 @@
     "agent-browser": "^0.33.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "canvas": "^3.2.1",
-    "eslint": "^9.39.2",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.3.0-preview.9",
     "eslint-plugin-import-x": "^4.16.1",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -240,10 +241,13 @@
   },
   "lint-staged": {
     "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "eslint --fix"
+      "node tooling/eslint-config/lint.mjs --fix"
     ],
     "*": [
       "prettier --ignore-unknown --write"
     ]
+  },
+  "patchedDependencies": {
+    "@shadcn/lint@0.2.0": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.0.patch"
   }
 }

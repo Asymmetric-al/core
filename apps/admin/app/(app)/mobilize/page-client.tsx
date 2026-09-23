@@ -67,7 +67,7 @@ export default function Mobilize() {
       density="compact"
       actions={
         <Button
-          className="h-10 rounded-xl bg-zinc-900 px-4 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800"
+          className="h-10 rounded-xl bg-zinc-900 font-semibold text-white shadow-sm hover:bg-zinc-800"
           onClick={() => setIsAddSheetOpen(true)}
         >
           <Plus className="mr-2 size-4" /> Add Candidate

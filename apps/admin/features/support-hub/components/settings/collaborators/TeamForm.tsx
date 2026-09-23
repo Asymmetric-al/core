@@ -88,7 +88,7 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
           variant="ghost"
           size="sm"
           onClick={onCancel}
-          className="h-8 rounded-lg px-3 text-xs"
+          className="rounded-lg text-xs"
         >
           Cancel
         </Button>
@@ -97,7 +97,7 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
           size="sm"
           disabled={saveTeam.isPending || name.trim().length === 0}
           onClick={handleSave}
-          className="h-8 rounded-lg px-3 text-xs"
+          className="rounded-lg text-xs"
         >
           {team ? "Save changes" : "Create team"}
         </Button>

@@ -96,15 +96,11 @@ export default function AnalyticsPage() {
         title="Analytics"
         description="Detailed insights into your support network and trends."
       >
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 px-4 text-xs font-medium"
-        >
+        <Button variant="outline" size="sm" className="h-9 px-4 text-xs">
           <Download className="mr-2 size-4" />
           Download
         </Button>
-        <Button size="sm" className="h-9 px-4 text-xs font-medium">
+        <Button size="sm" className="h-9 px-4 text-xs">
           <Sparkles className="mr-2 size-4" />
           Insights
         </Button>
@@ -153,7 +149,7 @@ export default function AnalyticsPage() {
           emptyMessage="No giving activity yet. Recurring and one-time gifts will appear here."
           actions={
             <Select defaultValue="6m">
-              <SelectTrigger className="w-[100px] h-8 rounded-lg text-[9px] font-bold uppercase tracking-wider border-zinc-200">
+              <SelectTrigger className="w-25 h-8 rounded-lg text-[9px] font-bold uppercase tracking-wider border-zinc-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-lg border-zinc-100">
@@ -164,7 +160,7 @@ export default function AnalyticsPage() {
             </Select>
           }
         >
-          <div className="h-[250px] w-full pt-4">
+          <div className="h-62.5 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={givingTrend} barGap={6}>
                 <XAxis
@@ -215,7 +211,7 @@ export default function AnalyticsPage() {
           isEmpty
           emptyMessage="Partner segmentation is coming soon."
         >
-          <div className="h-[200px] w-full" />
+          <div className="h-50 w-full" />
         </ChartCard>
       </div>
 
@@ -225,7 +221,7 @@ export default function AnalyticsPage() {
         isEmpty
         emptyMessage="Year-over-year comparison is coming soon."
       >
-        <div className="h-[250px] w-full" />
+        <div className="h-62.5 w-full" />
       </ChartCard>
     </div>
   );

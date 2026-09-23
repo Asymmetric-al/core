@@ -182,7 +182,7 @@ function StatCard({
       transition={springTransition}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-4 px-6 py-4 rounded-2xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer text-left shadow-sm min-w-[160px]",
+        "flex items-center gap-4 px-6 py-4 rounded-2xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer text-left shadow-sm min-w-40",
         color,
         isActive
           ? "ring-2 ring-zinc-900 ring-offset-2 border-transparent"
@@ -439,7 +439,7 @@ function TasksFilterBar({
               render={
                 <Button
                   variant="outline"
-                  className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] gap-2"
+                  className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px]"
                 >
                   <ListFilter className="size-4 text-zinc-400" />
                   Refine

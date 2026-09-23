@@ -64,7 +64,7 @@ export function TileCard({ tile }: TileCardProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start h-8 text-xs font-bold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 px-2 rounded-xl"
+                    className="w-full justify-start text-xs font-bold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 px-2 rounded-xl"
                   >
                     {action.icon && (
                       <DynamicIcon

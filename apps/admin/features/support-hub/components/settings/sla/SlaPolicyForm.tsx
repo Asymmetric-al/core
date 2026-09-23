@@ -131,7 +131,7 @@ export function SlaPolicyForm({
           min={1}
           value={first}
           onChange={(event) => setFirst(Number(event.target.value))}
-          className="max-w-[140px] font-mono text-[12px]"
+          className="max-w-35 font-mono text-[12px]"
         />
       </SettingsRow>
       <SettingsRow
@@ -145,7 +145,7 @@ export function SlaPolicyForm({
           min={1}
           value={next}
           onChange={(event) => setNext(Number(event.target.value))}
-          className="max-w-[140px] font-mono text-[12px]"
+          className="max-w-35 font-mono text-[12px]"
         />
       </SettingsRow>
       <SettingsRow
@@ -159,7 +159,7 @@ export function SlaPolicyForm({
           min={1}
           value={resolution}
           onChange={(event) => setResolution(Number(event.target.value))}
-          className="max-w-[140px] font-mono text-[12px]"
+          className="max-w-35 font-mono text-[12px]"
         />
       </SettingsRow>
       <SettingsRow
@@ -207,7 +207,7 @@ export function SlaPolicyForm({
           variant="ghost"
           size="sm"
           onClick={onCancel}
-          className="h-8 rounded-lg px-3 text-xs"
+          className="rounded-lg text-xs"
         >
           Cancel
         </Button>

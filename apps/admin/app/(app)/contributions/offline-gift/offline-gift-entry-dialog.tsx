@@ -73,7 +73,7 @@ export function OfflineGiftEntryDialog({
   // entries (matches the task-form pattern).
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-[560px]">
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-140">
         {open ? (
           <OfflineGiftEntryForm
             onClose={() => onOpenChange(false)}
@@ -636,7 +636,7 @@ function OptionalMetaSection({ form }: { form: OfflineForm }) {
       <form.AppField name="internalNote">
         {(field) => (
           <field.TextareaField
-            inputClassName="min-h-[64px] resize-none rounded-xl text-sm"
+            inputClassName="min-h-16 resize-none rounded-xl text-sm"
             label="Internal note (optional)"
             labelClassName={LABEL_CLASS}
             placeholder="Not shown to the donor"

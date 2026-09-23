@@ -121,7 +121,7 @@ export function WorkflowSummariesTable({
                   <div className="font-mono text-[11px] text-zinc-600">
                     {summary.subjectType}
                   </div>
-                  <div className="max-w-[180px] truncate font-mono text-[11px] text-zinc-400">
+                  <div className="max-w-45 truncate font-mono text-[11px] text-zinc-400">
                     {summary.subjectId}
                   </div>
                 </td>

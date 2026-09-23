@@ -96,7 +96,7 @@ const RichTextEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[140px] w-full bg-muted rounded-xl animate-pulse" />
+      <div className="h-35 w-full bg-muted rounded-xl animate-pulse" />
     ),
   },
 );
@@ -405,14 +405,14 @@ function PostCard({
                 </h3>
                 <Badge
                   variant="secondary"
-                  className="font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  className="font-semibold text-[9px] uppercase tracking-wider"
                 >
                   {post.post_type}
                 </Badge>
                 {post.isPinned && (
                   <Badge
                     variant="outline"
-                    className="text-[9px] px-2 py-0.5 gap-1 rounded-full font-semibold uppercase tracking-wider"
+                    className="text-[9px] font-semibold uppercase tracking-wider"
                   >
                     <Pin className="size-2.5" /> Pinned
                   </Badge>
@@ -443,7 +443,7 @@ function PostCard({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
+                    className="sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
                   >
                     <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                   </Button>
@@ -452,7 +452,7 @@ function PostCard({
             </motion.div>
             <DropdownMenuContent
               align="end"
-              className="rounded-xl border shadow-lg p-2 min-w-[160px]"
+              className="rounded-xl border shadow-lg p-2 min-w-40"
             >
               <DropdownMenuItem
                 onClick={onTogglePin}
@@ -566,7 +566,7 @@ function DraftCard({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Badge
                 variant="secondary"
-                className="font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full"
+                className="font-semibold text-[9px] uppercase tracking-wider"
               >
                 Draft • {draft.post_type}
               </Badge>
@@ -588,7 +588,7 @@ function DraftCard({
             >
               <Button
                 onClick={onEdit}
-                className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl font-semibold"
+                className="w-full sm:h-10 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl font-semibold"
               >
                 <ExternalLink className="size-3.5 mr-2" />
                 <span className="hidden sm:inline">Edit & Publish</span>
@@ -603,7 +603,7 @@ function DraftCard({
               <Button
                 variant="ghost"
                 onClick={onDelete}
-                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
+                className="w-full sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
               >
                 <Trash2 className="size-3.5 mr-2" />
                 Delete
@@ -803,7 +803,7 @@ function ComposeCardActions({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
+            className="flex gap-2 sm:gap-3 overflow-x-auto pb-2"
           >
             {selectedMedia.map((item) => (
               <motion.div
@@ -843,7 +843,7 @@ function ComposeCardActions({
             size="sm"
             disabled={isUploading}
             onClick={onAddMedia}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+            className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
           >
             {isUploading ? (
               <Loader2 className="size-3 animate-spin" />
@@ -861,7 +861,7 @@ function ComposeCardActions({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+                  className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
                 >
                   {visibility === "public" ? (
                     <Globe className="size-3" />
@@ -880,7 +880,7 @@ function ComposeCardActions({
           </motion.div>
           <DropdownMenuContent
             align="start"
-            className="rounded-xl border shadow-lg p-1.5 min-w-[160px]"
+            className="rounded-xl border shadow-lg p-1.5 min-w-40"
           >
             <DropdownMenuItem
               onClick={() => onSetVisibility("public")}
@@ -911,7 +911,7 @@ function ComposeCardActions({
             variant="outline"
             size="sm"
             disabled={isDisabled}
-            className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+            className="px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -927,7 +927,7 @@ function ComposeCardActions({
             onClick={onPublish}
             size="sm"
             disabled={isDisabled}
-            className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
+            className="sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -1065,7 +1065,7 @@ function ComposeCard({
               }
               placeholder={`Write your ${postType.toLowerCase()}…`}
               className="rounded-xl sm:rounded-2xl"
-              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
+              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed"
               toolbarPosition="bottom"
               proseInvert={false}
               actions={
@@ -1273,7 +1273,7 @@ function OrgUpdatesTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
+                  <Badge className="border-none h-4 px-1 text-[8px] font-semibold">
                     {drafts.length}
                   </Badge>
                 </motion.div>
@@ -1447,7 +1447,7 @@ export default function OrgUpdatesPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-[1200px] mx-auto"
+      className="max-w-300 mx-auto"
     >
       <PageShell
         title={`${brandConfig.name} Updates`}

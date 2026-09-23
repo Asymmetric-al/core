@@ -215,7 +215,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                   No urgent care gaps right now.
                 </div>
               )}
-              <Button className="w-full h-9 font-semibold bg-destructive text-destructive-foreground hover:opacity-90 shadow-lg shadow-destructive/10 mt-2">
+              <Button className="w-full font-semibold bg-destructive text-destructive-foreground hover:opacity-90 shadow-lg shadow-destructive/10 mt-2">
                 Review All Alerts ({attentionGaps.length})
               </Button>
             </CardContent>

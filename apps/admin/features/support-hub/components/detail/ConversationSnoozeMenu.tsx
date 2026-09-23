@@ -56,7 +56,7 @@ export function ConversationSnoozeMenu({
             type="button"
             variant="outline"
             size="sm"
-            className="h-8 gap-1.5 rounded-lg border-zinc-200 px-2.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
+            className="rounded-lg border-zinc-200 px-2.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
             aria-label="Snooze conversation"
           >
             {isSnoozed ? (

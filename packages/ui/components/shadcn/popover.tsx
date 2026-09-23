@@ -15,6 +15,7 @@ function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
 
 function PopoverContent({
   className,
+  collisionAvoidance,
   align = "center",
   alignOffset = 0,
   side = "bottom",
@@ -23,12 +24,13 @@ function PopoverContent({
 }: PopoverPrimitive.Popup.Props &
   Pick<
     PopoverPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset"
+    "align" | "alignOffset" | "side" | "sideOffset" | "collisionAvoidance"
   >) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
         align={align}
+        collisionAvoidance={collisionAvoidance}
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}

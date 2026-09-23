@@ -26,7 +26,9 @@ import {
   Field,
   FieldContent,
   FieldError,
+  FieldGroup,
   FieldLabel,
+  FieldTitle,
 } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import {
@@ -37,11 +39,11 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
-import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 import {
   Bell,
@@ -148,9 +150,7 @@ function TaskBasicsSection({ form }: { form: TaskFormApi }) {
       <form.AppField name="title">
         {(field) => (
           <field.TextField
-            inputClassName="text-sm rounded-xl"
             label="Task Title *"
-            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
             placeholder="Enter task title…"
           />
         )}
@@ -159,9 +159,7 @@ function TaskBasicsSection({ form }: { form: TaskFormApi }) {
       <form.AppField name="description">
         {(field) => (
           <field.TextareaField
-            inputClassName="min-h-[80px] text-sm resize-none rounded-xl"
             label="Description"
-            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
             placeholder="Add more details about this task…"
           />
         )}
@@ -172,12 +170,12 @@ function TaskBasicsSection({ form }: { form: TaskFormApi }) {
 
 function TaskTypeAndPrioritySection({ form }: { form: TaskFormApi }) {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <form.AppField name="type">
         {(field) => (
           <field.SelectField
+            triggerClassName="w-full"
             label="Task Type"
-            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
             options={TASK_TYPES.map((taskType) => {
               const Icon = TYPE_ICONS[taskType.value];
 
@@ -192,7 +190,6 @@ function TaskTypeAndPrioritySection({ form }: { form: TaskFormApi }) {
               };
             })}
             placeholder="Select type"
-            triggerClassName="text-sm rounded-xl"
           />
         )}
       </form.AppField>
@@ -200,16 +197,18 @@ function TaskTypeAndPrioritySection({ form }: { form: TaskFormApi }) {
       <form.AppField name="priority">
         {(field) => (
           <field.SelectField
+            triggerClassName="w-full"
             label="Priority"
-            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
             options={TASK_PRIORITIES.map((taskPriority) => ({
               label: (
                 <Badge
-                  className={cn(
-                    "h-5 rounded-md text-[10px]",
-                    taskPriority.color,
-                  )}
-                  variant="outline"
+                  variant={
+                    taskPriority.value === "urgent"
+                      ? "destructive"
+                      : taskPriority.value === "high"
+                        ? "secondary"
+                        : "outline"
+                  }
                 >
                   {taskPriority.label}
                 </Badge>
@@ -217,24 +216,23 @@ function TaskTypeAndPrioritySection({ form }: { form: TaskFormApi }) {
               value: taskPriority.value,
             }))}
             placeholder="Select priority"
-            triggerClassName="text-sm rounded-xl"
           />
         )}
       </form.AppField>
-    </div>
+    </FieldGroup>
   );
 }
 
 function TaskDueDateSection({ form }: { form: TaskFormApi }) {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <form.Field name="dueDate">
         {(field) => {
           const errors = getRenderableErrors(field);
 
           return (
             <Field data-invalid={errors.length > 0}>
-              <FieldLabel className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <FieldLabel>
                 <CalendarIcon className="size-3" /> Due Date
               </FieldLabel>
               <FieldContent>
@@ -242,10 +240,7 @@ function TaskDueDateSection({ form }: { form: TaskFormApi }) {
                   <PopoverTrigger
                     render={
                       <Button
-                        className={cn(
-                          "w-full justify-start rounded-xl text-left text-sm font-normal",
-                          !field.state.value && "text-muted-foreground",
-                        )}
+                        className="w-full"
                         type="button"
                         variant="outline"
                       >
@@ -257,10 +252,17 @@ function TaskDueDateSection({ form }: { form: TaskFormApi }) {
                     }
                   />
                   <PopoverContent
+                    aria-label="Choose due date"
                     align="start"
-                    className="w-auto rounded-2xl p-0"
+                    className="w-auto"
+                    collisionAvoidance={{
+                      side: "shift",
+                      align: "shift",
+                      fallbackAxisSide: "none",
+                    }}
                   >
                     <Calendar
+                      defaultMonth={field.state.value}
                       initialFocus
                       mode="single"
                       onSelect={(date) => {
@@ -279,16 +281,9 @@ function TaskDueDateSection({ form }: { form: TaskFormApi }) {
       </form.Field>
 
       <form.AppField name="dueTime">
-        {(field) => (
-          <field.TextField
-            inputClassName="text-sm rounded-xl"
-            label="Time (Optional)"
-            labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5"
-            type="time"
-          />
-        )}
+        {(field) => <field.TextField label="Time (Optional)" type="time" />}
       </form.AppField>
-    </div>
+    </FieldGroup>
   );
 }
 
@@ -303,20 +298,18 @@ function TaskAssigneeSection({
     <form.AppField name="assignedTo">
       {(field) => (
         <field.SelectField
+          triggerClassName="w-full"
           label={
             <span className="flex items-center gap-1.5">
               <User className="size-3" /> Assign To
             </span>
           }
-          labelClassName="text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
           options={staffMembers.map((staff) => ({
             label: (
               <div className="flex items-center gap-2">
-                <Avatar className="size-5 border border-border">
+                <Avatar size="sm">
                   <AvatarImage src={staff.avatar_url} />
-                  <AvatarFallback className="text-[8px]">
-                    {staff.name[0]}
-                  </AvatarFallback>
+                  <AvatarFallback>{staff.name[0]}</AvatarFallback>
                 </Avatar>
                 <span>{staff.name}</span>
                 <span className="text-xs text-muted-foreground">
@@ -327,7 +320,6 @@ function TaskAssigneeSection({
             value: staff.id,
           }))}
           placeholder="Select team member…"
-          triggerClassName="text-sm rounded-xl"
         />
       )}
     </form.AppField>
@@ -347,14 +339,14 @@ function TaskLinkedRecordSection({
     <form.Field name="linkedEntity">
       {(field) => (
         <Field>
-          <FieldLabel className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+          <FieldLabel>
             <Link2 className="size-3" /> Link to Record
           </FieldLabel>
           <FieldContent>
             {field.state.value ? (
               <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
                 <div className="flex items-center gap-3">
-                  <Avatar className="size-8 border border-border">
+                  <Avatar>
                     <AvatarImage src={field.state.value.avatar} />
                     <AvatarFallback>{field.state.value.name[0]}</AvatarFallback>
                   </Avatar>
@@ -362,18 +354,13 @@ function TaskLinkedRecordSection({
                     <p className="text-sm font-medium">
                       {field.state.value.name}
                     </p>
-                    <Badge
-                      className="text-[9px] h-4 capitalize rounded-md"
-                      variant="secondary"
-                    >
-                      {field.state.value.type}
-                    </Badge>
+                    <Badge variant="secondary">{field.state.value.type}</Badge>
                   </div>
                 </div>
                 <Button
-                  className="size-8 rounded-xl"
+                  aria-label="Remove linked record"
                   onClick={() => field.handleChange(undefined)}
-                  size="icon"
+                  size="icon-sm"
                   type="button"
                   variant="ghost"
                 >
@@ -387,21 +374,19 @@ function TaskLinkedRecordSection({
               >
                 <PopoverTrigger
                   render={
-                    <Button
-                      className="w-full justify-start rounded-xl text-sm text-muted-foreground"
-                      type="button"
-                      variant="outline"
-                    >
+                    <Button className="w-full" type="button" variant="outline">
                       <Plus className="mr-2 size-4" />
-                      Link a donor, missionary, or contact…
+                      <span className="truncate">
+                        Link a donor, missionary, or contact…
+                      </span>
                     </Button>
                   }
                 />
                 <PopoverContent
                   align="start"
-                  className="w-[400px] rounded-2xl p-0"
+                  className="w-100 max-w-(--available-width)"
                 >
-                  <Command className="rounded-2xl">
+                  <Command>
                     <CommandInput popoverChrome placeholder="Search records…" />
                     <CommandList>
                       <CommandEmpty>No records found.</CommandEmpty>
@@ -410,16 +395,15 @@ function TaskLinkedRecordSection({
                           .filter((entity) => entity.type === "donor")
                           .map((entity) => (
                             <CommandItem
-                              className="cursor-pointer rounded-xl"
                               key={entity.id}
                               onSelect={() => {
                                 field.handleChange(entity);
                                 onEntitySearchOpenChange(false);
                               }}
                             >
-                              <Avatar className="mr-2 size-6 border border-border">
+                              <Avatar className="mr-2" size="sm">
                                 <AvatarImage src={entity.avatar} />
-                                <AvatarFallback className="text-[9px]">
+                                <AvatarFallback>
                                   {entity.name[0]}
                                 </AvatarFallback>
                               </Avatar>
@@ -432,16 +416,15 @@ function TaskLinkedRecordSection({
                           .filter((entity) => entity.type === "missionary")
                           .map((entity) => (
                             <CommandItem
-                              className="cursor-pointer rounded-xl"
                               key={entity.id}
                               onSelect={() => {
                                 field.handleChange(entity);
                                 onEntitySearchOpenChange(false);
                               }}
                             >
-                              <Avatar className="mr-2 size-6 border border-border">
+                              <Avatar className="mr-2" size="sm">
                                 <AvatarImage src={entity.avatar} />
-                                <AvatarFallback className="text-[9px]">
+                                <AvatarFallback>
                                   {entity.name[0]}
                                 </AvatarFallback>
                               </Avatar>
@@ -454,16 +437,15 @@ function TaskLinkedRecordSection({
                           .filter((entity) => entity.type === "contact")
                           .map((entity) => (
                             <CommandItem
-                              className="cursor-pointer rounded-xl"
                               key={entity.id}
                               onSelect={() => {
                                 field.handleChange(entity);
                                 onEntitySearchOpenChange(false);
                               }}
                             >
-                              <Avatar className="mr-2 size-6 border border-border">
+                              <Avatar className="mr-2" size="sm">
                                 <AvatarImage src={entity.avatar} />
-                                <AvatarFallback className="text-[9px]">
+                                <AvatarFallback>
                                   {entity.name[0]}
                                 </AvatarFallback>
                               </Avatar>
@@ -488,12 +470,11 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
     <form.Field mode="array" name="reminders">
       {(remindersField) => (
         <Field>
-          <FieldLabel className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-            <span className="flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <FieldTitle>
               <Bell className="size-3" /> Reminders
-            </span>
+            </FieldTitle>
             <Button
-              className="h-7 rounded-xl text-xs"
               onClick={() =>
                 remindersField.pushValue(
                   createDefaultReminder(form.getFieldValue("dueDate")),
@@ -505,45 +486,54 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
             >
               <Plus className="mr-1 size-3" /> Add Reminder
             </Button>
-          </FieldLabel>
+          </div>
           <FieldContent>
             {remindersField.state.value.length > 0 ? (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {remindersField.state.value.map(
                   (reminder: TaskFormReminder, index: number) => (
                     <div
-                      className="space-y-2 rounded-xl border border-border bg-muted/30 p-3"
+                      className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-1 sm:p-3"
                       key={reminder.id ?? index}
                     >
-                      <div className="flex items-center gap-2">
-                        <form.Field name={`reminders[${index}].remind_at`}>
-                          {(field) => (
-                            <Input
-                              className="h-8 flex-1 rounded-lg text-sm"
-                              onBlur={field.handleBlur}
-                              onChange={(event) =>
-                                field.handleChange(
-                                  event.target.value
-                                    ? new Date(event.target.value).toISOString()
-                                    : "",
-                                )
-                              }
-                              type="datetime-local"
-                              value={
-                                field.state.value
-                                  ? format(
-                                      new Date(field.state.value),
-                                      "yyyy-MM-dd'T'HH:mm",
-                                    )
-                                  : ""
-                              }
-                            />
-                          )}
-                        </form.Field>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="w-full sm:min-w-0 sm:flex-1">
+                          <form.Field name={`reminders[${index}].remind_at`}>
+                            {(field) => (
+                              <Input
+                                aria-label={`Reminder ${index + 1} time`}
+                                onBlur={field.handleBlur}
+                                onChange={(event) =>
+                                  field.handleChange(
+                                    event.target.value
+                                      ? new Date(
+                                          event.target.value,
+                                        ).toISOString()
+                                      : "",
+                                  )
+                                }
+                                type="datetime-local"
+                                value={
+                                  field.state.value
+                                    ? format(
+                                        new Date(field.state.value),
+                                        "yyyy-MM-dd'T'HH:mm",
+                                      )
+                                    : ""
+                                }
+                              />
+                            )}
+                          </form.Field>
+                        </div>
 
                         <form.Field name={`reminders[${index}].type`}>
                           {(field) => (
                             <Select
+                              items={{
+                                notification: "Notification",
+                                email: "Email",
+                                both: "Both",
+                              }}
                               onOpenChange={(open) => {
                                 if (!open) {
                                   field.handleBlur();
@@ -556,34 +546,29 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
                               }
                               value={field.state.value || "notification"}
                             >
-                              <SelectTrigger className="h-8 w-32 rounded-lg text-xs">
+                              <SelectTrigger
+                                aria-label={`Reminder ${index + 1} channel`}
+                              >
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="rounded-xl">
-                                <SelectItem
-                                  className="rounded-lg"
-                                  value="notification"
-                                >
-                                  Notification
-                                </SelectItem>
-                                <SelectItem
-                                  className="rounded-lg"
-                                  value="email"
-                                >
-                                  Email
-                                </SelectItem>
-                                <SelectItem className="rounded-lg" value="both">
-                                  Both
-                                </SelectItem>
+                              <SelectContent>
+                                <SelectGroup>
+                                  <SelectItem value="notification">
+                                    Notification
+                                  </SelectItem>
+                                  <SelectItem value="email">Email</SelectItem>
+                                  <SelectItem value="both">Both</SelectItem>
+                                </SelectGroup>
                               </SelectContent>
                             </Select>
                           )}
                         </form.Field>
 
                         <Button
-                          className="size-8 shrink-0 rounded-lg"
+                          aria-label={`Remove reminder ${index + 1}`}
+                          className="shrink-0"
                           onClick={() => remindersField.removeValue(index)}
-                          size="icon"
+                          size="icon-sm"
                           type="button"
                           variant="ghost"
                         >
@@ -591,7 +576,7 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
                         </Button>
                       </div>
 
-                      <div className="space-y-1">
+                      <div className="flex flex-col gap-1">
                         <form.Field name={`reminders[${index}].remind_at`}>
                           {(field) => (
                             <FieldError errors={getRenderableErrors(field)} />
@@ -643,9 +628,7 @@ function TaskTagsSection({
 
         return (
           <Field>
-            <FieldLabel className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-              Tags
-            </FieldLabel>
+            <FieldLabel>Tags</FieldLabel>
             <FieldContent>
               {field.state.value.length > 0 ? (
                 <div className="mb-2 flex flex-wrap gap-1.5">
@@ -653,15 +636,10 @@ function TaskTagsSection({
                     const tagConfig = getTagConfig(tagId);
 
                     return (
-                      <Badge
-                        className={cn(
-                          "h-6 gap-1 rounded-lg border-0 text-xs",
-                          tagConfig?.color || "bg-muted text-muted-foreground",
-                        )}
-                        key={tagId}
-                      >
+                      <Badge key={tagId}>
                         {tagConfig?.label || tagId}
                         <button
+                          aria-label={`Remove tag ${tagConfig?.label || tagId}`}
                           className="ml-0.5 hover:opacity-70"
                           onClick={() => removeTag(tagId)}
                           type="button"
@@ -678,7 +656,7 @@ function TaskTagsSection({
                 <PopoverTrigger
                   render={
                     <Button
-                      className="w-full justify-start rounded-xl text-sm text-muted-foreground"
+                      className="w-full"
                       size="sm"
                       type="button"
                       variant="outline"
@@ -690,16 +668,16 @@ function TaskTagsSection({
                 />
                 <PopoverContent
                   align="start"
-                  className="w-[320px] rounded-2xl p-0"
+                  className="w-80 max-w-(--available-width)"
                 >
-                  <Command className="rounded-2xl" shouldFilter={false}>
+                  <Command shouldFilter={false}>
                     <CommandInput
                       popoverChrome
                       onValueChange={onTagSearchValueChange}
                       placeholder="Search or create tags…"
                       value={tagSearchValue}
                     />
-                    <CommandList className="max-h-[300px]">
+                    <CommandList>
                       {tagSearchValue.trim() &&
                       !DEFAULT_TASK_TAGS.some(
                         (tag) =>
@@ -708,7 +686,6 @@ function TaskTagsSection({
                       ) ? (
                         <CommandGroup heading="New Tag">
                           <CommandItem
-                            className="flex cursor-pointer items-center gap-2 rounded-xl"
                             onSelect={() => {
                               appendUniqueTag(tagSearchValue);
                               onTagSearchValueChange("");
@@ -751,7 +728,6 @@ function TaskTagsSection({
 
                               return (
                                 <CommandItem
-                                  className="flex cursor-pointer items-center justify-between rounded-xl"
                                   key={tag.id}
                                   onSelect={() => {
                                     if (isSelected) {
@@ -762,16 +738,9 @@ function TaskTagsSection({
                                     onTagSearchValueChange("");
                                   }}
                                 >
-                                  <Badge
-                                    className={cn(
-                                      "h-5 rounded-md border-0 text-xs",
-                                      tag.color,
-                                    )}
-                                  >
-                                    {tag.label}
-                                  </Badge>
+                                  <Badge>{tag.label}</Badge>
                                   {isSelected ? (
-                                    <Check className="size-4 text-emerald-600" />
+                                    <Check className="size-4 text-primary" />
                                   ) : null}
                                 </CommandItem>
                               );
@@ -793,11 +762,9 @@ function TaskTagsSection({
 
 export function TaskFormDialogHeader({ isEdit }: TaskFormDialogHeaderProps) {
   return (
-    <DialogHeader className="border-b border-border px-6 py-5">
-      <DialogTitle className="text-lg font-bold">
-        {isEdit ? "Edit Task" : "Create New Task"}
-      </DialogTitle>
-      <DialogDescription className="text-sm text-muted-foreground">
+    <DialogHeader>
+      <DialogTitle>{isEdit ? "Edit Task" : "Create New Task"}</DialogTitle>
+      <DialogDescription>
         {isEdit
           ? "Update the task details below."
           : "Fill in the details to create a new task."}
@@ -816,7 +783,7 @@ export function TaskFormFields({
   onTagSearchValueChange,
 }: TaskFormFieldsProps) {
   return (
-    <div className="max-h-[60vh] space-y-6 overflow-y-auto px-6 py-5">
+    <FieldGroup>
       <TaskBasicsSection form={form} />
 
       <TaskTypeAndPrioritySection form={form} />
@@ -839,7 +806,7 @@ export function TaskFormFields({
         onTagSearchValueChange={onTagSearchValueChange}
         tagSearchValue={tagSearchValue}
       />
-    </div>
+    </FieldGroup>
   );
 }
 
@@ -849,13 +816,8 @@ export function TaskFormDialogFooter({
   onClose,
 }: TaskFormDialogFooterProps) {
   return (
-    <DialogFooter className="border-t border-border bg-muted/30 px-6 py-4">
-      <Button
-        className="rounded-xl"
-        onClick={onClose}
-        type="button"
-        variant="outline"
-      >
+    <DialogFooter>
+      <Button onClick={onClose} type="button" variant="outline">
         Cancel
       </Button>
       <form.Subscribe
@@ -865,11 +827,7 @@ export function TaskFormDialogFooter({
         })}
       >
         {({ canSubmit, isSubmitting }) => (
-          <Button
-            className="rounded-xl"
-            disabled={!canSubmit || isSubmitting}
-            type="submit"
-          >
+          <Button disabled={!canSubmit || isSubmitting} type="submit">
             {isSubmitting ? "Saving…" : isEdit ? "Save Changes" : "Create Task"}
           </Button>
         )}

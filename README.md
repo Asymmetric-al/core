@@ -280,6 +280,11 @@ bun run lint
 
 Details: `tooling/eslint-config/README.md`.
 
+UI lint uses one shared six-rule policy in the three apps, shared UI, and
+missionary package. For scoped checks, raw legacy findings, discovery health,
+and suppression pruning, follow the
+[Core design-system lint workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md).
+
 ### How to add a new app
 
 1. Add `apps/<app-name>/` with `package.json` named `@asym/<app-name>` (follow existing naming patterns).

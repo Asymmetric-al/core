@@ -261,7 +261,7 @@ const ProfileTab = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 text-[10px] font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
+                    className="text-[10px] font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
                   >
                     Upload New
                   </Button>
@@ -270,7 +270,7 @@ const ProfileTab = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setField("avatarUrl", "")}
-                  className="text-destructive h-8 text-[10px] font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
+                  className="text-destructive text-[10px] font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
                 >
                   Remove
                 </Button>
@@ -427,7 +427,7 @@ const ProfileTab = () => {
               onClick={handleSave}
               disabled={saving}
               className={cn(
-                "min-w-[120px] transition-colors w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+                "min-w-30 transition-colors w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
                 success && "bg-emerald-600 hover:bg-emerald-700",
               )}
             >
@@ -639,7 +639,7 @@ const NotificationsTab = () => {
           onClick={handleSave}
           disabled={loading || success}
           className={cn(
-            "min-w-[140px] shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto text-[10px] uppercase tracking-widest rounded-lg px-6",
+            "min-w-35 shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto text-[10px] uppercase tracking-widest rounded-lg px-6",
             success
               ? "bg-emerald-600 hover:bg-emerald-700"
               : "bg-zinc-900 hover:bg-zinc-800",
@@ -774,9 +774,8 @@ const SecurityTab = () => {
                   <motion.div
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: Math.min(widthPercent, 100) / 100 }}
-                    style={{ originX: 0 }}
                     className={cn(
-                      "h-full w-full transition-colors",
+                      "h-full w-full origin-left transition-colors",
                       strengthColor,
                     )}
                   />
@@ -816,7 +815,7 @@ const SecurityTab = () => {
               passwords.new !== passwords.confirm
             }
             className={cn(
-              "min-w-[140px] h-9 shadow-sm transition-colors w-full sm:w-auto text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+              "min-w-35 h-9 shadow-sm transition-colors w-full sm:w-auto text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
               success
                 ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-zinc-900 hover:bg-zinc-800",
@@ -864,7 +863,7 @@ const SecurityTab = () => {
           <CardFooter className="pt-0 pb-4">
             <Button
               variant="outline"
-              className="w-full text-[10px] font-semibold uppercase tracking-widest h-9 rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
+              className="w-full text-[10px] font-semibold uppercase tracking-widest rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
             >
               Configure 2FA
             </Button>
@@ -896,7 +895,7 @@ const SecurityTab = () => {
           <CardFooter className="pt-0 pb-4">
             <Button
               variant="ghost"
-              className="w-full text-[10px] font-semibold uppercase tracking-widest h-9 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
+              className="w-full text-[10px] font-semibold uppercase tracking-widest text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
             >
               Sign out other devices
             </Button>
@@ -939,7 +938,7 @@ export default function DonorSettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-[10px] font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-[140px] lg:w-full",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg text-[10px] font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-35 lg:w-full",
                     activeTab === tab.id
                       ? "bg-zinc-900 text-white shadow-md shadow-zinc-200"
                       : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900",

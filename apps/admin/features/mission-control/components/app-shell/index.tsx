@@ -153,7 +153,7 @@ export function AppShell({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
+                    className="lg:hidden rounded-xl border border-zinc-200 bg-white"
                   >
                     <Menu className="size-5" />
                   </Button>
@@ -231,7 +231,7 @@ export function AppShell({
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 rounded-xl border border-zinc-200 bg-white relative"
+              className="rounded-xl border border-zinc-200 bg-white relative"
             >
               <Bell className="size-4 text-zinc-600" />
               <span className="absolute top-2 right-2 size-1.5 rounded-full bg-rose-500 border border-white" />
@@ -243,7 +243,7 @@ export function AppShell({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
+                    className="rounded-xl border border-zinc-200 bg-white overflow-hidden"
                   >
                     <Avatar className="size-full rounded-none">
                       <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
