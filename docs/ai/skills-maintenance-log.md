@@ -332,6 +332,11 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
   `bun run skills:refresh-upstream --only=animations.dev`.
 - Posted a signed Cursor Agent successor rather than rewriting unsigned
   history on the earlier Emil refresh branch.
+- Recorded pack HEAD `85e8e236` on the Core `find-animation-opportunities`
+  adapter provenance without vendoring upstream `## Initial Response`.
+- Emil lock `computedHash` values stay on clone `SKILL.md` bytes. Focused
+  refresh writes those hashes from un-overlaid sources and will not rewrite
+  them when `.agents` already contains Core overlays.
 
 ## Rollback Notes
 

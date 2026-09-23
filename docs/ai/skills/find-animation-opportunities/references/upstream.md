@@ -3,16 +3,16 @@ source_name: emilkowalski/skills (find-animation-opportunities)
 source_url: https://github.com/emilkowalski/skills
 source_type: github
 upstream_path: skills/find-animation-opportunities/SKILL.md
-reviewed_commit: 86cf9f7d91c6de0215cbb2e36fccfe6c8127a841
+reviewed_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
 license: MIT
-last_reviewed: 2026-08-29
+last_reviewed: 2026-09-23
 ---
 
 # Upstream: find-animation-opportunities
 
 - **Copyright:** 2026 Emil Kowalski
 - **License:** MIT; see the upstream
-  [`LICENSE`](https://github.com/emilkowalski/skills/blob/86cf9f7d91c6de0215cbb2e36fccfe6c8127a841/LICENSE).
+  [`LICENSE`](https://github.com/emilkowalski/skills/blob/85e8e2363b713506e1d5b6e07a0eb2da66be1bc3/LICENSE).
 - **Announcement source:**
   https://x.com/emilkowalski/status/2077404975555031509
 
@@ -21,7 +21,10 @@ read-only, restraint-first opportunity gate and the required rejected-candidate
 report. It replaces upstream literal durations, easings, scales, Radix examples,
 height animation, and per-skill reduced-motion CSS with Core's existing tokens,
 Base UI primitives, shared press/hover utilities, route-transition ownership,
-layout-safety rules, and global reduced-motion baseline.
+layout-safety rules, and global reduced-motion baseline. Pack HEAD
+`85e8e2363b713506e1d5b6e07a0eb2da66be1bc3` still ships `## Initial Response`
+in `skills/find-animation-opportunities/SKILL.md`; the Core adapter omits that
+section on purpose.
 
 The skill remains separate from `improve-animations`: this one finds additive
 opportunities and non-opportunities, while `improve-animations` audits existing

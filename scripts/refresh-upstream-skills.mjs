@@ -156,6 +156,9 @@ const cursorTeamKitSkillNames = [
 /**
  * Repo-local vendored skills refreshed directly from GitHub (shallow clone),
  * unlike `upstreamSources`, which copy from local install targets.
+ * Keep `emilkowalski/skills` on `upstreamSources`: that path hashes clone
+ * `SKILL.md` bytes for the lockfile. `prepareGithubSkillRefresh()` hashes
+ * staging after overlay restore and must not become the Emil lock source.
  */
 const githubUpstreamGroups = [
   {
@@ -1559,6 +1562,49 @@ async function sha256File(filePath) {
   return createHash("sha256").update(content).digest("hex");
 }
 
+/**
+ * Emil lock `computedHash` is the clone `SKILL.md` bytes, not the overlaid
+ * canonical file. Skip hashing when the refresh source already contains a
+ * Core overlay so a later `--only=emilkowalski/skills` run against synced
+ * mirrors cannot rewrite those hashes to overlay bytes.
+ */
+async function hashEmilCloneSkillMd(skillFilePath) {
+  const content = await readFile(skillFilePath);
+  if (content.includes(CORE_OVERLAY_START)) {
+    return null;
+  }
+  return createHash("sha256").update(content).digest("hex");
+}
+
+function emilLockSkillPath(skillName) {
+  return skillName === "emil-prototype"
+    ? "skills/prototype/SKILL.md"
+    : `skills/${skillName}/SKILL.md`;
+}
+
+async function updateEmilCloneSkillLockHashes(preparedRefreshes) {
+  const updates = preparedRefreshes.filter(
+    (preparedRefresh) => typeof preparedRefresh.emilCloneSkillHash === "string",
+  );
+
+  if (updates.length === 0 || !(await fileExists(skillsLockPath))) {
+    return;
+  }
+
+  const lockfile = await readSkillsLock();
+  for (const { skillName, emilCloneSkillHash } of updates) {
+    const existing = lockfile.skills[skillName] ?? {};
+    lockfile.skills[skillName] = {
+      ...existing,
+      source: "emilkowalski/skills",
+      sourceType: "github",
+      skillPath: emilLockSkillPath(skillName),
+      computedHash: emilCloneSkillHash,
+    };
+  }
+  await writeSkillsLock(lockfile);
+}
+
 async function listFilesRecursively(rootDir, currentDir = rootDir) {
   const entries = await readdir(currentDir, { withFileTypes: true });
   const files = [];
@@ -2059,6 +2105,9 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   }
 
   await assertRefreshSourceCompatibility(skillName, from);
+  const emilCloneSkillHash = emilKowalskiSkillNames.includes(skillName)
+    ? await hashEmilCloneSkillMd(path.join(from, "SKILL.md"))
+    : null;
   const preservedFiles = await readPreservedFiles(to, preserve);
   const preservedCoreOverlay = await readCoreOverlay(to);
   if (skillName === "grill-for-unknowns" && !preservedCoreOverlay) {
@@ -2081,7 +2130,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     throw error;
   }
 
-  return { skillName, from, to, staging };
+  return { skillName, from, to, staging, emilCloneSkillHash };
 }
 
 async function prepareSkillRefreshes(sources) {
@@ -2181,6 +2230,7 @@ async function commitPreparedRefreshes(preparedRefreshes) {
 async function refreshSkillsAtomically(sources) {
   const preparedRefreshes = await prepareSkillRefreshes(sources);
   await commitPreparedRefreshes(preparedRefreshes);
+  await updateEmilCloneSkillLockHashes(preparedRefreshes);
 
   for (const { from, to } of preparedRefreshes) {
     console.log(

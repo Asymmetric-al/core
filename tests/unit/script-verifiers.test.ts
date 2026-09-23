@@ -1,4 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import {
   access,
@@ -1406,13 +1407,80 @@ describe("refresh-upstream-skills", () => {
       for (const [fileName, content] of Object.entries(files)) {
         await writeFile(path.join(skillRoot, fileName), content);
       }
+
+      const canonicalSkillPath = path.join(
+        tempRoot,
+        "docs/ai/skills",
+        skillName,
+        "SKILL.md",
+      );
+      await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+      await writeFile(
+        canonicalSkillPath,
+        `${files["SKILL.md"].replace(
+          /^(# .+)\n/m,
+          `$1\n\n<!-- CORE-OVERLAY-START -->\nCore overlay fixture\n<!-- CORE-OVERLAY-END -->\n\n`,
+        )}`,
+      );
     }
+
+    const originalCloneHashes = Object.fromEntries(
+      Object.entries(fixtures).map(([skillName, files]) => [
+        skillName,
+        createHash("sha256").update(files["SKILL.md"]).digest("hex"),
+      ]),
+    );
+    await writeJson(path.join(tempRoot, "skills-lock.json"), {
+      version: 1,
+      skills: Object.fromEntries(
+        Object.keys(fixtures).map((skillName) => [
+          skillName,
+          {
+            source: "emilkowalski/skills",
+            sourceType: "github",
+            skillPath:
+              skillName === "emil-prototype"
+                ? "skills/prototype/SKILL.md"
+                : `skills/${skillName}/SKILL.md`,
+            computedHash: "stale-emil-clone-hash",
+          },
+        ]),
+      ),
+    });
 
     const refreshArguments = ["--only=emilkowalski/skills"];
     runNodeScript(
       tempRoot,
       "scripts/refresh-upstream-skills.mjs",
       refreshArguments,
+    );
+
+    const lockAfterCloneRefresh = JSON.parse(
+      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
+    ) as {
+      skills: Record<string, { computedHash?: string; skillPath?: string }>;
+    };
+    for (const skillName of Object.keys(fixtures)) {
+      expect(
+        lockAfterCloneRefresh.skills[skillName]?.computedHash,
+        `${skillName} lock hash after clone refresh`,
+      ).toBe(originalCloneHashes[skillName]);
+      const canonicalHash = createHash("sha256")
+        .update(
+          await readFile(
+            path.join(tempRoot, "docs/ai/skills", skillName, "SKILL.md"),
+          ),
+        )
+        .digest("hex");
+      if (canonicalHash !== originalCloneHashes[skillName]) {
+        expect(
+          lockAfterCloneRefresh.skills[skillName]?.computedHash,
+          `${skillName} lock hash must not follow overlaid canonical bytes`,
+        ).not.toBe(canonicalHash);
+      }
+    }
+    expect(lockAfterCloneRefresh.skills["emil-prototype"]?.skillPath).toBe(
+      "skills/prototype/SKILL.md",
     );
 
     const idempotentPaths = [
@@ -1456,6 +1524,29 @@ describe("refresh-upstream-skills", () => {
       "scripts/refresh-upstream-skills.mjs",
       refreshArguments,
     );
+
+    const lockAfterOverlayRefresh = JSON.parse(
+      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
+    ) as {
+      skills: Record<string, { computedHash?: string }>;
+    };
+    for (const skillName of Object.keys(fixtures)) {
+      expect(
+        lockAfterOverlayRefresh.skills[skillName]?.computedHash,
+        `${skillName} lock hash after overlaid re-refresh`,
+      ).toBe(originalCloneHashes[skillName]);
+      const overlaidCanonicalHash = createHash("sha256")
+        .update(
+          await readFile(
+            path.join(tempRoot, "docs/ai/skills", skillName, "SKILL.md"),
+          ),
+        )
+        .digest("hex");
+      expect(
+        lockAfterOverlayRefresh.skills[skillName]?.computedHash,
+        `${skillName} lock hash must stay on clone SKILL.md after overlay refresh`,
+      ).not.toBe(overlaidCanonicalHash);
+    }
 
     const canonicalSkillPath = path.join(
       tempRoot,

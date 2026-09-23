@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -111,6 +112,29 @@ describe("emilkowalski skill pack", () => {
             : `skills/${skillName}/SKILL.md`,
         ),
       });
+      const canonicalHash = createHash("sha256")
+        .update(
+          readFileSync(
+            path.join(repoRoot, "docs/ai/skills", skillName, "SKILL.md"),
+          ),
+        )
+        .digest("hex");
+      const overlayStripped = readSkillFile(
+        "docs/ai/skills",
+        skillName as keyof typeof upstreamFiles,
+        "SKILL.md",
+      ).replace(
+        /<!-- CORE-OVERLAY-START -->[\s\S]*?<!-- CORE-OVERLAY-END -->\n*/u,
+        "",
+      );
+      const overlayStrippedHash = createHash("sha256")
+        .update(overlayStripped)
+        .digest("hex");
+      expect(lock.skills[skillName]?.computedHash).toMatch(/^[a-f0-9]{64}$/);
+      expect(lock.skills[skillName]?.computedHash).not.toBe(canonicalHash);
+      expect(lock.skills[skillName]?.computedHash).not.toBe(
+        overlayStrippedHash,
+      );
     }
 
     expect(readFileSync(path.join(repoRoot, "CLAUDE.md"), "utf8")).toBe(
@@ -231,9 +255,22 @@ describe("emilkowalski skill pack", () => {
     );
     expect(refreshScript).toContain('"mobile-native"');
     expect(refreshScript).toContain("ensureEmilDisableModelInvocation");
+    expect(refreshScript).toContain("hashEmilCloneSkillMd");
+    expect(refreshScript).toContain("updateEmilCloneSkillLockHashes");
     expect(refreshScript).toContain(
       'import { Toaster } from "sonner"; // once, in layout',
     );
+    const githubGroupsStart = refreshScript.indexOf(
+      "const githubUpstreamGroups = [",
+    );
+    const githubGroupsEnd = refreshScript.indexOf(
+      "];\n\nconst BABYSIT_UPSTREAM_DEPENDENCY_BLOCK",
+    );
+    expect(githubGroupsStart).toBeGreaterThan(-1);
+    expect(githubGroupsEnd).toBeGreaterThan(githubGroupsStart);
+    expect(
+      refreshScript.slice(githubGroupsStart, githubGroupsEnd),
+    ).not.toContain("emilkowalski/skills");
   });
 
   it("records the reviewed Emil pack commit and keeps the Core animation adapter", () => {
@@ -262,11 +299,24 @@ describe("emilkowalski skill pack", () => {
       "utf8",
     );
 
+    const animationAdapterProvenance = readFileSync(
+      path.join(
+        repoRoot,
+        "docs/ai/skills/find-animation-opportunities/references/upstream.md",
+      ),
+      "utf8",
+    );
+
     expect(animateProvenance).toContain(`source_commit: ${reviewedCommit}`);
     expect(mobileProvenance).toContain(`source_commit: ${reviewedCommit}`);
     expect(mobileProvenance).toContain("source_path: skills/mobile-native/");
     expect(designEng).not.toContain("https://animations.dev/");
     expect(animationAdapter).toContain("RouteMainViewTransitionBoundary");
     expect(animationAdapter).not.toContain("## Initial Response");
+    expect(animationAdapterProvenance).toContain(
+      `reviewed_commit: ${reviewedCommit}`,
+    );
+    expect(animationAdapterProvenance).toContain("last_reviewed: 2026-09-23");
+    expect(animationAdapterProvenance).toContain("## Initial Response");
   });
 });
