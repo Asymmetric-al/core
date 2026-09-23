@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -13,11 +14,18 @@ const runtimeRoots = [
 ] as const;
 
 const upstreamFiles = {
+  animate: ["SKILL.md", "RECIPES.md"],
+  "animate-expo": ["SKILL.md", "RECIPES.md"],
   "animation-vocabulary": ["SKILL.md"],
   "apple-design": ["SKILL.md"],
+  "ask-sonner": ["SKILL.md", "API.md"],
   "emil-design-eng": ["SKILL.md"],
+  "emil-prototype": ["SKILL.md", "PICKER.md"],
   "improve-animations": ["AUDIT.md", "PLAN-TEMPLATE.md", "SKILL.md"],
+  "mobile-native": ["SKILL.md"],
+  "pick-ui-library": ["SKILL.md"],
   "review-animations": ["SKILL.md", "STANDARDS.md"],
+  "write-swift": ["SKILL.md"],
 } as const;
 
 function listFiles(root: string, relativeRoot = ""): string[] {
@@ -98,8 +106,35 @@ describe("emilkowalski skill pack", () => {
       expect(lock.skills[skillName]).toMatchObject({
         source: packSource,
         sourceType: "github",
-        skillPath: expect.stringContaining(`skills/${skillName}/SKILL.md`),
+        skillPath: expect.stringContaining(
+          skillName === "emil-prototype"
+            ? "skills/prototype/SKILL.md"
+            : `skills/${skillName}/SKILL.md`,
+        ),
       });
+      const canonicalHash = createHash("sha256")
+        .update(
+          readFileSync(
+            path.join(repoRoot, "docs/ai/skills", skillName, "SKILL.md"),
+          ),
+        )
+        .digest("hex");
+      const overlayStripped = readSkillFile(
+        "docs/ai/skills",
+        skillName as keyof typeof upstreamFiles,
+        "SKILL.md",
+      ).replace(
+        /<!-- CORE-OVERLAY-START -->[\s\S]*?<!-- CORE-OVERLAY-END -->\n*/u,
+        "",
+      );
+      const overlayStrippedHash = createHash("sha256")
+        .update(overlayStripped)
+        .digest("hex");
+      expect(lock.skills[skillName]?.computedHash).toMatch(/^[a-f0-9]{64}$/);
+      expect(lock.skills[skillName]?.computedHash).not.toBe(canonicalHash);
+      expect(lock.skills[skillName]?.computedHash).not.toBe(
+        overlayStrippedHash,
+      );
     }
 
     expect(readFileSync(path.join(repoRoot, "CLAUDE.md"), "utf8")).toBe(
@@ -108,6 +143,25 @@ describe("emilkowalski skill pack", () => {
     expect(
       readSkillFile("docs/ai/skills", "review-animations", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
+    expect(
+      readSkillFile("docs/ai/skills", "pick-ui-library", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
+    expect(
+      readSkillFile("docs/ai/skills", "emil-prototype", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
+    expect(readSkillFile("docs/ai/skills", "animate", "SKILL.md")).toContain(
+      "disable-model-invocation: true",
+    );
+    expect(
+      readSkillFile("docs/ai/skills", "write-swift", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
+    expect(
+      readSkillFile("docs/ai/skills", "mobile-native", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
+    expect(lock.skills.prototype).toMatchObject({
+      source: "mattpocock/skills",
+      skillPath: "skills/engineering/prototype/SKILL.md",
+    });
   });
 
   it("keeps Core markdown and duration compatibility adaptations", () => {
@@ -154,5 +208,120 @@ describe("emilkowalski skill pack", () => {
     expect(standards).toContain(
       "Most UI animations stay under 300ms; modals and drawers may use up to 500ms",
     );
+  });
+
+  it("keeps Base UI ownership in Emil component design and the shared Sonner toaster", () => {
+    const componentDesign = readFileSync(
+      path.join(
+        repoRoot,
+        "docs/ai/skills/emil-design-engineering/component-design.md",
+      ),
+      "utf8",
+    );
+    const askSonner = readFileSync(
+      path.join(repoRoot, "docs/ai/skills/ask-sonner/SKILL.md"),
+      "utf8",
+    );
+
+    expect(componentDesign).not.toContain("asChild");
+    expect(componentDesign).not.toContain("@radix-ui/react-slot");
+    expect(componentDesign).toContain("buttonVariants");
+    expect(componentDesign).toContain("Base UI");
+    expect(askSonner).not.toMatch(/import \{ Toaster \} from ["']sonner["']/);
+    expect(askSonner).toContain("@asym/ui/components/shadcn/sonner");
+    expect(askSonner).toContain("bun run skills:verify");
+    expect(askSonner).toContain("## Initial Response");
+  });
+
+  it("keeps animate and prototype overlays from installing libraries or public prototype routes", () => {
+    const animate = readSkillFile("docs/ai/skills", "animate", "SKILL.md");
+    const prototype = readSkillFile(
+      "docs/ai/skills",
+      "emil-prototype",
+      "SKILL.md",
+    );
+    const refreshScript = readFileSync(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(animate).toContain("Do not invoke `pick-ui-library`");
+    expect(animate).toContain("## Initial Response");
+    expect(prototype).toContain("apps/*/app/prototypes/");
+    expect(prototype).toContain("outside app routes");
+    expect(prototype).not.toContain("`/prototypes/<slug>`");
+    expect(prototype).toContain("## Initial Response");
+    expect(refreshScript).toContain(
+      "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
+    );
+    expect(refreshScript).toContain('relativePath: "component-design.md"');
+    expect(refreshScript).toContain(
+      "4. **asChild** - Render as different element (Radix pattern)",
+    );
+    expect(refreshScript).toContain('"mobile-native"');
+    expect(refreshScript).toContain("ensureEmilDisableModelInvocation");
+    expect(refreshScript).toContain("hashEmilCloneSkillMd");
+    expect(refreshScript).toContain("updateEmilCloneSkillLockHashes");
+    expect(refreshScript).toContain(
+      'import { Toaster } from "sonner"; // once, in layout',
+    );
+    const githubGroupsStart = refreshScript.indexOf(
+      "const githubUpstreamGroups = [",
+    );
+    const githubGroupsEnd = refreshScript.indexOf(
+      "];\n\nconst BABYSIT_UPSTREAM_DEPENDENCY_BLOCK",
+    );
+    expect(githubGroupsStart).toBeGreaterThan(-1);
+    expect(githubGroupsEnd).toBeGreaterThan(githubGroupsStart);
+    expect(
+      refreshScript.slice(githubGroupsStart, githubGroupsEnd),
+    ).not.toContain("emilkowalski/skills");
+  });
+
+  it("records the reviewed Emil pack commit and keeps the Core animation adapter", () => {
+    const reviewedCommit = "85e8e2363b713506e1d5b6e07a0eb2da66be1bc3";
+    const animateProvenance = readFileSync(
+      path.join(repoRoot, "docs/ai/skills/animate/references/upstream.md"),
+      "utf8",
+    );
+    const mobileProvenance = readFileSync(
+      path.join(
+        repoRoot,
+        "docs/ai/skills/mobile-native/references/upstream.md",
+      ),
+      "utf8",
+    );
+    const designEng = readSkillFile(
+      "docs/ai/skills",
+      "emil-design-eng",
+      "SKILL.md",
+    );
+    const animationAdapter = readFileSync(
+      path.join(
+        repoRoot,
+        "docs/ai/skills/find-animation-opportunities/SKILL.md",
+      ),
+      "utf8",
+    );
+
+    const animationAdapterProvenance = readFileSync(
+      path.join(
+        repoRoot,
+        "docs/ai/skills/find-animation-opportunities/references/upstream.md",
+      ),
+      "utf8",
+    );
+
+    expect(animateProvenance).toContain(`source_commit: ${reviewedCommit}`);
+    expect(mobileProvenance).toContain(`source_commit: ${reviewedCommit}`);
+    expect(mobileProvenance).toContain("source_path: skills/mobile-native/");
+    expect(designEng).not.toContain("https://animations.dev/");
+    expect(animationAdapter).toContain("RouteMainViewTransitionBoundary");
+    expect(animationAdapter).not.toContain("## Initial Response");
+    expect(animationAdapterProvenance).toContain(
+      `reviewed_commit: ${reviewedCommit}`,
+    );
+    expect(animationAdapterProvenance).toContain("last_reviewed: 2026-09-23");
+    expect(animationAdapterProvenance).toContain("## Initial Response");
   });
 });

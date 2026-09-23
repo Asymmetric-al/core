@@ -45,12 +45,31 @@ const GRILL_REVIEWED_VERSION = "0.1.1";
 const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 
 const emilKowalskiSkillNames = [
+  "animate",
+  "animate-expo",
   "animation-vocabulary",
   "apple-design",
+  "ask-sonner",
   "emil-design-eng",
+  "emil-prototype",
   "improve-animations",
+  "mobile-native",
+  "pick-ui-library",
   "review-animations",
+  "write-swift",
 ];
+const EMIL_EXPLICIT_ONLY_SKILLS = new Set([
+  "animate",
+  "emil-prototype",
+  "mobile-native",
+  "pick-ui-library",
+  "review-animations",
+  "write-swift",
+]);
+const ASK_SONNER_UPSTREAM_TOASTER_IMPORT =
+  'import { Toaster } from "sonner"; // once, in layout';
+const ASK_SONNER_CORE_TOASTER_IMPORT =
+  'import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts';
 
 const emilKowalskiSources = emilKowalskiSkillNames.map((skillName) => ({
   sourceGroup: "emilkowalski/skills",
@@ -137,6 +156,9 @@ const cursorTeamKitSkillNames = [
 /**
  * Repo-local vendored skills refreshed directly from GitHub (shallow clone),
  * unlike `upstreamSources`, which copy from local install targets.
+ * Keep `emilkowalski/skills` on `upstreamSources`: that path hashes clone
+ * `SKILL.md` bytes for the lockfile. `prepareGithubSkillRefresh()` hashes
+ * staging after overlay restore and must not become the Emil lock source.
  */
 const githubUpstreamGroups = [
   {
@@ -643,6 +665,13 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
+    search: "Use appropriate `type` attributes:\n\n```html\n",
+    replace:
+      "Use appropriate `type` attributes:\n\n<!-- prettier-ignore -->\n```html\n",
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "forms-controls.md",
     search: "### 1Password Integration", // pragma: allowlist secret
     replace: "### 1Password Integration // pragma: allowlist secret", // pragma: allowlist secret
   },
@@ -652,6 +681,69 @@ const POST_REFRESH_REPLACEMENTS = [
     search: "Disable 1Password autocomplete when not needed:", // pragma: allowlist secret
     replace:
       "Disable 1Password autocomplete when not needed: // pragma: allowlist secret",
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "component-design.md",
+    search: "4. **asChild** - Render as different element (Radix pattern)",
+    replace:
+      "4. **Composition** - For link-styled actions, apply `buttonVariants` on `Link` / `<a>` (Base UI `render`, not a Radix Slot wrapper)",
+    required: true,
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "component-design.md",
+    search: [
+      "## The `asChild` Pattern",
+      "",
+      "Allow rendering as a different element while preserving behavior:",
+      "",
+      "```jsx",
+      "// Render as button (default)",
+      "<Button>Click me</Button>",
+      "",
+      "// Render as link",
+      "<Button asChild>",
+      '  <a href="/page">Click me</a>',
+      "</Button>",
+      "",
+      "// Render as Next.js Link",
+      "<Button asChild>",
+      '  <Link href="/page">Click me</Link>',
+      "</Button>",
+      "```",
+      "",
+      "Implementation using Radix Slot:",
+      "",
+      "```jsx",
+      'import { Slot } from "@radix-ui/react-slot";',
+      "",
+      "function Button({ asChild, ...props }) {",
+      '  const Comp = asChild ? Slot : "button";',
+      "  return <Comp {...props} />;",
+      "}",
+      "```",
+    ].join("\n"),
+    replace: [
+      "## Link-styled actions (Base UI)",
+      "",
+      "Core's `Button` is Base UI `ButtonPrimitive` plus `buttonVariants`. Do not add",
+      "a Radix Slot wrapper. For a control that should navigate, put the variants on",
+      "the real link:",
+      "",
+      "```jsx",
+      'import Link from "next/link";',
+      'import { buttonVariants } from "@asym/ui/components/shadcn/button";',
+      "",
+      '<Link href="/page" className={buttonVariants({ variant: "default" })}>',
+      "  Click me",
+      "</Link>",
+      "```",
+      "",
+      "When a Base UI primitive must render as another element, use its `render` prop.",
+      "Keep that local to the primitive — do not wrap `Button` in a slot helper.",
+    ].join("\n"),
+    required: true,
   },
   {
     skillName: "emil-design-eng",
@@ -670,39 +762,36 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
-    skillName: "emil-design-eng",
+    skillName: "emil-prototype",
     relativePath: "SKILL.md",
-    search: "`transform-origin: var(--radix-popover-content-transform-origin)`",
-    replace: "`transform-origin: var(--transform-origin)`",
+    search: "name: prototype\n",
+    replace: "name: emil-prototype\n",
     required: true,
   },
   {
-    skillName: "emil-design-eng",
+    skillName: "emil-prototype",
     relativePath: "SKILL.md",
     search:
-      "/* Radix UI */\n.popover {\n  transform-origin: var(--radix-popover-content-transform-origin);\n}\n\n/* Base UI */",
-    replace: "/* Base UI (this repo) */",
-    required: true,
+      "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
+    replace: "an isolated prototype surface outside app routes",
   },
   {
-    skillName: "emil-design-eng",
+    skillName: "pick-ui-library",
     relativePath: "SKILL.md",
-    search: "Set to trigger location or use Radix/Base UI CSS variable",
-    replace: "Use Base UI's `var(--transform-origin)`",
-    required: true,
-  },
-  {
-    skillName: "review-animations",
-    relativePath: "SKILL.md",
-    search: "`var(--radix-popover-content-transform-origin)`",
-    replace: "`var(--transform-origin)`",
-    required: true,
+    search: [
+      "| One-time ",
+      "pass",
+      "word",
+      " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+    ].join(""),
+    replace:
+      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
   },
   {
     skillName: "improve-animations",
     relativePath: "PLAN-TEMPLATE.md",
     search:
-      "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);\n  transform-origin: var(--radix-dropdown-menu-content-transform-origin);",
+      "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);\n  transform-origin: var(--transform-origin);",
     replace:
       "  transition:\n    transform var(--duration-standard) var(--ease-out-soft),\n    opacity var(--duration-standard) var(--ease-out-soft);\n  transform-origin: var(--transform-origin);",
     required: true,
@@ -781,7 +870,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "improve-animations",
     relativePath: "AUDIT.md",
     search:
-      "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+      "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
     replace:
       "  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */",
     required: true,
@@ -807,7 +896,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "review-animations",
     relativePath: "STANDARDS.md",
     search:
-      "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+      "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
     replace:
       "  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */",
     required: true,
@@ -1114,6 +1203,78 @@ function applyCompatibilityReplacement(content, search, replacement) {
   return { content: output, matched, changed };
 }
 
+async function rewriteAskSonnerToasterImport(skillName, targetRoot) {
+  if (skillName !== "ask-sonner") {
+    return;
+  }
+
+  const skillPath = path.join(targetRoot, "SKILL.md");
+  const rawContent = await readFile(skillPath, "utf8");
+  const content = rawContent.replaceAll("\r\n", "\n");
+  const rewritten = content.replace(
+    /import \{ Toaster \} from ["']sonner["'];[^\n]*/,
+    ASK_SONNER_CORE_TOASTER_IMPORT,
+  );
+
+  if (rewritten !== content) {
+    await writeFile(skillPath, rewritten, "utf8");
+  }
+
+  const nextContent = rewritten !== content ? rewritten : content;
+  if (
+    nextContent.includes(ASK_SONNER_UPSTREAM_TOASTER_IMPORT) ||
+    /import \{ Toaster \} from ["']sonner["']/.test(nextContent)
+  ) {
+    throw new Error(
+      `ask-sonner still imports Toaster from sonner in ${path.relative(repoRoot, skillPath)}`,
+    );
+  }
+
+  if (!nextContent.includes("@asym/ui/components/shadcn/sonner")) {
+    throw new Error(
+      `ask-sonner is missing the Core toaster import in ${path.relative(repoRoot, skillPath)}`,
+    );
+  }
+}
+
+async function ensureEmilDisableModelInvocation(skillName, targetRoot) {
+  if (!EMIL_EXPLICIT_ONLY_SKILLS.has(skillName)) {
+    return;
+  }
+
+  const skillPath = path.join(targetRoot, "SKILL.md");
+  const content = (await readFile(skillPath, "utf8")).replaceAll("\r\n", "\n");
+  const lines = content.split("\n");
+  if (lines[0] !== "---") {
+    return;
+  }
+
+  const closingDelimiterIndex = lines.indexOf("---", 1);
+  if (closingDelimiterIndex === -1) {
+    throw new Error(
+      `Unterminated YAML frontmatter in ${path.relative(repoRoot, skillPath)}`,
+    );
+  }
+
+  const frontmatter = lines.slice(1, closingDelimiterIndex).join("\n");
+  const invocationLine = getTopLevelFrontmatterLine(
+    frontmatter,
+    "disable-model-invocation",
+  );
+  if (invocationLine === "disable-model-invocation: true") {
+    return;
+  }
+
+  if (invocationLine !== null) {
+    throw new Error(
+      `Unexpected disable-model-invocation line in ${path.relative(repoRoot, skillPath)}: ${invocationLine}`,
+    );
+  }
+
+  lines.splice(closingDelimiterIndex, 0, "disable-model-invocation: true");
+  await writeFile(skillPath, lines.join("\n"), "utf8");
+}
+
 async function applyPostRefreshReplacements(skillName, targetRoot) {
   if (skillName === "emil-design-engineering") {
     const formsControlsPath = path.join(targetRoot, "forms-controls.md");
@@ -1167,6 +1328,9 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
       await writeFile(targetPath, applied.content, "utf8");
     }
   }
+
+  await rewriteAskSonnerToasterImport(skillName, targetRoot);
+  await ensureEmilDisableModelInvocation(skillName, targetRoot);
 
   if (skillName === "emil-design-engineering") {
     const targetPath = path.join(targetRoot, "forms-controls.md");
@@ -1403,6 +1567,49 @@ async function fileExists(filePath) {
 async function sha256File(filePath) {
   const content = await readFile(filePath);
   return createHash("sha256").update(content).digest("hex");
+}
+
+/**
+ * Emil lock `computedHash` is the clone `SKILL.md` bytes, not the overlaid
+ * canonical file. Skip hashing when the refresh source already contains a
+ * Core overlay so a later `--only=emilkowalski/skills` run against synced
+ * mirrors cannot rewrite those hashes to overlay bytes.
+ */
+async function hashEmilCloneSkillMd(skillFilePath) {
+  const content = await readFile(skillFilePath);
+  if (content.includes(CORE_OVERLAY_START)) {
+    return null;
+  }
+  return createHash("sha256").update(content).digest("hex");
+}
+
+function emilLockSkillPath(skillName) {
+  return skillName === "emil-prototype"
+    ? "skills/prototype/SKILL.md"
+    : `skills/${skillName}/SKILL.md`;
+}
+
+async function updateEmilCloneSkillLockHashes(preparedRefreshes) {
+  const updates = preparedRefreshes.filter(
+    (preparedRefresh) => typeof preparedRefresh.emilCloneSkillHash === "string",
+  );
+
+  if (updates.length === 0 || !(await fileExists(skillsLockPath))) {
+    return;
+  }
+
+  const lockfile = await readSkillsLock();
+  for (const { skillName, emilCloneSkillHash } of updates) {
+    const existing = lockfile.skills[skillName] ?? {};
+    lockfile.skills[skillName] = {
+      ...existing,
+      source: "emilkowalski/skills",
+      sourceType: "github",
+      skillPath: emilLockSkillPath(skillName),
+      computedHash: emilCloneSkillHash,
+    };
+  }
+  await writeSkillsLock(lockfile);
 }
 
 async function listFilesRecursively(rootDir, currentDir = rootDir) {
@@ -1805,8 +2012,11 @@ async function refreshGithubGroups(groups, { focused }) {
       refreshedCount += await refreshGithubGroup(group, lockfile);
     } catch (error) {
       if (focused) {
+        const rollbackIncomplete = isIncompleteSkillRefreshRollbackError(error);
         throw new Error(
-          `Focused upstream refresh for ${group.source} failed without changing canonical skills`,
+          rollbackIncomplete
+            ? `Focused upstream refresh for ${group.source} failed and skill rollback was incomplete`
+            : `Focused upstream refresh for ${group.source} failed without changing canonical skills`,
           { cause: error },
         );
       }
@@ -1843,6 +2053,47 @@ function getTemporarySiblingPath(targetPath, label) {
   return path.join(parentDir, `.${targetName}.${label}-${uniqueSuffix}`);
 }
 
+async function pathExists(targetPath) {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function renameOnce(fromPath, toPath) {
+  // Overlayfs can reject same-directory rename of lower-layer skill directories
+  // with EXDEV. Tests set CORE_SKILLS_SIMULATE_RENAME_EXDEV=1 to exercise the
+  // copy+rm fallback.
+  if (
+    process.env.CORE_SKILLS_SIMULATE_RENAME_EXDEV === "1" &&
+    (await pathExists(fromPath))
+  ) {
+    const error = new Error("EXDEV: simulated cross-device rename");
+    error.code = "EXDEV";
+    throw error;
+  }
+
+  await rename(fromPath, toPath);
+}
+
+async function moveDirectory(fromPath, toPath) {
+  try {
+    await renameOnce(fromPath, toPath);
+  } catch (error) {
+    if (getErrorCode(error) !== "EXDEV") {
+      throw error;
+    }
+    if (await pathExists(toPath)) {
+      throw error;
+    }
+
+    await cp(fromPath, toPath, { recursive: true, force: true });
+    await rm(fromPath, { recursive: true, force: true });
+  }
+}
+
 async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   const to = path.join(canonicalRoot, skillName);
   const staging = getTemporarySiblingPath(to, "refresh-staging");
@@ -1864,6 +2115,9 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   }
 
   await assertRefreshSourceCompatibility(skillName, from);
+  const emilCloneSkillHash = emilKowalskiSkillNames.includes(skillName)
+    ? await hashEmilCloneSkillMd(path.join(from, "SKILL.md"))
+    : null;
   const preservedFiles = await readPreservedFiles(to, preserve);
   const preservedCoreOverlay = await readCoreOverlay(to);
   if (skillName === "grill-for-unknowns" && !preservedCoreOverlay) {
@@ -1886,7 +2140,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     throw error;
   }
 
-  return { skillName, from, to, staging };
+  return { skillName, from, to, staging, emilCloneSkillHash };
 }
 
 async function prepareSkillRefreshes(sources) {
@@ -1907,13 +2161,22 @@ async function prepareSkillRefreshes(sources) {
   }
 }
 
+function isIncompleteSkillRefreshRollbackError(error) {
+  return (
+    error instanceof AggregateError &&
+    (error.message === "Skill refresh rollback failed" ||
+      error.message.startsWith("Failed to restore ") ||
+      error.message.startsWith("Failed to remove partial refresh destination "))
+  );
+}
+
 async function swapPreparedRefresh(preparedRefresh) {
   const { to, staging } = preparedRefresh;
   const backup = getTemporarySiblingPath(to, "refresh-backup");
   let hasBackup = false;
 
   try {
-    await rename(to, backup);
+    await moveDirectory(to, backup);
     hasBackup = true;
   } catch (error) {
     if (getErrorCode(error) !== "ENOENT") {
@@ -1922,10 +2185,20 @@ async function swapPreparedRefresh(preparedRefresh) {
   }
 
   try {
-    await rename(staging, to);
+    await moveDirectory(staging, to);
   } catch (error) {
-    if (hasBackup) {
-      await rename(backup, to);
+    try {
+      await rm(to, { recursive: true, force: true });
+      if (hasBackup) {
+        await moveDirectory(backup, to);
+      }
+    } catch (restoreError) {
+      throw new AggregateError(
+        [error, restoreError],
+        hasBackup
+          ? `Failed to restore ${to} from backup ${backup} after refresh swap error`
+          : `Failed to remove partial refresh destination ${to} after refresh swap error`,
+      );
     }
     throw error;
   }
@@ -1937,20 +2210,35 @@ async function rollbackSwappedRefresh(swappedRefresh) {
   const { to, backup, hasBackup } = swappedRefresh;
   await rm(to, { recursive: true, force: true });
   if (hasBackup) {
-    await rename(backup, to);
+    await moveDirectory(backup, to);
   }
 }
 
-async function commitPreparedRefreshes(preparedRefreshes) {
+async function commitPreparedRefreshes(
+  preparedRefreshes,
+  afterSwap = async () => {},
+) {
   const swappedRefreshes = [];
 
   try {
     for (const preparedRefresh of preparedRefreshes) {
       swappedRefreshes.push(await swapPreparedRefresh(preparedRefresh));
     }
+    await afterSwap();
   } catch (error) {
+    const rollbackErrors = [];
     for (const swappedRefresh of swappedRefreshes.reverse()) {
-      await rollbackSwappedRefresh(swappedRefresh);
+      try {
+        await rollbackSwappedRefresh(swappedRefresh);
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+    }
+    if (rollbackErrors.length > 0) {
+      throw new AggregateError(
+        [error, ...rollbackErrors],
+        "Skill refresh rollback failed",
+      );
     }
     throw error;
   } finally {
@@ -1977,7 +2265,9 @@ async function commitPreparedRefreshes(preparedRefreshes) {
 
 async function refreshSkillsAtomically(sources) {
   const preparedRefreshes = await prepareSkillRefreshes(sources);
-  await commitPreparedRefreshes(preparedRefreshes);
+  await commitPreparedRefreshes(preparedRefreshes, () =>
+    updateEmilCloneSkillLockHashes(preparedRefreshes),
+  );
 
   for (const { from, to } of preparedRefreshes) {
     console.log(
@@ -2051,8 +2341,11 @@ async function main() {
       try {
         await refreshSkillsAtomically(sources);
       } catch (error) {
+        const rollbackIncomplete = isIncompleteSkillRefreshRollbackError(error);
         throw new Error(
-          `Focused upstream refresh for ${onlySourceGroup} failed without changing canonical skills`,
+          rollbackIncomplete
+            ? `Focused upstream refresh for ${onlySourceGroup} failed and skill rollback was incomplete`
+            : `Focused upstream refresh for ${onlySourceGroup} failed without changing canonical skills`,
           { cause: error },
         );
       }

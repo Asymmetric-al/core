@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-07-15
+Last updated: 2026-09-23
 
 ## Scope
 
@@ -291,6 +291,52 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
   distinct files. Both fixes are pinned as required
   `POST_REFRESH_REPLACEMENTS` so future refreshes fail loudly on upstream
   drift instead of silently reverting them.
+
+## 2026-08-29 - Emil Kowalski pack and paid skill refresh
+
+- Confirmed live upstream `emilkowalski/skills` at
+  `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7` now ships eleven public skills.
+  Core lockfile-manages eleven of them (`animate`, `animate-expo`,
+  `animation-vocabulary`, `apple-design`, `ask-sonner`, `emil-design-eng`,
+  `emil-prototype`, `improve-animations`, `pick-ui-library`,
+  `review-animations`, `write-swift`) and keeps the Core-authored
+  `find-animation-opportunities` adapter.
+- Copied the pack into `.agents/skills/` instead of running
+  `npx skills add emilkowalski/skills -y`, which would overwrite Matt Pocock
+  `prototype` and the Core animation-opportunity adapter. Upstream
+  `skills/prototype/` is vendored as `emil-prototype`.
+- Refreshed the paid animations.dev skill **`emil-design-engineering`**
+  (`$99`) from `https://animations.dev` into
+  `~/.cursor/skills/emil-design-engineering/`, then
+  `bun run skills:refresh-upstream --only=animations.dev`.
+- Added Core overlays, MIT provenance, and routing for the six new public
+  skills. Existing Base UI, motion-token, and reduced-motion overlays remain
+  authoritative.
+
+## 2026-09-23 - Emil Kowalski pack HEAD and mobile-native
+
+- Confirmed live upstream `emilkowalski/skills` at
+  `85e8e2363b713506e1d5b6e07a0eb2da66be1bc3` now ships twelve public skills,
+  adding `mobile-native` (`0b85d4b`) and removing the paid-course mention
+  (`85e8e236`). Core lockfile-manages twelve of them (`animate`,
+  `animate-expo`, `animation-vocabulary`, `apple-design`, `ask-sonner`,
+  `emil-design-eng`, `emil-prototype`, `improve-animations`, `mobile-native`,
+  `pick-ui-library`, `review-animations`, `write-swift`) and keeps the
+  Core-authored `find-animation-opportunities` adapter.
+- Copied the pack into `.agents/skills/` instead of running
+  `npx skills add emilkowalski/skills -y`. Reviewed `mobile-native` as
+  explicit-only (`disable-model-invocation: true`), matching `write-swift`.
+- Refreshed the paid animations.dev skill **`emil-design-engineering`**
+  from `https://animations.dev` into
+  `~/.cursor/skills/emil-design-engineering/`, then
+  `bun run skills:refresh-upstream --only=animations.dev`.
+- Posted a signed Cursor Agent successor rather than rewriting unsigned
+  history on the earlier Emil refresh branch.
+- Recorded pack HEAD `85e8e236` on the Core `find-animation-opportunities`
+  adapter provenance without vendoring upstream `## Initial Response`.
+- Emil lock `computedHash` values stay on clone `SKILL.md` bytes. Focused
+  refresh writes those hashes from un-overlaid sources and will not rewrite
+  them when `.agents` already contains Core overlays.
 
 ## Rollback Notes
 
