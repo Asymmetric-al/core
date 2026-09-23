@@ -21,6 +21,11 @@ describe("Eve GitHub channel boundary", () => {
     expect(source).toContain("event: review.event");
     expect(source).toContain("progress: { reactions: false }");
     expect(source).toContain('session_purpose: "github_review"');
+    expect(source).toContain("authorizeEveGithubActor");
+    expect(source).toContain("comment.author?.id !== ctx.sender.id");
+    expect(source).toContain("comment.raw.performed_via_github_app");
+    expect(source).toContain("REVIEW_SOURCE_PROVENANCE");
+    expect(source).toContain("untrusted source material");
     expect(source.match(/preflightEveGithubReview\(/gu)).toHaveLength(2);
     expect(source).toContain('"turn.failed"()');
     expect(source).not.toMatch(/labels|mergePullRequest|rerun|createIssue/iu);

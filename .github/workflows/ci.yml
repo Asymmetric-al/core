@@ -3,10 +3,6 @@ name: CI
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - develop
-      - production
-      - "cursor/**"
   push:
     branches: [develop, production]
 
@@ -43,26 +39,6 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
-      - name: Verify Git attribution
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ASYM_GITHUB_EVENT_NAME: ${{ github.event_name }}
-          ASYM_GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-          ASYM_GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          ASYM_GITHUB_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || (github.event_name != 'pull_request' && github.repository) || '' }}
-          ASYM_GITHUB_REPOSITORY: ${{ github.repository }}
-          ASYM_GITHUB_REF_NAME: ${{ github.ref_name }}
-          ASYM_GITHUB_REF_TYPE: ${{ github.ref_type }}
-          ASYM_GITHUB_EVENT_ACTOR_LOGIN: ${{ github.actor }}
-          ASYM_GITHUB_EVENT_ACTOR_ID: ${{ github.actor_id }}
-          ASYM_GITHUB_EVENT_SENDER_LOGIN: ${{ github.event.sender.login || '' }}
-          ASYM_GITHUB_EVENT_SENDER_ID: ${{ github.event.sender.id || '' }}
-          ASYM_GITHUB_PULL_REQUEST_AUTHOR_LOGIN: ${{ github.event.pull_request.user.login || '' }}
-          ASYM_GITHUB_PULL_REQUEST_AUTHOR_ID: ${{ github.event.pull_request.user.id || '' }}
-          ASYM_GITHUB_HEAD_OWNER_LOGIN: ${{ github.event.pull_request.head.repo.owner.login || '' }}
-          ASYM_GITHUB_HEAD_OWNER_ID: ${{ github.event.pull_request.head.repo.owner.id || '' }}
-          ASYM_GITHUB_TRIGGERING_ACTOR_LOGIN: ${{ github.triggering_actor }}
-        run: bun run verify:git-attribution -- --ci
       - run: bun run format:check
       - run: bun run skills:verify
       - run: bun run verify:phase25-spec
@@ -240,3 +216,19 @@ jobs:
             echo "At least one CI check failed."
             exit 1
           fi
+
+  release-source-gate:
+    if: github.event_name == 'pull_request' && github.base_ref == 'production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify production source is already on develop
+        env:
+          CORE_PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          CORE_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch --no-tags origin develop:refs/remotes/origin/develop
+          node scripts/verify/deployment-discipline.mjs --production-source

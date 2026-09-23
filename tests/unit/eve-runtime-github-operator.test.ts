@@ -29,13 +29,20 @@ describe("Eve runtime GitHub operator", () => {
     expect(source).toContain("defineDynamic");
     expect(source).toContain('auth?.authenticator !== "github-webhook"');
     expect(source).toContain('repository !== "Asymmetric-al/core"');
-    expect(source).toContain("collaborators/");
+    expect(source).toContain("authorizeEveGithubActor");
     expect(source).toContain("return null");
 
     let permission = "read";
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (url: string) =>
       Promise.resolve(
-        new Response(JSON.stringify({ permission }), { status: 200 }),
+        new Response(
+          JSON.stringify(
+            url.includes("/memberships/")
+              ? { state: "active", user: { id: 42 } }
+              : { permission },
+          ),
+          { status: 200 },
+        ),
       ),
     );
     vi.stubGlobal("fetch", fetchMock);
@@ -50,6 +57,7 @@ describe("Eve runtime GitHub operator", () => {
               repository: "Asymmetric-al/core",
               session_purpose: "github_review",
               user_login: "external-contributor",
+              user_type: "User",
             },
             authenticator: "github-webhook",
             principalId: "github:42",
@@ -83,9 +91,14 @@ describe("Eve runtime GitHub operator", () => {
         productDirection: false,
       }).success,
     ).toBe(false);
-    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
-      "/repos/Asymmetric-al/core/collaborators/external-contributor/permission",
-    );
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      expect.stringContaining(
+        "/orgs/Asymmetric-al/memberships/external-contributor",
+      ),
+      expect.stringContaining(
+        "/repos/Asymmetric-al/core/collaborators/external-contributor/permission",
+      ),
+    ]);
   });
 
   it("contains the complete mutation vocabulary without merge", async () => {

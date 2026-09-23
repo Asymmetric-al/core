@@ -53,9 +53,8 @@ Normal work branches from and opens a pull request to `develop`.
 
 - **Internal team developers** use the canonical repository as `origin`, update
   `origin/develop`, create a feature branch, and push that branch to `origin`.
-- **External contributors** use their fork as `origin`, add the canonical repo as
-  `upstream`, and create a feature branch from `upstream/develop` before opening
-  a fork pull request.
+- **Readers without Core write access** can fork for their own use, but cannot
+  open a Core pull request while collaborator-only creation is enabled.
 
 ```bash
 # Internal
@@ -64,26 +63,13 @@ git switch develop
 git pull --ff-only origin develop
 git switch -c feature/AL-123-short-title
 
-# External (after adding the canonical repo as upstream)
-git fetch upstream
-git switch -c feature/AL-123-short-title upstream/develop
 ```
 
-The repository attribution policy preserves attributable external authors; it
-does not grant canonical push authority. CODEOWNERS also routes reviews rather
-than granting GitHub permissions. Organization membership, repository roles,
-branch protection, required checks, and review remain platform controls.
-External contributors should use their own truthful tuple; a fork that claims a
-registered internal tuple requires that account's verified commit signature.
-
-### Windows/WSL authentication and GitHub CLI
-
-Internal developers configure their exact registered tuple; external
-contributors use their own truthful GitHub-associated identity. Follow the
-secure Windows Git Credential Manager bridge and authenticated Windows GitHub
-CLI commands in `docs/ops/git-attribution.md`. Keep source and Git writes in
-WSL, never copy credentials into repository files or shell history, and
-remember that no repository change grants GitHub permissions.
+GitHub access authorizes people and approved automation. Commit metadata does
+not. Core is public to read, while new issues and PRs require collaborator
+access. Organization members who develop Core need Write or higher access; see
+`docs/ops/github-access.md` for onboarding and agent command rules. Keep source
+and Git writes in your normal authenticated development environment.
 
 ### Before You Code
 

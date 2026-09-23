@@ -2,23 +2,23 @@
 
 ## Overview
 
-Two workflow files run on every PR whose base is `develop`, `production`, or a
-`cursor/**` stacked branch, and on every push to `develop` and `production`:
+Two workflow files run on every PR base, including internal stacked branches,
+and on every push to `develop` and `production`:
 
-| Workflow          | File                                   | Branches                                                                       | Jobs                                            | Target time               |
-| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | PRs on `develop`, `production`, `cursor/**`; pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs on `develop`, `production`, `cursor/**`; pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                        | Jobs                                            | Target time               |
+| ----------------- | -------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
 
 Current workflow semantics:
 
-- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`) and for stacked Cursor Cloud PRs whose base matches `cursor/**`.
-- `ci-integration.yml` runs on the same pull-request bases. Pushes still run only on `develop` and `production`.
-- `Shadscan` (`.github/workflows/shadscan.yml`) uses the same pull-request bases; pushes remain `develop` only.
+- `ci.yml` is the always-on fast gate for all PRs, including automation-created stacked PRs.
+- `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
+- `Shadscan` (`.github/workflows/shadscan.yml`) runs on all PR bases; pushes remain `develop` only.
 - `test-e2e-smoke` produces `e2e-smoke-gate`; `integration-gate` summarizes
   `migrate`, `smoke`, and that gate. See § Branch protection for the dated live
   required-context inventory.
-- Stacked `cursor/**` PRs run the same placeholder Supabase E2E path as `develop`
+- Non-production PRs run the same placeholder Supabase E2E path as `develop`
   (`example.supabase.co`, zero-config bypass). They do **not** inherit
   `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
   and `e2e-gate`.
@@ -48,23 +48,22 @@ bun run ci:preflight
 
 `ci:preflight` runs the same gate order as `.github/workflows/ci.yml`:
 
-1. `verify:git-attribution`
-2. `format:check`
-3. `skills:verify`
-4. `verify:phase25-spec`
-5. `openspec:validate`
-6. `verify:openspec-deltas`
-7. `lint`
-8. `verify:data-boundary`
-9. `verify:cms-public-sole-entry`
-10. `verify:workspace-contract`
-11. `verify:bun-lock-drift`
-12. `verify:eslint`
-13. `verify:shadcn-config`
-14. `verify:shadcn-diff`
-15. `typecheck`
-16. `build` (with CI-compatible env defaults for local parity)
-17. `test:unit`
+1. `format:check`
+2. `skills:verify`
+3. `verify:phase25-spec`
+4. `openspec:validate`
+5. `verify:openspec-deltas`
+6. `lint`
+7. `verify:data-boundary`
+8. `verify:cms-public-sole-entry`
+9. `verify:workspace-contract`
+10. `verify:bun-lock-drift`
+11. `verify:eslint`
+12. `verify:shadcn-config`
+13. `verify:shadcn-diff`
+14. `typecheck`
+15. `build` (with CI-compatible env defaults for local parity)
+16. `test:unit`
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
@@ -79,26 +78,10 @@ Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage ord
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
 `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` (app unit smoke paths).
 
-The `.husky/pre-push` coordinator reads Git's ref updates once, preserves the
-production guard, and passes the complete outgoing commit set into
-`ci:preflight`. Existing remote history is not attributed to the current
-developer.
-
-`verify:git-attribution` requires exact registered internal tuples on canonical
-pushes, rejects forbidden legacy identities, and preserves attributable external
-authors. Fork pull requests may use external authors and committers without
-granting them canonical push authority. The exact human and automation tuples
-and secure Windows/WSL setup are in `docs/ops/git-attribution.md`.
-
-Remote actor-or-signature verification runs inside the `format` job before
-formatting. Pull requests check the complete event `base..head` graph. Protected
-pushes reject non-fast-forwards and check the first-parent integration spine:
-`develop` requires exact merged-PR provenance, while `production` must already
-be reachable from canonical `develop`. Every protected integration commit must
-be a two-parent GitHub platform merge with a valid `web-flow` signature.
-Signatures and rerun actors are resolved to immutable account IDs; commit-email
-association alone is not proof. The result is inherited by `ci-gate`, not a new
-branch-protection context.
+The `.husky/pre-push` coordinator preserves the production push guard and runs
+normal CI preflight. Commit authors, committers, names, emails, and signatures
+are not development gates. GitHub access authorizes people and approved
+automation; see `docs/ops/github-access.md` for agent command authorization.
 
 ### Production release guard
 
@@ -109,7 +92,7 @@ the production release command:
 bun run release:production
 ```
 
-The release command checks deployment discipline, Git attribution, local CI
+The release command checks deployment discipline, local CI
 preflight, and deployment impact before pushing `HEAD` to `origin/production`.
 Emergency bypasses require an explicit reason:
 
@@ -181,24 +164,12 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `format`
 
-- _What it checks:_ Checks out full history and runs remote
-  `verify:git-attribution` for the event-specific commit scope, then runs
-  `bun run format:check` (Prettier), `bun run skills:verify` (skill mirrors),
-  `bun run verify:phase25-spec` (controlled story projections and source
-  references), `bun run openspec:validate` (strict OpenSpec validation), and
-  `bun run verify:openspec-deltas` (read-only applicability to durable specs).
-- _Why it exists:_ Rejects unproven registered identity claims, forbidden event
-  principals and unresolvable GitHub metadata inside `ci-gate`, then prevents
-  formatting, mirror and specification drift. Phase 25's
-  [authoring boundary](prds/sitestacker-parity/phase-25-donor-dashboard-depth/README.md#authoring-and-generated-views)
-  keeps one story source and one task writer.
-- _Debug locally:_ Run `bun run verify:git-attribution`, then
-  `bun run format:check`; if needed run `bun run format`. Check mirrors with
-  `bun run skills:verify` (or `bun run skills:sync` for intentional updates).
-  For a Phase 25 story edit, regenerate through its documented renderer and run
-  `bun run verify:phase25-spec`. Finish with `bun run openspec:validate` and
-  `bun run verify:openspec-deltas`. Event-actor and signature proof require CI
-  metadata and GitHub APIs; local success alone does not establish that proof.
+- _What it checks:_ Runs `bun run format:check` (Prettier), `bun run skills:verify`
+  (skill mirrors), `bun run verify:phase25-spec`, `bun run openspec:validate`,
+  and `bun run verify:openspec-deltas`.
+- _Why it exists:_ Prevents formatting, mirror, and specification drift.
+- _Debug locally:_ Run `bun run format:check`; if needed run `bun run format`.
+  Check mirrors with `bun run skills:verify` and run the scoped spec checks.
 
 ### `lint` (needs: `format`)
 
@@ -297,28 +268,26 @@ required. Those two sets must not be conflated.
 
 ### Live required checks
 
-Verified through the GitHub branch-protection API on 2026-08-25:
+Verified through the GitHub branch-protection API on 2026-09-23:
 
 - `develop` uses strict status checks and requires `ci-gate`,
   `e2e-smoke-gate`, `migrate`, and `smoke`.
 - `production` uses strict status checks and requires `ci-gate`, `e2e-gate`,
   `e2e-smoke-gate`, `migrate`, `release-source-gate`, and `smoke`.
 - Both branches enforce administrators and disable force pushes and deletion.
-  `develop` requires one approving review and resolved conversations;
+  `develop` requires zero approving reviews and resolved conversations;
   `production` requires resolved conversations and uses the release path rather
   than a PR-review requirement.
 - `integration-gate` remains a workflow summary job but is not currently a
   required branch-protection context.
-- `release-source-gate` remains required on `production`, although no current
-  workflow file defines that job. Reconcile that drift separately before
-  relying on a production promotion.
+- `release-source-gate` is defined in `ci.yml` for production PRs and verifies
+  that the PR head is already reachable from `develop`.
 - The canonical repository has no `main` branch. Legacy `main: false`
   deployment configuration is a deny-only compatibility rule, not evidence of
   a live protected branch.
 
-Attribution remains a step inherited by `ci-gate`; it does not create a new
-required context or grant branch authorization. Changes to live branch
-protection require a separate, explicitly reviewed platform reconciliation.
+Commit metadata is not a CI or branch authorization gate. GitHub access and
+native branch protection control repository writes and merges.
 
 ---
 

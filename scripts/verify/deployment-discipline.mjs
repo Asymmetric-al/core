@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -14,6 +14,36 @@ const DEFAULT_SCOPE = "asymmetric-al";
 const PRODUCTION_BRANCH = "production";
 const DEVELOPMENT_BRANCH = "develop";
 const REQUIRED_BUILD_QUEUE_CONFIGURATION = "WAIT_FOR_NAMESPACE_QUEUE";
+
+export function validateProductionSource({
+  headRepository,
+  headSha,
+  isAncestor,
+}) {
+  return (
+    headRepository === DEFAULT_REPO &&
+    /^[0-9a-f]{40}$/u.test(headSha) &&
+    isAncestor(headSha, "origin/develop")
+  );
+}
+
+function checkProductionSource() {
+  const headSha = process.env.CORE_PR_HEAD_SHA ?? "";
+  const headRepository = process.env.CORE_PR_HEAD_REPOSITORY ?? "";
+  const allowed = validateProductionSource({
+    headRepository,
+    headSha,
+    isAncestor: (commit, ref) =>
+      spawnSync("git", ["merge-base", "--is-ancestor", commit, ref], {
+        stdio: "ignore",
+      }).status === 0,
+  });
+  if (!allowed)
+    throw new Error(
+      "Production source must be a Core commit already reachable from develop.",
+    );
+  console.log("Production source is reachable from develop.");
+}
 
 export const EXPECTED_IGNORE_COMMANDS = Object.freeze({
   admin: "node ../../scripts/vercel/should-ignore-build.mjs admin",
@@ -134,6 +164,7 @@ export function validateGitHubBranchProtection({
   branch,
   protection,
   branchRule,
+  requiredApprovingReviewCount = 1,
   requiredContexts,
   forbiddenContexts = [],
 }) {
@@ -186,8 +217,8 @@ export function validateGitHubBranchProtection({
     protection?.required_pull_request_reviews?.required_approving_review_count;
   requireCheck(
     checks,
-    typeof reviewCount === "number" && reviewCount >= 1,
-    `${branch} keeps review discipline`,
+    (reviewCount ?? null) === requiredApprovingReviewCount,
+    `${branch} requires ${requiredApprovingReviewCount ?? "no"} approving reviews`,
     `required_approving_review_count=${reviewCount ?? "unknown"}`,
   );
   requireCheck(
@@ -350,6 +381,10 @@ Options:
 }
 
 async function main() {
+  if (process.argv.includes("--production-source")) {
+    checkProductionSource();
+    return;
+  }
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     printHelp();
@@ -371,8 +406,8 @@ async function main() {
     const defaultBranch = readDefaultBranch(args.repo);
     requireCheck(
       checks,
-      defaultBranch === PRODUCTION_BRANCH,
-      `GitHub default branch is ${PRODUCTION_BRANCH}`,
+      defaultBranch === DEVELOPMENT_BRANCH,
+      `GitHub default branch is ${DEVELOPMENT_BRANCH}`,
       defaultBranch || "<unknown>",
     );
 
@@ -384,8 +419,15 @@ async function main() {
           args.repo,
           PRODUCTION_BRANCH,
         ),
-        requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
-        forbiddenContexts: ["e2e-smoke-gate", "release-source-gate"],
+        requiredApprovingReviewCount: null,
+        requiredContexts: [
+          "ci-gate",
+          "e2e-gate",
+          "e2e-smoke-gate",
+          "migrate",
+          "release-source-gate",
+          "smoke",
+        ],
       }),
     );
     checks.push(
@@ -396,12 +438,9 @@ async function main() {
           args.repo,
           DEVELOPMENT_BRANCH,
         ),
-        requiredContexts: ["ci-gate", "integration-gate"],
-        forbiddenContexts: [
-          "e2e-gate",
-          "e2e-smoke-gate",
-          "release-source-gate",
-        ],
+        requiredApprovingReviewCount: 0,
+        requiredContexts: ["ci-gate", "e2e-smoke-gate", "migrate", "smoke"],
+        forbiddenContexts: ["e2e-gate", "release-source-gate"],
       }),
     );
 

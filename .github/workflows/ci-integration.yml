@@ -2,10 +2,6 @@ name: CI Integration
 
 on:
   pull_request:
-    branches:
-      - develop
-      - production
-      - "cursor/**"
   push:
     branches: [develop, production]
 
@@ -274,7 +270,7 @@ jobs:
       SKIP_ENV_VALIDATION: "1"
       E2E_AUTH_BYPASS: "true"
       # Required secrets for the datasource-bound bypass against the hosted demo project.
-      # Non-production PRs (develop and stacked cursor/*) switch to the example
+      # Non-production PRs switch to the example
       # placeholder before app startup below. Production PRs keep hosted secrets.
       #   E2E_AUTH_SECRET                 — HMAC signing key shared by producer + verifiers
       #   E2E_AUTH_ALLOWED_SUPABASE_REFS  — project ref of the demo Supabase project (never prod)

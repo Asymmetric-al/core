@@ -29,7 +29,6 @@ unless the repo is in a release-ready state:
 - current branch is `develop` or `production`
 - working tree is clean
 - deployment discipline verifier passes
-- Git attribution verifier passes
 - full local `ci:preflight` passes
 - deployment impact is summarized before pushing `HEAD` to `origin/production`
 

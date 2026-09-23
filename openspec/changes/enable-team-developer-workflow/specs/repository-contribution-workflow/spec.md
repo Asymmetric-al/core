@@ -1,3 +1,5 @@
+> Superseded by `../../../retire-git-attribution/specs/repository-contribution-workflow/spec.md`; attribution requirements below are historical proposed text.
+
 ## Purpose
 
 Defines how trusted team developers, approved automation, GitHub platform

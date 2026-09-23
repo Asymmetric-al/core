@@ -169,7 +169,6 @@ async function main() {
     "run",
     "verify:deployment-discipline",
   ]);
-  runGate("verify git attribution", "bun", ["run", "verify:git-attribution"]);
   runGate("run CI preflight", "bun", ["run", "ci:preflight"]);
 
   const changedFiles = readChangedFiles(args.remote);
