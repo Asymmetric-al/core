@@ -621,12 +621,14 @@ function DraftCard({
 }
 
 type ComposeMediaItem = { url: string; type: string };
+type ComposePendingAction = "draft" | "publish" | null;
 
 interface ComposeCardState {
   postContent: string;
   postType: string;
   visibility: Visibility;
   isPublishing: boolean;
+  pendingAction: ComposePendingAction;
   selectedMedia: ComposeMediaItem[];
   isUploading: boolean;
 }
@@ -635,7 +637,7 @@ type ComposeCardAction =
   | { type: "set-content"; value: string }
   | { type: "set-post-type"; value: string }
   | { type: "set-visibility"; value: Visibility }
-  | { type: "set-publishing"; value: boolean }
+  | { type: "set-pending-action"; value: ComposePendingAction }
   | { type: "set-uploading"; value: boolean }
   | { type: "add-media"; item: ComposeMediaItem }
   | { type: "remove-media"; item: ComposeMediaItem }
@@ -664,6 +666,7 @@ const buildInitialComposeState = (
   postType: sourcePost?.post_type || "Announcement",
   visibility: sourcePost?.visibility || "public",
   isPublishing: false,
+  pendingAction: null,
   selectedMedia: dedupeComposeMedia(sourcePost?.media),
   isUploading: false,
 });
@@ -679,8 +682,12 @@ function composeCardReducer(
       return { ...state, postType: action.value };
     case "set-visibility":
       return { ...state, visibility: action.value };
-    case "set-publishing":
-      return { ...state, isPublishing: action.value };
+    case "set-pending-action":
+      return {
+        ...state,
+        isPublishing: action.value !== null,
+        pendingAction: action.value,
+      };
     case "set-uploading":
       return { ...state, isUploading: action.value };
     case "add-media":
@@ -712,9 +719,11 @@ function composeCardReducer(
         postContent: "",
         selectedMedia: [],
         isPublishing: false,
+        pendingAction: null,
       };
     default:
-      return state;
+      const exhaustiveAction: never = action;
+      return exhaustiveAction;
   }
 }
 
@@ -776,10 +785,11 @@ function ComposeCardTypeSelector({
   );
 }
 
-function ComposeCardActions({
+export function ComposeCardActions({
   selectedMedia,
   isUploading,
   isPublishing,
+  pendingAction,
   visibility,
   isDisabled,
   onAddMedia,
@@ -791,6 +801,7 @@ function ComposeCardActions({
   selectedMedia: ComposeMediaItem[];
   isUploading: boolean;
   isPublishing: boolean;
+  pendingAction: ComposePendingAction;
   visibility: Visibility;
   isDisabled: boolean;
   onAddMedia: () => void;
@@ -918,7 +929,7 @@ function ComposeCardActions({
             variant="outline"
             size="sm"
             disabled={isDisabled}
-            focusableWhenDisabled={isPublishing}
+            focusableWhenDisabled={pendingAction === "draft"}
             className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
@@ -936,7 +947,7 @@ function ComposeCardActions({
             aria-label="Publish update"
             size="sm"
             disabled={isDisabled}
-            focusableWhenDisabled={isPublishing}
+            focusableWhenDisabled={pendingAction === "publish"}
             className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (
@@ -971,6 +982,7 @@ function ComposeCard({
     postType,
     visibility,
     isPublishing,
+    pendingAction,
     selectedMedia,
     isUploading,
   } = composeState;
@@ -978,7 +990,7 @@ function ComposeCard({
   const handlePublish = async () => {
     if (isPostContentEmpty(postContent)) return;
 
-    dispatchCompose({ type: "set-publishing", value: true });
+    dispatchCompose({ type: "set-pending-action", value: "publish" });
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     onSave({
@@ -998,7 +1010,7 @@ function ComposeCard({
   const handleSaveDraft = async () => {
     if (isPostContentEmpty(postContent)) return;
 
-    dispatchCompose({ type: "set-publishing", value: true });
+    dispatchCompose({ type: "set-pending-action", value: "draft" });
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     onSave({
@@ -1083,6 +1095,7 @@ function ComposeCard({
                   selectedMedia={selectedMedia}
                   isUploading={isUploading}
                   isPublishing={isPublishing}
+                  pendingAction={pendingAction}
                   visibility={visibility}
                   isDisabled={isDisabled}
                   onAddMedia={handleAddMedia}
