@@ -143,6 +143,7 @@ export function toPartnerSafeDonor(donor: Donor): Donor {
     notes: undefined,
     tags: [],
     activities: [],
+    recurring_donations: [],
     is_anonymous: true,
   };
 }

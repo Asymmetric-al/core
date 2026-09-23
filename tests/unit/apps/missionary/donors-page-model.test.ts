@@ -277,6 +277,12 @@ describe("donors page model helpers", () => {
       tags: ["vip"],
       spouse: "Hidden Spouse",
       is_anonymous: true,
+      recurring_donations: [
+        createRecurringDonation({
+          amount: 100,
+          payment_method: "Visa ending in 4242",
+        }),
+      ],
       total_given: 500,
       status: "Active",
       has_active_pledge: true,
@@ -301,6 +307,7 @@ describe("donors page model helpers", () => {
     expect(safe.spouse).toBeUndefined();
     expect(safe.tags).toEqual([]);
     expect(safe.activities).toEqual([]);
+    expect(safe.recurring_donations).toEqual([]);
     expect(safe.total_given).toBe(500);
     expect(safe.status).toBe("Active");
     expect(safe.has_active_pledge).toBe(true);
