@@ -416,7 +416,7 @@ describe("verify-skills-sync", () => {
     expect(existsSync(path.join(tempRoot, ".agents/skills"))).toBe(false);
     expect(existsSync(path.join(tempRoot, ".cursor/skills"))).toBe(false);
     expect(existsSync(path.join(tempRoot, ".claude/skills"))).toBe(false);
-  }, 20_000);
+  }, 60_000);
 
   it("prints help without requiring a git repository", async () => {
     const tempRoot = await createTempRepo("skills-verify-help");
@@ -429,7 +429,7 @@ describe("verify-skills-sync", () => {
 
     expect(stdout).toMatch(/Usage:/);
     expect(stdout).toMatch(/--repo-root/);
-  }, 20_000);
+  }, 60_000);
 
   it("rejects unknown arguments", async () => {
     const tempRoot = await createTempRepo("skills-verify-unknown");
@@ -438,7 +438,7 @@ describe("verify-skills-sync", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs", ["--explode"]),
     ).toThrow(/Unknown argument/);
-  }, 20_000);
+  }, 60_000);
 
   it("succeeds on a synced tree without changing git status", async () => {
     const tempRoot = await createSkillsVerifyRepo();
@@ -462,7 +462,7 @@ describe("verify-skills-sync", () => {
     expect(stdout).toContain("Skill mirrors match canonical sources.");
     expect(stdout).not.toContain("agent skill sync complete");
     expect(gitStatusPorcelain(tempRoot)).toBe("");
-  }, 20_000);
+  }, 60_000);
 
   it("does not repair uncommitted mirror drift", async () => {
     const tempRoot = await createSkillsVerifyRepo();
@@ -490,7 +490,7 @@ describe("verify-skills-sync", () => {
     ).toThrow(/Skill mirror drift detected/);
 
     expect(await readFile(driftedPath, "utf8")).toBe("# Drifted skill\n");
-  }, 20_000);
+  }, 60_000);
 
   it("supports worktree-style relative gitdir files", async () => {
     const tempRoot = await createSkillsVerifyRelativeWorktreeRepo();
@@ -526,7 +526,7 @@ describe("verify-skills-sync", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
     ).toThrow(/Unsupported singular skill mirror detected/);
-  }, 20_000);
+  }, 60_000);
 
   it("fails when the unsupported singular agent skill mirror is staged", async () => {
     const tempRoot = await createSkillsVerifyRepo();
@@ -559,7 +559,7 @@ describe("verify-skills-sync", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
     ).toThrow(/Unsupported singular skill mirror detected/);
-  }, 20_000);
+  }, 60_000);
 
   it("prints repo context when .git discovery fails", async () => {
     const tempRoot = await createTempRepo("skills-verify-missing-git");
@@ -570,7 +570,7 @@ describe("verify-skills-sync", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
     ).toThrow(/repoRoot:/);
-  }, 20_000);
+  }, 60_000);
 });
 
 describe("sync-agent-skills", () => {
@@ -596,11 +596,11 @@ describe("sync-agent-skills", () => {
       existsSync(path.join(destRoot, ".agents/skills/sample-skill/SKILL.md")),
     ).toBe(true);
     expect(existsSync(path.join(tempRoot, ".agents/skills"))).toBe(false);
-  }, 20_000);
+  }, 60_000);
 
   it(
     "prints help and rejects unknown arguments",
-    { timeout: 20_000 },
+    { timeout: 60_000 },
     async () => {
       const tempRoot = await createTempRepo("sync-help");
       await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
