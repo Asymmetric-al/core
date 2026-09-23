@@ -4,9 +4,10 @@
 
 The Skills CLI installs ecosystem skills into `.agents/skills/`, while Core
 authors durable skill guidance in `docs/ai/skills/` and generates three runtime
-mirrors. The live upstream pack at
-`7bb7061b5cf7de15ea1aeaf00fbd9e6592a20fce` contains five skills and eight
-upstream files. Two skills require companion Markdown files.
+mirrors. The reviewed upstream pack at
+`85e8e2363b713506e1d5b6e07a0eb2da66be1bc3` is vendored as the twelve
+canonical slugs in `docs/ai/rules/agent-skill-routing.md`. Upstream
+`prototype` is stored as `emil-prototype`.
 
 ## Decisions
 
@@ -49,7 +50,7 @@ and provenance, then `bun run skills:sync` and `bun run skills:verify`.
 
 ## Verification
 
-- Assert the five expected lock entries and source paths.
+- Assert the vendored pack's lock entries and source paths.
 - Assert valid frontmatter and local companion-file references.
 - Assert recursive content equality across canonical, Codex, Cursor, and
   Claude Code copies.
