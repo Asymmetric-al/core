@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
 
@@ -65,35 +65,6 @@ vi.mock("next/dynamic", () => ({
     },
 }));
 
-vi.mock("@asym/ui/components/shadcn/button", async () => {
-  const ReactModule = await import("react");
-
-  return {
-    Button: ({
-      children,
-      disabled,
-      focusableWhenDisabled,
-      ...props
-    }: React.PropsWithChildren<
-      React.ButtonHTMLAttributes<HTMLButtonElement> & {
-        focusableWhenDisabled?: boolean;
-      }
-    >) =>
-      ReactModule.createElement(
-        "button",
-        {
-          type: "button",
-          "aria-disabled":
-            disabled && focusableWhenDisabled ? "true" : undefined,
-          disabled: disabled && !focusableWhenDisabled,
-          ...props,
-        },
-        children,
-      ),
-    buttonVariants: () => "",
-  };
-});
-
 vi.mock("@asym/ui/components/shadcn/dropdown-menu", async () => {
   const ReactModule = await import("react");
 
@@ -145,7 +116,16 @@ const renderActions = (
   );
 
 it("keeps only publish focusable during a pending publish", () => {
-  renderActions({ pendingAction: "publish" });
+  const onPublish = vi.fn();
+  const onSaveDraft = vi.fn();
+  renderActions({ pendingAction: "publish", onPublish, onSaveDraft });
+  const publishButton = screen.getByRole("button", { name: "Publish update" });
+  publishButton.focus();
+  expect(document.activeElement).toBe(publishButton);
+  fireEvent.click(publishButton);
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  expect(onPublish).not.toHaveBeenCalled();
+  expect(onSaveDraft).not.toHaveBeenCalled();
 
   expect(screen.getByRole("button", { name: "Publish update" })).toHaveProperty(
     "disabled",
@@ -163,7 +143,16 @@ it("keeps only publish focusable during a pending publish", () => {
 });
 
 it("keeps only draft focusable during a pending draft save", () => {
-  renderActions({ pendingAction: "draft" });
+  const onPublish = vi.fn();
+  const onSaveDraft = vi.fn();
+  renderActions({ pendingAction: "draft", onPublish, onSaveDraft });
+  const draftButton = screen.getByRole("button", { name: "Save draft" });
+  draftButton.focus();
+  expect(document.activeElement).toBe(draftButton);
+  fireEvent.click(draftButton);
+  fireEvent.click(screen.getByRole("button", { name: "Publish update" }));
+  expect(onPublish).not.toHaveBeenCalled();
+  expect(onSaveDraft).not.toHaveBeenCalled();
 
   expect(screen.getByRole("button", { name: "Save draft" })).toHaveProperty(
     "disabled",

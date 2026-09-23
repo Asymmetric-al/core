@@ -125,6 +125,7 @@ export function DataGridCell({
         ]}
         value={String(value ?? "")}
         onValueChange={(val) => {
+          if (val === null) return;
           onChange(val);
           onEndEdit();
         }}

@@ -1061,10 +1061,7 @@ function PaymentStep({
               : `Confirm ${formatCurrency(total)}`}
           </span>
           {isProcessing ? (
-            <Loader2
-              className="animate-spin size-8"
-              aria-label="Processing payment"
-            />
+            <Loader2 className="animate-spin size-8" aria-hidden="true" />
           ) : (
             `Confirm ${formatCurrency(total)}`
           )}

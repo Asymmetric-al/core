@@ -48,9 +48,9 @@ export function AutomationConditionRow({
           })),
         ]}
         value={condition.kind}
-        onValueChange={(value) =>
-          handleKindChange(value as SupportAutomationCondition["kind"])
-        }
+        onValueChange={(value) => {
+          if (value !== null) handleKindChange(value);
+        }}
       >
         <SelectTrigger
           aria-label="Condition type"

@@ -1350,19 +1350,20 @@ export function ContentModerationTabsSection({
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Select
+              <Select<SortOption>
                 items={[
                   { value: "newest", label: "Newest" },
                   { value: "oldest", label: "Oldest" },
                   { value: "engagement", label: "Engagement" },
                 ]}
                 value={sortBy}
-                onValueChange={(value) =>
+                onValueChange={(value) => {
+                  if (value === null) return;
                   dispatchUi({
                     type: "set_sort_by",
-                    value: value as SortOption,
-                  })
-                }
+                    value,
+                  });
+                }}
               >
                 <SelectTrigger
                   aria-label="Sort content"

@@ -114,9 +114,9 @@ export function MacroActionEditor({
                   })),
                 ]}
                 value={action.kind}
-                onValueChange={(value) =>
-                  handleKindChange(index, value as SupportMacroAction["kind"])
-                }
+                onValueChange={(value) => {
+                  if (value !== null) handleKindChange(index, value);
+                }}
               >
                 <SelectTrigger
                   aria-label={`Action ${index + 1} type`}
@@ -142,15 +142,13 @@ export function MacroActionEditor({
                     })),
                   ]}
                   value={action.status}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    if (value === null) return;
                     handlePatch(index, {
                       kind: "set_status",
-                      status: value as Extract<
-                        SupportMacroAction,
-                        { kind: "set_status" }
-                      >["status"],
-                    })
-                  }
+                      status: value,
+                    });
+                  }}
                 >
                   <SelectTrigger
                     aria-label={`Action ${index + 1} status`}
@@ -177,15 +175,13 @@ export function MacroActionEditor({
                     })),
                   ]}
                   value={action.priority}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    if (value === null) return;
                     handlePatch(index, {
                       kind: "set_priority",
-                      priority: value as Extract<
-                        SupportMacroAction,
-                        { kind: "set_priority" }
-                      >["priority"],
-                    })
-                  }
+                      priority: value,
+                    });
+                  }}
                 >
                   <SelectTrigger
                     aria-label={`Action ${index + 1} priority`}

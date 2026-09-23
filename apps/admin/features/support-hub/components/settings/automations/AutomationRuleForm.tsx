@@ -164,9 +164,9 @@ export function AutomationRuleForm({
             })),
           ]}
           value={trigger}
-          onValueChange={(value) =>
-            setTrigger(value as SupportAutomationRule["trigger"])
-          }
+          onValueChange={(value) => {
+            if (value !== null) setTrigger(value);
+          }}
         >
           <SelectTrigger
             aria-label="Trigger"

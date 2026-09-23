@@ -30,7 +30,7 @@ const STATUS_LABELS: Record<StatusFilterValue, string> = {
 
 export function StatusFilter({ value, onValueChange }: StatusFilterProps) {
   return (
-    <Select
+    <Select<StatusFilterValue>
       items={[
         { value: "all", label: STATUS_LABELS.all },
         ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
@@ -39,7 +39,9 @@ export function StatusFilter({ value, onValueChange }: StatusFilterProps) {
         })),
       ]}
       value={value}
-      onValueChange={(next) => onValueChange(next as StatusFilterValue)}
+      onValueChange={(next) => {
+        if (next !== null) onValueChange(next);
+      }}
     >
       <SelectTrigger
         aria-label="Status filter"

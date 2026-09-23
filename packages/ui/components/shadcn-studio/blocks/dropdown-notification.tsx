@@ -59,24 +59,24 @@ const NotificationDropdown = ({
                   8 New
                 </Badge>
               </div>
-              <div className="-mb-0.5 flex items-center justify-between gap-4">
-                <TabsList className="relative h-fit rounded-none bg-transparent p-0">
-                  <TabsTrigger
-                    value="inbox"
-                    className="data-active:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-active:bg-transparent data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-transparent"
-                  >
-                    Inbox
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="general"
-                    className="data-active:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-active:bg-transparent data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-transparent"
-                  >
-                    General
-                  </TabsTrigger>
-                </TabsList>
-                <SettingsIcon className="size-5" />
-              </div>
             </DropdownMenuLabel>
+            <div className="-mb-0.5 flex items-center justify-between gap-4 px-2">
+              <TabsList className="relative h-fit rounded-none bg-transparent p-0">
+                <TabsTrigger
+                  value="inbox"
+                  className="data-active:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-active:bg-transparent data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-transparent"
+                >
+                  Inbox
+                </TabsTrigger>
+                <TabsTrigger
+                  value="general"
+                  className="data-active:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-active:bg-transparent data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-transparent"
+                >
+                  General
+                </TabsTrigger>
+              </TabsList>
+              <SettingsIcon className="size-5" />
+            </div>
 
             <DropdownMenuSeparator className="mt-0 h-0.5" />
 

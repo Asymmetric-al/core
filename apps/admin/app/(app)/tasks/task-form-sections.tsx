@@ -543,7 +543,7 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
 
                         <form.Field name={`reminders[${index}].type`}>
                           {(field) => (
-                            <Select
+                            <Select<TaskFormReminder["type"]>
                               items={[
                                 {
                                   value: "notification",
@@ -557,11 +557,9 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
                                   field.handleBlur();
                                 }
                               }}
-                              onValueChange={(value) =>
-                                field.handleChange(
-                                  value as TaskFormReminder["type"],
-                                )
-                              }
+                              onValueChange={(value) => {
+                                if (value !== null) field.handleChange(value);
+                              }}
                               value={field.state.value || "notification"}
                             >
                               <SelectTrigger

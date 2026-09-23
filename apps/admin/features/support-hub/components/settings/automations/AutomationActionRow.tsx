@@ -57,9 +57,9 @@ export function AutomationActionRow({
           })),
         ]}
         value={action.kind}
-        onValueChange={(value) =>
-          handleKindChange(value as SupportAutomationAction["kind"])
-        }
+        onValueChange={(value) => {
+          if (value !== null) handleKindChange(value);
+        }}
       >
         <SelectTrigger
           aria-label="Action type"
@@ -142,17 +142,13 @@ export function AutomationActionRow({
             })),
           ]}
           value={action.priority}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             onChange({
               kind: "set_priority",
-              priority: value as SupportAutomationAction extends {
-                kind: "set_priority";
-                priority: infer P;
-              }
-                ? P
-                : never,
-            })
-          }
+              priority: value,
+            });
+          }}
         >
           <SelectTrigger
             aria-label="Priority"
@@ -179,17 +175,13 @@ export function AutomationActionRow({
             })),
           ]}
           value={action.status}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             onChange({
               kind: "set_status",
-              status: value as SupportAutomationAction extends {
-                kind: "set_status";
-                status: infer S;
-              }
-                ? S
-                : never,
-            })
-          }
+              status: value,
+            });
+          }}
         >
           <SelectTrigger
             aria-label="Status"

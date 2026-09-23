@@ -260,7 +260,9 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
                   field.handleBlur();
                 }
               }}
-              onValueChange={(value) => field.handleChange(value as TaskType)}
+              onValueChange={(value) => {
+                if (value !== null) field.handleChange(value);
+              }}
               value={field.state.value}
             >
               <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
@@ -324,7 +326,9 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
                 field.handleBlur();
               }
             }}
-            onValueChange={(value) => field.handleChange(value as TaskPriority)}
+            onValueChange={(value) => {
+              if (value !== null) field.handleChange(value);
+            }}
             value={field.state.value}
           >
             <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
@@ -427,7 +431,9 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
                 field.handleBlur();
               }
             }}
-            onValueChange={(value) => field.handleChange(value as TaskStatus)}
+            onValueChange={(value) => {
+              if (value !== null) field.handleChange(value);
+            }}
             value={field.state.value}
           >
             <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">

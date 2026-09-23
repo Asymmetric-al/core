@@ -29,25 +29,29 @@ function walkFiles(directory: string): string[] {
 }
 
 describe("Base UI overlay consumer semantics", () => {
-  it("keeps every dropdown label in the group that owns its section", () => {
+  it("keeps every menu label in the group that owns its section", () => {
     const invalid: string[] = [];
     for (const file of [...walkFiles("apps"), ...walkFiles("packages")]) {
       if (file.endsWith("/menubar.tsx")) continue;
       const source = parse(file);
       function visit(node: ts.Node) {
-        if (
-          (ts.isJsxElement(node) &&
-            node.openingElement.tagName.getText(source) ===
-              "DropdownMenuLabel") ||
-          (ts.isJsxSelfClosingElement(node) &&
-            node.tagName.getText(source) === "DropdownMenuLabel")
-        ) {
+        const opening = ts.isJsxElement(node)
+          ? node.openingElement
+          : ts.isJsxSelfClosingElement(node)
+            ? node
+            : null;
+        const family = opening
+          ? /^(DropdownMenu|ContextMenu|Menubar)Label$/.exec(
+              opening.tagName.getText(source),
+            )?.[1]
+          : undefined;
+        if (family) {
           let parent: ts.Node | undefined = node.parent;
           while (
             parent &&
             !(
               ts.isJsxElement(parent) &&
-              ["DropdownMenuGroup", "DropdownMenuRadioGroup"].includes(
+              [`${family}Group`, `${family}RadioGroup`].includes(
                 parent.openingElement.tagName.getText(source),
               )
             )
@@ -55,9 +59,9 @@ describe("Base UI overlay consumer semantics", () => {
             parent = parent.parent;
           if (
             !parent ||
-            !/<DropdownMenu(?:Item|CheckboxItem|RadioItem|SubTrigger)\b/.test(
-              parent.getText(source),
-            )
+            !new RegExp(
+              `<${family}(?:Item|CheckboxItem|RadioItem|SubTrigger)\\b`,
+            ).test(parent.getText(source))
           )
             invalid.push(
               `${file}:${source.getLineAndCharacterOfPosition(node.getStart()).line + 1}`,

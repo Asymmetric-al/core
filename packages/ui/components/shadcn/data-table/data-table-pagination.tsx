@@ -87,6 +87,12 @@ function DataTablePaginationImpl<TData extends RowData>({
   // Minimal table doubles in tests have no slice atoms; fall back to the
   // wrapper snapshot, which is current for a non-memoized double.
   const pagination = subscribedPagination ?? table.state.pagination;
+  const availablePageSizes =
+    pageSizes.includes(pagination.pageSize) ||
+    !Number.isInteger(pagination.pageSize) ||
+    pagination.pageSize <= 0
+      ? pageSizes
+      : [pagination.pageSize, ...pageSizes];
 
   return (
     <div
@@ -108,14 +114,18 @@ function DataTablePaginationImpl<TData extends RowData>({
         <div className="flex items-center gap-2">
           <Select
             items={[
-              ...pageSizes.map((pageSize) => ({
+              ...availablePageSizes.map((pageSize) => ({
                 value: `${pageSize}`,
                 label: pageSize,
               })),
             ]}
             value={`${pagination.pageSize}`}
             onValueChange={(value) => {
-              table.setPageSize(Number(value));
+              if (value === null) return;
+              const nextPageSize = Number(value);
+              if (Number.isInteger(nextPageSize) && nextPageSize > 0) {
+                table.setPageSize(nextPageSize);
+              }
             }}
             disabled={urlStatePending}
           >
@@ -126,7 +136,7 @@ function DataTablePaginationImpl<TData extends RowData>({
               <SelectValue placeholder={pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top" className="rounded-xl">
-              {pageSizes.map((pageSize) => (
+              {availablePageSizes.map((pageSize) => (
                 <SelectItem
                   key={pageSize}
                   value={`${pageSize}`}

@@ -80,16 +80,16 @@ export function ReportFilters({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Select
+          <Select<typeof state.groupBy>
             items={[
               { value: "day", label: "Day" },
               { value: "week", label: "Week" },
               { value: "month", label: "Month" },
             ]}
             value={state.groupBy}
-            onValueChange={(value) =>
-              setState({ groupBy: value as typeof state.groupBy })
-            }
+            onValueChange={(value) => {
+              if (value !== null) setState({ groupBy: value });
+            }}
           >
             <SelectControlLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
               Group by

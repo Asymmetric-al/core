@@ -58,7 +58,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
     <div className="flex items-end gap-2">
       {!lockKind ? (
         <div className="flex flex-col gap-1.5">
-          <Select
+          <Select<SupportReportScopeKind>
             items={[
               { value: "all", label: "All" },
               { value: "inbox", label: "Inbox" },
@@ -67,12 +67,13 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
               { value: "label", label: "Label" },
             ]}
             value={state.scopeKind}
-            onValueChange={(value) =>
+            onValueChange={(value) => {
+              if (value === null) return;
               setState({
-                scopeKind: value as SupportReportScopeKind,
+                scopeKind: value,
                 scopeId: "",
-              })
-            }
+              });
+            }}
           >
             <SelectControlLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
               Scope

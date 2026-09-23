@@ -197,7 +197,7 @@ export function LocationEditor({
                     Marker Type
                   </FieldPrimitive.Label>
                   <FieldContent>
-                    <Select
+                    <Select<LocationFormValues["type"]>
                       items={[
                         { value: "missionary", label: "Missionary" },
                         { value: "project", label: "Project" },
@@ -208,9 +208,9 @@ export function LocationEditor({
                           field.handleBlur();
                         }
                       }}
-                      onValueChange={(value) =>
-                        field.handleChange(value as LocationFormValues["type"])
-                      }
+                      onValueChange={(value) => {
+                        if (value !== null) field.handleChange(value);
+                      }}
                       value={field.state.value}
                     >
                       <SelectTrigger

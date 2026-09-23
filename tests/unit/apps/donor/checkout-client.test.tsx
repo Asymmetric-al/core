@@ -572,6 +572,9 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(screen.getByRole("button", { name: "Processing payment" })).toBe(
       paymentButton,
     );
+    expect(screen.getAllByLabelText("Processing payment")).toEqual([
+      paymentButton,
+    ]);
     fireEvent.click(paymentButton);
     expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
     expect(fetchMock()).toHaveBeenCalledTimes(1);
