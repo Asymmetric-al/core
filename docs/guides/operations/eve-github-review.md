@@ -9,6 +9,7 @@ release as part of setup.
 Grant the smallest repository permission set for #430:
 
 - Metadata: read (implicit GitHub App repository metadata)
+- Organization members: read (active, including private, membership lookup)
 - Contents: read (PR ref and base checkout)
 - Pull requests: write (one `COMMENT` review containing summary and inline
   findings)
@@ -35,6 +36,15 @@ App credentials are the supported fallback through server-only values:
 - `GITHUB_APP_SLUG` (or `EVE_GITHUB_APP_SLUG` as the display override)
 - `EVE_GITHUB_TENANT_ID`
 - `EVE_GITHUB_ACTOR_PROFILE_ID`
+- `EVE_APPROVED_COMMAND_APP_IDS` (optional numeric App IDs; empty denies bot
+  comment commands)
+
+The repository permission lookup uses `Metadata: read`; the organization
+membership lookup requires `Members: read`. If either lookup is unavailable,
+the triggering command fails closed before a model turn. App IDs come from
+GitHub's signed `performed_via_github_app` event metadata, never a bot name.
+Earlier comments, diff text, CI logs, and fetched documents stay untrusted
+source material when a member invokes Eve on a thread.
 
 The tenant and profile IDs must identify the platform-owned profile whose
 policy budget is charged. They never replace the verified GitHub sender: every

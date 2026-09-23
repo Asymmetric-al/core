@@ -22,20 +22,55 @@ const runtimePath = path.resolve(
 );
 
 describe("Eve runtime GitHub operator", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("allows only a configured App identity carried from signed event auth", async () => {
+    vi.stubEnv("EVE_APPROVED_COMMAND_APP_IDS", "1234");
+    const current = {
+      attributes: {
+        authorized_app_id: "1234",
+        authorized_app_slug: "approved-app",
+        delivery_id: "delivery-bot",
+        installation_id: "42",
+        repository: "Asymmetric-al/core",
+        session_purpose: "github_operator_maintenance",
+        user_login: "approved-app[bot]",
+        user_type: "Bot",
+      },
+      authenticator: "github-webhook",
+      principalId: "github:99",
+    };
+    const resolve = githubOperatorDefinition.events["step.started"];
+    const context = { session: { auth: { current } } };
+    expect(await resolve({} as never, context as never)).toMatchObject({
+      description: expect.stringContaining("governed, issue-first"),
+    });
+    current.attributes.authorized_app_id = "4321";
+    expect(await resolve({} as never, context as never)).toBeNull();
+  });
 
   it("is dynamically scoped to authorized Core GitHub senders", async () => {
     const source = await readFile(operatorPath, "utf8");
     expect(source).toContain("defineDynamic");
     expect(source).toContain('auth?.authenticator !== "github-webhook"');
     expect(source).toContain('repository !== "Asymmetric-al/core"');
-    expect(source).toContain("collaborators/");
+    expect(source).toContain("authorizeEveGithubActor");
     expect(source).toContain("return null");
 
     let permission = "read";
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (url: string) =>
       Promise.resolve(
-        new Response(JSON.stringify({ permission }), { status: 200 }),
+        new Response(
+          JSON.stringify(
+            url.includes("/memberships/")
+              ? { state: "active", user: { id: 42 } }
+              : { permission },
+          ),
+          { status: 200 },
+        ),
       ),
     );
     vi.stubGlobal("fetch", fetchMock);
@@ -50,6 +85,7 @@ describe("Eve runtime GitHub operator", () => {
               repository: "Asymmetric-al/core",
               session_purpose: "github_review",
               user_login: "external-contributor",
+              user_type: "User",
             },
             authenticator: "github-webhook",
             principalId: "github:42",
@@ -83,9 +119,14 @@ describe("Eve runtime GitHub operator", () => {
         productDirection: false,
       }).success,
     ).toBe(false);
-    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
-      "/repos/Asymmetric-al/core/collaborators/external-contributor/permission",
-    );
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      expect.stringContaining(
+        "/orgs/Asymmetric-al/memberships/external-contributor",
+      ),
+      expect.stringContaining(
+        "/repos/Asymmetric-al/core/collaborators/external-contributor/permission",
+      ),
+    ]);
   });
 
   it("contains the complete mutation vocabulary without merge", async () => {
