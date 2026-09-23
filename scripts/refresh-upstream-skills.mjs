@@ -2012,8 +2012,11 @@ async function refreshGithubGroups(groups, { focused }) {
       refreshedCount += await refreshGithubGroup(group, lockfile);
     } catch (error) {
       if (focused) {
+        const rollbackIncomplete = isIncompleteSkillRefreshRollbackError(error);
         throw new Error(
-          `Focused upstream refresh for ${group.source} failed without changing canonical skills`,
+          rollbackIncomplete
+            ? `Focused upstream refresh for ${group.source} failed and skill rollback was incomplete`
+            : `Focused upstream refresh for ${group.source} failed without changing canonical skills`,
           { cause: error },
         );
       }
@@ -2156,6 +2159,15 @@ async function prepareSkillRefreshes(sources) {
     );
     throw error;
   }
+}
+
+function isIncompleteSkillRefreshRollbackError(error) {
+  return (
+    error instanceof AggregateError &&
+    (error.message === "Skill refresh rollback failed" ||
+      error.message.startsWith("Failed to restore ") ||
+      error.message.startsWith("Failed to remove partial refresh destination "))
+  );
 }
 
 async function swapPreparedRefresh(preparedRefresh) {
@@ -2329,9 +2341,7 @@ async function main() {
       try {
         await refreshSkillsAtomically(sources);
       } catch (error) {
-        const rollbackIncomplete =
-          error instanceof AggregateError &&
-          error.message === "Skill refresh rollback failed";
+        const rollbackIncomplete = isIncompleteSkillRefreshRollbackError(error);
         throw new Error(
           rollbackIncomplete
             ? `Focused upstream refresh for ${onlySourceGroup} failed and skill rollback was incomplete`

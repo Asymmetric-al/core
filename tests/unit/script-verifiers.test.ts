@@ -1176,6 +1176,271 @@ describe("refresh-upstream-skills", () => {
     ).rejects.toThrow();
   });
 
+  it("reports focused refresh rollback as incomplete when backup restore fails", async () => {
+    const tempRoot = await createTempRepo("refresh-restore-failure");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    await writeFile(
+      copiedScriptPath,
+      copiedScript
+        .replace(
+          "async function renameOnce(fromPath, toPath) {\n",
+          [
+            "async function renameOnce(fromPath, toPath) {",
+            "  if (",
+            '    process.env.CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE === "1" &&',
+            '    fromPath.includes(".emil-design-engineering.refresh-backup-")',
+            "  ) {",
+            '    const error = new Error("simulated backup restore failure");',
+            '    error.code = "EIO";',
+            "    throw error;",
+            "  }",
+            "",
+          ].join("\n"),
+        )
+        .replace(
+          "    await cp(fromPath, toPath, { recursive: true, force: true });",
+          [
+            "    if (",
+            '      process.env.CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE === "1" &&',
+            '      fromPath.includes(".emil-design-engineering.refresh-staging-")',
+            "    ) {",
+            "      await mkdir(toPath, { recursive: true });",
+            '      await writeFile(path.join(toPath, "PARTIAL.md"), "partial\\n");',
+            '      const error = new Error("simulated staging copy failure");',
+            '      error.code = "EIO";',
+            "      throw error;",
+            "    }",
+            "    await cp(fromPath, toPath, { recursive: true, force: true });",
+          ].join("\n"),
+        ),
+    );
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(canonicalRoot, { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n\n# Existing skill\n",
+    );
+
+    let failure: unknown;
+    try {
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=animations.dev"],
+        {
+          HOME: tempRoot,
+          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+          CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE: "1",
+          CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE: "1",
+        },
+      );
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(String(failure)).toContain(
+      "failed and skill rollback was incomplete",
+    );
+    expect(String(failure)).toContain("Failed to restore");
+    expect(String(failure)).not.toContain(
+      "failed without changing canonical skills",
+    );
+    await expect(access(canonicalRoot)).rejects.toThrow();
+  });
+
+  it("reports focused GitHub refresh rollback as incomplete when backup restore fails", async () => {
+    const tempRoot = await createTempRepo("refresh-github-restore-failure");
+    const upstreamRepo = path.join(tempRoot, "upstream");
+    await mkdir(path.join(upstreamRepo, "skills/openspec-explore"), {
+      recursive: true,
+    });
+    await writeFile(path.join(upstreamRepo, "LICENSE"), "MIT\n");
+    await writeFile(
+      path.join(upstreamRepo, "skills/openspec-explore/SKILL.md"),
+      "---\nname: openspec-explore\ndescription: refreshed\n---\n\n# Fresh OpenSpec explore\n",
+    );
+    execSync("git init -b main", {
+      cwd: upstreamRepo,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync('git config user.email "codex@example.com"', {
+      cwd: upstreamRepo,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync('git config user.name "Codex"', {
+      cwd: upstreamRepo,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync("git add .", {
+      cwd: upstreamRepo,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync('git commit -m "init"', {
+      cwd: upstreamRepo,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync("git tag v1.9.0", {
+      cwd: upstreamRepo,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    await writeFile(
+      copiedScriptPath,
+      copiedScript
+        .replace(
+          'repo: "https://github.com/Fission-AI/OpenSpec.git"',
+          `repo: ${JSON.stringify(upstreamRepo)}`,
+        )
+        .replace(
+          "async function renameOnce(fromPath, toPath) {\n",
+          [
+            "async function renameOnce(fromPath, toPath) {",
+            "  if (",
+            '    process.env.CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE === "1" &&',
+            '    fromPath.includes(".openspec-explore.refresh-backup-")',
+            "  ) {",
+            '    const error = new Error("simulated GitHub backup restore failure");',
+            '    error.code = "EIO";',
+            "    throw error;",
+            "  }",
+            "",
+          ].join("\n"),
+        )
+        .replace(
+          "    await cp(fromPath, toPath, { recursive: true, force: true });",
+          [
+            "    if (",
+            '      process.env.CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE === "1" &&',
+            '      fromPath.includes(".openspec-explore.refresh-staging-")',
+            "    ) {",
+            "      await mkdir(toPath, { recursive: true });",
+            '      await writeFile(path.join(toPath, "PARTIAL.md"), "partial\\n");',
+            '      const error = new Error("simulated GitHub staging copy failure");',
+            '      error.code = "EIO";',
+            "      throw error;",
+            "    }",
+            "    await cp(fromPath, toPath, { recursive: true, force: true });",
+          ].join("\n"),
+        ),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/openspec-explore",
+    );
+    await mkdir(canonicalRoot, { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "# Existing OpenSpec explore\n",
+    );
+    await writeJson(path.join(tempRoot, "skills-lock.json"), {
+      version: 1,
+      skills: {
+        "openspec-explore": {
+          source: "Fission-AI/OpenSpec",
+          sourceType: "github",
+          skillPath: "skills/openspec-explore/SKILL.md",
+          computedHash: "stale-hash",
+        },
+      },
+    });
+
+    let failure: unknown;
+    try {
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=Fission-AI/OpenSpec"],
+        {
+          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+          CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE: "1",
+          CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE: "1",
+        },
+      );
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(String(failure)).toContain(
+      "failed and skill rollback was incomplete",
+    );
+    expect(String(failure)).toContain("Failed to restore");
+    expect(String(failure)).not.toContain(
+      "failed without changing canonical skills",
+    );
+    await expect(access(canonicalRoot)).rejects.toThrow();
+  });
+
   it("removes a partial destination when a new skill refresh has no backup", async () => {
     const tempRoot = await createTempRepo("refresh-exdev-partial-no-backup");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
