@@ -40,6 +40,7 @@ export const AuthButton = React.forwardRef<
       loading = false,
       disabled,
       children,
+      type = "button",
       "aria-label": ariaLabel,
       "aria-labelledby": ariaLabelledBy,
       ...props
@@ -47,13 +48,18 @@ export const AuthButton = React.forwardRef<
     ref,
   ) => {
     const labelId = React.useId();
+    // Submit controls must stay natively disabled while loading. Base UI's
+    // focusableWhenDisabled path only sets aria-disabled, so Enter in a field
+    // would still implicit-submit the form. Login and register also ignore a
+    // second call via submissionInFlight; native disabled is the HTML lock.
+    const focusableWhenDisabled = loading && type !== "submit";
     return (
       <Button
         ref={ref}
-        type={props.type ?? "button"}
+        type={type}
         className={cn(authButtonVariants({ variant }), className)}
         disabled={loading || disabled}
-        focusableWhenDisabled={loading}
+        focusableWhenDisabled={focusableWhenDisabled}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy ?? (ariaLabel ? undefined : labelId)}
         {...props}
