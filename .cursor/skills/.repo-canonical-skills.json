@@ -3,12 +3,22 @@
   "canonicalSkills": [
     "accessibility-review",
     "anim",
+    "animate",
+    "animate-expo",
     "animation-vocabulary",
     "apple-design",
     "ask-matt",
+    "ask-sonner",
     "babysit",
     "base-ui",
     "bendc-frontend-guidelines",
+    "better-accessibility",
+    "better-colors",
+    "better-interface",
+    "better-layout",
+    "better-typography",
+    "better-ui",
+    "better-writing",
     "cache-components",
     "check-compiler-errors",
     "code-review",
@@ -18,17 +28,20 @@
     "control-cli",
     "control-ui",
     "create-agent",
+    "design-taste-frontend",
     "deslop",
     "diagnosing-bugs",
     "domain-model",
     "domain-modeling",
     "emil-design-eng",
     "emil-design-engineering",
+    "emil-prototype",
     "eve",
     "find-animation-opportunities",
     "find-skills",
     "fix-ci",
     "fix-merge-conflicts",
+    "frontend-design",
     "get-pr-comments",
     "grill-for-unknowns",
     "grill-me",
@@ -52,10 +65,12 @@
     "inngest-setup",
     "inngest-steps",
     "inngest-v3-v4-migration",
+    "interface-review",
     "loop-on-ci",
     "make-pr-easy-to-review",
     "migrate-to-shoehorn",
     "moai-library-shadcn",
+    "mobile-native",
     "motion",
     "new-branch-and-pr",
     "nextjs-app-router",
@@ -70,6 +85,7 @@
     "openspec-verify-change",
     "payloadcms-cms-migration",
     "payloadcms-payload",
+    "pick-ui-library",
     "playwright-best-practices",
     "playwright-cli",
     "pr-review-canvas",
@@ -79,6 +95,7 @@
     "react-component-dev",
     "react-doctor",
     "rechart",
+    "redesign-existing-projects",
     "repo-entry",
     "request-refactor-plan",
     "research",
@@ -93,6 +110,7 @@
     "supabase",
     "supabase-postgres-best-practices",
     "tdd",
+    "test-driven-development",
     "thermo-nuclear-code-quality-review",
     "tiptap",
     "to-spec",
@@ -106,7 +124,8 @@
     "wayfinder",
     "weekly-review",
     "what-did-i-get-done",
-    "workflow-from-chats"
+    "workflow-from-chats",
+    "write-swift"
   ],
   "canonicalSkillFiles": {
     "accessibility-review": [
@@ -115,6 +134,18 @@
     ],
     "anim": [
       "SKILL.md"
+    ],
+    "animate": [
+      "RECIPES.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "animate-expo": [
+      "RECIPES.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "animation-vocabulary": [
       "SKILL.md",
@@ -130,6 +161,12 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "ask-sonner": [
+      "API.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "babysit": [
       "SKILL.md",
       "references/upstream.md",
@@ -142,6 +179,75 @@
     "bendc-frontend-guidelines": [
       "SKILL.md",
       "references/readme-original.md",
+      "references/upstream.md"
+    ],
+    "better-accessibility": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "focus-and-keyboard.md",
+      "forms.md",
+      "hit-areas.md",
+      "motion-and-zoom.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "screen-readers.md",
+      "semantics-and-aria.md"
+    ],
+    "better-colors": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "color-formats.md",
+      "color-usage.md",
+      "contrast.md",
+      "palette-generation.md",
+      "palette-structure.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "token-naming.md"
+    ],
+    "better-interface": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "review-format.md"
+    ],
+    "better-layout": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "grouping-and-alignment.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "spacing-and-adaptivity.md"
+    ],
+    "better-typography": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "choosing-fonts.md",
+      "css-cheat-sheet.md",
+      "details-and-accessibility.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "spacing-and-sizing.md",
+      "variable-fonts-and-opentype.md",
+      "wrapping-and-punctuation.md"
+    ],
+    "better-ui": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "animations.md",
+      "enter-exit.md",
+      "icon-transitions.md",
+      "icons.md",
+      "performance.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "surfaces.md"
+    ],
+    "better-writing": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "cache-components": [
@@ -180,6 +286,11 @@
       "reference.md",
       "references/upstream.md"
     ],
+    "design-taste-frontend": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "deslop": [
       "SKILL.md",
       "references/upstream.md"
@@ -216,6 +327,12 @@
       "touch-accessibility.md",
       "ui-polish.md"
     ],
+    "emil-prototype": [
+      "PICKER.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "eve": [
       "SKILL.md",
       "references/upstream.md"
@@ -233,6 +350,12 @@
     ],
     "fix-merge-conflicts": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "frontend-design": [
+      "LICENSE.txt",
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "get-pr-comments": [
@@ -446,6 +569,14 @@
     "inngest-v3-v4-migration": [
       "SKILL.md"
     ],
+    "interface-review": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "removed-signals.md",
+      "scope-resolution.md"
+    ],
     "loop-on-ci": [
       "SKILL.md",
       "references/upstream.md"
@@ -461,6 +592,11 @@
     "moai-library-shadcn": [
       "SKILL.md",
       "reference-links.md"
+    ],
+    "mobile-native": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "motion": [
       "SKILL.md"
@@ -535,6 +671,11 @@
       "reference/QUERIES.md",
       "references/upstream.md"
     ],
+    "pick-ui-library": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "playwright-best-practices": [
       "SKILL.md",
       "references/upstream.md"
@@ -572,6 +713,11 @@
     ],
     "rechart": [
       "SKILL.md"
+    ],
+    "redesign-existing-projects": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "repo-entry": [
       "SKILL.md"
@@ -699,6 +845,12 @@
       "mocking.md",
       "references/upstream.md",
       "tests.md"
+    ],
+    "test-driven-development": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "writing-good-tests.md"
     ],
     "thermo-nuclear-code-quality-review": [
       "SKILL.md",
@@ -838,6 +990,11 @@
     ],
     "workflow-from-chats": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "write-swift": [
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ]
   }
