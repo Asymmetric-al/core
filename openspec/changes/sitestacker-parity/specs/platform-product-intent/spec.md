@@ -98,27 +98,88 @@ one mixed column. Detailed behavior is specified in
 
 ### Requirement: Offline Money Enters Only Through the Governed Batch-Commit Path
 
-All staff-entered offline money MUST enter through the single gift-entry-batch
-commit service — the one front door (Phase 15 D1) — and nothing else in the
-platform MUST write offline money (Phase 39 no-offline-money-writes). A batch's
-declared control totals MUST never be silently erased on a mismatch: the
-declared originals stay frozen and any override is an audited, reason-carrying
-event (Phase 15 D2). A clean validation IS the commit (validate = post,
-Phase 15 D5) and every commit MUST be audited; a high-risk batch MUST route to a
-second reviewer. Detailed behavior is specified in
-`docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md`
-(Phase 15 (Offline Gift & Batch Entry)).
+Initial staff entry of offline gifts MUST flow through the single gift-entry-batch
+commit service, the Phase 15 D1 front door. No other intake path MAY create an
+offline contribution; Phase 39 offline mode MUST NOT acquire money-writing
+authority. Validation MUST be non-mutating with
+respect to money, receipt authorization, generated documents and delivery, and
+MUST bind to the exact source revision. For the ordinary validate-to-post intent,
+successful current validation MUST proceed through the same guarded commit
+under the existing single per-batch confirmation when no reviewer is required.
+That commit MUST consume valid current evidence and the accepted revision; it
+MUST NOT create a second money-writing fast path. Every commit MUST retain the
+source audit evidence. Current risk and new-operator rules MUST remain enforced:
+a high-risk batch MUST route to a second reviewer, and enabled tenant approval
+or quorum policy MUST also be satisfied before that same commit. Declared control totals MUST remain
+frozen; a mismatch MUST block unless the distinct capability, reason and audit
+requirements admit the governed override.
+
+Staff-assisted Stripe card/ACH payments MUST retain their online provider-owned
+Phase 13 posting path. Phase 15 MUST record the staff intent and exact qualified
+link to its resulting contribution; a UI confirmation, processing response or
+batch commit MUST NOT create a duplicate offline posting for those payments.
+
+Posting and append-only correction MUST produce accepted source occurrences,
+not receipt or delivery truth. Phase 7 MUST decide receipt eligibility, facts,
+coverage and correction authority. Only an admitted request MAY produce a Phase
+18 artifact transition or a Phase 17/6 governed notice. Receipt-affecting
+classification MUST NOT itself authorize issuance, invent a prior artifact,
+or bypass a current issuer/purpose hold. Uncovered `annual_cumulative_cash`
+occurrences MUST create no per-gift receipt authorization, artifact or delivery;
+corrections to already issued cumulative coverage MUST retain that owner's
+exact coverage and correction contract. These rules do not settle C-01's
+separate staff-correction approval decision.
+
+Detailed behavior is specified in
+`docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md`.
 
 #### Scenario: Staff-entered offline money is committed
 
-- WHEN a staff member commits a batch of offline gifts (check, cash, church
-  remittance, phone card/ACH)
-- THEN the money is written only through the gift-entry-batch commit service,
-  the batch's declared control totals are reconciled with any mismatch surfaced
-  as an audited override rather than silently overwritten, and the commit is
-  recorded as an audited validate = post event
-- AND no offline gift reaches the ledger through any path other than that
-  commit service
+- WHEN a staff member commits a validated batch of eligible offline gifts
+- THEN the guarded batch-commit path accepts only the current approved revision
+  and writes money once through the canonical Phase 13 posting substrate
+- AND frozen control totals and any authorized override remain auditable
+- AND source posting does not itself claim an issued receipt or sent message
+
+#### Scenario: Validation is not a money-writing operation
+
+- GIVEN a batch whose current revision passes validation
+- WHEN validation completes without an accepted guarded commit
+- THEN it creates no contribution/posting, receipt authorization, generated
+  document request or delivery occurrence
+- AND a later material edit invalidates that validation for commit
+
+#### Scenario: A staff-assisted provider payment posts through its owner
+
+- GIVEN a staff-assisted Stripe card or ACH payment linked to a batch row
+- WHEN its exact source-confirmed success satisfies Phase 13 posting admission
+- THEN that owner records the contribution exactly once and Phase 15 links it
+- AND no processing response, UI confirmation or batch action creates another
+  offline contribution for the same payment
+
+#### Scenario: Receipt-affecting correction preserves source admission
+
+- GIVEN an accepted append-only correction that affects receipt facts
+- WHEN the correction source occurrence reaches Phase 7
+- THEN Phase 7 evaluates exact eligibility, coverage and correction authority
+- AND only its admitted transition proceeds through Phase 18 and Phase 17/6
+- AND missing authorization, issuer holds or an absent predecessor artifact
+  cannot be replaced by a fabricated corrected receipt or success status
+
+#### Scenario: Annual-cumulative correction does not fabricate per-gift output
+
+- GIVEN a corrected gift with a frozen annual-cumulative cash plan
+- WHEN the gift is not yet covered by an issued cumulative document
+- THEN its corrected source facts and year-end readiness remain authoritative
+- AND no per-gift receipt authorization, artifact or delivery is created
+
+#### Scenario: An issued cumulative document retains its correction authority
+
+- GIVEN exact issued cumulative coverage that includes a corrected gift
+- WHEN the correction affects that coverage's source-owned facts
+- THEN the owning source evaluates its exact correction and artifact contract
+- AND the caller neither ignores that issued coverage nor substitutes a per-gift
+  receipt or rewrites the original coverage/artifact history
 
 ### Requirement: Recurring Support And Fixed-Total Pledges Preserve Separate Truth
 

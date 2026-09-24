@@ -40,11 +40,13 @@ undispatched until that exact rule is settled; do not confuse this decision with
 source qualification or with separately retained risk/money-out controls.
 
 [C-02: posted facts and mutable operational state](../../ai/audits/2026-09-23-contract-congruence.md#c-02-posted-state)
-needs a ruling on separate owner-controlled state records versus a narrow header
-update allowlist. The current whole-row immutability rule and mutable status
-column proposals cannot both be implemented unchanged. Preserve the logical
-owner contracts; do not silently weaken financial immutability or choose a new
-physical storage design.
+was resolved by Conrad on September 23. Follow
+[ADR-0206](../../adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md):
+separate owner-controlled operational records and coherent joined projections,
+with complete posted financial-row immutability. No header update allowlist is
+permitted. Qualify the actual storage, authorization, current-read, atomic
+command and immutable-row enforcement seams before activation; the architecture
+choice is settled, while implementation evidence remains required.
 
 ## Engineering qualification, not a request to choose arbitrary facts
 
