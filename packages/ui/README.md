@@ -129,15 +129,64 @@ bun run shadcn:uikit:add button1
 
 ## Dependency Version Policy
 
-| Dependency group           | Current range | Target (future) | Trigger to switch           |
-| -------------------------- | ------------- | --------------- | --------------------------- |
-| `@base-ui/react`           | Exact pin     | Exact pin       | Already pinned (`1.5.0`)    |
-| `class-variance-authority` | `^` caret     | Exact pin       | Same                        |
-| `cnfast`                   | Exact pin     | Exact pin       | Shared `cn()` helper engine |
-| `clsx`                     | `^` caret     | Exact pin       | Same                        |
-| `tailwind-merge`           | `^` caret     | Exact pin       | Same                        |
+| Dependency group           | Current range | Target (future) | Trigger to switch                     |
+| -------------------------- | ------------- | --------------- | ------------------------------------- |
+| `@base-ui/react`           | Exact pin     | Exact pin       | Already pinned (`1.5.0`)              |
+| `class-variance-authority` | `^` caret     | Exact pin       | Same                                  |
+| `cn`                       | Exact pin     | Exact pin       | Shared `cn()` helper engine (`0.3.2`) |
 
 Caret ranges are a Phase 0 pragmatic choice while the team does not yet have visual regression coverage. When updating any dependency in these groups, always run `bun run build` across all apps and do a visual review before merging.
+
+## Class Merging
+
+Use the shared helper so every app uses the same class-composition behavior:
+
+```ts
+import { cn, type ClassValue } from "@asym/ui/lib/utils";
+
+const extra: ClassValue = {
+  "bg-primary": true,
+  "text-primary-foreground": true,
+};
+cn("px-4 py-2", extra, "px-8");
+// "py-2 bg-primary text-primary-foreground px-8"
+```
+
+Inside this package, use the existing `@/lib/utils` alias. The helper directly
+re-exports `cn` and `ClassValue` from exact `cn@0.3.2`; existing shared barrels
+and consumer imports remain supported. `cn` combines conditional inputs and
+resolves Tailwind v4 conflicts. Keep consumer overrides after base/variant
+classes, and retain the existing Base UI component composition and tokens.
+Use the variadic function-call form shown above: `cnfast`'s tagged-template
+syntax is unsupported by `cn`. The migration audit found no consumers of that
+syntax in Core.
+
+Core uses the package's **default full conflict tables**. It does not generate
+a project subset or add a `cn/next` wrapper. Shared sources, dynamic inputs,
+custom utilities, and typography plugin classes need explicit coverage before
+introducing source-based subsetting. Default tables also do not infer conflict
+rules from custom CSS: custom classes that resemble Tailwind utilities can
+still be classified as utilities. Use focused tests before changing such names
+or adding merge configuration.
+
+Background color and gradient image are separate properties. If a shared Card
+or AvatarFallback gradient needs a transparent base, include `bg-transparent`
+explicitly; do not rely on a gradient class removing `bg-card` or `bg-muted`.
+The migration preserves affected legacy-gradient surfaces this way.
+
+`cnfast` and unused direct `clsx`/`tailwind-merge` dependencies are removed.
+`clsx` and `tailwind-merge` can still appear in the lockfile when third-party
+packages need them; do not override or alias their dependencies globally. See the
+[upstream migration/API guide](https://github.com/shadcn-ui/cn) and
+[engine design](https://github.com/shadcn-ui/cn/blob/main/docs/how-it-works.md).
+The upstream 30x benchmark is not a measured speedup over Core's previous
+`cnfast` integration or a promise about page performance.
+
+For upgrades, run the shared-helper regression tests, UI invariant checks,
+consumer typechecks/builds, and representative browser checks. If the migration
+must be rolled back, restore the previous helper, dependency manifests,
+lockfile, and narrow gradient compatibility edits together; app import paths
+do not need changing.
 
 ## How to Update shadcn Components
 

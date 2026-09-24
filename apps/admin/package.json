@@ -52,7 +52,6 @@
     "@tanstack/react-table": "9.0.0-beta.9",
     "@tanstack/react-table-devtools": "9.0.0-beta.9",
     "boneyard-js": "^1.8.1",
-    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "eve": "0.25.1",
     "lucide-animated": "^1.0.0",
@@ -67,7 +66,6 @@
     "recharts": "^2.15.4",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.4.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
