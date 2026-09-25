@@ -19,7 +19,7 @@ import type {
   SupportSlaPolicy,
   SupportTeam,
   SupportAssignee,
-} from "@asym/database/hooks";
+} from "@asym/database/collections/support-hub.schema";
 
 /**
  * Server-side adapter contract for the Donor Care Support Hub.
