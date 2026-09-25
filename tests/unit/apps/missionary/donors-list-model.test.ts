@@ -135,6 +135,46 @@ describe("filterAndSortDonors", () => {
     expect(result.map((donor) => donor.id)).toEqual(["included"]);
   });
 
+  it("treats Needs Attention as the union of At Risk and Lapsed partners", () => {
+    const donors = [
+      createDonor({ id: "active", status: "Active" }),
+      createDonor({ id: "at-risk", status: "At Risk" }),
+      createDonor({ id: "lapsed", status: "Lapsed" }),
+      createDonor({ id: "new", status: "New" }),
+    ];
+
+    expect(
+      filterAndSortDonors(donors, {
+        ...defaultFilters,
+        statusFilter: "Needs Attention",
+        sortBy: "name",
+        sortAsc: true,
+      }).map((donor) => donor.id),
+    ).toEqual(["at-risk", "lapsed"]);
+  });
+
+  it("does not match a redacted anonymous partner on the original email", () => {
+    const donors = [
+      createDonor({
+        id: "anonymous",
+        name: "Anonymous donor",
+        email: "",
+      }),
+      createDonor({
+        id: "named",
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+      }),
+    ];
+
+    expect(
+      filterAndSortDonors(donors, {
+        ...defaultFilters,
+        searchTerm: "ada@example.com",
+      }).map((donor) => donor.id),
+    ).toEqual(["named"]);
+  });
+
   it("preserves existing descending defaults for gift date and total given", () => {
     const donors = [
       createDonor({
