@@ -5,14 +5,16 @@ import {
 import { defineDynamic, defineTool } from "eve/tools";
 import { z } from "zod";
 
-import { eveGithubRequest, githubPathPart } from "../../src/github/client";
+import {
+  approvedCommandAppIds,
+  authorizeEveGithubActor,
+} from "../../src/github/authorize-trigger";
+import { eveGithubRequest } from "../../src/github/client";
 import { isEveGithubOperatorSessionPurpose } from "../../src/github/session-purpose";
 import {
   eveGithubOperationRunId,
   runEveGithubOperatorTool,
 } from "../../src/github/tool-runtime";
-
-const AUTHORIZED_GITHUB_PERMISSIONS = new Set(["admin", "maintain", "write"]);
 
 const operatorInput = z
   .object({
@@ -45,21 +47,24 @@ const operatorInput = z
 async function isAuthorizedGithubSender(
   installationId: number,
   login: string,
+  principalId: string,
+  userType: string,
+  appId: string | undefined,
+  appSlug: string | undefined,
 ): Promise<boolean> {
-  try {
-    const response = await eveGithubRequest<{ permission?: unknown }>({
-      installationId,
-      method: "GET",
-      path: `/repos/Asymmetric-al/core/collaborators/${githubPathPart(login)}/permission`,
-    });
-    const permission = response.body.permission;
-    return (
-      typeof permission === "string" &&
-      AUTHORIZED_GITHUB_PERMISSIONS.has(permission.toLowerCase())
-    );
-  } catch {
-    return false;
-  }
+  const id = /^github:(\d+)$/u.exec(principalId)?.[1];
+  if (!id) return false;
+  return authorizeEveGithubActor({
+    actor: { id: Number(id), login, type: userType },
+    appProof:
+      appId && appSlug ? { id: Number(appId), slug: appSlug } : undefined,
+    approvedAppIds: approvedCommandAppIds(
+      process.env.EVE_APPROVED_COMMAND_APP_IDS,
+    ),
+    onLookupError: () =>
+      console.error("[eve/github] authorization service unavailable"),
+    request: (input) => eveGithubRequest({ ...input, installationId }),
+  });
 }
 
 export default defineDynamic({
@@ -70,6 +75,9 @@ export default defineDynamic({
       const installation = auth?.attributes.installation_id;
       const deliveryId = auth?.attributes.delivery_id;
       const login = auth?.attributes.user_login;
+      const userType = auth?.attributes.user_type;
+      const appId = auth?.attributes.authorized_app_id;
+      const appSlug = auth?.attributes.authorized_app_slug;
       const sessionPurpose = auth?.attributes.session_purpose;
       const installationId =
         typeof installation === "string" ? Number(installation) : Number.NaN;
@@ -81,9 +89,17 @@ export default defineDynamic({
         deliveryId.length === 0 ||
         typeof login !== "string" ||
         login.length === 0 ||
+        typeof userType !== "string" ||
         !Number.isSafeInteger(installationId) ||
         installationId <= 0 ||
-        !(await isAuthorizedGithubSender(installationId, login))
+        !(await isAuthorizedGithubSender(
+          installationId,
+          login,
+          auth.principalId,
+          userType,
+          typeof appId === "string" ? appId : undefined,
+          typeof appSlug === "string" ? appSlug : undefined,
+        ))
       ) {
         return null;
       }
