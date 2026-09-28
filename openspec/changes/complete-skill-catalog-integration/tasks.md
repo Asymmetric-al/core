@@ -11,7 +11,7 @@
 ## 2. Finish integration
 
 - [x] Finish the remaining review ledger and semantic predecessor reconciliation.
-- [ ] Reconcile the latest integration base and any independently reviewed runtime repair.
+- [x] Reconcile the latest integration base and any independently reviewed runtime repair.
 - [ ] Run current formatting, lint, specification, mirror, focused and full readiness gates.
 - [ ] Publish and verify current-head GitHub checks and review requirements.
 - [ ] Merge the carrier and prove supersession before closing predecessor PRs.
