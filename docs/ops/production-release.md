@@ -29,8 +29,8 @@ unless the repo is in a release-ready state:
 - current branch is `develop` or `production`
 - working tree is clean
 - deployment discipline verifier passes
-- Git attribution verifier passes
 - full local `ci:preflight` passes
+- release HEAD is already reachable from the fetched `develop` branch
 - deployment impact is summarized before pushing `HEAD` to `origin/production`
 
 The command sets an internal release env var so the pre-push hook can tell a

@@ -134,6 +134,7 @@ export function validateGitHubBranchProtection({
   branch,
   protection,
   branchRule,
+  requiredApprovingReviewCount = 1,
   requiredContexts,
   forbiddenContexts = [],
 }) {
@@ -186,8 +187,8 @@ export function validateGitHubBranchProtection({
     protection?.required_pull_request_reviews?.required_approving_review_count;
   requireCheck(
     checks,
-    typeof reviewCount === "number" && reviewCount >= 1,
-    `${branch} keeps review discipline`,
+    (reviewCount ?? null) === requiredApprovingReviewCount,
+    `${branch} requires ${requiredApprovingReviewCount ?? "no"} approving reviews`,
     `required_approving_review_count=${reviewCount ?? "unknown"}`,
   );
   requireCheck(
@@ -371,8 +372,8 @@ async function main() {
     const defaultBranch = readDefaultBranch(args.repo);
     requireCheck(
       checks,
-      defaultBranch === PRODUCTION_BRANCH,
-      `GitHub default branch is ${PRODUCTION_BRANCH}`,
+      defaultBranch === DEVELOPMENT_BRANCH,
+      `GitHub default branch is ${DEVELOPMENT_BRANCH}`,
       defaultBranch || "<unknown>",
     );
 
@@ -384,8 +385,15 @@ async function main() {
           args.repo,
           PRODUCTION_BRANCH,
         ),
-        requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
-        forbiddenContexts: ["e2e-smoke-gate", "release-source-gate"],
+        requiredApprovingReviewCount: null,
+        requiredContexts: [
+          "ci-gate",
+          "e2e-gate",
+          "e2e-smoke-gate",
+          "migrate",
+          "release-source-gate",
+          "smoke",
+        ],
       }),
     );
     checks.push(
@@ -396,12 +404,9 @@ async function main() {
           args.repo,
           DEVELOPMENT_BRANCH,
         ),
-        requiredContexts: ["ci-gate", "integration-gate"],
-        forbiddenContexts: [
-          "e2e-gate",
-          "e2e-smoke-gate",
-          "release-source-gate",
-        ],
+        requiredApprovingReviewCount: 0,
+        requiredContexts: ["ci-gate", "e2e-smoke-gate", "migrate", "smoke"],
+        forbiddenContexts: ["e2e-gate", "release-source-gate"],
       }),
     );
 

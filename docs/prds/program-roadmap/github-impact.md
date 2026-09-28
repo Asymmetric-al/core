@@ -110,5 +110,16 @@ exact coverage limits. Its [50-issue readback](../../ai/audits/2026-09-23-issue-
 is separate from the seven September 22 adoption amendments above. The new
 Phase 24 navigation index #1898 exposes the same 126 existing implementation
 leaves under GitHub's parent-size limit; it is not another implementation task.
-Phase 4's accepted Phase 2/3 blockers are now native edges. No correction chooses
-the unresolved C-01 approval policy or C-02 operational-state placement.
+Phase 4's accepted Phase 2/3 blockers are now native edges. Those original
+corrections did not select C-01 or C-02. After that publication, Conrad resolved
+C-02 in favor of separate owner-controlled operational records and fully
+immutable posted financial rows. ADR-0206 and the subsequent C-02 amendment
+[ledger](../../ai/audits/2026-09-23-c02-issue-reconciliation.json) track that explicit successor; the original
+50-issue ledger remains dated publication evidence. C-01 approval policy is
+still unresolved.
+
+The initial reconciliation PR #1897 merged while the later C-02 follow-up was
+being prepared. [PR #1901](https://github.com/Asymmetric-al/core/pull/1901) carries
+that accepted ruling and its source corrections. The C-02 ledger retains both
+the initial 16 body readbacks and the provenance-only successor that directs
+agents to the correct source PR; issue metadata and native edges are unchanged.
