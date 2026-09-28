@@ -20,7 +20,7 @@ const INDEX_FILES = ["index.ts", "index.tsx", "index.js", "index.mjs"] as const;
 export interface WorkspacePackage {
   name: string;
   dir: string;
-  exportMap: Map<string, string>;
+  hasExports: boolean;
 }
 
 function readJson(filePath: string): Record<string, unknown> {
@@ -28,15 +28,6 @@ function readJson(filePath: string): Record<string, unknown> {
     string,
     unknown
   >;
-}
-
-function exportTarget(entry: unknown): string | undefined {
-  if (typeof entry === "string") return entry;
-  if (typeof entry !== "object" || entry === null) return undefined;
-  const record = entry as Record<string, unknown>;
-  if (typeof record.default === "string") return record.default;
-  if (typeof record.types === "string") return record.types;
-  return undefined;
 }
 
 export function discoverWorkspacePackages(rootDir: string): WorkspacePackage[] {
@@ -57,40 +48,17 @@ export function discoverWorkspacePackages(rootDir: string): WorkspacePackage[] {
         continue;
       }
 
-      const exportMap = new Map<string, string>();
-      const exportsField = pkg.exports;
-      if (typeof exportsField === "object" && exportsField !== null) {
-        for (const [key, value] of Object.entries(
-          exportsField as Record<string, unknown>,
-        )) {
-          const target = exportTarget(value);
-          if (!target || key.includes("*")) continue;
-          exportMap.set(key, target);
-        }
-      }
-
-      packages.push({ name: pkg.name, dir, exportMap });
+      packages.push({
+        name: pkg.name,
+        dir,
+        hasExports: Object.hasOwn(pkg, "exports"),
+      });
     }
   }
 
   return packages.toSorted(
     (left, right) => right.name.length - left.name.length,
   );
-}
-
-export function resolveWorkspaceFile(
-  pkg: WorkspacePackage,
-  subpath: string,
-): string | null {
-  const exportKey = subpath.length === 0 ? "." : `./${subpath}`;
-  const mapped = pkg.exportMap.get(exportKey);
-  if (mapped) {
-    const abs = path.join(pkg.dir, mapped);
-    if (fs.existsSync(abs) && fs.statSync(abs).isFile()) return abs;
-  }
-
-  const base = subpath.length === 0 ? pkg.dir : path.join(pkg.dir, subpath);
-  return resolveExistingModule(base);
 }
 
 export function resolveExistingModule(base: string): string | null {
@@ -132,11 +100,33 @@ export function pinWorkspacePackages(rootDir: string): Plugin {
   return {
     name: "core:pin-workspace-packages-to-checkout",
     enforce: "pre",
-    resolveId(source) {
+    async resolveId(source, _importer, options) {
       if (!source.startsWith("@asym/")) return null;
       const match = findWorkspacePackage(packages, source);
       if (!match) return null;
-      return resolveWorkspaceFile(match.pkg, match.subpath);
+      if (match.pkg.hasExports) {
+        // Package self-reference anchors Vite's export/condition resolution to
+        // this checkout even when node_modules points at another worktree.
+        const resolved = await this.resolve(
+          source,
+          path.join(match.pkg.dir, "package.json"),
+          {
+            ...options,
+            skipSelf: true,
+          },
+        );
+        if (!resolved) {
+          throw new Error(
+            `Cannot resolve declared workspace export: ${source}`,
+          );
+        }
+        return resolved;
+      }
+      const base =
+        match.subpath.length === 0
+          ? match.pkg.dir
+          : path.join(match.pkg.dir, match.subpath);
+      return resolveExistingModule(base);
     },
   };
 }

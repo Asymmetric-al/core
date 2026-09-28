@@ -47,10 +47,6 @@ const SKIP_DIRECTORY_NAMES = new Set([
   "dist",
   "coverage",
   ".turbo",
-  // Gitignored Nitro/Eve build trees. Local `.output` chunks can still mention
-  // retired Twenty env names; those files are not current runtime source.
-  ".output",
-  ".nitro",
 ]);
 const SKIP_REPO_RELATIVE_DIRECTORIES = new Set([
   "packages/eve-runtime/.eve",
@@ -86,7 +82,10 @@ function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
 }
 
-export function collectTypeScriptFiles(directoryPath) {
+export function collectTypeScriptFiles(
+  directoryPath,
+  repositoryRoot = repoRoot,
+) {
   const entries = readdirSync(directoryPath, { withFileTypes: true });
   const files = [];
 
@@ -95,11 +94,13 @@ export function collectTypeScriptFiles(directoryPath) {
     if (entry.isDirectory()) {
       if (
         SKIP_DIRECTORY_NAMES.has(entry.name) ||
-        SKIP_REPO_RELATIVE_DIRECTORIES.has(toRepoRelative(entryPath))
+        SKIP_REPO_RELATIVE_DIRECTORIES.has(
+          path.relative(repositoryRoot, entryPath).split(path.sep).join("/"),
+        )
       ) {
         continue;
       }
-      files.push(...collectTypeScriptFiles(entryPath));
+      files.push(...collectTypeScriptFiles(entryPath, repositoryRoot));
       continue;
     }
 

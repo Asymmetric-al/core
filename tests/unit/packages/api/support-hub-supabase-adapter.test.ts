@@ -6,7 +6,7 @@
  * we use `runWithSupportHubTenant` to establish the tenant context that
  * `tenantId()` reads from AsyncLocalStorage.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock the admin Supabase client before any adapter imports resolve.
@@ -33,6 +33,8 @@ vi.mock("../../../../packages/database/supabase/admin", () => ({
 
 import { runWithSupportHubTenant } from "../../../../packages/api/src/admin/support-hub/request-context";
 import { supabaseSupportHubAdapter } from "../../../../packages/api/src/admin/support-hub/adapter/supabase";
+import { fetchSupportConversations } from "../../../../packages/database/collections/support-hub";
+import { supportApiGet } from "../../../../apps/admin/features/support-hub/lib/api-client";
 
 // ---------------------------------------------------------------------------
 // Chainable query builder factory
@@ -101,6 +103,9 @@ const TENANT = "tenant-test-001";
 // ---------------------------------------------------------------------------
 
 describe("supabaseSupportHubAdapter — SQL filters", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -414,7 +419,7 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
         status: "open",
         priority: "normal",
         channel: "email",
-        assignee_agent_id: null,
+        assignee_agent_id: "agent-internal",
         team_id: null,
         external_contact_email: "a@b",
         external_contact_name: "Pat",
@@ -440,6 +445,19 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
         if (table === "support_conversations") {
           return createQueryMock({ data: [conversationRow], error: null });
         }
+        if (table === "support_agents")
+          return createQueryMock({
+            data: [
+              {
+                id: "agent-internal",
+                name: "Staff",
+                email: "a@b",
+                avatar_url: null,
+                title: null,
+              },
+            ],
+            error: null,
+          });
         return createQueryMock({ data: [], error: null });
       });
       setClient(fromSpy);
@@ -460,6 +478,22 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
             giftId: null,
           }),
         }),
+      );
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation(
+          async () =>
+            new Response(JSON.stringify({ conversations }), {
+              headers: { "Content-Type": "application/json" },
+            }),
+        ),
+      );
+      const livePayload = await supportApiGet<{
+        conversations: typeof conversations;
+      }>("/api/admin/support/conversations");
+      expect(livePayload.conversations[0]?.assignee?.email).toBe("a@b");
+      await expect(fetchSupportConversations()).resolves.toEqual(
+        livePayload.conversations,
       );
     });
 

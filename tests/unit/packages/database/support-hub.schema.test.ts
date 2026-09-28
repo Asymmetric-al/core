@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   EMPTY_SUPPORT_CONTACT_REF,
   normalizeSupportClockTime,
+  supportAssigneeSchema,
   supportBusinessHoursSchema,
   supportClockTimeSchema,
   supportConversationSchema,
@@ -272,4 +273,42 @@ describe("shared holiday date schema ownership", () => {
     expect(apiSchemas).toContain("supportHolidayDateSchema");
     expect(storeSource).toContain("supportHolidayDateSchema");
   });
+});
+
+describe("persisted Support Hub email constraints", () => {
+  it.each(["", "plain-address", "@host", null, 42])(
+    "rejects SQL-invalid agent and inbox addresses: %s",
+    (email) => {
+      expect(
+        supportAssigneeSchema.safeParse({
+          id: "agent_1",
+          name: "Staff",
+          email,
+          avatarUrl: null,
+          title: null,
+        }).success,
+      ).toBe(false);
+
+      for (const field of ["inboundAddress", "fromAddress", "replyToAddress"]) {
+        if (field === "replyToAddress" && email === null) continue;
+        expect(
+          supportInboxSchema.safeParse({
+            id: "inbox_1",
+            tenantId: "tenant_1",
+            name: "Support",
+            channel: "email",
+            inboundAddress: "a@example.org",
+            fromAddress: "a@example.org",
+            fromName: "Staff",
+            replyToAddress: null,
+            description: null,
+            isDefault: false,
+            createdAt: ISO,
+            updatedAt: ISO,
+            [field]: email,
+          }).success,
+        ).toBe(false);
+      }
+    },
+  );
 });

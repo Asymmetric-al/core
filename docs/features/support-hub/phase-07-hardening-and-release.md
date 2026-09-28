@@ -65,7 +65,10 @@ Phases 1–6 are stacked. Phase 7 makes the donor care Support Hub production-sh
 - **No feature flag this phase.** The in-memory adapter is the sole live path. Phase 8 introduces `SUPPORT_HUB_USE_SUPABASE` when the migration lands.
 - **No shell, token, layout, or PageShell changes.** Phase 7 is additive at the boundary.
 
-## Architecture
+## Historical Phase 7 architecture
+
+This diagram records the pre-cutover implementation only. Current UI hooks use
+the tenant-scoped API routes and Supabase adapter described above.
 
 ```mermaid
 flowchart LR
@@ -209,7 +212,10 @@ docs/features/support-hub/release-notes.md                    # rollout + Phase 
 - `packages/lib/mission-control/nav.ts` — `/support` role gate stays put
 - The Phase 5 keymap, Phase 5 command palette, Phase 6 settings forms — only the documented a11y / failure-recovery / perf edits land here
 
-## Adapter contract
+## Historical Phase 7 adapter contract
+
+The interface and re-export below are the original Phase 7 example; they do not
+describe the current active adapter or authorize reactivating the seed path.
 
 ```ts
 // packages/api/src/admin/support-hub/adapter/types.ts

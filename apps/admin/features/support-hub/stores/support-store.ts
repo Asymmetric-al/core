@@ -36,7 +36,7 @@ import type { SupportReplyPayload } from "../models/editor-payload";
 
 /**
  * Single namespaced surface for everything the hooks layer consumes.
- * `supportStore.collections` is the TanStack DB read surface over the
+ * `supportStore.collections` exposes optional TanStack DB read caches over the
  * adapter-backed `/api/admin/support/**` routes. Thread messages stay on
  * `useSupportMessages`. Privileged writes stay server-command owned in
  * `use-support-mutations.ts`.

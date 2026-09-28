@@ -179,6 +179,57 @@ describe("Support Hub route-backed collections", () => {
     );
   });
 
+  it.each(["a@b", "a@", "a@@b", " a@b "])(
+    "keeps persisted SQL-legal agent and inbox addresses unchanged: %s",
+    async (email) => {
+      const agent = {
+        id: "agent_1",
+        name: "Staff",
+        email,
+        avatarUrl: null,
+        title: null,
+      };
+      const conversation = conversationRow({ assignee: agent });
+      const inbox = {
+        id: "inbox_1",
+        tenantId: "tenant_1",
+        name: "Support",
+        channel: "email",
+        inboundAddress: email,
+        fromAddress: email,
+        fromName: "Staff",
+        replyToAddress: email,
+        description: null,
+        isDefault: true,
+        createdAt: ISO,
+        updatedAt: ISO,
+      };
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (input: RequestInfo | URL) => {
+          switch (String(input)) {
+            case "/api/admin/support/agents":
+              return jsonResponse({ agents: [agent] });
+            case "/api/admin/support/conversations":
+              return jsonResponse({ conversations: [conversation] });
+            case "/api/admin/support/inboxes":
+              return jsonResponse({ inboxes: [inbox] });
+            default:
+              throw new Error(
+                `Unexpected collection request: ${String(input)}`,
+              );
+          }
+        }),
+      );
+
+      await expect.soft(fetchSupportAgents()).resolves.toEqual([agent]);
+      await expect
+        .soft(fetchSupportConversations())
+        .resolves.toEqual([conversation]);
+      await expect.soft(fetchSupportInboxes()).resolves.toEqual([inbox]);
+    },
+  );
+
   it("times out Support Hub collection fetches after 15 seconds", () => {
     const collectionsSource = readFileSync(collectionsPath, "utf8");
 
@@ -320,6 +371,40 @@ describe("Support Hub route-backed collections", () => {
       }),
     ]);
     expect(warn).toHaveBeenCalled();
+  });
+
+  it("identifies rejected rows and their count without discarding valid conversations", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const valid = conversationRow();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          conversations: [
+            valid,
+            conversationRow({ id: "invalid-tenant", tenantId: "" }),
+            null,
+          ],
+        }),
+      ),
+    );
+    await expect(fetchSupportConversations()).resolves.toEqual([valid]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      "Support Hub dropped invalid collection rows",
+      expect.objectContaining({
+        path: "/api/admin/support/conversations",
+        key: "conversations",
+        droppedCount: 2,
+        invalidRows: [
+          expect.objectContaining({
+            rowId: "invalid-tenant",
+            issues: expect.any(Array),
+          }),
+          expect.objectContaining({ rowId: null, issues: expect.any(Array) }),
+        ],
+      }),
+    );
   });
 
   it("returns an empty list when every row fails schema validation", async () => {

@@ -73,16 +73,31 @@ async function fetchSupportHubRows<T>(
   }
 
   const kept: T[] = [];
+  const invalidRows: Array<{
+    rowId: string | null;
+    issues: z.ZodError["issues"];
+  }> = [];
   for (const row of rows) {
     const parsed = schema.safeParse(row);
     if (parsed.success) {
       kept.push(parsed.data);
       continue;
     }
-    console.warn("Support Hub dropped an invalid collection row", {
+    const rowId =
+      typeof row === "object" &&
+      row !== null &&
+      "id" in row &&
+      typeof row.id === "string"
+        ? row.id
+        : null;
+    invalidRows.push({ rowId, issues: parsed.error.issues });
+  }
+  if (invalidRows.length > 0) {
+    console.warn("Support Hub dropped invalid collection rows", {
       path,
       key,
-      issues: parsed.error.issues,
+      droppedCount: invalidRows.length,
+      invalidRows,
     });
   }
   return kept;

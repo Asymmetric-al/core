@@ -77,44 +77,39 @@ describe("Twenty CRM retirement guard", () => {
     expect(collectRetiredTwentyRuntimeViolations()).toEqual([]);
   });
 
-  it("skips generated Eve and Nitro output directories while walking runtime trees", () => {
-    const scanner = readFileSync(
-      new URL(
-        "../../../scripts/verify/data-boundary-check.mjs",
-        import.meta.url,
-      ),
-      "utf8",
-    );
-
-    expect(scanner).toMatch(
-      /SKIP_DIRECTORY_NAMES = new Set\(\[[\s\S]*"\.output"[\s\S]*"\.nitro"/u,
-    );
-    expect(
-      collectRetiredTwentyRuntimeViolations().some((violation) =>
-        violation.includes(".output/"),
-      ),
-    ).toBe(false);
-  });
-
-  it("does not walk generated .output or .nitro trees when collecting files", () => {
-    const root = mkdtempSync(path.join(tmpdir(), "twenty-skip-dirs-"));
-
+  it("only skips Eve generated directories while walking source trees", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "twenty-scoped-output-"));
+    const paths = [
+      "packages/eve-runtime/.output/runtime.ts",
+      "packages/eve-runtime/.nitro/runtime.ts",
+      "packages/example/.output/runtime.ts",
+      "apps/example/.nitro/runtime.ts",
+      "packages/example/src/runtime.ts",
+    ];
     try {
-      mkdirSync(path.join(root, "src"));
-      mkdirSync(path.join(root, ".output"));
-      mkdirSync(path.join(root, ".nitro"));
-      writeFileSync(
-        path.join(root, "src", "runtime.ts"),
-        "const marker = 'visible';\n",
-      );
-      writeFileSync(path.join(root, ".output", "chunk.ts"), "TWENTY_API_KEY\n");
-      writeFileSync(path.join(root, ".nitro", "chunk.ts"), "TWENTY_API_KEY\n");
-
-      const files = collectTypeScriptFiles(root).map((filePath) =>
-        path.relative(root, filePath).split(path.sep).join("/"),
-      );
-
-      expect(files).toEqual(["src/runtime.ts"]);
+      for (const file of paths) {
+        const target = path.join(root, file);
+        mkdirSync(path.dirname(target), { recursive: true });
+        writeFileSync(target, "TWENTY_API_KEY\n");
+      }
+      const files = collectTypeScriptFiles(root, root)
+        .map((file: string) =>
+          path.relative(root, file).split(path.sep).join("/"),
+        )
+        .sort();
+      expect(files).toEqual([
+        "apps/example/.nitro/runtime.ts",
+        "packages/example/.output/runtime.ts",
+        "packages/example/src/runtime.ts",
+      ]);
+      expect(
+        files.flatMap((file: string) =>
+          collectRetiredTwentyRuntimeViolationsFromSource(
+            file,
+            readFileSync(path.join(root, file), "utf8"),
+          ),
+        ),
+      ).toHaveLength(3);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

@@ -173,7 +173,7 @@ export const supportLabelSchema = z.object({
 export const supportAssigneeSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  email: z.email(),
+  email: sqlCheckEmail,
   avatarUrl: z.string().nullable(),
   title: z.string().nullable(),
 });
@@ -296,10 +296,10 @@ export const supportInboxSchema = z.object({
   tenantId: z.string().min(1),
   name: z.string().min(1),
   channel: z.enum(SUPPORT_CHANNELS),
-  inboundAddress: z.email(),
-  fromAddress: z.email(),
+  inboundAddress: sqlCheckEmail,
+  fromAddress: sqlCheckEmail,
   fromName: z.string().min(1),
-  replyToAddress: z.email().nullable(),
+  replyToAddress: sqlCheckEmail.nullable(),
   description: z.string().nullable(),
   isDefault: z.boolean(),
   createdAt: isoString,
