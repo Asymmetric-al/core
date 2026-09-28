@@ -26,6 +26,24 @@
 4. For lockfile-managed ecosystem skills, restore with `npx skills experimental_install -y` rather than guessing copies.
 5. After editing canonical skills, run `bun run skills:sync` then `bun run skills:verify` (verify is non-mutating).
 
+## Refresh and integration guarantees
+
+Refresh canonical sources first, then run `bun run skills:sync` and
+`bun run skills:verify`. The refresh transaction keeps original trees,
+companion files and lock metadata recoverable until the source group commits.
+If rollback is incomplete, stop and use the reported recovery paths; a broad
+refresh must not continue and report success.
+
+Sync also reapplies Core's ecosystem adapters: the fail-closed Git hook,
+explicit wizard invocation, shared Sonner/cn guidance, and safe eval-data
+embedding. Review an adapter drift error before accepting a changed upstream
+shape. Never repair only `.cursor` or `.claude` copies.
+
+Explicit-only skills name that boundary in both discovery descriptions and
+frontmatter. Their vendor greeting sections apply only to a bare invocation
+without a task; concrete work continues immediately. Native Swift/Expo skills
+must not match ordinary Core web or TypeScript requests.
+
 ## Checklist
 
 - [ ] Used the canonical path under `docs/ai/skills/`, not a generated mirror as the source of truth
@@ -61,6 +79,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 **Cursor Team Kit** (`cursor/plugins`, `cursor-team-kit/skills/*`) and **Babysitter** (`a5c-ai/babysitter-cursor`, `skills/babysit`) are repo-local vendored skills refreshed directly from GitHub by `bun run skills:refresh-upstream`; see each skill's `references/upstream.md`. Cursor Team Kit companion agents are vendored under `.cursor/agents/`; upstream always-on Cursor rules are intentionally not vendored because no skill depends on them and they would change repo-wide Cursor behavior.
 
 **Emil Kowalski skill pack** ([`emilkowalski/skills`](https://github.com/emilkowalski/skills)): copy the upstream trees into `.agents/skills/<canonical-slug>/`, vendoring upstream `skills/prototype/` as `emil-prototype`. Do **not** blindly run `npx skills add emilkowalski/skills -y`; that installer can overwrite Matt Pocock `prototype` and Core's `find-animation-opportunities` adapter. Then run `bun run skills:refresh-emilkowalski`, `bun run skills:sync`, and `bun run skills:verify`. Lockfile-managed skills are `animate`, `animate-expo`, `animation-vocabulary`, `apple-design`, `ask-sonner`, `emil-design-eng`, `emil-prototype`, `improve-animations`, `mobile-native`, `pick-ui-library`, `review-animations`, and `write-swift`. Canonical copies, reviewed commit SHAs, source paths, and the MIT notice live under each skill's `references/`. The focused refresh preserves marked Core overlays; still review the upstream inventory for newly added or removed skills before syncing. The paid animations.dev skill is separate: **`emil-design-engineering`**.
+
+`experimental_install` does not reconstruct the `emil-prototype` alias: upstream calls it `prototype`. For a fresh Emil restore, follow the exact copy-and-rename procedure above. Emil `computedHash` records the reviewed raw `SKILL.md` bytes before Core adapters; `tests/fixtures/skills/emil-upstream-skill-hashes.json` records that pinned source evidence. Skills CLI may use a different whole-directory digest. Inspect that difference instead of treating lockfile churn as an upstream content change or reinstalling over Core's separate `prototype`.
 
 **Jakub Krehel design pack** ([`jakubkrehel/skills`](https://github.com/jakubkrehel/skills)): refresh with targeted Skills CLI adds (`npx skills add jakubkrehel/skills --skill <name> -y`), then `bun run skills:refresh-jakubkrehel`, `bun run skills:sync`, and `bun run skills:verify`. Lockfile-managed skills are `better-accessibility`, `better-colors`, `better-interface`, `better-layout`, `better-typography`, `better-ui`, `better-writing`, and `interface-review`. Do not vendor unlisted pack skills such as `break`, `variant`, or `explain-interface`. Core overlays keep Base UI / `base-maia` authoritative; do not restyle product apps from generic upstream values. `interface-review` stays explicit-only (`disable-model-invocation: true`).
 

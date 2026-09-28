@@ -37,11 +37,11 @@ before running `bun run skills:sync`.
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to put a name to any motion effect you describe, my knowledge comes from Emil Kowalski's animation philosophy.
 
-Do not provide any other information until the user asks a question.
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 Turn a vague description of a motion or effect into the precise term, so the user knows what to ask for.
 

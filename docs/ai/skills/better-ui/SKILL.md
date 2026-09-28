@@ -39,9 +39,9 @@ Polish comes from a pile of small details that compound. This skill is the refer
 
 When reviewing, slow the interface down. What feels off at 10% speed is what is subtly wrong at full speed.
 
-Keep the project's component library, tokens and density, and match its motion language except where a rule below prescribes an exact interaction.
+Keep Core's shared component library, semantic tokens, density, and motion language for every interaction below.
 
-Every duration, curve, scale and blur below is a specific value, not a range to approximate. `cubic-bezier(0.2, 0, 0, 1)` is not `cubic-bezier(0.4, 0, 0.2, 1)`, and `0.96` is not `0.95`. Use what is written.
+The upstream numbers below illustrate visual relationships. In Core, implement those relationships using `packages/ui/styles/globals.css`, the shared component's variants, and `anim` guidance. Do not replace an existing radius, color, shadow, duration, easing, or press interaction with a literal from this reference.
 
 Text wrapping, font rendering, tabular numbers and text spacing belong to `better-typography`. Hit areas, focus, keyboard support, ARIA and reduced motion belong to `better-accessibility`. Grouping, section spacing, breakpoints and spatial RTL belong to `better-layout`.
 
@@ -71,7 +71,7 @@ Use a small fixed `translateY` rather than full height. Exits should be softer t
 
 ## Contextual icon animations
 
-Animate icons with `opacity`, `scale` and `blur` rather than toggling visibility. Use exactly these values: scale `0.25` to `1`, opacity `0` to `1`, blur `4px` to `0px`.
+Animate icons with `opacity`, `scale` and `blur` rather than toggling visibility. The upstream example uses scale `0.25` to `1`, opacity `0` to `1`, and blur `4px` to `0px`; Core implementations must use the shared motion and reduced-motion contract.
 
 With a motion library (`motion` or `framer-motion` in `package.json`), match that package's import path, or nearby imports where both exist. Use `transition: { type: "spring", duration: 0.3, bounce: 0 }`. Bounce is always `0`.
 
@@ -83,7 +83,7 @@ Give images a `1px` outline at low opacity for consistent depth. Pure black in l
 
 ## Scale on press
 
-A `scale(0.96)` on click gives a button tactile feedback. Always `0.96`; anything below `0.95` feels exaggerated. Add a `static` prop to switch it off where motion would distract. See [recipes for CSS, Tailwind and Motion](animations.md#scale-on-press).
+The upstream press recipe uses `scale(0.96)` for tactile feedback. In Core, retain the existing shared Button press and reduced-motion behavior; do not add another `static` prop or app-local animation wrapper. See [illustrative recipes for CSS, Tailwind and Motion](animations.md#scale-on-press).
 
 ## Skip animation on page load
 

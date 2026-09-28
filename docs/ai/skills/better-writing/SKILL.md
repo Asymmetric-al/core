@@ -99,11 +99,11 @@ Link straight to a referenced setting rather than describing the path to it: a "
 
 An error is an instruction, and it belongs beside the field that failed:
 
-| Bad                         | Good                                                 |
-| --------------------------- | ---------------------------------------------------- | --------------------------- |
-| That password is too short  | Choose a password with at least 8 characters         | // pragma: allowlist secret |
-| Invalid name                | Use only letters for your name                       |
-| Oops! Something went wrong. | Unable to save. Check your connection and try again. |
+| Bad                         | Good                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| That password is too short  | Choose a password with at least 8 characters <!-- pragma: allowlist secret --> |
+| Invalid name                | Use only letters for your name                                                 |
+| Oops! Something went wrong. | Unable to save. Check your connection and try again.                           |
 
 No blame, no "oops", no exclamation marks. Phrase hints positively ("Use only letters", not "Don't use numbers or symbols") and show them before the mistake, not after. When the same error keeps firing, redesign the interaction instead of rewording it.
 

@@ -1,6 +1,34 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-09-23
+Last updated: 2026-09-28
+
+## September 28 integration reconciliation
+
+The catalog carrier preserves the public Emil and Jakub packs, the broader
+catalog refresh, and later Ask Matt, Cursor babysit, Git-guardrail and recovery
+fixes from overlapping PRs. Next.js architecture work remains independent.
+
+Refresh and sync retain complete directory backups before removal, refuse to
+overwrite occupied cross-device destinations, and preserve recovery evidence on
+incomplete rollback. Canonical trees, GitHub companion files and lock writes
+remain in one refresh transaction; cleanup errors cannot mask the operation's
+error. Real CLI tests inject partial removals, partial writes and restore errors.
+
+Core adaptations now cover discovery metadata and operative recipes, including
+concrete-task continuation, shared Base UI components, the existing Sonner host,
+the pinned Stripe client and quoted donation methods. Both CLIs use one scanner
+annotator. Canonical references and generated mirrors preserve valid YAML,
+Python and embedded GraphQL syntax. Pinned raw-source fixtures exercise refresh
+and idempotence without relying only on already-adapted snippets.
+
+Binary attribute rules now take precedence over mirror-wide LF text rules.
+The two referenced shadcn PNGs retain the valid predecessor bytes; Git-filter
+regression tests prevent normalization from corrupting their signatures.
+
+Reviewed obsolete Impeccable assets and pack build metadata are removed from the
+source catalogs and mirrors. This entry records local reconciliation; merge
+status and full readiness are tracked in the integration ledger and the active
+`complete-skill-catalog-integration` OpenSpec change.
 
 ## Scope
 

@@ -1,17 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { createServiceEveSessionIdentity } from "../../../../packages/api/src/eve/session-ownership/identity";
 import {
   readEveSharedContext,
   resolveEveSharedContextConflict,
   writeEveSharedContext,
 } from "../../../../packages/api/src/eve/shared-context/control";
-
 import {
   EveSharedContextValidationError,
   hasBlockingEveSharedContextConflict,
   prepareEveSharedContextClaim,
 } from "../../../../packages/api/src/eve/shared-context/validation";
-import { createServiceEveSessionIdentity } from "../../../../packages/api/src/eve/session-ownership/identity";
 
 import type { EveSharedContextStore } from "../../../../packages/api/src/eve/shared-context/types";
 
@@ -87,6 +86,7 @@ describe("Eve shared run context", () => {
     ["email PII", { contact: "person@example.org" }],
     ["private key", "-----BEGIN PRIVATE KEY-----"],
     ["payment number", "4111 1111 1111 1111"],
+    ["UUID-shaped payment number", "41111111-1111-4111-8111-111111111111"],
     ["secret-shaped key", { access_token: "redacted-but-still-forbidden" }],
     ["one-time code", "OTP: 123456"],
     // The contract also forbids sensitive tenant facts, raw production
@@ -106,6 +106,22 @@ describe("Eve shared run context", () => {
       );
     },
   );
+
+  it("does not treat related claim UUIDs as payment card numbers", () => {
+    const first = prepare(validWrite()).claim;
+    const digitHeavyId = "01234567-8910-4111-8123-456789012345";
+    const related = { ...first, id: digitHeavyId };
+
+    expect(() =>
+      prepare(
+        validWrite({
+          relationship: "supports",
+          relatedClaimIds: [digitHeavyId],
+        }),
+        [related],
+      ),
+    ).not.toThrow();
+  });
 
   it("preserves both claims inside an explicit disagreement", () => {
     const first = prepare(validWrite()).claim;

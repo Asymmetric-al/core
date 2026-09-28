@@ -90,17 +90,7 @@ Chat components nest in a fixed order (`MessageScrollerProvider` → `MessageScr
 
 ## Toast notifications follow the project base
 
-For Base UI projects, use the `toast` component:
-
-```tsx
-import { toast } from "@/components/ui/toast"
-
-toast.add({
-  title: "Changes saved.",
-})
-```
-
-For Radix and React Aria projects, use Sonner:
+Core's base-maia system uses the existing Sonner host, including Base UI apps. Reuse the shared `@asym/ui/components/shadcn/sonner` mounted by each app layout; do not install or mount another toaster. Send notifications with the existing Sonner API:
 
 ```tsx
 import { toast } from "sonner"

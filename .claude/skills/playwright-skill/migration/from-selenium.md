@@ -186,9 +186,9 @@ public class LoginTest {
         emailField.clear();
         emailField.sendKeys("user@example.com");
 
-        WebElement passwordField = driver.findElement(By.id("password")); // pragma: allowlist secret
-        passwordField.clear(); // pragma: allowlist secret
-        passwordField.sendKeys("s3cure!Pass"); // pragma: allowlist secret
+        WebElement passwordField = driver.findElement(By.id("password"));
+        passwordField.clear();
+        passwordField.sendKeys("s3cure!Pass");
 
         WebElement loginButton = wait.until(
             ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']"))
@@ -602,7 +602,7 @@ public class LoginPage {
     private WebDriverWait wait;
 
     private By emailField = By.id("email");
-    private By passwordField = By.id("password"); // pragma: allowlist secret
+    private By passwordField = By.id("password");
     private By loginButton = By.cssSelector("button[type='submit']");
     private By errorMessage = By.cssSelector(".error-message");
 
@@ -611,12 +611,12 @@ public class LoginPage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    public void login(String email, String password) { // pragma: allowlist secret
+    public void login(String email, String password) {
         wait.until(ExpectedConditions.visibilityOfElementLocated(emailField));
         driver.findElement(emailField).clear();
         driver.findElement(emailField).sendKeys(email);
-        driver.findElement(passwordField).clear(); // pragma: allowlist secret
-        driver.findElement(passwordField).sendKeys(password); // pragma: allowlist secret
+        driver.findElement(passwordField).clear();
+        driver.findElement(passwordField).sendKeys(password);
         driver.findElement(loginButton).click();
     }
 

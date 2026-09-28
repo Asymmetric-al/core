@@ -53,8 +53,8 @@
       "source": "a5c-ai/babysitter-cursor",
       "sourceType": "github",
       "skillPath": "skills/babysit/SKILL.md",
-      "computedHash": "faf85025a23b70b1641262f7fda9e09584ff898f188f9f76aeda4220d843c2e4",
-      "treeHash": "d729bbf992df46c02b4b36e3cbd779c1cf0554e3a5b6be43385a8041d9c2c833"
+      "computedHash": "f7f9b3f8eddef18c6ae55c3e74216f0c26ccb375de651dfac4f0877d66bd47af",
+      "treeHash": "0f7abd7ee020c906b44ab13b3716d96e4e7555f55abc73eada53a94b1843bc13"
     },
     "better-accessibility": {
       "source": "jakubkrehel/skills",

@@ -72,7 +72,7 @@ Disable spellcheck on emails, codes and usernames: `spellcheck="false"`.
 
 ## Never fight the user's tools
 
-- Stay compatible with password managers and 2FA autofill: real `<form>`, correct `autocomplete`, no fake inputs. // pragma: allowlist secret
+- Stay compatible with password managers and 2FA autofill: real `<form>`, correct `autocomplete`, no fake inputs. <!-- pragma: allowlist secret -->
 
 ## Submit behavior
 

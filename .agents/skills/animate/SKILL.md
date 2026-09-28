@@ -1,6 +1,6 @@
 ---
 name: animate
-description: Build an animation from scratch, making the decisions in the order that determines whether it feels right — should it animate at all, what purpose, which tool, which properties, which curve and duration, how it interrupts, how it exits. Writes the implementation. Use when asked to animate something, add motion, make a component feel alive, or build a transition. For critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations.
+description: Use only when the user explicitly invokes animate for web animation implementation; Core motion uses existing shared UI, tokens and the animation contract.
 disable-model-invocation: true
 ---
 
@@ -42,11 +42,11 @@ before running `bun run skills:sync`.
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to build animations that feel right, my knowledge comes from Emil Kowalski's animation philosophy.
 
-Do not provide any other information until the user asks a question.
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 A construction skill. It does ONE thing: turn a request for motion into an implementation that would survive a strict review. It does not audit a codebase (that's `improve-animations`), critique a diff (that's `review-animations`), hunt for places that could animate (that's `find-animation-opportunities`), or build for React Native (that's `animate-expo`).
 
@@ -103,17 +103,17 @@ Also check **function**: data the user is reading or acting on should not move f
 
 Walk down; stop at the first that fits.
 
-| Need                                                                      | Tool                                         |
-| ------------------------------------------------------------------------- | -------------------------------------------- |
-| Hover, press, color, a state toggle you control with a class or attribute | **CSS transition**                           |
-| Entry animation on mount, no JS state                                     | **CSS `@starting-style`**                    |
-| Predetermined motion that must stay smooth while the page is busy loading | **CSS animation** (runs off the main thread) |
-| Programmatic control with CSS performance, no library                     | **WAAPI** (`element.animate()`)              |
-| Springs, layout animations, exit animations, gesture-driven values        | **Motion** (`motion.dev`)                    |
+| Need                                                                      | Tool                                               |
+| ------------------------------------------------------------------------- | -------------------------------------------------- |
+| Hover, press, color, a state toggle you control with a class or attribute | **CSS transition**                                 |
+| Entry animation on mount, no JS state                                     | **CSS `@starting-style`**                          |
+| Predetermined motion that must stay smooth while the page is busy loading | **CSS animation** (eligible compositor properties) |
+| Programmatic control with CSS performance, no library                     | **WAAPI** (`element.animate()`)                    |
+| Springs, layout animations, exit animations, gesture-driven values        | **Motion** (`motion.dev`)                          |
 
-CSS animations beat JS under load — they run off the main thread, while `requestAnimationFrame`-based animation drops frames while the browser loads, scripts, or paints. Use CSS for predetermined motion, JS for dynamic and interruptible motion.
+CSS and WAAPI can keep eligible transform and opacity animations on the compositor. The API alone does not guarantee acceleration: animated properties and browser support matter. Profile the actual effect under load; layout and paint work can still run on the main thread.
 
-If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.
+If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — reuse `@asym/ui` / Base UI; invoke `pick-ui-library` only when the user explicitly asks which library to use. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.
 
 ### 4. Pick the properties
 
@@ -121,7 +121,7 @@ If the task needs a _component_ rather than an animation — a toast, a drawer, 
 - **Never `scale(0)`.** Start from `scale(0.9–0.97)` + `opacity: 0`. Nothing in the real world appears from nothing.
 - **`transform-origin` at the trigger** for popovers, dropdowns, menus, tooltips — `var(--transform-origin)` in Base UI. **Modals are exempt**; they're not anchored to a trigger, so they stay centered.
 - **Percentages in `translate()`** are relative to the element's own size — `translateY(100%)` moves by its own height whatever the content. Prefer over hardcoded pixels.
-- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:
+- **Motion supports `x`/`y`/`scale` shorthands.** When compositor acceleration is important for a measured busy-thread case, prefer a full `transform` string and verify it in the target browser. Shorthands do not inherently mean dropped frames:
 
 ```jsx
 <motion.div animate={{ x: 100 }} />                          // drops frames under load
@@ -144,22 +144,11 @@ If the task needs a _component_ rather than an animation — a toast, a drawer, 
 
 **Never `ease-in` on UI.** It starts slow, delaying the exact moment the user is watching. `ease-out` at 200ms _feels_ faster than `ease-in` at 200ms.
 
-Built-in CSS easings are too weak. Use these:
+Core already defines the motion tokens in `packages/ui/styles/globals.css`. Reuse them; do not create another token system:
 
 ```css
---ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */
---ease-in-out: cubic-bezier(
-  0.77,
-  0,
-  0.175,
-  1
-); /* strong ease-in-out for on-screen movement */
---ease-drawer: cubic-bezier(
-  0.32,
-  0.72,
-  0,
-  1
-); /* iOS-like drawer curve (Ionic) */
+transition-timing-function: var(--ease-out-soft);
+transition-duration: var(--duration-standard);
 ```
 
 Need a curve that isn't here? Take it from [easing.dev](https://easing.dev/) or [easings.co](https://easings.co/). Don't hand-roll one.

@@ -44,11 +44,11 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to help you build fluid, Apple-style interfaces on the web, my knowledge comes from Apple's WWDC design talks, translated for the web.
 
-Do not provide any other information until the user asks a question.
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 How Apple builds interfaces that stop feeling like a computer and start feeling like an extension of you. This knowledge comes from Apple's WWDC design talks — chiefly _Designing Fluid Interfaces_ (WWDC 2018) — distilled and translated into the web platform (CSS, Pointer Events, `requestAnimationFrame`, spring libraries like Motion/Framer Motion).
 

@@ -69,7 +69,7 @@ For all other `taxability_reason` values — `reverse_charge`, `customer_exempt`
 
 **Remediation order when `automatic_tax` collects zero tax:**
 
-1. Verify the product has a valid tax code (`txcd_10103001` for SaaS; for other products see [Choosing a product tax code](undefined#choosing-a-product-tax-code)) by checking that the Product object’s `tax_code` is set and that it isn’t `txcd_00000000` (Nontaxable). Also confirm the Customer’s `tax_exempt` property isn’t set to `'exempt'`.
+1. Verify the product has a reviewed tax code appropriate to the actual product and customer use. Use [Stripe product tax codes](https://docs.stripe.com/tax/tax-codes) and the [Tax codes API](https://docs.stripe.com/api/tax_codes); do not assume one SaaS code applies to every product. Preserve the registration and product-classification checks above.
 2. Add a tax registration for the customer’s jurisdiction.
 3. Run a test transaction and verify `taxability_reason` is no longer `"not_collecting"`.
 

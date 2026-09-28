@@ -1,6 +1,6 @@
 ---
 name: pick-ui-library
-description: Pick the right library for a given frontend task from a curated, opinionated list — numbers, OTP inputs, charts, command menus, virtualization, drag and drop, toasts, state, styling, and more. Only runs when explicitly invoked; it does not trigger on its own.
+description: Use only when the user explicitly asks which UI or motion library to use. Prefer installed Core shared components and preserve base-maia.
 disable-model-invocation: true
 ---
 
@@ -35,11 +35,11 @@ Reconcile this overlay after upstream refreshes before running
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to pick the right library for your task, my picks come from Emil Kowalski's curated list.
 
-Do not provide any other information until the user asks a question.
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 A lookup skill. When invoked with a task ("I need toasts", "what should I use for drag and drop?"), match the task to the curated list below and recommend the library. These are deliberate, taste-driven picks — don't substitute alternatives outside this list unless the user asks for one or the task genuinely isn't covered.
 
@@ -57,9 +57,9 @@ A lookup skill. When invoked with a task ("I need toasts", "what should I use fo
 | Task                                                                    | Library                                                                                              |
 | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Unstyled, accessible UI components (dialogs, popovers, menus, selects…) | [base-ui](https://base-ui.com)                                                                       |
-| Command menus (⌘K palettes)                                             | [cmdk](https://cmdk.paco.me)                                                                         |
+| Command menus                                                           | Existing `@asym/ui/components/shadcn/command`                                                        |
 | Toasts / notifications                                                  | [Sonner](https://sonner.emilkowal.ski)                                                               |
-| OTP / verification code inputs                                          | [input-otp](https://input-otp.rodz.dev)                                                              |
+| OTP / verification code inputs                                          | Existing `@asym/ui/components/shadcn/input-otp`                                                      |
 | Customizable GUIs / control panels                                      | [Leva](https://github.com/pmndrs/leva) — [dialkit](https://joshpuckett.me/dialkit) is an alternative |
 
 ### Motion & visuals
@@ -93,14 +93,14 @@ The split: if data points arrive live and the chart scrolls with time, use Livel
 
 ### State & styling
 
-| Task                                           | Library                                                   |
-| ---------------------------------------------- | --------------------------------------------------------- |
-| State management                               | [zustand](https://zustand.docs.pmnd.rs)                   |
-| Constructing `className` strings conditionally | [clsx](https://github.com/lukeed/clsx)                    |
-| Type-safe, variant-driven styling for Tailwind | [cva](https://cva.style)                                  |
-| Theme switching / dark mode (no flash on load) | [next-themes](https://github.com/pacocoursey/next-themes) |
+| Task                                           | Library                                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| State management                               | React state/reducer/context and approved TanStack data hooks. Do not install Zustand. |
+| Conditional class names                        | Existing `cn` from `@asym/ui/lib/utils`                                               |
+| Type-safe, variant-driven styling for Tailwind | [cva](https://cva.style)                                                              |
+| Theme switching / dark mode (no flash on load) | [next-themes](https://github.com/pacocoursey/next-themes)                             |
 
-The styling split: clsx for ad-hoc conditional classes; cva when a component has real variants (size, intent, state) that deserve a typed API. They compose — cva uses clsx-style inputs internally.
+Use Core's existing `cn` helper for conditional class names and existing shared variants for component APIs. Do not install another class-merging helper.
 
 ## Common mismatches to catch
 
@@ -108,5 +108,5 @@ The styling split: clsx for ad-hoc conditional classes; cva when a component has
 - **A `<div>`-based dropdown/dialog with manual focus handling** → base-ui, which handles accessibility, focus trapping, and dismissal.
 - **Animating a number by re-rendering text** → NumberFlow handles digit transitions properly.
 - **Rendering a 1,000+ row list directly** → Virtuoso before reaching for pagination hacks.
-- **A `useState`-per-component web of props for shared state** → zustand.
-- **Template-literal className ternaries three conditions deep** → clsx (or cva if it's variant-shaped).
+- **Shared client state** → use the existing React state/reducer/context boundary or approved TanStack data hooks; do not introduce Zustand.
+- **Complex class conditions** → the existing `cn` helper and shared component variants.

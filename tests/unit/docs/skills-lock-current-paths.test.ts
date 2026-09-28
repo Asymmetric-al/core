@@ -191,7 +191,7 @@ describe("skills lock current upstream paths", () => {
     );
   });
 
-  it("refreshes lockfile-only Stripe well-known skills to 2026-07-29.dahlia", () => {
+  it("preserves Stripe upstream integrity while applying Core client guidance", () => {
     const { skills } = readLock();
     const wellKnown = [
       "stripe-best-practices",
@@ -201,7 +201,7 @@ describe("skills lock current upstream paths", () => {
 
     expect(
       readRepoFile(".agents/skills/stripe-best-practices/SKILL.md"),
-    ).toContain("2026-07-29.dahlia");
+    ).toContain("packages/api/src/stripe/api-version.ts");
     expect(
       existsSync(
         path.join(
@@ -214,14 +214,25 @@ describe("skills lock current upstream paths", () => {
       "stripe projects init --preflight",
     );
     expect(readRepoFile(".agents/skills/upgrade-stripe/SKILL.md")).toContain(
-      "2026-07-29.dahlia",
+      "packages/api/src/stripe/api-version.ts",
     );
 
     for (const name of wellKnown) {
       const skillPath = path.join(".agents/skills", name, "SKILL.md");
-      const hash = createHash("sha256")
-        .update(readFileSync(path.join(repoRoot, skillPath)))
-        .digest("hex");
+      let upstreamBody = readRepoFile(skillPath);
+      const coreReplacements = JSON.parse(
+        readRepoFile("scripts/refresh-overlays/stripe-core-guidance.json"),
+      ) as Array<{ path: string; upstream: string; core: string }>;
+      for (const replacement of coreReplacements
+        .filter((entry) => entry.path === `${name}/SKILL.md`)
+        .reverse()) {
+        expect(upstreamBody).toContain(replacement.core);
+        upstreamBody = upstreamBody.replace(
+          replacement.core,
+          replacement.upstream,
+        );
+      }
+      const hash = createHash("sha256").update(upstreamBody).digest("hex");
       expect(skills[name], name).toMatchObject({
         source: "docs.stripe.com",
         sourceType: "well-known",

@@ -27,11 +27,11 @@ const result = await payload.login({
 });
 ```
 
-### Forgot Password // pragma: allowlist secret
+### Forgot Password <!-- pragma: allowlist secret -->
 
 ```ts
 await payload.forgotPassword({ // pragma: allowlist secret
-  // pragma: allowlist secret
+ // pragma: allowlist secret
   collection: "users",
   data: {
     email: "user@example.com",

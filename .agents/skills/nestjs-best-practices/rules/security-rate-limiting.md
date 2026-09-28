@@ -23,9 +23,9 @@ export class AuthController {
 
   @Post("forgot-password") // pragma: allowlist secret
   async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> { // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
     // Can be abused to spam users with emails
     return this.authService.sendResetEmail(dto.email);
   }
@@ -90,9 +90,9 @@ export class AuthController {
   @Post("forgot-password") // pragma: allowlist secret
   @Throttle({ short: { limit: 3, ttl: 3600000 } }) // 3 per hour
   async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> { // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
     return this.authService.sendResetEmail(dto.email);
   }
 }

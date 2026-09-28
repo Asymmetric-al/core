@@ -14,19 +14,27 @@ Controls placed too close get mis-tapped and read as one unit. Where the project
 
 Borderless controls need more clearance, because nothing marks where one target ends and the next begins. The space is the boundary. Compact professional tools may use less where hit areas stay distinct and never overlap. Preserve an established, usable density rather than expanding controls to match these values.
 
-```html
-<!-- Good: bordered buttons at 12px, icon buttons given room -->
-<div class="flex gap-3">
-  <button class="rounded-lg border px-4 py-2">Cancel</button>
-  <button class="rounded-lg bg-blue-600 px-4 py-2 text-white">Save</button>
-</div>
+```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
 
-<!-- Bad: three borderless icon buttons packed at 4px -->
-<div class="flex gap-1">
-  <button><TrashIcon /></button>
-  <button><ArchiveIcon /></button>
-  <button><ShareIcon /></button>
-</div>
+// Good: reuse the existing buttons and spacing scale.
+<div className="flex gap-3">
+  <Button variant="outline">Cancel</Button>
+  <Button>Save</Button>
+</div>;
+
+// Bad: unrelated actions are packed together without distinct hit areas.
+<div className="flex gap-1">
+  <button>
+    <TrashIcon />
+  </button>
+  <button>
+    <ArchiveIcon />
+  </button>
+  <button>
+    <ShareIcon />
+  </button>
+</div>;
 ```
 
 WCAG target-size requirements, larger usability targets and pseudo-element expansion belong to `better-accessibility`; these clearances are in addition, so expanded hit areas never overlap.

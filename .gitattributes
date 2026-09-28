@@ -43,6 +43,13 @@ bun.lock text eol=lf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
 
+# Agent skill mirrors: normalize to LF so CI sync matches committed files.
+.agents/** text eol=lf
+.cursor/skills/** text eol=lf
+.cursor/skills-cursor/** text eol=lf
+# Legacy agent dir (if present) leave untouched.
+.agent/** -text
+
 # Binary assets should never be normalized.
 *.png binary
 *.jpg binary
@@ -64,10 +71,3 @@ bun.lock text eol=lf
 *.7z binary
 *.mp4 binary
 *.webm binary
-
-# Agent skill mirrors: normalize to LF so CI sync matches committed files.
-.agents/** text eol=lf
-.cursor/skills/** text eol=lf
-.cursor/skills-cursor/** text eol=lf
-# Legacy agent dir (if present) leave untouched.
-.agent/** -text

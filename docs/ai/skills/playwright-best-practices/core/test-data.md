@@ -266,9 +266,9 @@ const loginScenarios = [
 ];
 
 for (const { email, password, expected } of loginScenarios) { // pragma: allowlist secret
-  // pragma: allowlist secret
-  // pragma: allowlist secret
-  // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
   test(`login with ${email}`, async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);

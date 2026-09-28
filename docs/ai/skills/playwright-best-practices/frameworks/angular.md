@@ -138,9 +138,9 @@ test.describe("form validation", () => {
   });
 
   test("validates password confirmation", async ({ page }) => { // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
     await page.getByLabel("Password", { exact: true }).fill("Secret123!"); // pragma: allowlist secret
     await page.getByLabel("Confirm password").fill("Mismatch"); // pragma: allowlist secret
     await page.getByLabel("Confirm password").blur(); // pragma: allowlist secret

@@ -12,18 +12,14 @@ A hairline icon beside semibold text reads as broken; a heavy icon beside regula
 | Medium/Semibold (500–600)            | `2px`                         |
 | Bold (700), or emphasized standalone | `2.5px`                       |
 
-```html
-<!-- Good: stroke tuned to the label weight -->
-<button class="flex items-center gap-2 font-semibold">
-  <PlusIcon stroke-width="2" class="size-4" />
-  New project
-</button>
+```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
 
-<!-- Bad: default 1.5px stroke against a bold label -->
-<button class="flex items-center gap-2 font-bold">
-  <PlusIcon stroke-width="1.5" class="size-4" />
+// The shared Button owns descendant icon sizing and spacing.
+<Button>
+  <PlusIcon strokeWidth={2} />
   New project
-</button>
+</Button>;
 ```
 
 Two related consistency rules:
@@ -42,26 +38,32 @@ Never ship separate assets for default, hover, selected and disabled states. Use
 
 ```css
 .icon-button {
-  color: oklch(0.552 0.016 285.938);
+  color: var(--muted-foreground);
 }
 .icon-button:hover {
-  color: oklch(0.21 0.006 285.885);
+  color: var(--foreground);
 }
 .icon-button[aria-pressed="true"] {
-  color: oklch(0.623 0.188 259.815);
+  color: var(--primary);
 }
 .icon-button:disabled {
   opacity: 0.4;
 }
 ```
 
-```html
-<!-- Tailwind -->
-<button
-  class="text-zinc-500 hover:text-zinc-900 aria-pressed:text-blue-600 disabled:opacity-40"
+```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+
+<Button
+  variant="ghost"
+  size="icon"
+  aria-label="Bookmark"
+  aria-pressed={saved}
+  onClick={toggleSaved}
+  className="text-muted-foreground hover:text-foreground aria-pressed:text-primary"
 >
   <BookmarkIcon />
-</button>
+</Button>;
 ```
 
 Hardcoded fills inside the SVG, such as `fill="#666"`, break this. Strip them to `currentColor` when importing icons.

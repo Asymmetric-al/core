@@ -179,8 +179,8 @@ export const test = base.extend<GraphQLFixtures>({
     const loginResp = await loginCtx.post("/graphql", {
       data: {
         query: `
-          mutation Login($email: String!, $password: String!) { // pragma: allowlist secret
-            login(email: $email, password: $password) { token } // pragma: allowlist secret
+          mutation Login($email: String!, $password: String!) { # pragma: allowlist secret
+            login(email: $email, password: $password) { token } # pragma: allowlist secret
           }
         `,
         variables: {

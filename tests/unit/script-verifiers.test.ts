@@ -73,6 +73,18 @@ async function copyScript(tempRoot: string, relativePath: string) {
   const targetPath = path.join(tempRoot, relativePath);
   await mkdir(path.dirname(targetPath), { recursive: true });
   await cp(sourcePath, targetPath);
+  if (
+    [
+      "scripts/sync-agent-skills.mjs",
+      "scripts/refresh-upstream-skills.mjs",
+    ].includes(relativePath)
+  ) {
+    await cp(
+      path.join(repoRoot, "scripts/lib"),
+      path.join(tempRoot, "scripts/lib"),
+      { recursive: true },
+    );
+  }
 }
 
 function runNodeScript(
@@ -922,6 +934,67 @@ describe("sync-agent-skills", () => {
     }
   }, 20_000);
 
+  it("restores the git-guardrails fail-closed hook before mirroring ecosystem skills", async () => {
+    const tempRoot = await createTempRepo("sync-skills-git-guardrails-overlay");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+    await copyScript(
+      tempRoot,
+      "scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh",
+    );
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "# Sample skill\n",
+    );
+
+    const guardrailsRoot = path.join(
+      tempRoot,
+      ".agents/skills/git-guardrails-claude-code",
+    );
+    const hookRelativePath = "scripts/block-dangerous-git.sh";
+    await mkdir(path.join(guardrailsRoot, "scripts"), { recursive: true });
+    await writeFile(
+      path.join(guardrailsRoot, "SKILL.md"),
+      "# Git guardrails\n",
+    );
+    await writeFile(
+      path.join(guardrailsRoot, hookRelativePath),
+      [
+        "#!/bin/bash",
+        "INPUT=$(cat)",
+        "COMMAND=$(echo \"$INPUT\" | jq -r '.tool_input.command // empty')",
+        'if echo "$COMMAND" | grep -q "git push"; then',
+        "  exit 2",
+        "fi",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    const overlay = await readFile(
+      path.join(
+        tempRoot,
+        "scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh",
+      ),
+      "utf8",
+    );
+    const runtimeSkillPath =
+      "skills/git-guardrails-claude-code/scripts/block-dangerous-git.sh";
+
+    await expect(
+      readFile(path.join(tempRoot, ".agents", runtimeSkillPath), "utf8"),
+    ).resolves.toBe(overlay);
+    await expect(
+      readFile(path.join(tempRoot, ".cursor", runtimeSkillPath), "utf8"),
+    ).resolves.toBe(overlay);
+    await expect(
+      readFile(path.join(tempRoot, ".claude", runtimeSkillPath), "utf8"),
+    ).resolves.toBe(overlay);
+  });
+
   it(
     "prints help and rejects unknown arguments",
     { timeout: 60_000 },
@@ -1544,7 +1617,7 @@ describe("refresh-upstream-skills", () => {
         ...extraLines,
       ].join("\n");
 
-    const fixtures = {
+    const fixtures: Record<string, Record<string, string>> = {
       animate: {
         "SKILL.md": minimalEmilSkill("animate", ["# Building Animations", ""]),
       },
@@ -1679,7 +1752,11 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
       },
       "review-animations": {
-        "SKILL.md": "# Review animations\n`var(--transform-origin)`\n",
+        "SKILL.md": minimalEmilSkill("review-animations", [
+          "# Review animations",
+          "`var(--transform-origin)`",
+          "",
+        ]),
         "STANDARDS.md": [
           "# Standards",
           "",
@@ -1695,6 +1772,28 @@ describe("refresh-upstream-skills", () => {
         "SKILL.md": minimalEmilSkill("write-swift", ["# Write Swift", ""]),
       },
     } as const;
+
+    // Use exact pinned public bytes for API recipes. Handwritten miniature skills
+    // previously could pass without exercising these operative examples.
+    for (const relativePath of [
+      "animate/SKILL.md",
+      "animate/RECIPES.md",
+      "animate-expo/RECIPES.md",
+      "ask-sonner/SKILL.md",
+      "ask-sonner/API.md",
+      "mobile-native/SKILL.md",
+      "write-swift/SKILL.md",
+    ]) {
+      const [name, file] = relativePath.split("/");
+      fixtures[name!]![file!] = await readFile(
+        path.join(
+          repoRoot,
+          "tests/fixtures/skills/emil-upstream",
+          relativePath,
+        ),
+        "utf8",
+      );
+    }
 
     for (const [skillName, files] of Object.entries(fixtures)) {
       const skillRoot = path.join(tempRoot, ".agents/skills", skillName);
@@ -1865,7 +1964,7 @@ describe("refresh-upstream-skills", () => {
       "utf8",
     );
     expect(refreshedPicker).toContain(
-      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+      "| OTP / verification code inputs | Existing `@asym/ui/components/shadcn/input-otp` |",
     );
     expect(existsSync(path.join(tempRoot, "docs/ai/skills/prototype"))).toBe(
       false,
@@ -2299,6 +2398,8 @@ describe("refresh-upstream-skills", () => {
     "",
     "## Standalone",
     "",
+    "- **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you about the subject, it interviews you about the **send** (who it's going to, what you need back) and aims the questions at the gap. What comes back is material for `/grill-with-docs` or `/to-spec`.",
+    "- **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
     "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
     "",
   ].join("\n");
@@ -2323,6 +2424,8 @@ describe("refresh-upstream-skills", () => {
     "",
     "## Standalone",
     "",
+    "- **Questionnaire drafting** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**. Draft the questionnaire directly, aiming the questions at the gap; what comes back is material for `/grill-with-docs` or `/to-spec`.",
+    "- **Plain-English re-explanation** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill: re-pitch what you just said with the context the user was missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
     "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
     "",
   ].join("\n");
@@ -2405,6 +2508,8 @@ describe("refresh-upstream-skills", () => {
       "",
       "## Standalone",
       "",
+      "- **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you about the subject, it interviews you about the **send** (who it's going to, what you need back) and aims the questions at the gap. What comes back is material for `/grill-with-docs` or `/to-spec`.",
+      "- **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
       "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
       "",
     ].join("\n");

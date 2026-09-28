@@ -12,7 +12,7 @@ Any pressable element. Instant feedback that the interface heard the user.
 
 ```css
 .button {
-  transition: transform 160ms var(--ease-out);
+  transition: transform 160ms var(--ease-out-soft);
 }
 
 .button:active {
@@ -34,8 +34,8 @@ Scales out of its trigger, not out of thin air.
 .popover {
   transform-origin: var(--transform-origin); /* Base UI supplies this */
   transition:
-    opacity 200ms var(--ease-out),
-    transform 200ms var(--ease-out);
+    opacity 200ms var(--ease-out-soft),
+    transform 200ms var(--ease-out-soft);
 }
 
 .popover[data-starting-style],
@@ -57,8 +57,8 @@ Same shape as a popover, faster, plus the detail most implementations miss.
 .tooltip {
   transform-origin: var(--transform-origin);
   transition:
-    transform 125ms var(--ease-out),
-    opacity 125ms var(--ease-out);
+    transform 125ms var(--ease-out-soft),
+    opacity 125ms var(--ease-out-soft);
 }
 
 .tooltip[data-starting-style],
@@ -85,8 +85,8 @@ The one popover that stays centered.
 .modal {
   transform-origin: center; /* exempt — not anchored to a trigger */
   transition:
-    opacity 250ms var(--ease-out),
-    transform 250ms var(--ease-out);
+    opacity 250ms var(--ease-out-soft),
+    transform 250ms var(--ease-out-soft);
 }
 
 .modal[data-starting-style],
@@ -96,7 +96,7 @@ The one popover that stays centered.
 }
 
 .backdrop {
-  transition: opacity 250ms var(--ease-out);
+  transition: opacity 250ms var(--ease-out-soft);
 }
 ```
 
@@ -130,8 +130,8 @@ Add drag and it becomes a gesture problem — see **Drag to dismiss** below.
   opacity: 1;
   transform: translateY(0);
   transition:
-    opacity 400ms ease,
-    transform 400ms ease;
+    opacity var(--duration-standard) var(--ease-out-soft),
+    transform var(--duration-standard) var(--ease-out-soft);
 
   @starting-style {
     opacity: 0;
@@ -160,8 +160,8 @@ When toasts stack and the list reflows, the opacity change has to work against t
 .content {
   overflow: hidden;
   transition:
-    height 200ms var(--ease-out),
-    opacity 200ms var(--ease-out);
+    height 200ms var(--ease-out-soft),
+    opacity 200ms var(--ease-out-soft);
 }
 ```
 
@@ -177,7 +177,7 @@ For a list or grid the user sees occasionally — not for a list they scroll pas
 .item {
   opacity: 0;
   transform: translateY(8px);
-  animation: fadeIn 300ms var(--ease-out) forwards;
+  animation: fadeIn 300ms var(--ease-out-soft) forwards;
 }
 
 .item:nth-child(2) {
@@ -198,7 +198,7 @@ For a list or grid the user sees occasionally — not for a list they scroll pas
 }
 ```
 
-Stagger is decorative — it must never block interaction while it plays.
+This opacity-zero stagger example is for non-interactive decoration only. Keep links and controls visible and operable while decorative siblings enter; never delay access to functional content.
 
 ---
 
@@ -209,7 +209,7 @@ For destructive actions where a plain click is too easy to fire by accident.
 ```css
 .overlay {
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 200ms var(--ease-out); /* release: snappy */
+  transition: clip-path 200ms var(--ease-out-soft); /* release: snappy */
 }
 
 .button:active .overlay {
@@ -268,8 +268,9 @@ The gesture recipe. Springs, not durations, because the user can reverse mid-mot
 
 ```js
 // Dismiss on a flick, not just on distance
-const timeTaken = Date.now() - dragStartTime.current;
-const velocity = Math.abs(swipeAmount) / timeTaken;
+// Capture dragStartTime.current = performance.now() at drag start.
+const timeTaken = performance.now() - dragStartTime.current;
+const velocity = timeTaken > 0 ? Math.abs(swipeAmount) / timeTaken : 0;
 
 if (Math.abs(swipeAmount) >= SWIPE_THRESHOLD || velocity > 0.11) {
   dismiss();
@@ -333,4 +334,4 @@ element.animate(
 );
 ```
 
-Hardware-accelerated, interruptible, no bundle cost.
+Interruptible with no added animation-library bundle. Acceleration depends on the property and browser; profile this clip-path effect instead of assuming compositor execution.

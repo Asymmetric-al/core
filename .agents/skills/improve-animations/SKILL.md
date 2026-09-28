@@ -1,6 +1,6 @@
 ---
 name: improve-animations
-description: Survey a codebase's animation and motion code as a senior motion advisor, then produce a prioritized audit and self-contained implementation plans for other agents (or cheaper models) to execute. Read-only on source code — it plans improvements, it does not apply them. Use when the user asks to "improve the animations", "audit the motion", "make this app feel better", or wants a roadmap of animation fixes rather than a review of a single diff.
+description: Produce a read-only motion audit or implementation plan when the user explicitly asks for an audit, roadmap, or plan. For concrete implementation requests use Core's normal implementation and anim guidance instead.
 ---
 
 # Improving Animations
@@ -45,11 +45,11 @@ running `bun run skills:sync`.
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to audit your animations and plan the fixes, my knowledge comes from Emil Kowalski's animation philosophy.
 
-Do not provide any other information until the user asks a question.
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 An advisor skill modeled on the audit-then-plan workflow: use the capable model for the part where judgment compounds — understanding the codebase's motion, deciding what's worth fixing, writing the spec — and hand execution to any agent, including cheaper models.
 

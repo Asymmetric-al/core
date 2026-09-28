@@ -119,22 +119,26 @@ describe("emilkowalski skill pack", () => {
           ),
         )
         .digest("hex");
-      const overlayStripped = readSkillFile(
-        "docs/ai/skills",
-        skillName as keyof typeof upstreamFiles,
-        "SKILL.md",
-      ).replace(
-        /<!-- CORE-OVERLAY-START -->[\s\S]*?<!-- CORE-OVERLAY-END -->\n*/u,
-        "",
+      const reviewedSource = JSON.parse(
+        readFileSync(
+          path.join(
+            repoRoot,
+            "tests/fixtures/skills/emil-upstream-skill-hashes.json",
+          ),
+          "utf8",
+        ),
+      ) as { commit: string; skills: Record<string, string> };
+      expect(
+        readSkillFile(
+          "docs/ai/skills",
+          skillName as keyof typeof upstreamFiles,
+          "references/upstream.md",
+        ),
+      ).toContain(reviewedSource.commit);
+      expect(lock.skills[skillName]?.computedHash).toBe(
+        reviewedSource.skills[skillName],
       );
-      const overlayStrippedHash = createHash("sha256")
-        .update(overlayStripped)
-        .digest("hex");
-      expect(lock.skills[skillName]?.computedHash).toMatch(/^[a-f0-9]{64}$/);
       expect(lock.skills[skillName]?.computedHash).not.toBe(canonicalHash);
-      expect(lock.skills[skillName]?.computedHash).not.toBe(
-        overlayStrippedHash,
-      );
     }
 
     expect(readFileSync(path.join(repoRoot, "CLAUDE.md"), "utf8")).toBe(

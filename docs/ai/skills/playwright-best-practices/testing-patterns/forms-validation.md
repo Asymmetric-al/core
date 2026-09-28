@@ -279,7 +279,7 @@ test("form redirects after successful submission", async ({ page }) => {
 
 ### Filling Basic Form Fields
 
-**Use when**: Testing any form with standard HTML inputs — text, email, password, number, textarea, select, checkbox, radio. // pragma: allowlist secret
+**Use when**: Testing any form with standard HTML inputs — text, email, password, number, textarea, select, checkbox, radio. <!-- pragma: allowlist secret -->
 
 ```typescript
 test("fill and submit a signup form", async ({ page }) => {
@@ -381,7 +381,7 @@ test("native HTML5 validation with required attribute", async ({ page }) => {
 
 ### Format Validation and Custom Rules
 
-**Use when**: Testing email format, phone number format, password strength, and business-specific validation rules. // pragma: allowlist secret
+**Use when**: Testing email format, phone number format, password strength, and business-specific validation rules. <!-- pragma: allowlist secret -->
 
 ```typescript
 test("validates email format", async ({ page }) => {
@@ -408,9 +408,9 @@ test("validates email format", async ({ page }) => {
 });
 
 test("validates password strength rules", async ({ page }) => { // pragma: allowlist secret
-  // pragma: allowlist secret
-  // pragma: allowlist secret
-  // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
   await page.goto("/signup");
 
   const passwordField = page.getByLabel("Password", { exact: true }); // pragma: allowlist secret

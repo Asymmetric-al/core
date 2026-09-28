@@ -225,9 +225,9 @@ test.describe("signup form", () => {
   });
 
   test("password strength indicator", async ({ page }) => { // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
-    // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
+ // pragma: allowlist secret
     const pwd = page.getByLabel("Password", { exact: true }); // pragma: allowlist secret
 
     await pwd.fill("weak");

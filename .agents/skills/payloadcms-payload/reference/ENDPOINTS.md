@@ -321,7 +321,7 @@ export const externalUsersLogin = {
     const { email, password, tenant } = await req.json(); // pragma: allowlist secret
 
     if (!email || !password || !tenant) { // pragma: allowlist secret
-      // pragma: allowlist secret
+ // pragma: allowlist secret
       throw new APIError("Missing credentials", 400);
     }
 

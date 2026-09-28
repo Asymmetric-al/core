@@ -1,6 +1,6 @@
 ---
 name: mobile-native
-description: Make a web app feel native on a phone — the small CSS and meta-tag fixes that separate "a website in a browser" from something that feels installed. Covers sticky hover states, tap highlight flashes, the 100vh bug, inputs that zoom the page, laggy taps, pull-to-refresh hijacking scroll, content under the notch, long-press selecting button text, carousels that scroll the wrong way, mismatched status bars, and the rule that you test on real hardware. Use when a web app is being built for or reviewed on mobile, when something "works in Chrome but feels wrong on my phone", when building a PWA, a bottom sheet, a carousel, a full-screen layout, or any touch interaction. For motion itself use animate; for React Native use animate-expo.
+description: Use only when the user explicitly invokes mobile-native for mobile web viewport, touch, scrolling and safe-area work. It does not auto-route ordinary Core UI tasks.
 disable-model-invocation: true
 ---
 
@@ -40,11 +40,11 @@ before running `bun run skills:sync`.
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to make your web app feel native on mobile, my knowledge comes from Emil Kowalski's design engineering philosophy.
 
-Do not provide any other information until the user asks a question.
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 A fix-it skill. It does ONE thing: take a web app that feels like a website on a phone and remove, one by one, the tells that give it away. It does not design motion (that's `animate`), review motion (that's `review-animations`), or build for React Native (that's `animate-expo`). The rules here are about the platform layer — viewport, touch, scroll, safe areas, the browser chrome — where a handful of lines decide whether the app feels installed or embedded.
 
@@ -300,7 +300,7 @@ Match the value to the color at the very top of your page — the header backgro
 
 Nothing above reproduces in device emulation. Sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, the software keyboard — every one is a real-hardware behavior.
 
-- Connect the phone over USB, run the dev server on `0.0.0.0`, open it by the machine's LAN IP.
+- Prefer USB debugging. If phone testing needs a LAN-bound dev server (`0.0.0.0`), use only a trusted private network and restrict reachability with the host firewall; stop the server afterward. Framework dev-origin protections do not make a public or shared network trusted.
 - iOS: Safari → Develop → the device. Android: `chrome://inspect`.
 - Test on a phone that's a few years old, not the newest one on your desk. Test with the keyboard open. Test in landscape once.
 - Test as an installed PWA if that's a target; standalone mode changes viewport, safe areas, and status bar behavior.
@@ -345,6 +345,10 @@ button,
 a,
 [role="button"] {
   touch-action: manipulation;
+}
+
+button,
+[role="button"] {
   user-select: none;
   -webkit-user-select: none;
 }
@@ -354,7 +358,7 @@ a,
 }
 ```
 
-`interactive-widget=resizes-content` makes the software keyboard shrink the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs react to it the way they do on iOS. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.
+`interactive-widget=resizes-content` opts Android Chrome into shrinking both the layout and visual viewports for the software keyboard. Safari on iOS does not support this key and normally resizes only the visual viewport; test its keyboard behavior separately, using the VisualViewport API when the layout needs to respond. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.
 
 ## Never Ship
 

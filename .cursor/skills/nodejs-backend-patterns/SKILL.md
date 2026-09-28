@@ -252,9 +252,9 @@ export class UserRepository {
     userData: CreateUserDTO & { password: string }, // pragma: allowlist secret
   ): Promise<UserEntity> {
     const query = `
-      INSERT INTO users (name, email, password) // pragma: allowlist secret
+      INSERT INTO users (name, email, password)
       VALUES ($1, $2, $3)
-      RETURNING id, name, email, password, created_at, updated_at // pragma: allowlist secret
+      RETURNING id, name, email, password, created_at, updated_at
     `;
     const { rows } = await this.db.query(query, [
       userData.name,

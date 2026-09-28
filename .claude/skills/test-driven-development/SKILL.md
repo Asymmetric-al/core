@@ -1,6 +1,7 @@
 ---
 name: test-driven-development
-description: Use when implementing any feature or bugfix, before writing implementation code
+description: Use only when the user explicitly requests the obra test-driven-development companion. Core substantive work uses the canonical tdd skill and its documented exceptions.
+disable-model-invocation: true
 ---
 
 # Test-Driven Development (TDD)

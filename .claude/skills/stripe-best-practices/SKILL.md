@@ -14,9 +14,11 @@ description: >-
 
 ---
 
-Latest Stripe API version: **2026-07-29.dahlia**. Always use the latest API version and SDK unless the user specifies otherwise.
+In Core, read `packages/api/src/stripe/api-version.ts` and `packages/api/package.json` for the approved API version and SDK. Reuse the existing Stripe client. Preserve those pins unless the requested work explicitly includes a reviewed version upgrade; choose and verify that upgrade target before changing code. The upstream versions and examples below are reference snapshots, not Core upgrade instructions.
 
-Latest SDK versions:
+Upstream API reference snapshot: **2026-07-29.dahlia**.
+
+Upstream SDK reference snapshots (Core uses its approved manifest and lockfile):
 
 | Language | Latest version |
 | --- | --- |
@@ -56,7 +58,7 @@ Read the relevant reference file before answering any integration question or wr
 
 - *Before enabling `automatic_tax: { enabled: true }`* (or calculating tax for a custom PaymentIntent), read the [tax reference](references/tax.md) and confirm the user has an active registration. Without one, Stripe calculates and collects no tax while the user believes tax is on (the most common Stripe Tax mistake).
 
-- *Never include `payment_method_types` in any Stripe API call*, with one exception: Terminal (in-person payments) integrations must pass `payment_method_types: ['card_present']` on the PaymentIntent. For all other integrations, omit this parameter entirely to enable dynamic payment methods, which enables you to configure payment method settings from the Dashboard and dynamically display the most relevant eligible payment methods to each customer to maximize conversion. To customize which payment methods you accept, use [`payment_method_configurations`](https://docs.stripe.com/payments/payment-method-configurations.md) or `excluded_payment_method_types` instead of `payment_method_types`.
+- **Preserve Core's quoted payment method.** `packages/api/src/donate/payment-intent.ts` intentionally passes `payment_method_types` when the gift quote binds the allowed method (including card versus ACH fee assumptions). Keep that allowlist and its idempotent recovery behavior. The same helper enables `automatic_payment_methods` only when no method restriction is supplied. Do not replace this contract with Dashboard-driven dynamic methods during unrelated work. For a new integration, verify the supported options in the pinned SDK and [PaymentIntent creation API](https://docs.stripe.com/api/payment_intents/create).
 
 - On API version `2026-03-25.dahlia` or later, pass the parameter `integration_identifier` to `checkout.sessions.create` to tag sessions with a custom label for tracking and comparing checkout flows in the Dashboard. The label should include a suffix of 8 random letters.
 

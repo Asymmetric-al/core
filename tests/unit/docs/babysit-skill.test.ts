@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   mkdirSync,
@@ -9,7 +10,6 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 
 import { describe, expect, it } from "vitest";
 
@@ -31,6 +31,12 @@ function extractDependencyBlock(skill: string) {
     /### Babysitter SDK and CLI\n\n([\s\S]*?)\n\n### jq/,
   );
   expect(match, "Babysitter dependency section").not.toBeNull();
+  return match?.[1] ?? "";
+}
+
+function extractInstructionsBlock(skill: string) {
+  const match = skill.match(/## Instructions\n\n([\s\S]*?)\n?$/);
+  expect(match, "Babysitter instructions section").not.toBeNull();
   return match?.[1] ?? "";
 }
 
@@ -143,6 +149,7 @@ const failClosedCases: Array<[string, (skillRoot: string) => void]> = [
 describe("babysit skill", () => {
   const skill = readFileSync(skillPath, "utf8");
   const dependencyBlock = extractDependencyBlock(skill);
+  const instructionsBlock = extractInstructionsBlock(skill);
   const dependencyShell = extractDependencyShell(dependencyBlock);
 
   it("resolves exactly the reviewed SDK pin with PLUGIN_ROOT unset", () => {
@@ -209,7 +216,13 @@ describe("babysit skill", () => {
       /const BABYSIT_UPSTREAM_DEPENDENCY_BLOCK = `([\s\S]*?)`;\n\nconst BABYSIT_CORE_DEPENDENCY_BLOCK/,
     );
     const coreBlockMatch = refreshScript.match(
-      /const BABYSIT_CORE_DEPENDENCY_BLOCK = `([\s\S]*?)`;\n\nconst POST_REFRESH_REPLACEMENTS/,
+      /const BABYSIT_CORE_DEPENDENCY_BLOCK = `([\s\S]*?)`;\n\nconst BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK/,
+    );
+    const upstreamInstructionsBlockMatch = refreshScript.match(
+      /const BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK = `([\s\S]*?)`;\n\nconst BABYSIT_CORE_INSTRUCTIONS_BLOCK/,
+    );
+    const coreInstructionsBlockMatch = refreshScript.match(
+      /const BABYSIT_CORE_INSTRUCTIONS_BLOCK = `([\s\S]*?)`;\n\nconst POST_REFRESH_REPLACEMENTS/,
     );
     expect(
       upstreamBlockMatch,
@@ -227,18 +240,44 @@ describe("babysit skill", () => {
     );
     expect(coreBlockMatch, "Babysitter Core refresh block").not.toBeNull();
     expect(coreBlockMatch?.[1]).toBe(encodeForTemplateLiteral(dependencyBlock));
-
-    const babysitReplacement = refreshScript.match(
-      /\{\n    skillName: "babysit",\n([\s\S]*?)\n  \},/,
+    expect(
+      upstreamInstructionsBlockMatch,
+      "reviewed Babysitter upstream instructions block",
+    ).not.toBeNull();
+    expect(upstreamInstructionsBlockMatch?.[1]).toContain(
+      "instructions:babysit-skill --harness cursor --interactive",
     );
-    expect(babysitReplacement, "Babysitter refresh replacement").not.toBeNull();
-    expect(babysitReplacement?.[1]).toContain(
+    expect(upstreamInstructionsBlockMatch?.[1]).toContain(
+      "instructions:babysit-skill --harness cursor --no-interactive",
+    );
+    expect(
+      coreInstructionsBlockMatch,
+      "Babysitter Core instructions refresh block",
+    ).not.toBeNull();
+    expect(coreInstructionsBlockMatch?.[1]).toBe(
+      encodeForTemplateLiteral(instructionsBlock),
+    );
+
+    const babysitReplacements = refreshScript.match(
+      /const POST_REFRESH_REPLACEMENTS = \[\n([\s\S]*?)\n  \{\n    skillName: "animation-vocabulary"/,
+    );
+    expect(
+      babysitReplacements,
+      "Babysitter refresh replacements",
+    ).not.toBeNull();
+    expect(babysitReplacements?.[1]).toContain(
       "search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK",
     );
-    expect(babysitReplacement?.[1]).toContain(
+    expect(babysitReplacements?.[1]).toContain(
       "replace: BABYSIT_CORE_DEPENDENCY_BLOCK",
     );
-    expect(babysitReplacement?.[1]).toContain("required: true");
+    expect(babysitReplacements?.[1]).toContain(
+      "search: BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK",
+    );
+    expect(babysitReplacements?.[1]).toContain(
+      "replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK",
+    );
+    expect(babysitReplacements?.[1].match(/required: true/g)).toHaveLength(2);
     expect(refreshScript).toContain(
       "Required Core compatibility replacement is missing",
     );

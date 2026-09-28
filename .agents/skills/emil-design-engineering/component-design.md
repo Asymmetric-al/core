@@ -204,6 +204,18 @@ import { buttonVariants } from "@asym/ui/components/shadcn/button";
 When a Base UI primitive must render as another element, use its `render` prop.
 Keep that local to the primitive — do not wrap `Button` in a slot helper.
 
+When the shared Button itself must render a non-button, set `nativeButton={false}`:
+
+```tsx
+import { Button } from "@asym/ui/components/shadcn/button";
+
+<Button render={<a href="/page" />} nativeButton={false}>
+  Open page
+</Button>;
+```
+
+Keep one interactive element and preserve its keyboard, disabled, focus, event-handler, and ref behavior.
+
 ## Forwarding Refs
 
 Always forward refs for components that wrap DOM elements:

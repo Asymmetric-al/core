@@ -180,7 +180,7 @@ Automated tests do not catch everything. They will not tell you whether alt text
 
 ## Related
 
-- [Transactional Emails](./transactional-emails.md) — content patterns for password resets, OTPs, receipts // pragma: allowlist secret
+- [Transactional Emails](./transactional-emails.md) — content patterns for password resets, OTPs, receipts <!-- pragma: allowlist secret -->
 - [Marketing Emails](./marketing-emails.md) — newsletter and campaign best practices
 - [Compliance](./compliance.md) — legal requirements that overlap with accessibility (e.g., clear unsubscribe text)
 

@@ -67,12 +67,12 @@ A collection of specific UX patterns, accessibility standards, and implementatio
 </Label>
 ```
 
-### Show/Hide Password // pragma: allowlist secret
+### Show/Hide Password <!-- pragma: allowlist secret -->
 
-**Concept**: Masking passwords by default prevents error correction. // pragma: allowlist secret
+**Concept**: Masking passwords by default prevents error correction. <!-- pragma: allowlist secret -->
 **Implementation**: Always include a toggle button inside the input wrapper.
 
-- **A11y**: The toggle button must have `type="button"` and `aria-label="Show password"`. // pragma: allowlist secret
+- **A11y**: The toggle button must have `type="button"` and `aria-label="Show password"`. <!-- pragma: allowlist secret -->
 
 ### Field Sizing as Affordance
 
@@ -1622,7 +1622,7 @@ export const SmartInput = ({
 - [ ] **Focus**: Is the focus ring visible? (Tailwind `focus-visible:ring`)
 - [ ] **Click Areas**: Do lists/radios have expanded hit areas? (`inset` tricks)
 - [ ] **Semantics**: Are errors linked with `aria-describedby`?
-- [ ] **Keyboard**: Can you fill the form without a mouse? (Check password toggles and custom sliders) // pragma: allowlist secret
+- [ ] **Keyboard**: Can you fill the form without a mouse? (Check password toggles and custom sliders) <!-- pragma: allowlist secret -->
 - [ ] **Reduced Motion**: Are animations disabled for `prefers-reduced-motion`?
 - [ ] **High Contrast**: Do error states work in Windows High Contrast mode? (`forced-colors:`)
 - [ ] **Live Regions**: Are success/error messages announced to screen readers?

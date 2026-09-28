@@ -67,7 +67,7 @@ Reference these guidelines when:
 | 6        | State           | Controlled/uncontrolled patterns | `state`           |
 | 7        | Types           | TypeScript props and interfaces  | `types`           |
 | 8        | Polymorphism    | Element switching with `as` prop | `polymorphism`    |
-| 9        | As-Child        | Radix Slot composition pattern   | `as-child`        |
+| 9        | As-Child        | Core Base UI render composition  | `as-child`        |
 | 10       | Data Attributes | `data-state` and `data-slot`     | `data-attributes` |
 | 11       | Styling         | Tailwind CSS, cn utility, CVA    | `styling`         |
 | 12       | Design Tokens   | CSS variables and theming        | `design-tokens`   |

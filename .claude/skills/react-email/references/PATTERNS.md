@@ -4,13 +4,13 @@ Real-world examples of common email templates using React Email with Tailwind CS
 
 ## Table of Contents
 
-- [Password Reset Email](#password-reset-email) // pragma: allowlist secret
+- [Password Reset Email](#password-reset-email) <!-- pragma: allowlist secret -->
 - [Order Confirmation with Product List](#order-confirmation-with-product-list)
 - [Notification Email with Code Block](#notification-email-with-code-block)
 - [Multi-Column Newsletter](#multi-column-newsletter)
 - [Team Invitation Email](#team-invitation-email)
 
-## Password Reset Email // pragma: allowlist secret
+## Password Reset Email <!-- pragma: allowlist secret -->
 
 ```tsx
 import {
