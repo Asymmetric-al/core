@@ -45,3 +45,25 @@ qualification and target-bound launch evidence remain required. If governance
 denies that qualification, the denial remains a blocker; this change supplies no
 alternate authorization path. No API, database, migration or runtime policy
 change is part of this repair.
+
+## Shared-context validation follow-up
+
+The canonical full gate exposed a pre-existing relation-ID false positive:
+the valid UUID `01234567-8910-4111-8123-456789012345` contains a substring matching
+the payment-number detector. A generated related claim ID could therefore
+reject an otherwise valid disagreement. This is the narrow repair already
+preserved from #1862 in #1905's reviewed integration candidate.
+
+After the existing UUID schema validation, sensitive-content scanning excludes
+only the top-level `relatedClaimIds` metadata. It still scans claim values,
+provenance, evidence and other content, including UUID-shaped payment text.
+The original IDs are retained in the claim and still require visible existing
+claims for the same field, tenant and root run. Invalid IDs and relationships
+remain rejected. This restores the accepted structured context and disagreement
+preservation requirements in `eve-subagent-catalog-shared-run-context`; it
+does not grant new authority or change any release gate.
+
+The deterministic relation-ID regression and UUID-shaped-content rejection
+control travel with this repair. #1862's design packs and the remaining #1905
+work are still pending separate integration; this small repair does not
+establish either PR's full supersession.

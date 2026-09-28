@@ -16,12 +16,20 @@ Release-Off candidate required by the launch runbook from being inspected.
 - Preserve ordinary standalone and production service builds with prewarming.
 - Keep artifact mode distinct in build caching and describe its unqualified
   status in the build and launch runbooks.
+- Restore per-surface preview diagnostics with bounded, redacted artifacts while
+  preserving every existing smoke assertion and failed result.
+- Carry forward the reviewed shared-context relation-ID repair preserved from
+  #1862 in #1905, so valid UUIDs do not intermittently fail the full gate's
+  sensitive-content check.
 
 ## Scope and boundaries
 
-This changes build orchestration only. It does not activate Eve, change any
-governance/effect admission, authorize provisioning, supply credentials, or
-qualify a preview for release. A passing preview is not sandbox or launch proof.
+This changes build orchestration, preview diagnostic handling, and a narrow
+shared-context validation defect. Schema-validated relation IDs remain subject
+to visible-claim, field, tenant and run checks; content remains subject to the
+existing sensitive-data rules. It does not activate Eve, change governance or
+effect admission, authorize provisioning, supply credentials, or qualify a
+preview for release. A passing preview is not sandbox or launch proof.
 
 ## Capability
 
