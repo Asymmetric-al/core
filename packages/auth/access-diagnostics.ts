@@ -43,9 +43,13 @@ export function reportAccessDiagnostic(
   error?: unknown,
 ): void {
   try {
+    const environment = {
+      VERCEL_ENV: process.env.VERCEL_ENV,
+      VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
+    };
     if (
-      resolveDeploymentEnvironment(process.env) !== "preview" ||
-      isProtectedDeployment(process.env) ||
+      resolveDeploymentEnvironment(environment) !== "preview" ||
+      isProtectedDeployment(environment) ||
       !Object.hasOwn(DIAGNOSTICS, kind)
     ) {
       return;
