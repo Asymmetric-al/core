@@ -10,6 +10,14 @@ describe("Eve build dispatch", () => {
   it.each([
     { VERCEL: "1", VERCEL_ENV: "production" },
     { VERCEL: "1", VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "production" },
+    { VERCEL: "1", VERCEL_ENV: "preview", VERCEL_TARGET_ENV: " Production " },
+    { VERCEL: "1", VERCEL_ENV: " Preview ", VERCEL_TARGET_ENV: "production" },
+    { VERCEL: "1", VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "development" },
+    {
+      VERCEL: "1",
+      VERCEL_ENV: "development",
+      VERCEL_TARGET_ENV: "development",
+    },
     { VERCEL_ENV: "preview" },
     {},
   ])("keeps service qualification full outside hosted preview (%j)", (env) => {
@@ -68,24 +76,50 @@ describe("Eve build dispatch", () => {
     );
   });
 
-  it("compiles a hosted preview service without sandbox prewarming", () => {
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const spawn = vi.fn(() => ({ status: 0 }));
-    runEveBuild({
-      environment: {
-        VERCEL: "1",
-        VERCEL_ENV: "preview",
-        CORE_EVE_BUILD_MODE: "full",
-      },
-      service: true,
-      spawn,
-    });
-    expect(spawn).toHaveBeenCalledWith(
-      process.execPath,
-      [expect.any(String), "build", "--skip-sandbox-prewarm"],
-      expect.anything(),
-    );
-  });
+  it.each([
+    { VERCEL_ENV: "preview" },
+    { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "preview" },
+    { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "core-development" },
+    { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "staging" },
+    { VERCEL_ENV: "preview", VERCEL_TARGET_ENV: " Core-Development " },
+    { VERCEL_ENV: " Preview ", VERCEL_TARGET_ENV: "preview" },
+  ])(
+    "compiles a hosted preview service without sandbox prewarming (%j)",
+    (signals) => {
+      vi.spyOn(console, "log").mockImplementation(() => undefined);
+      const spawn = vi.fn(() => ({ status: 0 }));
+      runEveBuild({
+        environment: {
+          VERCEL: "1",
+          ...signals,
+          CORE_EVE_BUILD_MODE: "full",
+        },
+        service: true,
+        spawn,
+      });
+      expect(spawn).toHaveBeenCalledWith(
+        process.execPath,
+        [expect.any(String), "build", "--skip-sandbox-prewarm"],
+        expect.anything(),
+      );
+    },
+  );
+
+  it.each([false, true])(
+    "rejects the SDK skip flag in full mode (service=%s)",
+    (service) => {
+      const spawn = vi.fn(() => ({ status: 0 }));
+      expect(() =>
+        runEveBuild({
+          environment: { VERCEL: "1", VERCEL_ENV: "production" },
+          service,
+          args: ["--skip-sandbox-prewarm"],
+          spawn,
+        }),
+      ).toThrow("--skip-sandbox-prewarm is only supported in artifacts mode.");
+      expect(spawn).not.toHaveBeenCalled();
+    },
+  );
 
   it("rejects an unknown mode without starting the SDK", () => {
     const spawn = vi.fn();
@@ -117,9 +151,11 @@ describe("Eve build dispatch", () => {
       readFileSync("packages/eve-runtime/turbo.json", "utf8"),
     );
 
-    expect(packageJson.scripts["build:full"]).toBe("eve build");
+    expect(packageJson.scripts["build:full"]).toBe(
+      "node scripts/build.mjs --full",
+    );
     expect(packageJson.scripts["build:artifacts"]).toBe(
-      "eve build --skip-sandbox-prewarm",
+      "node scripts/build.mjs --artifacts",
     );
     expect(packageJson.scripts["build:service"]).toBe(
       "node scripts/build.mjs --service",

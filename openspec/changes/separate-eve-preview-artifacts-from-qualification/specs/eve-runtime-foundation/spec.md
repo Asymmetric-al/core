@@ -44,3 +44,19 @@ same-named directories outside those paths.
 - **WHEN** lint and data-boundary verification run after the build
 - **THEN** they exclude those generated bundles without classifying server dependencies as authored browser imports
 - **AND** forbidden database imports or retired CRM references in authored source still fail verification
+
+#### Scenario: Production signals require canonical normalization
+
+- **GIVEN** the current target has production casing or whitespace accepted by the canonical environment model
+- **WHEN** the generated service dispatcher selects its build mode
+- **THEN** production still requires full prewarming even with a conflicting preview marker
+- **AND** local development stays full while hosted core-development and legacy staging use artifacts
+
+#### Scenario: Explicit full commands receive a conflicting skip flag
+
+- **GIVEN** an ordinary full build, production service or named full command
+- **WHEN** the caller supplies the SDK skip-prewarm flag
+- **THEN** the dispatcher fails before starting Eve
+- **AND** an inherited artifact-mode variable cannot change the named full command
+- **AND** a forwarded service or artifact selector cannot override that explicit full mode
+- **AND** ordinary SDK arguments remain supported

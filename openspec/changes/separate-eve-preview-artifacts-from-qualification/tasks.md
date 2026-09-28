@@ -11,3 +11,4 @@
 - [x] 2.3 Pass focused tests, formatting, lint/typecheck and strict OpenSpec checks.
 - [x] 2.4 Verify actual Core artifacts and full-build denial in isolation.
 - [ ] 2.5 Complete independent review, canonical preflight and required preview CI.
+- [x] 2.6 Verify review findings adversarially and cover normalized targets and full-mode argument rejection through dispatcher and real CLI regression tests.

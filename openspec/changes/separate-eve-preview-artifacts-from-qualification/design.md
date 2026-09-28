@@ -11,7 +11,17 @@ The SDK preserves existing generated service commands, so choosing the mode only
 when generating config could carry a preview skip into a later production build.
 Service execution ignores the generic web artifact variable; production and
 ordinary standalone commands retain the SDK's full build. A production target
-overrides a conflicting preview environment marker.
+overrides a conflicting preview environment marker. The dispatcher uses the
+canonical deployment-environment helpers so case and whitespace cannot hide a
+production target. Hosted core-development and legacy staging retain artifact
+mode; an explicit local development target retains full mode.
+
+Both named build commands select their explicit mode through the same dispatcher,
+overriding an inherited generic build mode. Full mode rejects the SDK's
+skip-prewarm flag before starting Eve, while ordinary SDK arguments still pass
+through. Explicit selectors cannot be combined with a forwarded service or
+another mode selector. The Node 24 dispatcher imports the declared environment workspace
+directly; it does not introduce another environment classifier.
 
 Turbo hashes the mode. The Eve build task does not cache provider qualification:
 an artifact build or a prior successful prewarm cannot stand in for a fresh
