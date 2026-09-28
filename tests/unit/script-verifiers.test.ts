@@ -2360,6 +2360,8 @@ describe("refresh-upstream-skills", () => {
     "",
     "## Standalone",
     "",
+    "- **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you about the subject, it interviews you about the **send** (who it's going to, what you need back) and aims the questions at the gap. What comes back is material for `/grill-with-docs` or `/to-spec`.",
+    "- **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
     "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
     "",
   ].join("\n");
@@ -2384,6 +2386,8 @@ describe("refresh-upstream-skills", () => {
     "",
     "## Standalone",
     "",
+    "- **Questionnaire drafting** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**. Draft the questionnaire directly, aiming the questions at the gap; what comes back is material for `/grill-with-docs` or `/to-spec`.",
+    "- **Plain-English re-explanation** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill: re-pitch what you just said with the context the user was missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
     "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
     "",
   ].join("\n");
@@ -2466,6 +2470,8 @@ describe("refresh-upstream-skills", () => {
       "",
       "## Standalone",
       "",
+      "- **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you about the subject, it interviews you about the **send** (who it's going to, what you need back) and aims the questions at the gap. What comes back is material for `/grill-with-docs` or `/to-spec`.",
+      "- **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
       "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
       "",
     ].join("\n");
