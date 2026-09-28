@@ -371,6 +371,18 @@ export function validateVercelProjectSettings({ project, settings }) {
   );
   requireCheck(
     checks,
+    settings?.nodeVersion === "24.x",
+    `${project.key} Vercel Node runtime is 24.x`,
+    settings?.nodeVersion ?? "<missing>",
+  );
+  requireCheck(
+    checks,
+    settings?.bunVersion == null,
+    `${project.key} Vercel Bun runtime is not configured`,
+    settings?.bunVersion ?? "<unset>",
+  );
+  requireCheck(
+    checks,
     settings?.enableAffectedProjectsDeployments === true,
     `${project.key} Vercel affected-project deployments enabled`,
     `enableAffectedProjectsDeployments=${settings?.enableAffectedProjectsDeployments ?? "unknown"}`,

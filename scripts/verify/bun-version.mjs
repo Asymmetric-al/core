@@ -94,55 +94,120 @@ export function isGitHubWorkflowFile(name) {
   return name.endsWith(".yml") || name.endsWith(".yaml");
 }
 
+// This verifier runs before bun install during setup, so use Bun's built-in
+// YAML parser without importing a package from node_modules.
+function parseWorkflowYaml(source) {
+  for (const candidate of candidateBunPaths()) {
+    const useShell = process.platform === "win32" && candidate.endsWith(".cmd");
+    const expression =
+      "process.stdout.write(JSON.stringify(Bun.YAML.parse(await Bun.stdin.text())))";
+    const result = spawnSync(
+      candidate,
+      ["--eval", useShell ? `"${expression}"` : expression],
+      {
+        input: source,
+        encoding: "utf8",
+        shell: useShell,
+        stdio: ["pipe", "pipe", "ignore"],
+      },
+    );
+    if (result.error) continue;
+    if (result.status !== 0) throw new Error("Unable to parse workflow YAML");
+    return JSON.parse(result.stdout);
+  }
+  throw new Error("Bun is required to parse workflow YAML");
+}
+
+function isMapping(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function readWorkflowEnv(env, label, expected, errors) {
+  if (env == null) return {};
+  if (!isMapping(env)) {
+    errors.push(`${label} env must be a static mapping`);
+    return {};
+  }
+  if (Object.hasOwn(env, "BUN_VERSION") && env.BUN_VERSION !== expected) {
+    errors.push(
+      `${label} BUN_VERSION is ${String(env.BUN_VERSION)}, expected ${expected}`,
+    );
+  }
+  return env;
+}
+
 export function collectGitHubWorkflowBunPinDrift(root, expected) {
   const workflowDir = path.join(root, ".github", "workflows");
-
-  if (!existsSync(workflowDir)) {
-    return [];
-  }
+  if (!existsSync(workflowDir)) return [];
 
   const errors = [];
-
   for (const fileName of readdirSync(workflowDir).filter(
     isGitHubWorkflowFile,
   )) {
-    const workflow = readFileSync(path.join(workflowDir, fileName), "utf8");
-    const bunVersions = [
-      ...workflow.matchAll(/^\s*BUN_VERSION:\s*"([^"]+)"/gm),
-    ].map((match) => match[1]);
-
-    for (const version of bunVersions) {
-      if (version !== expected) {
-        errors.push(
-          `${fileName} BUN_VERSION is ${version}, expected ${expected}`,
-        );
-      }
+    let workflow;
+    try {
+      workflow = parseWorkflowYaml(
+        readFileSync(path.join(workflowDir, fileName), "utf8"),
+      );
+    } catch {
+      errors.push(`${fileName} is not valid workflow YAML`);
+      continue;
     }
-
-    const setupBunCount = (workflow.match(/uses:\s*oven-sh\/setup-bun@/g) ?? [])
-      .length;
-
-    if (setupBunCount === 0) {
+    if (!isMapping(workflow) || !isMapping(workflow.jobs)) {
+      errors.push(`${fileName} must define a jobs mapping`);
       continue;
     }
 
-    const envPinnedCount = (
-      workflow.match(/bun-version:\s*\$\{\{\s*env\.BUN_VERSION\s*\}\}/g) ?? []
-    ).length;
+    const workflowEnv = readWorkflowEnv(
+      workflow.env,
+      fileName,
+      expected,
+      errors,
+    );
+    for (const [jobId, job] of Object.entries(workflow.jobs)) {
+      const jobLabel = `${fileName} job ${jobId}`;
+      if (!isMapping(job)) {
+        errors.push(`${jobLabel} must be a mapping`);
+        continue;
+      }
+      const jobEnv = readWorkflowEnv(job.env, jobLabel, expected, errors);
+      if (job.steps == null) continue;
+      if (!Array.isArray(job.steps)) {
+        errors.push(`${jobLabel} steps must be an array`);
+        continue;
+      }
 
-    if (envPinnedCount !== setupBunCount) {
-      errors.push(
-        `${fileName} has ${setupBunCount} oven-sh/setup-bun steps but ${envPinnedCount} bun-version: \${{ env.BUN_VERSION }} pins`,
-      );
-    }
+      for (const [index, step] of job.steps.entries()) {
+        const stepLabel = `${jobLabel} step ${index + 1}`;
+        if (!isMapping(step)) {
+          errors.push(`${stepLabel} must be a mapping`);
+          continue;
+        }
+        const stepEnv = readWorkflowEnv(step.env, stepLabel, expected, errors);
+        if (
+          typeof step.uses !== "string" ||
+          !/^oven-sh\/setup-bun@/i.test(step.uses)
+        )
+          continue;
 
-    if (bunVersions.length === 0) {
-      errors.push(
-        `${fileName} uses oven-sh/setup-bun but has no BUN_VERSION env pin`,
-      );
+        const version = step.with?.["bun-version"];
+        if (
+          typeof version !== "string" ||
+          !/^\$\{\{\s*env\.BUN_VERSION\s*\}\}$/.test(version)
+        ) {
+          errors.push(
+            `${stepLabel} must set its own with.bun-version to \${{ env.BUN_VERSION }}`,
+          );
+        }
+        const effectiveEnv = { ...workflowEnv, ...jobEnv, ...stepEnv };
+        if (!Object.hasOwn(effectiveEnv, "BUN_VERSION")) {
+          errors.push(
+            `${stepLabel} uses oven-sh/setup-bun but has no BUN_VERSION env pin in scope`,
+          );
+        }
+      }
     }
   }
-
   return errors;
 }
 
@@ -172,6 +237,14 @@ export function main(root = defaultRepoRoot) {
     process.exit(2);
   }
 
+  const installed = readInstalledVersion();
+
+  if (!installed) {
+    console.error("error: bun is not installed or not on PATH.");
+    console.error("Install Bun from https://bun.sh/docs/installation");
+    process.exit(1);
+  }
+
   const workflowDrift = collectGitHubWorkflowBunPinDrift(root, expected);
 
   if (workflowDrift.length > 0) {
@@ -182,14 +255,6 @@ export function main(root = defaultRepoRoot) {
       console.error(`  ${line}`);
     }
     process.exit(2);
-  }
-
-  const installed = readInstalledVersion();
-
-  if (!installed) {
-    console.error("error: bun is not installed or not on PATH.");
-    console.error("Install Bun from https://bun.sh/docs/installation");
-    process.exit(1);
   }
 
   if (installed !== expected) {

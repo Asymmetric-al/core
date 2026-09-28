@@ -28,6 +28,17 @@ const localConfig = {
   },
 };
 
+const runtimeSettings = {
+  id: adminProject.projectId,
+  name: "admin",
+  rootDirectory: "apps/admin",
+  nodeVersion: "24.x",
+  bunVersion: null,
+  enableAffectedProjectsDeployments: true,
+  previewDeploymentsDisabled: true,
+  resourceConfig: { buildQueue: { configuration: "WAIT_FOR_NAMESPACE_QUEUE" } },
+};
+
 describe("Vercel build controls verifier", () => {
   it("maps the three app projects to expected build-control commands", () => {
     expect(EXPECTED_PROJECTS).toEqual([
@@ -163,6 +174,50 @@ describe("Vercel build controls verifier", () => {
     );
   });
 
+  it.each(["22.x", undefined, null])(
+    "rejects a live Node runtime outside Node 24: %s",
+    (nodeVersion) => {
+      const checks = validateVercelProjectSettings({
+        project: adminProject,
+        settings: { ...runtimeSettings, nodeVersion },
+      });
+      expect(checks).toContainEqual(
+        expect.objectContaining({
+          ok: false,
+          label: "admin Vercel Node runtime is 24.x",
+        }),
+      );
+    },
+  );
+
+  it.each(["1.4.x", "1.x", ""])(
+    "rejects a configured live Bun runtime: %s",
+    (bunVersion) => {
+      const checks = validateVercelProjectSettings({
+        project: adminProject,
+        settings: { ...runtimeSettings, bunVersion },
+      });
+      expect(checks).toContainEqual(
+        expect.objectContaining({
+          ok: false,
+          label: "admin Vercel Bun runtime is not configured",
+        }),
+      );
+    },
+  );
+
+  it.each([null, undefined])(
+    "accepts an unset live Bun runtime: %s",
+    (bunVersion) => {
+      expect(
+        validateVercelProjectSettings({
+          project: adminProject,
+          settings: { ...runtimeSettings, bunVersion },
+        }).every((check) => check.ok),
+      ).toBe(true);
+    },
+  );
+
   it("validates live Vercel project settings without requiring command settings", () => {
     const checks = validateVercelProjectSettings({
       project: adminProject,
@@ -170,6 +225,8 @@ describe("Vercel build controls verifier", () => {
         id: adminProject.projectId,
         name: "admin",
         rootDirectory: "apps/admin",
+        nodeVersion: "24.x",
+        bunVersion: null,
         buildCommand: "bun run build",
         installCommand: "bun install --cwd ../.. --frozen-lockfile",
         enableAffectedProjectsDeployments: true,

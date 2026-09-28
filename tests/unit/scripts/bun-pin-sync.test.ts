@@ -298,7 +298,168 @@ describe("bun-version.mjs pin contract", () => {
   });
 });
 
+describe("workflow setup-bun step ownership", () => {
+  function drift(source: string) {
+    const root = writePinFixture({
+      packageManager: "bun@1.4.0",
+      bunVersion: "1.4.0",
+    });
+    try {
+      mkdirSync(path.join(root, ".github", "workflows"), { recursive: true });
+      writeFileSync(path.join(root, ".github", "workflows", "ci.yml"), source);
+      return collectGitHubWorkflowBunPinDrift(root, "1.4.0");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  const prefix =
+    'env:\n  BUN_VERSION: "1.4.0"\njobs:\n  check:\n    runs-on: ubuntu-latest\n';
+  const pinnedStep =
+    "      - uses: oven-sh/setup-bun@v2\n        with:\n          bun-version: ${{ env.BUN_VERSION }}\n";
+  const badStep =
+    '      - uses: oven-sh/setup-bun@v2\n        with:\n          bun-version: "9.9.9"\n';
+
+  it("rejects a wrong setup pin masked by a commented env pin", () => {
+    expect(
+      drift(
+        prefix +
+          "    steps:\n" +
+          badStep +
+          "# bun-version: ${{ env.BUN_VERSION }}\n",
+      ),
+    ).not.toEqual([]);
+  });
+
+  it("rejects a wrong setup pin masked by an unrelated action input", () => {
+    expect(
+      drift(
+        prefix +
+          "    steps:\n" +
+          badStep +
+          "      - uses: example/action@v1\n        with:\n          bun-version: ${{ env.BUN_VERSION }}\n",
+      ),
+    ).not.toEqual([]);
+  });
+
+  it("does not take another job's BUN_VERSION as the setup job's environment", () => {
+    expect(
+      drift(
+        'jobs:\n  unrelated:\n    env:\n      BUN_VERSION: "1.4.0"\n    runs-on: ubuntu-latest\n    steps: []\n  check:\n    runs-on: ubuntu-latest\n    steps:\n' +
+          pinnedStep,
+      ),
+    ).not.toEqual([]);
+  });
+
+  it("rejects a shadowing job environment with a different quoted pin", () => {
+    expect(
+      drift(
+        prefix +
+          "    env:\n      BUN_VERSION: '9.9.9'\n    steps:\n" +
+          pinnedStep,
+      ),
+    ).not.toEqual([]);
+  });
+
+  it("rejects a shadowing setup-step environment with a different unquoted pin", () => {
+    expect(
+      drift(
+        prefix +
+          "    steps:\n" +
+          pinnedStep +
+          "        env:\n          BUN_VERSION: 9.9.9\n",
+      ),
+    ).not.toEqual([]);
+  });
+
+  it("checks quoted action references rather than skipping their setup step", () => {
+    expect(
+      drift(
+        prefix +
+          "    steps:\n" +
+          badStep.replace("oven-sh/setup-bun@v2", '"oven-sh/setup-bun@v2"'),
+      ),
+    ).not.toEqual([]);
+  });
+
+  it("checks every setup step even when a comment balances the old counts", () => {
+    expect(
+      drift(
+        prefix +
+          "    steps:\n" +
+          pinnedStep +
+          badStep +
+          "# bun-version: ${{ env.BUN_VERSION }}\n",
+      ),
+    ).not.toEqual([]);
+  });
+
+  it("does not read a run-script string as an environment declaration", () => {
+    expect(
+      drift(
+        'jobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - run: |\n          BUN_VERSION: "1.4.0"\n' +
+          pinnedStep,
+      ),
+    ).not.toEqual([]);
+  });
+
+  it.each(["'1.4.0'", "1.4.0"])(
+    "accepts a canonical YAML scalar pin %s",
+    (value) => {
+      expect(
+        drift(prefix.replace('"1.4.0"', value) + "    steps:\n" + pinnedStep),
+      ).toEqual([]);
+    },
+  );
+
+  it("accepts correctly scoped job and step env indirection", () => {
+    expect(
+      drift(
+        'jobs:\n  check:\n    runs-on: ubuntu-latest\n    env:\n      BUN_VERSION: "1.4.0"\n    steps:\n' +
+          pinnedStep +
+          '        env:\n          BUN_VERSION: "1.4.0"\n',
+      ),
+    ).toEqual([]);
+  });
+
+  it("supports YAML aliases for the workflow environment", () => {
+    expect(
+      drift(
+        prefix.replace("env:", "env: &toolchain") +
+          "    env: *toolchain\n    steps:\n" +
+          pinnedStep,
+      ),
+    ).toEqual([]);
+  });
+
+  it("fails closed for malformed workflow YAML", () => {
+    expect(drift("jobs: [\n")).not.toEqual([]);
+  });
+});
+
 describe("bun-version.mjs CLI", () => {
+  it("validates workflow pins before dependency installation", () => {
+    const { repoRoot, scriptPath } = writeIsolatedVerifier({
+      packageManager: "bun@1.4.0",
+      bunVersion: "1.4.0",
+    });
+    try {
+      rmSync(path.join(repoRoot, "node_modules"), {
+        recursive: true,
+        force: true,
+      });
+      writeIsolatedWorkflow(repoRoot, "1.4.0");
+
+      const result = spawnVerifier(scriptPath);
+
+      expect(result.stderr).toBe("");
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain("Bun version OK: bun@1.4.0");
+    } finally {
+      rmSync(repoRoot, { recursive: true, force: true });
+    }
+  });
+
   it("exits 0 when invoked with the real script path and matching pins", () => {
     const result = spawnVerifier(verifierSourcePath);
 
