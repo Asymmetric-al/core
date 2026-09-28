@@ -119,7 +119,7 @@ export function DonorsPageDetail() {
             <Card className="border-border bg-card rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
               <div className="p-6 border-b border-border bg-card shrink-0">
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 min-w-0">
+                  <div className="flex w-full min-w-0 items-start gap-4 sm:flex-1">
                     <Button
                       variant="ghost"
                       size="icon"
