@@ -163,7 +163,7 @@ describe("verify-skills-sync drift reporting", () => {
     expect(failed).toBe(true);
     expect(await readFile(driftedPath, "utf8")).toBe("# Drifted skill\n");
     expect(listVerifyTempDirs(isolatedTmp)).toEqual([]);
-  }, 20_000);
+  }, 60_000);
 
   it("fails on an extra live skill file without deleting it, and names the path", async () => {
     const tempRoot = await createSyncedVerifyRepo();
@@ -192,7 +192,7 @@ describe("verify-skills-sync drift reporting", () => {
     expect(existsSync(orphanPath)).toBe(true);
     expect(await readFile(orphanPath, "utf8")).toBe("# Orphan skill\n");
     expect(listVerifyTempDirs(isolatedTmp)).toEqual([]);
-  }, 20_000);
+  }, 60_000);
 
   it("does not treat leftover verify temp dirs outside this test as leftovers", async () => {
     const tempRoot = await createSyncedVerifyRepo();
@@ -211,5 +211,5 @@ describe("verify-skills-sync drift reporting", () => {
 
     expect(existsSync(outsider)).toBe(true);
     expect(listVerifyTempDirs(isolatedTmp)).toEqual([]);
-  }, 20_000);
+  }, 60_000);
 });

@@ -36,14 +36,12 @@ function eventBlock(workflow: string, eventName: string): string {
 }
 
 describe("CI pull_request branch filter", () => {
-  it("runs stacked Cursor Cloud PRs whose base is a cursor/* branch", () => {
+  it("runs PRs against every base branch, including automation stacks", () => {
     for (const workflowPath of WORKFLOW_PATHS) {
       const workflow = readFileSync(workflowPath, "utf8");
       const pullRequest = eventBlock(workflow, "pull_request");
 
-      expect(pullRequest, workflowPath).toContain("develop");
-      expect(pullRequest, workflowPath).toContain("production");
-      expect(pullRequest, workflowPath).toContain("cursor/**");
+      expect(pullRequest.trim(), workflowPath).toBe("pull_request:");
     }
   });
 
