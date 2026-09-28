@@ -25,10 +25,10 @@ dollars. Gift processing-fee policy recomputes charged cents from `cover_fees`
 and `payment_method` before `begin_donation_saga`. `p_amount` is still charged
 cents.
 
-First-shot processing from that POST persists quote extras onto
-`donation_saga_outbox.fee_extras` and may attach them to PaymentIntent
-metadata (`gift_amount_cents`, `cover_fees`, `payment_method`,
-`cover_amount_cents`, `estimated_fee_cents`) without overriding `donation_id`.
+Gift intake persists quote extras on the outbox in the same transaction that
+creates the donation (`gift_amount_cents`, `cover_fees`, `payment_method`,
+`cover_amount_cents`, `estimated_fee_cents`). Processing copies that quote to
+PaymentIntent metadata without overriding donation identity.
 
 Recovery and batch workers (`processDueDonationSagaOutboxEvents`, admin
 replay) load stored `fee_extras` before PaymentIntent create. A lookup or
@@ -53,10 +53,17 @@ stored `donations.amount` and `donation_saga_outbox.fee_extras` and:
 - returns `409` when charged cents match but a stored full fee quote differs
   from the current quote
 - continues when charged cents match and stored extras are empty/legacy `{}`
-  (or otherwise absent), passing the current quote extras so the saga can
-  persist onto empty before claim
+  (or otherwise absent), omitting fee metadata so the saga preserves its original
+  fee-related provider parameters and leaves empty stored extras unchanged
 - returns `500` when stored extras cannot be loaded or are malformed
 - processes the existing outbox without rewriting matching stored extras
+
+An empty legacy quote is not evidence that Stripe has never seen the request.
+The provider may have created a PaymentIntent before a database completion write
+failed. Hydrating that retry with new fee metadata or payment-method types changes
+its parameters under the same idempotency key and can strand the saga. This
+replaces the earlier instruction to fill legacy extras; modern stored quotes and
+first-shot intake persistence remain unchanged.
 
 Verification:
 
@@ -66,12 +73,33 @@ Verification:
 3. POST the same key with matching charged cents and matching extras → `200`
    and no rewrite of stored extras.
 4. POST the same key with matching charged cents and stored `fee_extras: {}`
-   → `200` and saga called with the current quote extras.
+   → `200` (or the existing processing response) with no fee metadata supplied
+   to the saga and no stored-extras rewrite.
 5. POST `currency=eur` → `400` before `begin_donation_saga`.
 6. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
    and omit `automatic_payment_methods`.
 7. Recovery of stored ACH extras binds `payment_method_types: ["us_bank_account"]`
    even when the worker omits extras.
+8. Simulate provider success followed by a failed completion write, then POST
+   the same legacy gift again with the original actor and customer → the same
+   PaymentIntent completes, both provider requests have identical parameters,
+   and stored extras remain `{}`. Covered by
+   `packages/api/tests/unit/donate-post-charge.test.ts` using the real saga with
+   deterministic database and provider boundaries.
+
+### Separate actor-recovery limitation
+
+This fee repair does not establish actor-independent provider recovery. The
+background worker supplies `WORKFLOW_SYSTEM_ACTOR_ID`, while HTTP processing
+supplies the authenticated actor; the saga currently copies that caller into
+PaymentIntent `metadata.user_id`. A different retry actor can still change
+provider parameters under the same idempotency key, even with an unchanged full
+fee quote. The outbox does not retain the first provider caller. The intake audit
+actor alone cannot reconstruct it because a worker may have sent the first
+provider request. Do not guess historical attribution, remove it, or invent a
+new payment identity to make recovery pass. Immutable first-provider identity
+and an evidence-backed legacy recovery rule require a separate source-recovery
+change; the regression above proves the same-actor HTTP fee replay only.
 
 Staff `POST /api/donations` does not run Gift processing-fee policy. That path
 already sends charged cents as `p_amount`.

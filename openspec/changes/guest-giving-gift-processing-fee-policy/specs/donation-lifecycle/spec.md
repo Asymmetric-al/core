@@ -75,8 +75,18 @@ and does not reopen tenant processor-cost attribution.
   default
 - WHEN Gift intake evaluates the replay
 - THEN the request MUST continue instead of colliding
-- AND the current extras MUST be passed so the saga can persist them onto
-  empty before claim
+- AND intake MUST omit fee metadata for that legacy replay so the saga keeps
+  the original PaymentIntent parameters and does not fill empty stored extras
+- AND a previously successful provider request whose completion write failed
+  MUST retain its provider idempotency key and unchanged fee metadata and
+  payment-method parameters; this fee rule does not establish caller-actor
+  identity recovery
+
+A legacy empty row does not prove that no provider request occurred. Adding a
+current quote can change both metadata and payment-method selection after a
+provider success, causing Stripe to reject the retry as an idempotency conflict.
+This replaces the prior legacy-hydration clause; modern stored quotes remain
+immutable and newly quoted gifts still persist their quote at intake.
 
 #### Scenario: Matching charged cents replay 409s when a stored full fee quote differs
 

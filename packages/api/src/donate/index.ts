@@ -78,8 +78,9 @@ export const POST = withOperation(
     }
     const amountInCents = feeQuote.chargedAmountCents;
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
-    const extraPaymentIntentMetadata =
-      toGiftProcessingFeeStripeMetadata(feeQuote);
+    let extraPaymentIntentMetadata:
+      | GiftProcessingFeeStripeMetadata
+      | undefined = toGiftProcessingFeeStripeMetadata(feeQuote);
 
     const begin = await beginGiftIntake({
       rpc: async (fn, rpcArgs) => {
@@ -192,6 +193,9 @@ export const POST = withOperation(
           "This idempotency key was already used for a different gift fee quote.",
         );
       }
+      // Legacy rows have no fee quote; retry with their original provider
+      // parameters instead of attaching the current request's quote.
+      extraPaymentIntentMetadata = storedFeeExtras;
     }
 
     const sagaResult = await processDonationSagaOutboxEvent({

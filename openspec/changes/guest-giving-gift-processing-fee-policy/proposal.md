@@ -17,8 +17,10 @@ saga creation. Checkout must stay a thin adapter; charged cents belong in Core.
 - Keep checkout as a thin adapter over that interface. Copy talks about
   estimated processing costs, never “100% reaches the field.”
 - Treat stored empty/legacy `{}` fee extras as absence, not as an immutable
-  “no cover-fees” quote. HTTP donate replay with matching charged cents may
-  persist the current extras onto that empty row; a stored full quote that
+  “no cover-fees” quote. HTTP donate replay with matching charged cents keeps
+  those extras empty and preserves the original fee-related provider parameters. A provider
+  request may already have succeeded before local completion failed; attaching
+  the current quote would break its idempotent retry. A stored full quote that
   differs still `409`s.
 - Do not rewrite allocation-line conservation of a payment group's gross
   amount. Do not apply cover-fees on the staff donations path. Do not enable

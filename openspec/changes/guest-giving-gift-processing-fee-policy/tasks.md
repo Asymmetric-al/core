@@ -28,16 +28,22 @@
       adapter POST body, and checkout cover-fees / ACH quote without live bank
       POST.
 - [x] 4.2 `bun run openspec -- validate guest-giving-gift-processing-fee-policy --type change --strict` passes.
-      `--all --strict` currently fails on unrelated pre-existing
-      `add-guest-giving-and-gift-anonymity` (receipts MODIFIED omits scenarios);
-      that change is out of scope. Archive this change after deployment
-      verification.
+      Full current-spec and active-change validation remains part of the
+      integration gate. Archive this change only after deployment verification.
 - [x] 4.3 Gift intake POST test asserts `begin_donation_saga` `p_amount`
       equals `resolveGiftIntakeCharge().chargedAmountCents`.
 - [x] 4.4 ADR-0118, runbook Guest Giving charged-amount section, and
       `docs/guides/features/guest-giving-cover-fees.md` document recovery
       extras and the staff-path exclusion.
 - [x] 4.5 HTTP donate replay unit tests lock matching charged cents + empty
-      or legacy `{}` continues (200) and persists current extras; matching
-      charged cents + a different stored full quote `409`s with no rewrite;
-      malformed stored extras `500`.
+      or legacy `{}` continues without rewriting extras or provider parameters;
+      matching charged cents + a different stored full quote `409`s with no
+      rewrite; malformed stored extras `500`.
+- [x] 4.6 Reproduce provider success followed by a failed completion write through
+      the actual handler and saga; prove retry returns the same PaymentIntent
+      with identical provider parameters. Run focused tests, typechecking, and
+      strict OpenSpec validation after the replay-safety correction.
+
+- [ ] 4.7 Complete `bun run ci:preflight` and applicable current-head CI and smoke
+      verification after the final integration-base update, then merge through
+      ordinary repository protections.
