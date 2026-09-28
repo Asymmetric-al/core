@@ -99,6 +99,30 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).not.toContain("bun install --frozen-lockfile");
   });
 
+  it("uploads only the bounded sanitized files and fails when they are absent", () => {
+    const upload = workflow
+      .split("- name: Upload Playwright smoke artifacts")[1]
+      ?.split("- name: Comment headless smoke QA result")[0];
+    expect(upload).toContain(
+      "playwright-report/pr-preview-smoke-*/sanitized/index.html",
+    );
+    expect(upload).toContain(
+      "playwright-report/pr-preview-smoke-*/sanitized/results.json",
+    );
+    expect(upload).toContain("if-no-files-found: error");
+    expect(upload).not.toContain("test-results");
+    const paths = upload
+      ?.split("path: |\n")[1]
+      ?.split("if-no-files-found:")[0]
+      ?.trim()
+      .split("\n")
+      .map((line) => line.trim());
+    expect(paths).toEqual([
+      "playwright-report/pr-preview-smoke-*/sanitized/index.html",
+      "playwright-report/pr-preview-smoke-*/sanitized/results.json",
+    ]);
+  });
+
   it("does not use bypass query parameters", () => {
     expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
     expect(workflow).not.toContain("?x-vercel-protection-bypass");

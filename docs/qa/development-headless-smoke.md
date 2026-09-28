@@ -86,7 +86,15 @@ The Playwright config is `playwright.development-smoke.config.ts`. It:
   (`QA_<SURFACE>_BASE_URL`, `VERCEL_<SURFACE>_AUTOMATION_BYPASS_SECRET`)
 - sends bypass via headers, not query params
 - runs headless Chromium, one worker
-- writes report artifacts under `playwright-report/development-smoke/`
+- writes HTML and JSON reports under `PLAYWRIGHT_REPORT_DIR`, defaulting to
+  `playwright-report/development-smoke/`
+- writes bounded test evidence under
+  `PLAYWRIGHT_OUTPUT_DIR`, defaulting to `test-results/`
+
+The preview workflow sets both directories per surface so a later Playwright
+invocation does not overwrite an earlier surface's failure evidence. Blank
+overrides use the local defaults above. The suite-specific reporter preserves
+the original failed exit and test status; it does not relax any assertion.
 
 The helpers in `tests/e2e/development-smoke/helpers.ts` cover:
 
@@ -98,19 +106,47 @@ The helpers in `tests/e2e/development-smoke/helpers.ts` cover:
 
 ## How to view the report
 
-```bash
-bunx playwright show-report playwright-report/development-smoke
-```
+Open `<report directory>/sanitized/index.html`. This is a bounded diagnostic summary,
+not Playwright's interactive trace/report viewer.
 
 ## Evidence captured on failure
 
-For any failed test, Playwright keeps under
-`playwright-report/development-smoke/`:
+For any failed test, Playwright keeps in the configured report and test-output
+directories:
 
-- HTML report
-- JSON report at `results.json`
-- screenshot, trace, and video when retained by Playwright
-- non-secret `evidence.json` attachments
+- HTML summary
+- JSON report at `<report directory>/sanitized/results.json`
+- test title, project, status and duration
+- `evidence.json` with URL origin/path, page title/heading, and visible password
+  input count; known QA and bypass values are redacted
+- the last 50 document/fetch/XHR response method/status/origin/path entries
+  observed during authentication, without request headers, cookies or bodies
+
+Known QA and bypass values are redacted before truncation in their raw/trimmed,
+URI, URI-component, form-URL-encoded and UTF-8 base64/base64url forms (with or
+without padding). Percent escapes may use either hex case. This is a bounded
+set of representations, not detection of arbitrary transformations. Response
+metadata describes only browser-visible requests; server-side profile reads
+may be absent and an access-denied route alone does not establish its cause.
+
+URL queries and fragments are excluded. Raw trace, screenshot, video and the
+automatic DOM error prompt are disabled for this credential-bearing suite:
+traces retain bypass headers, authentication bodies and API arguments, and DOM
+snapshots can retain password input values. The reporter replaces run-owned
+test output (including generated error-context files) with the bounded
+evidence above and never removes arbitrary attachment sources outside the
+resolved run directories. It emits no assertion bodies or API-step text into
+the HTML/JSON bundle. Reports and output directories must be separate and
+must not be a workspace root or its ancestor. These checks resolve symlinks,
+including the nearest existing parent of a new directory, before Playwright
+startup. The reporter uses the checked canonical paths and checks them again
+before cleanup.
+
+CI uploads only `sanitized/index.html` and `sanitized/results.json`; raw test
+output is never part of the upload allowlist. If a reporter or worker fails
+before producing a sanitized bundle, the missing-artifact step fails instead
+of uploading leftovers. Successful cleanup is not a prerequisite for keeping
+raw credentials out of uploaded artifacts.
 
 ## Safety Rules
 

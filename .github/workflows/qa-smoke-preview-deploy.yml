@@ -517,7 +517,7 @@ jobs:
           run_project missionary_status "missionary" "development-missionary" "${MISSIONARY_URL:-}"
 
           if [[ "${result}" == "FAIL" ]]; then
-            evidence="GitHub Actions artifact: pr-preview-smoke-playwright-artifacts; report paths: playwright-report/pr-preview-smoke-*; test result paths: test-results/pr-preview-smoke-*"
+            evidence="Sanitized diagnostics: playwright-report/pr-preview-smoke-*/sanitized/{index.html,results.json}. See the artifact-upload step for availability; raw test outputs are excluded."
           fi
 
           {
@@ -534,13 +534,13 @@ jobs:
         with:
           name: pr-preview-smoke-playwright-artifacts
           path: |
-            playwright-report/pr-preview-smoke-*
-            test-results/pr-preview-smoke-*
-          if-no-files-found: ignore
+            playwright-report/pr-preview-smoke-*/sanitized/index.html
+            playwright-report/pr-preview-smoke-*/sanitized/results.json
+          if-no-files-found: error
           retention-days: 7
 
       - name: Comment headless smoke QA result
-        if: steps.gate.outputs.should_run == 'true'
+        if: always() && steps.gate.outputs.should_run == 'true'
         env:
           ADMIN_STATUS: ${{ steps.smoke.outputs.admin }}
           ADMIN_URL: ${{ steps.deploy_admin.outputs.url }}
