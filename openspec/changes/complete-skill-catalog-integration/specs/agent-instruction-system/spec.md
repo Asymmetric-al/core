@@ -26,6 +26,44 @@ unexpected staging destination.
 - **AND** exact recovery data for the failed restore remains available
 - **AND** focused and broad invocations both fail without emitting success
 
+#### Scenario: A canonical path is an unexpected filesystem entry
+
+- **WHEN** a canonical destination is a symlink, including a dangling symlink
+- **THEN** refresh rejects that entry before reading or replacing its contents
+- **AND** the entry, its target and earlier source-group originals remain intact
+
+#### Scenario: A competing destination blocks mirror publication
+
+- **WHEN** a canonical or ecosystem mirror swap encounters a competing entry
+- **THEN** sync preserves the entry and complete recovery data and exits nonzero
+- **AND** it does not mislabel the publication failure as an unreadable source
+  or continue to later mirrors with a success message
+
+### Requirement: Scanner annotations preserve executable examples and data
+
+Skill refresh and synchronization SHALL preserve executable behavior, rendered
+JSX text and quoted payload bytes while adding scanner annotations. Content
+whose comment context is uncertain MUST remain intact and subject to scanning;
+tooling MUST NOT add scanner exclusions to avoid handling that uncertainty.
+
+#### Scenario: A code example contains a continuation or multiline payload
+
+- **WHEN** either CLI adapts Python or shell continuations, heredocs, YAML
+  block scalars, quoted multiline strings or JavaScript template data
+- **THEN** execution and literal payloads remain unchanged
+- **AND** an apparent scanner marker within literal data remains data
+- **AND** delimiter punctuation, mixed quoting, tab stripping, YAML sequence or
+  root scalars and indentation/chomping variants do not end preservation early
+- **AND** a continued shell operator or indented YAML document marker does not
+  make payload lines appear to be a new annotation context
+
+#### Scenario: A copied JSX example contains a password field
+
+- **WHEN** either CLI adapts JSX or TSX code
+- **THEN** scanner comment suffixes are not introduced as rendered text
+- **AND** reviewed legacy tool-owned suffixes are removed without changing the
+  example's intended labels, fields or execution
+
 ### Requirement: Catalog refresh preserves operative Core instructions
 
 Refresh and sync SHALL preserve explicit-only discovery, platform routing,

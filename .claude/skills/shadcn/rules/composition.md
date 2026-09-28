@@ -173,7 +173,7 @@ Never render `TabsTrigger` directly inside `Tabs` — always wrap in `TabsList`:
 <Tabs defaultValue="account">
   <TabsList>
     <TabsTrigger value="account">Account</TabsTrigger>
-    <TabsTrigger value="password">Password</TabsTrigger> // pragma: allowlist secret
+    <TabsTrigger value="password">Password</TabsTrigger>
   </TabsList>
   <TabsContent value="account">...</TabsContent>
 </Tabs>

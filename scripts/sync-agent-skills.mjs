@@ -3,6 +3,7 @@
 import {
   access,
   cp,
+  lstat,
   mkdir,
   readFile,
   readdir,
@@ -285,13 +286,17 @@ const WINDOWS_RM_RETRY_CODES = new Set([
   "ENOTEMPTY",
 ]);
 
-async function pathExists(targetPath) {
+async function pathEntry(targetPath) {
   try {
-    await access(targetPath);
-    return true;
-  } catch {
-    return false;
+    return await lstat(targetPath);
+  } catch (error) {
+    if (getErrorCode(error) === "ENOENT") return null;
+    throw error;
   }
+}
+
+async function pathExists(targetPath) {
+  return (await pathEntry(targetPath)) !== null;
 }
 
 async function renameOnce(fromPath, toPath) {
@@ -371,7 +376,13 @@ async function swapStagedDirectory(stagingDir, targetDir) {
   const backupDir = getTemporarySiblingPath(targetDir, "backup");
   let hasBackup = false;
 
-  if (await pathExists(targetDir)) {
+  const targetEntry = await pathEntry(targetDir);
+  if (targetEntry && !targetEntry.isDirectory()) {
+    throw new Error(
+      `Refusing unexpected non-directory skill destination ${targetDir}`,
+    );
+  }
+  if (targetEntry) {
     // Finish the snapshot before touching the live tree. A failed recursive
     // removal may leave only part of the source, so rename-to-backup is unsafe
     // when its cross-device fallback is copy followed by removal.
@@ -738,34 +749,10 @@ async function mirrorAgentSkill(skillName, mirrorRoots) {
       // Ignore realpath failures here; replaceDirectory will report errors.
     }
 
-    try {
-      await replaceDirectory(sourceDir, targetDir);
-      console.log(
-        `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
-      );
-    } catch (error) {
-      const errorCode =
-        typeof error === "object" && error !== null && "code" in error
-          ? String(error.code)
-          : "";
-
-      if (errorCode === "EINVAL") {
-        console.log(
-          `skipped ${skillName}: source already mapped to ${path.relative(repoRoot, targetDir)}`,
-        );
-        continue;
-      }
-
-      if (errorCode === "ENOENT") {
-        console.warn(`skipped ${skillName}: source missing`);
-        continue;
-      }
-
-      console.warn(`skipped ${skillName}: source unreadable`);
-      if (error instanceof Error) {
-        console.warn(error.message);
-      }
-    }
+    await replaceDirectory(sourceDir, targetDir);
+    console.log(
+      `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
+    );
   }
 }
 

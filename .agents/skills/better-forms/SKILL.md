@@ -1345,14 +1345,14 @@ const meta: Meta<typeof SmartInput> = {
     docs: {
       description: {
         component:
-          "Accessible input component with built-in label, description, error handling, and password toggle.", // pragma: allowlist secret
+          "Accessible input component with built-in label, description, error handling, and password toggle.",
       },
     },
   },
   argTypes: {
     type: {
       control: "select",
-      options: ["text", "email", "password", "tel", "url"], // pragma: allowlist secret
+      options: ["text", "email", "password", "tel", "url"],
     },
     error: { control: "text" },
     description: { control: "text" },
@@ -1395,10 +1395,10 @@ export const Optional: Story = {
   },
 };
 
-export const Password: Story = { // pragma: allowlist secret
+export const Password: Story = {
   args: {
-    label: "Password", // pragma: allowlist secret
-    type: "password", // pragma: allowlist secret
+    label: "Password",
+    type: "password",
     description: "Must be at least 8 characters",
   },
 };
@@ -1438,16 +1438,16 @@ export const AccessibilityDemo: Story = {
       <SmartInput label="Full Name" autoComplete="name" />
       <SmartInput label="Email" type="email" autoComplete="email" />
       <SmartInput
-        label="Password" // pragma: allowlist secret
-        type="password" // pragma: allowlist secret
-        autoComplete="new-password" // pragma: allowlist secret
+        label="Password"
+        type="password"
+        autoComplete="new-password"
         description="Minimum 8 characters"
       />
       <SmartInput
-        label="Confirm Password" // pragma: allowlist secret
-        type="password" // pragma: allowlist secret
-        autoComplete="new-password" // pragma: allowlist secret
-        error="Passwords do not match" // pragma: allowlist secret
+        label="Confirm Password"
+        type="password"
+        autoComplete="new-password"
+        error="Passwords do not match"
       />
       <button type="submit" className="btn-primary">
         Create Account

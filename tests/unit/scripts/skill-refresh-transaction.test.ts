@@ -1,11 +1,14 @@
 import { spawnSync } from "node:child_process";
 import {
   cp,
+  lstat,
   mkdir,
   mkdtemp,
   readFile,
   readdir,
+  readlink,
   rm,
+  symlink,
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
@@ -553,4 +556,37 @@ describe("skill refresh transaction", () => {
         readFile(path.join(root, ".cursor/agents", name), "utf8"),
       ).resolves.toBe(`old ${name}\n`);
   });
+});
+
+it("rejects a GitHub canonical symlink before reading its overlay", async () => {
+  const root = await createGithubFixture();
+  const target = path.join(root, "docs/ai/skills/weekly-review");
+  const linked = path.join(root, "unexpected-source");
+  await mkdir(linked);
+  const original = "# Unexpected target\n";
+  await writeFile(path.join(linked, "SKILL.md"), original);
+  await rm(target, { recursive: true });
+  await symlink(linked, target, "dir");
+  const file = path.join(root, "scripts/refresh-upstream-skills.mjs");
+  let script = await readFile(file, "utf8");
+  expect(script).toContain("  readFile,\n");
+  script = script.replace("  readFile,\n", "  readFile as realReadFile,\n");
+  script += `
+async function readFile(target, ...options) {
+  if (String(target).endsWith("/docs/ai/skills/weekly-review/SKILL.md")) {
+    console.error("REACHED_UNEXPECTED_CANONICAL_READ");
+  }
+  return realReadFile(target, ...options);
+}
+`;
+  await writeFile(file, script);
+  const result = run(root, "none", "cursor/plugins");
+  expect(result.status).not.toBe(0);
+  expect(result.output).toContain(
+    "Refusing unexpected non-directory canonical destination",
+  );
+  expect(result.output).not.toContain("REACHED_UNEXPECTED_CANONICAL_READ");
+  expect((await lstat(target)).isSymbolicLink()).toBe(true);
+  expect(await readlink(target)).toBe(linked);
+  expect(await readFile(path.join(linked, "SKILL.md"), "utf8")).toBe(original);
 });

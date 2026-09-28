@@ -14,6 +14,7 @@ import { createHash } from "node:crypto";
 import {
   access,
   cp,
+  lstat,
   mkdir,
   mkdtemp,
   readdir,
@@ -2747,6 +2748,7 @@ async function prepareGithubSkillRefresh({
   if (!(await fileExists(upstreamSkillFile))) {
     return null;
   }
+  await assertCanonicalDirectoryEntry(to);
 
   const staging = getTemporarySiblingPath(to, "refresh-staging");
   await mkdir(path.dirname(staging), { recursive: true });
@@ -2961,13 +2963,17 @@ function getTemporarySiblingPath(targetPath, label) {
   return path.join(parentDir, `.${targetName}.${label}-${uniqueSuffix}`);
 }
 
-async function pathExists(targetPath) {
+async function pathEntry(targetPath) {
   try {
-    await access(targetPath);
-    return true;
-  } catch {
-    return false;
+    return await lstat(targetPath);
+  } catch (error) {
+    if (getErrorCode(error) === "ENOENT") return null;
+    throw error;
   }
+}
+
+async function pathExists(targetPath) {
+  return (await pathEntry(targetPath)) !== null;
 }
 
 async function renameOnce(fromPath, toPath) {
@@ -3008,6 +3014,16 @@ async function moveDirectory(fromPath, toPath) {
   }
 }
 
+async function assertCanonicalDirectoryEntry(targetPath) {
+  const entry = await pathEntry(targetPath);
+  if (entry && !entry.isDirectory()) {
+    throw new Error(
+      `Refusing unexpected non-directory canonical destination ${targetPath}`,
+    );
+  }
+  return entry;
+}
+
 async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   const to = path.join(canonicalRoot, skillName);
   const staging = getTemporarySiblingPath(to, "refresh-staging");
@@ -3032,6 +3048,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   const emilCloneSkillHash = emilKowalskiSkillNames.includes(skillName)
     ? await hashEmilCloneSkillMd(path.join(from, "SKILL.md"))
     : null;
+  await assertCanonicalDirectoryEntry(to);
   const preservedFiles = await readPreservedFiles(to, preserve);
   const preservedCoreOverlay = await readCoreOverlay(to);
   if (skillName === "grill-for-unknowns" && !preservedCoreOverlay) {
@@ -3102,7 +3119,7 @@ function isIncompleteSkillRefreshRollbackError(error) {
 async function swapPreparedRefresh(preparedRefresh) {
   const { to, staging } = preparedRefresh;
   const backup = getTemporarySiblingPath(to, "refresh-backup");
-  const hasBackup = await pathExists(to);
+  const hasBackup = (await assertCanonicalDirectoryEntry(to)) !== null;
 
   if (hasBackup) {
     // A copy leaves the canonical source intact if creating a backup fails.
@@ -3125,7 +3142,9 @@ async function swapPreparedRefresh(preparedRefresh) {
     await moveDirectory(staging, to);
   } catch (error) {
     if (
-      ["EEXIST", "ENOTEMPTY"].includes(getErrorCode(error)) &&
+      ["EEXIST", "ENOTEMPTY", "ENOTDIR", "EISDIR"].includes(
+        getErrorCode(error),
+      ) &&
       (await pathExists(to))
     ) {
       // A competing destination is not ours to remove. Keep both it and the

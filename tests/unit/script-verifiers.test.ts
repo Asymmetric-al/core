@@ -883,7 +883,9 @@ describe("sync-agent-skills", () => {
       );
       expect(sqlFence).toContain("-- pragma: allowlist secret");
       expect(sqlFence).not.toContain("<!--");
-      expect(htmlFence).toContain("<!-- pragma: allowlist secret -->");
+      expect(htmlFence).toBe(
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+      );
       expect(graphqlFence).toContain("# pragma: allowlist secret");
       expect(markdownFence).toContain(
         `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
@@ -1544,8 +1546,8 @@ describe("refresh-upstream-skills", () => {
       "-- pragma: allowlist secret",
     );
     expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
-    expect(fencedMarkdownBlock(refreshed, "html")).toContain(
-      "<!-- pragma: allowlist secret -->",
+    expect(fencedMarkdownBlock(refreshed, "html")).toBe(
+      `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
     );
     expect(fencedMarkdownBlock(refreshed, "graphql")).toContain(
       "# pragma: allowlist secret",

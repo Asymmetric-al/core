@@ -125,83 +125,158 @@ function annotateSecretScannerLine(
   return `${line} ${comment}`;
 }
 
+function codeContext(language) {
+  return {
+    language: language.toLowerCase(),
+    literal: null,
+    blockComment: false,
+    preserveRemainder: false,
+  };
+}
+
+function lineIsProtectedData(line, context) {
+  const { language } = context;
+  const javascript = /^(?:js|javascript|ts|typescript|jsx|tsx|mjs|cjs)$/u.test(
+    language,
+  );
+  const shell = /^(?:sh|bash|shell|zsh)$/u.test(language);
+  const yaml = /^(?:yaml|yml)$/u.test(language);
+  if (context.preserveRemainder) return true;
+  // Nested template interpolation is not a line-local grammar. Once a template
+  // occurs, leave the remainder of this code block scanner-visible and intact.
+  if (javascript && line.includes("`")) {
+    context.preserveRemainder = true;
+    return true;
+  }
+  const startedInLiteral = context.literal !== null || context.blockComment;
+  for (let index = 0; index < line.length; index++) {
+    if (context.blockComment) {
+      if (line.startsWith("*/", index)) {
+        context.blockComment = false;
+        index++;
+      }
+      continue;
+    }
+    if (context.literal !== null) {
+      if (line[index] === "\\" && (!shell || context.literal !== "'")) {
+        index++;
+      } else if (line.startsWith(context.literal, index)) {
+        index += context.literal.length - 1;
+        context.literal = null;
+      }
+      continue;
+    }
+    if (
+      (javascript && line.startsWith("//", index)) ||
+      ((shell || yaml || /^(?:py|python|graphql|gql)$/u.test(language)) &&
+        line[index] === "#") ||
+      (language === "sql" && line.startsWith("--", index))
+    )
+      break;
+    if (
+      line.startsWith("/*", index) &&
+      (javascript || /^(?:css|scss|sass)$/u.test(language))
+    ) {
+      context.blockComment = true;
+      index++;
+      continue;
+    }
+    if (line[index] === "'" || line[index] === '"') {
+      const triple = line.slice(index, index + 3);
+      context.literal =
+        !shell && (triple === "'".repeat(3) || triple === '"""')
+          ? triple
+          : line[index];
+      index += context.literal.length - 1;
+      continue;
+    }
+    if (
+      (shell && line.startsWith("<<", index)) ||
+      (yaml && (line[index] === "|" || line[index] === ">"))
+    ) {
+      // Shell delimiter words allow mixed quoting and escapes; YAML scalar
+      // boundaries depend on sequence, indentation and chomping syntax. Keep
+      // the remaining region scanner-visible instead of guessing a terminator.
+      context.preserveRemainder = true;
+      return true;
+    }
+    if (
+      language === "sql" &&
+      /^\$(?:[A-Za-z_][\w]*)?\$/u.test(line.slice(index))
+    ) {
+      context.preserveRemainder = true;
+      return true;
+    }
+  }
+  return startedInLiteral || context.literal !== null || context.blockComment;
+}
+
+function annotateCodeLine(line, filePath, context) {
+  if (lineIsProtectedData(line, context)) return line;
+  const comment = secretScannerCommentForLanguage(context.language);
+  const markup = /^(?:tsx|jsx|html|htm|svg|xml|mdx)$/u.test(context.language);
+  if (!markup && comment !== null && line.trim() === comment) return line;
+  // Removing the tool-owned trailing marker is safe outside quoted data. A
+  // markup suffix can render as text; keep markup scanner-visible instead of
+  // guessing whether this line ends inside a tag, text child or expression.
+  const normalized = annotateSecretScannerLine(line, filePath, null, {
+    preserveMarkdownTable: false,
+  });
+  if (markup) return normalized;
+  if (/\\\s*$/u.test(normalized)) {
+    // A continuation can split a shell operator across physical lines.
+    context.preserveRemainder = true;
+    return normalized;
+  }
+  if (comment === null) return context.language === "json" ? normalized : line;
+  return annotateSecretScannerLine(normalized, filePath, comment, {
+    preserveMarkdownTable: false,
+  });
+}
+
 export function annotateSecretScannerMentions(content, filePath = "") {
   const extension = path.extname(filePath).toLowerCase();
   const isMarkdown = extension === ".md" || extension === ".mdx";
   const lines = content.split("\n");
   if (!isMarkdown) {
+    const context = codeContext(extension.slice(1));
     return lines
-      .map((line) => annotateSecretScannerLine(line, filePath))
+      .map((line) => annotateCodeLine(line, filePath, context))
       .join("\n");
   }
 
-  let inFrontmatter = lines[0]?.trim() === "---";
+  let inFrontmatter = lines[0]?.trimEnd() === "---";
+  const frontmatterContext = codeContext("yaml");
   let fence = null;
-  let templateLanguage = null;
   return lines
     .map((line, index) => {
       if (inFrontmatter) {
         if (index === 0) return line;
-        if (line.trim() === "---") {
+        if (line.trimEnd() === "---") {
           inFrontmatter = false;
           return line;
         }
-        return annotateSecretScannerLine(
-          line,
-          filePath,
-          `# ${SECRET_SCANNER_PRAGMA_TOKEN}`,
-          { preserveMarkdownTable: false },
-        );
+        return annotateCodeLine(line, filePath, frontmatterContext);
       }
-      const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+      const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/u.exec(line);
       if (fenceMatch) {
         const marker = fenceMatch[2];
-        const markerCharacter = marker[0];
         if (fence === null) {
           fence = {
-            character: markerCharacter,
+            character: marker[0],
             length: marker.length,
-            language: fenceMatch[3].trim().split(/\s+/u)[0] ?? "",
+            context: codeContext(fenceMatch[3].trim().split(/\s+/u)[0] ?? ""),
           };
         } else if (
-          markerCharacter === fence.character &&
+          marker[0] === fence.character &&
           marker.length >= fence.length &&
           fenceMatch[3].trim() === ""
-        ) {
+        )
           fence = null;
-          templateLanguage = null;
-        }
         return line;
       }
-
-      if (fence !== null) {
-        let language = fence.language;
-        // Do not inject JavaScript comments into template-string data. Recognize
-        // GraphQL operation bodies so their examples retain valid # comments.
-        if (
-          /^(?:js|javascript|ts|typescript|jsx|tsx|mjs|cjs)$/iu.test(language)
-        ) {
-          const delimiters = (line.match(/(?<!\\)`/gu) ?? []).length;
-          if (templateLanguage === null && delimiters % 2 === 1) {
-            templateLanguage = "unknown";
-          }
-          if (templateLanguage !== null) {
-            if (/^\s*(?:query|mutation|subscription|fragment)\b/u.test(line))
-              templateLanguage = "graphql";
-            language = templateLanguage;
-            // An opening delimiter cannot also close a multiline template.
-            if (delimiters % 2 === 1 && line.trimStart().startsWith("`"))
-              templateLanguage = null;
-          }
-        }
-        return annotateSecretScannerLine(
-          line,
-          filePath,
-          secretScannerCommentForLanguage(language),
-          { preserveMarkdownTable: false },
-        );
-      }
-
+      if (fence !== null)
+        return annotateCodeLine(line, filePath, fence.context);
       return annotateSecretScannerLine(line, filePath);
     })
     .join("\n");

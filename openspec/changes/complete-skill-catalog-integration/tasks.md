@@ -8,6 +8,10 @@
 - [x] Escape eval data with a verified unchanged-data round trip.
 - [x] Preserve reviewed obsolete-file removal and regenerate skill mirrors.
 
+- [x] Reproduce and repair scanner corruption with actual CLI execution, JSX rendering and exact literal-payload controls.
+- [x] Reject unexpected canonical filesystem entries before reading or replacing them.
+- [x] Propagate ecosystem publication failures and retain competing entries and complete recovery data.
+
 ## 2. Finish integration
 
 - [x] Finish the remaining review ledger and semantic predecessor reconciliation.

@@ -44,10 +44,28 @@ UI ownership. Mirror verification runs without changing the working tree.
 
 ## Reference integrity and runtime preservation
 
-Both CLIs share the scanner annotation helper so valid example syntax survives
-canonical refresh and mirror generation. Existing malformed markers are repaired
-using the surrounding language; GraphQL embedded in JavaScript templates keeps
-GraphQL comments. JSON example data remains unchanged.
+Both CLIs share the scanner annotation helper so valid example syntax and
+behavior survive canonical refresh and mirror generation. Existing tool-owned
+trailing markers are repaired only outside quoted data. JSX and markup receive
+no guessed suffix; continuations, multiline strings, heredocs and template
+payloads stay intact. A JavaScript template remains data even when it contains
+GraphQL. Standalone GraphQL examples use GraphQL comments. JSON data is retained.
+
+The helper keeps uncertain contexts scanner-visible rather than inserting a
+potentially unsafe allowlist comment. After a JavaScript template, shell heredoc
+operator, line continuation or YAML block-scalar indicator appears, the
+remaining code region is preserved. It does not guess full shell delimiter words from prefixes or infer
+YAML payload boundaries from a subset of sequence, indentation and chomping
+syntax. Each Markdown fence/frontmatter region has its own state; an indented
+document marker inside a YAML value does not close frontmatter. Ordinary
+unambiguous code still receives language-correct comments; no scanner settings,
+exclusions or gates change.
+
+Destination checks use filesystem entries rather than following symlinks.
+Unexpected canonical entries are rejected before reading overlays and again
+before publication. Collisions retain both the competing entry and complete
+recovery data. Ecosystem mirror publication errors propagate to the CLI instead
+of being reported as unreadable-source skips.
 
 Core adapters keep imported Stripe guidance pointed at the approved client
 version and donation payment-method owner. Well-known lock hashes continue to

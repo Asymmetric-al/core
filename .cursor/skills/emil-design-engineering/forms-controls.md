@@ -25,8 +25,8 @@ Use appropriate `type` attributes:
 
 <!-- prettier-ignore -->
 ```html
-<input type="email" /> <!-- pragma: allowlist secret -->
-<input type="password" /> <!-- pragma: allowlist secret -->
+<input type="email" />
+<input type="password" />
 <input type="tel" />
 <input type="url" />
 <input type="number" />
@@ -47,7 +47,6 @@ Disable 1Password autocomplete when not needed: <!-- pragma: allowlist secret --
 
 ```html
 <input data-lpignore="true" data-1p-ignore />
-<!-- pragma: allowlist secret -->
 ```
 
 ### Input Decorations

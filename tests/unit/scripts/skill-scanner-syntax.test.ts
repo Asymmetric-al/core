@@ -27,8 +27,8 @@ const source = [
   "```ts",
   "const request = {",
   "  query: `",
-  `    mutation Login($${token}: String!) { // ${pragma}`,
-  `      login(${token}: $${token}) { token } // ${pragma}`,
+  `    mutation Login($${token}: String!) {`,
+  `      login(${token}: $${token}) { token }`,
   "    }",
   "  `,",
   `  variables: { ${token}: 'demo' }, // ${pragma}`,
@@ -99,11 +99,11 @@ describe("skill scanner example syntax", () => {
       expect(fixed).toContain(`TEST_${token.toUpperCase()}: value # ${pragma}`);
       expect(fixed).toContain(`${token} = 'demo' # ${pragma}`);
       expect(fixed).toContain(
-        `mutation Login($${token}: String!) { # ${pragma}`,
+        `mutation Login($${token}: String!) { login(${token}: $${token}) } # ${pragma}`,
       );
-      expect(fixed).toContain(
-        `login(${token}: $${token}) { token } # ${pragma}`,
-      );
+      // A JavaScript template is data, even when its contents are GraphQL.
+      const template = fixed.split("```ts\n")[1]!.split("\n```")[0]!;
+      expect(template).toBe(source.split("```ts\n")[1]!.split("\n```")[0]!);
       expect(fixed).toContain(`variables: { ${token}: 'demo' }, // ${pragma}`);
       const json = fixed.split("```json\n")[1]!.split("\n```")[0]!;
       expect(JSON.parse(json)).toEqual({ [token]: "demo" });
