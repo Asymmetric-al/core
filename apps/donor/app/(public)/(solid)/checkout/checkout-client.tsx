@@ -52,7 +52,13 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   buildCheckoutRequestFingerprint,
@@ -74,6 +80,7 @@ import {
   commitSuccessfulOriginalPaymentAttempt as commitSuccessfulOriginalPaymentSnapshot,
   exitStalePaymentAttempt as exitStalePaymentSnapshot,
   isPaymentAttemptActive as isCurrentPaymentAttemptIdentity,
+  synchronizePaymentAttemptState,
 } from "./checkout-payment-attempt";
 
 import { getFieldWorkerById } from "@/lib/mock-data";
@@ -117,6 +124,7 @@ type CheckoutState = {
   idempotencyFingerprint: string | null;
   idempotencyKey: string | null;
   isProcessing: boolean;
+  paymentAttemptId: number | null;
   paymentMethod: PaymentMethod;
   postalCode: string;
   startDate: string;
@@ -1482,6 +1490,7 @@ function CheckoutContent({
     idempotencyFingerprint: null,
     idempotencyKey: null,
     isProcessing: false,
+    paymentAttemptId: null,
     paymentMethod: "card",
     postalCode: "",
     startDate: "",
@@ -1635,11 +1644,22 @@ function CheckoutContent({
     };
   }, [stripeOverride]);
 
-  useEffect(() => {
-    checkoutStateRef.current = checkoutState;
+  useLayoutEffect(() => {
+    synchronizePaymentAttemptState(checkoutState, {
+      activePaymentAttemptRef,
+      checkoutStateRef,
+    });
     currentRequestFingerprintRef.current = currentRequestFingerprint;
+  }, [checkoutState, currentRequestFingerprint]);
+
+  useLayoutEffect(() => {
     mountedPublishableKeyRef.current = mountedPublishableKey;
-  }, [checkoutState, currentRequestFingerprint, mountedPublishableKey]);
+  }, [mountedPublishableKey]);
+
+  useEffect(() => {
+    if (step === "success" && donation && successSnapshot)
+      window.scrollTo(0, 0);
+  }, [step, donation, successSnapshot]);
 
   const paymentAttemptRefs = {
     activePaymentAttemptRef,
@@ -1713,6 +1733,13 @@ function CheckoutContent({
     stripe: Stripe | null,
     elements: StripeElements | null,
   ) => {
+    if (
+      activePaymentAttemptRef.current ||
+      checkoutStateRef.current.isProcessing
+    ) {
+      return;
+    }
+
     if (!hasGivingTarget) {
       setCheckoutState((prev) => ({
         ...prev,
@@ -1768,26 +1795,19 @@ function CheckoutContent({
     });
 
     currentRequestFingerprintRef.current = requestFingerprint;
-    checkoutStateRef.current = {
+    const processingState: CheckoutState = {
       ...checkoutStateRef.current,
       donation: isNewKey ? null : checkoutStateRef.current.donation,
       error: null,
       idempotencyFingerprint: requestFingerprint,
       idempotencyKey,
       isProcessing: true,
+      paymentAttemptId: paymentAttempt.id,
       step: "payment",
       successSnapshot: null,
     };
-    setCheckoutState((prev) => ({
-      ...prev,
-      donation: isNewKey ? null : prev.donation,
-      error: null,
-      idempotencyFingerprint: requestFingerprint,
-      idempotencyKey,
-      isProcessing: true,
-      step: "payment",
-      successSnapshot: null,
-    }));
+    checkoutStateRef.current = processingState;
+    setCheckoutState(() => processingState);
 
     try {
       const body = buildDonateRequestBody({
@@ -1840,33 +1860,25 @@ function CheckoutContent({
             );
           }
 
-          const didCommit = commitPaymentAttemptState(
-            paymentAttempt,
-            (prev) => ({
-              ...prev,
-              donation: null,
-              error:
-                "Checkout configuration changed while payment was preparing. Please try again.",
-              isProcessing: false,
-            }),
-          );
-          if (didCommit) activePaymentAttemptRef.current = null;
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Checkout configuration changed while payment was preparing. Please try again.",
+            isProcessing: false,
+          }));
           return;
         }
 
         if (checkoutMode === "test") {
-          const didCommit = commitPaymentAttemptState(
-            paymentAttempt,
-            (prev) => ({
-              ...prev,
-              donation: result.donation,
-              error: null,
-              isProcessing: false,
-              step: "success",
-              successSnapshot: paymentAttempt.successSnapshot,
-            }),
-          );
-          if (didCommit) window.scrollTo(0, 0);
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: result.donation,
+            error: null,
+            isProcessing: false,
+            step: "success",
+            successSnapshot: paymentAttempt.successSnapshot,
+          }));
           return;
         }
 
@@ -1976,11 +1988,7 @@ function CheckoutContent({
           return;
         }
 
-        const didCommit = commitSuccessfulOriginalPaymentAttempt(
-          paymentAttempt,
-          result.donation,
-        );
-        if (didCommit) window.scrollTo(0, 0);
+        commitSuccessfulOriginalPaymentAttempt(paymentAttempt, result.donation);
         return;
       }
 

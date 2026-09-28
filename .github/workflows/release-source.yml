@@ -1,0 +1,39 @@
+# Runs from the trusted default branch. Never checks out or executes PR code.
+name: Production Source
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+    branches: [production]
+
+permissions:
+  contents: read
+
+jobs:
+  release-source-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a Core head already reachable from develop
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CORE_PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          CORE_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$CORE_PR_HEAD_REPOSITORY" != 'Asymmetric-al/core' ]; then
+            echo 'Production source must be a Core branch.'
+            exit 1
+          fi
+          if [[ ! "$CORE_PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'Production source SHA is invalid.'
+            exit 1
+          fi
+          merge_base="$(gh api \
+            -H 'X-GitHub-Api-Version: 2026-03-10' \
+            "repos/Asymmetric-al/core/compare/${CORE_PR_HEAD_SHA}...develop" \
+            --jq '.merge_base_commit.sha // ""')"
+          if [ "$merge_base" != "$CORE_PR_HEAD_SHA" ]; then
+            echo 'Production source is not reachable from develop.'
+            exit 1
+          fi
+          echo 'Production source is reachable from develop.'

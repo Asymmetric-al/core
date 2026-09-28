@@ -19,7 +19,7 @@ describe("checkout runtime config apply-time identity", () => {
     );
   });
 
-  it("mirrors the mounted publishable key in an effect, not during render", () => {
+  it("mirrors the mounted key at layout commit independently of checkout state", () => {
     const source = readFileSync(
       new URL(
         "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
@@ -32,7 +32,7 @@ describe("checkout runtime config apply-time identity", () => {
       /const mountedPublishableKeyRef = useRef\(mountedPublishableKey\);\s*mountedPublishableKeyRef\.current = mountedPublishableKey;/,
     );
     expect(source).toMatch(
-      /useEffect\(\(\) => \{\s*checkoutStateRef\.current = checkoutState;\s*currentRequestFingerprintRef\.current = currentRequestFingerprint;\s*mountedPublishableKeyRef\.current = mountedPublishableKey;/,
+      /useLayoutEffect\(\(\) => \{\s*mountedPublishableKeyRef\.current = mountedPublishableKey;\s*\}, \[mountedPublishableKey\]\);/,
     );
   });
 });

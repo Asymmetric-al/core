@@ -2,7 +2,7 @@
 
 import { fetchJsonResult, fetchResult } from "@asym/lib/http/fetch-result";
 import { isPostContentEmpty } from "@asym/ui/components/shadcn/rich-text-editor";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type {
@@ -169,6 +169,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     [setUiField],
   );
 
+  const publishedRequestSequenceRef = useRef(0);
   const [posts, setPosts] = useState<Post[]>([]);
   const [drafts, setDrafts] = useState<Post[]>([]);
   const [feedError, setFeedError] = useState<string | null>(null);
@@ -211,9 +212,17 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   // does not treat hook-level callbacks as synchronous setState.
   const loadPosts = useCallback(
     async (status: PostStatus) => {
+      const requestSequence =
+        status === "published" ? ++publishedRequestSequenceRef.current : null;
+      if (status === "published") setFeedError(null);
       const result = await fetchJsonResult<{ posts?: Post[] }>(
         `/api/posts?status=${status}`,
       );
+      if (
+        requestSequence !== null &&
+        requestSequence !== publishedRequestSequenceRef.current
+      )
+        return;
       if (result.ok) {
         if (status === "published") {
           setPosts(result.data.posts || []);
@@ -242,10 +251,17 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     let cancelled = false;
 
     const loadInitialPosts = async (status: PostStatus) => {
+      const requestSequence =
+        status === "published" ? ++publishedRequestSequenceRef.current : null;
       const result = await fetchJsonResult<{ posts?: Post[] }>(
         `/api/posts?status=${status}`,
       );
-      if (cancelled) return;
+      if (
+        cancelled ||
+        (requestSequence !== null &&
+          requestSequence !== publishedRequestSequenceRef.current)
+      )
+        return;
       if (result.ok) {
         if (status === "published") {
           setPosts(result.data.posts || []);
@@ -288,6 +304,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
     return () => {
       cancelled = true;
+      publishedRequestSequenceRef.current += 1;
     };
   }, [setIsLoading, setIsLoadingRequests]);
 

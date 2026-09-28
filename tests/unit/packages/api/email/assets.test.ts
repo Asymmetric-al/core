@@ -202,13 +202,6 @@ describe("api/email/assets/upload", () => {
 
     const uploaded = init?.body as FormData;
     const signature = String(uploaded.get("signature"));
-    const reservedUploadKeys = new Set([
-      "file",
-      "resource_type",
-      "api_key",
-      "signature",
-      "signature_algorithm",
-    ]);
     expect(independentLiveDigest).toBe(
       "54071de8e8ab0810fa44e425dc682d2caa5982f50f470ec1a7cdddcb8970ccc3",
     );
@@ -220,14 +213,28 @@ describe("api/email/assets/upload", () => {
     expect(uploaded.get("timestamp")).toBe(String(expected.timestamp));
     expect(uploaded.get("folder")).toBe("email-assets/tenant_1/template_1");
     expect(uploaded.get("public_id")).toBe("uuid-1234");
-    expect(uploaded.get("signature_algorithm")).toBe(
-      expected.signatureAlgorithm,
-    );
+    // Independent raw Upload API fixture: algorithm selection belongs to
+    // SDK configuration, not to the form sent to Cloudinary.
+    expect([...uploaded.keys()].toSorted()).toEqual([
+      "api_key",
+      "file",
+      "folder",
+      "public_id",
+      "signature",
+      "timestamp",
+    ]);
     expect(
-      [...uploaded.keys()]
-        .filter((key) => !reservedUploadKeys.has(key))
-        .toSorted(),
-    ).toEqual(["folder", "public_id", "timestamp"]);
+      Object.fromEntries(
+        [...uploaded.entries()].filter(([key]) => key !== "file"),
+      ),
+    ).toEqual({
+      api_key: "1234",
+      folder: "email-assets/tenant_1/template_1",
+      public_id: "uuid-1234",
+      signature:
+        "54071de8e8ab0810fa44e425dc682d2caa5982f50f470ec1a7cdddcb8970ccc3",
+      timestamp: "1315060510",
+    });
     expect(uploadMock).not.toHaveBeenCalled();
   });
 });

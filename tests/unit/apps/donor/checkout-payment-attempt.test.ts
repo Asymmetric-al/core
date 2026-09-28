@@ -4,6 +4,7 @@ import {
   commitPaymentAttemptState,
   commitSuccessfulOriginalPaymentAttempt,
   exitStalePaymentAttempt,
+  synchronizePaymentAttemptState,
 } from "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-payment-attempt";
 
 import type {
@@ -32,6 +33,7 @@ const paymentState = (overrides: Partial<TestState> = {}): TestState => ({
   error: null,
   idempotencyFingerprint: "fp-stable",
   isProcessing: true,
+  paymentAttemptId: attemptA.id,
   n: 0,
   step: "payment",
   successSnapshot: null,
@@ -50,16 +52,26 @@ const createHarness = ({
   const activePaymentAttemptRef = { current: active };
   const checkoutStateRef = { current: state };
   let reactState = state;
-  const appliedUpdaters: Array<(prev: TestState) => TestState> = [];
+  const appliedUpdaters: Array<{
+    updater: (prev: TestState) => TestState;
+    previous: TestState;
+  }> = [];
 
+  const commitRender = (state: TestState) => {
+    reactState = state;
+    synchronizePaymentAttemptState(state, {
+      activePaymentAttemptRef,
+      checkoutStateRef,
+    });
+  };
   const setCheckoutState = (updater: (prev: TestState) => TestState) => {
-    appliedUpdaters.push(updater);
-    reactState = updater(reactState);
+    appliedUpdaters.push({ updater, previous: reactState });
+    commitRender(updater(reactState));
   };
 
   const replayQueuedUpdaters = () => {
-    for (const updater of appliedUpdaters) {
-      reactState = updater(reactState);
+    for (const { updater, previous } of appliedUpdaters) {
+      commitRender(updater(previous));
     }
   };
 
@@ -77,7 +89,7 @@ const createHarness = ({
 };
 
 describe("commitPaymentAttemptState", () => {
-  it("applies the updater once so a ref-ahead snapshot stays in agreement with React", () => {
+  it("derives the transition from React and synchronizes the committed result", () => {
     const current = paymentState({ n: 1 });
     const reactBehind = paymentState({ n: 0 });
     const harness = createHarness({ state: current });
@@ -95,12 +107,12 @@ describe("commitPaymentAttemptState", () => {
     );
 
     expect(didCommit).toBe(true);
-    expect(harness.checkoutStateRef.current.n).toBe(2);
-    expect(harness.getReactState().n).toBe(2);
+    expect(harness.checkoutStateRef.current.n).toBe(1);
+    expect(harness.getReactState().n).toBe(1);
     expect(harness.checkoutStateRef.current).toEqual(harness.getReactState());
   });
 
-  it("does not re-apply a queued updater when React replays it", () => {
+  it("replays pure updaters against the same previous state without double-applying the result", () => {
     const harness = createHarness({ state: paymentState({ n: 1 }) });
     let updaterCalls = 0;
 
@@ -116,7 +128,7 @@ describe("commitPaymentAttemptState", () => {
     harness.replayQueuedUpdaters();
 
     expect(didCommit).toBe(true);
-    expect(updaterCalls).toBe(1);
+    expect(updaterCalls).toBe(2);
     expect(harness.checkoutStateRef.current.n).toBe(2);
     expect(harness.getReactState().n).toBe(2);
   });
@@ -189,7 +201,11 @@ describe("commitSuccessfulOriginalPaymentAttempt", () => {
 
   it("does not attach an older receipt to a newer same-fingerprint payment snapshot", () => {
     const olderSnapshot = paymentState({ n: 1 });
-    const newerSnapshot = paymentState({ n: 2, donation: { id: "don-b" } });
+    const newerSnapshot = paymentState({
+      n: 2,
+      donation: { id: "don-b" },
+      paymentAttemptId: attemptB.id,
+    });
     const harness = createHarness({
       active: attemptA,
       state: olderSnapshot,
@@ -203,11 +219,9 @@ describe("commitSuccessfulOriginalPaymentAttempt", () => {
     );
 
     expect(didCommit).toBe(true);
-    expect(harness.checkoutStateRef.current).toMatchObject({
-      donation: { id: "don-a" },
-      step: "success",
-    });
-    expect(harness.getReactState()).toEqual(newerSnapshot);
+    expect(harness.checkoutStateRef.current).toBe(newerSnapshot);
+    expect(harness.getReactState()).toBe(newerSnapshot);
+    expect(harness.activePaymentAttemptRef.current).toBe(attemptA);
   });
 
   it("returns false for a fingerprint-stable newer active attempt", () => {

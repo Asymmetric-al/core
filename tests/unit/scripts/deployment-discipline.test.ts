@@ -174,6 +174,31 @@ describe("deployment discipline verifier", () => {
     expect(productionChecks.every((item) => item.ok)).toBe(true);
   });
 
+  it("accepts the current native review settings without demanding commit identity", () => {
+    const develop = validateGitHubBranchProtection({
+      branch: "develop",
+      protection: {
+        ...developBranchProtection,
+        required_pull_request_reviews: { required_approving_review_count: 0 },
+      },
+      branchRule: branchProtectionRule,
+      requiredApprovingReviewCount: 0,
+      requiredContexts: ["ci-gate"],
+    });
+    const production = validateGitHubBranchProtection({
+      branch: "production",
+      protection: {
+        ...branchProtection,
+        required_pull_request_reviews: null,
+      },
+      branchRule: branchProtectionRule,
+      requiredApprovingReviewCount: null,
+      requiredContexts: ["ci-gate", "e2e-gate"],
+    });
+    expect(develop.every((item) => item.ok)).toBe(true);
+    expect(production.every((item) => item.ok)).toBe(true);
+  });
+
   it("detects extra broad E2E requirements on develop branch protection", () => {
     const checks = validateGitHubBranchProtection({
       branch: "develop",

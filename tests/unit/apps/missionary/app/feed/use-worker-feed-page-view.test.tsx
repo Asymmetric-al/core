@@ -303,3 +303,111 @@ describe("useWorkerFeedPageView initial loads", () => {
     expect(source).not.toMatch(/void loadPosts\(/);
   });
 });
+
+describe("published request ownership", () => {
+  it("ignores a failed reload after the feed unmounts", async () => {
+    const reloadResponse = Promise.withResolvers<Response>();
+    let publishedCalls = 0;
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("status=published")) {
+        publishedCalls += 1;
+        return publishedCalls === 1
+          ? jsonResponse(200, { posts: [] })
+          : reloadResponse.promise;
+      }
+      return jsonResponse(
+        200,
+        url.includes("follower-requests") ? { requests: [] } : { posts: [] },
+      );
+    });
+    const { result, unmount } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    let reload: Promise<void> | undefined;
+    act(() => {
+      reload = result.current.reloadPosts();
+    });
+    unmount();
+
+    await act(async () => {
+      reloadResponse.resolve(jsonResponse(500, { error: "obsolete failure" }));
+      await reload;
+    });
+
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("ignores an older published response and its loading completion after a newer reload starts", async () => {
+    const older = Promise.withResolvers<Response>();
+    const newer = Promise.withResolvers<Response>();
+    let calls = 0;
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("status=published"))
+        return ++calls === 1 ? older.promise : newer.promise;
+      return jsonResponse(
+        200,
+        url.includes("follower-requests") ? { requests: [] } : { posts: [] },
+      );
+    });
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    let retry: Promise<void>;
+    act(() => {
+      retry = result.current.reloadPosts();
+    });
+    await act(async () => {
+      older.resolve(jsonResponse(500, { error: "obsolete failure" }));
+      await older.promise;
+    });
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.feedError).toBeNull();
+    expect(toast.error).not.toHaveBeenCalled();
+    await act(async () => {
+      newer.resolve(jsonResponse(200, { posts: [] }));
+      await retry!;
+    });
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.feedError).toBeNull();
+  });
+
+  it("keeps the latest successful posts when an older reload finishes afterward", async () => {
+    const older = Promise.withResolvers<Response>();
+    const newer = Promise.withResolvers<Response>();
+    let calls = 0;
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("status=published")) {
+        calls += 1;
+        if (calls === 1) return jsonResponse(500, { error: "first failure" });
+        return calls === 2 ? older.promise : newer.promise;
+      }
+      return jsonResponse(
+        200,
+        url.includes("follower-requests") ? { requests: [] } : { posts: [] },
+      );
+    });
+    const { result } = renderHook(() => useWorkerFeedPageView());
+    await waitFor(() => expect(result.current.feedError).not.toBeNull());
+    let oldRetry: Promise<void>;
+    let newRetry: Promise<void>;
+    act(() => {
+      oldRetry = result.current.reloadPosts();
+    });
+    expect(result.current.feedError).toBeNull();
+    act(() => {
+      newRetry = result.current.reloadPosts();
+    });
+    const newestPost = { id: "newest", content: "latest" };
+    await act(async () => {
+      newer.resolve(jsonResponse(200, { posts: [newestPost] }));
+      await newRetry!;
+    });
+    await act(async () => {
+      older.resolve(jsonResponse(200, { posts: [{ id: "stale" }] }));
+      await oldRetry!;
+    });
+    expect(result.current.posts).toEqual([newestPost]);
+    expect(result.current.feedError).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+  });
+});

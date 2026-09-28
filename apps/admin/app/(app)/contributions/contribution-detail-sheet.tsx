@@ -76,12 +76,6 @@ const AUDIT_TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
   minute: "2-digit",
 };
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
-
 /* ------------------------------------------------------------------ */
 /*  Status dot colors — accent colors for semantic meaning              */
 /* ------------------------------------------------------------------ */
@@ -605,7 +599,7 @@ function ContributionDetailFieldsGrid({
 }: {
   contribution: Contribution;
   crmPostStateHasSignal: boolean;
-  date: Date;
+  date: string;
   designations?: ContributionDesignationSet;
   formatDate: LocaleFormatters["formatDate"];
 }) {
@@ -1472,7 +1466,7 @@ export function ContributionDetailSheet({
   }
 
   const { donorEmail, donorAvatar, isAnonymous } = contribution;
-  const date = makeDisplayDate(contribution.date);
+  const date = contribution.date;
   const resolvedDonorDisplayName = isAnonymous
     ? "Anonymous"
     : (contribution.donorName ?? "Unknown");

@@ -1063,6 +1063,35 @@ describe("CheckoutPageClient idempotency retry keys", () => {
 });
 
 describe("CheckoutPageClient StrictMode payment state", () => {
+  it("starts one payment when confirmation is repeated before React renders pending state", async () => {
+    let resolveDonation: ((value: Response) => void) | undefined;
+    fetchMock().mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        resolveDonation = resolve;
+      }),
+    );
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+    renderCheckoutInStrictMode();
+    advanceToPayment();
+    const button = screen.getByRole("button", { name: /confirm/i });
+
+    act(() => {
+      button.click();
+      button.click();
+    });
+
+    expect(fetchCallsByMethod("POST")).toHaveLength(1);
+    await act(async () => {
+      resolveDonation?.(await initializedDonationResponse());
+    });
+    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeTruthy();
+  });
+
   it("commits a successful payment once when React replays state updaters", async () => {
     fetchMock().mockImplementation(initializedDonationResponse);
     stripeState.stripe.confirmCardPayment.mockResolvedValue({

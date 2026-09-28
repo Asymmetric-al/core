@@ -24,8 +24,8 @@ const UNSIGNED_UPLOAD_KEYS = new Set([
  * Generates a SHA-256 signature for Cloudinary signed uploads.
  * Follows Cloudinary's alphabetical sorting requirement.
  *
- * Cloudinary accepts SHA-1 and SHA-256 hex digests; SHA-256 requires
- * `signature_algorithm=sha256` on the upload body, not in the signed string
+ * Cloudinary accepts SHA-1 and SHA-256 hex digests. `signature_algorithm`
+ * configures backend SDK signing; it is not an upload form field
  * (https://cloudinary.com/documentation/authentication_signatures).
  */
 export function generateCloudinarySignature(

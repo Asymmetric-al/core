@@ -2851,4 +2851,4 @@
   - Vitest
 - Notes:
   - Current GitHub default branch is already `epic`.
-  - Existing `ci:preflight`, `verify:git-attribution`, Vercel production readiness, and ignored-build helper should be reused instead of duplicated.
+  - Existing `ci:preflight`, Vercel production readiness, and ignored-build helper should be reused instead of duplicated. Git-attribution verification was retired in 2026-09.

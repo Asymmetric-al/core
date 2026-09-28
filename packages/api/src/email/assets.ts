@@ -105,7 +105,6 @@ async function uploadToCloudinary(input: {
   formData.set("folder", folder);
   formData.set("public_id", publicId);
   formData.set("signature", signed.signature);
-  formData.set("signature_algorithm", signed.signatureAlgorithm);
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${signed.cloudName}/image/upload`,

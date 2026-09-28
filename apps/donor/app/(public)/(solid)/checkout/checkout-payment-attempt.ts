@@ -9,6 +9,7 @@ export type PaymentAttemptState = {
   error: string | null;
   idempotencyFingerprint: string | null;
   isProcessing: boolean;
+  paymentAttemptId: number | null;
   step: string;
   successSnapshot: unknown;
 };
@@ -43,6 +44,7 @@ export const isPaymentAttemptStateActive = (
   attempt: PaymentAttempt,
   state: PaymentAttemptState,
 ) =>
+  state.paymentAttemptId === attempt.id &&
   state.idempotencyFingerprint === attempt.fingerprint &&
   state.step === "payment";
 
@@ -54,6 +56,7 @@ export const isOriginalPaymentAttemptStateActive = (
   isOriginalPaymentAttemptActive(attempt, activeAttempt) &&
   isPaymentAttemptStateActive(attempt, state);
 
+// These helpers report eligible scheduling; refs change only after a React commit.
 export const commitPaymentAttemptState = <TState extends PaymentAttemptState>(
   attempt: PaymentAttempt,
   updater: (prev: TState) => TState,
@@ -74,10 +77,8 @@ export const commitPaymentAttemptState = <TState extends PaymentAttemptState>(
     return false;
   }
 
-  const next = updater(current);
-  refs.checkoutStateRef.current = next;
   refs.setCheckoutState((prev) =>
-    isPaymentAttemptStateActive(attempt, prev) ? next : prev,
+    isPaymentAttemptStateActive(attempt, prev) ? updater(prev) : prev,
   );
   return true;
 };
@@ -100,17 +101,18 @@ export const commitSuccessfulOriginalPaymentAttempt = <
     return false;
   }
 
-  const next = {
-    ...current,
-    donation,
-    error: null,
-    isProcessing: false,
-    step: "success",
-    successSnapshot: attempt.successSnapshot,
-  };
-  refs.activePaymentAttemptRef.current = null;
-  refs.checkoutStateRef.current = next;
-  refs.setCheckoutState((prev) => (prev === current ? next : prev));
+  refs.setCheckoutState((prev) =>
+    isPaymentAttemptStateActive(attempt, prev)
+      ? {
+          ...prev,
+          donation,
+          error: null,
+          isProcessing: false,
+          step: "success",
+          successSnapshot: attempt.successSnapshot,
+        }
+      : prev,
+  );
   return true;
 };
 
@@ -128,25 +130,40 @@ export const exitStalePaymentAttempt = <TState extends PaymentAttemptState>(
   }
 
   const current = refs.checkoutStateRef.current;
-  if (current.step === "success") {
+  if (current.paymentAttemptId !== attempt.id || current.step === "success") {
     return false;
   }
 
-  const next = {
-    ...current,
-    donation: null,
-    error: STALE_PAYMENT_ATTEMPT_MESSAGE,
-    isProcessing: false,
-    step: "payment",
-    successSnapshot: null,
-  };
-  refs.activePaymentAttemptRef.current = null;
-  refs.checkoutStateRef.current = next;
-  refs.setCheckoutState((prev) => {
-    if (prev.step === "success") {
-      return prev;
-    }
-    return prev === current ? next : prev;
-  });
+  refs.setCheckoutState((prev) =>
+    prev.paymentAttemptId === attempt.id && prev.step !== "success"
+      ? {
+          ...prev,
+          donation: null,
+          error: STALE_PAYMENT_ATTEMPT_MESSAGE,
+          isProcessing: false,
+          step: "payment",
+          successSnapshot: null,
+        }
+      : prev,
+  );
   return true;
+};
+
+// Called after React commits. Scheduling a transition does not clear its owner.
+export const synchronizePaymentAttemptState = <
+  TState extends PaymentAttemptState,
+>(
+  state: TState,
+  refs: Pick<
+    PaymentAttemptRefs<TState>,
+    "activePaymentAttemptRef" | "checkoutStateRef"
+  >,
+): void => {
+  refs.checkoutStateRef.current = state;
+  if (
+    refs.activePaymentAttemptRef.current?.id === state.paymentAttemptId &&
+    !state.isProcessing
+  ) {
+    refs.activePaymentAttemptRef.current = null;
+  }
 };

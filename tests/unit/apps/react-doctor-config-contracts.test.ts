@@ -188,7 +188,7 @@ describe("React Doctor config contracts", () => {
       "Remaining `parseJsonResponse` clones in portal hooks check `response.ok` before reading the JSON body.",
     );
     expect(docs).toContain(
-      "the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256`",
+      "the email uploader in `packages/api/src/email/assets.ts` uses this helper and sends the signature, signed parameters, file, and API key.",
     );
     expect(docs).toContain(
       "Cloudinary signed uploads use SHA-256 instead of SHA-1.",
@@ -264,16 +264,14 @@ describe("React Doctor config contracts", () => {
     const assets = readRepoFile("packages/api/src/email/assets.ts");
 
     expect(assets).toContain("generateCloudinarySignature");
-    expect(assets).toContain(
-      'formData.set("signature_algorithm", signed.signatureAlgorithm)',
-    );
+    expect(assets).not.toMatch(/formData\.set\(["']signature_algorithm["']/);
     expect(assets).not.toContain('createHash("sha256")');
     expect(assets).not.toContain(
       'formData.set("signature_algorithm", "sha256")',
     );
     expect(assets).not.toContain('signature_algorithm: "sha256"');
     expect(docs).toContain(
-      "the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256`",
+      "the email uploader in `packages/api/src/email/assets.ts` uses this helper and sends the signature, signed parameters, file, and API key.",
     );
     expect(docs).not.toContain("the live email uploader still SHA-1s");
   });
