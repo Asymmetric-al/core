@@ -20,8 +20,17 @@ function readLock() {
 }
 
 describe("skills lock current upstream paths", () => {
-  it("keeps the original 128 lockfile names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(128);
+  it("keeps the 128-entry catalog plus the merged architecture skill", () => {
+    const { "nextjs-app-architecture": architecture, ...catalog } =
+      readLock().skills;
+    expect(Object.keys(catalog)).toHaveLength(128);
+    expect(architecture).toEqual({
+      source: "aurorascharff/nextjs-app-architecture-skill",
+      sourceType: "github",
+      skillPath: "SKILL.md",
+      computedHash:
+        "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",
+    });
   });
 
   it("pins moved GitHub skill paths and the Resend CLI source", () => {

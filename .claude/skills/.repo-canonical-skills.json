@@ -77,6 +77,7 @@
     "motion",
     "nestjs-best-practices",
     "new-branch-and-pr",
+    "nextjs-app-architecture",
     "nextjs-app-router",
     "nextjs-supabase-auth",
     "npm-deps-cleanup",
@@ -659,6 +660,18 @@
     "new-branch-and-pr": [
       "SKILL.md",
       "references/upstream.md"
+    ],
+    "nextjs-app-architecture": [
+      "SKILL.md",
+      "references/cache-components.md",
+      "references/components.md",
+      "references/example.md",
+      "references/feature-folders.md",
+      "references/pages-suspense.md",
+      "references/queries-actions.md",
+      "references/single-page-applications.md",
+      "references/upstream.md",
+      "references/ux-patterns.md"
     ],
     "nextjs-app-router": [
       "SKILL.md"
