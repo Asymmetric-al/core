@@ -13,6 +13,8 @@ identity to overwrite hidden canonical donor data.
 - Prevent profile and tag editing of redacted rows in the UI and enforce the
   existing recipient-identity visibility policy atomically on server updates.
 - Restore partner type and the Unknown location fallback in the extracted header.
+- Keep the detail header and all activity controls reachable on compact screens
+  with responsive stacking and wrapping inside their existing containers.
 - Name icon actions and reuse shared grouped choices, cards, loading/empty states
   and semantic theme tokens throughout the extracted Partners UI.
 - Preserve named-partner editing, tenant/missionary scoping, task and activity

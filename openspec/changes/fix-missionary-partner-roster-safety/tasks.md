@@ -8,3 +8,4 @@
 - [x] 1.6 Reconcile extracted UI styles and source guards with semantic tokens and shared card/empty/loading composition.
 - [x] 1.7 Verify the completed UI through focused tests, types, lint, structural guardrails and browser interactions.
 - [ ] 1.8 Run final current-base preflight and applicable application browser/CI gates before merge.
+- [x] 1.9 Reproduce compact header/composer clipping, restore responsive layout and verify actual-source geometry, pointer and keyboard interactions.

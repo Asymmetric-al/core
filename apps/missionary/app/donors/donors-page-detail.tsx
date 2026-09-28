@@ -118,7 +118,7 @@ export function DonorsPageDetail() {
           >
             <Card className="border-border bg-card rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
               <div className="p-6 border-b border-border bg-card shrink-0">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                   <div className="flex items-start gap-4 min-w-0">
                     <Button
                       variant="ghost"
@@ -164,7 +164,7 @@ export function DonorsPageDetail() {
                     variants={staggerContainer}
                     initial="initial"
                     animate="animate"
-                    className="flex flex-wrap items-center gap-2 shrink-0"
+                    className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto"
                   >
                     <motion.div
                       whileHover={{ scale: 1.02 }}

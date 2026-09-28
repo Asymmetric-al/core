@@ -45,6 +45,8 @@ meaningful fallback when location is missing. Icon-only actions MUST have
 accessible names. Tag and activity choices MUST expose their current state
 through the shared Base UI controls, preserving existing saved tags and the
 selected activity kind. The interface MUST use Core semantic theme tokens.
+Compact layouts MUST keep the partner identity, header actions, activity choices
+and submit control reachable without clipping inside their containers.
 
 #### Scenario: A selected partner has no location
 
@@ -63,3 +65,10 @@ selected activity kind. The interface MUST use Core semantic theme tokens.
 - GIVEN the activity composer has a selected kind
 - WHEN the missionary chooses Call in the named activity group
 - THEN Call is selected and the other activity choices are unselected
+
+#### Scenario: Partner detail is used on a narrow screen
+
+- GIVEN a selected partner and an activity draft at a 320px viewport
+- WHEN the header and composer adapt to the available card width
+- THEN the partner name remains readable and every action and activity choice is visible
+- AND Post is reachable by pointer and keyboard without horizontal clipping

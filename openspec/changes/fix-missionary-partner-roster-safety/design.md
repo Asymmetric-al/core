@@ -34,6 +34,15 @@ AnimatePresence wrapper avoids duplicate child identities, verified by switching
 real panels and observing React errors. Compact viewports wrap the five detail
 tabs into three columns so labels stay readable without document overflow.
 
+The detail header stacks below the shared small-screen breakpoint and gives its
+action group the available width. The activity toolbar and ToggleGroup wrap so
+all three choices and Post remain visible. These layout changes preserve DOM
+order, Base UI keyboard behavior and existing mutation handlers. Browser checks
+measure clipping through ancestors and hit-test enabled controls at 320, 360,
+390, 640, 1024 and 1440px with the app's container tokens; document width alone
+does not detect controls clipped by the card. Pointer and keyboard checks also
+exercise the dialog, menu, activity choices and fixture-only submission.
+
 The focused browser harness imports the actual provider, roster, detail, stats
 and shared components with the application's MotionProvider and theme CSS.
 Only data/auth hooks and mutation/provider I/O use local fixtures. It exercises

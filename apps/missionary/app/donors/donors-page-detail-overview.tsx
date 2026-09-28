@@ -67,9 +67,10 @@ export function DonorsPageDetailOverview() {
             />
           </Field>
         </FieldGroup>
-        <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
+        <div className="flex flex-wrap justify-between items-center gap-3 mt-3 pt-3 border-t border-border">
           <ToggleGroup
             aria-label="Activity type"
+            className="flex-wrap"
             value={[noteComposer.activityType]}
             onValueChange={(value) => {
               const next = value[0];
