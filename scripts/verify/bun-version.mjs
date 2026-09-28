@@ -112,10 +112,10 @@ function parseWorkflowYaml(source) {
       },
     );
     if (result.error) continue;
-    if (result.status !== 0) throw new Error("Unable to parse workflow YAML");
+    if (result.status !== 0) continue;
     return JSON.parse(result.stdout);
   }
-  throw new Error("Bun is required to parse workflow YAML");
+  throw new Error("Unable to parse workflow YAML");
 }
 
 function isMapping(value) {
@@ -245,6 +245,17 @@ export function main(root = defaultRepoRoot) {
     process.exit(1);
   }
 
+  if (installed !== expected) {
+    console.error("error: Bun version mismatch.");
+    console.error(`  expected (package.json packageManager): bun@${expected}`);
+    console.error(`  installed (bun --version):              bun@${installed}`);
+    console.error("");
+    console.error("Upgrade Bun to match the repo pin, for example:");
+    console.error("  curl -fsSL https://bun.sh/install | bash");
+    console.error("  # or: bun upgrade");
+    process.exit(1);
+  }
+
   const workflowDrift = collectGitHubWorkflowBunPinDrift(root, expected);
 
   if (workflowDrift.length > 0) {
@@ -255,17 +266,6 @@ export function main(root = defaultRepoRoot) {
       console.error(`  ${line}`);
     }
     process.exit(2);
-  }
-
-  if (installed !== expected) {
-    console.error("error: Bun version mismatch.");
-    console.error(`  expected (package.json packageManager): bun@${expected}`);
-    console.error(`  installed (bun --version):              bun@${installed}`);
-    console.error("");
-    console.error("Upgrade Bun to match the repo pin, for example:");
-    console.error("  curl -fsSL https://bun.sh/install | bash");
-    console.error("  # or: bun upgrade");
-    process.exit(1);
   }
 
   console.log(`Bun version OK: bun@${installed}`);

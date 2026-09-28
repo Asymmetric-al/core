@@ -1,7 +1,7 @@
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 
 import { describe, expect, it } from "vitest";
 
@@ -136,6 +136,57 @@ describe("bun version guard", () => {
       expect(result.stderr).toContain(
         "installed (bun --version):              bun@1.3.4",
       );
+    },
+    30000,
+  );
+
+  itIfFakeBunCanShadowPath(
+    "tries later Bun candidates when the PATH bun shim exits non-zero",
+    () => {
+      const fakeBinDir = mkdtempSync(path.join(tmpdir(), "fake-bun-"));
+      const bunInstallDir = mkdtempSync(path.join(tmpdir(), "bun-install-"));
+      const bunInstallBinDir = path.join(bunInstallDir, "bin");
+      const bashFakeBinDir = toBashPath(fakeBinDir);
+      const realBun = toBashPath(resolveBunPath());
+      mkdirSync(bunInstallBinDir);
+
+      writeFileSync(
+        path.join(fakeBinDir, "bun"),
+        [
+          "#!/usr/bin/env bash",
+          "set -euo pipefail",
+          'if [[ "${1:-}" == "--version" ]]; then',
+          "  exit 1",
+          "fi",
+          "exit 42",
+        ].join("\n"),
+        { mode: 0o755 },
+      );
+      writeFileSync(
+        path.join(bunInstallBinDir, "bun"),
+        [
+          "#!/usr/bin/env bash",
+          "set -euo pipefail",
+          'if [[ "${1:-}" == "--version" ]]; then',
+          `  echo "${expectedPackageManager.replace(/^bun@/, "")}"`,
+          "  exit 0",
+          "fi",
+          'exec "$REAL_BUN" "$@"',
+        ].join("\n"),
+        { mode: 0o755 },
+      );
+
+      const result = runGuard({
+        BUN_INSTALL: toBashPath(bunInstallDir),
+        PATH: `${bashFakeBinDir}:${bashSystemPath}`,
+        REAL_BUN: realBun,
+      });
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain(
+        `Bun version OK: ${expectedPackageManager}`,
+      );
+      expect(result.stderr).toBe("");
     },
     30000,
   );
