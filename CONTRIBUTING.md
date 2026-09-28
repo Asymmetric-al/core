@@ -35,6 +35,9 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
   see `docs/guides/development/contributing.md`.
 - **Required local PR/push-readiness gate:** `bun run ci:preflight` (exact stages
   and focused debugging commands are documented in `docs/ci.md`).
+- **Font asset changes:** run `bun run verify:fonts:offline` in Linux/WSL with
+  Playwright Chromium installed. See [shared font maintenance](packages/ui/fonts/README.md)
+  for the exact asset, license, subset and preload contract.
 - **Production E2E:** `bun run test:e2e:production-gate` is the bounded
   release gate required for `production`; broader `bun run test:e2e` remains useful
   for local feature validation.

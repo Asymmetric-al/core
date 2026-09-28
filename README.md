@@ -505,3 +505,12 @@ Attributions for bundled third-party code: `THIRD_PARTY_NOTICES.md`.
 ---
 
 Built with ❤️ for the Kingdom.
+
+### Offline shared-font verification
+
+The three Next apps compile their existing fonts from reviewed local assets.
+After changing fonts or their loaders, run `bun run verify:fonts:offline` in
+Linux/WSL with Playwright Chromium installed. The check proves compilation and
+browser font loading without external network access, plus missing-file failure.
+See [shared font provenance and maintenance](packages/ui/fonts/README.md) for details. Normal preflight,
+all-app builds and relevant E2E still apply.

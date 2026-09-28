@@ -7,8 +7,8 @@ import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
+import { fontVariables } from "@asym/ui/fonts";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
-import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -20,29 +20,6 @@ import { BoneyardRegistry } from "@/app/_providers/boneyard-registry";
 import { MissionaryLayoutShell } from "@/app/_providers/missionary-layout-shell";
 import { MISSIONARY_ALLOWED_ROLES } from "@/app/access";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-  preload: true,
-});
-
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  preload: true,
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-});
 
 function getSupabaseOrigin() {
   const { url } = getSupabasePublicConfig();
@@ -159,15 +136,8 @@ export default function RootLayout({
             <link rel="dns-prefetch" href={supabaseOrigin} />
           </>
         ) : null}
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
       </head>
-      <body
-        className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
-      >
+      <body className={`${fontVariables} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
