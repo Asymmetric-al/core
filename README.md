@@ -170,6 +170,13 @@ behavior; its source-owner amendments remain proposed.
 
 Use the per-app `dev:*` scripts when you only need one surface, or `bun run dev` / `bun run dev:all` when you need several (see root `package.json`).
 
+`bun run build` and the `build:<app>` commands compile Eve dependency artifacts
+without provisioning sandboxes. Hosted admin previews use the same unqualified
+artifact mode and leave Eve Release Off. Standalone Eve and production service
+builds retain full qualification; see the
+[build runbook](docs/guides/development/build-runbook.md#eve-artifacts-and-qualification)
+before treating any preview as launch evidence.
+
 ### AI Agent Guidance System
 
 Agent-oriented docs live under `docs/ai/`:

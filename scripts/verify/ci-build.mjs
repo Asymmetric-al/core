@@ -103,11 +103,13 @@ function createRunWithCiEnvStep(label, command, args) {
 }
 
 function createBuildStep(label, command, args, { strict = false } = {}) {
+  // Web dependency compilation is not authorization to provision Eve sandboxes.
+  const env = { CORE_EVE_BUILD_MODE: "artifacts" };
   if (strict) {
-    return { label, command, args };
+    return { label, command, args, env };
   }
 
-  return createRunWithCiEnvStep(label, command, args);
+  return { ...createRunWithCiEnvStep(label, command, args), env };
 }
 
 export function getSharedPackageBuildSteps({
@@ -185,12 +187,12 @@ export function getRequestedApps(args = [], apps = NEXT_APPS) {
   return [requestedApp];
 }
 
-function run(command, args, label) {
+function run(command, args, label, environment) {
   console.log(`==> CI build: ${label}`);
   const result = spawnSync(command, args, {
     cwd: REPO_ROOT,
     stdio: "inherit",
-    env: process.env,
+    env: { ...process.env, ...environment },
   });
 
   if (result.error) {
@@ -315,7 +317,7 @@ function main(args = process.argv.slice(2)) {
     apps: requestedApps,
   })) {
     clearStaleNextLocks();
-    run(step.command, step.args, step.label);
+    run(step.command, step.args, step.label, step.env);
     clearStaleNextLocks();
   }
 
@@ -327,7 +329,7 @@ function main(args = process.argv.slice(2)) {
     // scripts/repair-workspace-links.mjs.
     repairAndLogWorkspaceLinks();
     clearStaleNextLocks();
-    run(step.command, step.args, step.label);
+    run(step.command, step.args, step.label, step.env);
     clearStaleNextLocks();
   }
 

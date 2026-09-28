@@ -97,4 +97,5 @@ const sentryConfig = withSentryConfig(
 
 export default withEve(sentryConfig, {
   eveRoot: `${WORKSPACE_ROOT}/packages/eve-runtime`,
+  eveBuildCommand: "bun run build:service",
 });

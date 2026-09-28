@@ -10,7 +10,10 @@
     "./launch-watchdog": "./src/launch/watchdog.ts"
   },
   "scripts": {
-    "build": "eve build",
+    "build": "node scripts/build.mjs",
+    "build:artifacts": "eve build --skip-sandbox-prewarm",
+    "build:full": "eve build",
+    "build:service": "node scripts/build.mjs --service",
     "eval": "eve eval smoke specialists --strict --max-concurrency 1",
     "info": "eve info",
     "lint": "eslint agent evals src",
