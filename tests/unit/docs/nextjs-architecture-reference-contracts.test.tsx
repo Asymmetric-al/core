@@ -104,9 +104,11 @@ describe("Next.js architecture executable reference contracts", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Like" }));
     await screen.findByRole("alert");
-    expect(
-      screen.getByRole("button", { name: "Like" }).hasAttribute("disabled"),
-    ).toBe(false);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Like" }).hasAttribute("disabled"),
+      ).toBe(false),
+    );
   });
 
   it.each(["http", "network"])(
