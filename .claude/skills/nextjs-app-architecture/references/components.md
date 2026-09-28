@@ -244,7 +244,7 @@ Keep the server/client split even when the UI is highly interactive:
 - The server component reads durable data and renders the initial tree.
 - The client leaf owns only ephemeral interaction: open state, focused field, pending flag, optimistic draft, selected tab that is not shareable.
 - Shareable or bookmarkable state lives in the URL/search params, not mirrored in component state.
-- Client leaves import server actions directly and call them from form actions or event handlers.
+- Client leaves use an approved hook/API route or import a dedicated authenticated `'use server'` adapter that authorizes the caller, validates input, and delegates business work to `packages/api`. Never import ordinary `packages/api` server commands into a Client Component.
 - Mutation feedback (`useOptimistic`, pending flags, rollback, toasts) follows `references/ux-patterns.md`.
 
 Avoid effects whose only job is to copy React state to React state:

@@ -12,14 +12,18 @@ import {
 } from "@testing-library/react";
 import { createElement, type ComponentType } from "react";
 import ts from "typescript";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const root = "docs/ai/skills/nextjs-app-architecture/";
 const read = (file: string) => readFileSync(root + file, "utf8");
 const load = createRequire(import.meta.url);
 
-function recipe<Props extends object>(name: string, pending = false) {
-  const source = read("references/ux-patterns.md");
+function recipe<Props extends object>(
+  name: string,
+  pending = false,
+  options: { source?: string; fetch?: typeof fetch } = {},
+) {
+  const source = read(options.source ?? "references/ux-patterns.md");
   const block = [...source.matchAll(/```tsx\n([\s\S]*?)```/g)].find((match) =>
     match[1].includes(`export function ${name}(`),
   );
@@ -33,6 +37,7 @@ function recipe<Props extends object>(name: string, pending = false) {
   });
   runInNewContext(compiled.outputText, {
     exports,
+    fetch: options.fetch,
     require: (module: string) => {
       if (module === "next/link") return { useLinkStatus: () => ({ pending }) };
       if (module === "react" || module === "react/jsx-runtime")
@@ -102,6 +107,65 @@ describe("Next.js architecture executable reference contracts", () => {
     expect(
       screen.getByRole("button", { name: "Like" }).hasAttribute("disabled"),
     ).toBe(false);
+  });
+
+  it.each(["http", "network"])(
+    "shows accessible feedback when the Core route example fails: %s",
+    async (failure) => {
+      const fetcher = vi.fn<typeof fetch>(async () => {
+        if (failure === "network") throw new Error("Unavailable");
+        return new Response(null, { status: 403 });
+      });
+      const LikeButton = recipe<{ postId: string }>("LikeButton", false, {
+        source: "references/queries-actions.md",
+        fetch: fetcher,
+      });
+      render(createElement(LikeButton, { postId: "post-one" }));
+      fireEvent.click(screen.getByRole("button", { name: "Like" }));
+
+      expect((await screen.findByRole("alert")).textContent).toBe(
+        "Unable to like this post. Please try again.",
+      );
+      expect(fetcher).toHaveBeenCalledExactlyOnceWith(
+        "/api/posts/post-one/like",
+        { method: "POST" },
+      );
+      expect(screen.queryByRole("button", { name: "Liked" })).toBeNull();
+      expect(
+        screen.getByRole("button", { name: "Like" }).hasAttribute("disabled"),
+      ).toBe(false);
+    },
+  );
+
+  it("confirms success only after the Core route accepts the write", async () => {
+    let accept!: (response: Response) => void;
+    const response = new Promise<Response>((resolve) => {
+      accept = resolve;
+    });
+    const LikeButton = recipe<{ postId: string }>("LikeButton", false, {
+      source: "references/queries-actions.md",
+      fetch: () => response,
+    });
+    render(createElement(LikeButton, { postId: "post-one" }));
+    fireEvent.click(screen.getByRole("button", { name: "Like" }));
+    expect(
+      screen.getByRole("button", { name: "Like" }).hasAttribute("disabled"),
+    ).toBe(true);
+    expect(screen.queryByRole("button", { name: "Liked" })).toBeNull();
+
+    accept(new Response(null, { status: 204 }));
+    await screen.findByRole("button", { name: "Liked" });
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("defines catchError in a client module while pages remain server-owned", () => {
+    const section = read("references/pages-suspense.md")
+      .split("## Error boundaries\n")[1]
+      .split("\n## ")[0];
+    expect(section).toContain("'use client'");
+    expect(section).toContain("fallback");
+    expect(section).toContain("page remains a Server Component");
+    expect(section).toContain("imports that boundary");
   });
 
   it("requires a payload for a successful payload-bearing action result", () => {

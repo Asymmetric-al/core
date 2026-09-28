@@ -55,3 +55,15 @@ reconcile upstream deletions, and reapply Core adaptations before mirror sync.
 All required runtime mirrors remain present; raw upstream provenance is never
 computed from adapted content. This change performs no upstream refresh and
 advances no upstream commit or hash.
+
+## Final Integration Review
+
+The component reference qualifies direct client action imports at the operative
+instruction itself. A bounded guard requires the authenticated, authorizing,
+input-validating adapter and keeps ordinary API commands server-side.
+The error-boundary reference defines catchError in a client module while the
+page remains server-owned. The Core route example catches both rejected
+requests and HTTP failures, exposes accessible feedback, and confirms the
+write only after an accepted response. Tests execute the fenced example with
+controlled HTTP, network and deferred-success responses; existing shared state
+remains owned by the feature's approved mutation hook.

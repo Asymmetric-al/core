@@ -181,7 +181,8 @@ Keep these separate from a new founder decision:
 
 The original September 16 consolidation identified no new product choice for
 its scoped corrections. The broader September 23 audit subsequently found
-C-01 and C-02 below; that earlier observation does not close them. If later
+C-01 and C-02 below; that earlier observation did not close them. The founder
+subsequently resolved C-02 explicitly; C-01 remains open. If later
 qualification invalidates another premise, record the precise failed guarantee
 and affected choices before seeking a founder ruling.
 
@@ -200,8 +201,12 @@ deployment. Existing prerequisite commits retain their original authorship.
 
 The [cross-contract audit](audits/2026-09-23-contract-congruence.md) records the
 source-grounded corrections, exact verification limits, current source-PR
-readback and delivery-graph repairs. Its C-01 correction-approval and C-02 posted-state placement conflicts await
-explicit founder rulings; do not infer a resolution from a later file date.
+readback and delivery-graph repairs. C-01 correction approval still awaits an
+explicit founder ruling. Conrad resolved C-02 on September 23: separate
+owner-controlled operational records with joined projections and fully immutable
+posted financial rows. [ADR-0206](../adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md)
+governs that storage boundary; its implementation remains subject to source
+qualification. A later file date alone does not settle another conflict.
 PR #1428 is now merged in develop at `e811fc9f14a727d4e71b23df3ba356b5f645207b`;
 the earlier prerequisite capture above remains dated evidence, not its final head.
 

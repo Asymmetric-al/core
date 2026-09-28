@@ -71,3 +71,15 @@ Raw upstream hashes MUST remain separate from adapted canonical content.
 - THEN its exact commit and raw tree are verified before canonical replacement
 - AND Core adaptations, source provenance and required Codex/Cursor/Claude
   mirrors survive validation without a floating installer or source reference
+
+#### Scenario: A documented route mutation fails or remains pending
+
+- WHEN the Core route example receives an HTTP failure or a rejected request
+- THEN it preserves the confirmed state and shows accessible error feedback
+- AND success is confirmed only after the response accepts the write
+
+#### Scenario: A server page composes a recoverable error boundary
+
+- WHEN the architecture reference uses the installed catchError API
+- THEN the fallback and boundary are defined in a client module
+- AND the Server Component page imports that boundary around its section

@@ -12,6 +12,11 @@
 - [x] 1.5 Re-evaluate resolved review histories and qualify every reference API against installed docs or primary behavior evidence.
 - [x] 1.6 Correct reference recipes and refresh instructions; prove pending attributes and canonical optimistic completion through executable React examples, and require payload-bearing action results through the TypeScript checker.
 
+- [x] 1.7 Reconcile the final direct-import instruction and resolved-history
+      catchError/route-error feedback findings against installed docs; prove
+      local instruction loss and failed/deferred route responses with focused
+      regression checks before regenerating mirrors.
+
 ## 2. Verification
 
 - [x] 2.1 Regenerate all runtime mirrors through skills:sync and verify equality.

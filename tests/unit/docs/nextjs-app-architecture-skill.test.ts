@@ -189,6 +189,26 @@ describe("nextjs-app-architecture skill", () => {
     expect(provenance).toContain("npx --yes skills@1.5.7");
   });
 
+  it("qualifies direct client imports at the operative instruction", () => {
+    const components = readSkillFile(
+      "docs/ai/skills",
+      "references/components.md",
+    );
+    const instruction = readInstructionItem(components, "- Client leaves");
+
+    expect(instruction).toContain("approved hook/API route");
+    expect(instruction).toContain(
+      "dedicated authenticated `'use server'` adapter",
+    );
+    expect(instruction).toContain("authorizes the caller");
+    expect(instruction).toContain("validates input");
+    expect(instruction).toContain("delegates business work to `packages/api`");
+    expect(instruction).toContain(
+      "Never import ordinary `packages/api` server commands into a Client Component.",
+    );
+    expect(instruction).not.toContain("- Mutation feedback");
+  });
+
   it("uses published API subpaths in Core examples", () => {
     const apiPackage = JSON.parse(
       readRepoFile("packages/api/package.json"),

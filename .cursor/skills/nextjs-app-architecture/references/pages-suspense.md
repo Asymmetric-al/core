@@ -230,7 +230,7 @@ The same applies to feature-level skeleton aliases. If a variant only passes pro
 
 ## Error boundaries
 
-Wrap fallible sections in a Next.js-aware error boundary so one failure doesn't take down the page. Build it on `catchError` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/catchError.md`) from `next/error` (its `ErrorInfo` gives you a `retry()` that re-fetches server data) — it understands Next's control-flow throws (`notFound()`, `redirect()`, `unauthorized()`, `forbidden()`) and won't swallow them. Place the boundary around the suspending section, in the page:
+Wrap fallible sections in a Next.js-aware error boundary so one failure doesn't take down the page. Build it on `catchError` (installed: `node_modules/next/dist/docs/01-app/03-api-reference/04-functions/catchError.md`) from `next/error` (its `ErrorInfo` gives you a `retry()` that re-fetches server data) — it understands Next's control-flow throws (`notFound()`, `redirect()`, `unauthorized()`, `forbidden()`) and won't swallow them. Define the `catchError` fallback and exported boundary in a `'use client'` module. The page remains a Server Component and imports that boundary; do not call `catchError` in the server page. Place the boundary around the suspending section, in the page:
 
 ```tsx
 <ErrorBoundary title="Replies didn't load">

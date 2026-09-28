@@ -83,24 +83,42 @@ Vendor Client Components import their real Server Actions directly. **Core:** di
 // Core right — call the existing authenticated route, not a feature-local action file
 "use client";
 
+import { useState, useTransition } from "react";
+
 export function LikeButton({ postId }: { postId: string }) {
+  const [liked, setLiked] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string>();
+
+  function like() {
+    startTransition(async () => {
+      setError(undefined);
+      try {
+        const response = await fetch(`/api/posts/${postId}/like`, {
+          method: "POST",
+        });
+        if (!response.ok) {
+          throw new Error("Like failed");
+        }
+        startTransition(() => setLiked(true));
+      } catch {
+        setError("Unable to like this post. Please try again.");
+      }
+    });
+  }
+
   return (
-    <button
-      onClick={() => {
-        void fetch(`/api/posts/${postId}/like`, { method: "POST" }).then(
-          (response) => {
-            if (!response.ok) {
-              throw new Error("Like failed");
-            }
-          },
-        );
-      }}
-    >
-      Like
-    </button>
+    <>
+      <button type="button" disabled={pending || liked} onClick={like}>
+        {liked ? "Liked" : "Like"}
+      </button>
+      {error && <p role="alert">{error}</p>}
+    </>
   );
 }
 ```
+
+This small example starts from an unliked post and confirms only an accepted write. In an existing feature, let its approved mutation hook own shared post state and browser-cache reconciliation; do not add a competing local cache. Both HTTP failures and network rejection leave the confirmed state unchanged and show accessible feedback.
 
 ```tsx
 // Core right — Server Components pass serializable ids into the client leaf
