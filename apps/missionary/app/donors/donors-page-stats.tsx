@@ -1,13 +1,19 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
-import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import { Heart, AlertCircle, Users, Repeat } from "lucide-react";
 import * as React from "react";
 
 import { formatCurrency } from "./donors-model";
-import { smoothTransition, springTransition } from "./donors-page-motion";
+import { smoothTransition } from "./donors-page-motion";
 import { useDonorsPageViewFields } from "./use-donors-page-view";
 
 const MotionCard = motion.create(Card);
@@ -38,43 +44,37 @@ function StatCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...smoothTransition, delay }}
-      whileHover={{ y: -2, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}
-      whileTap={onClick ? { scale: 0.98 } : undefined}
       className={cn(
-        "border-zinc-200 bg-white shadow-sm transition-[color,background-color,border-color,box-shadow,transform,opacity] rounded-xl",
+        "hover-lift border-border bg-card shadow-sm transition-[color,background-color,border-color,box-shadow,transform,opacity] rounded-xl",
         onClick && "cursor-pointer",
-        isActive && "border-blue-400 ring-2 ring-blue-100",
+        isActive && "border-primary ring-2 ring-ring/20",
       )}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-0.5">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-              {label}
-            </p>
-            <motion.p
-              key={value}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-xl font-semibold tracking-tight text-zinc-900"
-            >
-              {value}
-            </motion.p>
-            <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
-              {subtext}
-            </span>
-          </div>
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={springTransition}
+      <CardHeader>
+        <CardTitle className="text-xs text-muted-foreground">{label}</CardTitle>
+        <CardAction>
+          <div
             className={cn(
               "size-9 rounded-lg border flex items-center justify-center",
               iconBg,
             )}
           >
             <Icon className={cn("size-4", iconColor)} />
-          </motion.div>
-        </div>
+          </div>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-0.5">
+        <motion.p
+          key={value}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-xl font-semibold tracking-tight text-foreground"
+        >
+          {value}
+        </motion.p>
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          {subtext}
+        </span>
       </CardContent>
     </MotionCard>
   );
@@ -85,7 +85,7 @@ function StatCard({
         type="button"
         onClick={onClick}
         aria-pressed={Boolean(isActive)}
-        className="text-left w-full"
+        className="text-left w-full press-feedback rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {content}
       </button>
@@ -118,8 +118,8 @@ export function DonorsPageStats() {
             : `${activeCount} active`
         }
         icon={Users}
-        iconBg="bg-zinc-50 border-zinc-100"
-        iconColor="text-zinc-900"
+        iconBg="bg-muted border-border"
+        iconColor="text-foreground"
         delay={0}
       />
       <StatCard
@@ -127,8 +127,8 @@ export function DonorsPageStats() {
         value={formatCurrency(totalGiven)}
         subtext={hasMoreDonors ? "Lifetime (loaded window)" : "Lifetime"}
         icon={Heart}
-        iconBg="bg-emerald-50 border-emerald-100"
-        iconColor="text-emerald-600"
+        iconBg="bg-primary/10 border-primary/20"
+        iconColor="text-primary"
         delay={0.05}
       />
       <StatCard
@@ -140,8 +140,8 @@ export function DonorsPageStats() {
             : `${formatCurrency(monthlyPledgeTotal)}/mo`
         }
         icon={Repeat}
-        iconBg="bg-blue-50 border-blue-100"
-        iconColor="text-blue-600"
+        iconBg="bg-accent border-border"
+        iconColor="text-primary"
         onClick={() => applyStatFilter("activePledge")}
         isActive={pledgeFilter === "Active"}
         delay={0.1}
@@ -155,8 +155,8 @@ export function DonorsPageStats() {
             : `${atRiskCount} at risk, ${lapsedCount} lapsed`
         }
         icon={AlertCircle}
-        iconBg="bg-amber-50 border-amber-100"
-        iconColor="text-amber-600"
+        iconBg="bg-muted border-border"
+        iconColor="text-muted-foreground"
         onClick={() => applyStatFilter("needsAttention")}
         isActive={statusFilter === "Needs Attention"}
         delay={0.15}

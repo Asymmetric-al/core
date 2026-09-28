@@ -31,20 +31,20 @@ import { useDonorsPageViewFields } from "./use-donors-page-view";
 
 export const CONTACT_COLOR_CLASSES = {
   blue: {
-    surface: "bg-blue-50 text-blue-600",
-    action: "text-zinc-400 hover:text-blue-600 hover:bg-blue-50",
+    surface: "bg-accent text-primary",
+    action: "text-muted-foreground hover:text-primary hover:bg-accent",
   },
   emerald: {
-    surface: "bg-emerald-50 text-emerald-600",
-    action: "text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50",
+    surface: "bg-primary/10 text-primary",
+    action: "text-muted-foreground hover:text-primary hover:bg-primary/10",
   },
   purple: {
-    surface: "bg-purple-50 text-purple-600",
-    action: "text-zinc-400 hover:text-purple-600 hover:bg-purple-50",
+    surface: "bg-accent text-primary",
+    action: "text-muted-foreground hover:text-primary hover:bg-accent",
   },
   zinc: {
-    surface: "bg-zinc-50 text-zinc-600",
-    action: "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50",
+    surface: "bg-muted text-muted-foreground",
+    action: "text-muted-foreground hover:text-muted-foreground hover:bg-muted",
   },
 } as const;
 
@@ -61,13 +61,13 @@ export function DonorsPageDetailContact() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <motion.div
         {...fadeInUp}
         transition={smoothTransition}
         className="flex items-center justify-between mb-2"
       >
-        <h3 className="text-sm font-semibold text-zinc-900">
+        <h3 className="text-sm font-semibold text-foreground">
           Contact Information
         </h3>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -75,7 +75,8 @@ export function DonorsPageDetailContact() {
             variant="outline"
             size="sm"
             onClick={editDialog.open}
-            className="h-8 px-3 text-xs rounded-xl border-zinc-200"
+            disabled={selectedDonor.is_anonymous}
+            className="h-8 px-3 text-xs rounded-xl border-border"
           >
             <Pencil data-icon="inline-start" /> Edit
           </Button>
@@ -87,7 +88,7 @@ export function DonorsPageDetailContact() {
           variants={staggerContainer}
           initial="initial"
           animate="animate"
-          className="space-y-3"
+          className="flex flex-col gap-3"
         >
           {(
             [
@@ -132,7 +133,7 @@ export function DonorsPageDetailContact() {
               variants={fadeInUp}
               transition={{ delay: i * 0.05 }}
               whileHover={{ y: -2 }}
-              className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+              className="flex items-center justify-between p-4 bg-muted rounded-2xl border border-border group hover:border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
             >
               <div className="flex items-center gap-3">
                 <div
@@ -145,7 +146,7 @@ export function DonorsPageDetailContact() {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       {item.label}
                     </p>
                     {item.preferred ? (
@@ -159,7 +160,7 @@ export function DonorsPageDetailContact() {
                       </Badge>
                     ) : null}
                   </div>
-                  <p className="text-sm font-medium text-zinc-900 truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {item.value || "Not provided"}
                   </p>
                 </div>
@@ -176,9 +177,10 @@ export function DonorsPageDetailContact() {
                       "size-9 rounded-xl shrink-0",
                       CONTACT_COLOR_CLASSES[item.color].action,
                     )}
+                    aria-label={`Copy ${item.label}`}
                     onClick={() => copyToClipboard(item.value!, item.label)}
                   >
-                    <Copy className="size-4" />
+                    <Copy data-icon="inline-start" />
                   </Button>
                 </motion.div>
               ) : null}
@@ -188,17 +190,17 @@ export function DonorsPageDetailContact() {
             <motion.div
               variants={fadeInUp}
               whileHover={{ y: -2 }}
-              className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+              className="flex items-center justify-between p-4 bg-muted rounded-2xl border border-border group hover:border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
             >
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <Globe className="size-4" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Website
                   </p>
-                  <p className="text-sm font-medium text-zinc-900 truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {selectedDonor.website}
                   </p>
                 </div>
@@ -208,6 +210,7 @@ export function DonorsPageDetailContact() {
                 whileTap={{ scale: 0.97 }}
               >
                 <a
+                  aria-label="Open partner website"
                   href={
                     selectedDonor.website.startsWith("http")
                       ? selectedDonor.website
@@ -220,7 +223,7 @@ export function DonorsPageDetailContact() {
                       variant: "ghost",
                       size: "icon",
                     }),
-                    "size-9 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-xl shrink-0",
+                    "size-9 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl shrink-0",
                   )}
                 >
                   <ExternalLink className="size-4" />
@@ -234,20 +237,20 @@ export function DonorsPageDetailContact() {
           variants={staggerContainer}
           initial="initial"
           animate="animate"
-          className="space-y-4"
+          className="flex flex-col gap-4"
         >
           <motion.div
             variants={fadeInUp}
             whileHover={{ y: -2 }}
-            className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+            className="p-4 bg-muted rounded-2xl border border-border"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
-                <div className="size-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                <div className="size-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
                   <Home className="size-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
                     Mailing Address
                   </p>
                   {selectedDonor.address?.street ? (
@@ -258,8 +261,8 @@ export function DonorsPageDetailContact() {
                           className={cn(
                             "text-sm",
                             i === 0
-                              ? "font-medium text-zinc-900"
-                              : "text-zinc-500",
+                              ? "font-medium text-foreground"
+                              : "text-muted-foreground",
                           )}
                         >
                           {line}
@@ -267,7 +270,7 @@ export function DonorsPageDetailContact() {
                       ))}
                     </>
                   ) : (
-                    <p className="text-sm text-zinc-400 italic">
+                    <p className="text-sm text-muted-foreground italic">
                       No address on file
                     </p>
                   )}
@@ -279,6 +282,7 @@ export function DonorsPageDetailContact() {
                   whileTap={{ scale: 0.97 }}
                 >
                   <a
+                    aria-label="Open partner address in maps"
                     href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(", "))}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -287,7 +291,7 @@ export function DonorsPageDetailContact() {
                         variant: "ghost",
                         size: "icon",
                       }),
-                      "size-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0",
+                      "size-9 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl shrink-0",
                     )}
                   >
                     <ExternalLink className="size-4" />
@@ -301,23 +305,23 @@ export function DonorsPageDetailContact() {
             <motion.div
               variants={fadeInUp}
               whileHover={{ y: -2 }}
-              className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+              className="p-4 bg-muted rounded-2xl border border-border"
             >
               <div className="flex items-start gap-3">
-                <div className="size-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                <div className="size-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
                   <Building2 className="size-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
                     Organization
                   </p>
                   {selectedDonor.organization ? (
-                    <p className="text-sm font-medium text-zinc-900">
+                    <p className="text-sm font-medium text-foreground">
                       {selectedDonor.organization}
                     </p>
                   ) : null}
                   {selectedDonor.title ? (
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-muted-foreground">
                       {selectedDonor.title}
                     </p>
                   ) : null}
@@ -331,17 +335,17 @@ export function DonorsPageDetailContact() {
               <motion.div
                 variants={fadeInUp}
                 whileHover={{ y: -2 }}
-                className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                className="p-4 bg-muted rounded-2xl border border-border"
               >
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                  <div className="size-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
                     <Heart className="size-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       Spouse
                     </p>
-                    <p className="text-sm font-medium text-zinc-900">
+                    <p className="text-sm font-medium text-foreground">
                       {selectedDonor.spouse}
                     </p>
                   </div>
@@ -352,17 +356,17 @@ export function DonorsPageDetailContact() {
               <motion.div
                 variants={fadeInUp}
                 whileHover={{ y: -2 }}
-                className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                className="p-4 bg-muted rounded-2xl border border-border"
               >
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                  <div className="size-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
                     <Star className="size-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       Birthday
                     </p>
-                    <p className="text-sm font-medium text-zinc-900">
+                    <p className="text-sm font-medium text-foreground">
                       {format(
                         parseDisplayDate(selectedDonor.birthday),
                         "MMMM d",
@@ -376,17 +380,17 @@ export function DonorsPageDetailContact() {
               <motion.div
                 variants={fadeInUp}
                 whileHover={{ y: -2 }}
-                className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                className="p-4 bg-muted rounded-2xl border border-border"
               >
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
+                  <div className="size-10 rounded-xl bg-accent text-primary flex items-center justify-center shrink-0">
                     <Calendar className="size-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       Anniversary
                     </p>
-                    <p className="text-sm font-medium text-zinc-900">
+                    <p className="text-sm font-medium text-foreground">
                       {format(
                         parseDisplayDate(selectedDonor.anniversary),
                         "MMMM d",
@@ -402,12 +406,12 @@ export function DonorsPageDetailContact() {
             <motion.div
               variants={fadeInUp}
               whileHover={{ y: -2 }}
-              className="p-4 bg-amber-50/50 rounded-2xl border border-amber-100"
+              className="p-4 bg-muted/50 rounded-2xl border border-border"
             >
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-600 mb-2">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">
                 Internal Notes
               </p>
-              <p className="text-sm text-zinc-700">{selectedDonor.notes}</p>
+              <p className="text-sm text-foreground">{selectedDonor.notes}</p>
             </motion.div>
           ) : null}
         </motion.div>

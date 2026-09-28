@@ -230,6 +230,7 @@ function useDonorsPageView(): DonorsPageViewModel {
   }, []);
 
   const openTagEditor = React.useCallback(() => {
+    if (!selectedDonor || selectedDonor.is_anonymous) return;
     setSelectedTags(createTagEditorDraft(selectedDonor?.tags));
     setIsTagDialogOpen(true);
   }, [selectedDonor]);
@@ -264,7 +265,7 @@ function useDonorsPageView(): DonorsPageViewModel {
   }, [selectedDonor, noteInput, activityType, handleRefreshDonors]);
 
   const handleSaveTags = React.useCallback(async () => {
-    if (!selectedDonor) return;
+    if (!selectedDonor || selectedDonor.is_anonymous) return;
 
     setIsSavingTags(true);
     try {
@@ -290,7 +291,7 @@ function useDonorsPageView(): DonorsPageViewModel {
   }, []);
 
   const openEditDialog = React.useCallback(() => {
-    if (!selectedDonor) return;
+    if (!selectedDonor || selectedDonor.is_anonymous) return;
     setIsEditDialogOpen(true);
   }, [selectedDonor]);
 
@@ -386,7 +387,7 @@ function useDonorsPageView(): DonorsPageViewModel {
       save: handleAddNote,
     },
     tagEditor: {
-      isOpen: isTagDialogOpen,
+      isOpen: isTagDialogOpen && !!selectedDonor && !selectedDonor.is_anonymous,
       isSaving: isSavingTags,
       selectedTags,
       open: openTagEditor,
@@ -395,7 +396,8 @@ function useDonorsPageView(): DonorsPageViewModel {
       save: handleSaveTags,
     },
     editDialog: {
-      isOpen: isEditDialogOpen,
+      isOpen:
+        isEditDialogOpen && !!selectedDonor && !selectedDonor.is_anonymous,
       open: openEditDialog,
       close: closeEditDialog,
     },

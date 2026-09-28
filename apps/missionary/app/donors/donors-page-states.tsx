@@ -18,7 +18,7 @@ export function DonorListSkeleton() {
       role="status"
       aria-busy="true"
       aria-label="Loading partners"
-      className="p-3 space-y-2"
+      className="p-3 flex flex-col gap-2"
     >
       {Array.from({ length: 12 }).map((_, i) => (
         <motion.div
@@ -26,10 +26,10 @@ export function DonorListSkeleton() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: i * 0.03 }}
-          className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-zinc-100"
+          className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border"
         >
           <Skeleton className="size-11 rounded-full" />
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 flex flex-col gap-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
           </div>
@@ -62,7 +62,7 @@ export function ErrorState({
           variant="outline"
           size="sm"
           onClick={onRetry}
-          className="h-9 rounded-2xl border-zinc-200 bg-white text-[10px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+          className="h-9 rounded-2xl border-border bg-card text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
         >
           <RefreshCw data-icon="inline-start" />
           Try Again

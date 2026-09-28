@@ -103,6 +103,7 @@ describe("missionary Partners page module shape", () => {
     expect(roster).toMatch(/virtualization:\s*\{[\s\S]*enabled:\s*true,/);
     expect(roster).toMatch(/estimateSize:\s*88,/);
     expect(roster).toMatch(/enablePagination:\s*false/);
+    expect(roster).toMatch(/manualPagination:\s*true/);
     expect(roster).not.toMatch(/shouldVirtualizeDonorList/);
     expect(roster).not.toContain("<ScrollArea");
     expect(roster).not.toContain("emptyState=");
@@ -149,7 +150,9 @@ describe("missionary Partners page module shape", () => {
     expect(roster).toContain("Needs Attention");
     expect(stats).toContain("needsAttention");
     expect(stats).toContain("aria-pressed");
-    expect(dialogs).toContain("aria-pressed");
+    expect(dialogs).toContain("<FieldSet");
+    expect(dialogs).toContain("<FieldLegend>Partner tags</FieldLegend>");
+    expect(dialogs).toContain("<Checkbox");
   });
 
   it("splits detail tabs so the shell stays under the 1k-line bar", () => {
@@ -176,8 +179,10 @@ describe("missionary Partners page module shape", () => {
     expect(overview).toContain("No activity recorded yet");
     expect(contact).toContain("Mailing Address");
     expect(contact).toContain("CONTACT_COLOR_CLASSES");
-    expect(contact).toContain("hover:text-emerald-600");
-    expect(contact).toContain("hover:text-purple-600");
+    expect(contact).toContain("hover:text-primary");
+    expect(contact).not.toMatch(
+      /(?:bg|text|border)-(?:zinc|blue|emerald|purple)-\d+/,
+    );
     expect(recurring).toContain("Scheduled giving commitments");
     expect(detail).not.toMatch(/text-\$\{/);
     expect(contact).not.toMatch(/text-\$\{/);

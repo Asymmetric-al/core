@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Card } from "@asym/ui/components/shadcn/card";
+import { Card, CardHeader, CardTitle } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import {
   DropdownMenu,
@@ -29,8 +29,9 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@asym/ui/components/shadcn/input-group";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { cn } from "@asym/ui/lib/utils";
-import { Search, Filter, ArrowDownUp, X, Loader2 } from "lucide-react";
+import { Search, Filter, ArrowDownUp, X } from "lucide-react";
 import * as React from "react";
 
 import { AVAILABLE_TAGS, getTagLabel, getTagStyle } from "./donors-model";
@@ -82,15 +83,19 @@ export function DonorsPageRoster() {
       transition={{ ...smoothTransition, delay: 0.2 }}
       className="lg:col-span-4 xl:col-span-3"
     >
-      <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
-        <div className="p-4 border-b border-zinc-100 space-y-4 shrink-0">
+      <Card className="border-border bg-card rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
+        <CardHeader className="border-b flex flex-col gap-4 shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+            <CardTitle
+              role="heading"
+              aria-level={2}
+              className="text-xs text-muted-foreground"
+            >
               Partner List{" "}
               {hasActiveFilters && (
-                <span className="text-blue-600">({filteredDonors.length})</span>
+                <span className="text-primary">({filteredDonors.length})</span>
               )}
-            </h2>
+            </CardTitle>
             <div className="flex gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -99,20 +104,20 @@ export function DonorsPageRoster() {
                       variant="ghost"
                       size="icon"
                       aria-label="Sort partners"
-                      className="size-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
+                      className="size-8 text-muted-foreground hover:text-foreground rounded-lg"
                     >
-                      <ArrowDownUp className="size-4" />
+                      <ArrowDownUp data-icon="inline-start" />
                     </Button>
                   }
                 />
                 <DropdownMenuContent
                   align="end"
-                  className="w-48 rounded-xl border-zinc-100 shadow-xl"
+                  className="w-48 rounded-xl border-border shadow-xl"
                 >
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Sort By
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-zinc-100" />
+                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
                     {[
                       { value: "last_gift", label: "Last Gift Date" },
@@ -131,7 +136,7 @@ export function DonorsPageRoster() {
                         {opt.label}
                       </DropdownMenuCheckboxItem>
                     ))}
-                    <DropdownMenuSeparator className="bg-zinc-100" />
+                    <DropdownMenuSeparator className="bg-muted" />
                     <DropdownMenuCheckboxItem
                       checked={sortAsc}
                       onCheckedChange={toggleSortAsc}
@@ -152,22 +157,22 @@ export function DonorsPageRoster() {
                       className={cn(
                         "size-8 rounded-lg",
                         hasActiveFilters
-                          ? "text-blue-600 bg-blue-50"
-                          : "text-zinc-400 hover:text-zinc-900",
+                          ? "text-primary bg-accent"
+                          : "text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      <Filter className="size-4" />
+                      <Filter data-icon="inline-start" />
                     </Button>
                   }
                 />
                 <DropdownMenuContent
                   align="end"
-                  className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto"
+                  className="w-56 rounded-xl border-border shadow-xl max-h-[400px] overflow-y-auto"
                 >
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Filter by Status
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-zinc-100" />
+                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
                     {[
                       "All",
@@ -187,11 +192,11 @@ export function DonorsPageRoster() {
                       </DropdownMenuCheckboxItem>
                     ))}
                   </DropdownMenuGroup>
-                  <DropdownMenuSeparator className="bg-zinc-100" />
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  <DropdownMenuSeparator className="bg-muted" />
+                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Filter by Recurring
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-zinc-100" />
+                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
                     {["All", "Active", "Inactive"].map((p) => (
                       <DropdownMenuCheckboxItem
@@ -208,11 +213,11 @@ export function DonorsPageRoster() {
                       </DropdownMenuCheckboxItem>
                     ))}
                   </DropdownMenuGroup>
-                  <DropdownMenuSeparator className="bg-zinc-100" />
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  <DropdownMenuSeparator className="bg-muted" />
+                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Filter by Tag
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-zinc-100" />
+                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
                     {AVAILABLE_TAGS.map((tag) => (
                       <DropdownMenuCheckboxItem
@@ -227,13 +232,12 @@ export function DonorsPageRoster() {
                   </DropdownMenuGroup>
                   {hasActiveFilters && (
                     <>
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuItem
-                        onClick={clearAllFilters}
-                        className="text-xs font-medium text-rose-600"
-                      >
-                        Clear All Filters
-                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-muted" />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={clearAllFilters}>
+                          Clear All Filters
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
                     </>
                   )}
                 </DropdownMenuContent>
@@ -244,7 +248,7 @@ export function DonorsPageRoster() {
             <FieldLabel htmlFor="partners-search" className="sr-only">
               Search partners
             </FieldLabel>
-            <InputGroup className="h-10 rounded-xl bg-zinc-50 border-zinc-100">
+            <InputGroup className="h-10 rounded-xl bg-muted border-border">
               <InputGroupInput
                 id="partners-search"
                 placeholder="Search partners..."
@@ -252,7 +256,7 @@ export function DonorsPageRoster() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <InputGroupAddon align="inline-start">
-                <Search className="size-4 text-zinc-400" />
+                <Search className="size-4 text-muted-foreground" />
               </InputGroupAddon>
             </InputGroup>
           </Field>
@@ -268,14 +272,14 @@ export function DonorsPageRoster() {
                   <motion.div layout {...scaleIn} transition={springTransition}>
                     <Badge
                       variant="outline"
-                      className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200"
+                      className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-muted text-muted-foreground border-border"
                     >
                       {statusFilter}
                       <button
                         type="button"
                         aria-label={`Clear ${statusFilter} status filter`}
                         onClick={() => setStatusFilter("All")}
-                        className="ml-1 hover:text-zinc-900"
+                        className="ml-1 hover:text-foreground"
                       >
                         <X className="size-2.5" />
                       </button>
@@ -286,14 +290,14 @@ export function DonorsPageRoster() {
                   <motion.div layout {...scaleIn} transition={springTransition}>
                     <Badge
                       variant="outline"
-                      className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200"
+                      className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-accent text-primary border-border"
                     >
                       {pledgeFilter === "Active" ? "Recurring" : "No Recurring"}
                       <button
                         type="button"
                         aria-label="Clear recurring filter"
                         onClick={() => setPledgeFilter("All")}
-                        className="ml-1 hover:text-blue-900"
+                        className="ml-1 hover:text-primary"
                       >
                         <X className="size-2.5" />
                       </button>
@@ -332,14 +336,14 @@ export function DonorsPageRoster() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={clearAllFilters}
-                  className="text-[9px] font-semibold uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
+                  className="text-[9px] font-semibold uppercase tracking-widest text-destructive hover:text-destructive px-2"
                 >
                   Clear All
                 </motion.button>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </CardHeader>
 
         <div className="flex-1 min-h-0">
           {error ? (
@@ -380,6 +384,7 @@ export function DonorsPageRoster() {
                 enableRowSelection: false,
                 enableColumnVisibility: true,
                 enablePagination: false,
+                manualPagination: true,
                 enableFilters: false,
                 enableSorting: false,
                 virtualization: {
@@ -399,17 +404,17 @@ export function DonorsPageRoster() {
           )}
         </div>
         {hasMoreDonors && !error && !isLoading && (
-          <div className="border-t border-zinc-100 p-3 shrink-0">
+          <div className="border-t border-border p-3 shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={loadMoreDonors}
               disabled={isLoadingMoreDonors}
-              className="w-full h-9 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+              className="w-full h-9 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
             >
               {isLoadingMoreDonors ? (
                 <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Spinner data-icon="inline-start" />
                   Loading partners
                 </>
               ) : (

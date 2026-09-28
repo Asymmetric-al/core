@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, AnimatePresence } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +14,13 @@ import {
   Field,
   FieldGroup,
   FieldLabel,
+  FieldSet,
+  FieldLegend,
 } from "@asym/ui/components/shadcn/field";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { cn } from "@asym/ui/lib/utils";
-import { Check, Loader2 } from "lucide-react";
 
 import { AVAILABLE_TAGS } from "./donors-model";
-import { fadeInUp, staggerContainer } from "./donors-page-motion";
 import { EditDonorDialog } from "./edit-donor-dialog";
 import { useDonorsPageViewFields } from "./use-donors-page-view";
 
@@ -53,7 +53,7 @@ export function DonorsPageActivityDialogs() {
                     ? "Log Meeting"
                     : "Log Email"}
             </DialogTitle>
-            <DialogDescription className="text-sm text-zinc-500">
+            <DialogDescription className="text-sm text-muted-foreground">
               Add to {selectedDonor?.name}&apos;s timeline.
             </DialogDescription>
           </DialogHeader>
@@ -71,7 +71,7 @@ export function DonorsPageActivityDialogs() {
                       ? "Meeting notes..."
                       : "Type your note here..."
                 }
-                className="min-h-[150px] resize-none rounded-xl border-zinc-200"
+                className="min-h-[150px] resize-none rounded-xl border-border"
               />
             </Field>
           </FieldGroup>
@@ -79,7 +79,7 @@ export function DonorsPageActivityDialogs() {
             <Button
               variant="outline"
               onClick={noteComposer.close}
-              className="h-10 px-6 rounded-xl border-zinc-200"
+              className="h-10 px-6 rounded-xl border-border"
             >
               Cancel
             </Button>
@@ -89,7 +89,7 @@ export function DonorsPageActivityDialogs() {
               className="h-10 px-6 rounded-xl"
             >
               {noteComposer.isSaving ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Spinner data-icon="inline-start" />
               ) : (
                 "Save"
               )}
@@ -114,57 +114,33 @@ export function DonorsPageActivityDialogs() {
             <DialogTitle className="text-lg font-semibold tracking-tight">
               Manage Tags
             </DialogTitle>
-            <DialogDescription className="text-sm text-zinc-500">
+            <DialogDescription className="text-sm text-muted-foreground">
               Select tags for {selectedDonor?.name}. Tags help you organize and
               filter your partners.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-              className="flex flex-wrap gap-2"
-            >
-              {AVAILABLE_TAGS.map((tag, i) => (
-                <motion.button
-                  key={tag.id}
-                  type="button"
-                  aria-pressed={tagEditor.selectedTags.includes(tag.id)}
-                  variants={fadeInUp}
-                  transition={{ delay: i * 0.02 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => tagEditor.toggleTag(tag.id)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-[color,background-color,border-color,box-shadow,transform,opacity]",
-                    tagEditor.selectedTags.includes(tag.id)
-                      ? cn(tag.color, "ring-2 ring-offset-1 ring-zinc-400")
-                      : "bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100",
-                  )}
-                >
-                  <AnimatePresence mode="wait">
-                    {tagEditor.selectedTags.includes(tag.id) && (
-                      <motion.span
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: "auto", opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
-                        className="inline-flex overflow-hidden"
-                      >
-                        <Check className="size-3 mr-1" />
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                  {tag.label}
-                </motion.button>
+          <FieldSet className="py-4">
+            <FieldLegend>Partner tags</FieldLegend>
+            <FieldGroup className="grid grid-cols-2 gap-3">
+              {AVAILABLE_TAGS.map((tag) => (
+                <Field key={tag.id} orientation="horizontal">
+                  <Checkbox
+                    id={`partner-tag-${tag.id}`}
+                    checked={tagEditor.selectedTags.includes(tag.id)}
+                    onCheckedChange={() => tagEditor.toggleTag(tag.id)}
+                  />
+                  <FieldLabel htmlFor={`partner-tag-${tag.id}`}>
+                    {tag.label}
+                  </FieldLabel>
+                </Field>
               ))}
-            </motion.div>
-          </div>
+            </FieldGroup>
+          </FieldSet>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
               onClick={tagEditor.close}
-              className="h-10 px-6 rounded-xl border-zinc-200"
+              className="h-10 px-6 rounded-xl border-border"
             >
               Cancel
             </Button>
@@ -174,7 +150,7 @@ export function DonorsPageActivityDialogs() {
               className="h-10 px-6 rounded-xl"
             >
               {tagEditor.isSaving ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Spinner data-icon="inline-start" />
               ) : (
                 "Save Tags"
               )}

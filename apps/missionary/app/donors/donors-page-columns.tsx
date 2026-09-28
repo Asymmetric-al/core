@@ -42,7 +42,7 @@ export function createDonorColumns(
               <Avatar
                 className={cn(
                   "size-10 border-2",
-                  isSelected ? "border-zinc-700" : "border-white shadow-sm",
+                  isSelected ? "border-primary" : "border-background shadow-sm",
                 )}
               >
                 <AvatarImage src={donor.avatar_url} />
@@ -50,8 +50,8 @@ export function createDonorColumns(
                   className={cn(
                     "text-xs font-semibold",
                     isSelected
-                      ? "bg-zinc-800 text-zinc-300"
-                      : "bg-zinc-100 text-zinc-500",
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
                   )}
                 >
                   {donor.initials}
@@ -60,28 +60,28 @@ export function createDonorColumns(
               <div
                 className={cn(
                   "absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2",
-                  isSelected ? "border-zinc-900" : "border-white",
+                  isSelected ? "border-primary" : "border-background",
                   getStatusColor(donor.status),
                 )}
               />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
-                <span className="font-semibold text-sm truncate text-zinc-900">
+                <span className="font-semibold text-sm truncate text-foreground">
                   {donor.name}
                 </span>
                 {donor.has_active_pledge && (
                   <div
-                    className="size-2 rounded-full shrink-0 ml-1 bg-emerald-500"
+                    className="size-2 rounded-full shrink-0 ml-1 bg-primary/100"
                     title="Active recurring donation"
                   />
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider text-zinc-400">
+                <span className="text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider text-muted-foreground">
                   {donor.location || "Unknown"}
                 </span>
-                <span className="text-xs font-semibold text-zinc-900">
+                <span className="text-xs font-semibold text-foreground">
                   {formatCurrency(donor.total_given)}
                 </span>
               </div>
@@ -109,7 +109,7 @@ export function createDonorColumns(
         </div>
       ),
       cell: ({ row }) => (
-        <div className="text-right font-semibold text-zinc-900 tabular-nums">
+        <div className="text-right font-semibold text-foreground tabular-nums">
           {formatCurrency(row.original.total_given)}
         </div>
       ),
@@ -145,7 +145,7 @@ export function createGivingHistoryColumns(): ColumnDef<Activity>[] {
         <DataTableColumnHeader column={column} title="Method" />
       ),
       cell: ({ row }) => (
-        <span className="flex items-center gap-1.5 text-zinc-500">
+        <span className="flex items-center gap-1.5 text-muted-foreground">
           {row.original.gift_type && getGiftTypeIcon(row.original.gift_type)}
           {row.original.gift_type || "Online"}
         </span>
@@ -163,7 +163,7 @@ export function createGivingHistoryColumns(): ColumnDef<Activity>[] {
         </div>
       ),
       cell: ({ row }) => (
-        <div className="text-right font-semibold text-zinc-900">
+        <div className="text-right font-semibold text-foreground">
           {formatCurrency(row.original.amount || 0)}
         </div>
       ),
@@ -178,8 +178,8 @@ export function createGivingHistoryColumns(): ColumnDef<Activity>[] {
           className={cn(
             "font-semibold rounded-full text-[9px] uppercase tracking-widest border-0",
             row.original.status === "Failed"
-              ? "bg-rose-50 text-rose-600"
-              : "bg-emerald-50 text-emerald-700",
+              ? "bg-destructive/10 text-destructive"
+              : "bg-primary/10 text-primary",
           )}
         >
           {row.original.status || "Succeeded"}

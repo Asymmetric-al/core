@@ -47,6 +47,9 @@ import {
   ArrowUpRight,
   Briefcase,
   MoreHorizontal,
+  MapPin,
+  Church,
+  Building2,
   Tag,
 } from "lucide-react";
 import * as React from "react";
@@ -113,34 +116,48 @@ export function DonorsPageDetail() {
             transition={smoothTransition}
             className="h-full"
           >
-            <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
-              <div className="p-6 border-b border-zinc-100 bg-white shrink-0">
+            <Card className="border-border bg-card rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
+              <div className="p-6 border-b border-border bg-card shrink-0">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 min-w-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="lg:hidden size-8 -ml-2 mt-1 text-zinc-400"
+                      className="lg:hidden size-8 -ml-2 mt-1 text-muted-foreground"
                       onClick={clearSelection}
+                      aria-label="Back to partner list"
                     >
-                      <ArrowLeft className="size-4" />
+                      <ArrowLeft data-icon="inline-start" />
                     </Button>
-                    <Avatar className="size-16 rounded-2xl border border-zinc-100 shadow-sm">
+                    <Avatar className="size-16 rounded-2xl border border-border shadow-sm">
                       <AvatarImage src={selectedDonor.avatar_url} />
-                      <AvatarFallback className="rounded-2xl bg-zinc-100 text-zinc-500 font-semibold">
+                      <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground font-semibold">
                         {selectedDonor.initials}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="min-w-0 space-y-1">
+                    <div className="min-w-0 flex flex-col gap-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-xl font-semibold tracking-tight text-zinc-900 truncate">
+                        <h2 className="text-xl font-semibold tracking-tight text-foreground truncate">
                           {selectedDonor.name}
                         </h2>
                         {getStatusBadge(selectedDonor.status)}
                       </div>
-                      <p className="text-sm text-zinc-500 truncate">
-                        {selectedDonor.location}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="size-3" />
+                          {selectedDonor.location || "Unknown"}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          {selectedDonor.type === "Church" ? (
+                            <Church className="size-3" />
+                          ) : selectedDonor.type === "Organization" ? (
+                            <Building2 className="size-3" />
+                          ) : (
+                            <User className="size-3" />
+                          )}
+                          {selectedDonor.type}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <motion.div
@@ -157,7 +174,7 @@ export function DonorsPageDetail() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50"
+                        className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted"
                         onClick={() => noteComposer.open("note")}
                       >
                         <Pencil data-icon="inline-start" /> Note
@@ -176,7 +193,7 @@ export function DonorsPageDetail() {
                               variant: "outline",
                               size: "sm",
                             }),
-                            "w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50",
+                            "w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted",
                           )}
                         >
                           <Phone data-icon="inline-start" /> Call
@@ -186,7 +203,7 @@ export function DonorsPageDetail() {
                           variant="outline"
                           size="sm"
                           disabled
-                          className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200"
+                          className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border"
                         >
                           <Phone data-icon="inline-start" /> Call
                         </Button>
@@ -223,7 +240,8 @@ export function DonorsPageDetail() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                            aria-label="Partner actions"
+                            className="size-9 text-muted-foreground rounded-xl hover:bg-muted"
                           >
                             <MoreHorizontal className="size-5" />
                           </Button>
@@ -231,27 +249,29 @@ export function DonorsPageDetail() {
                       />
                       <DropdownMenuContent
                         align="end"
-                        className="rounded-xl border-zinc-100 shadow-xl"
+                        className="rounded-xl border-border shadow-xl"
                       >
-                        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                           Actions
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-zinc-100" />
+                        <DropdownMenuSeparator className="bg-muted" />
                         <DropdownMenuGroup>
                           <DropdownMenuItem
                             onClick={editDialog.open}
+                            disabled={selectedDonor.is_anonymous}
                             className="text-xs font-medium"
                           >
                             <Pencil data-icon="inline-start" /> Edit Profile
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={tagEditor.open}
+                            disabled={selectedDonor.is_anonymous}
                             className="text-xs font-medium"
                           >
                             <Tag data-icon="inline-start" /> Manage Tags
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
-                        <DropdownMenuSeparator className="bg-zinc-100" />
+                        <DropdownMenuSeparator className="bg-muted" />
                         <DropdownMenuGroup>
                           <DropdownMenuItem
                             onClick={() => noteComposer.open("call")}
@@ -327,14 +347,14 @@ export function DonorsPageDetail() {
                         delay: 0.2 + i * 0.05,
                       }}
                       whileHover={{ y: -2 }}
-                      className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100"
+                      className="bg-muted p-4 rounded-2xl border border-border"
                     >
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                         {stat.label}
                       </p>
                       <div className="flex items-center gap-2">
                         {stat.icon ? (
-                          <stat.icon className="size-3.5 text-emerald-600" />
+                          <stat.icon className="size-3.5 text-primary" />
                         ) : null}
                         <p
                           className={cn(
@@ -342,7 +362,7 @@ export function DonorsPageDetail() {
                               stat.label === "Last Gift"
                               ? "text-lg"
                               : "text-sm",
-                            "font-semibold text-zinc-900",
+                            "font-semibold text-foreground",
                           )}
                         >
                           {stat.value}
@@ -354,12 +374,12 @@ export function DonorsPageDetail() {
                               opacity: [1, 0.7, 1],
                             }}
                             transition={{ duration: 1.5, repeat: Infinity }}
-                            className="size-2 bg-emerald-500 rounded-full"
+                            className="size-2 bg-primary/100 rounded-full"
                           />
                         ) : null}
                       </div>
                       {stat.extra ? (
-                        <p className="text-[10px] text-zinc-400 mt-0.5">
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
                           {stat.extra}
                         </p>
                       ) : null}
@@ -405,8 +425,9 @@ export function DonorsPageDetail() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 px-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
+                      className="h-6 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
                       onClick={tagEditor.open}
+                      disabled={selectedDonor.is_anonymous}
                     >
                       <Plus data-icon="inline-start" /> Add Tag
                     </Button>
@@ -419,8 +440,8 @@ export function DonorsPageDetail() {
                 onValueChange={setActiveTab}
                 className="flex-1 flex flex-col min-h-0"
               >
-                <div className="px-6 py-4 border-b border-zinc-100 shrink-0">
-                  <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-5 sm:flex">
+                <div className="px-6 py-4 border-b border-border shrink-0">
+                  <TabsList className="bg-muted/50 border border-border p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-3 sm:flex">
                     {[
                       "overview",
                       "tasks",
@@ -431,7 +452,7 @@ export function DonorsPageDetail() {
                       <TabsTrigger
                         key={tab}
                         value={tab}
-                        className="rounded-xl data-active:bg-white data-active:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 data-active:text-zinc-900 transition-colors"
+                        className="rounded-xl data-active:bg-card data-active:shadow-sm px-2 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground data-active:text-foreground transition-colors"
                       >
                         {tab === "overview"
                           ? "Overview"
@@ -449,51 +470,63 @@ export function DonorsPageDetail() {
 
                 <ScrollArea className="flex-1 min-h-0">
                   <div className="p-6">
-                    <AnimatePresence mode="wait">
-                      <TabsContent value="overview" className="mt-0 space-y-6">
-                        <DonorsPageDetailOverview />
-                      </TabsContent>
+                    <TabsContent
+                      value="overview"
+                      className="mt-0 flex flex-col gap-6"
+                    >
+                      <DonorsPageDetailOverview />
+                    </TabsContent>
 
-                      <TabsContent value="tasks" className="mt-0 space-y-6">
-                        <DonorTasks
-                          donorId={selectedDonor.id}
-                          donorName={selectedDonor.name}
-                        />
-                      </TabsContent>
+                    <TabsContent
+                      value="tasks"
+                      className="mt-0 flex flex-col gap-6"
+                    >
+                      <DonorTasks
+                        donorId={selectedDonor.id}
+                        donorName={selectedDonor.name}
+                      />
+                    </TabsContent>
 
-                      <TabsContent value="contact" className="mt-0 space-y-6">
-                        <DonorsPageDetailContact />
-                      </TabsContent>
+                    <TabsContent
+                      value="contact"
+                      className="mt-0 flex flex-col gap-6"
+                    >
+                      <DonorsPageDetailContact />
+                    </TabsContent>
 
-                      <TabsContent value="recurring" className="mt-0 space-y-6">
-                        <DonorsPageDetailRecurring />
-                      </TabsContent>
+                    <TabsContent
+                      value="recurring"
+                      className="mt-0 flex flex-col gap-6"
+                    >
+                      <DonorsPageDetailRecurring />
+                    </TabsContent>
 
-                      <TabsContent value="giving" className="mt-0">
-                        <DataTableResponsive
-                          columns={givingHistoryColumns}
-                          data={givingHistoryRows}
-                          config={{
-                            enableRowSelection: false,
-                            enableColumnVisibility: false,
-                            enablePagination: true,
-                            enableFilters: false,
-                            enableSorting: true,
-                          }}
-                          emptyState={
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                              <p className="text-sm font-semibold text-zinc-900">
+                    <TabsContent value="giving" className="mt-0">
+                      <DataTableResponsive
+                        columns={givingHistoryColumns}
+                        data={givingHistoryRows}
+                        config={{
+                          enableRowSelection: false,
+                          enableColumnVisibility: false,
+                          enablePagination: true,
+                          enableFilters: false,
+                          enableSorting: true,
+                        }}
+                        emptyState={
+                          <Empty className="py-12">
+                            <EmptyHeader>
+                              <EmptyTitle>
                                 No giving history available
-                              </p>
-                              <p className="text-xs text-zinc-400 mt-1">
+                              </EmptyTitle>
+                              <EmptyDescription>
                                 Gift activity will appear here once donations
                                 are recorded.
-                              </p>
-                            </div>
-                          }
-                        />
-                      </TabsContent>
-                    </AnimatePresence>
+                              </EmptyDescription>
+                            </EmptyHeader>
+                          </Empty>
+                        }
+                      />
+                    </TabsContent>
                   </div>
                 </ScrollArea>
               </Tabs>
@@ -501,7 +534,7 @@ export function DonorsPageDetail() {
           </motion.div>
         ) : (
           <motion.div key="empty" {...scaleIn} transition={smoothTransition}>
-            <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
+            <Card className="border-border border-dashed bg-muted/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
               <CardContent className="p-16">
                 <Empty className="border-none bg-transparent min-h-0">
                   <EmptyHeader>
@@ -520,7 +553,7 @@ export function DonorsPageDetail() {
                         missionaryId={profile.id}
                         onSuccess={refreshDonors}
                         trigger={
-                          <Button className="h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-semibold uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
+                          <Button className="h-11 px-8 rounded-2xl bg-primary text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-foreground hover:bg-primary">
                             <Plus data-icon="inline-start" /> Add Partner
                           </Button>
                         }

@@ -14,7 +14,7 @@ export function DonorsPageContent() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="flex flex-col gap-6"
     >
       <DonorsPageHeader />
       <DonorsPageStats />
