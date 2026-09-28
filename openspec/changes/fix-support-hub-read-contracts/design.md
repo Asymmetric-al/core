@@ -17,6 +17,12 @@ owns conditional, wildcard and denied exports. Missing declared targets fail;
 only packages without exports retain the prior filesystem lookup. Real Vite
 tests compare the applicable cases with the pinned Node 24 runtime.
 
+The legacy lookup rejects normalized paths that escape the discovered package
+directory. It throws instead of returning no match, because the latter lets Vite
+fall through to a foreign node_modules link. Segment-aware checks still accept
+contained dot-prefixed filenames such as `..notes.js`. Actual Vite tests exercise
+both the local pin and a deliberately available foreign fallback.
+
 The retirement scanner keeps its general build/dependency exclusions and limits
 .output/.nitro exceptions to packages/eve-runtime. A temporary repository fixture
 proves non-Eve paths remain scanned and exact Eve output remains excluded.

@@ -6,3 +6,4 @@
 - [x] 1.4 Correct live-read and historical architecture documentation.
 - [x] 1.5 Run focused, global unit, type, lint, structural and strict OpenSpec checks.
 - [ ] 1.6 Update to the coordinator's latest base and pass full preflight/application gates, CI and review before merge.
+- [x] 1.7 Reproduce legacy package-path escape and foreign fallback, then verify segment-aware refusal while preserving contained imports.

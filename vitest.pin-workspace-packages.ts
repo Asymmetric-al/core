@@ -126,6 +126,16 @@ export function pinWorkspacePackages(rootDir: string): Plugin {
         match.subpath.length === 0
           ? match.pkg.dir
           : path.join(match.pkg.dir, match.subpath);
+      const relative = path.relative(match.pkg.dir, base);
+      if (
+        relative === ".." ||
+        relative.startsWith(`..${path.sep}`) ||
+        path.isAbsolute(relative)
+      ) {
+        throw new Error(
+          `Workspace import escapes package directory: ${source}`,
+        );
+      }
       return resolveExistingModule(base);
     },
   };
