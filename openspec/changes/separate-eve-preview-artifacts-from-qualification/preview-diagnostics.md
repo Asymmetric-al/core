@@ -55,9 +55,35 @@ including recursively decoded ZIP/base64 report content.
 The candidate preserves the failed marker check and emits four readable files
 without any canary. This is artifact-handling proof, not successful live login.
 
-Live aggregate route counts include `/no-access` on admin and missionary and
-public routes on donor. These counts do not identify which requests came from
-QA or establish an ordered post-login flow. The actual QA final URL and any
-profile, membership, tenant or role cause remain unproven. Task 2.5 remains open;
-the next authorized Actions run must use its existing opaque QA secrets to
-capture safe current-head evidence and the actual smoke assertions must pass.
+Run `36479535225` on head `d76f2390` successfully deployed all three previews
+and uploaded the six allowlisted reports. Each test observed a token endpoint
+200 response followed by a protected-route redirect. Admin and missionary
+finished at `/no-access` with the `No access` heading; donor finished at its
+public `/`. These are per-test browser observations, unlike earlier aggregate
+route counts. No browser profile/RPC response was captured; server-side
+profile, membership, tenant or role cause remains unproven.
+
+The existing role resolver collapses profile errors, no visible profile,
+membership RPC errors and exceptions into null. Preview-only server diagnostics
+now distinguish those existing decisions and a resolved-but-disallowed role
+without adding a request, endpoint or permission rule. Canonical
+`@asym/env/target-env` helpers allow only preview classification and reject
+protected targets, including contradictory production/preview signals.
+
+The emitted object has only literal `event`, `stage`, `outcome` and `code`
+values. The event is `auth_access_diagnostic`; stages are `profile_read`,
+`membership_read`, `resolver` and `role_gate`. Outcomes are `query_failed`,
+`no_visible_profile`, `exception` and `role_denied`. Codes are limited to
+`42501`, `42P01`, `42883`, `PGRST106`, `PGRST116`, `PGRST202`, `PGRST301`,
+`other` and null. It never serializes identities, tenants, role values, raw
+error messages/details/hints, headers, cookies or credentials. No-visible-profile
+does not distinguish a missing row from an RLS-hidden row. Diagnostic property
+or log-sink failures cannot change the original auth result. Successful
+resolution and protected/non-preview environments remain silent.
+
+Focused tests retain the same null/role results and both middleware redirect
+sites, including refreshed cookies, while discriminating failure stages and
+challenging hostile error properties, encoded canaries and a throwing log sink.
+Task 2.5 remains open: the reviewed candidate still needs normal integration
+gates and a new authorized Actions run using its existing opaque QA secrets.
+The actual smoke assertions must pass before claiming hosted QA completion.

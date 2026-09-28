@@ -18,6 +18,9 @@ Release-Off candidate required by the launch runbook from being inspected.
   status in the build and launch runbooks.
 - Restore per-surface preview diagnostics with bounded, redacted artifacts while
   preserving every existing smoke assertion and failed result.
+- Distinguish preview access-resolution failures with fixed server diagnostic
+  stages and allowlisted error codes, preserving every authorization decision
+  and keeping identities, roles, credentials and raw errors out of logs.
 - Carry forward the reviewed shared-context relation-ID repair preserved from
   #1862 in #1905, so valid UUIDs do not intermittently fail the full gate's
   sensitive-content check.

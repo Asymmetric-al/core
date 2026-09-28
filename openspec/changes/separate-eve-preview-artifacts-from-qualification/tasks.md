@@ -13,3 +13,4 @@
 - [ ] 2.5 Complete independent review, canonical preflight and required preview CI.
 - [x] 2.6 Verify review findings adversarially and cover normalized targets and full-mode argument rejection through dispatcher and real CLI regression tests.
 - [x] 2.7 Preserve schema-validated relation UUIDs while retaining sensitive-content and tenant/run/field rejection, with deterministic regression controls.
+- [x] 2.8 Distinguish preview profile/RPC failures from no-visible-profile and role denial with literal-only diagnostics, proving protected-target silence and unchanged failure/redirect/cookie behavior.

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resolveUserRoleFromDatabase } from "../../../packages/auth/resolve-user-role";
 
@@ -28,12 +28,16 @@ function fakeSupabase({
   memberships = [],
   throwOn,
   returnErrorOn,
+  queryError,
+  thrownError,
   rpcCalls,
 }: {
   profile?: ProfileRow;
   memberships?: MembershipRow[];
   throwOn?: "profiles" | "memberships";
   returnErrorOn?: "profiles" | "memberships";
+  queryError?: unknown;
+  thrownError?: unknown;
   rpcCalls?: RpcCall[];
 }) {
   return {
@@ -46,13 +50,13 @@ function fakeSupabase({
           eq: () => ({
             maybeSingle: async () => {
               if (throwOn === "profiles") {
-                throw new Error("profiles unavailable");
+                throw thrownError ?? new Error("profiles unavailable");
               }
               return {
                 data: returnErrorOn === "profiles" ? null : profile,
                 error:
                   returnErrorOn === "profiles"
-                    ? new Error("profiles unavailable")
+                    ? (queryError ?? new Error("profiles unavailable"))
                     : null,
               };
             },
@@ -69,14 +73,14 @@ function fakeSupabase({
       rpcCalls?.push({ fn, args });
 
       if (throwOn === "memberships") {
-        throw new Error("memberships unavailable");
+        throw thrownError ?? new Error("memberships unavailable");
       }
 
       return {
         data: returnErrorOn === "memberships" ? null : memberships,
         error:
           returnErrorOn === "memberships"
-            ? new Error("memberships unavailable")
+            ? (queryError ?? new Error("memberships unavailable"))
             : null,
       };
     },
@@ -202,4 +206,266 @@ describe("resolveUserRoleFromDatabase", () => {
 
     expect(snapshot).toBeNull();
   });
+});
+
+describe("preview role-resolution diagnostics", () => {
+  beforeEach(() => {
+    // Hosted previews are production builds, not protected production targets.
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("VERCEL_TARGET_ENV", "preview");
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("distinguishes no visible profile from a query failure while denying both", async () => {
+    expect(
+      await resolveUserRoleFromDatabase({
+        userId: "private-user",
+        supabase: fakeSupabase({ profile: null }),
+      }),
+    ).toBeNull();
+    expect(console.warn).toHaveBeenLastCalledWith({
+      event: "auth_access_diagnostic",
+      stage: "profile_read",
+      outcome: "no_visible_profile",
+      code: null,
+    });
+
+    expect(
+      await resolveUserRoleFromDatabase({
+        userId: "private-user",
+        supabase: fakeSupabase({
+          returnErrorOn: "profiles",
+          queryError: { code: "42501", message: "private query detail" },
+        }),
+      }),
+    ).toBeNull();
+    expect(console.warn).toHaveBeenLastCalledWith({
+      event: "auth_access_diagnostic",
+      stage: "profile_read",
+      outcome: "query_failed",
+      code: "42501",
+    });
+    expect(console.warn).toHaveBeenCalledTimes(2);
+  });
+
+  it("identifies a failed membership RPC without changing the null result", async () => {
+    expect(
+      await resolveUserRoleFromDatabase({
+        userId: "private-user",
+        supabase: fakeSupabase({
+          profile: { tenant_id: "private-tenant", role: "donor" },
+          returnErrorOn: "memberships",
+          queryError: { code: "PGRST202", details: "private RPC detail" },
+        }),
+      }),
+    ).toBeNull();
+    expect(console.warn).toHaveBeenCalledExactlyOnceWith({
+      event: "auth_access_diagnostic",
+      stage: "membership_read",
+      outcome: "query_failed",
+      code: "PGRST202",
+    });
+  });
+
+  it.each(["profiles", "memberships"] as const)(
+    "keeps a thrown %s failure closed with fixed exception metadata",
+    async (throwOn) => {
+      expect(
+        await resolveUserRoleFromDatabase({
+          userId: "private-user",
+          supabase: fakeSupabase({
+            profile: { tenant_id: "private-tenant", role: "donor" },
+            throwOn,
+            thrownError: new Error("private thrown detail"),
+          }),
+        }),
+      ).toBeNull();
+      expect(console.warn).toHaveBeenCalledExactlyOnceWith({
+        event: "auth_access_diagnostic",
+        stage: "resolver",
+        outcome: "exception",
+        code: "other",
+      });
+    },
+  );
+
+  it.each([
+    ["production", "preview"],
+    ["preview", "production"],
+    ["preview", "core-development"],
+    ["preview", "staging"],
+    [" Production ", "preview"],
+    ["development", ""],
+    ["", ""],
+  ])(
+    "stays silent and denied for VERCEL_ENV=%s and target=%s",
+    async (env, target) => {
+      vi.stubEnv("VERCEL_ENV", env);
+      vi.stubEnv("VERCEL_TARGET_ENV", target);
+      const readCode = vi.fn(() => "42501");
+      const queryError = Object.defineProperty({}, "code", { get: readCode });
+      expect(
+        await resolveUserRoleFromDatabase({
+          userId: "private-user",
+          supabase: fakeSupabase({ returnErrorOn: "profiles", queryError }),
+        }),
+      ).toBeNull();
+      expect(readCode).not.toHaveBeenCalled();
+      expect(console.warn).not.toHaveBeenCalled();
+    },
+  );
+
+  it("uses normalized preview classification and stays silent for a valid snapshot", async () => {
+    vi.stubEnv("VERCEL_ENV", " Preview ");
+    vi.stubEnv("VERCEL_TARGET_ENV", "");
+    expect(
+      await resolveUserRoleFromDatabase({
+        userId: "private-user",
+        supabase: fakeSupabase({
+          profile: { tenant_id: "private-tenant", role: "donor" },
+        }),
+      }),
+    ).toEqual({ profileRole: "donor", memberships: [] });
+    expect(console.warn).not.toHaveBeenCalled();
+
+    await resolveUserRoleFromDatabase({
+      userId: "private-user",
+      supabase: fakeSupabase({ profile: null }),
+    });
+    expect(console.warn).toHaveBeenCalledExactlyOnceWith({
+      event: "auth_access_diagnostic",
+      stage: "profile_read",
+      outcome: "no_visible_profile",
+      code: null,
+    });
+  });
+
+  it.each([
+    "42501",
+    "42P01",
+    "42883",
+    "PGRST106",
+    "PGRST116",
+    "PGRST202",
+    "PGRST301",
+  ])("retains only the allowlisted query code %s", async (code) => {
+    expect(
+      await resolveUserRoleFromDatabase({
+        userId: "private-user",
+        supabase: fakeSupabase({
+          returnErrorOn: "profiles",
+          queryError: { code, message: "private error" },
+        }),
+      }),
+    ).toBeNull();
+    expect(console.warn).toHaveBeenCalledExactlyOnceWith({
+      event: "auth_access_diagnostic",
+      stage: "profile_read",
+      outcome: "query_failed",
+      code,
+    });
+  });
+
+  it("excludes raw and encoded identities, error fields and unknown codes", async () => {
+    const secret = "dummy+password@example.test";
+    const variants = [
+      secret,
+      encodeURIComponent(secret),
+      Buffer.from(secret).toString("base64"),
+    ];
+    const serialize = vi.fn(() => secret);
+    for (const variant of variants) {
+      expect(
+        await resolveUserRoleFromDatabase({
+          userId: variant,
+          supabase: fakeSupabase({
+            profile: { tenant_id: variant, role: "donor" },
+            returnErrorOn: "memberships",
+            queryError: {
+              code: variant,
+              message: variant,
+              details: variant,
+              hint: variant,
+              cause: { userId: variant, tenantId: variant },
+              stage: variant,
+              outcome: variant,
+              toJSON: serialize,
+              toString: serialize,
+            },
+          }),
+        }),
+      ).toBeNull();
+      expect(console.warn).toHaveBeenLastCalledWith({
+        event: "auth_access_diagnostic",
+        stage: "membership_read",
+        outcome: "query_failed",
+        code: "other",
+      });
+    }
+    const output = JSON.stringify(vi.mocked(console.warn).mock.calls);
+    for (const variant of variants) expect(output).not.toContain(variant);
+    expect(serialize).not.toHaveBeenCalled();
+  });
+
+  it.each(["getter", "revoked-proxy", "getter-and-sink"])(
+    "keeps an unreadable %s code closed with an other-code event",
+    async (kind) => {
+      if (kind === "getter-and-sink") {
+        vi.mocked(console.warn).mockImplementation(() => {
+          throw new Error("private sink detail");
+        });
+      }
+      const queryError = kind.startsWith("getter")
+        ? Object.defineProperty({}, "code", {
+            get() {
+              throw new Error("private getter detail");
+            },
+          })
+        : (() => {
+            const value = Proxy.revocable({}, {});
+            value.revoke();
+            return value.proxy;
+          })();
+      expect(
+        await resolveUserRoleFromDatabase({
+          userId: "private-user",
+          supabase: fakeSupabase({ returnErrorOn: "profiles", queryError }),
+        }),
+      ).toBeNull();
+      expect(console.warn).toHaveBeenCalledExactlyOnceWith({
+        event: "auth_access_diagnostic",
+        stage: "profile_read",
+        outcome: "query_failed",
+        code: "other",
+      });
+    },
+  );
+
+  it.each(["profile", "membership", "exception"])(
+    "preserves the denied %s result when logging throws",
+    async (kind) => {
+      vi.mocked(console.warn).mockImplementation(() => {
+        throw new Error("private sink detail");
+      });
+      const supabase =
+        kind === "profile"
+          ? fakeSupabase({ profile: null })
+          : kind === "membership"
+            ? fakeSupabase({
+                profile: { tenant_id: "private-tenant", role: "donor" },
+                returnErrorOn: "memberships",
+              })
+            : fakeSupabase({ throwOn: "profiles" });
+      await expect(
+        resolveUserRoleFromDatabase({ userId: "private-user", supabase }),
+      ).resolves.toBeNull();
+      expect(console.warn).toHaveBeenCalledTimes(1);
+    },
+  );
 });
