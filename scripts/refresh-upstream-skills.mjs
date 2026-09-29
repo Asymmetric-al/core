@@ -60,6 +60,7 @@ const emilKowalskiSkillNames = [
 ];
 const EMIL_EXPLICIT_ONLY_SKILLS = new Set([
   "animate",
+  "animate-expo",
   "emil-prototype",
   "mobile-native",
   "pick-ui-library",

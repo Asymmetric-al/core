@@ -2222,6 +2222,12 @@ describe("refresh-upstream-skills", () => {
     ).resolves.toContain("disable-model-invocation: true");
     await expect(
       readFile(
+        path.join(tempRoot, "docs/ai/skills/animate-expo/SKILL.md"),
+        "utf8",
+      ),
+    ).resolves.toContain("disable-model-invocation: true");
+    await expect(
+      readFile(
         path.join(tempRoot, "docs/ai/skills/write-swift/SKILL.md"),
         "utf8",
       ),
