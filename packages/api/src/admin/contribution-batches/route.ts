@@ -20,6 +20,7 @@ import {
   type OperationRouteContext,
 } from "../../shared/with-operation";
 import { executeContributionAction } from "../contribution-operations/actions";
+import { parseContributionCommand } from "../contribution-operations/command";
 import { createContributionActionDependencies } from "../contribution-operations/dependencies";
 import {
   assertContributionActionPermission,
@@ -285,15 +286,18 @@ export const POST = withOperation(
           stagedGiftId: record.stagedGiftId ?? null,
           payload: record.payload ?? {},
         })),
-        executeContributionAction: (actionInput) =>
-          executeContributionAction({
-            ...actionInput,
+        executeContributionAction: (actionInput) => {
+          const { actionType, payload, ...rest } = actionInput;
+          return executeContributionAction({
+            ...rest,
+            command: parseContributionCommand(actionType, payload),
             actorPermissions: actionInput.actorPermissions ?? [],
             actorCapabilities: actionInput.actorCapabilities,
             confirmationToken: body.confirmationToken,
             reason: body.reason ?? actionInput.reason,
             dependencies: contributionActionDependencies,
-          }),
+          });
+        },
         createFollowUpTask: async ({ contributionId, reason }) => {
           const result = await createMissionControlTaskInSupabase({
             supabaseAdmin,
@@ -337,6 +341,8 @@ export const POST_PROCESS_BATCH = withOperation(
         throw new ApiHttpError(400, "Missing batch id.");
       }
 
+      const contributionActionDependencies =
+        createContributionActionDependencies(supabaseAdmin);
       const batch = await processPersistedContributionBatch({
         supabaseAdmin,
         tenantId: auth.tenantId,
@@ -351,15 +357,18 @@ export const POST_PROCESS_BATCH = withOperation(
         actorCapabilities: resolveContributionCapabilities(auth),
         assertActionPermission: (actionType) =>
           assertContributionActionPermission(auth, actionType),
-        executeContributionAction: (actionInput) =>
-          executeContributionAction({
-            ...actionInput,
+        executeContributionAction: (actionInput) => {
+          const { actionType, payload, ...rest } = actionInput;
+          return executeContributionAction({
+            ...rest,
+            command: parseContributionCommand(actionType, payload),
             actorPermissions: actionInput.actorPermissions ?? [],
             actorCapabilities: actionInput.actorCapabilities,
             confirmationToken: actionInput.confirmationToken,
             reason: actionInput.reason,
-            dependencies: createContributionActionDependencies(supabaseAdmin),
-          }),
+            dependencies: contributionActionDependencies,
+          });
+        },
         createFollowUpTask: async ({ contributionId, reason, actionType }) => {
           const result = await createMissionControlTaskInSupabase({
             supabaseAdmin,
