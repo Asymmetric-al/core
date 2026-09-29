@@ -13,13 +13,22 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   collectGitHubWorkflowBunPinDrift,
   isGitHubWorkflowFile,
   readExpectedVersion,
 } from "../../../scripts/verify/bun-version.mjs";
+
+const fixtureRoots = new Set<string>();
+
+afterEach(() => {
+  for (const root of fixtureRoots) {
+    rmSync(root, { recursive: true, force: true });
+  }
+  fixtureRoots.clear();
+});
 
 const repoRoot = process.cwd();
 const verifierSourcePath = path.join(
@@ -51,6 +60,7 @@ function writePinFixture(options: {
   bunVersion?: string | null;
 }): string {
   const dir = mkdtempSync(path.join(tmpdir(), "bun-version-mjs-"));
+  fixtureRoots.add(dir);
   writeFileSync(
     path.join(dir, "package.json"),
     `${JSON.stringify({ packageManager: options.packageManager }, null, 2)}\n`,

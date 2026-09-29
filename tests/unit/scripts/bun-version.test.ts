@@ -1,9 +1,30 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+
+const fixtureRoots = new Set<string>();
+
+afterEach(() => {
+  for (const root of fixtureRoots) {
+    rmSync(root, { recursive: true, force: true });
+  }
+  fixtureRoots.clear();
+});
+
+function createTempFixture(prefix: string): string {
+  const root = mkdtempSync(path.join(tmpdir(), prefix));
+  fixtureRoots.add(root);
+  return root;
+}
 
 const repoRoot = process.cwd();
 const scriptPath = path.join(repoRoot, "scripts", "verify", "bun-version.sh");
@@ -105,7 +126,7 @@ describe("bun version guard", () => {
   itIfFakeBunCanShadowPath(
     "fails fast when the Bun binary does not match packageManager",
     () => {
-      const fakeBinDir = mkdtempSync(path.join(tmpdir(), "fake-bun-"));
+      const fakeBinDir = createTempFixture("fake-bun-");
       const bashFakeBinDir = toBashPath(fakeBinDir);
       const realBun = toBashPath(resolveBunPath());
 
@@ -143,8 +164,8 @@ describe("bun version guard", () => {
   itIfFakeBunCanShadowPath(
     "tries later Bun candidates when the PATH bun shim exits non-zero",
     () => {
-      const fakeBinDir = mkdtempSync(path.join(tmpdir(), "fake-bun-"));
-      const bunInstallDir = mkdtempSync(path.join(tmpdir(), "bun-install-"));
+      const fakeBinDir = createTempFixture("fake-bun-");
+      const bunInstallDir = createTempFixture("bun-install-");
       const bunInstallBinDir = path.join(bunInstallDir, "bin");
       const bashFakeBinDir = toBashPath(fakeBinDir);
       const realBun = toBashPath(resolveBunPath());
@@ -178,7 +199,7 @@ describe("bun version guard", () => {
 
       const result = runGuard({
         BUN_INSTALL: toBashPath(bunInstallDir),
-        PATH: `${bashFakeBinDir}:${bashSystemPath}`,
+        PATH: `${bashFakeBinDir}:${bashSystemPath}:${process.env.PATH ?? ""}`,
         REAL_BUN: realBun,
       });
 
