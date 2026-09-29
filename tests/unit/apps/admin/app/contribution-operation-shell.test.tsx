@@ -10,10 +10,8 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  ContributionOperationShell,
-  OPERATION_DEFINITIONS,
-} from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
+import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
+import { ContributionOperationShell } from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
 import { contributionDetailQueryKey } from "../../../../../apps/admin/app/(app)/contributions/contribution-detail-overlay";
 import { useAdminContributions } from "../../../../../apps/admin/app/(app)/contributions/use-admin-contributions";
 

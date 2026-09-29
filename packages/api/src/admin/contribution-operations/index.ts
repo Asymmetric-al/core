@@ -4,6 +4,11 @@ export {
 } from "./action-availability";
 export { executeContributionAction } from "./actions";
 export {
+  parseContributionCommand,
+  serializeContributionCommand,
+  type ContributionCommand,
+} from "./command";
+export {
   assertCanDecideCorrectionRequest,
   canDecideCorrectionRequest,
   correctionRequiresApproval,
