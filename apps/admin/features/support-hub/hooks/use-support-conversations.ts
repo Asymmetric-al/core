@@ -26,8 +26,9 @@ interface UseSupportConversationsReturn {
 }
 
 /**
- * Subscribes to the support conversations collection. When `filter` is
- * provided, conversations are run through the shared selector pipeline so the
+ * Reads the tenant-scoped conversations route through TanStack Query. This
+ * remains separate from the optional TanStack DB collection cache. When a
+ * filter is provided, conversations use the shared selector pipeline so the
  * hook returns exactly what the table or board view should render.
  */
 export function useSupportConversations(
