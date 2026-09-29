@@ -29,10 +29,46 @@ function walkFiles(directory: string): string[] {
 }
 
 describe("Base UI overlay consumer semantics", () => {
+  it.each([".agents", ".cursor", ".claude"])(
+    "keeps the %s copied data-table triggers on Base UI render composition",
+    (directory) => {
+      const source = parse(
+        `${directory}/skills/shadcn-ui/examples/data-table.tsx`,
+      );
+      const invalid: number[] = [];
+      function visit(node: ts.Node) {
+        const opening = ts.isJsxElement(node)
+          ? node.openingElement
+          : ts.isJsxSelfClosingElement(node)
+            ? node
+            : null;
+        if (opening?.tagName.getText(source) === "DropdownMenuTrigger") {
+          const names = opening.attributes.properties.flatMap((property) =>
+            ts.isJsxAttribute(property) ? [property.name.getText(source)] : [],
+          );
+          if (!names.includes("render") || names.includes("asChild")) {
+            invalid.push(
+              source.getLineAndCharacterOfPosition(opening.getStart()).line + 1,
+            );
+          }
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(source);
+      expect(invalid).toEqual([]);
+    },
+  );
+
   it("keeps every menu label in the group that owns its section", () => {
     const invalid: string[] = [];
-    for (const file of [...walkFiles("apps"), ...walkFiles("packages")]) {
-      if (file.endsWith("/menubar.tsx")) continue;
+    for (const file of [
+      ...walkFiles("apps"),
+      ...walkFiles("packages"),
+      ".agents/skills/shadcn-ui/examples/data-table.tsx",
+      ".cursor/skills/shadcn-ui/examples/data-table.tsx",
+      ".claude/skills/shadcn-ui/examples/data-table.tsx",
+    ]) {
+      if (file === "packages/ui/components/shadcn/menubar.tsx") continue;
       const source = parse(file);
       function visit(node: ts.Node) {
         const opening = ts.isJsxElement(node)
