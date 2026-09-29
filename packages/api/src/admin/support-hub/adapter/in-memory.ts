@@ -59,7 +59,7 @@ import type {
   SupportSignature,
   SupportSlaPolicy,
   SupportTeam,
-} from "@asym/database/hooks";
+} from "@asym/database/collections/support-hub.schema";
 
 /**
  * In-memory implementation of {@link SupportHubAdapter}. Phase 7 ships this
@@ -74,8 +74,8 @@ import type {
  *   without affecting the store.
  * - Mutations return the freshly-cloned row so callers can echo it back to
  *   the UI without an extra round trip.
- * - This module never imports `@tanstack/db`. It only consumes the typed
- *   seed re-exports from `@asym/database/hooks`.
+ * - This module never imports `@tanstack/db`. It only consumes typed seed
+ *   shapes from `@asym/database/collections/support-hub.schema`.
  */
 
 const SYSTEM_PARTICIPANT: SupportParticipant = {
