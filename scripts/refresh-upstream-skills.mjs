@@ -640,6 +640,23 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search: 'import { Toaster } from "sonner"; // once, near the root',
+    replace:
+      'import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts',
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "| Toast never appears | No `<Toaster />` is mounted — add one near the app root. |",
+    replace:
+      "| Toast never appears                                                   | Core already mounts `@asym/ui`'s `<Toaster />`. Reuse that host — do not add another. If it unmounted (conditional render, per-page placement), restore the shared layout toaster. If calling from a server action: `toast()` is client-only — call it with the action's result on the client. |",
+    required: true,
+  },
+  {
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
     search: '<input data-lpignore="true" data-1p-ignore />',

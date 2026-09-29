@@ -1277,6 +1277,19 @@ describe("refresh-upstream-skills", () => {
         "SKILL.md": minimalEmilSkill("ask-sonner", [
           "# Working With Sonner",
           "",
+          "## Setup",
+          "",
+          "```jsx",
+          'import { Toaster } from "sonner"; // once, near the root',
+          'import { toast } from "sonner"; // anywhere client-side',
+          "```",
+          "",
+          "## Troubleshooting",
+          "",
+          "| Symptom             | Cause → fix                                               |",
+          "| ------------------- | --------------------------------------------------------- |",
+          "| Toast never appears | No `<Toaster />` is mounted — add one near the app root. |",
+          "",
         ]),
       },
       "emil-design-eng": {
@@ -1457,6 +1470,19 @@ describe("refresh-upstream-skills", () => {
     expect(refreshedContent.split(companionSuffix)).toHaveLength(2);
     expect(refreshedContent).toContain(
       'import { useSpring } from "motion/react";',
+    );
+    const refreshedAskSonner = await readFile(
+      path.join(tempRoot, "docs/ai/skills/ask-sonner/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedAskSonner).not.toContain(
+      'import { Toaster } from "sonner";',
+    );
+    expect(refreshedAskSonner).toContain(
+      'import { Toaster } from "@asym/ui/components/shadcn/sonner";',
+    );
+    expect(refreshedAskSonner).toContain(
+      "Core already mounts `@asym/ui`'s `<Toaster />`.",
     );
     const refreshedPrototype = await readFile(
       path.join(tempRoot, "docs/ai/skills/emil-prototype/SKILL.md"),
