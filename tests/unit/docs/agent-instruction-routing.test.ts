@@ -265,6 +265,9 @@ describe("agent instruction routing fixtures", () => {
     expect(skillRouting).toContain(
       "docs/ai/skills/idempotency-handling/SKILL.md",
     );
+    expect(skillRouting).toContain(
+      "docs/ai/skills/nextjs-app-architecture/SKILL.md",
+    );
     expect(skillRouting).toContain("docs/ai/skills/resend-cli/SKILL.md");
     expect(skillRouting).toContain("docs/ai/skills/eve/SKILL.md");
     expect(agents).toContain("openspec/project.md");
