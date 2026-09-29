@@ -1288,7 +1288,7 @@ describe("refresh-upstream-skills", () => {
           "",
           "| Symptom             | Cause → fix                                               |",
           "| ------------------- | --------------------------------------------------------- |",
-          "| Toast never appears | No `<Toaster />` is mounted — add one near the app root. |",
+          "| Toast never appears                                                   | No `<Toaster />` is mounted — add one near the app root. |",
           "",
         ]),
       },

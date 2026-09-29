@@ -651,7 +651,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "ask-sonner",
     relativePath: "SKILL.md",
     search:
-      "| Toast never appears | No `<Toaster />` is mounted — add one near the app root. |",
+      /^\| Toast never appears\s+\| No `<Toaster \/>` is mounted — add one near the app root\.\s+\|$/m,
     replace:
       "| Toast never appears                                                   | Core already mounts `@asym/ui`'s `<Toaster />`. Reuse that host — do not add another. If it unmounted (conditional render, per-page placement), restore the shared layout toaster. If calling from a server action: `toast()` is client-only — call it with the action's result on the client. |",
     required: true,
@@ -1162,6 +1162,21 @@ function normalizeImproveAnimationsPlanTemplate(content, templatePath) {
   return normalized;
 }
 
+function findCompatibilitySearch(content, search, cursor) {
+  if (typeof search === "string") {
+    const index = content.indexOf(search, cursor);
+    return index === -1 ? null : { index, length: search.length };
+  }
+
+  const flags = search.flags.replaceAll("g", "").replaceAll("y", "");
+  const matcher = new RegExp(search.source, `${flags}g`);
+  matcher.lastIndex = cursor;
+  const match = matcher.exec(content);
+  return match === null
+    ? null
+    : { index: match.index, length: match[0].length };
+}
+
 function applyCompatibilityReplacement(content, search, replacement) {
   let cursor = 0;
   let output = "";
@@ -1169,7 +1184,8 @@ function applyCompatibilityReplacement(content, search, replacement) {
   let changed = false;
 
   while (cursor < content.length) {
-    const searchIndex = content.indexOf(search, cursor);
+    const searchMatch = findCompatibilitySearch(content, search, cursor);
+    const searchIndex = searchMatch?.index ?? -1;
     const replacementIndex = content.indexOf(replacement, cursor);
 
     if (searchIndex === -1 && replacementIndex === -1) {
@@ -1189,7 +1205,7 @@ function applyCompatibilityReplacement(content, search, replacement) {
     }
 
     output += content.slice(cursor, searchIndex) + replacement;
-    cursor = searchIndex + search.length;
+    cursor = searchIndex + searchMatch.length;
     matched = true;
     changed = true;
   }
