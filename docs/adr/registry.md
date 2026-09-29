@@ -75,3 +75,12 @@ as a fee-policy or GraphQL decision because the number happens to match.
 Feature-scoped `ADR-CD-*` and Support ADRs have their own directory-qualified
 namespaces. They are not collisions in the platform series; still use complete
 links across contexts.
+
+## Accepted addition — 2026-09-23
+
+[0206-immutable-posted-financial-facts-and-owner-operational-state.md](0206-immutable-posted-financial-facts-and-owner-operational-state.md)
+records the founder's C-02 ruling: separate owner-controlled operational records,
+with complete posted financial-row immutability and joined projections. The
+canonical directory ended at 0205 before this addition, and the pending
+collision register contained no 0206 record. This accepted addition does not renumber earlier ADRs
+or claim implementation; C-01's correction-approval question is independent.

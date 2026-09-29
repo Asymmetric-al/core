@@ -1,5 +1,6 @@
 "use client";
 
+import { contributionActionName } from "@asym/api/admin/contribution-operations/catalog";
 import {
   CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
   CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
@@ -228,15 +229,6 @@ const FUND_TYPE_LABELS: Record<ContributionDesignationFundType, string> = {
   project: "Project fund",
   campaign: "Campaign",
   general: "General fund",
-};
-
-const ACTION_LABELS: Partial<
-  Record<ContributionActionAvailability["actionType"], string>
-> = {
-  approve_staged_gift: "CRM approval/posting",
-  retry_staged_gift: "CRM posting retry",
-  resend_receipt: "Send receipt",
-  refund: "Refund gift",
 };
 
 function ContributionDetailSheetFrame({
@@ -1052,7 +1044,7 @@ export function ContributionDetailSheet({
                   className="text-xs text-muted-foreground leading-relaxed"
                 >
                   <span className="font-medium text-foreground">
-                    {ACTION_LABELS[entry.actionType] ?? entry.actionType}:
+                    {contributionActionName(entry.actionType)}:
                   </span>{" "}
                   {entry.blockedReason}
                   {entry.nextStep ? ` ${entry.nextStep}` : null}
