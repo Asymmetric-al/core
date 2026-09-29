@@ -25,6 +25,15 @@ export default defineConfig({
       ),
       /** Bun's isolated store can split `next` into per-peer-set copies (root vs apps); pin one instance so `vi.mock("next/navigation")` patches the same module the app code under test imports. */
       next: path.join(rootDir, "node_modules/next"),
+      /** Stripe is installed in the donor workspace. Resolve root-test mocks and app imports to the same SDK modules so the real provider cannot leak into isolated checkout tests. */
+      "@stripe/react-stripe-js": path.join(
+        rootDir,
+        "apps/donor/node_modules/@stripe/react-stripe-js",
+      ),
+      "@stripe/stripe-js": path.join(
+        rootDir,
+        "apps/donor/node_modules/@stripe/stripe-js",
+      ),
       /** Not hoisted to the repo root, so `vi.mock("@supabase/ssr")` in a test resolves to nothing while `@asym/auth` resolves its own copy — pin both to one module. */
       "@supabase/ssr": path.join(
         rootDir,

@@ -7,7 +7,7 @@
  *   TZ=America/Los_Angeles bun <this> --mode=hydrate --html='<div>...</div>'
  */
 import { JSDOM } from "jsdom";
-import { createElement, type ReactElement } from "react";
+import { act, createElement, type ReactElement } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 
@@ -135,19 +135,14 @@ async function hydrateFromSsr(html: string) {
   const initialTexts = readTexts(root);
   const recoverableErrors: string[] = [];
 
-  await new Promise<void>((resolve, reject) => {
-    try {
-      hydrateRoot(root, createElement(Probe) as ReactElement, {
-        onRecoverableError(error) {
-          recoverableErrors.push(
-            error instanceof Error ? error.message : String(error),
-          );
-        },
-      });
-      setTimeout(resolve, 50);
-    } catch (error) {
-      reject(error);
-    }
+  await act(async () => {
+    hydrateRoot(root, createElement(Probe) as ReactElement, {
+      onRecoverableError(error) {
+        recoverableErrors.push(
+          error instanceof Error ? error.message : String(error),
+        );
+      },
+    });
   });
 
   return {
