@@ -1,0 +1,45 @@
+{
+  "scope": "Existing owner-contract reconciliation: receipt-affecting classification is not issuance authorization; validation and provider-backed posting retain their accepted boundaries. C01 is not decided.",
+  "carrierPr": "https://github.com/Asymmetric-al/core/pull/1901",
+  "sourceBase": "d50bcb4325b1ce4ad5e2b221f604902e270a2d75",
+  "observedAt": "2026-09-23T05:28:43.531757+00:00",
+  "issueReadback": {
+    "issue": 766,
+    "url": "https://github.com/Asymmetric-al/core/issues/766",
+    "title": "[Phase 15] Amend a posted gift, corrected/void receipt, and batch-reverse",
+    "originalBodySha256": "51362208d88ada5444d34c51e4fe246f64ae0cf3d25f7bc01992747c04e30cd4",
+    "publishedBodySha256": "f8ae6c8ba4bd60d8cea3a46a511d705a884c8b3befa306c2aaf4a7d5f2d03f02",
+    "readbackBodySha256": "f8ae6c8ba4bd60d8cea3a46a511d705a884c8b3befa306c2aaf4a7d5f2d03f02",
+    "bodyCharacters": 18910,
+    "metadataPreserved": true,
+    "nativeDependencies": {
+      "blocked_by": [],
+      "blocking": []
+    },
+    "acceptanceCheckboxesPreserved": 9,
+    "C01ApprovalGateUnchanged": true,
+    "verifiedAt": "2026-09-23T05:27:12.760463+00:00"
+  },
+  "sourceVerification": {
+    "verifiedAt": "2026-09-23T05:26:29.086219+00:00",
+    "baseCommit": "d50bcb4325b1ce4ad5e2b221f604902e270a2d75",
+    "sourceHashes": {
+      "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "a42a45c57c8427e099cbde4b509801d534d6389164969a637c9d1d398d2dc541",
+      "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md": "80153732da41378fbedb12305748935a9a28041e3acf2018df3ae149d02bf0ae"
+    },
+    "unrelatedRequirementsPreserved": 7,
+    "phase15ScenarioCount": 6,
+    "phase15NumberedMarkersPreserved": true,
+    "C01RequesterAndApprovalClausesUnchanged": true,
+    "issue766AcceptanceCheckboxesPreserved": 9,
+    "relatedIssuesInspectedWithoutChange": [765, 785],
+    "evidenceLimit": "Static source and ticket consistency; no implementation, issuance, provider or runtime qualification."
+  },
+  "authorityReferences": [
+    "docs/adr/0009-validate-equals-post-default.md, July 27 authority amendment",
+    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md D4/D5/Mod3",
+    "openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md Generated Documents Preserve Source Truth And Exact Artifact Authority"
+  ],
+  "priorPublication": "2026-09-23-issue-reconciliation.json",
+  "priorPublicationMeaning": "The original 50-issue publication remains dated evidence. This later one-issue amendment supersedes its #766 body hash without rewriting that historical publication."
+}

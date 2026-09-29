@@ -5,6 +5,7 @@ import {
   type CorrectionApprovalPolicy,
   type CorrectionApprovalPolicyRow,
 } from "./approval-policy";
+import { parseContributionCommand } from "./command";
 import {
   parseReceiptDeliverySelection,
   resolveConfirmedReceiptDelivery,
@@ -437,7 +438,7 @@ export async function decideContributionCorrectionRequest(
     approvedRequestId: request.id,
     sourceSurface: request.sourceSurface,
     contributionId: request.donationId,
-    actionType: request.actionType,
+    command: parseContributionCommand(request.actionType, applicationPayload),
     reason: request.reason,
     confirmationToken: `correction-request/${request.id}`,
     // The stored pre-request expectedRevision is stale by construction:
@@ -448,7 +449,6 @@ export async function decideContributionCorrectionRequest(
     // review of current state (#265).
     expectedRevision: null,
     idempotencyKey: `correction-request-apply/${input.tenantId}/${request.id}`,
-    payload: applicationPayload,
     dependencies: {
       ...input.dependencies,
       validateApprovedCorrectionRequest: async (approvedRequest) => {
