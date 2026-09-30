@@ -79,6 +79,8 @@ describe("git-guardrails Claude hook", () => {
       "git checkout .github/workflows/ci.yml",
       "git restore ./src/index.ts",
       'git checkout ".github/workflows/ci.yml"',
+      "git checkout main && find . -name '*.ts'",
+      "git restore --staged .",
     ]) {
       const allowed = runHook(JSON.stringify({ tool_input: { command } }));
       expect(allowed.status, `${command}\n${allowed.stderr}`).toBe(0);
