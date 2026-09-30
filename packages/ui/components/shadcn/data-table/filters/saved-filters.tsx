@@ -220,6 +220,7 @@ export function SavedFilters({
                           size="icon"
                           className="size-7 shrink-0"
                           onClick={handleUpdate}
+                          aria-label="Confirm rename"
                         >
                           <CheckIcon className="size-3" />
                         </Button>
@@ -228,6 +229,7 @@ export function SavedFilters({
                           size="icon"
                           className="size-7 shrink-0"
                           onClick={handleCancelEdit}
+                          aria-label="Cancel rename"
                         >
                           <Trash2Icon className="size-3" />
                         </Button>

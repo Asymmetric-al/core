@@ -1,10 +1,7 @@
 export { FilterBuilder, ActiveFilters } from "./filter-builder";
 export { FilterRow } from "./filter-row";
-export {
-  DateRangeFilter,
-  QuickDateFilter,
-  DATE_RANGE_PRESETS,
-} from "./date-range-filter";
+export { DateRangeFilter, QuickDateFilter } from "./date-range-filter";
+export { DATE_RANGE_PRESETS } from "./date-range-presets";
 export {
   FilterTextInput,
   FilterNumberInput,

@@ -33,7 +33,7 @@ export function SupportFailureBanner() {
   return (
     <div
       role="status"
-      aria-live="assertive"
+      aria-live="polite"
       className="flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm"
     >
       <div className="flex items-start gap-3">
@@ -53,7 +53,7 @@ export function SupportFailureBanner() {
           onClick={() => void handleRetry()}
           disabled={retrying}
           focusableWhenDisabled={retrying}
-          className="h-8 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100"
+          className="rounded-lg text-[11px] font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100"
         >
           <RefreshCw
             className={retrying ? "size-3.5 animate-spin" : "size-3.5"}

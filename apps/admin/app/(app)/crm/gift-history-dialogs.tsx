@@ -13,7 +13,6 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@asym/ui/components/shadcn/radio-group";
-import { useId } from "react";
 
 import type { ViewNameDialogState } from "./use-gift-history-view-controller";
 import type { CrmNamedView } from "@asym/database/types";
@@ -71,8 +70,6 @@ export function SetTenantDefaultDialog({
   onCancel,
   onConfirm,
 }: SetTenantDefaultDialogProps) {
-  const pendingActionLabelId = useId();
-
   if (!open) {
     return null;
   }
@@ -93,16 +90,8 @@ export function SetTenantDefaultDialog({
           <Button variant="outline" className="h-11" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            aria-labelledby={`${pendingActionLabelId}-4`}
-            focusableWhenDisabled={isSaving}
-            className="h-11"
-            disabled={isSaving}
-            onClick={onConfirm}
-          >
-            <span id={`${pendingActionLabelId}-4`}>
-              {isSaving ? "Saving..." : "Set tenant default"}
-            </span>
+          <Button className="h-11" disabled={isSaving} onClick={onConfirm}>
+            {isSaving ? "Saving..." : "Set tenant default"}
           </Button>
         </div>
       </DialogContent>
@@ -197,7 +186,6 @@ export function DeleteNamedViewDialog({
         </DialogDescription>
         {view.isDefault ? (
           <RadioGroup
-            aria-label="Replacement default view"
             className="space-y-2"
             value={nextDefaultChoice}
             onValueChange={onNextDefaultChoiceChange}
@@ -232,58 +220,6 @@ export function DeleteNamedViewDialog({
           </Button>
           <Button variant="destructive" className="h-11" onClick={onConfirm}>
             Delete view
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface TenantDefaultDialogProps {
-  isSaving: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-  open: boolean;
-}
-
-export function TenantDefaultDialog({
-  isSaving,
-  onCancel,
-  onConfirm,
-  open,
-}: TenantDefaultDialogProps) {
-  const pendingActionLabelId = useId();
-
-  if (!open) {
-    return null;
-  }
-
-  return (
-    <Dialog open onOpenChange={(nextOpen) => !nextOpen && onCancel()}>
-      <DialogContent
-        className="sm:max-w-md"
-        data-testid="tenant-default-confirm"
-      >
-        <DialogTitle>Set tenant default</DialogTitle>
-        <DialogDescription>
-          The current columns, filters, sort, and pinned row action become the
-          default for everyone in this tenant. Personal view settings are not
-          changed and keep overriding the tenant default.
-        </DialogDescription>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button
-            aria-labelledby={`${pendingActionLabelId}-5`}
-            focusableWhenDisabled={isSaving}
-            className="h-11"
-            disabled={isSaving}
-            onClick={onConfirm}
-          >
-            <span id={`${pendingActionLabelId}-5`}>
-              {isSaving ? "Saving..." : "Set tenant default"}
-            </span>
           </Button>
         </div>
       </DialogContent>

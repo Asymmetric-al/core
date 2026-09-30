@@ -161,7 +161,7 @@ function DataTablePaginationImpl<TData extends RowData>({
             <SelectControlLabel className="text-sm font-medium whitespace-nowrap">
               Rows per page
             </SelectControlLabel>
-            <SelectTrigger className="h-9 w-[72px] rounded-xl">
+            <SelectTrigger className="h-9 w-18 rounded-xl">
               <SelectValue placeholder={pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top" className="rounded-xl">

@@ -300,39 +300,20 @@ export function contributionFromDetail(
   };
 }
 
-/**
- * Shared contribution detail overlay keyed by the canonical `donation.id`.
- *
- * Both the Contributions Hub and CRM donor gift history render this overlay
- * so the same gift opens the same detail experience from every entry surface.
- * The overlay loads canonical detail itself; the host surface only supplies
- * the `donation.id` and removes it from its route state on close.
- */
-export function ContributionDetailOverlay({
-  donationId,
+function useContributionDetailOverlayActions({
   sourceSurface,
-  onClose,
+  detailRevision,
+  donationId,
   onActionSuccess,
+  onClose,
 }: {
-  donationId: string | null;
   sourceSurface: ContributionSourceSurface;
-  onClose: () => void;
-  /** Lets the host surface show a quiet freshness indicator (ADR-CD-022). */
+  detailRevision: string | null | undefined;
+  donationId: string | null;
   onActionSuccess?: () => void;
+  onClose: () => void;
 }) {
   const queryClient = useQueryClient();
-  const validDonationId = isContributionGiftParam(donationId)
-    ? donationId
-    : null;
-  const detailQuery = useContributionDetail(validDonationId);
-
-  // Refund entry point (issue #265): the sheet's "Refund gift" action opens
-  // the shared operation shell for the gift it was requested for. Keying the
-  // open state by donation id means switching or closing the gift can never
-  // leave a stale refund dialog pointed at another contribution.
-  const [refundDonationId, setRefundDonationId] = useState<string | null>(null);
-  const refundShellOpen =
-    refundDonationId !== null && refundDonationId === validDonationId;
 
   /**
    * Stale-save recovery (ADR-CD-022): when the server rejects a save
@@ -356,7 +337,7 @@ export function ContributionDetailOverlay({
       postContributionOperation({
         ...input,
         actionType: "approve_staged_gift",
-        expectedRevision: detailQuery.data?.revision ?? null,
+        expectedRevision: detailRevision ?? null,
         sourceSurface,
       }),
     onError(error) {
@@ -382,7 +363,7 @@ export function ContributionDetailOverlay({
         actionType: "retry_staged_gift",
         contributionId: input.contributionId,
         stagedGiftId: input.stagedGiftId,
-        expectedRevision: detailQuery.data?.revision ?? null,
+        expectedRevision: detailRevision ?? null,
         payload: crmRetryPayloadFromScope(input.scope),
         sourceSurface,
       }),
@@ -402,7 +383,7 @@ export function ContributionDetailOverlay({
       postContributionOperation({
         ...input,
         actionType: "resend_receipt",
-        expectedRevision: detailQuery.data?.revision ?? null,
+        expectedRevision: detailRevision ?? null,
         sourceSurface,
       }),
     onError(error) {
@@ -418,6 +399,50 @@ export function ContributionDetailOverlay({
       onClose();
     },
   });
+
+  return { approveMutation, receiptMutation, retryMutation };
+}
+
+/**
+ * Shared contribution detail overlay keyed by the canonical `donation.id`.
+ *
+ * Both the Contributions Hub and CRM donor gift history render this overlay
+ * so the same gift opens the same detail experience from every entry surface.
+ * The overlay loads canonical detail itself; the host surface only supplies
+ * the `donation.id` and removes it from its route state on close.
+ */
+export function ContributionDetailOverlay({
+  donationId,
+  sourceSurface,
+  onClose,
+  onActionSuccess,
+}: {
+  donationId: string | null;
+  sourceSurface: ContributionSourceSurface;
+  onClose: () => void;
+  /** Lets the host surface show a quiet freshness indicator (ADR-CD-022). */
+  onActionSuccess?: () => void;
+}) {
+  const validDonationId = isContributionGiftParam(donationId)
+    ? donationId
+    : null;
+  const detailQuery = useContributionDetail(validDonationId);
+  const { approveMutation, receiptMutation, retryMutation } =
+    useContributionDetailOverlayActions({
+      sourceSurface,
+      detailRevision: detailQuery.data?.revision,
+      donationId,
+      onActionSuccess,
+      onClose,
+    });
+
+  // Refund entry point (issue #265): the sheet's "Refund gift" action opens
+  // the shared operation shell for the gift it was requested for. Keying the
+  // open state by donation id means switching or closing the gift can never
+  // leave a stale refund dialog pointed at another contribution.
+  const [refundDonationId, setRefundDonationId] = useState<string | null>(null);
+  const refundShellOpen =
+    refundDonationId !== null && refundDonationId === validDonationId;
 
   const contribution = detailQuery.data
     ? contributionFromDetail(detailQuery.data)

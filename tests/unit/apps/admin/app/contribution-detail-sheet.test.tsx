@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
+import * as localeFormat from "@asym/lib/hooks/use-locale-format";
 import {
   afterAll,
   afterEach,
@@ -62,6 +63,38 @@ describe("ContributionDetailSheet a11y", () => {
     fireEvent.click(closeButton);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+});
+
+describe("ContributionDetailSheet gift calendar date", () => {
+  it.each(["UTC", "America/Los_Angeles", "Asia/Bangkok"])(
+    "keeps the gift day when the visitor formats dates in %s",
+    (timeZone) => {
+      const formatters = localeFormat.createLocaleFormatters(
+        { locale: "en-US", timeZone },
+        true,
+      );
+      const formatSpy = vi
+        .spyOn(localeFormat, "useLocaleFormat")
+        .mockReturnValue(formatters);
+      try {
+        const contribution = {
+          ...boneyardContributionsFixture[0]!,
+          date: "2026-07-01",
+        };
+        const view = render(
+          <ContributionDetailSheet
+            contribution={contribution}
+            onClose={vi.fn()}
+          />,
+        );
+
+        expect(view.getByText("Wed, Jul 1, 2026")).toBeTruthy();
+        expect(view.queryByText("Tue, Jun 30, 2026")).toBeNull();
+      } finally {
+        formatSpy.mockRestore();
+      }
+    },
+  );
 });
 
 describe("ContributionDetailSheet loading and error states", () => {

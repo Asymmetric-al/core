@@ -49,7 +49,7 @@ export function EmailStudioMergeTagMenu({
             type="button"
             variant="outline"
             size="sm"
-            className="gap-1.5"
+            className=""
             disabled={disabled}
           >
             <Braces className="h-3.5 w-3.5" />

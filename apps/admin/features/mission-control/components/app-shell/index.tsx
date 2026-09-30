@@ -156,7 +156,7 @@ export function AppShell({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
+                    className="lg:hidden rounded-xl border border-zinc-200 bg-white"
                   >
                     <Menu className="size-5" />
                   </Button>
@@ -227,6 +227,7 @@ export function AppShell({
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
               <input
                 type="text"
+                aria-label="Search command center"
                 placeholder="Search command center..."
                 className="h-9 w-64 pl-10 pr-4 text-[11px] font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-[background-color,box-shadow]"
               />
@@ -235,7 +236,7 @@ export function AppShell({
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 rounded-xl border border-zinc-200 bg-white relative"
+              className="rounded-xl border border-zinc-200 bg-white relative"
             >
               <Bell className="size-4 text-zinc-600" />
               <span className="absolute top-2 right-2 size-1.5 rounded-full bg-rose-500 border border-white" />
@@ -247,7 +248,7 @@ export function AppShell({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
+                    className="rounded-xl border border-zinc-200 bg-white overflow-hidden"
                   >
                     <Avatar className="size-full rounded-none">
                       <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">

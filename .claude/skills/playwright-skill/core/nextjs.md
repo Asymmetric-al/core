@@ -873,7 +873,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate via credentials', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('test@example.com');
-  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Wait for the redirect after successful login
@@ -909,7 +909,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate via credentials', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('test@example.com');
-  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD);
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await page.waitForURL('/dashboard');

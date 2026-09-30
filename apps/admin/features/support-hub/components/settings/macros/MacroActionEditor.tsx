@@ -120,7 +120,7 @@ export function MacroActionEditor({
               >
                 <SelectTrigger
                   aria-label={`Action ${index + 1} type`}
-                  className="h-8 min-w-[170px] text-[12px]"
+                  className="h-8 min-w-42.5 text-[12px]"
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -152,7 +152,7 @@ export function MacroActionEditor({
                 >
                   <SelectTrigger
                     aria-label={`Action ${index + 1} status`}
-                    className="h-8 min-w-[140px] text-[12px]"
+                    className="h-8 min-w-35 text-[12px]"
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -185,7 +185,7 @@ export function MacroActionEditor({
                 >
                   <SelectTrigger
                     aria-label={`Action ${index + 1} priority`}
-                    className="h-8 min-w-[140px] text-[12px]"
+                    className="h-8 min-w-35 text-[12px]"
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -218,7 +218,7 @@ export function MacroActionEditor({
                     });
                   }}
                   aria-label={`Action ${index + 1} agent`}
-                  className="h-8 min-w-[200px] text-[12px]"
+                  className="h-8 min-w-50 text-[12px]"
                   placeholder="Pick an agent"
                 />
               ) : null}
@@ -239,7 +239,7 @@ export function MacroActionEditor({
                     handlePatch(index, { kind: "assign_team", teamId: value });
                   }}
                   aria-label={`Action ${index + 1} team`}
-                  className="h-8 min-w-[200px] text-[12px]"
+                  className="h-8 min-w-50 text-[12px]"
                   placeholder="Pick a team"
                 />
               ) : null}
@@ -263,7 +263,7 @@ export function MacroActionEditor({
                     } as SupportMacroAction);
                   }}
                   aria-label={`Action ${index + 1} label`}
-                  className="h-8 min-w-[180px] text-[12px]"
+                  className="h-8 min-w-45 text-[12px]"
                   placeholder="Pick a label"
                 />
               ) : null}
@@ -287,7 +287,7 @@ export function MacroActionEditor({
                     });
                   }}
                   aria-label={`Action ${index + 1} canned response`}
-                  className="h-8 min-w-[220px] text-[12px]"
+                  className="h-8 min-w-55 text-[12px]"
                   placeholder="Pick a canned response"
                 />
               ) : null}
@@ -303,7 +303,7 @@ export function MacroActionEditor({
                       hours: Number(event.target.value) || 1,
                     })
                   }
-                  className="h-8 w-[100px] font-mono text-[12px]"
+                  className="h-8 w-25 font-mono text-[12px]"
                   aria-label="Hours to snooze"
                 />
               ) : null}
@@ -318,7 +318,7 @@ export function MacroActionEditor({
                     })
                   }
                   placeholder="Note text"
-                  className="h-8 min-w-[240px] text-[12px]"
+                  className="h-8 min-w-60 text-[12px]"
                 />
               ) : null}
 

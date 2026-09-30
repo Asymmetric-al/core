@@ -55,7 +55,7 @@ export default function EmailStudioPage() {
       initial={withinRouteVt ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-[1200px] mx-auto pb-20"
+      className="max-w-300 mx-auto pb-20"
     >
       <PageHeader
         title="Email Studio"
@@ -98,7 +98,7 @@ export default function EmailStudioPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
-              <Button variant="outline" disabled className="gap-2">
+              <Button variant="outline" disabled className="">
                 <Sparkles className="size-4" />
                 Notify Me When Ready
               </Button>

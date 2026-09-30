@@ -180,8 +180,8 @@ function AsymFieldShell({
   descriptionId,
   descriptionClassName,
   errorClassName,
-  errors,
   errorId,
+  errors,
   disabled,
   name,
   nonNativeLabel = false,
@@ -686,7 +686,7 @@ const asymFormComponents = {
   SubmitButton: AsymSubmitButton,
 };
 
-export function createAsymFormHook<
+function createAsymFormHook<
   const TFieldComponents extends Record<
     string,
     React.ComponentType<Record<string, unknown>>
@@ -719,9 +719,9 @@ export function createAsymFormHook<
 const defaultAsymFormHook = createAsymFormHook();
 
 const useAsymForm = defaultAsymFormHook.useAppForm;
-const withAsymForm = defaultAsymFormHook.withForm;
-const withAsymFieldGroup = defaultAsymFormHook.withFieldGroup;
 
+// Only components and hooks are exported so Fast Refresh can preserve state;
+// the form-hook factory and the component bundles stay module-private.
 export {
   AsymNumberField,
   AsymSelectField,
@@ -729,11 +729,7 @@ export {
   AsymSwitchField,
   AsymTextField,
   AsymTextareaField,
-  asymFieldComponents,
-  asymFormComponents,
   useAsymFieldContext,
   useAsymForm,
   useAsymFormContext,
-  withAsymFieldGroup,
-  withAsymForm,
 };

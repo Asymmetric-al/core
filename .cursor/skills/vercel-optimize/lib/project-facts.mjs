@@ -39,8 +39,8 @@ export function deriveProjectFacts(signals) {
   if (cfg.functionDefaultMemoryType === 'standard') {
     out.push({
       id: 'memory_standard',
-      strength: 'Function memory tier: Standard (2GB) — the cost-efficient default; upgrade to Performance (4GB) only if you have evidence of memory-bound routes.',
-      briefLine: 'Function memory tier is Standard (2GB), the cost-efficient default. Recommending an upgrade to Performance (4GB) requires memory-saturation evidence.',
+      strength: 'Function memory tier: Standard (2GB) — the cost-efficient default; upgrade to Performance (4GB) only with memory, CPU-bound, or latency-sensitive route evidence.',
+      briefLine: 'Function memory tier is Standard (2GB), the cost-efficient default. Recommending an upgrade to Performance (4GB) requires memory, CPU-bound, or latency-sensitive route evidence.',
       contradictPhrases: [],
     });
   } else if (cfg.functionDefaultMemoryType === 'performance') {
@@ -68,8 +68,8 @@ export function deriveProjectFacts(signals) {
   if (cfg.functionZeroConfigFailover === true) {
     out.push({
       id: 'zero_config_failover',
-      strength: 'Multi-region zero-config failover is enabled.',
-      briefLine: 'Zero-config multi-region failover is ENABLED. Do not recommend enabling it.',
+      strength: 'Function failover is enabled in project config.',
+      briefLine: 'Function failover is ENABLED in project config. Do not recommend enabling it.',
       contradictPhrases: [
         'enable zero-config failover',
         'enable multi-region failover',

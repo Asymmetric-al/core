@@ -1,0 +1,10 @@
+{
+  "name": "grill-for-unknowns",
+  "description": "Docs-grounded grilling, unknown discovery, and shared understanding before implementation",
+  "version": "0.1.3",
+  "author": {
+    "name": "Nico Bailon (co-authored by Matt Pocock)"
+  },
+  "repository": "https://github.com/nicobailon/grill-for-unknowns",
+  "license": "MIT"
+}

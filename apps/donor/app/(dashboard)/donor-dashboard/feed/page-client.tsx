@@ -81,8 +81,8 @@ const FeedFilter = ({
   const filters: FilterType[] = ["All", "Update", "Story", "Video", "Saved"];
 
   return (
-    <div className="sticky top-[0px] z-30 bg-zinc-50/90 backdrop-blur-xl border-b border-zinc-200/50 py-4 mb-8 transition-[background-color,border-color,backdrop-filter] duration-200">
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-1 max-w-2xl mx-auto">
+    <div className="sticky top-0 z-30 bg-zinc-50/90 backdrop-blur-xl border-b border-zinc-200/50 py-4 mb-8 transition-[background-color,border-color,backdrop-filter] duration-200">
+      <div className="flex items-center gap-2 overflow-x-auto px-1 max-w-2xl mx-auto">
         {filters.map((type) => (
           <button
             key={type}
@@ -172,7 +172,6 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Share Update
             </DropdownMenuLabel>
-
             <DropdownMenuSeparator />
             {typeof navigator !== "undefined" &&
               typeof navigator.share === "function" && (
@@ -194,6 +193,7 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
                 window.open(
                   `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
                   "_blank",
+                  "noopener,noreferrer",
                 )
               }
             >
@@ -204,6 +204,7 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
                 window.open(
                   `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
                   "_blank",
+                  "noopener,noreferrer",
                 )
               }
             >
@@ -214,6 +215,7 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
                 window.open(
                   `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
                   "_blank",
+                  "noopener,noreferrer",
                 )
               }
             >
@@ -321,7 +323,7 @@ const PostCard: React.FC<{
           post.images.length > 0 &&
           post.images[0] &&
           !imageError && (
-            <div className="rounded-xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50 relative h-[300px] sm:h-[400px]">
+            <div className="rounded-xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50 relative h-75 sm:h-100">
               <Image
                 src={post.images[0]}
                 alt="Post content"

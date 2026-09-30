@@ -45,7 +45,7 @@ export function PrivateNote({ message }: PrivateNoteProps) {
           </span>
           <Badge
             variant="outline"
-            className="h-5 gap-1 rounded-md border-amber-300 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
+            className="h-5 rounded-md border-amber-300 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
           >
             <Lock className="size-3" />
             Internal note

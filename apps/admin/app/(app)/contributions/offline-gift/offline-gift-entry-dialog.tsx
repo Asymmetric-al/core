@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -77,7 +78,7 @@ export function OfflineGiftEntryDialog({
   // entries (matches the task-form pattern).
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-[560px]">
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-140">
         {open ? (
           <OfflineGiftEntryForm
             onClose={() => onOpenChange(false)}
@@ -331,12 +332,12 @@ function useOfflineGiftForm(handlers: UseOfflineGiftFormHandlers) {
           body: JSON.stringify(toOfflineContributionRequest(value)),
           signal: controller.signal,
         });
-        const rawPayload = await response.json().catch(() => null);
+        const { ok, body: rawPayload } = await readJsonBody(response);
         const parsedPayload =
           offlineGiftEntryResponseSchema.safeParse(rawPayload);
         const payload = parsedPayload.success ? parsedPayload.data : null;
 
-        if (!response.ok) {
+        if (!ok) {
           handlers.onError(payload?.error ?? GENERIC_RECORDING_ERROR);
           return;
         }
@@ -658,7 +659,7 @@ function OptionalMetaSection({ form }: { form: OfflineForm }) {
       <form.AppField name="internalNote">
         {(field) => (
           <field.TextareaField
-            inputClassName="min-h-[64px] resize-none rounded-xl text-sm"
+            inputClassName="min-h-16 resize-none rounded-xl text-sm"
             label="Internal note (optional)"
             labelClassName={LABEL_CLASS}
             placeholder="Not shown to the donor"

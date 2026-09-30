@@ -92,7 +92,7 @@ export default function CrmNotesPageClient() {
           </Link>
           <Button
             variant="outline"
-            className="gap-2"
+            className=""
             onClick={() => void onRefresh()}
           >
             <RefreshCcw className="size-4" />
@@ -259,7 +259,7 @@ export default function CrmNotesPageClient() {
             </div>
             <Button
               type="submit"
-              className="w-full gap-2"
+              className="w-full"
               disabled={!canSubmit || isCreatingNote}
               focusableWhenDisabled={isCreatingNote}
               aria-labelledby={saveLabelId}

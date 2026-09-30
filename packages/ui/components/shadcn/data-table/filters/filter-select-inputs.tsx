@@ -133,7 +133,7 @@ export function FilterSelectInput({
         aria-label={field.label}
         render={<Button variant="outline" />}
         className={cn(
-          "h-9 w-[180px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
+          "h-9 w-45 justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
           !selectedOption && "text-muted-foreground",
           className,
         )}
@@ -154,7 +154,7 @@ export function FilterSelectInput({
       </ComboboxTrigger>
       <ComboboxContent
         aria-label={field.label}
-        className="w-[220px] border border-border/60 shadow-xl"
+        className="w-55 overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
         sideOffset={8}
       >
         <FilterSearch label={field.label} />
@@ -195,7 +195,7 @@ export function FilterMultiSelectInput({
       <div
         ref={anchorRef}
         className={cn(
-          "flex min-h-9 w-[240px] items-center gap-1 rounded-xl border border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 has-aria-expanded:border-border has-aria-expanded:bg-muted/50",
+          "flex min-h-9 w-60 items-center gap-1 rounded-xl border border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 has-aria-expanded:border-border has-aria-expanded:bg-muted/50",
           className,
         )}
       >
@@ -253,7 +253,7 @@ export function FilterMultiSelectInput({
       <ComboboxContent
         anchor={anchorRef}
         aria-label={field.label}
-        className="w-[260px] border border-border/60 shadow-xl"
+        className="w-65 overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
         sideOffset={8}
       >
         <FilterSearch label={field.label} inputRef={searchInputRef} />

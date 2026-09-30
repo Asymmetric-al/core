@@ -71,7 +71,7 @@ export function AutomationRuleForm({
   const previewRule: SupportAutomationRule = React.useMemo(
     () => ({
       id: rule?.id ?? "draft",
-      tenantId: rule?.tenantId ?? "tenant-give-hope",
+      tenantId: rule?.tenantId ?? "draft",
       name: name || "Untitled rule",
       description: description ? description : null,
       enabled,
@@ -282,7 +282,7 @@ export function AutomationRuleForm({
           variant="ghost"
           size="sm"
           onClick={onCancel}
-          className="h-8 rounded-lg px-3 text-xs"
+          className="rounded-lg text-xs"
         >
           Cancel
         </Button>

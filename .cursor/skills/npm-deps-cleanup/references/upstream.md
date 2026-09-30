@@ -1,6 +1,7 @@
 ---
 source_name: anthonyshew/dotfiles (npm-deps-cleanup)
 source_url: https://github.com/anthonyshew/dotfiles
+last_reviewed: 2026-09-16
 ---
 
 # Upstream mapping

@@ -46,39 +46,14 @@ import {
   MOBILE_PREVIEW_HEIGHT,
   MOBILE_PREVIEW_WIDTH,
 } from "./profile-model";
+import {
+  fadeInUp,
+  springTransition,
+  smoothTransition,
+  gentleTransition,
+} from "./profile-motion";
 
 import type { ProfileData } from "./profile-model";
-
-export const fadeInUp = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-};
-
-export const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.02,
-    },
-  },
-};
-
-export const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
-
-export const smoothTransition = {
-  duration: 0.25,
-  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-};
-
-export const gentleTransition = {
-  duration: 0.35,
-  ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-};
 
 export function ProfileSkeleton() {
   return (
@@ -150,31 +125,19 @@ export function FormField({
         {label}
       </Label>
       {children}
-      <AnimatePresence mode="wait">
+      <div className="min-h-4">
         {error ? (
-          <motion.p
-            key="error"
+          <p
             className="text-xs text-red-500 flex items-center gap-1"
-            initial={{ opacity: 0, height: 0, y: -4 }}
-            animate={{ opacity: 1, height: "auto", y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
+            role="alert"
           >
             <AlertCircle className="size-3 flex-shrink-0" />
             {error}
-          </motion.p>
+          </p>
         ) : helperText ? (
-          <motion.div
-            key="helper"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {helperText}
-          </motion.div>
+          helperText
         ) : null}
-      </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
@@ -326,13 +289,15 @@ export function PreviewToggle({
   return (
     <div className="relative bg-zinc-100 border border-zinc-200 p-1 rounded-lg flex">
       <motion.div
-        className="absolute top-1 bottom-1 bg-white rounded-md shadow-sm"
+        className="absolute top-1 bottom-1 left-(--preview-indicator-left) bg-white rounded-md shadow-sm"
         layout
         transition={springTransition}
-        style={{
-          left: value === "mobile" ? 4 : "50%",
-          width: "calc(50% - 4px)",
-        }}
+        style={
+          {
+            "--preview-indicator-left": value === "mobile" ? "4px" : "50%",
+            width: "calc(50% - 4px)",
+          } as React.CSSProperties
+        }
       />
       <button
         type="button"
@@ -409,10 +374,10 @@ export function MobilePreviewFrame({
   return (
     <div ref={containerRef} className="w-full flex justify-center">
       <div
+        className="overflow-hidden"
         style={{
           width: MOBILE_PREVIEW_WIDTH * scale,
           height: MOBILE_PREVIEW_HEIGHT * scale,
-          overflow: "hidden",
         }}
       >
         <div
@@ -459,10 +424,10 @@ export function DesktopPreviewFrame({
   return (
     <div ref={containerRef} className="w-full flex justify-center">
       <div
+        className="overflow-hidden"
         style={{
           width: DESKTOP_PREVIEW_WIDTH * scale,
           height: DESKTOP_PREVIEW_HEIGHT * scale,
-          overflow: "hidden",
         }}
       >
         <div
@@ -513,7 +478,7 @@ export function ProfileHeaderActions({
               variant="outline"
               size="sm"
               onClick={handleCopyLink}
-              className="h-9 px-3 text-xs font-medium"
+              className="h-9 text-xs"
             >
               <AnimatePresence mode="wait">
                 {copiedLink ? (
@@ -579,7 +544,7 @@ export function ProfileHeaderActions({
               variant="ghost"
               size="sm"
               onClick={handleDiscard}
-              className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
+              className="h-9 text-xs text-zinc-500 hover:text-zinc-900"
             >
               <RotateCcw className="mr-1.5 size-4" />
               Discard
@@ -600,7 +565,7 @@ export function ProfileHeaderActions({
           disabled={isSaving || !hasChanges}
           size="sm"
           className={cn(
-            "h-9 px-4 text-xs font-medium min-w-[100px] transition-colors duration-200",
+            "h-9 px-4 text-xs font-medium min-w-25 transition-colors duration-200",
             saveSuccess && "bg-emerald-600 hover:bg-emerald-600",
           )}
         >

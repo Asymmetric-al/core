@@ -7,10 +7,12 @@ import {
   checkCliVersion,
   checkAuth,
   resolveProjectId,
+  resolveCommandScope,
   hasObservabilityPlus,
   checkObservabilityPlusConfiguration,
   getMetricsSchema,
   getProjectConfig,
+  getAccountPlan,
   getContract,
   getUsage,
   filterUsageByProject,
@@ -73,7 +75,9 @@ async function main() {
   }
   log(`project link resolved (source=${project.source}; teamScope=${project.orgId ? 'yes' : 'no'})`);
 
-  const scope = project.orgId || undefined;
+  if (!project.orgId) {
+    throw new Error('PROJECT_SCOPE_UNRESOLVED: the project was resolved without an owner account. Ask the user which Vercel team or personal scope owns the project, then rerun from a linked app directory or set VERCEL_PROJECT_ID with VERCEL_ORG_ID for that scope.');
+  }
 
   log('checking framework support…');
   const stack = await detectStack();
@@ -88,6 +92,7 @@ async function main() {
       projectId: project.projectId,
       orgId: project.orgId,
       projectIdSource: project.source,
+      commandScope: null,
       frameworkSupport,
       frameworkSupportBlocker: frameworkSupport.blocker,
       frameworkSupportDetail: frameworkSupport.detail,
@@ -116,6 +121,22 @@ async function main() {
   if (!frameworkSupport.ok && continueUnsupportedFramework) {
     log('continuing after unsupported framework blocker because --continue-unsupported-framework was set');
   }
+
+  log('resolving Vercel CLI command scope…');
+  const commandScope = await resolveCommandScope(project);
+  if (!commandScope.ok) {
+    throw new Error(`SCOPE_UNRESOLVED: ${commandScope.detail} Run \`vercel switch <team>\` or re-link with \`vercel link --yes --project <project-name-or-id> --team <team-slug>\`.`);
+  }
+  const scope = commandScope.cliScope || undefined;
+  log(`command scope resolved (source=${commandScope.source}; scoped=${scope ? 'yes' : 'no'})`);
+
+  log('validating linked project belongs to the resolved scope…');
+  const projectCfg = await getProjectConfig(project.projectId, project.orgId);
+  const projectScope = validateProjectScope(projectCfg, project);
+  if (!projectScope.ok) {
+    throw new Error(`PROJECT_SCOPE_MISMATCH: ${projectScope.detail} Ask the user to confirm the exact Vercel project and team/personal scope, then rerun after \`vercel link --yes --project <project-name-or-id> --team <team-slug>\` or after setting both VERCEL_PROJECT_ID and VERCEL_ORG_ID for the intended scope.`);
+  }
+  log(`project scope verified (source=${projectScope.source})`);
 
   log('checking Observability Plus configuration…');
   const observabilityPlusConfig = await checkObservabilityPlusConfiguration({
@@ -185,6 +206,7 @@ async function main() {
       projectId: project.projectId,
       orgId: project.orgId,
       projectIdSource: project.source,
+      commandScope,
       observabilityPlus: oplus,
       observabilityPlusPreflight: observabilityPlusConfig,
       observabilityPlusUsable: oplusDiag.usable,
@@ -197,7 +219,7 @@ async function main() {
         plan: 'uncertain',
         reason: 'not collected before Observability Plus blocker confirmation',
       },
-      project: null,
+      project: projectCfg,
       contract: null,
       usage: null,
       usageScope: null,
@@ -214,9 +236,9 @@ async function main() {
     log('continuing after Observability Plus blocker because --continue-without-observability was set');
   }
 
-  log('pulling project config + contract + usage in parallel…');
-  const [projectCfg, contract, usageResult] = await Promise.all([
-    getProjectConfig(project.projectId, project.orgId),
+  log('pulling account plan + contract + usage in parallel…');
+  const [accountPlan, contract, usageResult] = await Promise.all([
+    getAccountPlan(project.orgId || scope),
     getContract(scope),
     getUsage({ days: 14, scope }),
   ]);
@@ -251,8 +273,7 @@ async function main() {
     log(`usage: unavailable (${usageResult?.code ?? 'unknown'}) — degrading to scanner+metrics-only mode`);
   }
 
-  // Hobby teams don't bill, so commitments=[] + usage>$0 ⇒ Pro pay-as-you-go.
-  const planInfo = inferPlan(contract, { usageTotalCost });
+  const planInfo = inferPlan(contract, { accountPlan, usageTotalCost });
   log(`plan=${planInfo.plan} (${planInfo.reason})`);
 
   if (projectCfg?.error) {
@@ -299,6 +320,7 @@ async function main() {
     projectId: project.projectId,
     orgId: project.orgId,
     projectIdSource: project.source,
+    commandScope,
     observabilityPlus: oplus,
     observabilityPlusPreflight: observabilityPlusConfig,
     observabilityPlusUsable: oplusDiag.usable,
@@ -336,6 +358,50 @@ function writeOutput(output, oplusDiag, frameworkSupport = output.frameworkSuppo
 
   process.stdout.write(JSON.stringify(output, null, 2) + '\n');
   log('done');
+}
+
+function validateProjectScope(projectCfg, project) {
+  if (!projectCfg || projectCfg.error) {
+    return {
+      ok: false,
+      source: 'project-api',
+      detail: `The resolved account could not read the resolved project (project API error=${projectCfg?.error ?? 'unknown'}).`,
+    };
+  }
+
+  if (projectCfg.id && String(projectCfg.id) !== String(project.projectId)) {
+    return {
+      ok: false,
+      source: 'project-api',
+      detail: 'The project API returned a different project than the collector resolved from the link or environment.',
+    };
+  }
+
+  const ownerId = firstString(
+    projectCfg.accountId,
+    projectCfg.orgId,
+    projectCfg.ownerId,
+    projectCfg.teamId,
+    projectCfg.team?.id,
+    projectCfg.account?.id,
+    projectCfg.owner?.id,
+  );
+  if (ownerId && project.orgId && String(ownerId) !== String(project.orgId)) {
+    return {
+      ok: false,
+      source: 'project-api',
+      detail: 'The project API returned an owner account that differs from the collector-resolved account.',
+    };
+  }
+
+  return {
+    ok: true,
+    source: ownerId ? 'project-api-owner' : 'project-api-readable',
+  };
+}
+
+function firstString(...values) {
+  return values.find((value) => typeof value === 'string' && value.trim() !== '') ?? null;
 }
 
 async function collectMetrics(scope) {

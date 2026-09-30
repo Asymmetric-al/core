@@ -86,22 +86,26 @@ export function EmailStudioHeader({
 }: EmailStudioHeaderProps) {
   return (
     <header className="flex flex-wrap items-center gap-3 border-b bg-card px-4 py-2">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className="flex w-full min-w-0 items-center gap-3 sm:w-auto sm:flex-1">
         <FileText className="size-5 shrink-0 text-muted-foreground" />
-        <Field className="max-w-xs gap-1.5">
-          <FieldLabel className="sr-only" htmlFor="email-studio-template-name">
-            Template name
-          </FieldLabel>
-          <Input
-            id="email-studio-template-name"
-            value={metadata.name}
-            onChange={(event) =>
-              onMetadataChange({ ...metadata, name: event.target.value })
-            }
-            className="h-8 border-transparent bg-transparent px-2 font-medium hover:border-input focus:border-input"
-            placeholder="Untitled Email"
-          />
-        </Field>
+        <div className="min-w-0 w-full max-w-xs">
+          <Field>
+            <FieldLabel
+              className="sr-only"
+              htmlFor="email-studio-template-name"
+            >
+              Template name
+            </FieldLabel>
+            <Input
+              id="email-studio-template-name"
+              value={metadata.name}
+              onChange={(event) =>
+                onMetadataChange({ ...metadata, name: event.target.value })
+              }
+              placeholder="Untitled Email"
+            />
+          </Field>
+        </div>
         {hasUnsavedChanges ? <Badge variant="secondary">Unsaved</Badge> : null}
       </div>
 

@@ -78,7 +78,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
             <SelectControlLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
               Scope
             </SelectControlLabel>
-            <SelectTrigger className="h-9 w-[140px] text-[12px]">
+            <SelectTrigger className="h-9 w-35 text-[12px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,7 +107,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
               }
               setState({ scopeId: value });
             }}
-            className="h-9 min-w-[180px] text-[12px]"
+            className="h-9 min-w-45 text-[12px]"
             label={activeKind.charAt(0).toUpperCase() + activeKind.slice(1)}
             labelClassName="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500"
           />

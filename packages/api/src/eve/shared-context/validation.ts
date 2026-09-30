@@ -76,7 +76,8 @@ export function prepareEveSharedContextClaim(input: {
       "Shared context requires the complete versioned attribution schema.",
     );
   }
-  if (containsForbiddenContent(parsed.data)) {
+  const contentToValidate = { ...parsed.data, relatedClaimIds: [] };
+  if (containsForbiddenContent(contentToValidate)) {
     throw new EveSharedContextValidationError(
       "forbidden_sensitive_content",
       "Sensitive content is forbidden in shared run context.",

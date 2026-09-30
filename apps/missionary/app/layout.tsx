@@ -4,7 +4,7 @@ import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
-import { MotionProvider } from "@asym/lib/motion";
+import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";

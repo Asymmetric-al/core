@@ -12,16 +12,13 @@ export function MetricsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {METRICS_SKELETON_KEYS.map((key) => (
-        <Card
-          key={key}
-          className="border-zinc-200 bg-white shadow-sm rounded-3xl"
-        >
+        <Card key={key}>
           <CardContent className="flex items-center gap-4 p-6">
-            <Skeleton className="size-12 rounded-2xl bg-zinc-100" />
+            <Skeleton className="size-12 rounded-2xl" />
             <div className="min-w-0 flex-1 space-y-2">
-              <Skeleton className="h-3 w-20 bg-zinc-50" />
-              <Skeleton className="h-6 w-24 bg-zinc-100" />
-              <Skeleton className="h-3 w-32 bg-zinc-50" />
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-3 w-32" />
             </div>
           </CardContent>
         </Card>
@@ -32,15 +29,15 @@ export function MetricsSkeleton() {
 
 export function ChartSkeleton() {
   return (
-    <Card className="border-zinc-200 bg-white shadow-sm rounded-3xl">
+    <Card>
       <CardHeader className="p-6">
         <div className="space-y-2">
-          <Skeleton className="h-3 w-24 bg-zinc-50" />
-          <Skeleton className="h-8 w-48 bg-zinc-100" />
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-8 w-48" />
         </div>
       </CardHeader>
       <CardContent className="p-6 pt-0">
-        <Skeleton className="h-[350px] w-full rounded-2xl bg-zinc-50/50" />
+        <Skeleton className="h-87.5 w-full rounded-2xl" />
       </CardContent>
     </Card>
   );
@@ -55,29 +52,29 @@ const ACTIVITY_SKELETON_KEYS = [
 
 export function ActivityFeedSkeleton() {
   return (
-    <Card className="border-zinc-200 bg-white shadow-sm rounded-3xl overflow-hidden">
+    <Card className="overflow-hidden">
       <CardHeader className="p-6">
         <div className="flex items-center gap-3">
-          <Skeleton className="size-12 rounded-2xl bg-zinc-100" />
+          <Skeleton className="size-12 rounded-2xl" />
           <div className="space-y-2">
-            <Skeleton className="h-3 w-24 bg-zinc-50" />
-            <Skeleton className="h-6 w-48 bg-zinc-100" />
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-6 w-48" />
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="divide-y divide-zinc-50">
+        <div className="divide-y divide-border">
           {ACTIVITY_SKELETON_KEYS.map((key) => (
             <div
               key={key}
               className="flex items-center gap-4 px-6 md:px-8 py-5"
             >
-              <Skeleton className="size-11 rounded-full bg-zinc-100" />
+              <Skeleton className="size-11 rounded-full" />
               <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-4 w-32 bg-zinc-100" />
-                <Skeleton className="h-3 w-48 bg-zinc-50" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48 max-w-full" />
               </div>
-              <Skeleton className="h-4 w-12 bg-zinc-100" />
+              <Skeleton className="h-4 w-12" />
             </div>
           ))}
         </div>

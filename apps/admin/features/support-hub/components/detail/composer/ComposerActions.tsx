@@ -82,7 +82,7 @@ export function ComposerActions({
             size="sm"
             disabled={isPending}
             onClick={onCancel}
-            className="h-8 rounded-lg px-3 text-xs"
+            className="rounded-lg text-xs"
           >
             Cancel
           </Button>
@@ -97,7 +97,7 @@ export function ComposerActions({
             size="sm"
             disabled={isPending || !isDirty}
             onClick={onSaveDraft}
-            className="h-8 gap-1.5 rounded-lg border-zinc-200 px-3 text-xs"
+            className="rounded-lg border-zinc-200 text-xs"
           >
             <Save className="size-3.5" />
             <span id={`${pendingActionLabelId}-draft`}>
@@ -113,7 +113,7 @@ export function ComposerActions({
           disabled={isPending || !isDirty}
           aria-busy={isSending}
           onClick={onSend}
-          className="h-8 gap-1.5 rounded-lg bg-zinc-900 px-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800"
+          className="rounded-lg bg-zinc-900 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800"
         >
           {sendIcon}
           <span id={`${pendingActionLabelId}-17`} className="sr-only">

@@ -53,7 +53,7 @@ export function KanbanView({
           <div className="p-3 bg-muted/50 border-b border-border flex items-center justify-between">
             <Badge
               variant="secondary"
-              className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.15em] rounded shadow-none border"
+              className="text-[9px] font-semibold uppercase tracking-[0.15em] rounded shadow-none"
             >
               {status}
             </Badge>

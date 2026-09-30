@@ -114,12 +114,9 @@ export function useConversationComposer({
           : "send"
         : null;
 
-  // Reset local drafts when the conversation changes.
-  React.useEffect(() => {
-    setDrafts(EMPTY_DRAFT);
-    setAttachmentsByMode({ reply: [], note: [] });
-    setModeState("reply");
-  }, [conversationId]);
+  // Drafts are scoped to one conversation: <ConversationComposer /> is keyed
+  // by conversation id, so this hook remounts (and its state resets) when the
+  // agent switches threads.
 
   const value = drafts[mode];
   const attachments = attachmentsByMode[mode];

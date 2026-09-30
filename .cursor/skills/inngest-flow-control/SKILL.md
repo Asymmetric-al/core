@@ -1,6 +1,6 @@
 ---
 name: inngest-flow-control
-description: Use when handling external API rate limits (e.g., OpenAI 429s, HubSpot or Stripe rate limits), preventing duplicate work from rapid event bursts (debouncing user actions), spreading load over time, ensuring per-tenant fairness, processing events in batches, limiting concurrent runs of the same operation, or assigning priority to important runs. Covers Inngest flow control: concurrency limits with keys, throttling, rate limiting, debounce, priority, singleton, and event batching.
+description: "Use when handling external API rate limits (e.g., OpenAI 429s, HubSpot or Stripe rate limits), preventing duplicate work from rapid event bursts (debouncing user actions), spreading load over time, ensuring per-tenant fairness, processing events in batches, limiting concurrent runs of the same operation, or assigning priority to important runs. Covers Inngest flow control: concurrency limits with keys, throttling, rate limiting, debounce, priority, singleton, and event batching."
 ---
 
 # Inngest Flow Control

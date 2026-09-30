@@ -169,7 +169,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
           variant="ghost"
           size="sm"
           onClick={onCancel}
-          className="h-8 rounded-lg px-3 text-xs"
+          className="rounded-lg text-xs"
         >
           Cancel
         </Button>
@@ -179,7 +179,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
           onClick={handleSave}
           disabled={saveLabel.isPending || trimmedName.length === 0}
           focusableWhenDisabled={saveLabel.isPending}
-          className="h-8 rounded-lg px-3 text-xs"
+          className="rounded-lg text-xs"
         >
           {label ? "Save changes" : "Create label"}
         </Button>

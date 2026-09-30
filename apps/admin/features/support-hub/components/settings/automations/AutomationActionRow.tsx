@@ -63,7 +63,7 @@ export function AutomationActionRow({
       >
         <SelectTrigger
           aria-label="Action type"
-          className="h-8 min-w-[180px] text-[12px]"
+          className="h-8 min-w-45 text-[12px]"
         >
           <SelectValue />
         </SelectTrigger>
@@ -89,7 +89,7 @@ export function AutomationActionRow({
             onChange({ kind: "assign_agent", agentId: value });
           }}
           aria-label="Assigned agent"
-          className="h-8 min-w-[200px] text-[12px]"
+          className="h-8 min-w-50 text-[12px]"
           placeholder="Pick an agent"
         />
       ) : null}
@@ -110,7 +110,7 @@ export function AutomationActionRow({
             onChange({ kind: "assign_team", teamId: value });
           }}
           aria-label="Assigned team"
-          className="h-8 min-w-[200px] text-[12px]"
+          className="h-8 min-w-50 text-[12px]"
           placeholder="Pick a team"
         />
       ) : null}
@@ -128,7 +128,7 @@ export function AutomationActionRow({
             onChange({ kind: "add_label", labelId: value });
           }}
           aria-label="Label to add"
-          className="h-8 min-w-[200px] text-[12px]"
+          className="h-8 min-w-50 text-[12px]"
           placeholder="Pick a label"
         />
       ) : null}
@@ -152,7 +152,7 @@ export function AutomationActionRow({
         >
           <SelectTrigger
             aria-label="Priority"
-            className="h-8 min-w-[140px] text-[12px]"
+            className="h-8 min-w-35 text-[12px]"
           >
             <SelectValue />
           </SelectTrigger>
@@ -185,7 +185,7 @@ export function AutomationActionRow({
         >
           <SelectTrigger
             aria-label="Status"
-            className="h-8 min-w-[140px] text-[12px]"
+            className="h-8 min-w-35 text-[12px]"
           >
             <SelectValue />
           </SelectTrigger>
@@ -210,7 +210,7 @@ export function AutomationActionRow({
               hours: Number(event.target.value) || 1,
             })
           }
-          className="h-8 w-[120px] font-mono text-[12px]"
+          className="h-8 w-30 font-mono text-[12px]"
         />
       ) : null}
 
@@ -227,7 +227,7 @@ export function AutomationActionRow({
             onChange({ kind: "run_macro", macroId: value });
           }}
           aria-label="Macro to run"
-          className="h-8 min-w-[220px] text-[12px]"
+          className="h-8 min-w-55 text-[12px]"
           placeholder="Pick a macro"
         />
       ) : null}

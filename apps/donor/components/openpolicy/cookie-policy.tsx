@@ -4,7 +4,7 @@ import { CookiePolicy } from "@openpolicy/react";
 
 import type { CSSProperties } from "react";
 
-import { policyComponents } from "@/components/openpolicy/policy-components";
+import { policyComponents } from "@/components/openpolicy/policy-component-map";
 
 const policyDocumentStyle: CSSProperties = {
   display: "flex",

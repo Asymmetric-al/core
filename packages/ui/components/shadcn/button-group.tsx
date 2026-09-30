@@ -85,5 +85,7 @@ export {
   ButtonGroup,
   ButtonGroupSeparator,
   ButtonGroupText,
+  // shadcn registry convention: variants ship next to the component.
+  // react-doctor-disable-next-line react-doctor/only-export-components
   buttonGroupVariants,
 };

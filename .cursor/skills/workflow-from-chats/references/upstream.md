@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/w
 source_type: github
 upstream_path: cursor-team-kit/skills/workflow-from-chats/
 skills_lock_hash: b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16
-last_reviewed: 2026-06-26
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: workflow-from-chats
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/workflow-from-chats/` (mirrored to 
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/workflow-from-chats/`
 - **Lock skillPath:** `cursor-team-kit/skills/workflow-from-chats/SKILL.md`
 - **Computed hash:** `b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16`
