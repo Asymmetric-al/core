@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { MotionProvider } from "@asym/lib/motion";
+import { MotionProvider } from "@asym/lib/motion-provider";
 
 import { DashboardHome } from "../../../packages/missionary/components/dashboard-home";
 
@@ -19,6 +19,9 @@ vi.mock("@asym/database/hooks", () => ({
 vi.mock("@asym/lib/hooks", () => ({
   useAuth: mocks.auth,
   useDonationMetrics: mocks.metrics,
+  useLocaleFormat: () => ({
+    formatDate: (value: string) => value,
+  }),
 }));
 vi.mock("@asym/env", () => ({
   clientEnv: { NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED: false },
