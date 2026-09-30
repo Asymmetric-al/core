@@ -66,7 +66,7 @@ export class OrdersService {
 }
 
 // Easy to test with mocks
-describe('OrdersService', () => {
+describe("OrdersService", () => {
   let service: OrdersService;
 
   beforeEach(async () => {
@@ -90,9 +90,9 @@ export class HandlerFactory {
 
   getHandler(type: string): Handler {
     switch (type) {
-      case 'email':
+      case "email":
         return this.moduleRef.get(EmailHandler);
-      case 'sms':
+      case "sms":
         return this.moduleRef.get(SmsHandler);
       default:
         return this.moduleRef.get(DefaultHandler);

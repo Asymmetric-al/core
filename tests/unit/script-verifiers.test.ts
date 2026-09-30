@@ -39,6 +39,52 @@ async function copyScript(tempRoot: string, relativePath: string) {
   await cp(sourcePath, targetPath);
 }
 
+function fencedMarkdownBlock(markdown: string, language: string) {
+  const lines = markdown.split("\n");
+  let fence:
+    | {
+        character: string;
+        length: number;
+      }
+    | undefined;
+  let capturing = false;
+  const captured: string[] = [];
+
+  for (const line of lines) {
+    const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+    if (fenceMatch) {
+      const marker = fenceMatch[2];
+      const markerCharacter = marker.charAt(0);
+      if (fence === undefined) {
+        fence = { character: markerCharacter, length: marker.length };
+        const info = fenceMatch[3].trim().split(/\s+/u)[0] ?? "";
+        capturing = info === language;
+        continue;
+      }
+
+      if (
+        markerCharacter === fence.character &&
+        marker.length >= fence.length &&
+        fenceMatch[3].trim() === ""
+      ) {
+        if (capturing) {
+          return captured.join("\n");
+        }
+
+        fence = undefined;
+        capturing = false;
+        continue;
+      }
+    }
+
+    if (capturing) {
+      captured.push(line);
+    }
+  }
+
+  throw new Error(`Missing markdown fence for ${language || "unlabeled"}`);
+}
+
 function runNodeScript(
   tempRoot: string,
   relativePath: string,
@@ -2268,5 +2314,564 @@ describe("data-boundary-check", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
     ).toThrow(/Twenty CRM boundary violations detected/);
+  });
+
+  it("allowlists demo credential-word lines in ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const originalJsonInput = `How do I reset my ${demoCredentialWord}?`;
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/claude-handoff");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      `# Handoff\n\nRedact API keys, ${demoCredentialWord}, or PII.\n`,
+    );
+    await mkdir(path.join(ecosystemDir, "assets"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "assets/examples.json"),
+      `{"input":"${originalJsonInput}"}\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/rest-api-template.py"),
+      `${demoCredentialWord}: str = Field(..., min_length=8)\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/table.md"),
+      [
+        "| Bad | Good |",
+        "| --- | --- |",
+        `| That ${demoCredentialWord} is too short | Choose a ${demoCredentialWord} with at least 8 characters |`,
+        "",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/SKILL.md"),
+        "utf8",
+      );
+      expect(copied).toContain("pragma: allowlist secret");
+      const jsonCopy = JSON.parse(
+        await readFile(
+          path.join(
+            tempRoot,
+            runtimeRoot,
+            "claude-handoff/assets/examples.json",
+          ),
+          "utf8",
+        ),
+      );
+      expect(jsonCopy.input).toBe(originalJsonInput);
+      expect(jsonCopy.input).not.toContain("pragma: allowlist secret");
+
+      const pythonPath = path.join(
+        tempRoot,
+        runtimeRoot,
+        "claude-handoff/assets/rest-api-template.py",
+      );
+      const pythonCopy = await readFile(pythonPath, "utf8");
+      expect(pythonCopy).toContain("# pragma: allowlist secret");
+      expect(pythonCopy).not.toContain("// pragma: allowlist secret");
+      execFileSync("python3", ["-m", "py_compile", pythonPath]);
+
+      const tableCopy = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/assets/table.md"),
+        "utf8",
+      );
+      const tableRow = tableCopy
+        .split("\n")
+        .find((line) => line.includes("too short"));
+      expect(tableRow).toContain("pragma: allowlist secret");
+      expect(tableRow?.match(/\|/g)?.length).toBe(3);
+    }
+  }, 60_000);
+
+  it("keeps fenced markdown examples executable when allowlisting demo credential-word lines", async () => {
+    const tempRoot = await createTempRepo("sync-skills-fenced-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/fenced-examples");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      [
+        "---",
+        "name: fenced-examples",
+        "description: Fenced scanner fixture",
+        "---",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
+        "",
+        "```",
+        `unlabeled ${demoCredentialWord}`,
+        "```",
+        "",
+        "```json",
+        `{"secret":"${demoCredentialWord}"}`,
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "fenced-examples/SKILL.md"),
+        "utf8",
+      );
+      const jsFence = fencedMarkdownBlock(copied, "js");
+      const tsFence = fencedMarkdownBlock(copied, "typescript");
+      const bashFence = fencedMarkdownBlock(copied, "bash");
+      const sqlFence = fencedMarkdownBlock(copied, "sql");
+      const htmlFence = fencedMarkdownBlock(copied, "html");
+      const graphqlFence = fencedMarkdownBlock(copied, "graphql");
+      const markdownFence = fencedMarkdownBlock(copied, "markdown");
+      const unlabeledFence = fencedMarkdownBlock(copied, "");
+      const jsonFence = fencedMarkdownBlock(copied, "json");
+      const proseLine = copied
+        .split("\n")
+        .find((line) => line.includes("outside fences"));
+
+      expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+      expect(jsFence).toContain("// pragma: allowlist secret");
+      expect(jsFence).not.toContain("<!--");
+      expect(tsFence).toContain("// pragma: allowlist secret");
+      expect(tsFence).not.toContain("<!--");
+      expect(bashFence).toContain("# pragma: allowlist secret");
+      expect(bashFence).not.toContain("<!--");
+      expect(bashFence).toContain(
+        `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+      );
+      expect(sqlFence).toContain("-- pragma: allowlist secret");
+      expect(sqlFence).not.toContain("<!--");
+      expect(htmlFence).toContain("<!-- pragma: allowlist secret -->");
+      expect(graphqlFence).toContain("# pragma: allowlist secret");
+      expect(markdownFence).toContain(
+        `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+      );
+      expect(unlabeledFence).not.toContain("pragma: allowlist secret");
+      expect(unlabeledFence).not.toContain("<!--");
+      expect(jsonFence).not.toContain("pragma: allowlist secret");
+      expect(jsonFence).not.toContain("<!--");
+    }
+  }, 60_000);
+
+  it("strips macOS Finder junk from ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-macos-junk");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/deploy-to-vercel");
+    await mkdir(path.join(ecosystemDir, "__MACOSX"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      "---\nname: deploy-to-vercel\n---\n# Deploy\n",
+    );
+    await writeFile(path.join(ecosystemDir, "Archive.zip"), "zip-bytes");
+    await writeFile(path.join(ecosystemDir, ".DS_Store"), "store");
+    await writeFile(path.join(ecosystemDir, "._SKILL.md"), "appledouble");
+    await writeFile(path.join(ecosystemDir, "__MACOSX/._junk"), "junk");
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const skillDir = path.join(tempRoot, runtimeRoot, "deploy-to-vercel");
+      expect(existsSync(path.join(skillDir, "SKILL.md"))).toBe(true);
+      expect(existsSync(path.join(skillDir, "Archive.zip"))).toBe(false);
+      expect(existsSync(path.join(skillDir, ".DS_Store"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "._SKILL.md"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "__MACOSX"))).toBe(false);
+    }
+  }, 60_000);
+
+  it("keeps fenced markdown examples executable after a paid skill refresh", async () => {
+    const tempRoot = await createTempRepo("refresh-fenced-scanner");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      [
+        "---",
+        "name: emil-design-engineering",
+        "description: refreshed",
+        "---",
+        "",
+        "# Fresh paid skill",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
+        "",
+      ].join("\n"),
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      { HOME: tempRoot },
+    );
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const proseLine = refreshed
+      .split("\n")
+      .find((line) => line.includes("outside fences"));
+    expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+    expect(fencedMarkdownBlock(refreshed, "js")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "js")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "typescript")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "typescript")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "bash")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+    );
+    expect(fencedMarkdownBlock(refreshed, "sql")).toContain(
+      "-- pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "html")).toContain(
+      "<!-- pragma: allowlist secret -->",
+    );
+    expect(fencedMarkdownBlock(refreshed, "graphql")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "markdown")).toContain(
+      `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+    );
+  });
+
+  const askMattGrillDepthOverlay = [
+    "<!-- CORE-OVERLAY-START -->",
+    "",
+    "1. **Choose the grill depth.** Use **`/grill-with-docs`** for the normal codebase-backed interview: it is stateful, retaining what it learns in `CONTEXT.md` and ADRs. Use **`/grill-for-unknowns` instead** only when the user explicitly requests its map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet; it owns that session's grilling loop, so do not also run `/grilling` or `/grill-with-docs`. (No codebase? Use `/grill-me` — see Standalone.)",
+    "<!-- CORE-OVERLAY-END -->",
+  ].join("\n");
+
+  const askMattUpstreamBody = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+    "",
+  ].join("\n");
+
+  const askMattCanonicalSkill = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    askMattGrillDepthOverlay,
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
+    "",
+  ].join("\n");
+
+  function askMattOverlayPlacement(content: string) {
+    return {
+      heading: content.indexOf("## The main flow: idea → ship"),
+      overlay: content.indexOf("<!-- CORE-OVERLAY-START -->"),
+      stepTwo: content.indexOf("2. **Branch"),
+    };
+  }
+
+  it("restores the Ask Matt grill-depth overlay under the main flow after a CLI add", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-main-flow");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalRoot = path.join(tempRoot, "docs/ai/skills/ask-matt");
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, askMattUpstreamBody);
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      askMattCanonicalSkill,
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "# Core provenance\n",
+    );
+
+    runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+      "--only=mattpocock/skills",
+    ]);
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const placement = askMattOverlayPlacement(refreshed);
+    expect(placement.heading).toBeGreaterThan(-1);
+    expect(placement.overlay).toBeGreaterThan(placement.heading);
+    expect(placement.stepTwo).toBeGreaterThan(placement.overlay);
+    expect(refreshed).toContain("/grill-for-unknowns");
+    expect(refreshed).toContain("/writing-great-skills");
+    expect(refreshed).not.toContain("/writing-for-agents");
+    expect(refreshed).not.toContain(
+      "1. **`/grill-with-docs`** sharpens the idea by interview.",
+    );
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("# Core provenance\n");
+  });
+
+  it("fails closed when the Ask Matt overlay is restored after the H1 instead of the main flow", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-misplaced-overlay");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const misplacedSource = [
+      "---",
+      "name: ask-matt",
+      "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+      "disable-model-invocation: true",
+      "---",
+      "",
+      "# Ask Matt",
+      "",
+      askMattGrillDepthOverlay,
+      "",
+      "You don't remember every skill, so ask.",
+      "",
+      "## The main flow: idea → ship",
+      "",
+      "The route most work travels. You have an idea and want it built.",
+      "",
+      "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+      "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+      "",
+      "## Standalone",
+      "",
+      "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+      "",
+    ].join("\n");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalSkillPath = path.join(
+      tempRoot,
+      "docs/ai/skills/ask-matt/SKILL.md",
+    );
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, misplacedSource);
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, askMattCanonicalSkill);
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=mattpocock/skills",
+      ]),
+    ).toThrow(/main flow/);
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      askMattCanonicalSkill,
+    );
   });
 });

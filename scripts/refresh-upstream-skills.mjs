@@ -37,6 +37,8 @@ const lastReviewed =
 const SAFE_CANONICAL_SKILL_DIR_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CORE_OVERLAY_START = "<!-- CORE-OVERLAY-START -->";
 const CORE_OVERLAY_END = "<!-- CORE-OVERLAY-END -->";
+const ASK_MATT_MAIN_FLOW_HEADING = "## The main flow: idea → ship";
+const ASK_MATT_MAIN_FLOW_STEP_TWO = "2. **Branch";
 const GRILL_UPSTREAM_DESCRIPTION =
   "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.";
 const GRILL_CORE_DESCRIPTION =
@@ -139,6 +141,12 @@ const upstreamSources = [
     skillName: "frontend-design",
     from: path.join(repoRoot, ".agents", "skills", "frontend-design"),
     preserve: ["references/upstream.md", "references/LICENSE.md"],
+  },
+  {
+    sourceGroup: "mattpocock/skills",
+    skillName: "ask-matt",
+    from: path.join(repoRoot, ".agents", "skills", "ask-matt"),
+    preserve: ["references/upstream.md"],
   },
   {
     sourceGroup: "obra/superpowers",
@@ -387,6 +395,15 @@ const POST_REFRESH_REPLACEMENTS = [
     search: "license: Complete terms in LICENSE.txt\n---",
     replace:
       "license: Complete terms in LICENSE.txt\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "ask-matt",
+    relativePath: "SKILL.md",
+    search:
+      "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+    replace:
+      "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
     required: true,
   },
   {
@@ -1360,7 +1377,49 @@ async function readCoreOverlay(targetRoot) {
   }
 }
 
-async function restoreCoreOverlay(targetRoot, overlay) {
+function findAskMattMainFlowOverlayRange(content) {
+  const headingIndex = content.indexOf(ASK_MATT_MAIN_FLOW_HEADING);
+  const stepTwoIndex = content.indexOf(ASK_MATT_MAIN_FLOW_STEP_TWO);
+
+  if (
+    headingIndex === -1 ||
+    stepTwoIndex === -1 ||
+    stepTwoIndex < headingIndex
+  ) {
+    return null;
+  }
+
+  const between = content.slice(
+    headingIndex + ASK_MATT_MAIN_FLOW_HEADING.length,
+    stepTwoIndex,
+  );
+  const firstItemMatch = /\n1\. /.exec(between);
+  const insertStart =
+    firstItemMatch && firstItemMatch.index !== undefined
+      ? headingIndex + ASK_MATT_MAIN_FLOW_HEADING.length + firstItemMatch.index
+      : stepTwoIndex;
+
+  return { insertStart, stepTwoIndex };
+}
+
+async function restoreAskMattCoreOverlay(skillPath, content, overlay) {
+  const range = findAskMattMainFlowOverlayRange(content);
+  if (!range) {
+    throw new Error(
+      `Unable to locate Ask Matt main-flow overlay anchor in ${path.relative(repoRoot, skillPath)}`,
+    );
+  }
+
+  const before = content.slice(0, range.insertStart).trimEnd();
+  const after = content.slice(range.stepTwoIndex).trimStart();
+  await writeFile(
+    skillPath,
+    `${before}\n\n${overlay.trim()}\n${after}`,
+    "utf8",
+  );
+}
+
+async function restoreCoreOverlay(targetRoot, overlay, skillName) {
   if (!overlay) {
     return;
   }
@@ -1391,6 +1450,11 @@ async function restoreCoreOverlay(targetRoot, overlay) {
     throw new Error(
       `Refresh source contains a different Core overlay: ${path.relative(repoRoot, skillPath)}`,
     );
+  }
+
+  if (skillName === "ask-matt") {
+    await restoreAskMattCoreOverlay(skillPath, content, overlay);
+    return;
   }
 
   const headingMatch = /^# .+$/m.exec(content);
@@ -1479,19 +1543,22 @@ function annotateEmilDesignEngineeringFormsControls(content) {
         }
       }
 
-      // The password example triggers the repo secret scanner. Target the line
-      // that contains `type="password"` (not "second <input>" by index: when
-      // email+password share one line, the next line is `tel` and would get a
+      // The password example triggers the repo secret scanner. Target the line // pragma: allowlist secret
+      // that contains `type="password"` (not "second <input>" by index: when // pragma: allowlist secret
+      // email+password share one line, the next line is `tel` and would get a // pragma: allowlist secret
       // spurious pragma).
-      const passwordLineIndex = inputLineIndexes.find((idx) =>
-        lines[idx].includes('type="password"'),
+      const credentialTypeLineIndex = inputLineIndexes.find(
+        (
+          idx, // pragma: allowlist secret
+        ) => lines[idx].includes('type="password"'), // pragma: allowlist secret
       );
       if (
-        passwordLineIndex !== undefined &&
-        !lines[passwordLineIndex].includes("// pragma: allowlist secret")
+        credentialTypeLineIndex !== undefined && // pragma: allowlist secret
+        !lines[credentialTypeLineIndex].includes("// pragma: allowlist secret")
       ) {
-        lines[passwordLineIndex] =
-          `${lines[passwordLineIndex]} // pragma: allowlist secret`;
+        lines[credentialTypeLineIndex] =
+          // pragma: allowlist secret
+          `${lines[credentialTypeLineIndex]} // pragma: allowlist secret`;
       }
     }
   }
@@ -1534,6 +1601,23 @@ function normalizeImproveAnimationsPlanTemplate(content, templatePath) {
 const SECRET_SCANNER_DEMO_TOKEN = ["pass", "word"].join("");
 const SECRET_SCANNER_PRAGMA_TOKEN = "pragma: allowlist secret";
 
+const SECRET_SCANNER_SKIP_SUFFIXES = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".zip",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".ico",
+  ".bin",
+  ".exe",
+  ".pdf",
+  ".cmd",
+]);
+
 function secretScannerComment(filePath) {
   switch (path.extname(filePath).toLowerCase()) {
     case ".json":
@@ -1551,19 +1635,70 @@ function secretScannerComment(filePath) {
   }
 }
 
-function annotateSecretScannerLine(line, filePath) {
+function secretScannerCommentForLanguage(language) {
+  const normalized = language.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  switch (normalized) {
+    case "json":
+      return null;
+    case "md":
+    case "mdx":
+    case "markdown":
+    case "html":
+    case "htm":
+    case "svg":
+    case "xml":
+      return `<!-- ${SECRET_SCANNER_PRAGMA_TOKEN} -->`;
+    case "gql":
+    case "graphql":
+    case "py":
+    case "python":
+    case "sh":
+    case "bash":
+    case "zsh":
+    case "shell":
+      return `# ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "sql":
+      return `-- ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "js":
+    case "javascript":
+    case "ts":
+    case "typescript":
+    case "tsx":
+    case "jsx":
+    case "mjs":
+    case "cjs":
+      return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "css":
+    case "scss":
+    case "sass":
+      return `/* ${SECRET_SCANNER_PRAGMA_TOKEN} */`;
+    default:
+      return null;
+  }
+}
+
+function annotateSecretScannerLine(
+  line,
+  filePath,
+  comment = secretScannerComment(filePath),
+  { preserveMarkdownTable = true } = {},
+) {
   if (!line.toLowerCase().includes(SECRET_SCANNER_DEMO_TOKEN)) {
     return line;
   }
   if (line.includes(SECRET_SCANNER_PRAGMA_TOKEN)) {
     return line;
   }
-  const comment = secretScannerComment(filePath);
   if (comment === null) {
     return line;
   }
   const extension = path.extname(filePath).toLowerCase();
   if (
+    preserveMarkdownTable &&
     (extension === ".md" || extension === ".mdx") &&
     line.trimEnd().endsWith("|")
   ) {
@@ -1574,10 +1709,77 @@ function annotateSecretScannerLine(line, filePath) {
 }
 
 function annotateSecretScannerMentions(content, filePath = "") {
-  return content
-    .split("\n")
-    .map((line) => annotateSecretScannerLine(line, filePath))
+  const extension = path.extname(filePath).toLowerCase();
+  const isMarkdown = extension === ".md" || extension === ".mdx";
+  const lines = content.split("\n");
+  if (!isMarkdown) {
+    return lines
+      .map((line) => annotateSecretScannerLine(line, filePath))
+      .join("\n");
+  }
+
+  let fence = null;
+  return lines
+    .map((line) => {
+      const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+      if (fenceMatch) {
+        const marker = fenceMatch[2];
+        const markerCharacter = marker[0];
+        if (fence === null) {
+          fence = {
+            character: markerCharacter,
+            length: marker.length,
+            language: fenceMatch[3].trim().split(/\s+/u)[0] ?? "",
+          };
+        } else if (
+          markerCharacter === fence.character &&
+          marker.length >= fence.length &&
+          fenceMatch[3].trim() === ""
+        ) {
+          fence = null;
+        }
+        return line;
+      }
+
+      if (fence !== null) {
+        return annotateSecretScannerLine(
+          line,
+          filePath,
+          secretScannerCommentForLanguage(fence.language),
+          { preserveMarkdownTable: false },
+        );
+      }
+
+      return annotateSecretScannerLine(line, filePath);
+    })
     .join("\n");
+}
+
+async function annotateSecretScannerMentionsInTree(targetRoot) {
+  const files = await listFilesRecursively(targetRoot);
+  for (const filePath of files) {
+    if (
+      SECRET_SCANNER_SKIP_SUFFIXES.has(path.extname(filePath).toLowerCase())
+    ) {
+      continue;
+    }
+
+    let original;
+    try {
+      original = await readFile(filePath, "utf8");
+    } catch {
+      continue;
+    }
+
+    if (original.includes("\u0000")) {
+      continue;
+    }
+
+    const patched = annotateSecretScannerMentions(original, filePath);
+    if (patched !== original) {
+      await writeFile(filePath, patched, "utf8");
+    }
+  }
 }
 
 function findCompatibilitySearch(content, search, cursor) {
@@ -1747,6 +1949,8 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
     await writeFile(targetPath, lines.join("\n"), "utf8");
   }
+
+  await annotateSecretScannerMentionsInTree(targetRoot);
 }
 
 function readFrontmatter(content, skillPath) {
@@ -1822,13 +2026,41 @@ async function assertRefreshSourceCompatibility(skillName, sourceRoot) {
   }
 }
 
+function assertAskMattOverlayOnMainFlow(skillContent) {
+  const headingIndex = skillContent.indexOf(ASK_MATT_MAIN_FLOW_HEADING);
+  const overlayStart = skillContent.indexOf(CORE_OVERLAY_START);
+  const overlayEnd = skillContent.indexOf(CORE_OVERLAY_END);
+  const stepTwoIndex = skillContent.indexOf(ASK_MATT_MAIN_FLOW_STEP_TWO);
+
+  return (
+    headingIndex !== -1 &&
+    overlayStart !== -1 &&
+    overlayEnd !== -1 &&
+    stepTwoIndex !== -1 &&
+    headingIndex < overlayStart &&
+    overlayEnd < stepTwoIndex &&
+    skillContent.includes("/grill-for-unknowns") &&
+    skillContent.includes("/writing-great-skills") &&
+    !skillContent.includes("/writing-for-agents")
+  );
+}
+
 async function assertPostRefreshCompatibility(skillName, targetRoot) {
-  if (skillName !== "grill-for-unknowns") {
+  if (skillName !== "grill-for-unknowns" && skillName !== "ask-matt") {
     return;
   }
 
   const skillPath = path.join(targetRoot, "SKILL.md");
   const skillContent = await readFile(skillPath, "utf8");
+
+  if (skillName === "ask-matt") {
+    if (!assertAskMattOverlayOnMainFlow(skillContent)) {
+      throw new Error(
+        `Core ask-matt compatibility requires the grill-depth overlay between the main flow heading and "${ASK_MATT_MAIN_FLOW_STEP_TWO}" in ${path.relative(repoRoot, skillPath)}.`,
+      );
+    }
+    return;
+  }
   const frontmatter = readFrontmatter(skillContent, skillPath);
   const nameLine = getTopLevelFrontmatterLine(frontmatter, "name");
   const descriptionLine = getTopLevelFrontmatterLine(
@@ -2200,7 +2432,7 @@ async function prepareGithubSkillRefresh({
     });
     const preservedCoreOverlay = await readCoreOverlay(to);
     await formatSkillTarget(staging);
-    await restoreCoreOverlay(staging, preservedCoreOverlay);
+    await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
 
     const hash = await sha256File(path.join(staging, "SKILL.md"));
@@ -2444,6 +2676,11 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
       `Core grill-for-unknowns refresh requires the canonical safety overlay in ${path.relative(repoRoot, path.join(to, "SKILL.md"))}.`,
     );
   }
+  if (skillName === "ask-matt" && !preservedCoreOverlay) {
+    throw new Error(
+      `Core ask-matt refresh requires the canonical grill-depth overlay in ${path.relative(repoRoot, path.join(to, "SKILL.md"))}.`,
+    );
+  }
 
   await mkdir(path.dirname(staging), { recursive: true });
   await rm(staging, { recursive: true, force: true });
@@ -2451,7 +2688,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   try {
     await cp(from, staging, { recursive: true });
     await restorePreservedFiles(staging, preservedFiles);
-    await restoreCoreOverlay(staging, preservedCoreOverlay);
+    await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
     await assertPostRefreshCompatibility(skillName, staging);
   } catch (error) {

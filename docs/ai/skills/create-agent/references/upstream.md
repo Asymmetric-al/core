@@ -4,7 +4,7 @@ source_url: https://github.com/ikindacodes/ship-eve
 source_type: github
 upstream_path: skills/create-agent/SKILL.md
 skills_lock_hash: c8575147679edca4064025fe922032a00732b6bb208ae2a8f51a7b2d783df6da
-last_reviewed: 2026-06-28
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: create-agent
@@ -12,16 +12,13 @@ last_reviewed: 2026-06-28
 Canonical copy in this repo: `docs/ai/skills/create-agent/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/ikindacodes/ship-eve
-- **Upstream path:** `skills/create-agent/SKILL.md`
-- **Install via Skills CLI:** `npx skills add https://github.com/ikindacodes/ship-eve --skill create-agent -y`
+- **Upstream path (historical):** `skills/create-agent/SKILL.md`
+- **Status:** **kept snapshot**. As of 2026-09-16, `ikindacodes/ship-eve` no longer publishes a `skills/` tree. The repository now contains example agents under `agents/`, `apps/`, and `packages/` instead of a Skills CLI package. `npx skills add ikindacodes/ship-eve --skill create-agent -y` cannot refresh this skill.
 
-## Refresh from ecosystem
+## Why this snapshot stays
 
-1. `npx skills add https://github.com/ikindacodes/ship-eve --skill create-agent -y` updates `.agents/skills/create-agent/` and `skills-lock.json`.
-2. Copy the skill tree into `docs/ai/skills/create-agent/` if the canonical copy needs updating.
-3. Preserve this `references/upstream.md` file.
-4. Run `bun run skills:sync` and `bun run skills:verify`.
+Pair with **`docs/ai/skills/eve/SKILL.md`** for current eve implementation details. Keep this snapshot so existing routing and lockfile identity remain stable until a replacement scaffold skill is explicitly chosen.
 
-Pair with **`docs/ai/skills/eve/SKILL.md`** for implementation details after scaffolding.
+Do **not** treat a 404 on `skills/create-agent/SKILL.md` as a reason to delete this skill during a catalog refresh.
 
 This skill is **not** updated by `bun run skills:refresh-upstream` today.

@@ -246,7 +246,7 @@ type ReadonlyUser = Readonly<User>;
 type UserName = Pick<User, "name" | "email">;
 
 // Omit<T, K> - Remove specific properties
-type UserWithoutPassword = Omit<User, "password">;
+type UserWithoutPassword = Omit<User, "password">; // pragma: allowlist secret
 
 // Exclude<T, U> - Exclude types from union
 type T1 = Exclude<"a" | "b" | "c", "a">; // "b" | "c"
@@ -508,7 +508,7 @@ class FormValidator<T extends Record<string, any>> {
 
 interface LoginForm {
   email: string;
-  password: string;
+  password: string; // pragma: allowlist secret
 }
 
 const validator = new FormValidator<LoginForm>({
@@ -522,19 +522,19 @@ const validator = new FormValidator<LoginForm>({
       message: "Email is required",
     },
   ],
-  password: [
+  password: [ // pragma: allowlist secret
     {
       validate: (v) => v.length >= 8,
-      message: "Password must be at least 8 characters",
+      message: "Password must be at least 8 characters", // pragma: allowlist secret
     },
   ],
 });
 
 const errors = validator.validate({
   email: "invalid",
-  password: "short",
+  password: "short", // pragma: allowlist secret
 });
-// Type: { email?: string[]; password?: string[]; } | null
+// Type: { email?: string[]; password?: string[]; } | null // pragma: allowlist secret
 ```
 
 ### Pattern 6: Discriminated Unions

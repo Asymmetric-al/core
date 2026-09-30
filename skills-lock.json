@@ -171,7 +171,7 @@
     "eve": {
       "source": "vercel/eve",
       "sourceType": "github",
-      "skillPath": "SKILL.md",
+      "skillPath": "skills/eve/SKILL.md",
       "computedHash": "79a1e606ecf33eed33c1f3adc1cc266de391e19aa9237ca37e4f3aa3fba6b228"
     },
     "fix-ci": {
@@ -205,7 +205,7 @@
       "source": "nicobailon/grill-for-unknowns",
       "sourceType": "github",
       "skillPath": "plugins/grill-for-unknowns/SKILL.md",
-      "computedHash": "8e5fa5e057cbd0833170ca7f31ecb569bcce689b8e2c8f14cf8f4072ac85c395"
+      "computedHash": "ac22e2512d2821884d96f25ebee00854409cb375197f7f023ee654090ff05b47"
     },
     "grill-me": {
       "source": "mattpocock/skills",
@@ -294,9 +294,9 @@
       "computedHash": "67fdd18f8f4f7c89b3003eb944220679272738c1deb680719fd2e282495d87f4"
     },
     "nestjs-best-practices": {
-      "source": "kadajett/agent-nestjs-skills",
+      "source": "Kadajett/agent-nestjs-skills",
       "sourceType": "github",
-      "skillPath": "SKILL.md",
+      "skillPath": "skills/nestjs-best-practices/SKILL.md",
       "computedHash": "68658903272e1015f3ec5084c7d0988216a47f42f675ed819a675250fc6a23cd"
     },
     "new-branch-and-pr": {
@@ -406,7 +406,7 @@
     "playwright-best-practices": {
       "source": "currents-dev/playwright-best-practices-skill",
       "sourceType": "github",
-      "skillPath": "SKILL.md",
+      "skillPath": "playwright-best-practices/SKILL.md",
       "computedHash": "996c8cafaa0b6bcb1a6de785a63fb4a3dfe794f17584ff82daedec9e3eaacad3"
     },
     "playwright-skill": {
@@ -459,7 +459,7 @@
       "computedHash": "27aa881e2a230f9ea335cd1ee9f847a0b00b38a9b73eaf2a365c63abb9cb4980"
     },
     "resend-cli": {
-      "source": "resend/resend-skills",
+      "source": "resend/resend-cli",
       "sourceType": "github",
       "skillPath": "skills/resend-cli/SKILL.md",
       "computedHash": "c06b046b871b0d35dad79b71aa316335750d46f9557f5d25f3e533662ae4ea24"

@@ -2,7 +2,7 @@
 name: vercel-optimize
 description: "Use for Vercel cost and performance optimization on deployed projects, especially Next.js, SvelteKit, Nuxt, and limited Astro apps. Collect Vercel metrics, usage, project config, and code scan results first; investigate only metric-backed candidates; produce ranked recommendations grounded in verified files and version-aware Vercel/framework docs. Trigger for Vercel bill reduction, slow or expensive routes, caching opportunities, Function Invocations, Build Minutes, Fast Data Transfer, Core Web Vitals, Bot Management, Fluid compute, or cost breakdown requests."
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Vercel Optimize
@@ -21,7 +21,7 @@ Core doctrine: read [references/doctrine.md](references/doctrine.md) if any rule
 
 - Vercel CLI v53+ with `vercel metrics`, `vercel usage`, `vercel contract`, and `vercel api`.
 - Authenticated CLI session: `vercel login`.
-- Linked app directory: `vercel link`. `VERCEL_PROJECT_ID` can help resolve project config, but `vercel metrics` still requires directory linkage.
+- Linked app directory: `vercel link`. `VERCEL_PROJECT_ID` can help resolve project config, but `vercel metrics` still requires directory linkage. The link or environment must include the intended project org/team/user scope so the collector can resolve a CLI-safe `--scope` and keep `vercel metrics`, `vercel usage`, and `vercel contract` on the same account.
 - Node.js 20+.
 - Observability Plus for route-level metric-backed recommendations.
 
@@ -74,6 +74,18 @@ node scripts/merge-signals.mjs "$RUN_DIR/vercel-signals.json" "$RUN_DIR/codebase
 
 Collection details, schemas, metric IDs, and degradation behavior live in [references/data-collection.md](references/data-collection.md). The metric registry is [lib/queries.mjs](lib/queries.mjs); keep all queries on the shared 14-day window.
 
+`collect-signals.mjs` resolves the linked project owner to `commandScope.cliScope` and verifies that the resolved account can read the resolved project before it checks Observability Plus. Downstream scripts reuse that scope for every Vercel CLI command that accepts `--scope`. Do not run `vercel usage`, `vercel metrics`, or `vercel contract` manually without the same scope; unscoped usage can report the user's personal organization while route metrics come from the team project.
+
+If project or scope resolution is ambiguous, stop and ask the user which Vercel project and team/personal scope they want audited. Do not infer the intended scope from the current `vercel whoami` team, and do not proceed with metrics, usage, or contract collection until the link, an exact project match in `.vercel/repo.json`, or `VERCEL_PROJECT_ID` + `VERCEL_ORG_ID` identifies the intended account.
+
+Use this prompt for `PROJECT_SCOPE_UNRESOLVED`, `SCOPE_UNRESOLVED`, or `PROJECT_SCOPE_MISMATCH`:
+
+```text
+I can't safely identify the Vercel project and account for this audit yet.
+
+Please confirm the Vercel project name or ID and the team slug/name, or tell me it's under your personal account. Once confirmed, I'll relink or rerun collection against that exact scope before checking metrics.
+```
+
 ### 1.1 Stop on blockers
 
 Check blockers before gating:
@@ -85,6 +97,7 @@ jq '{frameworkSupportBlocker, observabilityPlus, observabilityPlusUsable, observ
 Required actions:
 
 - `frameworkSupportBlocker === "unsupported_framework"`: use the unsupported-framework prompt above.
+- `PROJECT_SCOPE_UNRESOLVED`, `SCOPE_UNRESOLVED`, or `PROJECT_SCOPE_MISMATCH`: stop and ask which Vercel project and team/personal scope the user wants audited. For team projects, rerun after `vercel link --yes --project <project-name-or-id> --team <team-slug>`; for personal projects, rerun after linking under the intended user account or after setting both `VERCEL_PROJECT_ID` and `VERCEL_ORG_ID`.
 - `observabilityPlusBlocker === null`: continue.
 - `no_traffic`: tell the user route metrics are sparse; continue only if they accept limited output.
 - `payment_required` or `no_oplus_probe`: render [references/observability-plus.md](references/observability-plus.md) verbatim and ask.
@@ -158,7 +171,7 @@ node scripts/reconcile-candidates.mjs "$RUN_DIR/investigation-evidence.json" \
   --out "$RUN_DIR/reconciled-investigation.json"
 ```
 
-`--cwd` must be the linked project directory so `vercel metrics` resolves the right project/team.
+`--cwd` must be the linked project directory so `deep-dive.mjs` can verify the same project link and reuse `signals.json.commandScope.cliScope` for any follow-up `vercel metrics` calls.
 
 Reconciliation deterministically converts disproven candidates into observations before any source investigation:
 
@@ -254,6 +267,9 @@ Every recommendation must:
 - Include at least one allowed citation that applies to the detected framework/version.
 - Use precise observed performance numbers.
 - Use cost magnitude phrases only; never customer-facing `$N` savings.
+- Do not recommend duration reductions for Vercel Workflow runtime endpoints (`/.well-known/workflow/v1/*`). These are generated orchestration routes for durable step/flow execution and should be hard-gated before investigation.
+- Workflow recommendations must name the boundary being changed. Valid examples: enqueue durable work and return a run ID instead of awaiting completion, fix stream replay/closure/locks, or reduce verified excess Workflow Steps/Storage. Do not infer cost savings from Workflow endpoint wall-clock duration.
+- For streaming, SSE, resumable chat, or other intentionally long-lived routes, do not frame wall-clock function duration as a problem by itself. Require evidence of avoidable pre-first-byte work, high active CPU, duplicate invocations, or post-response work that can move out of the user-visible path.
 - Name a specific cache policy when recommending caching.
 - Keep unsafe responses dynamic unless evidence proves they are safe to cache: auth-sensitive paths, errors, fallback responses, missing content, invalid requests, geolocation/device-varying output, and unversioned dynamic URLs.
 

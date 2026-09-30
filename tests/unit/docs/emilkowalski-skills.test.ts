@@ -125,6 +125,12 @@ describe("emilkowalski skill pack", () => {
     expect(
       readSkillFile("docs/ai/skills", "emil-prototype", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
+    expect(lock.skills["mobile-native"]).toMatchObject({
+      source: packSource,
+      sourceType: "github",
+      skillPath: "skills/mobile-native/SKILL.md",
+    });
+    expect(skillRouting).toContain("docs/ai/skills/mobile-native/SKILL.md");
     expect(readSkillFile("docs/ai/skills", "animate", "SKILL.md")).toContain(
       "disable-model-invocation: true",
     );

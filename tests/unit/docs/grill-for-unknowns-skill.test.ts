@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -16,6 +17,7 @@ const upstreamFiles = [
   "LICENSE",
   "README.md",
   "SKILL.md",
+  ".claude-plugin/plugin.json",
   "references/domain-modeling-add-on.md",
   "references/upstream-lineage.md",
   "templates/ADR.md",
@@ -89,28 +91,40 @@ describe("grill-for-unknowns skill", () => {
     };
 
     expect(skill).toContain(`\nname: ${skillName}\n`);
-    expect(skill).toContain("version: 0.1.1");
+    expect(skill).toContain("version: 0.1.3");
     expect(skill).toContain("disable-model-invocation: true");
     expect(skill).toContain("Use only when the user explicitly invokes");
     expect(skill).toContain("<!-- CORE-OVERLAY-START -->");
     expect(skill).toContain("<!-- CORE-OVERLAY-END -->");
-    expect(provenance).toContain("dc132fc8be26529579cff896e7618550d0d9736b");
+    expect(provenance).toContain("d8d5f4b422b8be1301dd4a515d96589eaddc5f3c");
     expect(provenance).toContain("plugins/grill-for-unknowns/");
+    const computedHash = createHash("sha256")
+      .update(
+        readFileSync(
+          path.join(repoRoot, "docs/ai/skills", skillName, "SKILL.md"),
+        ),
+      )
+      .digest("hex");
     expect(lock.skills[skillName]).toEqual({
       source: "nicobailon/grill-for-unknowns",
       sourceType: "github",
       skillPath: "plugins/grill-for-unknowns/SKILL.md",
-      computedHash:
-        "8e5fa5e057cbd0833170ca7f31ecb569bcce689b8e2c8f14cf8f4072ac85c395",
+      computedHash,
     });
     expect(skillRouting).toContain(
       "docs/ai/skills/grill-for-unknowns/SKILL.md",
     );
     expect(skillRouting).toContain("do not pair it redundantly");
     expect(askMatt).toContain("/grill-for-unknowns");
+    expect(askMatt).toContain("/writing-great-skills");
+    expect(askMatt).not.toContain("/writing-for-agents");
     expect(packageJson.scripts["skills:refresh-grill-for-unknowns"]).toBe(
       "node scripts/refresh-upstream-skills.mjs --only=nicobailon/grill-for-unknowns",
     );
+    expect(packageJson.scripts["skills:refresh-ask-matt"]).toBe(
+      "node scripts/refresh-upstream-skills.mjs --only=mattpocock/skills",
+    );
+    expect(skillRouting).toContain("skills:refresh-ask-matt");
     expect(readRepoFile("CLAUDE.md")).toBe("@AGENTS.md\n");
   });
 
@@ -125,6 +139,7 @@ describe("grill-for-unknowns skill", () => {
     expect(readme).toContain("Core, Codex, Cursor, and Claude Code");
     expect(readme).toContain("Hermes, Codex, Cursor, or Claude Code");
     expect(readme).toContain("├── LICENSE");
+    expect(readme).toContain("│   └── plugin.json");
     expect(readme).toContain("│   └── upstream.md");
     expect(readme).toContain(mattCommit);
     expect(skill).toContain("untrusted evidence");
