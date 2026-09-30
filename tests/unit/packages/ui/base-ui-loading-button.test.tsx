@@ -34,3 +34,27 @@ it("keeps ordinary disabled auth actions unfocusable", () => {
     screen.getByRole("button", { name: "Sign in" }).hasAttribute("disabled"),
   ).toBe(true);
 });
+it("natively disables a loading submit AuthButton instead of using aria-disabled", () => {
+  render(
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <label>
+        Password
+        <input name="password" defaultValue="fixture-password" />
+      </label>
+      <AuthButton type="submit" loading>
+        Signing in
+      </AuthButton>
+    </form>,
+  );
+  const button = screen.getByRole("button", { name: "Signing in" });
+  const field = screen.getByRole("textbox", { name: "Password" });
+  field.focus();
+  expect(document.activeElement).toBe(field);
+  expect(button.getAttribute("type")).toBe("submit");
+  expect(button.hasAttribute("disabled")).toBe(true);
+  expect(button.getAttribute("aria-disabled")).not.toBe("true");
+});
