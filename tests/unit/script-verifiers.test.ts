@@ -977,6 +977,327 @@ describe("refresh-upstream-skills", () => {
     ).toThrow(/non-empty source group/);
   });
 
+  it("falls back to copy-then-remove when overlayfs rejects refresh renames with EXDEV", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      {
+        HOME: tempRoot,
+        CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+      },
+    );
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Fresh paid skill");
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("preserve me\n");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.not.toContain("asChild");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.toContain("buttonVariants");
+  });
+
+  it("restores the backup when a refresh EXDEV copy leaves a partial destination", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev-partial-restore");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    await writeFile(
+      copiedScriptPath,
+      copiedScript.replace(
+        "    await cp(fromPath, toPath, { recursive: true, force: true });",
+        [
+          "    if (",
+          '      process.env.CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE === "1" &&',
+          '      fromPath.includes(".emil-design-engineering.refresh-staging-")',
+          "    ) {",
+          "      await mkdir(toPath, { recursive: true });",
+          '      await writeFile(path.join(toPath, "PARTIAL.md"), "partial\\n");',
+          '      const error = new Error("simulated staging copy failure");',
+          '      error.code = "EIO";',
+          "      throw error;",
+          "    }",
+          "    await cp(fromPath, toPath, { recursive: true, force: true });",
+        ].join("\n"),
+      ),
+    );
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(canonicalRoot, { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n\n# Existing skill\n",
+    );
+
+    expect(() =>
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=animations.dev"],
+        {
+          HOME: tempRoot,
+          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+          CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE: "1",
+        },
+      ),
+    ).toThrow();
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Existing skill");
+    await expect(
+      access(path.join(canonicalRoot, "PARTIAL.md")),
+    ).rejects.toThrow();
+  });
+
+  it("does not treat destination collisions as cross-device refresh moves", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev-existing-dest");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    const patchedScript = copiedScript
+      .replace(
+        "function getTemporarySiblingPath(targetPath, label) {",
+        [
+          "function getTemporarySiblingPath(targetPath, label) {",
+          '  if (label === "refresh-backup") {',
+          "    return path.join(",
+          "      path.dirname(targetPath),",
+          '      ".emil-design-engineering.refresh-backup-fixed",',
+          "    );",
+          "  }",
+        ].join("\n"),
+      )
+      .replace(
+        "async function renameOnce(fromPath, toPath) {",
+        [
+          "async function renameOnce(fromPath, toPath) {",
+          "  if (await pathExists(toPath)) {",
+          '    const error = new Error("EXDEV: simulated rename onto an existing path");',
+          '    error.code = "EXDEV";',
+          "    throw error;",
+          "  }",
+        ].join("\n"),
+      );
+    if (patchedScript === copiedScript) {
+      throw new Error("failed to patch refresh collision seams");
+    }
+    await writeFile(copiedScriptPath, patchedScript);
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(canonicalRoot, { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n\n# Existing skill\n",
+    );
+
+    const backupRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/.emil-design-engineering.refresh-backup-fixed",
+    );
+    await mkdir(backupRoot, { recursive: true });
+    await writeFile(path.join(backupRoot, "KEEP.md"), "keep backup\n");
+
+    expect(() =>
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=animations.dev"],
+        {
+          HOME: tempRoot,
+        },
+      ),
+    ).toThrow(/EXDEV/);
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Existing skill");
+    await expect(
+      readFile(path.join(backupRoot, "KEEP.md"), "utf8"),
+    ).resolves.toBe("keep backup\n");
+    await expect(access(path.join(backupRoot, "SKILL.md"))).rejects.toThrow();
+  });
+
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
     const tempRoot = await createTempRepo("refresh-emil-missing-source");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
@@ -1029,7 +1350,55 @@ describe("refresh-upstream-skills", () => {
     const tempRoot = await createTempRepo("refresh-emil-idempotent");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
 
+    const minimalEmilSkill = (skillName: string, extraLines: string[] = []) =>
+      [
+        "---",
+        `name: ${skillName}`,
+        "description: fixture",
+        "---",
+        "",
+        ...extraLines,
+      ].join("\n");
+
     const fixtures = {
+      animate: {
+        "SKILL.md": minimalEmilSkill("animate", [
+          "# Building Animations",
+          "",
+          "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.",
+          "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+          "- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:",
+          "<motion.div animate={{ x: 100 }} />                          // drops frames under load",
+          '<motion.div animate={{ transform: "translateX(100px)" }} />  // hardware accelerated',
+          "--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */",
+          "--ease-in-out: cubic-bezier(",
+          "| Element                  | Duration      |",
+          "| ------------------------ | ------------- |",
+          "| Button press feedback    | 100–160ms     |",
+          "| Tooltips, small popovers | 125–200ms     |",
+          "| Dropdowns, selects       | 150–250ms     |",
+          "| Modals, drawers          | 200–500ms     |",
+          "| Marketing / explanatory  | Can be longer |",
+        ]),
+        "RECIPES.md": [
+          "Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.",
+          "transition: transform 160ms var(--ease-out);",
+          "transition: transform 500ms var(--ease-drawer);",
+          "transition: clip-path 250ms var(--ease-in-out);",
+          "",
+        ].join("\n"),
+      },
+      "animate-expo": {
+        "SKILL.md": [
+          "---",
+          "name: animate-expo",
+          "description: Build animations in React Native and Expo, making the decisions in the order that determines whether they feel right — should it animate, which thread it runs on, which properties, spring or timing, how the gesture hands off, how it degrades. Writes the implementation with Reanimated, Gesture Handler, Expo Router and expo-haptics. Use when animating anything in an Expo app, adding gestures, sheets, screen transitions, press feedback or haptics, or fixing motion that stutters on device. For web animation use `animate`.",
+          "---",
+          "",
+          "# Building Animations in Expo",
+          "",
+        ].join("\n"),
+      },
       "animation-vocabulary": {
         "SKILL.md": rawAnimationVocabularySkill,
       },
@@ -1045,6 +1414,29 @@ describe("refresh-upstream-skills", () => {
           "",
         ].join("\n"),
       },
+      "ask-sonner": {
+        "SKILL.md": minimalEmilSkill("ask-sonner", [
+          "# Working With Sonner",
+          "",
+          "## Setup",
+          "",
+          "```jsx",
+          'import { Toaster } from "sonner"; // once, near the root',
+          'import { toast } from "sonner"; // anywhere client-side',
+          "```",
+          "",
+          "## Troubleshooting",
+          "",
+          "| Symptom             | Cause → fix                                               |",
+          "| ------------------- | --------------------------------------------------------- |",
+          "| Toast never appears                                                   | No `<Toaster />` is mounted — add one near the app root. |",
+          "1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.",
+          "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
+          "3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.",
+          "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",
+          "",
+        ]),
+      },
       "emil-design-eng": {
         "SKILL.md": [
           "---",
@@ -1054,10 +1446,23 @@ describe("refresh-upstream-skills", () => {
           "",
           "# Emil design engineering",
           "",
-          'import { useSpring } from "motion/react";',
+          "import { useSpring } from 'framer-motion';",
           "`transform-origin: var(--transform-origin)`",
-          "/* Base UI (this repo) */",
-          "Use Base UI's `var(--transform-origin)`",
+          "Set to trigger location or use Base UI's `var(--transform-origin)` (modals are exempt — keep centered)",
+          "",
+        ].join("\n"),
+      },
+      "emil-prototype": {
+        "SKILL.md": [
+          "---",
+          "name: prototype",
+          "description: Build multiple genuinely different versions of a UI piece.",
+          "disable-model-invocation: true",
+          "---",
+          "",
+          "# Prototyping Variants",
+          "",
+          "- **In a project with a dev server** — an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent), one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
           "",
         ].join("\n"),
       },
@@ -1071,8 +1476,7 @@ describe("refresh-upstream-skills", () => {
           "",
           "Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).",
           "",
-          "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */",
-          "  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
           "",
         ].join("\n"),
         "PLAN-TEMPLATE.md": [
@@ -1086,9 +1490,7 @@ describe("refresh-upstream-skills", () => {
           "## Problem",
           "",
           "\u200B```css",
-          "  transition:",
-          "    transform var(--duration-standard) var(--ease-out-soft),",
-          "    opacity var(--duration-standard) var(--ease-out-soft);",
+          "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);",
           "  transform-origin: var(--transform-origin);",
           "\u200B```",
           "",
@@ -1112,9 +1514,30 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
         "SKILL.md": "# Improve animations\n",
       },
+      "pick-ui-library": {
+        "SKILL.md": [
+          "---",
+          "name: pick-ui-library",
+          "description: Pick a library.",
+          "disable-model-invocation: true",
+          "---",
+          "",
+          "# Picking The Right Library",
+          "",
+          [
+            "| One-time ",
+            "pass",
+            "word",
+            " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+          ].join(""),
+          "| Command menus (⌘K palettes) | [cmdk](https://cmdk.paco.me) |",
+          "| State management | [zustand](https://zustand.docs.pmnd.rs) |",
+          "- **A `useState`-per-component web of props for shared state** → zustand.",
+          "",
+        ].join("\n"),
+      },
       "review-animations": {
-        "SKILL.md":
-          "# Review animations\n`var(--radix-popover-content-transform-origin)`\n",
+        "SKILL.md": "# Review animations\n`var(--transform-origin)`\n",
         "STANDARDS.md": [
           "# Standards",
           "",
@@ -1122,10 +1545,20 @@ describe("refresh-upstream-skills", () => {
           "",
           "**Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
           "",
-          "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */",
-          "  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
           "",
         ].join("\n"),
+      },
+      "write-swift": {
+        "SKILL.md": minimalEmilSkill("write-swift", [
+          "# Write Swift",
+          "",
+          "**Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+          "(Swift 6.4 — unreleased — adds a `Continuation` type that checks single-resumption at compile time.)",
+          "- Landing in Swift 6.4 (**unreleased** — see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop.",
+          "Swift 6.4's `@diagnose` attribute (unreleased) lets you turn it on for individual functions.",
+          "**Rows marked ⚠ are Swift 6.4, which has not shipped.** The current release is 6.3.x. Their proposals are accepted and implemented in main, so they are safe to plan around and unsafe to write today — check the project's toolchain before using one, and prefer the older form if it targets 6.3 or earlier.",
+        ]),
       },
     } as const;
 
@@ -1145,13 +1578,19 @@ describe("refresh-upstream-skills", () => {
     );
 
     const idempotentPaths = [
+      "animate/SKILL.md",
+      "animate-expo/SKILL.md",
       "animation-vocabulary/SKILL.md",
       "apple-design/SKILL.md",
+      "ask-sonner/SKILL.md",
       "emil-design-eng/SKILL.md",
+      "emil-prototype/SKILL.md",
       "improve-animations/AUDIT.md",
       "improve-animations/PLAN-TEMPLATE.md",
+      "pick-ui-library/SKILL.md",
       "review-animations/SKILL.md",
       "review-animations/STANDARDS.md",
+      "write-swift/SKILL.md",
     ];
     for (const relativePath of idempotentPaths) {
       await cp(
@@ -1160,6 +1599,35 @@ describe("refresh-upstream-skills", () => {
         { force: true },
       );
     }
+    const sourceAnimateSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/animate/SKILL.md",
+    );
+    const sourceAnimateSkill = await readFile(sourceAnimateSkillPath, "utf8");
+    const wideDurationTable = [
+      "| Element                  | Duration                                      |",
+      "| ------------------------ | --------------------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)               |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)               |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms)            |",
+      "| Modals                   | `var(--duration-modal)` (220ms)               |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)              |",
+      "| Marketing / explanatory  | Can be longer                                 |",
+    ].join("\n");
+    const formattedDurationTable = [
+      "| Element                  | Duration                           |",
+      "| ------------------------ | ---------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)    |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)    |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms) |",
+      "| Modals                   | `var(--duration-modal)` (220ms)    |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)   |",
+      "| Marketing / explanatory  | Can be longer                      |",
+    ].join("\n");
+    await writeFile(
+      sourceAnimateSkillPath,
+      sourceAnimateSkill.replace(wideDurationTable, formattedDurationTable),
+    );
     const sourcePlanTemplatePath = path.join(
       tempRoot,
       ".agents/skills/improve-animations/PLAN-TEMPLATE.md",
@@ -1187,6 +1655,47 @@ describe("refresh-upstream-skills", () => {
     const companionSuffix =
       "Use as a craft companion after Core's frontend, emil-design-engineering, and anim guidance.";
     expect(refreshedContent.split(companionSuffix)).toHaveLength(2);
+    expect(refreshedContent).toContain(
+      'import { useSpring } from "motion/react";',
+    );
+    const refreshedAskSonner = await readFile(
+      path.join(tempRoot, "docs/ai/skills/ask-sonner/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedAskSonner).not.toContain(
+      'import { Toaster } from "sonner";',
+    );
+    expect(refreshedAskSonner).toContain(
+      'import { Toaster } from "@asym/ui/components/shadcn/sonner";',
+    );
+    expect(refreshedAskSonner).toContain(
+      "Core already mounts `@asym/ui`'s `<Toaster />`.",
+    );
+    const refreshedPrototype = await readFile(
+      path.join(tempRoot, "docs/ai/skills/emil-prototype/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedPrototype).toContain("name: emil-prototype");
+    expect(refreshedPrototype).not.toMatch(/^name: prototype$/m);
+    const refreshedPicker = await readFile(
+      path.join(tempRoot, "docs/ai/skills/pick-ui-library/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedPicker).toContain(
+      "Do not add another `input-otp` package.",
+    );
+    expect(refreshedPicker).toContain("Do not add another `cmdk` tree.");
+    expect(refreshedPicker).not.toContain("https://cmdk.paco.me");
+    expect(refreshedPicker).not.toContain("https://input-otp.rodz.dev");
+    expect(refreshedPicker).toContain("Do not install Zustand");
+    expect(refreshedPicker).not.toContain("https://zustand.docs.pmnd.rs");
+    expect(refreshedPicker).not.toMatch(/→ zustand\./);
+    expect(existsSync(path.join(tempRoot, "docs/ai/skills/prototype"))).toBe(
+      false,
+    );
+    expect(existsSync(path.join(tempRoot, ".agents/skills/prototype"))).toBe(
+      false,
+    );
     await expect(
       readFile(
         path.join(tempRoot, "docs/ai/skills/improve-animations/AUDIT.md"),
@@ -1221,14 +1730,11 @@ describe("refresh-upstream-skills", () => {
     expect(refreshedPlanTemplate).toContain(
       "The trigger still applies in the current checkout",
     );
-    await expect(
-      readFile(
-        path.join(tempRoot, "docs/ai/skills/animation-vocabulary/SKILL.md"),
-        "utf8",
-      ),
-    ).resolves.toSatisfy(
-      (content) => content.match(/^```text$/gm)?.length === 4,
+    const refreshedVocabulary = await readFile(
+      path.join(tempRoot, "docs/ai/skills/animation-vocabulary/SKILL.md"),
+      "utf8",
     );
+    expect(refreshedVocabulary.match(/^```text$/gm)).toHaveLength(4);
     await expect(
       readFile(
         path.join(tempRoot, "docs/ai/skills/apple-design/SKILL.md"),
