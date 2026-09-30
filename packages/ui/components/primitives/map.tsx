@@ -1,6 +1,7 @@
 "use client";
 
-import maplibregl from "maplibre-gl";
+// maplibre-gl 6 ships ESM only and no default export.
+import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTheme } from "next-themes";
 import {
