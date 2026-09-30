@@ -92,4 +92,9 @@ for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   fi
 done
 
+if echo "$NORMALIZED" | grep -qE 'git[[:space:]]+(checkout|restore)[[:space:]].*(^|[[:space:]])(\./?)([[:space:];&|]|$)'; then
+  echo "BLOCKED: '$COMMAND' discards the working tree." >&2
+  exit 2
+fi
+
 exit 0

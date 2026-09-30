@@ -54,6 +54,9 @@ describe("git-guardrails Claude hook", () => {
       "git checkout${IFS}.",
       "git checkout$IFS.",
       "git$IFSpush",
+      "git checkout -f .",
+      "git checkout HEAD -- .",
+      "git restore --worktree .",
     ]) {
       const result = runHook(JSON.stringify({ tool_input: { command } }));
       expect(result.status, `${command}\n${result.stderr}`).toBe(2);
