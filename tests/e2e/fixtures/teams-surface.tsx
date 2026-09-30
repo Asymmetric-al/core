@@ -1,4 +1,4 @@
-import { MotionProvider } from "@asym/lib/motion";
+import { MotionProvider } from "@asym/lib/motion-provider";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import * as React from "react";
 import { createRoot } from "react-dom/client";

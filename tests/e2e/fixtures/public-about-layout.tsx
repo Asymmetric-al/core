@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import AboutPage from "../../../apps/donor/app/(public)/(hero)/about/page";
 import HeroPublicLayout from "../../../apps/donor/app/(public)/(hero)/layout";
 import PublicLayout from "../../../apps/donor/app/(public)/layout";
-import { MotionProvider } from "../../../packages/lib/motion";
+import { MotionProvider } from "../../../packages/lib/motion-provider";
 import { ThemeProvider } from "../../../packages/ui/lib/theme-provider";
 
 createRoot(document.getElementById("root")!).render(

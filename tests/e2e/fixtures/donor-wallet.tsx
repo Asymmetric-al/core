@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 
 import WalletPage from "../../../apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client";
-import { MotionProvider } from "../../../packages/lib/motion";
+import { MotionProvider } from "../../../packages/lib/motion-provider";
 
 createRoot(document.getElementById("root")!).render(
   <MotionProvider>
