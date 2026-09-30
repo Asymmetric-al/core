@@ -1598,6 +1598,35 @@ describe("refresh-upstream-skills", () => {
         { force: true },
       );
     }
+    const sourceAnimateSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/animate/SKILL.md",
+    );
+    const sourceAnimateSkill = await readFile(sourceAnimateSkillPath, "utf8");
+    const wideDurationTable = [
+      "| Element                  | Duration                                      |",
+      "| ------------------------ | --------------------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)               |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)               |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms)            |",
+      "| Modals                   | `var(--duration-modal)` (220ms)               |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)              |",
+      "| Marketing / explanatory  | Can be longer                                 |",
+    ].join("\n");
+    const formattedDurationTable = [
+      "| Element                  | Duration                           |",
+      "| ------------------------ | ---------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)    |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)    |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms) |",
+      "| Modals                   | `var(--duration-modal)` (220ms)    |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)   |",
+      "| Marketing / explanatory  | Can be longer                      |",
+    ].join("\n");
+    await writeFile(
+      sourceAnimateSkillPath,
+      sourceAnimateSkill.replace(wideDurationTable, formattedDurationTable),
+    );
     const sourcePlanTemplatePath = path.join(
       tempRoot,
       ".agents/skills/improve-animations/PLAN-TEMPLATE.md",
