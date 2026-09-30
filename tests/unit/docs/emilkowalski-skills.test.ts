@@ -131,9 +131,15 @@ describe("emilkowalski skill pack", () => {
       skillPath: "skills/mobile-native/SKILL.md",
     });
     expect(skillRouting).toContain("docs/ai/skills/mobile-native/SKILL.md");
-    expect(
-      readSkillFile("docs/ai/skills", "mobile-native", "SKILL.md"),
-    ).toContain("disable-model-invocation: true");
+    const mobileNative = readSkillFile(
+      "docs/ai/skills",
+      "mobile-native",
+      "SKILL.md",
+    );
+    const mobileFrontmatter = mobileNative.match(
+      /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u,
+    )?.[1];
+    expect(mobileFrontmatter).toMatch(/^disable-model-invocation:\s*true$/mu);
     expect(readSkillFile("docs/ai/skills", "animate", "SKILL.md")).toContain(
       "disable-model-invocation: true",
     );
