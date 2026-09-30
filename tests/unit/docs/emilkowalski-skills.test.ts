@@ -21,6 +21,7 @@ const upstreamFiles = {
   "emil-design-eng": ["SKILL.md"],
   "emil-prototype": ["SKILL.md", "PICKER.md"],
   "improve-animations": ["AUDIT.md", "PLAN-TEMPLATE.md", "SKILL.md"],
+  "mobile-native": ["SKILL.md"],
   "pick-ui-library": ["SKILL.md"],
   "review-animations": ["SKILL.md", "STANDARDS.md"],
   "write-swift": ["SKILL.md"],
