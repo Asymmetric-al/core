@@ -1250,13 +1250,41 @@ describe("refresh-upstream-skills", () => {
 
     const fixtures = {
       animate: {
-        "SKILL.md": minimalEmilSkill("animate", ["# Building Animations", ""]),
+        "SKILL.md": minimalEmilSkill("animate", [
+          "# Building Animations",
+          "",
+          "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.",
+          "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+          "- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:",
+          "<motion.div animate={{ x: 100 }} />                          // drops frames under load",
+          '<motion.div animate={{ transform: "translateX(100px)" }} />  // hardware accelerated',
+          "--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */",
+          "--ease-in-out: cubic-bezier(",
+          "| Element                  | Duration      |",
+          "| ------------------------ | ------------- |",
+          "| Button press feedback    | 100–160ms     |",
+          "| Tooltips, small popovers | 125–200ms     |",
+          "| Dropdowns, selects       | 150–250ms     |",
+          "| Modals, drawers          | 200–500ms     |",
+          "| Marketing / explanatory  | Can be longer |",
+        ]),
+        "RECIPES.md": [
+          "Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.",
+          "transition: transform 160ms var(--ease-out);",
+          "transition: clip-path 250ms var(--ease-in-out);",
+          "",
+        ].join("\n"),
       },
       "animate-expo": {
-        "SKILL.md": minimalEmilSkill("animate-expo", [
+        "SKILL.md": [
+          "---",
+          "name: animate-expo",
+          "description: Build animations in React Native and Expo, making the decisions in the order that determines whether they feel right — should it animate, which thread it runs on, which properties, spring or timing, how the gesture hands off, how it degrades. Writes the implementation with Reanimated, Gesture Handler, Expo Router and expo-haptics. Use when animating anything in an Expo app, adding gestures, sheets, screen transitions, press feedback or haptics, or fixing motion that stutters on device. For web animation use `animate`.",
+          "---",
+          "",
           "# Building Animations in Expo",
           "",
-        ]),
+        ].join("\n"),
       },
       "animation-vocabulary": {
         "SKILL.md": rawAnimationVocabularySkill,
@@ -1289,6 +1317,9 @@ describe("refresh-upstream-skills", () => {
           "| Symptom             | Cause → fix                                               |",
           "| ------------------- | --------------------------------------------------------- |",
           "| Toast never appears                                                   | No `<Toaster />` is mounted — add one near the app root. |",
+          "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
+          "3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.",
+          "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",
           "",
         ]),
       },
@@ -1316,6 +1347,8 @@ describe("refresh-upstream-skills", () => {
           "---",
           "",
           "# Prototyping Variants",
+          "",
+          "- **In a project with a dev server** — an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent), one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
           "",
         ].join("\n"),
       },
@@ -1383,6 +1416,7 @@ describe("refresh-upstream-skills", () => {
             "word",
             " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
           ].join(""),
+          "| Command menus (⌘K palettes) | [cmdk](https://cmdk.paco.me) |",
           "| State management | [zustand](https://zustand.docs.pmnd.rs) |",
           "- **A `useState`-per-component web of props for shared state** → zustand.",
           "",
@@ -1402,7 +1436,15 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
       },
       "write-swift": {
-        "SKILL.md": minimalEmilSkill("write-swift", ["# Write Swift", ""]),
+        "SKILL.md": minimalEmilSkill("write-swift", [
+          "# Write Swift",
+          "",
+          "**Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+          "(Swift 6.4 — unreleased — adds a `Continuation` type that checks single-resumption at compile time.)",
+          "- Landing in Swift 6.4 (**unreleased** — see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop.",
+          "Swift 6.4's `@diagnose` attribute (unreleased) lets you turn it on for individual functions.",
+          "**Rows marked ⚠ are Swift 6.4, which has not shipped.** The current release is 6.3.x. Their proposals are accepted and implemented in main, so they are safe to plan around and unsafe to write today — check the project's toolchain before using one, and prefer the older form if it targets 6.3 or earlier.",
+        ]),
       },
     } as const;
 
@@ -1497,8 +1539,11 @@ describe("refresh-upstream-skills", () => {
       "utf8",
     );
     expect(refreshedPicker).toContain(
-      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+      "Do not add another `input-otp` package.",
     );
+    expect(refreshedPicker).toContain("Do not add another `cmdk` tree.");
+    expect(refreshedPicker).not.toContain("https://cmdk.paco.me");
+    expect(refreshedPicker).not.toContain("https://input-otp.rodz.dev");
     expect(refreshedPicker).toContain("Do not install Zustand");
     expect(refreshedPicker).not.toContain("https://zustand.docs.pmnd.rs");
     expect(refreshedPicker).not.toMatch(/→ zustand\./);

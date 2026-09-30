@@ -226,7 +226,38 @@ describe("emilkowalski skill pack", () => {
     );
 
     expect(animate).toContain("Do not invoke `pick-ui-library`");
+    expect(animate).not.toContain("stop and invoke `pick-ui-library`");
+    expect(animate).not.toContain("drop frames");
+    expect(animate).not.toMatch(/--ease-out:/);
+    expect(animate).not.toMatch(/var\(--ease-out\)/);
+    expect(animate).toContain("--ease-out-soft");
+    const recipes = readSkillFile("docs/ai/skills", "animate", "RECIPES.md");
+    expect(recipes).toContain("var(--ease-out-soft)");
+    expect(recipes).not.toMatch(/var\(--ease-out\)/);
+    expect(recipes).not.toMatch(/var\(--ease-in-out\)/);
     expect(prototype).toContain("apps/*/app/prototypes/");
+    expect(prototype).not.toContain("/prototypes/<slug>");
+    const expo = readSkillFile("docs/ai/skills", "animate-expo", "SKILL.md");
+    expect(expo).toContain("disable-model-invocation: true");
+    expect(expo).not.toContain(
+      "adding gestures, sheets, screen transitions, press feedback or haptics",
+    );
+    const askSonner = readSkillFile("docs/ai/skills", "ask-sonner", "SKILL.md");
+    expect(askSonner).not.toContain("!text-red-900");
+    expect(askSonner).not.toContain("toasterId");
+    const picker = readSkillFile(
+      "docs/ai/skills",
+      "pick-ui-library",
+      "SKILL.md",
+    );
+    expect(picker).toContain("Do not add another `cmdk` tree");
+    expect(picker).toContain("InputOTP");
+    expect(picker).not.toContain("https://cmdk.paco.me");
+    expect(picker).not.toContain("https://input-otp.rodz.dev");
+    const swift = readSkillFile("docs/ai/skills", "write-swift", "SKILL.md");
+    expect(swift).toContain("**Toolchain baseline: Swift 6.4**");
+    expect(swift).not.toContain("unreleased");
+    expect(swift).not.toContain("which has not shipped");
     expect(refreshScript).toContain('relativePath: "component-design.md"');
     expect(refreshScript).toContain(
       "4. **asChild** - Render as different element (Radix pattern)",

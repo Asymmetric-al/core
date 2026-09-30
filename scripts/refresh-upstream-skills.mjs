@@ -779,7 +779,17 @@ const POST_REFRESH_REPLACEMENTS = [
       " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
     ].join(""),
     replace:
-      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+      "| OTP / verification code inputs | `@asym/ui` `InputOTP` (`packages/ui/components/shadcn/input-otp.tsx`). Do not add another `input-otp` package. |",
+    required: true,
+  },
+  {
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search:
+      /^\| Command menus \(⌘K palettes\)\s+\| \[cmdk\]\(https:\/\/cmdk\.paco\.me\)\s+\|$/m,
+    replace:
+      "| Command menus (⌘K palettes) | `@asym/ui` `Command` (`packages/ui/components/shadcn/command.tsx`). Do not add another `cmdk` tree. |",
+    required: true,
   },
   {
     skillName: "pick-ui-library",
@@ -797,6 +807,208 @@ const POST_REFRESH_REPLACEMENTS = [
       "- **A `useState`-per-component web of props for shared state** → zustand.",
     replace:
       "- **A `useState`-per-component web of props for shared state** → lift with `useState` / `useReducer`, or React Context for shared UI state. Do not install Zustand.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+    replace:
+      "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — reuse `@asym/ui` and Base UI. Do not invoke `pick-ui-library` unless the user explicitly asked which library to use. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:",
+    replace:
+      "- **In Motion, `x`, `y`, and `scale` are supported independent transforms.** They are performant. Use a full `transform` string only when the animation must stay on the compositor while the main thread is busy:",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "<motion.div animate={{ x: 100 }} />                          // drops frames under load",
+    replace: "<motion.div animate={{ x: 100 }} />",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      '<motion.div animate={{ transform: "translateX(100px)" }} />  // hardware accelerated',
+    replace: '<motion.div animate={{ transform: "translateX(100px)" }} />',
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.",
+    replace:
+      "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out-soft` or a duration token already exists in `packages/ui/styles/globals.css`, use it. Adding a parallel system is a defect.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */",
+    replace: [
+      "--ease-out-soft: cubic-bezier(",
+      "  0.22,",
+      "  1,",
+      "  0.36,",
+      "  1",
+      "); /* Core token; strong ease-out for UI */",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search: "--ease-in-out: cubic-bezier(",
+    replace: "--ease-in-out-soft: cubic-bezier(",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search: [
+      "| Element                  | Duration      |",
+      "| ------------------------ | ------------- |",
+      "| Button press feedback    | 100–160ms     |",
+      "| Tooltips, small popovers | 125–200ms     |",
+      "| Dropdowns, selects       | 150–250ms     |",
+      "| Modals, drawers          | 200–500ms     |",
+      "| Marketing / explanatory  | Can be longer |",
+    ].join("\n"),
+    replace: [
+      "| Element                  | Duration                                      |",
+      "| ------------------------ | --------------------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)               |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)               |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms)            |",
+      "| Modals                   | `var(--duration-modal)` (220ms)               |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)              |",
+      "| Marketing / explanatory  | Can be longer                                 |",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search:
+      "Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.",
+    replace:
+      "Curves are the Core tokens `--ease-out-soft`, `--ease-in-out-soft`, and `--ease-drawer` from `packages/ui/styles/globals.css`.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: /var\(--ease-in-out\)/g,
+    replace: "var(--ease-in-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: /var\(--ease-out\)/g,
+    replace: "var(--ease-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "emil-prototype",
+    relativePath: "SKILL.md",
+    search:
+      "- **In a project with a dev server** — an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent), one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
+    replace:
+      "- **In this monorepo** — an isolated HTML file or a static harness outside `apps/*/app/**` and outside production layouts. Do not add `apps/*/app/prototypes/` pages. One file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
+    required: true,
+  },
+  {
+    skillName: "animate-expo",
+    relativePath: "SKILL.md",
+    search:
+      "description: Build animations in React Native and Expo, making the decisions in the order that determines whether they feel right — should it animate, which thread it runs on, which properties, spring or timing, how the gesture hands off, how it degrades. Writes the implementation with Reanimated, Gesture Handler, Expo Router and expo-haptics. Use when animating anything in an Expo app, adding gestures, sheets, screen transitions, press feedback or haptics, or fixing motion that stutters on device. For web animation use `animate`.\n---",
+    replace:
+      "description: Build animations for Expo and React Native only, using Reanimated, Gesture Handler, Expo Router, and expo-haptics. Use when the target runtime is an Expo or React Native app. Do not use it for Core Next.js web motion; use `animate` for web. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
+    replace:
+      "**One toaster** — Core mounts a single `@asym/ui` `<Toaster />`. Do not add a second host.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.",
+    replace:
+      "3. **Shared toast chrome** — change the shared Sonner host in `packages/ui/components/shadcn/sonner.tsx` and `packages/ui/styles/globals.css`. Do not apply raw Tailwind colors such as a forced red on individual toasts. Use `toast.success` / `toast.error` on the existing host.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",
+    replace:
+      "| Toast shows up in every toaster                                       | Core has one shared toaster. Do not mount a second host.                                                                                                                                                                                                                                        |",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "**Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+    replace:
+      "**Toolchain baseline: Swift 6.4** (current public release). Rows and notes marked ⚠ require Swift 6.4; keep the older form when the project toolchain is Swift 6.3 or earlier. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "(Swift 6.4 — unreleased — adds a `Continuation` type that checks single-resumption at compile time.)",
+    replace:
+      "(Swift 6.4 adds a `Continuation` type that checks single-resumption at compile time. Skip it when the toolchain is Swift 6.3 or earlier.)",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "- Landing in Swift 6.4 (**unreleased** — see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop.",
+    replace:
+      "- Shipped in Swift 6.4 (see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop. Do not use these when the toolchain is Swift 6.3 or earlier.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "Swift 6.4's `@diagnose` attribute (unreleased) lets you turn it on for individual functions.",
+    replace:
+      "Swift 6.4's `@diagnose` attribute lets you turn it on for individual functions when the toolchain is 6.4 or newer.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "**Rows marked ⚠ are Swift 6.4, which has not shipped.** The current release is 6.3.x. Their proposals are accepted and implemented in main, so they are safe to plan around and unsafe to write today — check the project's toolchain before using one, and prefer the older form if it targets 6.3 or earlier.",
+    replace:
+      "**Rows marked ⚠ shipped in Swift 6.4.** Prefer the older form when the project toolchain is Swift 6.3 or earlier.",
     required: true,
   },
   {

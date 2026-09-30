@@ -77,7 +77,7 @@ toast.success("Uploaded", { id });
 
 **Links or components in the text** — pass a function for the title or description: `toast(() => <a href="…">View</a>)`.
 
-**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.
+**One toaster** — Core mounts a single `@asym/ui` `<Toaster />`. Do not add a second host.
 
 **Close callbacks** — `onDismiss` fires on close button or swipe; `onAutoClose` fires on timeout. They are separate; there is no single "closed" callback.
 
@@ -87,7 +87,7 @@ Climb only as far as the change requires; jumping to the top rung too early is f
 
 1. **Defaults** — plus `richColors` on the Toaster for colorful success/error, `invert` to flip against the theme.
 2. **Inline tweaks** — `toastOptions={{ style: {…} }}` on the Toaster for all toasts, or `style` per `toast()` call.
-3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.
+3. **Shared toast chrome** — change the shared Sonner host in `packages/ui/components/shadcn/sonner.tsx` and `packages/ui/styles/globals.css`. Do not apply raw Tailwind colors such as a forced red on individual toasts. Use `toast.success` / `toast.error` on the existing host.
 4. **Headless** — `toast.custom()` with your own JSX, keeping Sonner's positioning, stacking, and swipe. The recommended approach for a design-system toast: wrap it in your own `toast()` abstraction. (`unstyled: true` exists as a halfway house, but headless gives more control for the same effort.)
 
 **Icons** — swap defaults per-type with the Toaster's `icons` prop, per-toast with `icon`, remove with `null`.
@@ -109,5 +109,5 @@ Climb only as far as the change requires; jumping to the top rung too early is f
 | Toast never closes                                                    | `duration: Infinity`, `dismissible: false`, or a `toast.promise` whose promise never settles — the loading toast waits forever.                                                                                                                                                                |
 | `toast.promise` stuck on loading                                      | It needs a promise (or a function returning one) as its first argument, and the promise must actually resolve/reject.                                                                                                                                                                          |
 | Swipe-to-dismiss goes the wrong way / doesn't work                    | Directions derive from `position`. Override with `swipeDirections` on the Toaster.                                                                                                                                                                                                             |
-| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |
+| Toast shows up in every toaster                                       | Core has one shared toaster. Do not mount a second host.                                                                                                                                                                                                                                       |
 | Toasts too close to the screen edge on mobile                         | `offset` (desktop, default 32px) and `mobileOffset` (<600px, default 16px) — numbers, CSS strings, or per-side objects.                                                                                                                                                                        |

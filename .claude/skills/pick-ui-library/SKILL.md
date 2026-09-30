@@ -28,6 +28,8 @@ Reconcile this overlay after upstream refreshes before running
 4. Do not install Zustand. Local state is `useState` / `useReducer`. Shared UI
    state is React Context. Server state stays on TanStack Query or
    `@asym/database` collections.
+5. Command menus use `@asym/ui` `Command`. OTP fields use `@asym/ui`
+   `InputOTP`. Do not add another `cmdk` or `input-otp` package.
 
 ### Checklist
 
@@ -49,13 +51,13 @@ A lookup skill. When invoked with a task ("I need toasts", "what should I use fo
 
 ### UI components & primitives
 
-| Task                                                                    | Library                                                                                              |
-| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Unstyled, accessible UI components (dialogs, popovers, menus, selects…) | [base-ui](https://base-ui.com)                                                                       |
-| Command menus (⌘K palettes)                                             | [cmdk](https://cmdk.paco.me)                                                                         |
-| Toasts / notifications                                                  | [Sonner](https://sonner.emilkowal.ski)                                                               |
-| OTP / verification code inputs                                          | [input-otp](https://input-otp.rodz.dev)                                                              |
-| Customizable GUIs / control panels                                      | [Leva](https://github.com/pmndrs/leva) — [dialkit](https://joshpuckett.me/dialkit) is an alternative |
+| Task                                                                    | Library                                                                                                        |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Unstyled, accessible UI components (dialogs, popovers, menus, selects…) | [base-ui](https://base-ui.com)                                                                                 |
+| Command menus (⌘K palettes)                                             | `@asym/ui` `Command` (`packages/ui/components/shadcn/command.tsx`). Do not add another `cmdk` tree.            |
+| Toasts / notifications                                                  | [Sonner](https://sonner.emilkowal.ski)                                                                         |
+| OTP / verification code inputs                                          | `@asym/ui` `InputOTP` (`packages/ui/components/shadcn/input-otp.tsx`). Do not add another `input-otp` package. |
+| Customizable GUIs / control panels                                      | [Leva](https://github.com/pmndrs/leva) — [dialkit](https://joshpuckett.me/dialkit) is an alternative           |
 
 ### Motion & visuals
 
