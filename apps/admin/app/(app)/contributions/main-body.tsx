@@ -96,6 +96,8 @@ const statusShortLabel: Record<ContributionStatus, string> = {
 
 const OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED = false;
 
+const EMPTY_NEEDS_ATTENTION_GROUPS: MissionControlNeedsAttentionGroup[] = [];
+
 function StatCard({
   label,
   value,
@@ -230,7 +232,7 @@ export function ContributionsMainBody({
   data,
   isLoading,
   onSelectContribution,
-  needsAttentionGroups = [],
+  needsAttentionGroups = EMPTY_NEEDS_ATTENTION_GROUPS,
   onOpenContributionById,
   onBulkReceiptSuccess,
 }: {

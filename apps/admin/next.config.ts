@@ -4,6 +4,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 import { withEve } from "eve/next";
 
 import { normalizeEveVercelEnvironment } from "./eve-runtime-environment";
+import { copyMaplibreWorkerAssetsForApp } from "../../scripts/copy-maplibre-worker-assets.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -13,6 +14,10 @@ import type { NextConfig } from "next";
 const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
 normalizeEveVercelEnvironment(process.env);
+copyMaplibreWorkerAssetsForApp({
+  workspaceRoot: WORKSPACE_ROOT,
+  fromConfigUrl: import.meta.url,
+});
 
 /**
  * The two flags Instant Navigation needs are pinned in the type, not just set

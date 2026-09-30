@@ -337,7 +337,8 @@ export function getCrmColumns({
         const original = row.original as CrmGridRow;
         const tags = original.tags ?? [];
         if (!Array.isArray(value) || value.length === 0) return true;
-        return value.some((v: string) => tags.includes(v));
+        const wanted = new Set<string>(value);
+        return tags.some((tag) => wanted.has(tag));
       },
       enableSorting: false,
       meta: {

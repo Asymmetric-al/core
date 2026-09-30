@@ -219,6 +219,56 @@ interface KpiTileProps {
   className?: string;
 }
 
+type KpiDeltaTrend = NonNullable<KpiTileProps["delta"]>["trend"];
+
+function kpiDeltaBadgeClass(trend: KpiDeltaTrend): string {
+  switch (trend) {
+    case "up":
+      return "bg-emerald-50 text-emerald-700";
+    case "down":
+      return "bg-rose-50 text-rose-700";
+    case "neutral":
+      return "bg-muted text-muted-foreground";
+    default: {
+      const _exhaustive: never = trend;
+      return _exhaustive;
+    }
+  }
+}
+
+function KpiTileLoading({ className }: { className?: string }) {
+  return (
+    <Card className={cn("p-6", className)}>
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="size-8 rounded-lg" />
+      </div>
+      <Skeleton className="h-8 w-32 mb-2" />
+      <Skeleton className="h-4 w-40" />
+    </Card>
+  );
+}
+
+function KpiTileDeltaBadge({
+  delta,
+}: {
+  delta: NonNullable<KpiTileProps["delta"]>;
+}) {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(
+        "h-5 px-1.5 text-[10px] font-semibold border-none",
+        kpiDeltaBadgeClass(delta.trend),
+      )}
+    >
+      {delta.trend === "up" && <TrendingUp className="mr-1 size-3" />}
+      {delta.trend === "down" && <TrendingDown className="mr-1 size-3" />}
+      {delta.value}
+    </Badge>
+  );
+}
+
 export function KpiTile({
   label,
   value,
@@ -231,16 +281,7 @@ export function KpiTile({
   className,
 }: KpiTileProps) {
   if (isLoading) {
-    return (
-      <Card className={cn("p-6", className)}>
-        <div className="flex items-center justify-between mb-4">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="size-8 rounded-lg" />
-        </div>
-        <Skeleton className="h-8 w-32 mb-2" />
-        <Skeleton className="h-4 w-40" />
-      </Card>
-    );
+    return <KpiTileLoading className={className} />;
   }
 
   return (
@@ -260,26 +301,7 @@ export function KpiTile({
               <h3 className="text-2xl font-semibold tracking-tight text-foreground">
                 {isEmpty ? "--" : value}
               </h3>
-              {delta && !isEmpty && (
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    "h-5 px-1.5 text-[10px] font-semibold border-none",
-                    delta.trend === "up" && "bg-emerald-50 text-emerald-700",
-                    delta.trend === "down" && "bg-rose-50 text-rose-700",
-                    delta.trend === "neutral" &&
-                      "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {delta.trend === "up" && (
-                    <TrendingUp className="mr-1 size-3" />
-                  )}
-                  {delta.trend === "down" && (
-                    <TrendingDown className="mr-1 size-3" />
-                  )}
-                  {delta.value}
-                </Badge>
-              )}
+              {delta && !isEmpty && <KpiTileDeltaBadge delta={delta} />}
             </div>
             {(subtitle || (delta?.label && !isEmpty)) && (
               <p className="text-xs text-muted-foreground font-medium">

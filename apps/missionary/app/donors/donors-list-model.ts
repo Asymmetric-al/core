@@ -44,10 +44,8 @@ function matchesSearchTerm(
   );
 }
 
-function matchesTags(donor: Donor, tagFilter: string[]): boolean {
-  return (
-    tagFilter.length === 0 || tagFilter.some((tag) => donor.tags.includes(tag))
-  );
+function matchesTags(donor: Donor, tagFilter: ReadonlySet<string>): boolean {
+  return tagFilter.size === 0 || donor.tags.some((tag) => tagFilter.has(tag));
 }
 
 function matchesPledge(donor: Donor, pledgeFilter: string): boolean {
@@ -98,6 +96,7 @@ export function filterAndSortDonors(
   filters: DonorListFilters,
 ): Donor[] {
   const normalizedSearchTerm = filters.searchTerm.trim().toLowerCase();
+  const tagFilter = new Set(filters.tagFilter);
 
   return donors
     .filter((donor) => {
@@ -107,7 +106,7 @@ export function filterAndSortDonors(
       return (
         matchesSearch &&
         matchesDonorStatus &&
-        matchesTags(donor, filters.tagFilter) &&
+        matchesTags(donor, tagFilter) &&
         matchesPledge(donor, filters.pledgeFilter)
       );
     })

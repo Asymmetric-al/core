@@ -24,14 +24,12 @@ import {
   PLACEHOLDER_AVATAR,
   PLACEHOLDER_COVER,
 } from "./profile-model";
+import { fadeInUp, gentleTransition, springTransition } from "./profile-motion";
 import {
   DesktopPreviewFrame,
   MobilePreviewFrame,
   PreviewToggle,
   SocialIcon,
-  fadeInUp,
-  gentleTransition,
-  springTransition,
 } from "./profile-primitives";
 
 import type { PreviewMode, ProfileData } from "./profile-model";

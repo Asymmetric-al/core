@@ -310,7 +310,7 @@ export default function SettingsPage() {
           </Card>
 
           <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-[2rem] overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700">
+            <div className="absolute top-0 right-0 p-8 opacity-10 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 group-hover:rotate-12 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700">
               <Layout className="size-32" />
             </div>
             <CardHeader className="pt-8 px-8 relative z-10">

@@ -58,6 +58,10 @@ export function TaskTable({
     tasks.length > 0 && selectedTaskIds.length === tasks.length;
   const someSelected =
     selectedTaskIds.length > 0 && selectedTaskIds.length < tasks.length;
+  const selectedTaskIdSet = React.useMemo(
+    () => new Set(selectedTaskIds),
+    [selectedTaskIds],
+  );
 
   const getDueDateLabel = (date?: string | null) => {
     if (!date) return { label: "No date", color: "text-muted-foreground" };
@@ -112,7 +116,7 @@ export function TaskTable({
           <tbody className="divide-y divide-border">
             <AnimatePresence mode="popLayout">
               {tasks.map((task, idx) => {
-                const isSelected = selectedTaskIds.includes(task.id);
+                const isSelected = selectedTaskIdSet.has(task.id);
                 const isCompleted = task.status === "completed";
                 const typeConfig = TASK_TYPE_CONFIG[task.task_type];
                 const priorityConfig = PRIORITY_CONFIG[task.priority];

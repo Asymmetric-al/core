@@ -53,41 +53,12 @@ import {
 } from "lucide-react";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 
+import { filterAutomationRules, formatTriggerKind } from "./automation-rules";
+
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 function formatCount(value: number): string {
   return numberFormatter.format(value);
-}
-
-function formatTriggerKind(kind: string): string {
-  return kind
-    .split("_")
-    .filter(Boolean)
-    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
-}
-
-export function filterAutomationRules(
-  automationRules: MissionControlAutomationRuleDto[],
-  search: string,
-): MissionControlAutomationRuleDto[] {
-  const normalizedSearch = search.trim().toLowerCase();
-  if (!normalizedSearch) {
-    return automationRules;
-  }
-
-  return automationRules.filter((rule) => {
-    const trigger = formatTriggerKind(rule.trigger.kind).toLowerCase();
-    const status =
-      resolveMissionControlAutomationLifecycle(
-        rule,
-      ).displayStatus.toLowerCase();
-    return (
-      rule.name.toLowerCase().includes(normalizedSearch) ||
-      trigger.includes(normalizedSearch) ||
-      status.includes(normalizedSearch)
-    );
-  });
 }
 
 function LoadingStatCard() {

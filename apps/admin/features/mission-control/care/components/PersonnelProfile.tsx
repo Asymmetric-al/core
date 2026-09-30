@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import {
   Avatar,
   AvatarFallback,
@@ -156,6 +157,7 @@ function OverviewTabContentSection({
   activities: ActivityLogEntry[];
   heatmapData: Array<{ date: string; intensity: number; type: string }>;
 }) {
+  const { formatDate } = useLocaleFormat();
   return (
     <TabsContent
       value="overview"
@@ -196,7 +198,7 @@ function OverviewTabContentSection({
                           {activity.type}
                         </span>
                         <span className="text-[10px] text-zinc-400 font-medium">
-                          {makeDisplayDate(activity.date).toLocaleDateString()}
+                          {formatDate(activity.date)}
                         </span>
                       </div>
                       <p className="text-xs text-zinc-600 leading-relaxed">
@@ -335,6 +337,7 @@ function CareThreadTabContent({
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
 }) {
+  const { formatDateTime } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createThreadPost = useCreateCareThreadPost();
   const threadEntries = activities;
@@ -367,7 +370,7 @@ function CareThreadTabContent({
                     {entry.authorName}
                   </span>
                   <span className="text-zinc-400">
-                    {makeDisplayDate(entry.date).toLocaleString()}
+                    {formatDateTime(entry.date)}
                   </span>
                 </div>
                 <RichTextViewer value={entry.content} />
@@ -508,6 +511,7 @@ function ActivityTabContent({
   activities: ActivityLogEntry[];
   heatmapData: Array<{ date: string; intensity: number; type: string }>;
 }) {
+  const { formatDateTime } = useLocaleFormat();
   return (
     <TabsContent
       value="activity"
@@ -533,7 +537,7 @@ function ActivityTabContent({
                   {activity.type}
                 </p>
                 <p className="text-[11px] text-zinc-400">
-                  {makeDisplayDate(activity.date).toLocaleString()}
+                  {formatDateTime(activity.date)}
                 </p>
               </div>
               <p className="text-xs text-zinc-600">{activity.content}</p>
@@ -566,6 +570,7 @@ function SecureNotesTabContent({
   personnelId: string;
   privateNotes: MemberCarePrivateNote[];
 }) {
+  const { formatDate } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createPrivateNote = useCreateCarePrivateNote();
 
@@ -614,7 +619,7 @@ function SecureNotesTabContent({
                       {note.authorName}
                     </span>
                     <span className="text-[10px] text-zinc-400 font-medium">
-                      {makeDisplayDate(note.date).toLocaleDateString()}
+                      {formatDate(note.date)}
                     </span>
                   </div>
                   <RichTextViewer value={note.content} />

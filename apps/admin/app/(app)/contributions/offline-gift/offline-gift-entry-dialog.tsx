@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -317,12 +318,12 @@ function useOfflineGiftForm(handlers: UseOfflineGiftFormHandlers) {
           body: JSON.stringify(toOfflineContributionRequest(value)),
           signal: controller.signal,
         });
-        const rawPayload = await response.json().catch(() => null);
+        const { ok, body: rawPayload } = await readJsonBody(response);
         const parsedPayload =
           offlineGiftEntryResponseSchema.safeParse(rawPayload);
         const payload = parsedPayload.success ? parsedPayload.data : null;
 
-        if (!response.ok) {
+        if (!ok) {
           handlers.onError(payload?.error ?? GENERIC_RECORDING_ERROR);
           return;
         }

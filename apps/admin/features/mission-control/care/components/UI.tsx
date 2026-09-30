@@ -1,3 +1,9 @@
+import {
+  Dialog as SharedDialog,
+  DialogContent as SharedDialogContent,
+  DialogHeader as SharedDialogHeader,
+  DialogTitle as SharedDialogTitle,
+} from "@asym/ui/components/shadcn/dialog";
 import { cn } from "@asym/ui/lib/utils";
 import {
   format,
@@ -7,7 +13,7 @@ import {
   getDay,
   getDaysInMonth,
 } from "date-fns";
-import { X, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
 import Image, { type ImageLoader } from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 
@@ -395,79 +401,49 @@ interface DialogProps {
   children: React.ReactNode;
   className?: string;
   hideClose?: boolean;
+  /** Retained for API compatibility; the shared dialog handles spacing. */
   padding?: boolean;
 }
 
+/**
+ * Care dialogs delegate to the shared Base UI dialog so they get a real
+ * focus trap, Escape handling, and a labelled `role="dialog"` popup instead
+ * of a clickable overlay wrapping the content (a nested interactive tree).
+ */
 export const Dialog: React.FC<DialogProps> = ({
   open,
   onOpenChange,
   children,
   className,
   hideClose,
-  padding = true,
-}) => {
-  if (!open) return null;
-  return (
-    <div
-      data-slot="dialog-overlay"
-      className={cn(
-        "fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in-0 duration-200",
-        padding ? "p-4" : "p-0",
-      )}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onOpenChange(false);
-      }}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.target !== e.currentTarget) return;
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpenChange(false);
-        }
-      }}
+}) => (
+  <SharedDialog open={open} onOpenChange={onOpenChange}>
+    <SharedDialogContent
+      showCloseButton={!hideClose}
+      className={cn("rounded-2xl shadow-xl", className)}
     >
-      <div
-        data-slot="dialog-content"
-        className={cn(
-          "relative z-50 grid w-full max-w-lg gap-4 border bg-background p-6 shadow-xl duration-200 rounded-2xl animate-in fade-in-0 zoom-in-95",
-          className,
-        )}
-      >
-        {!hideClose && (
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 z-50 rounded-xl p-2 opacity-70 ring-offset-background transition-[opacity,background-color] hover:opacity-100 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-          >
-            <X className="size-4" />
-            <span className="sr-only">Close</span>
-          </button>
-        )}
-        {children}
-      </div>
-    </div>
-  );
-};
+      {children}
+    </SharedDialogContent>
+  </SharedDialog>
+);
 
 export const DialogHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className,
   children,
   ...props
 }) => (
-  <div
-    data-slot="dialog-header"
+  <SharedDialogHeader
     className={cn("flex flex-col gap-1.5 text-center sm:text-left", className)}
     {...props}
   >
     {children}
-  </div>
+  </SharedDialogHeader>
 );
 
 export const DialogTitle: React.FC<
   React.HTMLAttributes<HTMLHeadingElement>
 > = ({ className, children, ...props }) => (
-  <h2
-    data-slot="dialog-title"
+  <SharedDialogTitle
     className={cn(
       "text-xl font-semibold leading-none tracking-tight",
       className,
@@ -475,7 +451,7 @@ export const DialogTitle: React.FC<
     {...props}
   >
     {children}
-  </h2>
+  </SharedDialogTitle>
 );
 
 interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {

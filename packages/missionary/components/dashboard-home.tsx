@@ -2,7 +2,7 @@
 
 import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 import { useMissionaryPortalSnapshot } from "@asym/database/hooks";
-import { useAuth } from "@asym/lib/hooks";
+import { useAuth, useLocaleFormat } from "@asym/lib/hooks";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -13,6 +13,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import { Progress } from "@asym/ui/components/shadcn/progress";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   ArrowUpRight,
@@ -55,6 +56,7 @@ function DashboardHomeContent({
   belowHeaderSlot?: React.ReactNode;
 }) {
   const portalQuery = useMissionaryPortalSnapshot();
+  const { formatDate } = useLocaleFormat();
   const {
     support,
     pendingTasks,
@@ -189,20 +191,11 @@ function DashboardHomeContent({
                         {formatSupportAmount(remainingCents)} remaining
                       </span>
                     </div>
-                    <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                      {/* Animate transform: scaleX (GPU, no layout) instead of width */}
-                      <div
-                        className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                        style={{
-                          transform: `scaleX(${Math.min(percentFunded, 100) / 100})`,
-                        }}
-                        role="progressbar"
-                        aria-valuenow={percentFunded}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-label="Support funded"
-                      />
-                    </div>
+                    <Progress
+                      value={Math.min(percentFunded, 100)}
+                      aria-label="Support funded"
+                      className="h-1.5 bg-zinc-800 [&_[data-slot=progress-indicator]]:bg-white [&_[data-slot=progress-indicator]]:duration-700 [&_[data-slot=progress-indicator]]:ease-[var(--ease-out-soft)]"
+                    />
                   </div>
 
                   <div className="mt-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-zinc-800/50">
@@ -275,9 +268,7 @@ function DashboardHomeContent({
                         {post.content}
                       </p>
                       <p className="text-[8px] text-zinc-400 mt-0.5 font-semibold uppercase tracking-wider">
-                        {post.createdAt
-                          ? new Date(post.createdAt).toLocaleDateString()
-                          : "Draft"}
+                        {post.createdAt ? formatDate(post.createdAt) : "Draft"}
                       </p>
                     </div>
                   </div>
@@ -353,7 +344,7 @@ function DashboardHomeContent({
                             )}
                             <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wider">
                               {task.dueDate
-                                ? `Due ${new Date(task.dueDate).toLocaleDateString()}`
+                                ? `Due ${formatDate(task.dueDate)}`
                                 : "No due date"}
                             </span>
                           </div>

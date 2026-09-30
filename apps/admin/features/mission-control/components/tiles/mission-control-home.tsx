@@ -50,7 +50,8 @@ import {
 import { QuickActionsRow } from "./quick-actions-row";
 import { TileCard } from "./tile-card";
 import { WorkflowsPanel } from "./workflows-panel";
-import { DynamicIcon, getIcon } from "../icons";
+import { getIcon } from "../icon-map";
+import { DynamicIcon } from "../icons";
 
 import type { DashboardStats } from "@asym/api/reads/dashboard-stats";
 import type { Tile } from "@asym/lib/mission-control/types";

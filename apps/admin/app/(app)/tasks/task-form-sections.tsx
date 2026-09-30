@@ -662,6 +662,7 @@ function TaskTagsSection({
                       >
                         {tagConfig?.label || tagId}
                         <button
+                          aria-label={`Remove ${tagConfig?.label || tagId} tag`}
                           className="ml-0.5 hover:opacity-70"
                           onClick={() => removeTag(tagId)}
                           type="button"

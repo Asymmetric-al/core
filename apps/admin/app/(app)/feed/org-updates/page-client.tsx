@@ -1,13 +1,10 @@
 "use client";
 
+import { brandConfig } from "@asym/config/site-client";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
-import {
-  BrandAvatar,
-  BrandLogo,
-  brandConfig,
-} from "@asym/ui/components/brand-logo";
+import { BrandAvatar, BrandLogo } from "@asym/ui/components/brand-logo";
 import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
@@ -797,12 +794,12 @@ function ComposeCardActions({
 }) {
   return (
     <div className="flex flex-col gap-3 w-full">
-      <AnimatePresence>
+      <AnimatePresence mode="popLayout">
         {selectedMedia.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
           >
             {selectedMedia.map((item) => (

@@ -1,34 +1,7 @@
 "use client";
 
-import {
-  AnimatePresence,
-  LayoutGroup,
-  LazyMotion,
-  MotionConfig,
-  domAnimation,
-  m,
-  useInView,
-  useReducedMotion,
-} from "motion/react";
+import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
 import { type ReactNode } from "react";
-
-export const motion = m;
-
-export {
-  AnimatePresence,
-  LayoutGroup,
-  LazyMotion,
-  domAnimation,
-  useInView,
-  useReducedMotion,
-};
-export type {
-  HTMLMotionProps,
-  Transition,
-  UseInViewOptions,
-  Variant,
-  Variants,
-} from "motion/react";
 
 interface MotionProviderProps {
   children: ReactNode;

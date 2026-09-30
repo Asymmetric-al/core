@@ -48,15 +48,17 @@ import {
   useContributionDetail,
 } from "./contribution-detail-overlay";
 import {
-  receiptDeliveryChoiceLabel,
   ReceiptDeliveryChoiceField,
-  receiptSnapshotPdfUrl,
-  resolveInitialReceiptDeliveryValue,
-  resolveReceiptDeliveryError,
   type ContributionReceiptDeliveryContext,
   type ReceiptDeliveryProposal,
   type ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
+import {
+  receiptDeliveryChoiceLabel,
+  receiptSnapshotPdfUrl,
+  resolveInitialReceiptDeliveryValue,
+  resolveReceiptDeliveryError,
+} from "./receipt-delivery-model";
 
 // Type-only imports are erased at compile time, so pulling this one type
 // from the barrel does not evaluate its server-only modules in the client

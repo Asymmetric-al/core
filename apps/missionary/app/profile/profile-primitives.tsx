@@ -46,39 +46,14 @@ import {
   MOBILE_PREVIEW_HEIGHT,
   MOBILE_PREVIEW_WIDTH,
 } from "./profile-model";
+import {
+  fadeInUp,
+  springTransition,
+  smoothTransition,
+  gentleTransition,
+} from "./profile-motion";
 
 import type { ProfileData } from "./profile-model";
-
-export const fadeInUp = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-};
-
-export const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.02,
-    },
-  },
-};
-
-export const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
-
-export const smoothTransition = {
-  duration: 0.25,
-  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-};
-
-export const gentleTransition = {
-  duration: 0.35,
-  ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-};
 
 export function ProfileSkeleton() {
   return (
@@ -150,31 +125,19 @@ export function FormField({
         {label}
       </Label>
       {children}
-      <AnimatePresence mode="wait">
+      <div className="min-h-4">
         {error ? (
-          <motion.p
-            key="error"
+          <p
             className="text-xs text-red-500 flex items-center gap-1"
-            initial={{ opacity: 0, height: 0, y: -4 }}
-            animate={{ opacity: 1, height: "auto", y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
+            role="alert"
           >
             <AlertCircle className="size-3 flex-shrink-0" />
             {error}
-          </motion.p>
+          </p>
         ) : helperText ? (
-          <motion.div
-            key="helper"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {helperText}
-          </motion.div>
+          helperText
         ) : null}
-      </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
