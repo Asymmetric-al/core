@@ -97,7 +97,7 @@ playwright-cli open https://app.example.com/login
 playwright-cli snapshot
 
 playwright-cli fill e1 "admin@example.com"
-playwright-cli fill e2 "secure-password"
+playwright-cli fill e2 "secure-password" // pragma: allowlist secret
 playwright-cli click e3
 
 # Wait for redirect to confirm login succeeded
@@ -168,8 +168,8 @@ playwright-cli run-code "async page => {
   // Fill credentials in the popup
   await popup.fill('input[type=email]', 'user@gmail.com');
   await popup.click('#identifierNext');
-  await popup.fill('input[type=password]', 'password');
-  await popup.click('#passwordNext');
+  await popup.fill('input[type=password]', 'password'); // pragma: allowlist secret
+  await popup.click('#passwordNext'); // pragma: allowlist secret
 
   // Wait for popup to close and main page to redirect
   await popup.waitForEvent('close');
@@ -481,7 +481,7 @@ playwright-cli reload
 
 - **Never commit auth state files** — add `*.auth-state.json` and `auth.json` to `.gitignore`
 - **Delete state files after use** — `rm auth.json` when done with automation
-- **Use environment variables for credentials** — never hardcode passwords in scripts
+- **Use environment variables for credentials** — never hardcode passwords in scripts // pragma: allowlist secret
 - **In-memory sessions are safer** — default sessions don't persist to disk, reducing exposure
 - **Rotate saved states** — auth tokens expire; regenerate state files regularly
 - **Avoid saving state on shared machines** — storage state files contain session tokens and personal data

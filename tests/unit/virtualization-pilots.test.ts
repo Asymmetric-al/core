@@ -22,7 +22,7 @@ describe("virtualization pilot screens", () => {
 
   it("keeps missionary donor list virtualization enabled instead of threshold-toggling", () => {
     const source = readRepoFile(
-      "apps/missionary/app/donors/use-donors-page-view.tsx",
+      "apps/missionary/app/donors/donors-page-roster.tsx",
     );
 
     expect(source).not.toMatch(

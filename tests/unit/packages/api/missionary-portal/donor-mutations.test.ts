@@ -35,6 +35,7 @@ function createUpdateQuery<T>(result: QueryResult<T>) {
   const query = {
     update: vi.fn(() => query),
     eq: vi.fn(() => query),
+    contains: vi.fn(() => query),
     select: vi.fn(() => query),
     single: vi.fn(() => Promise.resolve(result)),
   };

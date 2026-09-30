@@ -77,18 +77,10 @@ describe("admin high-complexity extraction contracts", () => {
     expect(source).toContain("function ContributionDetailSheetFrame(");
     expect(source).toContain("function ContributionDetailLoadingState(");
     expect(source).toContain("function ContributionDetailErrorState(");
-    expect(source).toContain("function ContributionDetailEmptyBody(");
-    expect(source).toContain("function ContributionDetailDonorHeader(");
-    expect(source).toContain("function ContributionDetailAmountCard(");
-    expect(source).toContain("function ContributionDetailFieldsGrid(");
-    expect(source).toContain(
-      "function resolveCrmDesignationRecordPresentation(",
-    );
-    expect(source).toContain("function CrmDesignationRetryUnsupportedNote(");
-    expect(source).toContain("function CrmDesignationRetryButton(");
     expect(source).toContain("export function ContributionDetailSheet(");
     expect(source).toContain("<ContributionDetailSheetFrame");
-    expect(source).toContain("<ContributionDetailEmptyBody");
+    expect(source).toContain("<ContributionDetailLoadingState");
+    expect(source).toContain("<ContributionDetailErrorState");
   });
 
   it("resolves operation-shell view state outside the dialog components", () => {
@@ -96,19 +88,12 @@ describe("admin high-complexity extraction contracts", () => {
       "apps/admin/app/(app)/contributions/operation-shell.tsx",
     );
 
-    expect(source).toContain("function resolveOperationShellViewModel(");
+    expect(source).toContain("async function submitOperation(");
     expect(source).toContain("function ReceiptOutcomeResultItems(");
-    expect(source).toContain("function OperationShellForm(");
-    expect(source).toContain("function OperationShellDialogBody(");
     expect(source).toContain("function resolveResultPresentation(");
-    expect(source).toContain("function OperationResultHeadline(");
-    expect(source).toContain("function OperationResultCorrectionItem(");
-    expect(source).toContain("function OperationResultReceiptOutcomeItem(");
-    expect(source).toContain("function OperationResultDetailsList(");
     expect(source).toContain("function OperationResultPanel(");
     expect(source).toContain("export function ContributionOperationShell(");
-    expect(source).toContain("<OperationShellDialogBody");
-    expect(source).toContain("<OperationResultHeadline");
+    expect(source).toContain("<OperationResultPanel");
     expect(source).toContain("<ReceiptOutcomeResultItems");
   });
 

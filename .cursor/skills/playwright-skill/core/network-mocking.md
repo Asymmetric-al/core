@@ -659,6 +659,72 @@ test('HAR replay with fallback behavior', async ({ page }) => {
 });
 ```
 
+### On-Demand HAR Recording in Tracing (Playwright 1.60+)
+
+**Use when**: You want to capture network traffic for a *specific slice* of a test — one user flow, one step — instead of the whole session, and you want to start/stop recording from inside the test body.
+**Avoid when**: You only need replay for mocking (use `routeFromHAR`), or you want HAR for the entire context (set `recordHar` at context creation). This API is for scoped, programmatic capture.
+
+Playwright 1.60 promotes HAR recording to a first-class tracing API: `context.tracing.startHar()` / `context.tracing.stopHar()`. It accepts the same `content`, `mode`, and `urlFilter` options as the context-level `recordHar`, and returns a disposable so `await using` cleans up automatically even if the test throws.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('capture HAR for the checkout flow only', async ({ context, page }) => {
+  await page.goto('/cart');
+
+  // Record only the network traffic during checkout
+  await context.tracing.startHar({
+    path: 'test-results/checkout.har',
+    urlFilter: '**/api/**',
+    content: 'embed', // 'omit' | 'embed' | 'attach'
+  });
+
+  await page.getByRole('button', { name: 'Checkout' }).click();
+  await page.getByRole('button', { name: 'Place order' }).click();
+  await expect(page.getByText('Order confirmed')).toBeVisible();
+
+  await context.tracing.stopHar();
+});
+
+test('scoped capture with automatic cleanup', async ({ context, page }) => {
+  await page.goto('/search');
+
+  // `await using` stops and flushes the HAR when the block exits — even on failure
+  await using _har = await context.tracing.startHar({
+    path: 'test-results/search.har',
+    urlFilter: '**/api/search**',
+  });
+
+  await page.getByLabel('Search').fill('playwright');
+  await page.getByRole('button', { name: 'Search' }).click();
+  await expect(page.getByRole('listitem')).not.toHaveCount(0);
+});
+```
+
+**JavaScript**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('capture HAR for the checkout flow only', async ({ context, page }) => {
+  await page.goto('/cart');
+
+  await context.tracing.startHar({
+    path: 'test-results/checkout.har',
+    urlFilter: '**/api/**',
+    content: 'embed',
+  });
+
+  await page.getByRole('button', { name: 'Checkout' }).click();
+  await page.getByRole('button', { name: 'Place order' }).click();
+  await expect(page.getByText('Order confirmed')).toBeVisible();
+
+  await context.tracing.stopHar();
+});
+```
+
+> **`await using` note**: the disposable form requires TypeScript 5.2+ / a runtime with explicit resource management. If your toolchain doesn't support it, call `stopHar()` explicitly in a `finally` block instead.
+
 ### Conditional Mocking
 
 **Use when**: You need different responses based on the request method, body, headers, or query parameters. Common for paginated APIs, search endpoints, and role-based access.

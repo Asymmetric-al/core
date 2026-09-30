@@ -16,7 +16,7 @@ The `payload` skill provides expert guidance on:
 
 ## Usage
 
-Once installed, the Agent will automatically invoke the skill when you're working on Payload CMS projects. The skill activates when you:
+Once installed, the Agent will automatically invoke the skill when you're working on Payload projects. The skill activates when you:
 
 - Edit `payload.config.ts` files
 - Work with collection or global configurations
@@ -36,12 +36,15 @@ skills/payload/
 ├── SKILL.md                              # Main skill file with quick reference
 └── reference/
     ├── FIELDS.md                         # All field types and configurations
+    ├── FIELD-TYPE-GUARDS.md              # Type guards for field discrimination
     ├── COLLECTIONS.md                    # Collection patterns
     ├── HOOKS.md                          # Hook patterns and examples
     ├── ACCESS-CONTROL.md                 # Basic access control
     ├── ACCESS-CONTROL-ADVANCED.md        # Advanced access patterns
     ├── QUERIES.md                        # Query patterns and APIs
+    ├── ENDPOINTS.md                      # Custom endpoints
     ├── ADAPTERS.md                       # Database and storage adapters
+    ├── PLUGIN-DEVELOPMENT.md             # Plugin development patterns
     └── ADVANCED.md                       # Jobs, endpoints, localization
 ```
 

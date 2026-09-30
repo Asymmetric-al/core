@@ -148,7 +148,7 @@ async function cleanupOldData() {
 
 **Suppression applies to both:** Hard bounces and complaints suppress across all email types.
 
-**Unsubscribe is marketing-only:** User unsubscribing from marketing can still receive transactional emails (password resets, order confirmations).
+**Unsubscribe is marketing-only:** User unsubscribing from marketing can still receive transactional emails (password resets, order confirmations). // pragma: allowlist secret
 
 ## Related
 

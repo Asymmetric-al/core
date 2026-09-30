@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 import { perImporterAtAlias } from "./vitest.per-importer-alias";
+import { pinWorkspacePackages } from "./vitest.pin-workspace-packages";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 
@@ -14,7 +15,11 @@ export default defineConfig({
    * `paths` mapping (there is no repo-root `src/`); see
    * vitest.per-importer-alias.ts.
    */
-  plugins: [perImporterAtAlias(rootDir), react()],
+  plugins: [
+    pinWorkspacePackages(rootDir),
+    perImporterAtAlias(rootDir),
+    react(),
+  ],
   resolve: {
     alias: {
       /** Vitest runs in Node (a server context); the marker must not throw. */

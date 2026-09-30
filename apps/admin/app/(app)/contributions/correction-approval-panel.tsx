@@ -12,7 +12,7 @@ import { CircleCheck, LoaderCircle } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
-import { invalidateContributionOperationQueries } from "./contribution-detail-model";
+import { invalidateContributionOperationQueries } from "./contribution-detail-overlay";
 import {
   ReceiptDeliveryChoiceField,
   type ContributionReceiptDeliveryContext,

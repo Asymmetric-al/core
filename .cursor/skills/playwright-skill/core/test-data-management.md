@@ -86,7 +86,7 @@ export interface UserData {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  password: string; // pragma: allowlist secret
 }
 
 let counter = 0;
@@ -98,7 +98,7 @@ export function createUserData(overrides: Partial<UserData> = {}): UserData {
     firstName: `Test`,
     lastName: `User${id}`,
     email: `testuser-${id}@example.com`,
-    password: 'SecureP@ss123!',
+    password: 'SecureP@ss123!', // pragma: allowlist secret
     ...overrides,
   };
 }
@@ -116,7 +116,7 @@ test('registers a new user', async ({ page }) => {
   await page.getByLabel('First name').fill(user.firstName);
   await page.getByLabel('Last name').fill(user.lastName);
   await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password').fill(user.password);
+  await page.getByLabel('Password').fill(user.password); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Create account' }).click();
 
   await expect(page.getByText(`Welcome, ${user.firstName}`)).toBeVisible();
@@ -127,7 +127,7 @@ test('rejects duplicate email', async ({ page }) => {
 
   await page.goto('/register');
   await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password').fill(user.password);
+  await page.getByLabel('Password').fill(user.password); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Create account' }).click();
 
   await expect(page.getByText('Email already registered')).toBeVisible();
@@ -146,7 +146,7 @@ function createUserData(overrides = {}) {
     firstName: 'Test',
     lastName: `User${id}`,
     email: `testuser-${id}@example.com`,
-    password: 'SecureP@ss123!',
+    password: 'SecureP@ss123!', // pragma: allowlist secret
     ...overrides,
   };
 }
@@ -166,7 +166,7 @@ test('registers a new user', async ({ page }) => {
   await page.getByLabel('First name').fill(user.firstName);
   await page.getByLabel('Last name').fill(user.lastName);
   await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password').fill(user.password);
+  await page.getByLabel('Password').fill(user.password); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Create account' }).click();
 
   await expect(page.getByText(`Welcome, ${user.firstName}`)).toBeVisible();
@@ -674,7 +674,7 @@ const authFile = path.join(__dirname, '..', '.auth', 'user.json');
 setup('authenticate as standard user', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL!);
-  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
@@ -715,7 +715,7 @@ const authFile = path.join(__dirname, '..', '.auth', 'user.json');
 setup('authenticate as standard user', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL);
-  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD);
+  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
@@ -736,7 +736,7 @@ const adminAuthFile = path.join(__dirname, '..', '.auth', 'admin.json');
 setup('authenticate as admin', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill(process.env.ADMIN_EMAIL!);
-  await page.getByLabel('Password').fill(process.env.ADMIN_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.ADMIN_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.context().storageState({ path: adminAuthFile });
 });
@@ -870,12 +870,12 @@ export default defineConfig({
 # .env.local
 BASE_URL=http://localhost:3000
 TEST_USER_EMAIL=testuser@localhost.test
-TEST_USER_PASSWORD=localpassword123
+TEST_USER_PASSWORD=localpassword123 // pragma: allowlist secret
 
 # .env.staging
 BASE_URL=https://staging.example.com
 TEST_USER_EMAIL=e2e-bot@staging.example.com
-TEST_USER_PASSWORD=staging-secret-from-vault
+TEST_USER_PASSWORD=staging-secret-from-vault // pragma: allowlist secret
 ```
 
 ```typescript
@@ -883,17 +883,17 @@ TEST_USER_PASSWORD=staging-secret-from-vault
 import { test as base } from '@playwright/test';
 
 type EnvConfig = {
-  testCredentials: { email: string; password: string };
+  testCredentials: { email: string; password: string }; // pragma: allowlist secret
 };
 
 export const test = base.extend<EnvConfig>({
   testCredentials: async ({}, use) => {
     const email = process.env.TEST_USER_EMAIL;
-    const password = process.env.TEST_USER_PASSWORD;
-    if (!email || !password) {
-      throw new Error('TEST_USER_EMAIL and TEST_USER_PASSWORD must be set');
+    const password = process.env.TEST_USER_PASSWORD; // pragma: allowlist secret
+    if (!email || !password) { // pragma: allowlist secret
+      throw new Error('TEST_USER_EMAIL and TEST_USER_PASSWORD must be set'); // pragma: allowlist secret
     }
-    await use({ email, password });
+    await use({ email, password }); // pragma: allowlist secret
   },
 });
 
