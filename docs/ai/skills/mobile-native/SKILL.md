@@ -355,7 +355,7 @@ a,
 }
 ```
 
-`interactive-widget=resizes-content` makes the software keyboard shrink the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs react to it the way they do on iOS. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.
+`interactive-widget=resizes-content` makes the software keyboard resize the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs move with the keyboard. Safari on iOS does not support this viewport key and only resizes the visual viewport, so iOS still needs its own handling. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.
 
 ## Never Ship
 
