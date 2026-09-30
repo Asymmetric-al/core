@@ -71,14 +71,16 @@ DANGEROUS_PATTERNS=(
   "git clean -fd"
   "git clean -f"
   "git branch -D"
-  "git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?\."
-  "git[[:space:]]+restore[[:space:]]+(--[[:space:]]+)?\."
+  "git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?\.([[:space:];&|]|$)"
+  "git[[:space:]]+restore[[:space:]]+(--[[:space:]]+)?\.([[:space:];&|]|$)"
   "push --force"
   "reset --hard"
 )
 
+NORMALIZED=$(printf '%s' "$COMMAND" | tr -s '[:space:]' ' ')
+
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if echo "$COMMAND" | grep -qE "$pattern"; then
+  if echo "$NORMALIZED" | grep -qE "$pattern"; then
     echo "BLOCKED: '$COMMAND' matches dangerous pattern '$pattern'. The user has prevented you from doing this." >&2
     exit 2
   fi

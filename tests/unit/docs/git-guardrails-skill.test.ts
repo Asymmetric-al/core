@@ -35,6 +35,7 @@ describe("git-guardrails Claude hook", () => {
   it("blocks push and discard-all checkout or restore", () => {
     for (const command of [
       "git push origin develop",
+      "git  push origin develop",
       "git checkout -- .",
       "git checkout  .",
       "git restore -- .",
@@ -56,5 +57,13 @@ describe("git-guardrails Claude hook", () => {
     );
     expect(status.status, status.stderr).toBe(0);
     expect(status.stderr).toBe("");
+
+    for (const command of [
+      "git checkout .github/workflows/ci.yml",
+      "git restore ./src/index.ts",
+    ]) {
+      const allowed = runHook(JSON.stringify({ tool_input: { command } }));
+      expect(allowed.status, `${command}\n${allowed.stderr}`).toBe(0);
+    }
   });
 });
