@@ -1,9 +1,3 @@
-> **Repo notice (Asymmetric-al/core):** This repository is **Base UI only**.
-> Shared primitives come from `@base-ui/react` via the shadcn `base-maia`
-> style in `packages/ui`. Ignore any Radix UI guidance below — never add
-> `radix-ui`/`@radix-ui/*` imports or dependencies; composition uses Base
-> UI's `render` prop, not `asChild`. See `docs/ai/rules/frontend.md`.
-
 # Components.build Specification
 
 **Version 1.0.0**  
@@ -45,19 +39,32 @@ Comprehensive guidelines for building modern, composable, and accessible UI comp
 9. [As-Child](#9-as-child) — **MEDIUM**
    - 9.1 [asChild Pattern](#91-aschild-pattern)
 10. [Data Attributes](#10-data-attributes) — **LOW**
-   - 10.1 [Data Attributes for Styling](#101-data-attributes-for-styling)
+
+- 10.1 [Data Attributes for Styling](#101-data-attributes-for-styling)
+
 11. [Styling](#11-styling) — **HIGH**
-   - 11.1 [Component Styling with Tailwind CSS](#111-component-styling-with-tailwind-css)
+
+- 11.1 [Component Styling with Tailwind CSS](#111-component-styling-with-tailwind-css)
+
 12. [Design Tokens](#12-design-tokens) — **MEDIUM**
-   - 12.1 [Design Tokens](#121-design-tokens)
+
+- 12.1 [Design Tokens](#121-design-tokens)
+
 13. [Documentation](#13-documentation) — **MEDIUM**
-   - 13.1 [Component Documentation](#131-component-documentation)
+
+- 13.1 [Component Documentation](#131-component-documentation)
+
 14. [Registry](#14-registry) — **LOW**
-   - 14.1 [Component Registries](#141-component-registries)
+
+- 14.1 [Component Registries](#141-component-registries)
+
 15. [NPM](#15-npm) — **LOW**
-   - 15.1 [Publishing to NPM](#151-publishing-to-npm)
+
+- 15.1 [Publishing to NPM](#151-publishing-to-npm)
+
 16. [Marketplaces](#16-marketplaces) — **LOW**
-   - 16.1 [Component Marketplaces](#161-component-marketplaces)
+
+- 16.1 [Component Marketplaces](#161-component-marketplaces)
 
 ---
 
@@ -144,7 +151,9 @@ The following examples illustrate the difference between components that don't f
 // Hard-coded styles, no accessibility, not composable
 function Button() {
   return (
-    <button style={{ backgroundColor: '#007bff', color: 'white', padding: '10px' }}>
+    <button
+      style={{ backgroundColor: "#007bff", color: "white", padding: "10px" }}
+    >
       Click me
     </button>
   );
@@ -155,26 +164,26 @@ function Button() {
 
 ```tsx
 // Composable, accessible, customizable
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline';
+  variant?: "default" | "outline";
 }
 
-export function Button({ 
-  className, 
-  variant = 'default', 
-  children, 
-  ...props 
+export function Button({
+  className,
+  variant = "default",
+  children,
+  ...props
 }: ButtonProps) {
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-md px-4 py-2',
-        'focus-visible:outline-none focus-visible:ring-2',
-        variant === 'default' && 'bg-primary text-primary-foreground',
-        variant === 'outline' && 'border border-input bg-background',
-        className
+        "inline-flex items-center justify-center rounded-md px-4 py-2",
+        "focus-visible:outline-none focus-visible:ring-2",
+        variant === "default" && "bg-primary text-primary-foreground",
+        variant === "outline" && "border border-input bg-background",
+        className,
       )}
       {...props}
     >
@@ -239,7 +248,9 @@ Components must be usable by all users. Accessibility is not optional—it's a b
 **Incorrect: generic div with click handler**
 
 ```tsx
-<div onClick={handleClick} className="button">Click me</div>
+<div onClick={handleClick} className="button">
+  Click me
+</div>
 ```
 
 **Correct: semantic button element**
@@ -264,12 +275,7 @@ Components should be easy to restyle or adapt to different design requirements.
 
 ```tsx
 export function Button({ className, ...props }: ButtonProps) {
-  return (
-    <button
-      className={cn('base-button-styles', className)}
-      {...props}
-    />
-  );
+  return <button className={cn("base-button-styles", className)} {...props} />;
 }
 ```
 
@@ -288,7 +294,7 @@ Components should be lean in terms of assets and dependencies.
 **Incorrect: heavy dependency for simple task**
 
 ```tsx
-import { entireDateLibrary } from 'heavy-date-lib';
+import { entireDateLibrary } from "heavy-date-lib";
 ```
 
 **Correct: native APIs or lightweight alternatives**
@@ -334,10 +340,10 @@ Components should come with clear documentation and examples.
 ```tsx
 /**
  * Button component for primary actions.
- * 
+ *
  * @example
  * <Button variant="primary" onClick={handleClick}>Click me</Button>
- * 
+ *
  * @remarks
  * - Supports keyboard navigation (Enter/Space)
  * - Accessible by default with proper ARIA attributes
@@ -431,7 +437,9 @@ function DialogPrimitive({ open, onOpenChange, children }) {
 function Dialog({ open, onOpenChange, children }) {
   return (
     <DialogPrimitive open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content className={cn("rounded-lg border bg-white p-6 shadow-lg")}>
+      <Dialog.Content
+        className={cn("rounded-lg border bg-white p-6 shadow-lg")}
+      >
         {children}
       </Dialog.Content>
     </DialogPrimitive>
@@ -493,7 +501,7 @@ export const Accordion = { Root, Item, Trigger, Content };
     <Accordion.Trigger>Title</Accordion.Trigger>
     <Accordion.Content>Content</Accordion.Content>
   </Accordion.Item>
-</Accordion.Root>
+</Accordion.Root>;
 ```
 
 The main container that holds sub-components and manages shared state using Context:
@@ -568,7 +576,9 @@ Always start with the most appropriate HTML element:
 **Incorrect: generic div**
 
 ```tsx
-<div onClick={handleClick} className="button">Click me</div>
+<div onClick={handleClick} className="button">
+  Click me
+</div>
 ```
 
 **Correct: semantic element**
@@ -621,7 +631,7 @@ Support users with visual impairments:
 
 ```html
 <!-- Allow zooming -->
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 ```
 
 ---
@@ -652,7 +662,7 @@ Use `@radix-ui/react-use-controllable-state` to support both:
 **Usage:**
 
 ```tsx
-import { useControllableState } from '@radix-ui/react-use-controllable-state';
+import { useControllableState } from "@radix-ui/react-use-controllable-state";
 
 type ToggleProps = {
   checked?: boolean;
@@ -661,7 +671,12 @@ type ToggleProps = {
   disabled?: boolean;
 };
 
-export const Toggle = ({ checked: controlledChecked, defaultChecked, onCheckedChange, disabled }: ToggleProps) => {
+export const Toggle = ({
+  checked: controlledChecked,
+  defaultChecked,
+  onCheckedChange,
+  disabled,
+}: ToggleProps) => {
   const [checked, setChecked] = useControllableState({
     prop: controlledChecked,
     defaultProp: defaultChecked ?? false,
@@ -676,7 +691,7 @@ export const Toggle = ({ checked: controlledChecked, defaultChecked, onCheckedCh
       disabled={disabled}
       onClick={() => !disabled && setChecked(!checked)}
     >
-      {checked ? 'On' : 'Off'}
+      {checked ? "On" : "Off"}
     </button>
   );
 };
@@ -761,11 +776,11 @@ const Card = ({ title, description, footer, ...props }) => (
 **Correct: composable, each layer customizable**
 
 ```tsx
-export type CardRootProps = React.ComponentProps<'div'> & {
-  variant?: 'default' | 'outlined';
+export type CardRootProps = React.ComponentProps<"div"> & {
+  variant?: "default" | "outlined";
 };
 
-export const CardRoot = ({ variant = 'default', ...props }: CardRootProps) => (
+export const CardRoot = ({ variant = "default", ...props }: CardRootProps) => (
   <div {...props} />
 );
 ```
@@ -776,15 +791,15 @@ Every component should extend native HTML attributes:
 
 ```tsx
 // Enables type extraction
-import type { CardRootProps } from '@/components/ui/card';
-type Variant = CardRootProps['variant'];
+import type { CardRootProps } from "@/components/ui/card";
+type Variant = CardRootProps["variant"];
 
 // Enables extending
 export type ExtendedCardProps = CardRootProps & { isLoading?: boolean };
 
 // Enables wrapper components
 const MyCard = (props: CardRootProps) => (
-  <CardRoot {...props} className={cn('my-custom-class', props.className)} />
+  <CardRoot {...props} className={cn("my-custom-class", props.className)} />
 );
 ```
 
@@ -806,10 +821,10 @@ Always export prop types for consumers:
 
 ```tsx
 // ❌ Conflicts with HTML title attribute
-type CardProps = React.ComponentProps<'div'> & { title: string };
+type CardProps = React.ComponentProps<"div"> & { title: string };
 
 // ✅ Use a different name
-type CardProps = React.ComponentProps<'div'> & { heading: string };
+type CardProps = React.ComponentProps<"div"> & { heading: string };
 ```
 
 **3. Document Custom Props:**
@@ -819,11 +834,11 @@ type PolymorphicProps<E extends React.ElementType> = {
   as?: E;
 } & React.ComponentPropsWithoutRef<E>;
 
-function Component<E extends React.ElementType = 'div'>({
+function Component<E extends React.ElementType = "div">({
   as,
   ...props
 }: PolymorphicProps<E>) {
-  const Element = as || 'div';
+  const Element = as || "div";
   return <Element {...props} />;
 }
 ```
@@ -892,12 +907,12 @@ function Flex({ as: Element = 'div', ...props }) {
 **Interactive Elements:**
 
 ```tsx
-function Clickable({ as: Element = 'button', ...props }) {
-  const isButton = Element === 'button';
-  const isAnchor = Element === 'a';
+function Clickable({ as: Element = "button", ...props }) {
+  const isButton = Element === "button";
+  const isAnchor = Element === "a";
   return (
     <Element
-      role={!isButton && !isAnchor ? 'button' : undefined}
+      role={!isButton && !isAnchor ? "button" : undefined}
       tabIndex={!isButton && !isAnchor ? 0 : undefined}
       {...props}
     />
@@ -910,15 +925,15 @@ function Clickable({ as: Element = 'button', ...props }) {
 **Incorrect: too generic**
 
 ```tsx
-function Component({ as: Element = 'div', ...props }) { }
+function Component({ as: Element = "div", ...props }) {}
 ```
 
 **Correct: semantic defaults**
 
 ```tsx
-function Article({ as: Element = 'article', ...props }) { }
-function Navigation({ as: Element = 'nav', ...props }) { }
-function Heading({ as: Element = 'h2', ...props }) { }
+function Article({ as: Element = "article", ...props }) {}
+function Navigation({ as: Element = "nav", ...props }) {}
+function Heading({ as: Element = "h2", ...props }) {}
 ```
 
 **2. Document Valid Elements:**
@@ -929,23 +944,23 @@ interface BoxProps {
    * The HTML element to render as
    * @default 'div'
    */
-  as?: 'div' | 'section' | 'article' | 'aside' | 'main' | 'header' | 'footer';
+  as?: "div" | "section" | "article" | "aside" | "main" | "header" | "footer";
 }
 ```
 
 **3. Handle Event Handlers:**
 
 ```tsx
-function Interactive({ as: Element = 'button', onClick, ...props }) {
+function Interactive({ as: Element = "button", onClick, ...props }) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (Element !== 'button' && (e.key === 'Enter' || e.key === ' ')) {
+    if (Element !== "button" && (e.key === "Enter" || e.key === " ")) {
       onClick?.(e as any);
     }
   };
   return (
     <Element
       onClick={onClick}
-      onKeyDown={Element !== 'button' ? handleKeyDown : undefined}
+      onKeyDown={Element !== "button" ? handleKeyDown : undefined}
       {...props}
     />
   );
@@ -1064,7 +1079,9 @@ Implement `asChild` when:
 
 ```tsx
 <NavigationMenu.Link asChild>
-  <Link href="/products" className="nav-link">Products</Link>
+  <Link href="/products" className="nav-link">
+    Products
+  </Link>
 </NavigationMenu.Link>
 ```
 
@@ -1133,7 +1150,9 @@ const GoodButton = ({ children, ...props }) => (
 ```tsx
 // Ensure proper ARIA when using non-semantic elements
 <Dialog.Trigger asChild>
-  <div role="button" tabIndex={0} aria-label="Open dialog">Open</div>
+  <div role="button" tabIndex={0} aria-label="Open dialog">
+    Open
+  </div>
 </Dialog.Trigger>
 ```
 
@@ -1184,15 +1203,15 @@ states and targeting sub-components.
 
 Use `data-state` and `data-slot` attributes to create flexible, maintainable component APIs.
 
-**Never expose separate className props for different states.** Use `data-state` attributes:**
+**Never expose separate className props for different states.** Use `data-state` attributes:\*\*
 
 ```tsx
 const Dialog = ({ className, ...props }: DialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div
-      data-state={isOpen ? 'open' : 'closed'}
-      className={cn('transition-all', className)}
+      data-state={isOpen ? "open" : "closed"}
+      className={cn("transition-all", className)}
       {...props}
     />
   );
@@ -1220,7 +1239,14 @@ data-slot="div-wrapper"     // Implementation detail
 **Correct:**
 
 ```tsx
-const Button = ({ variant = 'primary', size = 'md', loading, disabled, className, ...props }: ButtonProps) => {
+const Button = ({
+  variant = "primary",
+  size = "md",
+  loading,
+  disabled,
+  className,
+  ...props
+}: ButtonProps) => {
   return (
     <button
       data-slot="button"
@@ -1235,8 +1261,10 @@ const Button = ({ variant = 'primary', size = 'md', loading, disabled, className
 
 // Usage
 <form className="[&_[data-slot=button]]:w-full">
-  <Button loading={isLoading} className="data-[loading=true]:opacity-50">Submit</Button>
-</form>
+  <Button loading={isLoading} className="data-[loading=true]:opacity-50">
+    Submit
+  </Button>
+</form>;
 ```
 
 | Pattern | Use For |
@@ -1272,24 +1300,24 @@ Component styling with Tailwind CSS, cn utility, class-variance-authority
 
 **Impact: HIGH (Predictable, maintainable styling patterns)**
 
-Use Tailwind CSS with intelligent class merging through a cnfast-backed `cn()` utility and variant APIs (CVA).
+Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).
 
-**Why:** Without Tailwind-aware class merging, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
+**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
 
 **Incorrect:**
 
 ```tsx
-// Without class merging, conflicting classes both apply
-className="bg-red-500 bg-blue-500" // Both classes apply, causing conflicts
-className="px-4 py-2 px-8" // Both px-4 and px-8 apply
+// Without tailwind-merge, conflicting classes both apply
+className = "bg-red-500 bg-blue-500"; // Both classes apply, causing conflicts
+className = "px-4 py-2 px-8"; // Both px-4 and px-8 apply
 ```
 
 **Correct:**
 
 ```tsx
-cn('bg-red-500', 'bg-blue-500'); // "bg-blue-500"
-cn('px-4 py-2', 'px-8'); // "py-2 px-8"
-cn('text-sm', 'text-lg'); // "text-lg"
+twMerge("bg-red-500", "bg-blue-500"); // "bg-blue-500"
+twMerge("px-4 py-2", "px-8"); // "py-2 px-8"
+twMerge("text-sm", "text-lg"); // "text-lg"
 ```
 
 Apply classes in this order:
@@ -1312,7 +1340,7 @@ className={cn(className, variant === 'primary' && 'bg-blue-500')}
 **Correct:**
 
 ```tsx
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all",
@@ -1335,14 +1363,18 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
-type ButtonProps = React.ComponentProps<'button'> & VariantProps<typeof buttonVariants>;
+type ButtonProps = React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants>;
 
 export const Button = ({ className, variant, size, ...props }: ButtonProps) => {
   return (
-    <button className={cn(buttonVariants({ variant, size }), className)} {...props} />
+    <button
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
   );
 };
 ```
@@ -1379,7 +1411,10 @@ className={cn(focusRing, disabled, className)}
 
 ```tsx
 // CSS variables
-<div className="bg-[var(--color)]" style={{ '--color': dynamicColor } as React.CSSProperties} />
+<div
+  className="bg-[var(--color)]"
+  style={{ "--color": dynamicColor } as React.CSSProperties}
+/>
 ```
 
 **3. Document Variants:**
@@ -1387,30 +1422,34 @@ className={cn(focusRing, disabled, className)}
 ```tsx
 type ButtonProps = {
   /** The visual style @default "default" */
-  variant?: 'default' | 'destructive' | 'outline' | 'ghost';
+  variant?: "default" | "destructive" | "outline" | "ghost";
   /** The size @default "default" */
-  size?: 'sm' | 'default' | 'lg' | 'icon';
+  size?: "sm" | "default" | "lg" | "icon";
 };
 ```
 
 **State-Based Styling:**
 
 ```tsx
-<div className={cn(
-  'transition-all',
-  isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-)} />
+<div
+  className={cn(
+    "transition-all",
+    isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+  )}
+/>
 ```
 
 **CVA with Additional Conditionals:**
 
 ```tsx
-<div className={cn(
-  baseVariants({ variant, size }),
-  isActive && 'ring-2 ring-blue-500',
-  isDisabled && 'opacity-50 cursor-not-allowed',
-  className
-)} />
+<div
+  className={cn(
+    baseVariants({ variant, size }),
+    isActive && "ring-2 ring-blue-500",
+    isDisabled && "opacity-50 cursor-not-allowed",
+    className,
+  )}
+/>
 ```
 
 ---
@@ -1526,16 +1565,18 @@ Track versions:
 function UserProfile({ user }) {
   return (
     <Card>
-      <CardHeader><CardTitle>{user.name}</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>{user.name}</CardTitle>
+      </CardHeader>
       <CardContent>
         <Button onClick={() => editUser(user.id)}>Edit Profile</Button>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ❌ Too abstract
-<Button onClick={handleClick}>Button</Button>
+<Button onClick={handleClick}>Button</Button>;
 ```
 
 **Include Troubleshooting:**
@@ -1544,6 +1585,7 @@ function UserProfile({ user }) {
 ## Troubleshooting
 
 **Button not responding:**
+
 - Ensure `onClick` handler is provided
 - Check if `disabled` is set
 - Verify no parent is capturing events
@@ -1562,12 +1604,12 @@ function UserProfile({ user }) {
 
 ```tsx
 // ✅ Complete, runnable
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export function CounterButton() {
-  const [count, setCount] = useState(0)
-  return <Button onClick={() => setCount(count + 1)}>Count: {count}</Button>
+  const [count, setCount] = useState(0);
+  return <Button onClick={() => setCount(count + 1)}>Count: {count}</Button>;
 }
 ```
 
@@ -1612,14 +1654,14 @@ Registries distribute **source code**, not compiled packages. This enables true 
 
 ```typescript
 // Traditional npm - compiled dependency
-import { Button } from 'some-ui-library';
+import { Button } from "some-ui-library";
 ```
 
 **Good:**
 
 ```typescript
 // Registry-based - source code in your project
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 ```
 
 **Bad:**
@@ -1844,7 +1886,8 @@ Missing `exports` field, pointing to source files instead of built dist, and inc
     "react-dom": "^18.0.0"
   },
   "dependencies": {
-    "cnfast": "^0.0.8"
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
   }
 }
 ```
@@ -1916,7 +1959,7 @@ Missing `exports` field, pointing to source files instead of built dist, and inc
 **Example:**
 
 ```tsx
-import { Button } from '@acme/ui-components'
+import { Button } from "@acme/ui-components";
 
 // Pre-built, versioned code from node_modules
 ```

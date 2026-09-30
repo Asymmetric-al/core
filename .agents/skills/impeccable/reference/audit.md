@@ -2,6 +2,8 @@ Run systematic **technical** quality checks and generate a comprehensive report.
 
 This is a code-level audit, not a design critique. Check what's measurable and verifiable in the implementation.
 
+**Web only.** Native platforms (`ios` / `android` / `adaptive`) route to [audit.native.md](audit.native.md) instead; if the project is native, switch to it now.
+
 ## Diagnostic Scan
 
 Run comprehensive checks across 5 dimensions. Score each dimension 0-4 using the criteria below.
@@ -11,6 +13,7 @@ Run comprehensive checks across 5 dimensions. Score each dimension 0-4 using the
 **Check for**:
 
 - **Contrast issues**: Text contrast ratios < 4.5:1 (or 7:1 for AAA)
+- **Motion sensitivity**: `prefers-reduced-motion` needs an intentional alternative that preserves state change and hierarchy; flag a global `0.01ms` kill that destroys useful feedback, flashing above threshold, and motion that blocks focus, reading, or task completion
 - **Missing ARIA**: Interactive elements without proper roles, labels, or states
 - **Keyboard navigation**: Missing focus indicators, illogical tab order, keyboard traps
 - **Semantic HTML**: Improper heading hierarchy, missing landmarks, divs instead of buttons
@@ -25,7 +28,8 @@ Run comprehensive checks across 5 dimensions. Score each dimension 0-4 using the
 
 - **Layout thrashing**: Reading/writing layout properties in loops
 - **Expensive animations**: Casual layout-property animation, unbounded blur/filter/shadow effects, or effects that visibly drop frames
-- **Missing optimization**: Images without lazy loading, unoptimized assets, missing will-change
+- **Missing optimization**: Images without lazy loading, unoptimized assets
+- **will-change overuse**: `will-change` applied broadly or left on at rest (it is a targeted hint for known expensive animations, not a baseline requirement)
 - **Bundle size**: Unnecessary imports, unused dependencies
 - **Render performance**: Unnecessary re-renders, missing memoization
 
@@ -48,36 +52,37 @@ Run comprehensive checks across 5 dimensions. Score each dimension 0-4 using the
 
 - **Fixed widths**: Hard-coded widths that break on mobile
 - **Touch targets**: Interactive elements < 44x44px
+- **Broken touch interaction**: Custom sliders, drag surfaces, and scrollable control strips whose primary gesture fails under touch, that swallow page scroll or lose the drag to it, or that stay stuck after an interrupted gesture. Code tells: mouse-only handlers, no `touch-action` on a pointer-event drag surface, drag state that nothing clears on cancel, lost capture, or blur. Exercise the gesture when a browser tool can synthesize touch (a rendered viewport proves layout, not the gesture), then say what produced the evidence (emulated viewport, synthesized touch, which engine, physical device) and what stayed untested
 - **Horizontal scroll**: Content overflow on narrow viewports
 - **Text scaling**: Layouts that break when text size increases
 - **Missing breakpoints**: No mobile/tablet variants
 
-**Score 0-4**: 0=Desktop-only (breaks on mobile), 1=Major issues (some breakpoints, many failures), 2=Partial (works on mobile, rough edges), 3=Good (responsive, minor touch target or overflow issues), 4=Excellent (fluid, all viewports, proper touch targets)
+**Score 0-4**: 0=Desktop-only (breaks on mobile), 1=Major issues (some breakpoints, many failures), 2=Partial (works on mobile, rough edges), 3=Good (responsive, minor touch target or overflow issues), 4=Excellent (fluid, all viewports, proper touch targets, gestures work under touch)
 
-### 5. Anti-Patterns (CRITICAL)
+### 5. Implementation Integrity (CRITICAL)
 
-Check against ALL the **DON'T** guidelines from the parent impeccable skill (already loaded in this context). Look for AI slop tells (AI color palette, gradient text, glassmorphism, hero metrics, card grids, generic fonts) and general design anti-patterns (gray on color, nested cards, bounce easing, redundant copy).
+Run the bundled detector and verify each finding in context. Look for repeated implementation shortcuts, design-system drift, misleading or decorative content, and structure that is interchangeable with an unrelated product. Keep deterministic findings separate from visual judgment and call out false positives.
 
-**Score 0-4**: 0=AI slop gallery (5+ tells), 1=Heavy AI aesthetic (3-4 tells), 2=Some tells (1-2 noticeable), 3=Mostly clean (subtle issues only), 4=No AI tells (distinctive, intentional design)
+**Score 0-4**: 0=systemic drift, 1=major repeated failures, 2=several verified issues, 3=minor isolated issues, 4=coherent and intentional
 
 ## Generate Report
 
 ### Audit Health Score
 
-| #         | Dimension         | Score     | Key Finding                        |
-| --------- | ----------------- | --------- | ---------------------------------- |
-| 1         | Accessibility     | ?         | [most critical a11y issue or "--"] |
-| 2         | Performance       | ?         |                                    |
-| 3         | Responsive Design | ?         |                                    |
-| 4         | Theming           | ?         |                                    |
-| 5         | Anti-Patterns     | ?         |                                    |
-| **Total** |                   | **??/20** | **[Rating band]**                  |
+| #         | Dimension                | Score     | Key Finding                        |
+| --------- | ------------------------ | --------- | ---------------------------------- |
+| 1         | Accessibility            | ?         | [most critical a11y issue or "--"] |
+| 2         | Performance              | ?         |                                    |
+| 3         | Responsive Design        | ?         |                                    |
+| 4         | Theming                  | ?         |                                    |
+| 5         | Implementation Integrity | ?         |                                    |
+| **Total** |                          | **??/20** | **[Rating band]**                  |
 
 **Rating bands**: 18-20 Excellent (minor polish), 14-17 Good (address weak dimensions), 10-13 Acceptable (significant work needed), 6-9 Poor (major overhaul), 0-5 Critical (fundamental issues)
 
-### Anti-Patterns Verdict
+### Implementation Integrity Verdict
 
-**Start here.** Pass/fail: Does this look AI-generated? List specific tells. Be brutally honest.
+**Start here.** Pass/fail: does the implementation express a coherent product-specific system? Cite verified evidence and detector findings.
 
 ### Executive Summary
 
@@ -99,7 +104,7 @@ For each issue, document:
 
 - **[P?] Issue name**
 - **Location**: Component, file, line
-- **Category**: Accessibility / Performance / Theming / Responsive / Anti-Pattern
+- **Category**: Accessibility / Performance / Theming / Responsive / Implementation Integrity
 - **Impact**: How it affects users
 - **WCAG/Standard**: Which standard it violates (if applicable)
 - **Recommendation**: How to fix it

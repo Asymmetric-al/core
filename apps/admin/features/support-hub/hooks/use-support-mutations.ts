@@ -750,10 +750,11 @@ function insertCannedResponses(input: {
     input.conversation,
     input.actorAgent,
   );
+  const cannedResponsesById = new Map(
+    input.cannedResponses.map((row) => [row.id, row] as const),
+  );
   for (const action of cannedActions) {
-    const cannedResponse = input.cannedResponses.find(
-      (row) => row.id === action.cannedResponseId,
-    );
+    const cannedResponse = cannedResponsesById.get(action.cannedResponseId);
     if (!cannedResponse) continue;
     input.onCannedResponseInsert({
       text: applyMergeVariables(cannedResponse.bodyText, mergeContext),

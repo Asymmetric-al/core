@@ -1,6 +1,6 @@
 ---
 name: animate-expo
-description: Build animations in React Native and Expo, making the decisions in the order that determines whether they feel right — should it animate, which thread it runs on, which properties, spring or timing, how the gesture hands off, how it degrades. Writes the implementation with Reanimated, Gesture Handler, Expo Router and expo-haptics. Use when animating anything in an Expo app, adding gestures, sheets, screen transitions, press feedback or haptics, or fixing motion that stutters on device. For web animation use `animate`.
+description: Build animations for Expo and React Native only, using Reanimated, Gesture Handler, Expo Router, and expo-haptics. Use when the target runtime is an Expo or React Native app. Do not use it for Core Next.js web motion; use `animate` for web. Only runs when explicitly invoked; it does not trigger on its own.
 disable-model-invocation: true
 ---
 
@@ -31,14 +31,6 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 - [ ] Web motion still follows Core tokens and Base UI.
 
 <!-- CORE-OVERLAY-END -->
-
-## Initial Response
-
-When this skill is first invoked without a specific question, respond only with:
-
-> I'm ready to build animations in Expo and React Native that feel right on a real device, my knowledge comes from Emil Kowalski's animation philosophy.
-
-Do not provide any other information until the user asks a question.
 
 A construction skill for React Native. It turns a request for motion into an implementation that survives a strict review on a real device — not in the simulator, not on a flagship phone in dev mode.
 

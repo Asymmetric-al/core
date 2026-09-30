@@ -40,7 +40,9 @@ Use this router only to choose the specific skill to load next.
   `docs/ai/skills/inngest-agents/SKILL.md`
 - Existing v3 to v4 migration only:
   `docs/ai/skills/inngest-v3-v4-migration/SKILL.md`
-- Inngest API or CLI operations:
+- Inngest CLI API operations (`npx inngest-cli@latest api`):
+  `docs/ai/skills/inngest-api-cli/SKILL.md`
+- Raw Inngest REST API v2, OpenAPI, or HTTP:
   `docs/ai/skills/inngest-api/SKILL.md`
 
 ## Checklist

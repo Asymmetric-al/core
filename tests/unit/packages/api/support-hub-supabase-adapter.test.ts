@@ -6,7 +6,7 @@
  * we use `runWithSupportHubTenant` to establish the tenant context that
  * `tenantId()` reads from AsyncLocalStorage.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock the admin Supabase client before any adapter imports resolve.
@@ -21,6 +21,11 @@ const { getAdminClientMock } = vi.hoisted(() => ({
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
+// Same module as the adapter when worktree `node_modules` is a symlink to
+// another clone: `packages/api` resolves `@asym/database` locally.
+vi.mock("../../../../packages/database/supabase/admin", () => ({
+  getAdminClient: getAdminClientMock,
+}));
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks are registered)
@@ -28,6 +33,8 @@ vi.mock("@asym/database/supabase/admin", () => ({
 
 import { runWithSupportHubTenant } from "../../../../packages/api/src/admin/support-hub/request-context";
 import { supabaseSupportHubAdapter } from "../../../../packages/api/src/admin/support-hub/adapter/supabase";
+import { fetchSupportConversations } from "../../../../packages/database/collections/support-hub";
+import { supportApiGet } from "../../../../apps/admin/features/support-hub/lib/api-client";
 
 // ---------------------------------------------------------------------------
 // Chainable query builder factory
@@ -96,6 +103,9 @@ const TENANT = "tenant-test-001";
 // ---------------------------------------------------------------------------
 
 describe("supabaseSupportHubAdapter — SQL filters", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -398,6 +408,139 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
       );
       expect(isAssigneeCalls).toHaveLength(0);
       expect(eqAssigneeCalls).toHaveLength(0);
+    });
+
+    it("normalizes empty subject, SQL-CHECK emails, and partial contact refs", async () => {
+      const conversationRow = {
+        id: "conv-adapter-1",
+        tenant_id: TENANT,
+        inbox_id: "inbox-1",
+        subject: "   ",
+        status: "open",
+        priority: "normal",
+        channel: "email",
+        assignee_agent_id: "agent-internal",
+        team_id: null,
+        external_contact_email: "a@b",
+        external_contact_name: "Pat",
+        contact_ref: { donorId: "donor-1" },
+        unread_count: 0,
+        message_count: 1,
+        first_message_at: "2026-01-01T00:00:00.000Z",
+        last_message_at: "2026-01-01T00:00:00.000Z",
+        last_customer_message_at: null,
+        last_message_direction: "inbound",
+        first_responded_at: null,
+        first_response_due_at: null,
+        next_response_due_at: null,
+        resolved_at: null,
+        snoozed_until: null,
+        escalated_at: null,
+        board_order: 0,
+        sla_policy_id: null,
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      };
+      const fromSpy = vi.fn().mockImplementation((table: string) => {
+        if (table === "support_conversations") {
+          return createQueryMock({ data: [conversationRow], error: null });
+        }
+        if (table === "support_agents")
+          return createQueryMock({
+            data: [
+              {
+                id: "agent-internal",
+                name: "Staff",
+                email: "a@b",
+                avatar_url: null,
+                title: null,
+              },
+            ],
+            error: null,
+          });
+        return createQueryMock({ data: [], error: null });
+      });
+      setClient(fromSpy);
+
+      const conversations = await runWithSupportHubTenant(TENANT, () =>
+        supabaseSupportHubAdapter.conversations.list({ status: "all" }),
+      );
+
+      expect(conversations).toHaveLength(1);
+      expect(conversations[0]).toEqual(
+        expect.objectContaining({
+          id: "conv-adapter-1",
+          subject: "(no subject)",
+          externalContactEmail: "a@b",
+          contact: expect.objectContaining({
+            donorId: "donor-1",
+            contactId: null,
+            giftId: null,
+          }),
+        }),
+      );
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockImplementation(
+          async () =>
+            new Response(JSON.stringify({ conversations }), {
+              headers: { "Content-Type": "application/json" },
+            }),
+        ),
+      );
+      const livePayload = await supportApiGet<{
+        conversations: typeof conversations;
+      }>("/api/admin/support/conversations");
+      expect(livePayload.conversations[0]?.assignee?.email).toBe("a@b");
+      await expect(fetchSupportConversations()).resolves.toEqual(
+        livePayload.conversations,
+      );
+    });
+
+    it("keeps a null contact_ref as null", async () => {
+      const conversationRow = {
+        id: "conv-adapter-2",
+        tenant_id: TENANT,
+        inbox_id: "inbox-1",
+        subject: "Receipt",
+        status: "open",
+        priority: "normal",
+        channel: "email",
+        assignee_agent_id: null,
+        team_id: null,
+        external_contact_email: "donor@example.org",
+        external_contact_name: "Donor",
+        contact_ref: null,
+        unread_count: 0,
+        message_count: 1,
+        first_message_at: "2026-01-01T00:00:00.000Z",
+        last_message_at: "2026-01-01T00:00:00.000Z",
+        last_customer_message_at: null,
+        last_message_direction: "inbound",
+        first_responded_at: null,
+        first_response_due_at: null,
+        next_response_due_at: null,
+        resolved_at: null,
+        snoozed_until: null,
+        escalated_at: null,
+        board_order: 0,
+        sla_policy_id: null,
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      };
+      const fromSpy = vi.fn().mockImplementation((table: string) => {
+        if (table === "support_conversations") {
+          return createQueryMock({ data: [conversationRow], error: null });
+        }
+        return createQueryMock({ data: [], error: null });
+      });
+      setClient(fromSpy);
+
+      const conversations = await runWithSupportHubTenant(TENANT, () =>
+        supabaseSupportHubAdapter.conversations.list({ status: "all" }),
+      );
+
+      expect(conversations[0]?.contact).toBeNull();
     });
   });
 });

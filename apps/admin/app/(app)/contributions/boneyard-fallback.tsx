@@ -8,7 +8,7 @@ export function ContributionsBoneyardFallback() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="px-6 py-5 rounded-2xl border border-zinc-100 min-w-[160px] space-y-2"
+            className="px-6 py-5 rounded-2xl border border-zinc-100 min-w-40 space-y-2"
           >
             <Skeleton className="h-9 w-28" />
             <Skeleton className="h-3 w-16" />

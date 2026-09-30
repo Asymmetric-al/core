@@ -198,7 +198,9 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      // Locale-independent key: toLocaleDateString() differs per visitor locale
+      // and would mismatch between the server and client renders.
+      data-day={day.date.toDateString()}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

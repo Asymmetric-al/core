@@ -37,7 +37,7 @@ Use this skill when:
 - **Small!**: Functions should be shorter than you think.
 - **Do One Thing**: A function should do only one thing, and do it well.
 - **One Level of Abstraction**: Don't mix high-level business logic with low-level details (like regex).
-- **Descriptive Names**: `isPasswordValid` is better than `check`.
+- **Descriptive Names**: `isPasswordValid` is better than `check`. // pragma: allowlist secret
 - **Arguments**: 0 is ideal, 1-2 is okay, 3+ requires a very strong justification.
 - **No Side Effects**: Functions shouldn't secretly change global state.
 

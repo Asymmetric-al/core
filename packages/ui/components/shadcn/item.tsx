@@ -10,6 +10,10 @@ import { Separator } from "./separator";
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
+      // shadcn registry component kept in sync with upstream; <Item> renders
+      // an arbitrary element via `render`, so a <ul> here could wrap non-<li>
+      // children and produce invalid markup.
+      // react-doctor-disable-next-line react-doctor/prefer-tag-over-role
       role="list"
       data-slot="item-group"
       className={cn("group/item-group flex flex-col", className)}
@@ -65,6 +69,7 @@ function Item({
     props: mergeProps<"div">(
       {
         className: cn(itemVariants({ variant, size, className })),
+        ...(!render ? { role: "listitem" } : {}),
       },
       props,
     ),

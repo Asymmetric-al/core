@@ -25,6 +25,11 @@ Reconcile this overlay after upstream refreshes before running
 1. Check the relevant `package.json` first. Prefer libraries already installed.
 2. Do not churn Base UI / `base-maia` for an upstream pick.
 3. If the task is already covered by `packages/ui`, use that shared component.
+4. Do not install Zustand. Local state is `useState` / `useReducer`. Shared UI
+   state is React Context. Server state stays on TanStack Query or
+   `@asym/database` collections.
+5. Command menus use `@asym/ui` `Command`. OTP fields use `@asym/ui`
+   `InputOTP`. Do not add another `cmdk` or `input-otp` package.
 
 ### Checklist
 
@@ -32,14 +37,6 @@ Reconcile this overlay after upstream refreshes before running
 - [ ] Existing Core dependencies and Base UI ownership are preserved.
 
 <!-- CORE-OVERLAY-END -->
-
-## Initial Response
-
-When this skill is first invoked without a specific question, respond only with:
-
-> I'm ready to pick the right library for your task, my picks come from Emil Kowalski's curated list.
-
-Do not provide any other information until the user asks a question.
 
 A lookup skill. When invoked with a task ("I need toasts", "what should I use for drag and drop?"), match the task to the curated list below and recommend the library. These are deliberate, taste-driven picks — don't substitute alternatives outside this list unless the user asks for one or the task genuinely isn't covered.
 
@@ -54,13 +51,13 @@ A lookup skill. When invoked with a task ("I need toasts", "what should I use fo
 
 ### UI components & primitives
 
-| Task                                                                    | Library                                                                                              |
-| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Unstyled, accessible UI components (dialogs, popovers, menus, selects…) | [base-ui](https://base-ui.com)                                                                       |
-| Command menus (⌘K palettes)                                             | [cmdk](https://cmdk.paco.me)                                                                         |
-| Toasts / notifications                                                  | [Sonner](https://sonner.emilkowal.ski)                                                               |
-| OTP / verification code inputs                                          | [input-otp](https://input-otp.rodz.dev)                                                              |
-| Customizable GUIs / control panels                                      | [Leva](https://github.com/pmndrs/leva) — [dialkit](https://joshpuckett.me/dialkit) is an alternative |
+| Task                                                                    | Library                                                                                                        |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Unstyled, accessible UI components (dialogs, popovers, menus, selects…) | [base-ui](https://base-ui.com)                                                                                 |
+| Command menus (⌘K palettes)                                             | `@asym/ui` `Command` (`packages/ui/components/shadcn/command.tsx`). Do not add another `cmdk` tree.            |
+| Toasts / notifications                                                  | [Sonner](https://sonner.emilkowal.ski)                                                                         |
+| OTP / verification code inputs                                          | `@asym/ui` `InputOTP` (`packages/ui/components/shadcn/input-otp.tsx`). Do not add another `input-otp` package. |
+| Customizable GUIs / control panels                                      | [Leva](https://github.com/pmndrs/leva) — [dialkit](https://joshpuckett.me/dialkit) is an alternative           |
 
 ### Motion & visuals
 
@@ -93,12 +90,12 @@ The split: if data points arrive live and the chart scrolls with time, use Livel
 
 ### State & styling
 
-| Task                                           | Library                                                   |
-| ---------------------------------------------- | --------------------------------------------------------- |
-| State management                               | [zustand](https://zustand.docs.pmnd.rs)                   |
-| Constructing `className` strings conditionally | [clsx](https://github.com/lukeed/clsx)                    |
-| Type-safe, variant-driven styling for Tailwind | [cva](https://cva.style)                                  |
-| Theme switching / dark mode (no flash on load) | [next-themes](https://github.com/pacocoursey/next-themes) |
+| Task                                           | Library                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| State management                               | Local `useState` / `useReducer`; React Context for shared UI state. Do not install Zustand. |
+| Constructing `className` strings conditionally | [clsx](https://github.com/lukeed/clsx)                                                      |
+| Type-safe, variant-driven styling for Tailwind | [cva](https://cva.style)                                                                    |
+| Theme switching / dark mode (no flash on load) | [next-themes](https://github.com/pacocoursey/next-themes)                                   |
 
 The styling split: clsx for ad-hoc conditional classes; cva when a component has real variants (size, intent, state) that deserve a typed API. They compose — cva uses clsx-style inputs internally.
 
@@ -108,5 +105,5 @@ The styling split: clsx for ad-hoc conditional classes; cva when a component has
 - **A `<div>`-based dropdown/dialog with manual focus handling** → base-ui, which handles accessibility, focus trapping, and dismissal.
 - **Animating a number by re-rendering text** → NumberFlow handles digit transitions properly.
 - **Rendering a 1,000+ row list directly** → Virtuoso before reaching for pagination hacks.
-- **A `useState`-per-component web of props for shared state** → zustand.
+- **A `useState`-per-component web of props for shared state** → lift with `useState` / `useReducer`, or React Context for shared UI state. Do not install Zustand.
 - **Template-literal className ternaries three conditions deep** → clsx (or cva if it's variant-shaped).

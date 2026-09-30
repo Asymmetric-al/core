@@ -134,7 +134,7 @@ export const test = base.extend<{}, WorkerFixtures>({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: 'test-user',
-        password: process.env.TEST_PASSWORD,
+        password: process.env.TEST_PASSWORD, // pragma: allowlist secret
       }),
     });
     const { token } = await response.json();
@@ -164,7 +164,7 @@ const test = base.extend({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: 'test-user',
-        password: process.env.TEST_PASSWORD,
+        password: process.env.TEST_PASSWORD, // pragma: allowlist secret
       }),
     });
     const { token } = await response.json();
@@ -282,7 +282,7 @@ export const test = base.extend<AuthFixtures>({
   authenticatedPage: async ({ page }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('password123');
+    await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await use(page);
@@ -340,7 +340,7 @@ const test = base.extend({
   authenticatedPage: async ({ page }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('password123');
+    await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await use(page);
@@ -408,13 +408,13 @@ export const test = base.extend<OptionFixtures & DerivedFixtures>({
   authenticatedPage: async ({ page, userRole, locale }, use) => {
     await page.goto(`/login?locale=${locale}`);
     const credentials = {
-      admin: { email: 'admin@test.com', password: 'admin-pass' },
-      editor: { email: 'editor@test.com', password: 'editor-pass' },
-      viewer: { email: 'viewer@test.com', password: 'viewer-pass' },
+      admin: { email: 'admin@test.com', password: 'admin-pass' }, // pragma: allowlist secret
+      editor: { email: 'editor@test.com', password: 'editor-pass' }, // pragma: allowlist secret
+      viewer: { email: 'viewer@test.com', password: 'viewer-pass' }, // pragma: allowlist secret
     };
-    const { email, password } = credentials[userRole];
+    const { email, password } = credentials[userRole]; // pragma: allowlist secret
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await use(page);
   },
@@ -469,13 +469,13 @@ const test = base.extend({
   authenticatedPage: async ({ page, userRole, locale }, use) => {
     await page.goto(`/login?locale=${locale}`);
     const credentials = {
-      admin: { email: 'admin@test.com', password: 'admin-pass' },
-      editor: { email: 'editor@test.com', password: 'editor-pass' },
-      viewer: { email: 'viewer@test.com', password: 'viewer-pass' },
+      admin: { email: 'admin@test.com', password: 'admin-pass' }, // pragma: allowlist secret
+      editor: { email: 'editor@test.com', password: 'editor-pass' }, // pragma: allowlist secret
+      viewer: { email: 'viewer@test.com', password: 'viewer-pass' }, // pragma: allowlist secret
     };
-    const { email, password } = credentials[userRole];
+    const { email, password } = credentials[userRole]; // pragma: allowlist secret
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await use(page);
   },
@@ -526,7 +526,7 @@ export const test = base.extend<Fixtures>({
   userPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill('default-test-password');
+    await page.getByLabel('Password').fill('default-test-password'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await use(page);
@@ -562,7 +562,7 @@ const test = base.extend({
   userPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill('default-test-password');
+    await page.getByLabel('Password').fill('default-test-password'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await use(page);
@@ -782,6 +782,64 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 export { expect };
 ```
 
+### 11. Aborting a Test From a Fixture or Route (`test.abort()`, Playwright 1.60+)
+
+**Use when**: A fixture, hook, or route handler detects an unrecoverable precondition — a required backend is down, a seed step failed, or a route received an unexpected request — and continuing would only produce a confusing downstream failure.
+**Avoid when**: The test body itself can assert the condition. Use a normal `expect()` there. `test.abort()` is for code that runs *outside* the test body where you can't `expect`.
+
+Playwright 1.60 adds `test.abort(message?)`, which immediately stops the currently running test. Unlike `test.skip()`, it marks the test as failed/aborted with your message, and unlike throwing it works cleanly from fixtures and route handlers.
+
+**TypeScript**
+```typescript
+import { test as base, expect } from '@playwright/test';
+
+export const test = base.extend({
+  // Abort early if the environment isn't ready, instead of letting every
+  // assertion fail with a cryptic message.
+  seededDb: async ({}, use) => {
+    const res = await fetch(`${process.env.API_URL}/health/db`);
+    if (!res.ok) {
+      base.abort(`Database not reachable (${res.status}) — aborting test`);
+    }
+    await use(true);
+  },
+});
+
+test('checkout works on a healthy backend', async ({ page, seededDb }) => {
+  await page.goto('/checkout');
+  await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
+});
+
+test('abort from a route handler on an unexpected request', async ({ page }) => {
+  await page.route('**/api/**', (route) => {
+    if (route.request().url().includes('/api/forbidden')) {
+      test.abort('Unexpected call to forbidden endpoint');
+    }
+    return route.continue();
+  });
+
+  await page.goto('/dashboard');
+});
+```
+
+**JavaScript**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('abort from a route handler on an unexpected request', async ({ page }) => {
+  await page.route('**/api/**', (route) => {
+    if (route.request().url().includes('/api/forbidden')) {
+      test.abort('Unexpected call to forbidden endpoint');
+    }
+    return route.continue();
+  });
+
+  await page.goto('/dashboard');
+});
+```
+
+> `test.abort()` ends the test now — code after it in the same handler won't run. Use it for *unrecoverable* conditions; for "this test doesn't apply here", prefer `test.skip()`.
+
 ## Decision Guide
 
 ```
@@ -887,7 +945,7 @@ export const test = base.extend({
     // Logs in
     await page.goto('/login');
     await page.getByLabel('Email').fill('user@test.com');
-    await page.getByLabel('Password').fill('password');
+    await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     // Creates test data
     await page.request.post('/api/products', { data: { name: 'Widget' } });
@@ -906,7 +964,7 @@ export const test = base.extend({
   authenticatedPage: async ({ page }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('user@test.com');
-    await page.getByLabel('Password').fill('password');
+    await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await use(page);
   },

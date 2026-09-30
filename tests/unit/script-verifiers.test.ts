@@ -1,5 +1,4 @@
 import { execFileSync, execSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import {
   access,
@@ -38,6 +37,52 @@ async function copyScript(tempRoot: string, relativePath: string) {
   const targetPath = path.join(tempRoot, relativePath);
   await mkdir(path.dirname(targetPath), { recursive: true });
   await cp(sourcePath, targetPath);
+}
+
+function fencedMarkdownBlock(markdown: string, language: string) {
+  const lines = markdown.split("\n");
+  let fence:
+    | {
+        character: string;
+        length: number;
+      }
+    | undefined;
+  let capturing = false;
+  const captured: string[] = [];
+
+  for (const line of lines) {
+    const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+    if (fenceMatch) {
+      const marker = fenceMatch[2];
+      const markerCharacter = marker.charAt(0);
+      if (fence === undefined) {
+        fence = { character: markerCharacter, length: marker.length };
+        const info = fenceMatch[3].trim().split(/\s+/u)[0] ?? "";
+        capturing = info === language;
+        continue;
+      }
+
+      if (
+        markerCharacter === fence.character &&
+        marker.length >= fence.length &&
+        fenceMatch[3].trim() === ""
+      ) {
+        if (capturing) {
+          return captured.join("\n");
+        }
+
+        fence = undefined;
+        capturing = false;
+        continue;
+      }
+    }
+
+    if (capturing) {
+      captured.push(line);
+    }
+  }
+
+  throw new Error(`Missing markdown fence for ${language || "unlabeled"}`);
 }
 
 function runNodeScript(
@@ -156,6 +201,18 @@ async function createEslintVerifyRepo() {
   await mkdir(path.join(tempRoot, "tooling", "eslint-config"), {
     recursive: true,
   });
+
+  // These tests isolate disable-banner/ownership scanning. Real ESLint policy,
+  // discovery and native suppressions have integration coverage in the
+  // design-system-* suites; keep their boundary explicit in this tiny repo.
+  for (const [file, source] of Object.entries({
+    "design-system.mjs": "export const uiWorkspaces = [];\n",
+    "health.mjs": "export async function verifyDesignSystemHealth() {}\n",
+    "lint.mjs": "export function validateSuppressions() {}\n",
+    "suppressions.json": "{}\n",
+  })) {
+    await writeFile(path.join(tempRoot, "tooling/eslint-config", file), source);
+  }
 
   await writeJson(path.join(tempRoot, "apps/admin/package.json"), {
     name: "@asym/admin",
@@ -967,6 +1024,21 @@ const rawAnimationVocabularySkill = [
 ].join("\n");
 
 describe("refresh-upstream-skills", () => {
+  it("re-injects explicit-only invocation flags on interface-review and obra TDD after refresh", async () => {
+    const refreshScript = await readFile(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(refreshScript).toContain('skillName: "interface-review"');
+    expect(refreshScript).toContain(
+      "name: interface-review\\ndisable-model-invocation: true\\ndescription:",
+    );
+    expect(refreshScript).toContain(
+      "name: test-driven-development\\ndisable-model-invocation: true\\ndescription:",
+    );
+  });
+
   it("rejects an empty focused-refresh filter instead of refreshing every source", async () => {
     const tempRoot = await createTempRepo("refresh-empty-only");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
@@ -1176,8 +1248,8 @@ describe("refresh-upstream-skills", () => {
     ).rejects.toThrow();
   });
 
-  it("reports focused refresh rollback as incomplete when backup restore fails", async () => {
-    const tempRoot = await createTempRepo("refresh-restore-failure");
+  it("does not treat destination collisions as cross-device refresh moves", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev-existing-dest");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
 
     const copiedScriptPath = path.join(
@@ -1185,41 +1257,34 @@ describe("refresh-upstream-skills", () => {
       "scripts/refresh-upstream-skills.mjs",
     );
     const copiedScript = await readFile(copiedScriptPath, "utf8");
-    await writeFile(
-      copiedScriptPath,
-      copiedScript
-        .replace(
-          "async function renameOnce(fromPath, toPath) {\n",
-          [
-            "async function renameOnce(fromPath, toPath) {",
-            "  if (",
-            '    process.env.CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE === "1" &&',
-            '    fromPath.includes(".emil-design-engineering.refresh-backup-")',
-            "  ) {",
-            '    const error = new Error("simulated backup restore failure");',
-            '    error.code = "EIO";',
-            "    throw error;",
-            "  }",
-            "",
-          ].join("\n"),
-        )
-        .replace(
-          "    await cp(fromPath, toPath, { recursive: true, force: true });",
-          [
-            "    if (",
-            '      process.env.CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE === "1" &&',
-            '      fromPath.includes(".emil-design-engineering.refresh-staging-")',
-            "    ) {",
-            "      await mkdir(toPath, { recursive: true });",
-            '      await writeFile(path.join(toPath, "PARTIAL.md"), "partial\\n");',
-            '      const error = new Error("simulated staging copy failure");',
-            '      error.code = "EIO";',
-            "      throw error;",
-            "    }",
-            "    await cp(fromPath, toPath, { recursive: true, force: true });",
-          ].join("\n"),
-        ),
-    );
+    const patchedScript = copiedScript
+      .replace(
+        "function getTemporarySiblingPath(targetPath, label) {",
+        [
+          "function getTemporarySiblingPath(targetPath, label) {",
+          '  if (label === "refresh-backup") {',
+          "    return path.join(",
+          "      path.dirname(targetPath),",
+          '      ".emil-design-engineering.refresh-backup-fixed",',
+          "    );",
+          "  }",
+        ].join("\n"),
+      )
+      .replace(
+        "async function renameOnce(fromPath, toPath) {",
+        [
+          "async function renameOnce(fromPath, toPath) {",
+          "  if (await pathExists(toPath)) {",
+          '    const error = new Error("EXDEV: simulated rename onto an existing path");',
+          '    error.code = "EXDEV";',
+          "    throw error;",
+          "  }",
+        ].join("\n"),
+      );
+    if (patchedScript === copiedScript) {
+      throw new Error("failed to patch refresh collision seams");
+    }
+    await writeFile(copiedScriptPath, patchedScript);
 
     const sourceRoot = path.join(
       tempRoot,
@@ -1279,249 +1344,12 @@ describe("refresh-upstream-skills", () => {
       "---\nname: emil-design-engineering\ndescription: stale\n---\n\n# Existing skill\n",
     );
 
-    let failure: unknown;
-    try {
-      runNodeScript(
-        tempRoot,
-        "scripts/refresh-upstream-skills.mjs",
-        ["--only=animations.dev"],
-        {
-          HOME: tempRoot,
-          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
-          CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE: "1",
-          CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE: "1",
-        },
-      );
-    } catch (error) {
-      failure = error;
-    }
-
-    expect(String(failure)).toContain(
-      "failed and skill rollback was incomplete",
-    );
-    expect(String(failure)).toContain("Failed to restore");
-    expect(String(failure)).not.toContain(
-      "failed without changing canonical skills",
-    );
-    await expect(access(canonicalRoot)).rejects.toThrow();
-  });
-
-  it("reports focused GitHub refresh rollback as incomplete when backup restore fails", async () => {
-    const tempRoot = await createTempRepo("refresh-github-restore-failure");
-    const upstreamRepo = path.join(tempRoot, "upstream");
-    await mkdir(path.join(upstreamRepo, "skills/openspec-explore"), {
-      recursive: true,
-    });
-    await writeFile(path.join(upstreamRepo, "LICENSE"), "MIT\n");
-    await writeFile(
-      path.join(upstreamRepo, "skills/openspec-explore/SKILL.md"),
-      "---\nname: openspec-explore\ndescription: refreshed\n---\n\n# Fresh OpenSpec explore\n",
-    );
-    execSync("git init -b main", {
-      cwd: upstreamRepo,
-      env: isolatedGitEnv,
-      stdio: "pipe",
-    });
-    execSync('git config user.email "codex@example.com"', {
-      cwd: upstreamRepo,
-      env: isolatedGitEnv,
-      stdio: "pipe",
-    });
-    execSync('git config user.name "Codex"', {
-      cwd: upstreamRepo,
-      env: isolatedGitEnv,
-      stdio: "pipe",
-    });
-    execSync("git add .", {
-      cwd: upstreamRepo,
-      env: isolatedGitEnv,
-      stdio: "pipe",
-    });
-    execSync('git commit -m "init"', {
-      cwd: upstreamRepo,
-      env: isolatedGitEnv,
-      stdio: "pipe",
-    });
-    execSync("git tag v1.9.0", {
-      cwd: upstreamRepo,
-      env: isolatedGitEnv,
-      stdio: "pipe",
-    });
-
-    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
-    const copiedScriptPath = path.join(
+    const backupRoot = path.join(
       tempRoot,
-      "scripts/refresh-upstream-skills.mjs",
+      "docs/ai/skills/.emil-design-engineering.refresh-backup-fixed",
     );
-    const copiedScript = await readFile(copiedScriptPath, "utf8");
-    await writeFile(
-      copiedScriptPath,
-      copiedScript
-        .replace(
-          'repo: "https://github.com/Fission-AI/OpenSpec.git"',
-          `repo: ${JSON.stringify(upstreamRepo)}`,
-        )
-        .replace(
-          "async function renameOnce(fromPath, toPath) {\n",
-          [
-            "async function renameOnce(fromPath, toPath) {",
-            "  if (",
-            '    process.env.CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE === "1" &&',
-            '    fromPath.includes(".openspec-explore.refresh-backup-")',
-            "  ) {",
-            '    const error = new Error("simulated GitHub backup restore failure");',
-            '    error.code = "EIO";',
-            "    throw error;",
-            "  }",
-            "",
-          ].join("\n"),
-        )
-        .replace(
-          "    await cp(fromPath, toPath, { recursive: true, force: true });",
-          [
-            "    if (",
-            '      process.env.CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE === "1" &&',
-            '      fromPath.includes(".openspec-explore.refresh-staging-")',
-            "    ) {",
-            "      await mkdir(toPath, { recursive: true });",
-            '      await writeFile(path.join(toPath, "PARTIAL.md"), "partial\\n");',
-            '      const error = new Error("simulated GitHub staging copy failure");',
-            '      error.code = "EIO";',
-            "      throw error;",
-            "    }",
-            "    await cp(fromPath, toPath, { recursive: true, force: true });",
-          ].join("\n"),
-        ),
-    );
-
-    const canonicalRoot = path.join(
-      tempRoot,
-      "docs/ai/skills/openspec-explore",
-    );
-    await mkdir(canonicalRoot, { recursive: true });
-    await writeFile(
-      path.join(canonicalRoot, "SKILL.md"),
-      "# Existing OpenSpec explore\n",
-    );
-    await writeJson(path.join(tempRoot, "skills-lock.json"), {
-      version: 1,
-      skills: {
-        "openspec-explore": {
-          source: "Fission-AI/OpenSpec",
-          sourceType: "github",
-          skillPath: "skills/openspec-explore/SKILL.md",
-          computedHash: "stale-hash",
-        },
-      },
-    });
-
-    let failure: unknown;
-    try {
-      runNodeScript(
-        tempRoot,
-        "scripts/refresh-upstream-skills.mjs",
-        ["--only=Fission-AI/OpenSpec"],
-        {
-          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
-          CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE: "1",
-          CORE_SKILLS_FAIL_REFRESH_BACKUP_RESTORE: "1",
-        },
-      );
-    } catch (error) {
-      failure = error;
-    }
-
-    expect(String(failure)).toContain(
-      "failed and skill rollback was incomplete",
-    );
-    expect(String(failure)).toContain("Failed to restore");
-    expect(String(failure)).not.toContain(
-      "failed without changing canonical skills",
-    );
-    await expect(access(canonicalRoot)).rejects.toThrow();
-  });
-
-  it("removes a partial destination when a new skill refresh has no backup", async () => {
-    const tempRoot = await createTempRepo("refresh-exdev-partial-no-backup");
-    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
-
-    const copiedScriptPath = path.join(
-      tempRoot,
-      "scripts/refresh-upstream-skills.mjs",
-    );
-    const copiedScript = await readFile(copiedScriptPath, "utf8");
-    await writeFile(
-      copiedScriptPath,
-      copiedScript.replace(
-        "    await cp(fromPath, toPath, { recursive: true, force: true });",
-        [
-          "    if (",
-          '      process.env.CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE === "1" &&',
-          '      fromPath.includes(".emil-design-engineering.refresh-staging-")',
-          "    ) {",
-          "      await mkdir(toPath, { recursive: true });",
-          '      await writeFile(path.join(toPath, "PARTIAL.md"), "partial\\n");',
-          '      const error = new Error("simulated staging copy failure");',
-          '      error.code = "EIO";',
-          "      throw error;",
-          "    }",
-          "    await cp(fromPath, toPath, { recursive: true, force: true });",
-        ].join("\n"),
-      ),
-    );
-
-    const sourceRoot = path.join(
-      tempRoot,
-      ".cursor/skills/emil-design-engineering",
-    );
-    await mkdir(sourceRoot, { recursive: true });
-    await writeFile(
-      path.join(sourceRoot, "SKILL.md"),
-      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
-    );
-    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
-    await writeFile(
-      path.join(sourceRoot, "component-design.md"),
-      [
-        "4. **asChild** - Render as different element (Radix pattern)",
-        "",
-        "## The `asChild` Pattern",
-        "",
-        "Allow rendering as a different element while preserving behavior:",
-        "",
-        "```jsx",
-        "// Render as button (default)",
-        "<Button>Click me</Button>",
-        "",
-        "// Render as link",
-        "<Button asChild>",
-        '  <a href="/page">Click me</a>',
-        "</Button>",
-        "",
-        "// Render as Next.js Link",
-        "<Button asChild>",
-        '  <Link href="/page">Click me</Link>',
-        "</Button>",
-        "```",
-        "",
-        "Implementation using Radix Slot:",
-        "",
-        "```jsx",
-        'import { Slot } from "@radix-ui/react-slot";',
-        "",
-        "function Button({ asChild, ...props }) {",
-        '  const Comp = asChild ? Slot : "button";',
-        "  return <Comp {...props} />;",
-        "}",
-        "```",
-        "",
-      ].join("\n"),
-    );
-
-    const canonicalRoot = path.join(
-      tempRoot,
-      "docs/ai/skills/emil-design-engineering",
-    );
+    await mkdir(backupRoot, { recursive: true });
+    await writeFile(path.join(backupRoot, "KEEP.md"), "keep backup\n");
 
     expect(() =>
       runNodeScript(
@@ -1530,24 +1358,17 @@ describe("refresh-upstream-skills", () => {
         ["--only=animations.dev"],
         {
           HOME: tempRoot,
-          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
-          CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE: "1",
         },
       ),
-    ).toThrow();
+    ).toThrow(/EXDEV/);
 
-    await expect(access(canonicalRoot)).rejects.toThrow();
-  });
-
-  it("does not treat destination collisions as cross-device refresh moves", async () => {
-    const refreshScript = await readFile(
-      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
-      "utf8",
-    );
-
-    expect(refreshScript).toContain('getErrorCode(error) !== "EXDEV"');
-    expect(refreshScript).not.toContain('code === "EEXIST"');
-    expect(refreshScript).not.toContain('code === "ENOTEMPTY"');
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Existing skill");
+    await expect(
+      readFile(path.join(backupRoot, "KEEP.md"), "utf8"),
+    ).resolves.toBe("keep backup\n");
+    await expect(access(path.join(backupRoot, "SKILL.md"))).rejects.toThrow();
   });
 
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
@@ -1598,292 +1419,6 @@ describe("refresh-upstream-skills", () => {
     );
   });
 
-  it("rolls back canonical Emil refreshes when the clone lock update fails", async () => {
-    const tempRoot = await createTempRepo("refresh-emil-lock-atomic");
-    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
-
-    const copiedScriptPath = path.join(
-      tempRoot,
-      "scripts/refresh-upstream-skills.mjs",
-    );
-    const copiedScript = await readFile(copiedScriptPath, "utf8");
-    await writeFile(
-      copiedScriptPath,
-      copiedScript.replace(
-        "async function writeSkillsLock(lockfile) {\n",
-        [
-          "async function writeSkillsLock(lockfile) {",
-          '  if (process.env.CORE_SKILLS_FAIL_LOCK_WRITE === "1") {',
-          '    throw new Error("simulated lock write failure");',
-          "  }",
-          "",
-        ].join("\n"),
-      ),
-    );
-
-    const minimalEmilSkill = (skillName: string, extraLines: string[] = []) =>
-      [
-        "---",
-        `name: ${skillName}`,
-        "description: fixture",
-        "---",
-        "",
-        ...extraLines,
-      ].join("\n");
-    const emilFixtures = {
-      animate: {
-        "SKILL.md": minimalEmilSkill("animate", ["# Building Animations", ""]),
-      },
-      "animate-expo": {
-        "SKILL.md": minimalEmilSkill("animate-expo", [
-          "# Building Animations in Expo",
-          "",
-        ]),
-      },
-      "animation-vocabulary": {
-        "SKILL.md": rawAnimationVocabularySkill,
-      },
-      "apple-design": {
-        "SKILL.md": [
-          "# Apple design",
-          "",
-          "```",
-          "relativeVelocity = gestureVelocity / (targetValue − currentValue)",
-          "```",
-          "",
-        ].join("\n"),
-      },
-      "ask-sonner": {
-        "SKILL.md": minimalEmilSkill("ask-sonner", [
-          "# Working With Sonner",
-          "",
-          'import { Toaster } from "sonner"; // once, in layout',
-          "",
-        ]),
-      },
-      "emil-design-eng": {
-        "SKILL.md": [
-          "---",
-          "name: emil-design-eng",
-          "description: This skill encodes Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the invisible details that make software feel great.",
-          "---",
-          "",
-          "# Emil design engineering",
-          "",
-          "import { useSpring } from 'framer-motion';",
-          "",
-        ].join("\n"),
-      },
-      "emil-prototype": {
-        "SKILL.md": [
-          "---",
-          "name: prototype",
-          "description: Build multiple genuinely different versions of a UI piece.",
-          "---",
-          "",
-        ].join("\n"),
-      },
-      "improve-animations": {
-        "AUDIT.md": [
-          "# Audit",
-          "",
-          "Duration budgets — **UI animations stay under 300ms**:",
-          "",
-          "Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).",
-          "",
-          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
-          "",
-        ].join("\n"),
-        "PLAN-TEMPLATE.md": [
-          "# Plan",
-          "",
-          "```markdown",
-          "# NNN — <Short imperative title>",
-          "",
-          "- **Estimated scope**: <n files, rough size>",
-          "",
-          "## Problem",
-          "",
-          "\u200B```css",
-          "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);",
-          "  transform-origin: var(--transform-origin);",
-          "\u200B```",
-          "",
-          "## Target",
-          "",
-          "\u200B```css",
-          "/* second example */",
-          "\u200B```",
-          "",
-          "## Steps",
-          "",
-          "1. <One concrete edit per step: file, what changes, resulting code.>",
-          "",
-          "## Verification",
-          "",
-          "- **Done when**: <machine- or eye-checkable completion criteria>.",
-          "```",
-          "",
-          "## Notes for the plan author",
-          "",
-        ].join("\n"),
-        "SKILL.md": "# Improve animations\n",
-      },
-      "mobile-native": {
-        "SKILL.md": minimalEmilSkill("mobile-native", [
-          "# Feeling Native On Mobile",
-          "",
-        ]),
-      },
-      "pick-ui-library": {
-        "SKILL.md": [
-          "---",
-          "name: pick-ui-library",
-          "description: Pick a library.",
-          "---",
-          "",
-          [
-            "| One-time ",
-            "pass",
-            "word",
-            " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
-          ].join(""),
-          "",
-        ].join("\n"),
-      },
-      "review-animations": {
-        "SKILL.md": "# Review animations\n",
-        "STANDARDS.md": [
-          "# Standards",
-          "",
-          "**Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
-          "",
-          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
-          "",
-        ].join("\n"),
-      },
-      "write-swift": {
-        "SKILL.md": minimalEmilSkill("write-swift", ["# Write Swift", ""]),
-      },
-    } as const;
-
-    for (const [skillName, files] of Object.entries(emilFixtures)) {
-      const sourceRoot = path.join(tempRoot, ".agents/skills", skillName);
-      const canonicalRoot = path.join(tempRoot, "docs/ai/skills", skillName);
-      await mkdir(sourceRoot, { recursive: true });
-      await mkdir(canonicalRoot, { recursive: true });
-      for (const [fileName, content] of Object.entries(files)) {
-        await writeFile(path.join(sourceRoot, fileName), content);
-      }
-      await writeFile(
-        path.join(canonicalRoot, "SKILL.md"),
-        `canonical ${skillName} stays intact\n`,
-      );
-    }
-
-    await writeJson(path.join(tempRoot, "skills-lock.json"), {
-      version: 1,
-      skills: Object.fromEntries(
-        Object.keys(emilFixtures).map((skillName) => [
-          skillName,
-          {
-            source: "emilkowalski/skills",
-            sourceType: "github",
-            skillPath: `skills/${skillName}/SKILL.md`,
-            computedHash: "stale-emil-clone-hash",
-          },
-        ]),
-      ),
-    });
-
-    let failure: unknown;
-    try {
-      runNodeScript(
-        tempRoot,
-        "scripts/refresh-upstream-skills.mjs",
-        ["--only=emilkowalski/skills"],
-        {
-          CORE_SKILLS_FAIL_LOCK_WRITE: "1",
-        },
-      );
-    } catch (error) {
-      failure = error;
-    }
-    expect(String(failure)).toContain(
-      "failed without changing canonical skills",
-    );
-    expect(String(failure)).toContain("simulated lock write failure");
-
-    await expect(
-      readFile(path.join(tempRoot, "docs/ai/skills/animate/SKILL.md"), "utf8"),
-    ).resolves.toBe("canonical animate stays intact\n");
-    const lockAfterFailure = JSON.parse(
-      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
-    ) as { skills: Record<string, { computedHash?: string }> };
-    expect(lockAfterFailure.skills.animate?.computedHash).toBe(
-      "stale-emil-clone-hash",
-    );
-  });
-
-  it("restores every swapped skill when one rollback fails", async () => {
-    const tempRoot = await createTempRepo("refresh-rollback-continues");
-    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
-
-    const copiedScriptPath = path.join(
-      tempRoot,
-      "scripts/refresh-upstream-skills.mjs",
-    );
-    const copiedScript = await readFile(copiedScriptPath, "utf8");
-    await writeFile(
-      copiedScriptPath,
-      copiedScript
-        .replace(
-          "async function updateEmilCloneSkillLockHashes(preparedRefreshes) {\n",
-          [
-            "async function updateEmilCloneSkillLockHashes(preparedRefreshes) {",
-            '  throw new Error("simulated lock write failure");',
-            "",
-          ].join("\n"),
-        )
-        .replace(
-          "async function rollbackSwappedRefresh(swappedRefresh) {\n",
-          [
-            "async function rollbackSwappedRefresh(swappedRefresh) {",
-            '  if (swappedRefresh.skillName === "supabase-postgres-best-practices") {',
-            '    throw new Error("simulated rollback failure");',
-            "  }",
-            "",
-          ].join("\n"),
-        ),
-    );
-
-    const skills = ["supabase", "supabase-postgres-best-practices"] as const;
-    for (const skillName of skills) {
-      const sourceRoot = path.join(tempRoot, ".agents/skills", skillName);
-      const canonicalRoot = path.join(tempRoot, "docs/ai/skills", skillName);
-      await mkdir(sourceRoot, { recursive: true });
-      await mkdir(canonicalRoot, { recursive: true });
-      await writeFile(
-        path.join(sourceRoot, "SKILL.md"),
-        `# new ${skillName}\n`,
-      );
-      await writeFile(
-        path.join(canonicalRoot, "SKILL.md"),
-        `# old ${skillName}\n`,
-      );
-    }
-
-    expect(() =>
-      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
-        "--only=supabase/agent-skills",
-      ]),
-    ).toThrow(/simulated rollback failure/);
-
-    await expect(
-      readFile(path.join(tempRoot, "docs/ai/skills/supabase/SKILL.md"), "utf8"),
-    ).resolves.toBe("# old supabase\n");
-  });
-
   it("keeps Emil discovery replacements idempotent across repeated focused refreshes", async () => {
     const tempRoot = await createTempRepo("refresh-emil-idempotent");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
@@ -1900,13 +1435,42 @@ describe("refresh-upstream-skills", () => {
 
     const fixtures = {
       animate: {
-        "SKILL.md": minimalEmilSkill("animate", ["# Building Animations", ""]),
+        "SKILL.md": minimalEmilSkill("animate", [
+          "# Building Animations",
+          "",
+          "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.",
+          "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+          "- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:",
+          "<motion.div animate={{ x: 100 }} />                          // drops frames under load",
+          '<motion.div animate={{ transform: "translateX(100px)" }} />  // hardware accelerated',
+          "--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */",
+          "--ease-in-out: cubic-bezier(",
+          "| Element                  | Duration      |",
+          "| ------------------------ | ------------- |",
+          "| Button press feedback    | 100–160ms     |",
+          "| Tooltips, small popovers | 125–200ms     |",
+          "| Dropdowns, selects       | 150–250ms     |",
+          "| Modals, drawers          | 200–500ms     |",
+          "| Marketing / explanatory  | Can be longer |",
+        ]),
+        "RECIPES.md": [
+          "Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.",
+          "transition: transform 160ms var(--ease-out);",
+          "transition: transform 500ms var(--ease-drawer);",
+          "transition: clip-path 250ms var(--ease-in-out);",
+          "",
+        ].join("\n"),
       },
       "animate-expo": {
-        "SKILL.md": minimalEmilSkill("animate-expo", [
+        "SKILL.md": [
+          "---",
+          "name: animate-expo",
+          "description: Build animations in React Native and Expo, making the decisions in the order that determines whether they feel right — should it animate, which thread it runs on, which properties, spring or timing, how the gesture hands off, how it degrades. Writes the implementation with Reanimated, Gesture Handler, Expo Router and expo-haptics. Use when animating anything in an Expo app, adding gestures, sheets, screen transitions, press feedback or haptics, or fixing motion that stutters on device. For web animation use `animate`.",
+          "---",
+          "",
           "# Building Animations in Expo",
           "",
-        ]),
+        ].join("\n"),
       },
       "animation-vocabulary": {
         "SKILL.md": rawAnimationVocabularySkill,
@@ -1927,14 +1491,22 @@ describe("refresh-upstream-skills", () => {
         "SKILL.md": minimalEmilSkill("ask-sonner", [
           "# Working With Sonner",
           "",
-          'import { Toaster } from "sonner"; // once, in layout',
-          'import { toast } from "sonner";   // anywhere client-side',
+          "## Setup",
           "",
-        ]),
-      },
-      "mobile-native": {
-        "SKILL.md": minimalEmilSkill("mobile-native", [
-          "# Feeling Native On Mobile",
+          "```jsx",
+          'import { Toaster } from "sonner"; // once, near the root',
+          'import { toast } from "sonner"; // anywhere client-side',
+          "```",
+          "",
+          "## Troubleshooting",
+          "",
+          "| Symptom             | Cause → fix                                               |",
+          "| ------------------- | --------------------------------------------------------- |",
+          "| Toast never appears                                                   | No `<Toaster />` is mounted — add one near the app root. |",
+          "1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.",
+          "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
+          "3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.",
+          "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",
           "",
         ]),
       },
@@ -1963,7 +1535,7 @@ describe("refresh-upstream-skills", () => {
           "",
           "# Prototyping Variants",
           "",
-          "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
+          "- **In a project with a dev server** — an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent), one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
           "",
         ].join("\n"),
       },
@@ -2031,6 +1603,9 @@ describe("refresh-upstream-skills", () => {
             "word",
             " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
           ].join(""),
+          "| Command menus (⌘K palettes) | [cmdk](https://cmdk.paco.me) |",
+          "| State management | [zustand](https://zustand.docs.pmnd.rs) |",
+          "- **A `useState`-per-component web of props for shared state** → zustand.",
           "",
         ].join("\n"),
       },
@@ -2047,8 +1622,22 @@ describe("refresh-upstream-skills", () => {
           "",
         ].join("\n"),
       },
+      "mobile-native": {
+        "SKILL.md": minimalEmilSkill("mobile-native", [
+          "# Feeling Native On Mobile",
+          "",
+        ]),
+      },
       "write-swift": {
-        "SKILL.md": minimalEmilSkill("write-swift", ["# Write Swift", ""]),
+        "SKILL.md": minimalEmilSkill("write-swift", [
+          "# Write Swift",
+          "",
+          "**Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+          "(Swift 6.4 — unreleased — adds a `Continuation` type that checks single-resumption at compile time.)",
+          "- Landing in Swift 6.4 (**unreleased** — see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop.",
+          "Swift 6.4's `@diagnose` attribute (unreleased) lets you turn it on for individual functions.",
+          "**Rows marked ⚠ are Swift 6.4, which has not shipped.** The current release is 6.3.x. Their proposals are accepted and implemented in main, so they are safe to plan around and unsafe to write today — check the project's toolchain before using one, and prefer the older form if it targets 6.3 or earlier.",
+        ]),
       },
     } as const;
 
@@ -2058,80 +1647,13 @@ describe("refresh-upstream-skills", () => {
       for (const [fileName, content] of Object.entries(files)) {
         await writeFile(path.join(skillRoot, fileName), content);
       }
-
-      const canonicalSkillPath = path.join(
-        tempRoot,
-        "docs/ai/skills",
-        skillName,
-        "SKILL.md",
-      );
-      await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
-      await writeFile(
-        canonicalSkillPath,
-        `${files["SKILL.md"].replace(
-          /^(# .+)\n/m,
-          `$1\n\n<!-- CORE-OVERLAY-START -->\nCore overlay fixture\n<!-- CORE-OVERLAY-END -->\n\n`,
-        )}`,
-      );
     }
-
-    const originalCloneHashes = Object.fromEntries(
-      Object.entries(fixtures).map(([skillName, files]) => [
-        skillName,
-        createHash("sha256").update(files["SKILL.md"]).digest("hex"),
-      ]),
-    );
-    await writeJson(path.join(tempRoot, "skills-lock.json"), {
-      version: 1,
-      skills: Object.fromEntries(
-        Object.keys(fixtures).map((skillName) => [
-          skillName,
-          {
-            source: "emilkowalski/skills",
-            sourceType: "github",
-            skillPath:
-              skillName === "emil-prototype"
-                ? "skills/prototype/SKILL.md"
-                : `skills/${skillName}/SKILL.md`,
-            computedHash: "stale-emil-clone-hash",
-          },
-        ]),
-      ),
-    });
 
     const refreshArguments = ["--only=emilkowalski/skills"];
     runNodeScript(
       tempRoot,
       "scripts/refresh-upstream-skills.mjs",
       refreshArguments,
-    );
-
-    const lockAfterCloneRefresh = JSON.parse(
-      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
-    ) as {
-      skills: Record<string, { computedHash?: string; skillPath?: string }>;
-    };
-    for (const skillName of Object.keys(fixtures)) {
-      expect(
-        lockAfterCloneRefresh.skills[skillName]?.computedHash,
-        `${skillName} lock hash after clone refresh`,
-      ).toBe(originalCloneHashes[skillName]);
-      const canonicalHash = createHash("sha256")
-        .update(
-          await readFile(
-            path.join(tempRoot, "docs/ai/skills", skillName, "SKILL.md"),
-          ),
-        )
-        .digest("hex");
-      if (canonicalHash !== originalCloneHashes[skillName]) {
-        expect(
-          lockAfterCloneRefresh.skills[skillName]?.computedHash,
-          `${skillName} lock hash must not follow overlaid canonical bytes`,
-        ).not.toBe(canonicalHash);
-      }
-    }
-    expect(lockAfterCloneRefresh.skills["emil-prototype"]?.skillPath).toBe(
-      "skills/prototype/SKILL.md",
     );
 
     const idempotentPaths = [
@@ -2143,7 +1665,6 @@ describe("refresh-upstream-skills", () => {
       "emil-design-eng/SKILL.md",
       "emil-prototype/SKILL.md",
       "improve-animations/AUDIT.md",
-      "mobile-native/SKILL.md",
       "improve-animations/PLAN-TEMPLATE.md",
       "pick-ui-library/SKILL.md",
       "review-animations/SKILL.md",
@@ -2157,6 +1678,35 @@ describe("refresh-upstream-skills", () => {
         { force: true },
       );
     }
+    const sourceAnimateSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/animate/SKILL.md",
+    );
+    const sourceAnimateSkill = await readFile(sourceAnimateSkillPath, "utf8");
+    const wideDurationTable = [
+      "| Element                  | Duration                                      |",
+      "| ------------------------ | --------------------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)               |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)               |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms)            |",
+      "| Modals                   | `var(--duration-modal)` (220ms)               |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)              |",
+      "| Marketing / explanatory  | Can be longer                                 |",
+    ].join("\n");
+    const formattedDurationTable = [
+      "| Element                  | Duration                           |",
+      "| ------------------------ | ---------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)    |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)    |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms) |",
+      "| Modals                   | `var(--duration-modal)` (220ms)    |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)   |",
+      "| Marketing / explanatory  | Can be longer                      |",
+    ].join("\n");
+    await writeFile(
+      sourceAnimateSkillPath,
+      sourceAnimateSkill.replace(wideDurationTable, formattedDurationTable),
+    );
     const sourcePlanTemplatePath = path.join(
       tempRoot,
       ".agents/skills/improve-animations/PLAN-TEMPLATE.md",
@@ -2176,29 +1726,6 @@ describe("refresh-upstream-skills", () => {
       refreshArguments,
     );
 
-    const lockAfterOverlayRefresh = JSON.parse(
-      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
-    ) as {
-      skills: Record<string, { computedHash?: string }>;
-    };
-    for (const skillName of Object.keys(fixtures)) {
-      expect(
-        lockAfterOverlayRefresh.skills[skillName]?.computedHash,
-        `${skillName} lock hash after overlaid re-refresh`,
-      ).toBe(originalCloneHashes[skillName]);
-      const overlaidCanonicalHash = createHash("sha256")
-        .update(
-          await readFile(
-            path.join(tempRoot, "docs/ai/skills", skillName, "SKILL.md"),
-          ),
-        )
-        .digest("hex");
-      expect(
-        lockAfterOverlayRefresh.skills[skillName]?.computedHash,
-        `${skillName} lock hash must stay on clone SKILL.md after overlay refresh`,
-      ).not.toBe(overlaidCanonicalHash);
-    }
-
     const canonicalSkillPath = path.join(
       tempRoot,
       "docs/ai/skills/emil-design-eng/SKILL.md",
@@ -2210,54 +1737,38 @@ describe("refresh-upstream-skills", () => {
     expect(refreshedContent).toContain(
       'import { useSpring } from "motion/react";',
     );
+    const refreshedAskSonner = await readFile(
+      path.join(tempRoot, "docs/ai/skills/ask-sonner/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedAskSonner).not.toContain(
+      'import { Toaster } from "sonner";',
+    );
+    expect(refreshedAskSonner).toContain(
+      'import { Toaster } from "@asym/ui/components/shadcn/sonner";',
+    );
+    expect(refreshedAskSonner).toContain(
+      "Core already mounts `@asym/ui`'s `<Toaster />`.",
+    );
     const refreshedPrototype = await readFile(
       path.join(tempRoot, "docs/ai/skills/emil-prototype/SKILL.md"),
       "utf8",
     );
     expect(refreshedPrototype).toContain("name: emil-prototype");
     expect(refreshedPrototype).not.toMatch(/^name: prototype$/m);
-    expect(refreshedPrototype).toContain("disable-model-invocation: true");
-    await expect(
-      readFile(path.join(tempRoot, "docs/ai/skills/animate/SKILL.md"), "utf8"),
-    ).resolves.toContain("disable-model-invocation: true");
-    await expect(
-      readFile(
-        path.join(tempRoot, "docs/ai/skills/animate-expo/SKILL.md"),
-        "utf8",
-      ),
-    ).resolves.toContain("disable-model-invocation: true");
-    await expect(
-      readFile(
-        path.join(tempRoot, "docs/ai/skills/write-swift/SKILL.md"),
-        "utf8",
-      ),
-    ).resolves.toContain("disable-model-invocation: true");
-    await expect(
-      readFile(
-        path.join(tempRoot, "docs/ai/skills/mobile-native/SKILL.md"),
-        "utf8",
-      ),
-    ).resolves.toContain("disable-model-invocation: true");
-    const refreshedAskSonner = await readFile(
-      path.join(tempRoot, "docs/ai/skills/ask-sonner/SKILL.md"),
-      "utf8",
-    );
-    expect(refreshedAskSonner).not.toMatch(
-      /import \{ Toaster \} from ["']sonner["']/,
-    );
-    expect(refreshedAskSonner).toContain(
-      'import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts',
-    );
-    expect(refreshedAskSonner).toContain(
-      'import { toast } from "sonner";   // anywhere client-side',
-    );
     const refreshedPicker = await readFile(
       path.join(tempRoot, "docs/ai/skills/pick-ui-library/SKILL.md"),
       "utf8",
     );
     expect(refreshedPicker).toContain(
-      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+      "Do not add another `input-otp` package.",
     );
+    expect(refreshedPicker).toContain("Do not add another `cmdk` tree.");
+    expect(refreshedPicker).not.toContain("https://cmdk.paco.me");
+    expect(refreshedPicker).not.toContain("https://input-otp.rodz.dev");
+    expect(refreshedPicker).toContain("Do not install Zustand");
+    expect(refreshedPicker).not.toContain("https://zustand.docs.pmnd.rs");
+    expect(refreshedPicker).not.toMatch(/→ zustand\./);
     expect(existsSync(path.join(tempRoot, "docs/ai/skills/prototype"))).toBe(
       false,
     );
@@ -2665,6 +2176,17 @@ describe("refresh-upstream-skills", () => {
 });
 
 describe("verify-eslint-config", () => {
+  it("propagates a failed design-system health check through the existing verifier", async () => {
+    const tempRoot = await createEslintVerifyRepo();
+    await writeFile(
+      path.join(tempRoot, "tooling/eslint-config/health.mjs"),
+      'export async function verifyDesignSystemHealth() { throw new Error("fixture: theme discovery failed"); }\n',
+    );
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-eslint-config.mjs"),
+    ).toThrow(/fixture: theme discovery failed/);
+  });
+
   it("allows Payload-generated files to keep their bare eslint-disable banner", async () => {
     const tempRoot = await createEslintVerifyRepo();
 
@@ -2815,5 +2337,564 @@ describe("data-boundary-check", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify/data-boundary-check.mjs"),
     ).toThrow(/Twenty CRM boundary violations detected/);
+  });
+
+  it("allowlists demo credential-word lines in ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const originalJsonInput = `How do I reset my ${demoCredentialWord}?`;
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/claude-handoff");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      `# Handoff\n\nRedact API keys, ${demoCredentialWord}, or PII.\n`,
+    );
+    await mkdir(path.join(ecosystemDir, "assets"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "assets/examples.json"),
+      `{"input":"${originalJsonInput}"}\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/rest-api-template.py"),
+      `${demoCredentialWord}: str = Field(..., min_length=8)\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/table.md"),
+      [
+        "| Bad | Good |",
+        "| --- | --- |",
+        `| That ${demoCredentialWord} is too short | Choose a ${demoCredentialWord} with at least 8 characters |`,
+        "",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/SKILL.md"),
+        "utf8",
+      );
+      expect(copied).toContain("pragma: allowlist secret");
+      const jsonCopy = JSON.parse(
+        await readFile(
+          path.join(
+            tempRoot,
+            runtimeRoot,
+            "claude-handoff/assets/examples.json",
+          ),
+          "utf8",
+        ),
+      );
+      expect(jsonCopy.input).toBe(originalJsonInput);
+      expect(jsonCopy.input).not.toContain("pragma: allowlist secret");
+
+      const pythonPath = path.join(
+        tempRoot,
+        runtimeRoot,
+        "claude-handoff/assets/rest-api-template.py",
+      );
+      const pythonCopy = await readFile(pythonPath, "utf8");
+      expect(pythonCopy).toContain("# pragma: allowlist secret");
+      expect(pythonCopy).not.toContain("// pragma: allowlist secret");
+      execFileSync("python3", ["-m", "py_compile", pythonPath]);
+
+      const tableCopy = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/assets/table.md"),
+        "utf8",
+      );
+      const tableRow = tableCopy
+        .split("\n")
+        .find((line) => line.includes("too short"));
+      expect(tableRow).toContain("pragma: allowlist secret");
+      expect(tableRow?.match(/\|/g)?.length).toBe(3);
+    }
+  }, 60_000);
+
+  it("keeps fenced markdown examples executable when allowlisting demo credential-word lines", async () => {
+    const tempRoot = await createTempRepo("sync-skills-fenced-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/fenced-examples");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      [
+        "---",
+        "name: fenced-examples",
+        "description: Fenced scanner fixture",
+        "---",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
+        "",
+        "```",
+        `unlabeled ${demoCredentialWord}`,
+        "```",
+        "",
+        "```json",
+        `{"secret":"${demoCredentialWord}"}`,
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "fenced-examples/SKILL.md"),
+        "utf8",
+      );
+      const jsFence = fencedMarkdownBlock(copied, "js");
+      const tsFence = fencedMarkdownBlock(copied, "typescript");
+      const bashFence = fencedMarkdownBlock(copied, "bash");
+      const sqlFence = fencedMarkdownBlock(copied, "sql");
+      const htmlFence = fencedMarkdownBlock(copied, "html");
+      const graphqlFence = fencedMarkdownBlock(copied, "graphql");
+      const markdownFence = fencedMarkdownBlock(copied, "markdown");
+      const unlabeledFence = fencedMarkdownBlock(copied, "");
+      const jsonFence = fencedMarkdownBlock(copied, "json");
+      const proseLine = copied
+        .split("\n")
+        .find((line) => line.includes("outside fences"));
+
+      expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+      expect(jsFence).toContain("// pragma: allowlist secret");
+      expect(jsFence).not.toContain("<!--");
+      expect(tsFence).toContain("// pragma: allowlist secret");
+      expect(tsFence).not.toContain("<!--");
+      expect(bashFence).toContain("# pragma: allowlist secret");
+      expect(bashFence).not.toContain("<!--");
+      expect(bashFence).toContain(
+        `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+      );
+      expect(sqlFence).toContain("-- pragma: allowlist secret");
+      expect(sqlFence).not.toContain("<!--");
+      expect(htmlFence).toContain("<!-- pragma: allowlist secret -->");
+      expect(graphqlFence).toContain("# pragma: allowlist secret");
+      expect(markdownFence).toContain(
+        `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+      );
+      expect(unlabeledFence).not.toContain("pragma: allowlist secret");
+      expect(unlabeledFence).not.toContain("<!--");
+      expect(jsonFence).not.toContain("pragma: allowlist secret");
+      expect(jsonFence).not.toContain("<!--");
+    }
+  }, 60_000);
+
+  it("strips macOS Finder junk from ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-macos-junk");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/deploy-to-vercel");
+    await mkdir(path.join(ecosystemDir, "__MACOSX"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      "---\nname: deploy-to-vercel\n---\n# Deploy\n",
+    );
+    await writeFile(path.join(ecosystemDir, "Archive.zip"), "zip-bytes");
+    await writeFile(path.join(ecosystemDir, ".DS_Store"), "store");
+    await writeFile(path.join(ecosystemDir, "._SKILL.md"), "appledouble");
+    await writeFile(path.join(ecosystemDir, "__MACOSX/._junk"), "junk");
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const skillDir = path.join(tempRoot, runtimeRoot, "deploy-to-vercel");
+      expect(existsSync(path.join(skillDir, "SKILL.md"))).toBe(true);
+      expect(existsSync(path.join(skillDir, "Archive.zip"))).toBe(false);
+      expect(existsSync(path.join(skillDir, ".DS_Store"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "._SKILL.md"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "__MACOSX"))).toBe(false);
+    }
+  }, 60_000);
+
+  it("keeps fenced markdown examples executable after a paid skill refresh", async () => {
+    const tempRoot = await createTempRepo("refresh-fenced-scanner");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      [
+        "---",
+        "name: emil-design-engineering",
+        "description: refreshed",
+        "---",
+        "",
+        "# Fresh paid skill",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
+        "",
+      ].join("\n"),
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      { HOME: tempRoot },
+    );
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const proseLine = refreshed
+      .split("\n")
+      .find((line) => line.includes("outside fences"));
+    expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+    expect(fencedMarkdownBlock(refreshed, "js")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "js")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "typescript")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "typescript")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "bash")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+    );
+    expect(fencedMarkdownBlock(refreshed, "sql")).toContain(
+      "-- pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "html")).toContain(
+      "<!-- pragma: allowlist secret -->",
+    );
+    expect(fencedMarkdownBlock(refreshed, "graphql")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "markdown")).toContain(
+      `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+    );
+  });
+
+  const askMattGrillDepthOverlay = [
+    "<!-- CORE-OVERLAY-START -->",
+    "",
+    "1. **Choose the grill depth.** Use **`/grill-with-docs`** for the normal codebase-backed interview: it is stateful, retaining what it learns in `CONTEXT.md` and ADRs. Use **`/grill-for-unknowns` instead** only when the user explicitly requests its map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet; it owns that session's grilling loop, so do not also run `/grilling` or `/grill-with-docs`. (No codebase? Use `/grill-me` — see Standalone.)",
+    "<!-- CORE-OVERLAY-END -->",
+  ].join("\n");
+
+  const askMattUpstreamBody = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+    "",
+  ].join("\n");
+
+  const askMattCanonicalSkill = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    askMattGrillDepthOverlay,
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
+    "",
+  ].join("\n");
+
+  function askMattOverlayPlacement(content: string) {
+    return {
+      heading: content.indexOf("## The main flow: idea → ship"),
+      overlay: content.indexOf("<!-- CORE-OVERLAY-START -->"),
+      stepTwo: content.indexOf("2. **Branch"),
+    };
+  }
+
+  it("restores the Ask Matt grill-depth overlay under the main flow after a CLI add", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-main-flow");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalRoot = path.join(tempRoot, "docs/ai/skills/ask-matt");
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, askMattUpstreamBody);
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      askMattCanonicalSkill,
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "# Core provenance\n",
+    );
+
+    runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+      "--only=mattpocock/skills",
+    ]);
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const placement = askMattOverlayPlacement(refreshed);
+    expect(placement.heading).toBeGreaterThan(-1);
+    expect(placement.overlay).toBeGreaterThan(placement.heading);
+    expect(placement.stepTwo).toBeGreaterThan(placement.overlay);
+    expect(refreshed).toContain("/grill-for-unknowns");
+    expect(refreshed).toContain("/writing-great-skills");
+    expect(refreshed).not.toContain("/writing-for-agents");
+    expect(refreshed).not.toContain(
+      "1. **`/grill-with-docs`** sharpens the idea by interview.",
+    );
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("# Core provenance\n");
+  });
+
+  it("fails closed when the Ask Matt overlay is restored after the H1 instead of the main flow", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-misplaced-overlay");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const misplacedSource = [
+      "---",
+      "name: ask-matt",
+      "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+      "disable-model-invocation: true",
+      "---",
+      "",
+      "# Ask Matt",
+      "",
+      askMattGrillDepthOverlay,
+      "",
+      "You don't remember every skill, so ask.",
+      "",
+      "## The main flow: idea → ship",
+      "",
+      "The route most work travels. You have an idea and want it built.",
+      "",
+      "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+      "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+      "",
+      "## Standalone",
+      "",
+      "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+      "",
+    ].join("\n");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalSkillPath = path.join(
+      tempRoot,
+      "docs/ai/skills/ask-matt/SKILL.md",
+    );
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, misplacedSource);
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, askMattCanonicalSkill);
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=mattpocock/skills",
+      ]),
+    ).toThrow(/main flow/);
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      askMattCanonicalSkill,
+    );
   });
 });

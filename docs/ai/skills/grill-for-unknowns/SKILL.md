@@ -1,7 +1,7 @@
 ---
 name: grill-for-unknowns
 description: Use only when the user explicitly invokes grill-for-unknowns or asks for a map-vs-territory unknowns pass, blindspot discovery, unknown-known prototypes, or a subagent launch packet before implementation.
-version: 0.1.1
+version: 0.1.3
 author: Nico Bailon (co-authored by Matt Pocock)
 license: MIT
 disable-model-invocation: true
@@ -96,7 +96,7 @@ The core idea is:
 
 This skill combines docs-grounded grilling, one-question-at-a-time interviewing, domain modeling, and a four-quadrant unknowns pass.
 
-The goal is not to ask endless questions. The goal is to discover the few answers that would materially change the plan (see the **Material** criterion below) — and to write down the shared understanding as it forms.
+Grilling here means few, evidence-priced questions — not relentless interrogation; not asking about a non-material topic is correct behavior. The goal is to discover the few answers that would materially change the plan (see the **Material** criterion below) — and to write down the shared understanding as it forms.
 
 ## When to Use
 
@@ -118,6 +118,8 @@ Do **not** use when:
 ## Operating Mode
 
 Stay in **Explore** or **Plan** mode until the unknowns that could change the implementation are resolved or explicitly accepted as assumptions.
+
+The grill has a defined end: it is over when the unknowns ledger is empty — every material unknown resolved, defaulted, or explicitly accepted. Announce the remaining count as it shrinks (e.g., "2 material unknowns left") so the user can see the end approaching.
 
 Default sequence:
 
@@ -172,6 +174,7 @@ Bad grill questions:
 - Obvious preferences that a competent agent can default.
 - Exhaustive questionnaires before any research.
 - Asking the user to answer things the code/docs can answer.
+- Asking the user to verbalize taste they can only recognize when shown ("what does modern mean to you?") — route those to prototypes and references instead.
 - Open-ended "anything else?" questions with no context.
 
 ### 3. Ask one material question at a time when blocked
@@ -190,6 +193,12 @@ If you don't care: I'll proceed with <default>.
 
 If multiple questions are useful but not blocking, keep them in the grill queue and ask the next unresolved material decision first.
 
+Budget and exit rules:
+
+- Default budget: ~5 blocking questions per session. Going beyond it requires asking the user whether to continue.
+- **Fatigue valve**: if the user's answers turn short or impatient (one-word replies, "just pick"), stop interviewing — convert the remaining unknowns to labeled defaults and present them as one batch for veto.
+- Once no blocking questions remain, do not keep asking one at a time: present the residual low-risk unknowns as a single assumptions list for veto.
+
 ## Domain Modeling: Shared Language and ADRs
 
 Grilling must also maintain shared language. During the grill, challenge fuzzy or overloaded terms immediately, compare the user's terms against existing `CONTEXT.md`, code identifiers, docs, and product copy, and update `CONTEXT.md` when a term crystallizes (glossary only — no plans, scratchpads, or ADR content).
@@ -198,7 +207,7 @@ Offer an ADR only when the decision is (1) hard to reverse, (2) surprising witho
 
 ## Finding Unknown Unknowns: Blindspot Pass
 
-Run a blindspot pass when the user is entering an unfamiliar domain, unfamiliar part of the codebase, or high-stakes integration: search the relevant docs/source/tests for unknown unknowns that could materially change the plan, explain them in plain language, rank by implementation risk, and suggest how to resolve each one cheaply.
+Run a blindspot pass when the user is entering an unfamiliar domain, unfamiliar part of the codebase, or high-stakes integration: search the relevant docs/source/tests — including documented limits and known failure modes of load-bearing dependencies — for unknown unknowns that could materially change the plan, explain them in plain language, rank by implementation risk, and suggest how to resolve each one cheaply.
 
 Output shape:
 
@@ -229,7 +238,7 @@ When the user will recognize the right answer visually or behaviorally but canno
 - Build cheap prototypes before wiring real systems — e.g., a single-file mock with fake data showing 3 distinct directions.
 - Offer multiple directions with meaningful contrast, not tiny variations.
 - Ask the user to react to examples, screenshots, demos, or reference source — e.g., 2-3 similar in-repo modules plus one external reference, then ask which behavior to match.
-- Capture the user's reactions as explicit criteria.
+- Capture the user's reactions as explicit criteria — and when quality can't be checked by a test, distill them into a short rubric that becomes the verification gate.
 
 ## Implementation Plan Requirements
 

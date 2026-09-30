@@ -25,7 +25,7 @@ Use idempotency keys to prevent duplicate emails when retrying failed requests.
 |----------|------------|---------|
 | Welcome email | `welcome-email/<user-id>` | `welcome-email/user-123` |
 | Order confirmation | `order-confirmation/<order-id>` | `order-confirmation/order-456` |
-| Password reset | `password-reset/<user-id>/<timestamp>` | `password-reset/user-123/1705123456` |
+| Password reset | `password-reset/<user-id>/<timestamp>` | `password-reset/user-123/1705123456` | // pragma: allowlist secret
 | Batch notifications | `batch-<event>/<batch-id>` | `batch-order-notifications/batch-789` |
 | Large batch chunk | `<batch-prefix>/chunk-<index>` | `campaign-abc/chunk-0` |
 

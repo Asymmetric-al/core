@@ -18,7 +18,7 @@ export class UsersService {
   @Inject()
   private userRepo: UserRepository; // Hidden dependency
 
-  @Inject('CONFIG')
+  @Inject("CONFIG")
   private config: ConfigType; // Also hidden
 
   async findAll() {
@@ -40,7 +40,7 @@ export class UsersService {
 export class UsersService {
   constructor(
     private readonly userRepo: UserRepository,
-    @Inject('CONFIG') private readonly config: ConfigType,
+    @Inject("CONFIG") private readonly config: ConfigType,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -49,7 +49,7 @@ export class UsersService {
 }
 
 // Testing is straightforward
-describe('UsersService', () => {
+describe("UsersService", () => {
   let service: UsersService;
   let mockRepo: jest.Mocked<UserRepository>;
 
@@ -59,11 +59,11 @@ describe('UsersService', () => {
       save: jest.fn(),
     } as any;
 
-    service = new UsersService(mockRepo, { dbUrl: 'test' });
+    service = new UsersService(mockRepo, { dbUrl: "test" });
   });
 
-  it('should find all users', async () => {
-    mockRepo.find.mockResolvedValue([{ id: '1', name: 'Test' }]);
+  it("should find all users", async () => {
+    mockRepo.find.mockResolvedValue([{ id: "1", name: "Test" }]);
     const result = await service.findAll();
     expect(result).toHaveLength(1);
   });
@@ -73,12 +73,12 @@ describe('UsersService', () => {
 @Injectable()
 export class LoggingService {
   @Optional()
-  @Inject('ANALYTICS')
+  @Inject("ANALYTICS")
   private analytics?: AnalyticsService;
 
   log(message: string) {
     console.log(message);
-    this.analytics?.track('log', message); // Optional enhancement
+    this.analytics?.track("log", message); // Optional enhancement
   }
 }
 ```

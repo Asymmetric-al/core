@@ -16,6 +16,8 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { HomeHeroAnimated } from "./home-hero-animated";
 
+import type { CSSProperties } from "react";
+
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop";
 const MISSION_IMAGE =
@@ -107,7 +109,7 @@ export function HomeMission() {
       className="py-24 md:py-40 bg-white relative overflow-hidden"
     >
       <div
-        className="absolute top-0 right-0 w-[800px] h-[800px] bg-zinc-50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 -z-10"
+        className="absolute top-0 right-0 w-200 h-200 bg-zinc-50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 -z-10"
         aria-hidden="true"
       />
 
@@ -183,7 +185,7 @@ export function HomeMission() {
           </div>
 
           <figure className="relative lg:ml-auto group size-full">
-            <div className="relative z-10 h-[420px] sm:h-[520px] lg:h-[640px] w-full rounded-3xl overflow-hidden bg-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
+            <div className="relative z-10 h-105 sm:h-130 lg:h-160 w-full rounded-3xl overflow-hidden bg-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
               <Image
                 src={MISSION_IMAGE}
                 alt="Field workers providing humanitarian aid in communities"
@@ -206,7 +208,7 @@ export function HomeMission() {
               </figcaption>
             </div>
 
-            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-zinc-100 max-w-[200px] hidden xl:block">
+            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-zinc-100 max-w-50 hidden xl:block">
               <Sparkles
                 className="size-5 text-zinc-400 mb-3"
                 aria-hidden="true"
@@ -272,7 +274,7 @@ export function HomeStats() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <article className="md:col-span-8 group bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-2xl hover:bg-white/10 transition-colors duration-300 ease-out flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
+          <article className="md:col-span-8 group bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-2xl hover:bg-white/10 transition-colors duration-300 ease-out flex flex-col justify-between min-h-75 md:min-h-100">
             <div>
               <Activity
                 className="size-8 text-zinc-400 mb-8"
@@ -388,69 +390,67 @@ export function HomeFeatured() {
           </Link>
         </header>
 
-        <div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
-          role="list"
-        >
+        <ul className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 list-none p-0 m-0">
           {projects.map((item) => (
-            <article
-              key={`${item.title}-${item.loc}`}
-              className="group cursor-pointer"
-              role="listitem"
-            >
-              <Link href="/workers" className="block">
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
-                  <Image
-                    src={item.img}
-                    alt={`${item.title} project - ${item.loc}`}
-                    fill
-                    className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    loading="lazy"
-                    quality={75}
-                  />
-                  <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
-                  <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
-                    {item.raised} Deployed
-                  </div>
-
-                  <div className="absolute bottom-8 left-8 right-8">
-                    <div className="flex items-center gap-2 text-[9px] font-semibold text-white/70 uppercase tracking-[0.2em] mb-3">
-                      <Globe className="size-3" aria-hidden="true" /> {item.loc}
+            <li key={`${item.title}-${item.loc}`}>
+              <article className="group cursor-pointer">
+                <Link href="/workers" className="block">
+                  <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
+                    <Image
+                      src={item.img}
+                      alt={`${item.title} project - ${item.loc}`}
+                      fill
+                      className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      loading="lazy"
+                      quality={75}
+                    />
+                    <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
+                    <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
+                      {item.raised} Deployed
                     </div>
-                    <h3 className="text-2xl sm:text-3xl font-semibold text-white font-syne leading-none mb-4 group-hover:translate-x-1 transition-transform duration-200 ease-out">
-                      {item.title}
-                    </h3>
-                    <div
-                      className="h-1 w-full bg-white/20 rounded-full overflow-hidden"
-                      role="progressbar"
-                      aria-label={`${item.title} deployed`}
-                      aria-valuenow={parseInt(item.raised)}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      {/*
+
+                    <div className="absolute bottom-8 left-8 right-8">
+                      <div className="flex items-center gap-2 text-[9px] font-semibold text-white/70 uppercase tracking-[0.2em] mb-3">
+                        <Globe className="size-3" aria-hidden="true" />{" "}
+                        {item.loc}
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-semibold text-white font-syne leading-none mb-4 group-hover:translate-x-1 transition-transform duration-200 ease-out">
+                        {item.title}
+                      </h3>
+                      <div
+                        className="h-1 w-full bg-white/20 rounded-full overflow-hidden"
+                        role="progressbar"
+                        aria-label={`${item.title} deployed`}
+                        aria-valuenow={parseInt(item.raised)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        {/*
                         Animate transform: scaleX (GPU, no layout) instead
                         of width (paint + layout). Keep the bar at full
                         width and scale it horizontally based on raised %.
                       */}
-                      <div
-                        className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                        style={{
-                          transform: `scaleX(${parseInt(item.raised) / 100})`,
-                        }}
-                      />
+                        <div
+                          className="size-full origin-left bg-white transform-(--impact-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                          style={
+                            {
+                              "--impact-progress-transform": `scaleX(${parseInt(item.raised) / 100})`,
+                            } as CSSProperties
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center text-[10px] font-semibold text-zinc-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
-                  Join the Mission{" "}
-                  <ArrowRight className="size-3 ml-2" aria-hidden="true" />
-                </div>
-              </Link>
-            </article>
+                  <div className="flex items-center text-[10px] font-semibold text-zinc-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
+                    Join the Mission{" "}
+                    <ArrowRight className="size-3 ml-2" aria-hidden="true" />
+                  </div>
+                </Link>
+              </article>
+            </li>
           ))}
-        </div>
+        </ul>
 
         <div className="mt-16 md:mt-20 text-center md:hidden">
           <Link
@@ -478,8 +478,8 @@ export function HomeCTA() {
         className="absolute inset-0 opacity-40 pointer-events-none"
         aria-hidden="true"
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-zinc-600/30 rounded-full blur-[200px]" />
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-zinc-600/20 rounded-full blur-[180px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-300 h-300 bg-zinc-600/30 rounded-full blur-[200px]" />
+        <div className="absolute top-0 right-0 w-200 h-200 bg-zinc-600/20 rounded-full blur-[180px]" />
       </div>
 
       <div className="container mx-auto px-6 relative z-10 max-w-5xl">

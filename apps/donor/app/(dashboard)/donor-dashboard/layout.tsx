@@ -33,7 +33,7 @@ export default function DonorDashboardLayout({
       <Navbar variant="solid" />
       <div className="pt-16">
         <DonorSubNav />
-        <main className="flex-1 pt-8 pb-20">
+        <main id="main-content" className="flex-1 pt-8 pb-20">
           <RouteMainViewTransitionBoundary className="container-responsive">
             {/*
              * Sibling, not a wrapper: while it wrapped `{children}` this null

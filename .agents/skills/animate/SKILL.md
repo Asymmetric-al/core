@@ -1,6 +1,6 @@
 ---
 name: animate
-description: Build an animation from scratch, making the decisions in the order that determines whether it feels right — should it animate at all, what purpose, which tool, which properties, which curve and duration, how it interrupts, how it exits. Writes the implementation. Use when asked to animate something, add motion, make a component feel alive, or build a transition. For critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations.
+description: Build an animation from scratch, making the decisions in the order that determines whether it feels right — should it animate at all, what purpose, which tool, which properties, which curve and duration, how it interrupts, how it exits. Writes the implementation. Use when asked to animate something, add motion, make a component feel alive, or build a transition. For critiquing existing motion use review-animations; for auditing a whole codebase use improve-animations. Only runs when explicitly invoked; it does not trigger on its own.
 disable-model-invocation: true
 ---
 
@@ -40,14 +40,6 @@ before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-## Initial Response
-
-When this skill is first invoked without a specific question, respond only with:
-
-> I'm ready to build animations that feel right, my knowledge comes from Emil Kowalski's animation philosophy.
-
-Do not provide any other information until the user asks a question.
-
 A construction skill. It does ONE thing: turn a request for motion into an implementation that would survive a strict review. It does not audit a codebase (that's `improve-animations`), critique a diff (that's `review-animations`), hunt for places that could animate (that's `find-animation-opportunities`), or build for React Native (that's `animate-expo`).
 
 ## Operating Posture
@@ -65,7 +57,7 @@ Never present motion options as a menu. Make the call, state the reasoning in on
 
 1. **Run the sequence in order.** Steps 1 and 2 gate everything. Don't reach for a curve before you know whether it animates at all.
 2. **No approximated values.** Every curve, duration, and spring config comes from the tables below. Never invent `cubic-bezier(0.4, 0, 0.2, 1)` because it looks familiar.
-3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.
+3. **Extend the codebase's tokens, don't fork them.** If `--ease-out-soft` or a duration token already exists in `packages/ui/styles/globals.css`, use it. Adding a parallel system is a defect.
 4. **Reduced motion and hover gating ship with the animation**, not as a follow-up.
 5. **Cheapest tool that works.** Don't install a motion library for a fade.
 
@@ -113,7 +105,7 @@ Walk down; stop at the first that fits.
 
 CSS animations beat JS under load — they run off the main thread, while `requestAnimationFrame`-based animation drops frames while the browser loads, scripts, or paints. Use CSS for predetermined motion, JS for dynamic and interruptible motion.
 
-If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.
+If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — reuse `@asym/ui` and Base UI. Do not invoke `pick-ui-library` unless the user explicitly asked which library to use. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.
 
 ### 4. Pick the properties
 
@@ -121,11 +113,11 @@ If the task needs a _component_ rather than an animation — a toast, a drawer, 
 - **Never `scale(0)`.** Start from `scale(0.9–0.97)` + `opacity: 0`. Nothing in the real world appears from nothing.
 - **`transform-origin` at the trigger** for popovers, dropdowns, menus, tooltips — `var(--transform-origin)` in Base UI. **Modals are exempt**; they're not anchored to a trigger, so they stay centered.
 - **Percentages in `translate()`** are relative to the element's own size — `translateY(100%)` moves by its own height whatever the content. Prefer over hardcoded pixels.
-- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:
+- **In Motion, `x`, `y`, and `scale` are supported independent transforms.** They are performant. Use a full `transform` string only when the animation must stay on the compositor while the main thread is busy:
 
 ```jsx
-<motion.div animate={{ x: 100 }} />                          // drops frames under load
-<motion.div animate={{ transform: "translateX(100px)" }} />  // hardware accelerated
+<motion.div animate={{ x: 100 }} />
+<motion.div animate={{ transform: "translateX(100px)" }} />
 ```
 
 - **Never drive a child's transform from a CSS variable on the parent** — it recalculates styles for every child. Set `transform` on the element directly.
@@ -147,8 +139,13 @@ If the task needs a _component_ rather than an animation — a toast, a drawer, 
 Built-in CSS easings are too weak. Use these:
 
 ```css
---ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */
---ease-in-out: cubic-bezier(
+--ease-out-soft: cubic-bezier(
+  0.22,
+  1,
+  0.36,
+  1
+); /* Core token; strong ease-out for UI */
+--ease-in-out-soft: cubic-bezier(
   0.77,
   0,
   0.175,
@@ -166,13 +163,14 @@ Need a curve that isn't here? Take it from [easing.dev](https://easing.dev/) or 
 
 **Duration:**
 
-| Element                  | Duration      |
-| ------------------------ | ------------- |
-| Button press feedback    | 100–160ms     |
-| Tooltips, small popovers | 125–200ms     |
-| Dropdowns, selects       | 150–250ms     |
-| Modals, drawers          | 200–500ms     |
-| Marketing / explanatory  | Can be longer |
+| Element                  | Duration                           |
+| ------------------------ | ---------------------------------- |
+| Button press feedback    | `var(--duration-press)` (120ms)    |
+| Tooltips, small popovers | `var(--duration-micro)` (150ms)    |
+| Dropdowns, selects       | `var(--duration-standard)` (220ms) |
+| Modals                   | `var(--duration-modal)` (220ms)    |
+| Drawers                  | `var(--duration-drawer)` (320ms)   |
+| Marketing / explanatory  | Can be longer                      |
 
 **UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one.
 

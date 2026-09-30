@@ -1,6 +1,6 @@
 # Resend SDK Installation Guide
 
-Always install the latest SDK version to ensure you have support for all features including webhook verification (`webhooks.verify()`) and email receiving (`emails.receiving.get()`). Older versions may not include these methods.
+Always install the latest SDK version to ensure you have support for all features including webhook verification (`webhooks.verify()`), email receiving (`emails.receiving.get()`), and domain claiming (`domains.claims.*`). Older versions may not include these methods.
 
 ## Minimum SDK Versions
 
@@ -8,16 +8,16 @@ These are the minimum versions required for full functionality (sending, receivi
 
 | Language | Package | Min Version | Install |
 |----------|---------|-------------|---------|
-| Node.js | `resend` | >= 6.9.2 | `npm install resend` |
-| Python | `resend` | >= 2.21.0 | `pip install resend` |
-| Go | `resend-go/v3` | >= 3.1.0 | `go get github.com/resend/resend-go/v3` |
-| Ruby | `resend` | >= 1.0.0 | `gem install resend` |
+| Node.js | `resend` | >= 6.14.0 | `npm install resend` |
+| Python | `resend` | >= 2.34.0 | `pip install resend` |
+| Go | `resend-go/v3` | >= 3.11.0 | `go get github.com/resend/resend-go/v3` |
+| Ruby | `resend` | >= 1.6.0 | `gem install resend` |
 | PHP | `resend/resend-php` | >= 1.1.0 | `composer require resend/resend-php` |
-| Rust | `resend-rs` | >= 0.20.0 | `cargo add resend-rs` |
-| Java | `resend-java` | >= 4.11.0 | See [Maven/Gradle](#java) below |
+| Rust | `resend-rs` | >= 0.26.1 | `cargo add resend-rs` |
+| Java | `resend-java` | >= 4.16.0 | See [Maven/Gradle](#java) below |
 | .NET | `Resend` | >= 0.2.1 | `dotnet add package Resend` |
 
-> **If the project already has a Resend SDK installed**, check the version and upgrade if it's below the minimum. Older SDKs may be missing `webhooks.verify()` or `emails.receiving.get()`, which are required for inbound email and webhook security.
+> **If the project already has a Resend SDK installed**, check the version and upgrade if it's below the minimum. Older SDKs may be missing `webhooks.verify()`, `emails.receiving.get()`, or `domains.claims.*`, which power webhook security, inbound email, and domain claiming.
 
 ## Detecting Project Language
 
@@ -90,7 +90,7 @@ cargo add tokio -F macros,rt-multi-thread
 
 Gradle:
 ```gradle
-implementation 'com.resend:resend-java:4.11.0'
+implementation 'com.resend:resend-java:4.16.0'
 ```
 
 Maven:
@@ -98,7 +98,7 @@ Maven:
 <dependency>
   <groupId>com.resend</groupId>
   <artifactId>resend-java</artifactId>
-  <version>4.11.0</version>
+  <version>4.16.0</version>
 </dependency>
 ```
 

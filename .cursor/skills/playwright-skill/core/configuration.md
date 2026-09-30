@@ -58,6 +58,8 @@ export default defineConfig({
     trace: 'on-first-retry',          // full trace on first retry only
     screenshot: 'only-on-failure',     // screenshot on failure
     video: 'retain-on-failure',        // video only kept for failures
+    // 1.61+ adds video modes matching trace: 'on-all-retries',
+    // 'retain-on-first-failure', 'retain-on-failure-and-retries'
 
     // Sensible defaults
     locale: 'en-US',
@@ -307,7 +309,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await page.context().storageState({ path: authFile });
@@ -358,7 +360,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD);
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await page.context().storageState({ path: authFile });
@@ -520,17 +522,17 @@ module.exports = globalTeardown;
 ```bash
 # .env.example (commit this)
 BASE_URL=http://localhost:3000
-TEST_PASSWORD=
+TEST_PASSWORD= // pragma: allowlist secret
 API_KEY=
 
 # .env.local (gitignored)
 BASE_URL=http://localhost:3000
-TEST_PASSWORD=s3cret
+TEST_PASSWORD=s3cret // pragma: allowlist secret
 API_KEY=test-key-abc123
 
 # .env.staging (gitignored)
 BASE_URL=https://staging.example.com
-TEST_PASSWORD=staging-password
+TEST_PASSWORD=staging-password // pragma: allowlist secret
 API_KEY=staging-key-xyz789
 ```
 

@@ -1,7 +1,8 @@
 "use client";
 "use no memo";
 
-import { TimeAgo } from "@asym/lib/hooks";
+import { TimeAgo, useLocaleFormat } from "@asym/lib/hooks";
+import { fetchResult } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageHeader } from "@asym/ui/components/page-header";
@@ -72,7 +73,11 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { buildSecurityDialogState, SECURITY_OPTIONS } from "./feed-model";
-import { EmptyState, LastSyncedDisplay, LoadingState } from "./feed-support-ui";
+import {
+  EmptyState,
+  LastSyncedDisplay,
+  PublishedFeedPane,
+} from "./feed-support-ui";
 import { useWorkerFeedPageView } from "./use-worker-feed-page-view";
 
 import type {
@@ -93,7 +98,7 @@ const RichTextEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[250px] w-full bg-muted rounded-2xl animate-pulse" />
+      <div className="h-62.5 w-full bg-muted rounded-2xl animate-pulse" />
     ),
   },
 );
@@ -143,32 +148,34 @@ function FollowerRequestItem({
   const handleAction = async (action: "approve" | "ignore") => {
     setStatus("processing");
 
-    try {
-      const res = await fetch(`/api/follower-requests/${request.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: action === "approve" ? "approved" : "rejected",
-        }),
-      });
+    const result = await fetchResult(`/api/follower-requests/${request.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: action === "approve" ? "approved" : "rejected",
+      }),
+    });
 
-      if (!res.ok) throw new Error("Failed to update request");
-
-      setStatus(action === "approve" ? "approved" : "ignored");
-
-      setTimeout(() => {
-        if (!mountedRef.current) return;
-        setStatus("collapsing");
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          onResolve(request.id, action === "approve");
-        }, 400);
-      }, 1500);
-    } catch (error) {
-      console.error("Error resolving request:", error);
+    if (!result.ok) {
+      console.error(
+        "Error resolving request:",
+        new Error("Failed to update request", { cause: result.error }),
+      );
       setStatus("pending");
       toast.error("Failed to update request");
+      return;
     }
+
+    setStatus(action === "approve" ? "approved" : "ignored");
+
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+      setStatus("collapsing");
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        onResolve(request.id, action === "approve");
+      }, 400);
+    }, 1500);
   };
 
   return (
@@ -176,7 +183,9 @@ function FollowerRequestItem({
       layout
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+      // The list renders inside <AnimatePresence mode="popLayout">, so the
+      // exiting row is removed from layout and siblings reflow via `layout`.
+      exit={{ opacity: 0, x: -20 }}
       transition={{ ...smoothTransition, delay: index * 0.05 }}
       className={cn(
         "px-4 py-3 overflow-hidden",
@@ -187,7 +196,7 @@ function FollowerRequestItem({
         <motion.div whileHover={{ scale: 1.02 }} transition={springTransition}>
           <Avatar className="size-9 shrink-0 border border-border/50 shadow-sm">
             <AvatarImage src={request.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
+            <AvatarFallback className="bg-transparent bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
               {request.initials}
             </AvatarFallback>
           </Avatar>
@@ -243,7 +252,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia"
-                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+                      className="w-full text-[9px] uppercase tracking-wider rounded-lg"
                       onClick={() => handleAction("approve")}
                     >
                       Accept
@@ -257,7 +266,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia-outline"
-                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+                      className="w-full text-[9px] uppercase tracking-wider rounded-lg"
                       onClick={() => handleAction("ignore")}
                     >
                       Ignore
@@ -351,6 +360,7 @@ function PostCard({
   onDelete: () => void;
   index: number;
 }) {
+  const { formatDate } = useLocaleFormat();
   const authorName = post.author
     ? `${post.author.first_name} ${post.author.last_name}`
     : "Marcus Miller";
@@ -395,14 +405,14 @@ function PostCard({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                  <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[9px] uppercase tracking-wider">
                     {post.post_type}
                   </Badge>
                 </motion.div>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                  {new Date(post.created_at).toLocaleDateString()}
+                  {formatDate(post.created_at)}
                 </span>
                 <span className="text-border">•</span>
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
@@ -425,7 +435,7 @@ function PostCard({
                   variant="ghost"
                   size="icon"
                   aria-label="Post actions"
-                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
+                  className="sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
                 >
                   <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                 </Button>
@@ -433,7 +443,7 @@ function PostCard({
             />
             <DropdownMenuContent
               align="end"
-              className="rounded-xl border-border shadow-lg p-2 min-w-[160px] sm:min-w-[180px]"
+              className="rounded-xl border-border shadow-lg p-2 min-w-40 sm:min-w-45"
             >
               <DropdownMenuItem className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
                 <Pin className="size-3.5 text-muted-foreground" /> Pin to Top
@@ -480,7 +490,7 @@ function PostCard({
                 className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500"
               >
                 {post.media.length === 1 && singleMedia ? (
-                  <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
+                  <div className="relative w-full h-auto min-h-50 max-h-100 sm:max-h-150">
                     <Image
                       src={singleMedia.url}
                       alt="Update"
@@ -494,7 +504,7 @@ function PostCard({
                     <CarouselContent>
                       {post.media.map((item, idx: number) => (
                         <CarouselItem key={`${item.type}-${item.url}`}>
-                          <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
+                          <div className="relative w-full h-auto min-h-50 max-h-100 sm:max-h-150">
                             <Image
                               src={item.url}
                               alt={`Update ${idx + 1}`}
@@ -596,7 +606,7 @@ function SecurityAccessDialog({
           <Button
             variant="outline"
             size="sm"
-            className="h-9 px-4 text-xs font-medium gap-2 hover-scale-subtle"
+            className="h-9 px-4 text-xs gap-2 hover-scale-subtle"
           >
             <ShieldCheck className="size-4" />
             <span className="hidden sm:inline">Security & Access</span>
@@ -604,7 +614,7 @@ function SecurityAccessDialog({
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden gap-0 rounded-2xl border-border">
+      <DialogContent className="sm:max-w-130 p-0 overflow-hidden gap-0 rounded-2xl border-border">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -866,14 +876,15 @@ function PostComposerActions({
   simulateUpload,
   handlePost,
 }: PostComposerActionsProps) {
+  const { formatTime } = useLocaleFormat();
   return (
     <div className="flex flex-col gap-3 w-full">
-      <AnimatePresence>
+      <AnimatePresence mode="popLayout">
         {selectedMedia.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
           >
             {selectedMedia.map((item, idx) => (
@@ -918,10 +929,7 @@ function PostComposerActions({
               className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
             >
               Saved{" "}
-              {lastSaved.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatTime(lastSaved, { hour: "2-digit", minute: "2-digit" })}
             </motion.span>
           )}
         </AnimatePresence>
@@ -932,7 +940,7 @@ function PostComposerActions({
             size="sm"
             disabled={isUploading}
             onClick={simulateUpload}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+            className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             {isUploading ? (
               <motion.div
@@ -958,7 +966,7 @@ function PostComposerActions({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
+                className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
               >
                 {postPrivacy === "public" ? (
                   <Globe className="size-3" />
@@ -976,7 +984,7 @@ function PostComposerActions({
           />
           <DropdownMenuContent
             align="start"
-            className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px]"
+            className="rounded-xl border-border shadow-lg p-1.5 min-w-40"
           >
             <DropdownMenuItem
               onClick={() => setPostPrivacy("public")}
@@ -1010,7 +1018,7 @@ function PostComposerActions({
             variant="maia-outline"
             size="sm"
             disabled={postActionDisabled}
-            className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
+            className="px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
           >
             {isSaving ? (
               <motion.div
@@ -1036,7 +1044,7 @@ function PostComposerActions({
             variant="maia"
             size="sm"
             disabled={postActionDisabled}
-            className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
+            className="sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
           >
             {isSaving ? (
               <motion.div
@@ -1162,7 +1170,7 @@ function PostComposerCard({
               onChange={setPostContent}
               placeholder={`What's happening? Share a ${postType.toLowerCase()}…`}
               className="rounded-xl sm:rounded-2xl"
-              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
+              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed"
               toolbarPosition="bottom"
               proseInvert={false}
               actions={
@@ -1191,7 +1199,9 @@ type FeedPostsTabsSectionProps = {
   activeTab: PostStatus;
   drafts: Post[];
   posts: Post[];
+  feedError: string | null;
   isLoading: boolean;
+  reloadPosts: () => Promise<void>;
   setActiveTab: (value: React.SetStateAction<PostStatus>) => void;
   handleEditDraft: (draft: Post) => void;
   handleDeletePost: (postId: string) => Promise<void>;
@@ -1201,11 +1211,14 @@ function FeedPostsTabsSection({
   activeTab,
   drafts,
   posts,
+  feedError,
   isLoading,
+  reloadPosts,
   setActiveTab,
   handleEditDraft,
   handleDeletePost,
 }: FeedPostsTabsSectionProps) {
+  const { formatDate } = useLocaleFormat();
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
       <Tabs
@@ -1240,7 +1253,7 @@ function FeedPostsTabsSection({
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
+                    <Badge className="border-none h-4 px-1 text-[8px] font-semibold">
                       {drafts.length}
                     </Badge>
                   </motion.div>
@@ -1256,10 +1269,15 @@ function FeedPostsTabsSection({
           <LayoutGroup>
             <motion.div layout className="space-y-6 sm:space-y-8 lg:space-y-10">
               <AnimatePresence mode="popLayout">
-                {isLoading ? (
-                  <LoadingState />
-                ) : posts.length > 0 ? (
-                  posts.map((post, index) => (
+                <PublishedFeedPane
+                  feedError={feedError}
+                  hasPosts={posts.length > 0}
+                  isLoading={isLoading}
+                  onRetry={() => {
+                    void reloadPosts();
+                  }}
+                >
+                  {posts.map((post, index) => (
                     <PostCard
                       key={post.id}
                       post={post}
@@ -1267,14 +1285,8 @@ function FeedPostsTabsSection({
                       onEdit={() => handleEditDraft(post)}
                       onDelete={() => handleDeletePost(post.id)}
                     />
-                  ))
-                ) : (
-                  <EmptyState
-                    icon={Globe}
-                    title="Your feed is empty"
-                    description="Start sharing your journey with your partners."
-                  />
-                )}
+                  ))}
+                </PublishedFeedPane>
               </AnimatePresence>
             </motion.div>
           </LayoutGroup>
@@ -1308,15 +1320,12 @@ function FeedPostsTabsSection({
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
                               >
-                                <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[8px] uppercase tracking-wider">
                                   Draft • {draft.post_type}
                                 </Badge>
                               </motion.div>
                               <span className="text-[10px] text-muted-foreground font-medium">
-                                Saved{" "}
-                                {new Date(
-                                  draft.created_at,
-                                ).toLocaleDateString()}
+                                Saved {formatDate(draft.created_at)}
                               </span>
                             </div>
                             <PostContent
@@ -1410,7 +1419,7 @@ function FollowerRequestsCard({
               exit={{ scale: 0.95, opacity: 0 }}
               transition={springTransition}
             >
-              <Badge className="bg-primary text-primary-foreground border-none font-semibold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
+              <Badge className="border-none font-semibold text-[10px] h-5 min-w-5 px-1.5 flex">
                 {pendingRequests.length}
               </Badge>
             </motion.div>
@@ -1486,7 +1495,7 @@ function WorkerFeedPageView() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-[1500px] mx-auto pb-20"
+      className="max-w-375 mx-auto pb-20"
     >
       <PageHeader
         title="Ministry Updates"
@@ -1527,7 +1536,9 @@ function WorkerFeedPageView() {
             activeTab={vm.activeTab}
             drafts={vm.drafts}
             posts={vm.posts}
+            feedError={vm.feedError}
             isLoading={vm.isLoading}
+            reloadPosts={vm.reloadPosts}
             setActiveTab={vm.setActiveTab}
             handleEditDraft={vm.handleEditDraft}
             handleDeletePost={vm.handleDeletePost}

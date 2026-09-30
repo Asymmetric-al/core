@@ -23,9 +23,9 @@ playwright-cli open https://example.com/login
 playwright-cli snapshot
 # Output:
 # e1 [textbox "Email"]
-# e2 [textbox "Password"]
+# e2 [textbox "Password"] // pragma: allowlist secret
 # e3 [button "Sign In"]
-# e4 [link "Forgot password?"]
+# e4 [link "Forgot password?"] // pragma: allowlist secret
 # e5 [link "Create account"]
 ```
 
@@ -33,7 +33,7 @@ Use refs to target elements precisely:
 
 ```bash
 playwright-cli fill e1 "user@example.com"
-playwright-cli fill e2 "secretpassword"
+playwright-cli fill e2 "secretpassword" // pragma: allowlist secret
 playwright-cli click e3
 ```
 
@@ -307,7 +307,7 @@ playwright-cli open https://app.example.com/login
 playwright-cli snapshot
 
 playwright-cli fill e1 "admin@example.com"
-playwright-cli fill e2 "password123"
+playwright-cli fill e2 "password123" // pragma: allowlist secret
 playwright-cli click e3
 playwright-cli snapshot             # See the dashboard
 playwright-cli screenshot --filename=dashboard.png

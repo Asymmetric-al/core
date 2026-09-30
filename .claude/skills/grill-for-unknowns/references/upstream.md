@@ -2,9 +2,9 @@
 
 - Repository: <https://github.com/nicobailon/grill-for-unknowns>
 - Source path: `plugins/grill-for-unknowns/`
-- Package version: `0.1.1`
-- Reviewed commit: `dc132fc8be26529579cff896e7618550d0d9736b`
-- Reviewed commit date: `2026-07-10`
+- Package version: `0.1.3`
+- Reviewed commit: `d8d5f4b422b8be1301dd4a515d96589eaddc5f3c`
+- Reviewed commit date: `2026-07-20`
 - Nested Matt Pocock lineage commit:
   `391a2701dd948f94f56a39f7533f8eea9a859c87` (independently verified as the
   `main` head at the reviewed package commit timestamp)
@@ -13,8 +13,8 @@
   Bailon copyright notices.
 
 The complete upstream plugin tree is vendored: `SKILL.md`, `README.md`,
-`LICENSE`, both files under `references/`, and all five files under
-`templates/`. Core narrows the discovery description, disables implicit Claude
+`LICENSE`, `.claude-plugin/plugin.json`, both files under `references/`, and
+all five files under `templates/`. Core narrows the discovery description, disables implicit Claude
 Code invocation, and preserves the marked `CORE-OVERLAY` section in `SKILL.md`
 so generic upstream behavior stays subordinate to Core's instruction system.
 Core also documents all four supported clients, keeps the complete tree
@@ -39,5 +39,5 @@ content when upstream frontmatter no longer matches the
 reviewed or already-adapted discovery contract; review and intentionally update
 the compatibility transform before retrying. It also fails closed when the
 canonical safety overlay is missing or the installed package version differs
-from reviewed version `0.1.1`; update the reviewed commit, lineage pin, and
+from reviewed version `0.1.3`; update the reviewed commit, lineage pin, and
 compatibility transforms together before accepting a new version.

@@ -127,7 +127,7 @@ async function globalSetup(config: FullConfig) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email: 'admin@example.com',
-      password: process.env.TEST_PASSWORD,
+      password: process.env.TEST_PASSWORD, // pragma: allowlist secret
     }),
   });
 
@@ -310,7 +310,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Wait for navigation to confirm login succeeded
@@ -500,7 +500,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await page.context().storageState({ path: authFile });

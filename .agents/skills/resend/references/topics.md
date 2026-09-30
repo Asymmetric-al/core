@@ -20,8 +20,8 @@ Fine-grained subscription preferences — contacts opt in or out per topic. Topi
 |-----------|--------|
 | Create | `resend.Topics.create(params)` |
 | Get | `resend.Topics.get(id)` |
-| List | `resend.Topics.list()` |
-| Update | `resend.Topics.update(params)` |
+| List | `resend.Topics.list(params?)` — `limit`, `after`, `before` |
+| Update | `resend.Topics.update(id, params)` |
 | Delete | `resend.Topics.remove(id)` |
 
 ## Create Topic
@@ -31,7 +31,6 @@ const { data, error } = await resend.topics.create({
   name: 'Product Updates',
   defaultSubscription: 'opt_in',  // REQUIRED: "opt_in" or "opt_out"
   description: 'New features and releases',
-  visibility: 'public',  // "public" or "private" (default: "private")
 });
 
 if (error) {
@@ -50,8 +49,13 @@ console.log(data.id); // topic_xxxxxxxx
 const { data, error } = await resend.topics.update({
   id: 'topic_xxx',
   name: 'Product News',
-  visibility: 'public',
+  description: 'News about our products',
 });
+
+if (error) {
+  console.error(error);
+  return;
+}
 ```
 
 ## Managing Contact Subscriptions
@@ -90,7 +94,7 @@ await resend.broadcasts.create({
 | Name max length | 50 characters |
 | Description max length | 200 characters |
 | `defaultSubscription` | `"opt_in"` or `"opt_out"` — immutable after create |
-| `visibility` | `"public"` (shown on preference page) or `"private"` (default) |
+| `visibility` | `"public"` (shown on the unsubscribe page) or `"private"` (default) |
 
 ## Common Mistakes
 
@@ -100,5 +104,4 @@ await resend.broadcasts.create({
 | Trying to change `defaultSubscription` | Immutable after creation — delete and recreate with new value |
 | Calling `.delete()` | SDK method is `.remove()` |
 | `visibility: "hidden"` | Not a valid value — use `"private"` |
-| Expecting `list()` to accept pagination | `topics.list()` takes no params — returns all topics |
 | Broadcast without `topicId` | Goes to all contacts in segment regardless of topic preferences |

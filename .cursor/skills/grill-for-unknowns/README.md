@@ -96,6 +96,8 @@ grill-for-unknowns/
 ├── SKILL.md
 ├── README.md
 ├── LICENSE
+├── .claude-plugin/
+│   └── plugin.json
 ├── references/
 │   ├── domain-modeling-add-on.md
 │   ├── upstream-lineage.md
