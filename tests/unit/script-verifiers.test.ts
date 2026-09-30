@@ -1,5 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import {
   access,
   cp,
@@ -2896,5 +2896,48 @@ describe("data-boundary-check", () => {
     await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
       askMattCanonicalSkill,
     );
+  });
+
+  it("does not delete the canonical skill when backing it up fails after copy", async () => {
+    const tempRoot = await createTempRepo("refresh-backup-remove-failure");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalRoot = path.join(tempRoot, "docs/ai/skills/ask-matt");
+    const canonicalSkillPath = path.join(canonicalRoot, "SKILL.md");
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, askMattUpstreamBody);
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, askMattCanonicalSkill);
+
+    expect(() =>
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=mattpocock/skills"],
+        {
+          CORE_SKILLS_SIMULATE_BACKUP_REMOVE_FAILURE: "1",
+          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+        },
+      ),
+    ).toThrow(/failed without changing canonical skills/);
+
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      askMattCanonicalSkill,
+    );
+
+    const backupNames = readdirSync(path.dirname(canonicalRoot)).filter(
+      (name) => name.startsWith(".ask-matt.refresh-backup-"),
+    );
+    expect(backupNames).toHaveLength(1);
+    await expect(
+      readFile(
+        path.join(path.dirname(canonicalRoot), backupNames[0], "SKILL.md"),
+        "utf8",
+      ),
+    ).resolves.toBe(askMattCanonicalSkill);
   });
 });
