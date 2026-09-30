@@ -642,6 +642,15 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "ask-sonner",
     relativePath: "SKILL.md",
+    search:
+      "1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.",
+    replace:
+      "1. **Do not mount a Toaster.** Core layouts already mount `@asym/ui`'s `<Toaster />` once. Reuse that host. A second mounted Toaster duplicates every toast.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
     search: 'import { Toaster } from "sonner"; // once, near the root',
     replace:
       'import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts',

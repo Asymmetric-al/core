@@ -42,7 +42,7 @@ A guide skill for [Sonner](https://sonner.emilkowal.ski), the toast library. Whe
 
 Two pieces, and only two:
 
-1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.
+1. **Do not mount a Toaster.** Core layouts already mount `@asym/ui`'s `<Toaster />` once. Reuse that host. A second mounted Toaster duplicates every toast.
 2. **`toast()` called from client code** — event handlers, effects, callbacks. It's a plain function, no hook or provider needed, but it does nothing on the server: in a server action, return the result and call `toast()` in the client code that receives it.
 
 ```jsx

@@ -1176,14 +1176,126 @@ describe("refresh-upstream-skills", () => {
   });
 
   it("does not treat destination collisions as cross-device refresh moves", async () => {
-    const refreshScript = await readFile(
-      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
-      "utf8",
+    const tempRoot = await createTempRepo("refresh-exdev-existing-dest");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    const patchedScript = copiedScript
+      .replace(
+        "function getTemporarySiblingPath(targetPath, label) {",
+        [
+          "function getTemporarySiblingPath(targetPath, label) {",
+          '  if (label === "refresh-backup") {',
+          "    return path.join(",
+          "      path.dirname(targetPath),",
+          '      ".emil-design-engineering.refresh-backup-fixed",',
+          "    );",
+          "  }",
+        ].join("\n"),
+      )
+      .replace(
+        "async function renameOnce(fromPath, toPath) {",
+        [
+          "async function renameOnce(fromPath, toPath) {",
+          "  if (await pathExists(toPath)) {",
+          '    const error = new Error("EXDEV: simulated rename onto an existing path");',
+          '    error.code = "EXDEV";',
+          "    throw error;",
+          "  }",
+        ].join("\n"),
+      );
+    if (patchedScript === copiedScript) {
+      throw new Error("failed to patch refresh collision seams");
+    }
+    await writeFile(copiedScriptPath, patchedScript);
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
     );
 
-    expect(refreshScript).toContain('getErrorCode(error) !== "EXDEV"');
-    expect(refreshScript).not.toContain('code === "EEXIST"');
-    expect(refreshScript).not.toContain('code === "ENOTEMPTY"');
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(canonicalRoot, { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n\n# Existing skill\n",
+    );
+
+    const backupRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/.emil-design-engineering.refresh-backup-fixed",
+    );
+    await mkdir(backupRoot, { recursive: true });
+    await writeFile(path.join(backupRoot, "KEEP.md"), "keep backup\n");
+
+    expect(() =>
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=animations.dev"],
+        {
+          HOME: tempRoot,
+        },
+      ),
+    ).toThrow(/EXDEV/);
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Existing skill");
+    await expect(
+      readFile(path.join(backupRoot, "KEEP.md"), "utf8"),
+    ).resolves.toBe("keep backup\n");
+    await expect(access(path.join(backupRoot, "SKILL.md"))).rejects.toThrow();
   });
 
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
@@ -1317,6 +1429,7 @@ describe("refresh-upstream-skills", () => {
           "| Symptom             | Cause → fix                                               |",
           "| ------------------- | --------------------------------------------------------- |",
           "| Toast never appears                                                   | No `<Toaster />` is mounted — add one near the app root. |",
+          "1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.",
           "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
           "3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.",
           "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",

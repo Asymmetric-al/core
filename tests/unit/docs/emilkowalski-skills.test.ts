@@ -245,6 +245,7 @@ describe("emilkowalski skill pack", () => {
     const askSonner = readSkillFile("docs/ai/skills", "ask-sonner", "SKILL.md");
     expect(askSonner).not.toContain("!text-red-900");
     expect(askSonner).not.toContain("toasterId");
+    expect(askSonner).not.toContain("layout.tsx");
     const picker = readSkillFile(
       "docs/ai/skills",
       "pick-ui-library",
