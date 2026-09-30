@@ -202,6 +202,15 @@ describe("emilkowalski skill pack", () => {
     expect(askSonner).not.toMatch(/import \{ Toaster \} from ["']sonner["']/);
     expect(askSonner).toContain("@asym/ui/components/shadcn/sonner");
     expect(askSonner).toContain("bun run skills:verify");
+
+    const picker = readSkillFile(
+      "docs/ai/skills",
+      "pick-ui-library",
+      "SKILL.md",
+    );
+    expect(picker).toContain("Do not install Zustand");
+    expect(picker).not.toContain("https://zustand.docs.pmnd.rs");
+    expect(picker).not.toMatch(/→ zustand\./);
   });
 
   it("keeps animate and prototype overlays from installing libraries or public prototype routes", () => {

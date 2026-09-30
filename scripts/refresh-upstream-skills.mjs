@@ -782,6 +782,24 @@ const POST_REFRESH_REPLACEMENTS = [
       "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
   },
   {
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search:
+      /^\| State management\s+\| \[zustand\]\(https:\/\/zustand\.docs\.pmnd\.rs\)\s+\|$/m,
+    replace:
+      "| State management                               | Local `useState` / `useReducer`; React Context for shared UI state. Do not install Zustand. |",
+    required: true,
+  },
+  {
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search:
+      "- **A `useState`-per-component web of props for shared state** → zustand.",
+    replace:
+      "- **A `useState`-per-component web of props for shared state** → lift with `useState` / `useReducer`, or React Context for shared UI state. Do not install Zustand.",
+    required: true,
+  },
+  {
     skillName: "improve-animations",
     relativePath: "PLAN-TEMPLATE.md",
     search:

@@ -1383,6 +1383,8 @@ describe("refresh-upstream-skills", () => {
             "word",
             " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
           ].join(""),
+          "| State management | [zustand](https://zustand.docs.pmnd.rs) |",
+          "- **A `useState`-per-component web of props for shared state** → zustand.",
           "",
         ].join("\n"),
       },
@@ -1497,6 +1499,9 @@ describe("refresh-upstream-skills", () => {
     expect(refreshedPicker).toContain(
       "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
     );
+    expect(refreshedPicker).toContain("Do not install Zustand");
+    expect(refreshedPicker).not.toContain("https://zustand.docs.pmnd.rs");
+    expect(refreshedPicker).not.toMatch(/→ zustand\./);
     expect(existsSync(path.join(tempRoot, "docs/ai/skills/prototype"))).toBe(
       false,
     );
