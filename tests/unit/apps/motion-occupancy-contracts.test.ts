@@ -195,16 +195,18 @@ describe("stable tag-check slot", () => {
     "missionary",
     "app",
     "donors",
-    "use-donors-page-view.tsx",
+    "donors-page-dialogs.tsx",
   );
-  const tagEditor = extractFunction(source, "DonorsTagEditorDialog");
+  const dialogs = extractFunction(source, "DonorsPageActivityDialogs");
 
-  it("reserves the check column so selecting a tag does not shift the label", () => {
-    expect(tagEditor).toMatch(
-      /className="inline-flex w-3 mr-1 justify-center"/,
+  it("keeps the tag checkbox mounted so selecting a tag does not shift the label", () => {
+    const tags = dialogs.slice(dialogs.indexOf("AVAILABLE_TAGS.map"));
+    expect(tags).toContain("<Checkbox");
+    expect(tags).toContain("<FieldLabel");
+    expect(tags).not.toMatch(
+      /selectedTags\.includes\([^)]+\)\s*&&[\s\S]{0,80}<Check\b/,
     );
-    expect(tagEditor).toMatch(/<Check className="size-3"/);
-    expect(tagEditor).not.toMatch(/<Check className="size-3 mr-1"/);
+    expect(tags).not.toMatch(/<Check className="size-3 mr-1"/);
   });
 });
 
