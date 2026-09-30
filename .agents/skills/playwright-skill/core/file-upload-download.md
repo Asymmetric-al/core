@@ -230,6 +230,8 @@ test('uploads multiple files at once', async ({ page }) => {
 
 ## Recipe 3: Drag-and-Drop File Upload
 
+> **Playwright 1.60+**: `locator.drop({ files })` simulates a real external file drop (native `dragenter`/`dragover`/`drop` with synthetic `DataTransfer`). Use it for zones that listen for `drop` events and have no usable `input[type=file]`. On Playwright < 1.60, target the underlying file input with `setInputFiles` (shown after).
+
 ### Complete Example
 
 **TypeScript**
@@ -238,14 +240,42 @@ test('uploads multiple files at once', async ({ page }) => {
 import { test, expect } from '@playwright/test';
 import path from 'path';
 
-test('uploads a file via drag-and-drop zone', async ({ page }) => {
+test('uploads a file via a native drop (Playwright 1.60+)', async ({ page }) => {
   await page.goto('/documents');
 
   const dropZone = page.locator('[data-testid="drop-zone"]');
   await expect(dropZone).toContainText(/drag.*here|drop.*files/i);
 
-  // Drag-and-drop from the OS is not natively supported in Playwright,
-  // but drop zones always have an underlying input[type=file] -- use that
+  // Native external file drop — fires the drop events the zone listens for
+  await dropZone.drop({ files: path.resolve(__dirname, '../fixtures/report.pdf') });
+
+  await expect(dropZone.getByText('report.pdf')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Upload' }).click();
+  await expect(page.getByRole('alert')).toContainText('uploaded successfully');
+});
+
+test('drops multiple files at once (Playwright 1.60+)', async ({ page }) => {
+  await page.goto('/documents');
+
+  await page.locator('[data-testid="drop-zone"]').drop({
+    files: [
+      { name: 'image1.png', mimeType: 'image/png', buffer: Buffer.from('fake-png-1') },
+      { name: 'image2.png', mimeType: 'image/png', buffer: Buffer.from('fake-png-2') },
+    ],
+  });
+
+  await expect(page.getByText('image1.png')).toBeVisible();
+  await expect(page.getByText('image2.png')).toBeVisible();
+});
+
+test('uploads a file via the underlying input (Playwright < 1.60)', async ({ page }) => {
+  await page.goto('/documents');
+
+  const dropZone = page.locator('[data-testid="drop-zone"]');
+  await expect(dropZone).toContainText(/drag.*here|drop.*files/i);
+
+  // Older Playwright can't simulate OS file drops — drive the input the zone falls back to
   const fileInput = page.locator('input[type="file"]');
 
   await fileInput.setInputFiles(path.resolve(__dirname, '../fixtures/report.pdf'));
@@ -961,7 +991,7 @@ test('downloads a file that requires authentication', async ({ page, request }) 
 
 ## Tips
 
-1. **Use `setInputFiles` for upload testing**. Even if the UI uses a drag-and-drop zone, there is always an underlying `input[type="file"]` element. Target it directly with `setInputFiles()` instead of trying to simulate OS-level drag events.
+1. **Pick the right upload primitive for your Playwright version**. For a plain `input[type="file"]`, `setInputFiles()` is the most reliable path. For drag-and-drop zones that listen for `drop` events, prefer `locator.drop({ files })` on Playwright 1.60+ (it fires native `dragenter`/`dragover`/`drop`); on older versions, fall back to `setInputFiles()` on the zone's underlying `input[type="file"]`.
 
 2. **Prefer in-memory buffers over fixture files**. Creating files with `Buffer.from()` keeps tests self-contained and eliminates dependencies on external fixture files. Use fixture files only when you need real file content (e.g., a valid PDF that your app parses).
 

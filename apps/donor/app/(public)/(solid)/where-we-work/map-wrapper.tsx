@@ -520,6 +520,7 @@ function DetailDialog({
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <button
               onClick={() => onOpenChange(false)}
+              aria-label="Close"
               className="absolute top-3 right-3 size-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors"
             >
               <XIcon className="size-4 text-white" />
@@ -536,6 +537,7 @@ function DetailDialog({
             <GlobeIcon className="size-12 text-white/30" />
             <button
               onClick={() => onOpenChange(false)}
+              aria-label="Close"
               className="absolute top-3 right-3 size-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors"
             >
               <XIcon className="size-4 text-white" />

@@ -28,6 +28,11 @@ import { useMemo } from "react";
 
 import { getCrmRelationshipColumns } from "./columns";
 
+import type {
+  CrmRelationshipDomain,
+  CrmRelationshipReport,
+  CrmRelationshipRow,
+} from "@asym/database/types";
 import type { ReactNode } from "react";
 
 import { CRM_RELATIONSHIPS_PAGE_META } from "@/components/table-page-meta";
@@ -55,6 +60,167 @@ function Metric({
       </div>
       <p className="mt-3 text-2xl font-semibold tracking-tight">{value}</p>
       <p className="mt-1 text-xs text-muted-foreground">{sublabel}</p>
+    </div>
+  );
+}
+
+function CrmRelationshipsMetrics({
+  report,
+}: {
+  report: CrmRelationshipReport | null;
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <Metric
+        icon={<Network className={DOMAIN_ICON_CLASS} />}
+        label="Relationships"
+        value={String(report?.totalRows ?? 0)}
+        sublabel="Tenant-scoped CRM records"
+      />
+      <Metric
+        icon={<HandCoins className={DOMAIN_ICON_CLASS} />}
+        label="Commitments"
+        value={formatCurrency(report?.pledgeCommitmentTotalCents ?? 0)}
+        sublabel={`${report?.pledgeCommitmentCount ?? 0} relationship commitments`}
+      />
+      <Metric
+        icon={<Home className={DOMAIN_ICON_CLASS} />}
+        label="Households"
+        value={String(report?.householdCount ?? 0)}
+        sublabel="Deterministic member groups"
+      />
+      <Metric
+        icon={<Building2 className={DOMAIN_ICON_CLASS} />}
+        label="Activity"
+        value={String(report?.recentActivityCount ?? 0)}
+        sublabel={`${report?.excludedCareActivityCount ?? 0} care rows excluded`}
+      />
+    </div>
+  );
+}
+
+function CrmRelationshipsSourceBadges({
+  mode,
+  report,
+  rollback,
+}: {
+  mode: "local" | string;
+  report: CrmRelationshipReport | null;
+  rollback?: { existingCrmPath: string };
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Badge variant="outline" className="rounded-md">
+        {mode === "local" ? "Asym Postgres" : "CRM"}
+      </Badge>
+      <Badge variant="outline" className="rounded-md">
+        {report?.sourceSystems.finance ??
+          "Asym owns payment execution, receipts, statements, refunds, and reconciliation."}
+      </Badge>
+      <Badge variant="outline" className="rounded-md">
+        {report?.sourceSystems.care ??
+          "Asym owns care plans and private care notes."}
+      </Badge>
+      {rollback ? (
+        <Badge variant="outline" className="rounded-md">
+          Rollback: {rollback.existingCrmPath}
+        </Badge>
+      ) : null}
+    </div>
+  );
+}
+
+function CrmRelationshipsFilters({
+  search,
+  domains,
+  onSearchChange,
+  onDomainToggle,
+  clearDomains,
+}: {
+  search: string;
+  domains: CrmRelationshipDomain[];
+  onSearchChange: (value: string) => void;
+  onDomainToggle: (value: CrmRelationshipDomain) => void;
+  clearDomains: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative w-full lg:max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          aria-label="Search CRM relationships"
+          className="pl-9"
+          placeholder="Search relationships"
+          value={search}
+          onChange={(event) => onSearchChange(event.target.value)}
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant={domains.length === 0 ? "default" : "outline"}
+          size="sm"
+          onClick={clearDomains}
+        >
+          All
+        </Button>
+        {CRM_RELATIONSHIP_DOMAIN_OPTIONS.map((option) => (
+          <Button
+            key={option.value}
+            variant={domains.includes(option.value) ? "default" : "outline"}
+            size="sm"
+            onClick={() => onDomainToggle(option.value)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CrmRelationshipsEmptyState({
+  tableError,
+}: {
+  tableError: Error | null;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="mb-4 rounded-lg bg-muted p-4">
+        <Network className="size-10 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold">No CRM relationships</h3>
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+        {tableError
+          ? tableError.message
+          : "No relationship records match the current filters."}
+      </p>
+    </div>
+  );
+}
+
+function CrmRelationshipsMobileCard({
+  relationship,
+}: {
+  relationship: CrmRelationshipRow;
+}) {
+  return (
+    <div className="space-y-3 p-4 text-left">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">
+            {relationship.displayName}
+          </p>
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+            {relationship.secondaryLabel ?? relationship.authorityLabel}
+          </p>
+        </div>
+        <Badge variant="outline" className="rounded-md text-[9px]">
+          {relationship.domain}
+        </Badge>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {relationship.sourceSystem}
+      </p>
     </div>
   );
 }
@@ -114,83 +280,19 @@ export default function CrmRelationshipsPageClient() {
       }
     >
       <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Metric
-            icon={<Network className={DOMAIN_ICON_CLASS} />}
-            label="Relationships"
-            value={String(report?.totalRows ?? 0)}
-            sublabel="Tenant-scoped CRM records"
-          />
-          <Metric
-            icon={<HandCoins className={DOMAIN_ICON_CLASS} />}
-            label="Commitments"
-            value={formatCurrency(report?.pledgeCommitmentTotalCents ?? 0)}
-            sublabel={`${report?.pledgeCommitmentCount ?? 0} relationship commitments`}
-          />
-          <Metric
-            icon={<Home className={DOMAIN_ICON_CLASS} />}
-            label="Households"
-            value={String(report?.householdCount ?? 0)}
-            sublabel="Deterministic member groups"
-          />
-          <Metric
-            icon={<Building2 className={DOMAIN_ICON_CLASS} />}
-            label="Activity"
-            value={String(report?.recentActivityCount ?? 0)}
-            sublabel={`${report?.excludedCareActivityCount ?? 0} care rows excluded`}
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className="rounded-md">
-            {mode === "local" ? "Asym Postgres" : "CRM"}
-          </Badge>
-          <Badge variant="outline" className="rounded-md">
-            {report?.sourceSystems.finance ??
-              "Asym owns payment execution, receipts, statements, refunds, and reconciliation."}
-          </Badge>
-          <Badge variant="outline" className="rounded-md">
-            {report?.sourceSystems.care ??
-              "Asym owns care plans and private care notes."}
-          </Badge>
-          {rollback ? (
-            <Badge variant="outline" className="rounded-md">
-              Rollback: {rollback.existingCrmPath}
-            </Badge>
-          ) : null}
-        </div>
-
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Search CRM relationships"
-              className="pl-9"
-              placeholder="Search relationships"
-              value={search}
-              onChange={(event) => onSearchChange(event.target.value)}
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant={domains.length === 0 ? "default" : "outline"}
-              size="sm"
-              onClick={clearDomains}
-            >
-              All
-            </Button>
-            {CRM_RELATIONSHIP_DOMAIN_OPTIONS.map((option) => (
-              <Button
-                key={option.value}
-                variant={domains.includes(option.value) ? "default" : "outline"}
-                size="sm"
-                onClick={() => onDomainToggle(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <CrmRelationshipsMetrics report={report} />
+        <CrmRelationshipsSourceBadges
+          mode={mode}
+          report={report}
+          rollback={rollback}
+        />
+        <CrmRelationshipsFilters
+          search={search}
+          domains={domains}
+          onSearchChange={onSearchChange}
+          onDomainToggle={onDomainToggle}
+          clearDomains={clearDomains}
+        />
 
         {missing.length > 0 ? (
           <Alert className="rounded-lg border-amber-200 bg-amber-50 text-amber-900">
@@ -218,19 +320,7 @@ export default function CrmRelationshipsPageClient() {
           isLoading={isLoading}
           onRefresh={() => void onRefresh()}
           onSortingChange={onSortingChange}
-          emptyState={
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="mb-4 rounded-lg bg-muted p-4">
-                <Network className="size-10 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold">No CRM relationships</h3>
-              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                {tableError
-                  ? tableError.message
-                  : "No relationship records match the current filters."}
-              </p>
-            </div>
-          }
+          emptyState={<CrmRelationshipsEmptyState tableError={tableError} />}
           config={{
             enableColumnVisibility: true,
             enableFilters: false,
@@ -255,30 +345,9 @@ export default function CrmRelationshipsPageClient() {
             badgeField: "domain",
             primaryField: "displayName",
             secondaryField: "secondaryLabel",
-            renderCard: (row) => {
-              const relationship = row.original;
-              return (
-                <div className="space-y-3 p-4 text-left">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">
-                        {relationship.displayName}
-                      </p>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {relationship.secondaryLabel ??
-                          relationship.authorityLabel}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="rounded-md text-[9px]">
-                      {relationship.domain}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {relationship.sourceSystem}
-                  </p>
-                </div>
-              );
-            },
+            renderCard: (row) => (
+              <CrmRelationshipsMobileCard relationship={row.original} />
+            ),
           }}
         />
       </div>

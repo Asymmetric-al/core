@@ -31,62 +31,115 @@ const chartConfig = {
 
 const CORNER_RADIUS = 4;
 
+type DonationBarKey = "recurring" | "oneTime" | "offline";
+
 interface MonthlyData {
   recurring: number;
   oneTime: number;
   offline: number;
 }
 
-function createRoundedBarShape(dataKey: "recurring" | "oneTime" | "offline") {
-  return function RoundedBar(props: unknown): React.ReactElement {
-    const barProps = props as {
-      x?: number;
-      y?: number;
-      width?: number;
-      height?: number;
-      fill?: string;
-      payload?: MonthlyData;
-    };
+interface RenderableBarGeometry {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill?: string;
+  payload?: MonthlyData;
+}
 
-    const { x, y, width, height, fill, payload } = barProps;
+function readRenderableBarGeometry(
+  props: unknown,
+): RenderableBarGeometry | null {
+  const barProps = props as {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    fill?: string;
+    payload?: MonthlyData;
+  };
 
-    if (
-      x === undefined ||
-      y === undefined ||
-      !width ||
-      !height ||
-      height <= 0
-    ) {
-      return <></>;
+  const { x, y, width, height, fill, payload } = barProps;
+
+  if (x === undefined || y === undefined || !width || !height || height <= 0) {
+    return null;
+  }
+
+  return { x, y, width, height, fill, payload };
+}
+
+function stackedBarAmounts(payload: MonthlyData | undefined) {
+  return {
+    recurring: payload?.recurring ?? 0,
+    oneTime: payload?.oneTime ?? 0,
+    offline: payload?.offline ?? 0,
+  };
+}
+
+function stackedBarIsBottom(
+  dataKey: DonationBarKey,
+  payload: MonthlyData | undefined,
+): boolean {
+  const { recurring, oneTime } = stackedBarAmounts(payload);
+
+  switch (dataKey) {
+    case "recurring":
+      return true;
+    case "oneTime":
+      return recurring === 0;
+    case "offline":
+      return recurring === 0 && oneTime === 0;
+    default: {
+      const exhaustive: never = dataKey;
+      return exhaustive;
     }
+  }
+}
 
-    const recurring = payload?.recurring ?? 0;
-    const oneTime = payload?.oneTime ?? 0;
-    const offline = payload?.offline ?? 0;
+function stackedBarIsTop(
+  dataKey: DonationBarKey,
+  payload: MonthlyData | undefined,
+): boolean {
+  const { oneTime, offline } = stackedBarAmounts(payload);
 
-    const isBottom =
-      dataKey === "recurring" ||
-      (dataKey === "oneTime" && recurring === 0) ||
-      (dataKey === "offline" && recurring === 0 && oneTime === 0);
+  switch (dataKey) {
+    case "offline":
+      return true;
+    case "oneTime":
+      return offline === 0;
+    case "recurring":
+      return oneTime === 0 && offline === 0;
+    default: {
+      const exhaustive: never = dataKey;
+      return exhaustive;
+    }
+  }
+}
 
-    const isTop =
-      dataKey === "offline" ||
-      (dataKey === "oneTime" && offline === 0) ||
-      (dataKey === "recurring" && oneTime === 0 && offline === 0);
+function clampCornerRadius(radius: number, width: number, height: number) {
+  return Math.min(radius, width / 2, height / 2);
+}
 
-    const topLeft = isTop ? CORNER_RADIUS : 0;
-    const topRight = isTop ? CORNER_RADIUS : 0;
-    const bottomRight = isBottom ? CORNER_RADIUS : 0;
-    const bottomLeft = isBottom ? CORNER_RADIUS : 0;
+function roundedStackedBarPath(
+  dataKey: DonationBarKey,
+  bar: RenderableBarGeometry,
+): string {
+  const { x, y, width, height, payload } = bar;
+  const isBottom = stackedBarIsBottom(dataKey, payload);
+  const isTop = stackedBarIsTop(dataKey, payload);
 
-    const safeRadius = (r: number, w: number, h: number) =>
-      Math.min(r, w / 2, h / 2);
-    const tl = safeRadius(topLeft, width, height);
-    const tr = safeRadius(topRight, width, height);
-    const br = safeRadius(bottomRight, width, height);
-    const bl = safeRadius(bottomLeft, width, height);
+  const topLeft = isTop ? CORNER_RADIUS : 0;
+  const topRight = isTop ? CORNER_RADIUS : 0;
+  const bottomRight = isBottom ? CORNER_RADIUS : 0;
+  const bottomLeft = isBottom ? CORNER_RADIUS : 0;
 
-    const path = `
+  const tl = clampCornerRadius(topLeft, width, height);
+  const tr = clampCornerRadius(topRight, width, height);
+  const br = clampCornerRadius(bottomRight, width, height);
+  const bl = clampCornerRadius(bottomLeft, width, height);
+
+  return `
       M ${x + tl},${y}
       L ${x + width - tr},${y}
       Q ${x + width},${y} ${x + width},${y + tr}
@@ -98,9 +151,19 @@ function createRoundedBarShape(dataKey: "recurring" | "oneTime" | "offline") {
       Q ${x},${y} ${x + tl},${y}
       Z
     `;
+}
 
-    return <path d={path} fill={fill} />;
-  };
+function createRoundedBarShape(dataKey: DonationBarKey) {
+  function RoundedBar(props: unknown): React.ReactElement {
+    const bar = readRenderableBarGeometry(props);
+    if (!bar) {
+      return <></>;
+    }
+
+    return <path d={roundedStackedBarPath(dataKey, bar)} fill={bar.fill} />;
+  }
+
+  return RoundedBar;
 }
 
 const RecurringBarShape = createRoundedBarShape("recurring");

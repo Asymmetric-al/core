@@ -11,6 +11,7 @@ import {
   useCallback,
   useReducer,
   useEffect,
+  useMemo,
   useRef,
   type ReactNode,
 } from "react";
@@ -152,23 +153,32 @@ export function MCProvider({
     await signOutClientSession();
   }, []);
 
-  return (
-    <MCContext.Provider
-      value={{
-        user,
-        tenant,
-        role,
-        setRole,
-        isDevMode,
-        sidebarCollapsed,
-        setSidebarCollapsed,
-        loading,
-        signOut,
-      }}
-    >
-      {children}
-    </MCContext.Provider>
+  const value = useMemo<MCContextValue>(
+    () => ({
+      user,
+      tenant,
+      role,
+      setRole,
+      isDevMode,
+      sidebarCollapsed,
+      setSidebarCollapsed,
+      loading,
+      signOut,
+    }),
+    [
+      user,
+      tenant,
+      role,
+      setRole,
+      isDevMode,
+      sidebarCollapsed,
+      setSidebarCollapsed,
+      loading,
+      signOut,
+    ],
   );
+
+  return <MCContext.Provider value={value}>{children}</MCContext.Provider>;
 }
 
 export function useMC() {

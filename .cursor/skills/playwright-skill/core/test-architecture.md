@@ -61,7 +61,7 @@ The trophy shape means integration tests (component + API) should be your **larg
 
 **Best for**:
 - Critical user flows that generate revenue (checkout, signup, subscription)
-- Authentication and authorization flows (login, SSO, MFA, password reset)
+- Authentication and authorization flows (login, SSO, MFA, password reset) // pragma: allowlist secret
 - Multi-page workflows where state carries across navigation (wizards, onboarding)
 - Flows involving third-party iframes (payment widgets, embedded forms)
 - Smoke tests validating the entire stack is wired together
@@ -196,33 +196,33 @@ test.describe('LoginForm component', () => {
     await component.getByRole('button', { name: 'Sign in' }).click();
 
     await expect(component.getByText('Email is required')).toBeVisible();
-    await expect(component.getByText('Password is required')).toBeVisible();
+    await expect(component.getByText('Password is required')).toBeVisible(); // pragma: allowlist secret
   });
 
   test('shows error for invalid email format', async ({ mount }) => {
     const component = await mount(<LoginForm onSubmit={() => {}} />);
 
     await component.getByLabel('Email').fill('not-an-email');
-    await component.getByLabel('Password').fill('password123');
+    await component.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await component.getByRole('button', { name: 'Sign in' }).click();
 
     await expect(component.getByText('Enter a valid email address')).toBeVisible();
   });
 
   test('calls onSubmit with credentials for valid input', async ({ mount }) => {
-    const submitted: Array<{ email: string; password: string }> = [];
+    const submitted: Array<{ email: string; password: string }> = []; // pragma: allowlist secret
     const component = await mount(
       <LoginForm onSubmit={(data) => submitted.push(data)} />
     );
 
     await component.getByLabel('Email').fill('jane@example.com');
-    await component.getByLabel('Password').fill('s3cure!Pass');
+    await component.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
     await component.getByRole('button', { name: 'Sign in' }).click();
 
     expect(submitted).toHaveLength(1);
     expect(submitted[0]).toEqual({
       email: 'jane@example.com',
-      password: 's3cure!Pass',
+      password: 's3cure!Pass', // pragma: allowlist secret
     });
   });
 
@@ -257,7 +257,7 @@ test.describe('LoginForm component', () => {
     await component.getByRole('button', { name: 'Sign in' }).click();
 
     await expect(component.getByText('Email is required')).toBeVisible();
-    await expect(component.getByText('Password is required')).toBeVisible();
+    await expect(component.getByText('Password is required')).toBeVisible(); // pragma: allowlist secret
   });
 
   test('calls onSubmit with credentials for valid input', async ({ mount }) => {
@@ -267,13 +267,13 @@ test.describe('LoginForm component', () => {
     );
 
     await component.getByLabel('Email').fill('jane@example.com');
-    await component.getByLabel('Password').fill('s3cure!Pass');
+    await component.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
     await component.getByRole('button', { name: 'Sign in' }).click();
 
     expect(submitted).toHaveLength(1);
     expect(submitted[0]).toEqual({
       email: 'jane@example.com',
-      password: 's3cure!Pass',
+      password: 's3cure!Pass', // pragma: allowlist secret
     });
   });
 
@@ -312,7 +312,7 @@ test.describe('Users API', () => {
 
   test.beforeAll(async ({ request }) => {
     const response = await request.post('/api/auth/login', {
-      data: { email: 'admin@example.com', password: 'admin-pass' },
+      data: { email: 'admin@example.com', password: 'admin-pass' }, // pragma: allowlist secret
     });
     const body = await response.json();
     authToken = body.token;
@@ -377,7 +377,7 @@ test.describe('Users API', () => {
   test('non-admin cannot create users', async ({ request }) => {
     // Login as a non-admin user
     const loginResponse = await request.post('/api/auth/login', {
-      data: { email: 'viewer@example.com', password: 'viewer-pass' },
+      data: { email: 'viewer@example.com', password: 'viewer-pass' }, // pragma: allowlist secret
     });
     const { token: viewerToken } = await loginResponse.json();
 
@@ -419,7 +419,7 @@ test.describe('Users API', () => {
 
   test.beforeAll(async ({ request }) => {
     const response = await request.post('/api/auth/login', {
-      data: { email: 'admin@example.com', password: 'admin-pass' },
+      data: { email: 'admin@example.com', password: 'admin-pass' }, // pragma: allowlist secret
     });
     const body = await response.json();
     authToken = body.token;
@@ -465,7 +465,7 @@ test.describe('Users API', () => {
 
   test('non-admin cannot create users', async ({ request }) => {
     const loginResponse = await request.post('/api/auth/login', {
-      data: { email: 'viewer@example.com', password: 'viewer-pass' },
+      data: { email: 'viewer@example.com', password: 'viewer-pass' }, // pragma: allowlist secret
     });
     const { token: viewerToken } = await loginResponse.json();
 

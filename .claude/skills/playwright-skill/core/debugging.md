@@ -112,7 +112,7 @@ test('debug login flow', async ({ page }) => {
 
   // Inspector pauses before each action when PWDEBUG=1
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
@@ -130,7 +130,7 @@ test('debug login flow', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
@@ -397,6 +397,30 @@ const test = base.extend({
 module.exports = { test };
 ```
 
+#### Pinpointing Uncaught Errors With `webError.location()` (Playwright 1.60+)
+
+`page.on('pageerror')` gives you the error, but not *where* it came from. Playwright 1.60 adds `webError.location()` (on the `context`-level `weberror` event), mirroring `consoleMessage.location()` — so you get the URL, line, and column of an uncaught exception.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('capture uncaught errors with their source location', async ({ context, page }) => {
+  context.on('weberror', (webError) => {
+    const loc = webError.location(); // { url, line, column } — 0-based
+    console.error(
+      `Uncaught: ${webError.error().message} @ ${loc.url}:${loc.line}:${loc.column}`
+    );
+  });
+
+  await page.goto('/dashboard');
+  await page.getByRole('button', { name: 'Load data' }).click();
+  await expect(page.getByRole('table')).toBeVisible();
+});
+```
+
+The location makes it far quicker to map a browser-side exception back to the exact source file and line, especially with source maps enabled.
+
 ### Pattern 7: Screenshots on Failure
 
 **Use when**: You need a visual snapshot at the exact moment of failure.
@@ -616,6 +640,53 @@ test('debug with pause', async ({ page }) => {
 # Add to your pre-commit hook or CI pipeline
 grep -r "page.pause()" tests/ && echo "ERROR: Remove page.pause() before committing" && exit 1
 ```
+
+### Pattern 11: Styled Highlights and `errorContext` (Playwright 1.60+)
+
+**Use when**: You're visually debugging which element a locator resolves to (especially in headed mode or while recording a video), or you want richer diagnostics attached to assertion failures.
+**Avoid when**: A trace already answers the question — it shows the resolved element per step.
+
+Playwright 1.60 adds a `style` option to `locator.highlight()` (custom inline CSS on the highlight box) plus `page.hideHighlight()` to clear it. It also surfaces `testInfoError.errorContext`, which carries extra diagnostics — such as the aria snapshot of the element when an `expect()` matcher failed.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('highlight an element while debugging headed', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  const cta = page.getByRole('button', { name: 'Upgrade' });
+  await cta.highlight({ style: 'outline: 3px solid magenta; background: rgba(255,0,255,.15)' });
+
+  // ... inspect visually / take a screenshot ...
+  await page.hideHighlight();
+});
+
+test.afterEach(async ({}, testInfo) => {
+  // On failure, surface the diagnostic context Playwright captured
+  for (const err of testInfo.errors) {
+    if (err.errorContext) {
+      console.log('Failure context:\n', err.errorContext);
+    }
+  }
+});
+```
+
+**JavaScript**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('highlight an element while debugging headed', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  const cta = page.getByRole('button', { name: 'Upgrade' });
+  await cta.highlight({ style: 'outline: 3px solid magenta' });
+
+  await page.hideHighlight();
+});
+```
+
+`errorContext` is most useful in custom reporters and `afterEach` hooks where you want to log *why* a matcher failed beyond the bare message.
 
 ## Decision Guide
 

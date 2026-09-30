@@ -3,15 +3,7 @@
 import { useCallback, useState, useEffect } from "react";
 
 import type { ColumnSizingState, RowData, Header } from "../tanstack";
-
-export interface ColumnResizingOptions {
-  enabled?: boolean;
-  defaultColumnSize?: number;
-  minColumnSize?: number;
-  maxColumnSize?: number;
-  persistKey?: string;
-  onColumnSizeChange?: (sizing: ColumnSizingState) => void;
-}
+import type { ColumnResizingOptions } from "./column-resizing-options";
 
 export interface UseColumnResizingReturn {
   columnSizing: ColumnSizingState;
@@ -158,18 +150,32 @@ export function useColumnResizing(
 
 export function ColumnResizeHandle({
   onResize,
+  onKeyboardResize,
   className,
 }: {
   onResize: (e: React.MouseEvent | React.TouchEvent) => void;
+  /**
+   * Keyboard alternative to dragging; receives the width delta in px
+   * (ArrowLeft/ArrowRight move by 10px, 50px with Shift).
+   */
+  onKeyboardResize?: (deltaPx: number) => void;
   className?: string;
 }) {
   return (
     <div
       onMouseDown={onResize}
       onTouchStart={onResize}
+      onKeyDown={(e) => {
+        if (!onKeyboardResize) return;
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const step = e.shiftKey ? 50 : 10;
+        onKeyboardResize(e.key === "ArrowRight" ? step : -step);
+      }}
       role="separator"
       aria-label="Resize column"
       aria-orientation="vertical"
+      tabIndex={onKeyboardResize ? 0 : -1}
       className={
         className ??
         "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none bg-transparent hover:bg-primary/50 active:bg-primary transition-colors"
@@ -179,25 +185,4 @@ export function ColumnResizeHandle({
       }}
     />
   );
-}
-
-export function getColumnResizingTableOptions(
-  options: ColumnResizingOptions = {},
-) {
-  const {
-    enabled = true,
-    defaultColumnSize = 150,
-    minColumnSize = 50,
-    maxColumnSize = 500,
-  } = options;
-
-  return {
-    enableColumnResizing: enabled,
-    columnResizeMode: "onChange" as const,
-    defaultColumn: {
-      size: defaultColumnSize,
-      minSize: minColumnSize,
-      maxSize: maxColumnSize,
-    },
-  };
 }

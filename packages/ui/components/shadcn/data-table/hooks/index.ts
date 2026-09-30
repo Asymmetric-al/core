@@ -17,15 +17,10 @@ export type {
   UseDataTableKeyboardReturn,
 } from "./use-data-table-keyboard";
 
-export {
-  useColumnResizing,
-  ColumnResizeHandle,
-  getColumnResizingTableOptions,
-} from "./use-column-resizing";
-export type {
-  ColumnResizingOptions,
-  UseColumnResizingReturn,
-} from "./use-column-resizing";
+export { useColumnResizing, ColumnResizeHandle } from "./use-column-resizing";
+export type { UseColumnResizingReturn } from "./use-column-resizing";
+export { getColumnResizingTableOptions } from "./column-resizing-options";
+export type { ColumnResizingOptions } from "./column-resizing-options";
 
 export { useDataTableWithLiveQuery } from "./use-data-table-live-query";
 

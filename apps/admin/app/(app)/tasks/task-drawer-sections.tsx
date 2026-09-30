@@ -1,6 +1,10 @@
 "use client";
 
 import {
+  useLocaleFormat,
+  type LocaleFormatters,
+} from "@asym/lib/hooks/use-locale-format";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -38,25 +42,19 @@ import { TASK_PRIORITIES, TASK_STATUSES } from "./types";
 import type { StaffMember, Task, TaskPriority, TaskStatus } from "./types";
 import type { ComponentType } from "react";
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const LONG_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   weekday: "long",
   year: "numeric",
   month: "long",
   day: "numeric",
-});
+};
 
-const TIME_AND_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+const TIME_AND_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   month: "short",
   day: "numeric",
   hour: "numeric",
   minute: "2-digit",
-});
+};
 
 const COMPACT_SECTION_LABEL_CLASS =
   "text-xs font-semibold text-muted-foreground";
@@ -64,9 +62,12 @@ const COMPACT_MUTED_TEXT_CLASS = "text-xs text-muted-foreground";
 const COMPACT_MUTED_META_TEXT_CLASS =
   "text-xs text-muted-foreground font-medium";
 
-function formatDate(dateStr?: string): string {
+function formatTaskDate(
+  formatters: LocaleFormatters,
+  dateStr?: string,
+): string {
   if (!dateStr) return "No date";
-  return DATE_FORMATTER.format(makeDisplayDate(dateStr));
+  return formatters.formatDate(dateStr, LONG_DATE_FORMAT);
 }
 
 function formatTime(timeStr?: string): string | null {
@@ -265,6 +266,7 @@ function TaskDueAndAssigneeSection({
   staffMembers,
   onAssigneeChange,
 }: TaskDueAndAssigneeSectionProps) {
+  const formatters = useLocaleFormat();
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
       <div className="flex flex-col gap-2">
@@ -283,7 +285,7 @@ function TaskDueAndAssigneeSection({
               <span className="sr-only">Overdue: </span>
             </>
           )}
-          {formatDate(task.due_date)}
+          {formatTaskDate(formatters, task.due_date)}
           {task.due_time && (
             <span className="text-muted-foreground ml-1">
               at {formatTime(task.due_time)}
@@ -392,6 +394,7 @@ interface TaskRemindersSectionProps {
 }
 
 function TaskRemindersSection({ reminders }: TaskRemindersSectionProps) {
+  const { formatDateTime } = useLocaleFormat();
   return (
     <div className="flex flex-col gap-3">
       <p
@@ -408,9 +411,7 @@ function TaskRemindersSection({ reminders }: TaskRemindersSectionProps) {
             <div className="flex items-center gap-2">
               <Bell className="size-4 text-muted-foreground" />
               <span className="text-sm">
-                {TIME_AND_DATE_FORMATTER.format(
-                  makeDisplayDate(reminder.remind_at),
-                )}
+                {formatDateTime(reminder.remind_at, TIME_AND_DATE_FORMAT)}
               </span>
               <Badge variant="secondary">{reminder.type}</Badge>
             </div>
@@ -435,6 +436,7 @@ function TaskCommentsSection({
   onCommentChange,
   onAddComment,
 }: TaskCommentsSectionProps) {
+  const { formatDateTime } = useLocaleFormat();
   return (
     <div className="flex flex-col gap-4">
       <p
@@ -480,9 +482,7 @@ function TaskCommentsSection({
                     {comment.user_name}
                   </span>
                   <span className={COMPACT_MUTED_META_TEXT_CLASS}>
-                    {TIME_AND_DATE_FORMATTER.format(
-                      makeDisplayDate(comment.created_at),
-                    )}
+                    {formatDateTime(comment.created_at, TIME_AND_DATE_FORMAT)}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed bg-muted/30 p-3 rounded-xl">
@@ -503,14 +503,15 @@ interface TaskDrawerFooterProps {
 }
 
 function TaskDrawerFooter({ task, onDelete }: TaskDrawerFooterProps) {
+  const formatters = useLocaleFormat();
   return (
     <div className="p-4 border-t border-border bg-card shrink-0">
       <div className="flex items-center justify-between">
         <div className={COMPACT_MUTED_META_TEXT_CLASS}>
-          <span>Created {formatDate(task.created_at)}</span>
+          <span>Created {formatTaskDate(formatters, task.created_at)}</span>
           {task.completed_at && (
             <span className="ml-3 text-primary">
-              Completed {formatDate(task.completed_at)}
+              Completed {formatTaskDate(formatters, task.completed_at)}
             </span>
           )}
         </div>

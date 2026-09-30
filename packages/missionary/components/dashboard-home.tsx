@@ -2,7 +2,7 @@
 
 import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 import { useMissionaryPortalSnapshot } from "@asym/database/hooks";
-import { useAuth } from "@asym/lib/hooks";
+import { useAuth, useLocaleFormat } from "@asym/lib/hooks";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -55,6 +55,7 @@ function DashboardHomeContent({
   belowHeaderSlot?: React.ReactNode;
 }) {
   const portalQuery = useMissionaryPortalSnapshot();
+  const { formatDate } = useLocaleFormat();
   const {
     support,
     pendingTasks,
@@ -341,7 +342,7 @@ function DashboardHomeContent({
                               )}
                               <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
                                 {task.dueDate
-                                  ? `Due ${new Date(task.dueDate).toLocaleDateString()}`
+                                  ? `Due ${formatDate(task.dueDate)}`
                                   : "No due date"}
                               </span>
                             </div>

@@ -19,6 +19,8 @@ running `bun run skills:sync`.
   self-contained animation plans.
 - Do not use it for a single diff (`review-animations`) or for immediate source
   implementation (`anim` plus the normal implementation workflow).
+- A concrete audit or plan request should be answered directly. The upstream
+  Initial Response applies only to a bare invocation with no question or task.
 
 ### Workflow
 
@@ -42,6 +44,14 @@ running `bun run skills:sync`.
 - [ ] Execution never starts without an explicit `execute` request.
 
 <!-- CORE-OVERLAY-END -->
+
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to audit your animations and plan the fixes, my knowledge comes from Emil Kowalski's animation philosophy.
+
+Do not provide any other information until the user asks a question.
 
 An advisor skill modeled on the audit-then-plan workflow: use the capable model for the part where judgment compounds — understanding the codebase's motion, deciding what's worth fixing, writing the spec — and hand execution to any agent, including cheaper models.
 

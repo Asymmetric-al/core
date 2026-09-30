@@ -36,7 +36,7 @@ export class AppModule {}
 
 ```typescript
 // Use LazyModuleLoader for optional modules
-import { LazyModuleLoader } from '@nestjs/core';
+import { LazyModuleLoader } from "@nestjs/core";
 
 @Injectable()
 export class ReportsService {
@@ -44,7 +44,7 @@ export class ReportsService {
 
   async generateReport(type: string): Promise<Report> {
     // Load module only when needed
-    const { ReportsModule } = await import('./reports/reports.module');
+    const { ReportsModule } = await import("./reports/reports.module");
     const moduleRef = await this.lazyModuleLoader.load(() => ReportsModule);
 
     const reportsService = moduleRef.get(ReportsGeneratorService);
@@ -61,7 +61,7 @@ export class AdminService {
 
   private async getAdminModule(): Promise<ModuleRef> {
     if (!this.adminModule) {
-      const { AdminModule } = await import('./admin/admin.module');
+      const { AdminModule } = await import("./admin/admin.module");
       this.adminModule = await this.lazyModuleLoader.load(() => AdminModule);
     }
     return this.adminModule;
@@ -87,7 +87,7 @@ export class ModuleLoaderService {
   ): Promise<ModuleRef> {
     if (!this.loadedModules.has(key)) {
       const module = await importFn();
-      const moduleType = 'default' in module ? module.default : module;
+      const moduleType = "default" in module ? module.default : module;
       const moduleRef = await this.lazyModuleLoader.load(() => moduleType);
       this.loadedModules.set(key, moduleRef);
     }
@@ -102,7 +102,7 @@ export class ModulePreloader implements OnApplicationBootstrap {
 
   async onApplicationBootstrap(): Promise<void> {
     setTimeout(async () => {
-      await this.preloadModule(() => import('./reports/reports.module'));
+      await this.preloadModule(() => import("./reports/reports.module"));
     }, 5000); // 5 seconds after startup
   }
 
@@ -112,7 +112,7 @@ export class ModulePreloader implements OnApplicationBootstrap {
       const moduleType = module.default || Object.values(module)[0];
       await this.lazyModuleLoader.load(() => moduleType);
     } catch (error) {
-      console.warn('Failed to preload module', error);
+      console.warn("Failed to preload module", error);
     }
   }
 }

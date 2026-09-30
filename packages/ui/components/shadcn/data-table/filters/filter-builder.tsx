@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  useLocaleFormat,
+  type LocaleFormatters,
+} from "@asym/lib/hooks/use-locale-format";
 import { PlusIcon, FilterIcon, XIcon } from "lucide-react";
 import { type ComponentProps, useCallback } from "react";
 
@@ -310,6 +314,7 @@ export function ActiveFilters({
   onChange,
   className,
 }: ActiveFiltersProps) {
+  const { formatDate } = useLocaleFormat();
   const removeCondition = useCallback(
     (conditionId: string) => {
       onChange({
@@ -349,10 +354,11 @@ export function ActiveFilters({
             <span className="text-muted-foreground mx-1">
               {getOperatorLabel(condition.operator)}
             </span>
-            <span>{formatFilterValue(condition.value, field)}</span>
+            <span>{formatFilterValue(condition.value, field, formatDate)}</span>
             <button
               type="button"
               onClick={() => removeCondition(condition.id)}
+              aria-label={`Remove ${field.label} filter`}
               className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
             >
               <XIcon className="size-3" />
@@ -404,6 +410,7 @@ function getOperatorLabel(operator: FilterOperator): string {
 function formatFilterValue(
   value: FilterValue,
   field: FilterFieldDefinition,
+  formatDate: LocaleFormatters["formatDate"],
 ): string {
   if (value === null || value === undefined) return "";
 
@@ -426,10 +433,8 @@ function formatFilterValue(
 
   if (typeof value === "object") {
     if ("from" in value && "to" in value) {
-      const from = value.from
-        ? new Date(value.from).toLocaleDateString()
-        : "...";
-      const to = value.to ? new Date(value.to).toLocaleDateString() : "...";
+      const from = value.from ? formatDate(value.from) : "...";
+      const to = value.to ? formatDate(value.to) : "...";
       return `${from} - ${to}`;
     }
     if ("min" in value && "max" in value) {
@@ -440,7 +445,7 @@ function formatFilterValue(
   }
 
   if (value instanceof Date) {
-    return value.toLocaleDateString();
+    return formatDate(value);
   }
 
   if (typeof value === "boolean") {

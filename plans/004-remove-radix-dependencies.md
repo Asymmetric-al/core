@@ -37,7 +37,7 @@ Verified:
 - `apps/admin/package.json:44` — `"@radix-ui/react-visually-hidden": "^1.2.4"` — unused (zero imports in `apps/admin`).
 - `apps/donor/package.json:34` — `"@radix-ui/react-tabs": "^1.1.13"` — unused (zero imports in `apps/donor`; donor uses `@asym/ui/components/shadcn/tabs`).
 - `bun.lock` — ~152 lines matching `radix` (the rollup package + transitive `@radix-ui/*` packages).
-- Root `package.json` declares `"packageManager": "bun@1.3.14"` — all
+- Root `package.json` declares `"packageManager": "bun@1.4.0"` — all
   dependency operations must use Bun.
 
 ## Commands you will need

@@ -1,6 +1,17 @@
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
+  collectTypeScriptFiles,
   collectRetiredTwentyRuntimeViolations,
   collectRetiredTwentyRuntimeViolationsFromSource,
 } from "../../../scripts/verify/data-boundary-check.mjs";
@@ -64,5 +75,43 @@ describe("Twenty CRM retirement guard", () => {
 
   it("passes a clean current runtime tree", () => {
     expect(collectRetiredTwentyRuntimeViolations()).toEqual([]);
+  });
+
+  it("only skips Eve generated directories while walking source trees", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "twenty-scoped-output-"));
+    const paths = [
+      "packages/eve-runtime/.output/runtime.ts",
+      "packages/eve-runtime/.nitro/runtime.ts",
+      "packages/example/.output/runtime.ts",
+      "apps/example/.nitro/runtime.ts",
+      "packages/example/src/runtime.ts",
+    ];
+    try {
+      for (const file of paths) {
+        const target = path.join(root, file);
+        mkdirSync(path.dirname(target), { recursive: true });
+        writeFileSync(target, "TWENTY_API_KEY\n");
+      }
+      const files = collectTypeScriptFiles(root, root)
+        .map((file: string) =>
+          path.relative(root, file).split(path.sep).join("/"),
+        )
+        .sort();
+      expect(files).toEqual([
+        "apps/example/.nitro/runtime.ts",
+        "packages/example/.output/runtime.ts",
+        "packages/example/src/runtime.ts",
+      ]);
+      expect(
+        files.flatMap((file: string) =>
+          collectRetiredTwentyRuntimeViolationsFromSource(
+            file,
+            readFileSync(path.join(root, file), "utf8"),
+          ),
+        ),
+      ).toHaveLength(3);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

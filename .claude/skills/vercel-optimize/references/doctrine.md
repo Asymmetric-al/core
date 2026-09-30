@@ -89,6 +89,8 @@ A good run produces:
 - Recommendations from grepping the repo for known anti-patterns, without checking traffic.
 - "Enable Fluid Compute" without a cold-start signal.
 - "Add caching to /api/users" when the route has cookies() and is auth-gated.
+- "Reduce the duration of `/.well-known/workflow/v1/step`" because a Workflow step is long-running. Workflow runtime endpoints are generated orchestration routes; high wall-clock duration there is expected unless a separate reliability/error signal points elsewhere.
+- "Fix `/api/chat/[id]/stream` because it has high duration" without proving the stream does avoidable pre-first-byte work, high active CPU, duplicate invocations, or movable post-response work.
 - "Save $340/mo by doing X" — invented precision.
 - Citations to URLs that don't exist or that describe Next.js features the user's version doesn't have.
 - Long lists of recs the user can't act on; every rec needs an evidence chain.

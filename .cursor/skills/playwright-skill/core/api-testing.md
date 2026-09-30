@@ -154,6 +154,26 @@ test('form-urlencoded body', async ({ request }) => {
 });
 ```
 
+### Typed Responses and Request Timing (Playwright 1.62 to 1.63)
+
+**Typed responses (1.63+)** — pass a type argument so the parsed body is typed at the call site instead of being cast afterwards:
+
+```javascript
+const response = await request.get<User>('/api/users/42');
+const user = await response.json(); // typed as User
+```
+
+This is a compile-time convenience only. The type argument does **not** validate the payload at runtime — a response that does not match `User` still parses without complaint and fails later, somewhere less obvious. For contract enforcement, keep a runtime schema check; see [Schema Validation](#schema-validation) below.
+
+**Resource timing (1.62+)** — `apiResponse.timing()` returns timing information for the request:
+
+```javascript
+const response = await request.get('/api/orders');
+const timing = response.timing();
+```
+
+Useful for catching a latency regression inside an existing API test rather than standing up a separate performance suite. Treat single-request numbers as noisy and assert on generous ceilings, not tight ranges, or you have traded a flaky UI test for a flaky timing test. See [core/performance-testing.md](performance-testing.md).
+
 ### API Test Structure
 
 **Use when**: Writing dedicated API test suites that do not need a browser.
@@ -327,7 +347,7 @@ export const test = base.extend<ApiFixtures>({
     const loginResponse = await loginContext.post('/api/auth/login', {
       data: {
         email: process.env.ADMIN_EMAIL,
-        password: process.env.ADMIN_PASSWORD,
+        password: process.env.ADMIN_PASSWORD, // pragma: allowlist secret
       },
     });
     expect(loginResponse.ok()).toBeTruthy();
@@ -397,7 +417,7 @@ const test = base.extend({
     const loginResponse = await loginContext.post('/api/auth/login', {
       data: {
         email: process.env.ADMIN_EMAIL,
-        password: process.env.ADMIN_PASSWORD,
+        password: process.env.ADMIN_PASSWORD, // pragma: allowlist secret
       },
     });
     expect(loginResponse.ok()).toBeTruthy();
@@ -453,6 +473,12 @@ test('thorough response validation', async ({ request }) => {
   expect(response.headers()['content-type']).toContain('application/json');
   expect(response.headers()['x-request-id']).toBeDefined();
   expect(response.headers()['cache-control']).toMatch(/max-age=\d+/);
+
+  // TLS and connection details (Playwright 1.61+ — mirrors the browser-side APIs)
+  const security = await response.securityDetails();  // protocol, issuer, validity
+  expect(security?.protocol).toBe('TLS 1.3');
+  const addr = await response.serverAddr();           // { ipAddress, port } actually hit
+  expect(addr?.port).toBe(443);
 
   // Full body parse and deep assertion
   const user = await response.json();
@@ -791,24 +817,24 @@ import { test as base, expect, APIRequestContext } from '@playwright/test';
 
 // Fixture that seeds data via API before each test
 type SeedFixtures = {
-  seedUser: { id: number; email: string; password: string };
+  seedUser: { id: number; email: string; password: string }; // pragma: allowlist secret
   seedProject: { id: number; name: string };
 };
 
 export const test = base.extend<SeedFixtures>({
   seedUser: async ({ request }, use) => {
     const email = `user-${Date.now()}@example.com`;
-    const password = 'TestPass123!';
+    const password = 'TestPass123!'; // pragma: allowlist secret
 
     // Create via API
     const response = await request.post('/api/users', {
-      data: { name: 'Test User', email, password },
+      data: { name: 'Test User', email, password }, // pragma: allowlist secret
     });
     expect(response.ok()).toBeTruthy();
     const user = await response.json();
 
     // Pass to test
-    await use({ id: user.id, email, password });
+    await use({ id: user.id, email, password }); // pragma: allowlist secret
 
     // Cleanup after test — always delete what you created
     await request.delete(`/api/users/${user.id}`);
@@ -838,7 +864,7 @@ test('user sees their project on dashboard', async ({ page, seedUser, seedProjec
   // Login via UI (or use storageState for speed)
   await page.goto('/login');
   await page.getByLabel('Email').fill(seedUser.email);
-  await page.getByLabel('Password').fill(seedUser.password);
+  await page.getByLabel('Password').fill(seedUser.password); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Data already exists — go straight to assertion
@@ -855,15 +881,15 @@ const { test: base, expect } = require('@playwright/test');
 const test = base.extend({
   seedUser: async ({ request }, use) => {
     const email = `user-${Date.now()}@example.com`;
-    const password = 'TestPass123!';
+    const password = 'TestPass123!'; // pragma: allowlist secret
 
     const response = await request.post('/api/users', {
-      data: { name: 'Test User', email, password },
+      data: { name: 'Test User', email, password }, // pragma: allowlist secret
     });
     expect(response.ok()).toBeTruthy();
     const user = await response.json();
 
-    await use({ id: user.id, email, password });
+    await use({ id: user.id, email, password }); // pragma: allowlist secret
 
     await request.delete(`/api/users/${user.id}`);
   },
@@ -891,7 +917,7 @@ const { test, expect } = require('../../fixtures/seed-fixtures');
 test('user sees their project on dashboard', async ({ page, seedUser, seedProject }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill(seedUser.email);
-  await page.getByLabel('Password').fill(seedUser.password);
+  await page.getByLabel('Password').fill(seedUser.password); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await page.waitForURL('/dashboard');

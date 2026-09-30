@@ -6,7 +6,7 @@ import { TILES } from "@asym/lib/mission-control/tiles";
 import { Button } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
 
-import { getIcon } from "../icons";
+import { getIcon } from "../icon-map";
 
 const ROLE_QUICK_ACTIONS: Record<
   string,

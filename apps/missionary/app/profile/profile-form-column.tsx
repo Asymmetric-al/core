@@ -35,13 +35,12 @@ import {
   BIO_MIN_WORDS,
   TAGLINE_MAX_LENGTH,
 } from "./profile-model";
+import { staggerContainer, fadeInUp } from "./profile-motion";
 import {
   AvatarUploadArea,
   CoverUploadArea,
   FormField,
   MotionCard,
-  staggerContainer,
-  fadeInUp,
 } from "./profile-primitives";
 
 import type { ProfileData, ValidationErrors } from "./profile-model";

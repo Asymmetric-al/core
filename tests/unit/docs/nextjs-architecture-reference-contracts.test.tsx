@@ -133,9 +133,11 @@ describe("Next.js architecture executable reference contracts", () => {
         { method: "POST" },
       );
       expect(screen.queryByRole("button", { name: "Liked" })).toBeNull();
-      expect(
-        screen.getByRole("button", { name: "Like" }).hasAttribute("disabled"),
-      ).toBe(false);
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Like" }).hasAttribute("disabled"),
+        ).toBe(false),
+      );
     },
   );
 

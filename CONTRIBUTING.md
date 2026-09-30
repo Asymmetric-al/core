@@ -24,7 +24,7 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
 - **Base branch:** branch from and open normal pull requests to `develop`.
   `production` is updated only through the intentional release workflow, and
   the canonical repository has no `main` branch; do not create or target one.
-- **Package manager:** `bun` pinned via `package.json#packageManager` (currently `bun@1.3.14`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions.
+- **Package manager:** `bun` pinned via `package.json#packageManager` and `.bun-version` (currently `bun@1.4.0`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions. Apps still run on Node.js via Next.js; Bun is the package manager and script runner, not a replacement Node runtime. Do not set `bunVersion` in app `vercel.json` files.
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)

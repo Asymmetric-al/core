@@ -7,17 +7,20 @@ import { canonicalizeRoute } from './route-normalize.mjs';
 import { computeCostCoverage, renderCostCoverageMarkdown } from './cost-coverage.mjs';
 import { gates as registeredGates } from './gates/index.mjs';
 import { formatCandidateLabel, formatKind, formatPublicText, formatRoute, formatSignal } from './display-labels.mjs';
+import { splitCustomerSafeObservations } from './observation-safety.mjs';
 
 const PLATFORM_CAP = 3;
 const GATED_TARGET_PREVIEW = 5;
 
 export function renderReport({ recommendations = [], gated = [], abstentions = [], observations = [], signals = {}, candidates = [], opts = {} } = {}) {
+  const safety = splitCustomerSafeObservations(observations, abstentions, signals);
+  observations = safety.observations;
+  abstentions = [...abstentions, ...safety.heldBackObservations];
   assertValidObservations(observations);
 
   const projectName = opts.projectName ?? signals.project?.name ?? '<project>';
   const stack = signals.stack ?? signals.codebase?.stack ?? {};
   const usage = signals.usage ?? null;
-  const oplus = signals.observabilityPlus !== false;
   const plan = signals.plan ?? { plan: 'unknown', reason: '(not detected)' };
 
   // Sub-agents don't always propagate o11ySignal/aliasRoutes — look them up by candidateRef and canonicalize the displayed ref.
@@ -27,7 +30,7 @@ export function renderReport({ recommendations = [], gated = [], abstentions = [
   const lines = [];
   lines.push(`# Vercel Optimization Report — ${projectName}`);
   lines.push('');
-  lines.push(renderMetadataLine(stack, plan, usage, oplus));
+  lines.push(renderMetadataLine(stack, plan, usage, signals));
   const coverageLine = renderCoverageLine(candidates, recommendations, signals, {
     abstentions,
     heldBackCount: opts.heldBackCount,
@@ -292,7 +295,9 @@ function renderCoverageLine(candidates, recommendations, signals, opts = {}) {
   }
   const recCount = (recommendations ?? []).filter((r) => !r.abstain && !isPlatformScope(r)).length;
   parts.push(`${recCount} recommendation${recCount === 1 ? '' : 's'} ready`);
-  const rawHeldBackCount = Number.isInteger(opts.heldBackCount) ? opts.heldBackCount : 0;
+  const rawHeldBackCount = Number.isInteger(opts.heldBackCount)
+    ? opts.heldBackCount
+    : (Array.isArray(opts.abstentions) ? opts.abstentions.filter((a) => a?.needsEvidence === true).length : 0);
   const heldBackCount = Math.min(rawHeldBackCount, Math.max(0, launched.length - recCount));
   if (heldBackCount > 0) {
     parts.push(`${heldBackCount} need more evidence`);
@@ -307,7 +312,7 @@ function renderCoverageLine(candidates, recommendations, signals, opts = {}) {
   return `**Coverage**: ${parts.join('  ·  ')} · [details](#not-investigated-in-this-run)`;
 }
 
-function renderMetadataLine(stack, plan, usage, oplus) {
+function renderMetadataLine(stack, plan, usage, signals = {}) {
   const fw = `${stack.framework ?? 'unknown'}@${stack.frameworkVersion ?? '?'}`;
   const router = stack.hasAppRouter ? 'app-router' : stack.hasPagesRouter ? 'pages-router' : null;
   const orm = stack.orm && stack.orm !== 'none' ? stack.orm : null;
@@ -315,14 +320,43 @@ function renderMetadataLine(stack, plan, usage, oplus) {
   const period = usage?.period
     ? `${usage.period.from ?? '?'} → ${usage.period.to ?? '?'}`
     : '(unavailable)';
-  const oplusLabel = oplus
-    ? 'Observability Plus enabled — per-route metrics included'
-    : 'Not enabled — analysis based on billing + scanner findings';
+  const oplusLabel = observabilityLabel(signals, usage);
   // Plan-inference reason is debug detail — only surface when plan is uncertain.
   const planLabel = plan.plan === 'uncertain'
     ? `${plan.plan} (${plan.reason ?? 'no signal'})`
     : (plan.plan ?? 'unknown');
   return `**Stack**: ${stackParts}  ·  **Plan**: ${planLabel}  ·  **Period**: ${period}  ·  **Observability**: ${oplusLabel}`;
+}
+
+function observabilityLabel(signals, usage) {
+  if (signals.observabilityPlusUsable === true) {
+    return 'Observability Plus enabled — per-route metrics included';
+  }
+  if (signals.observabilityPlusUsable === false) {
+    if (usage) {
+      return 'Per-route metrics unavailable — analysis based on billing + scanner findings';
+    }
+    if (signals.usageError === 'NOT_COLLECTED_OBSERVABILITY_BLOCKED') {
+      return 'Per-route metrics unavailable — audit paused before metric-backed route ranking';
+    }
+    return 'Per-route metrics unavailable — limited analysis based on scanner findings';
+  }
+  if (signals.observabilityPlus === true) {
+    return 'Observability Plus enabled — per-route metrics included';
+  }
+  if (signals.usageError === 'NOT_COLLECTED_UNSUPPORTED_FRAMEWORK') {
+    return 'Not checked — audit paused at unsupported-framework preflight';
+  }
+  if (signals.usageError === 'NOT_COLLECTED_OBSERVABILITY_BLOCKED') {
+    return 'Per-route metrics unavailable — audit paused before metric-backed route ranking';
+  }
+  if (usage) {
+    return 'Not enabled — analysis based on billing + scanner findings';
+  }
+  if (signals.observabilityPlus === false) {
+    return 'Not enabled — limited analysis only';
+  }
+  return 'Not checked — limited analysis only';
 }
 
 function renderCostHeader(signals) {
@@ -344,44 +378,56 @@ function renderCostBreakdown(usage, signals) {
   const lines = [];
   const services = Array.isArray(usage?.services) ? usage.services : null;
   if (services && services.length > 0) {
-    const rows = services.slice().sort((a, b) => (b.billedCost ?? 0) - (a.billedCost ?? 0));
-    // Drop Usage column when every cell is "(unspecified)" — happens when CLI emits pricingUnit=USD.
-    const usageCells = rows.map((s) => formatUsage(s));
-    const hasRealUsage = usageCells.some((c) => c !== '(unspecified)');
-    if (hasRealUsage) {
-      lines.push('| Service | Usage | Billed cost |');
-      lines.push('|---|---|---|');
-      for (let i = 0; i < rows.length; i++) {
-        const s = rows[i];
-        const cost = typeof s.billedCost === 'number' ? `$${s.billedCost.toFixed(2)}` : '(n/a)';
-        lines.push(`| ${escape(s.name ?? '(unnamed)')} | ${escape(usageCells[i])} | ${cost} |`);
-      }
-    } else {
-      lines.push('| Service | Billed cost |');
-      lines.push('|---|---|');
-      for (const s of rows) {
-        const cost = typeof s.billedCost === 'number' ? `$${s.billedCost.toFixed(2)}` : '(n/a)';
-        lines.push(`| ${escape(s.name ?? '(unnamed)')} | ${cost} |`);
-      }
+    const chargedRows = services.filter((s) => {
+      const cost = serviceCost(s);
+      return cost === null || costRoundsToCents(cost) > 0;
+    });
+    if (chargedRows.length > 0) {
+      return renderServiceCostRows(chargedRows, {
+        costLabel: 'Billed cost',
+        costOf: serviceCost,
+        omittedZeroRows: services.length - chargedRows.length,
+        total: usage.totals?.billedCost,
+        totalLabel: 'Total billed',
+        totalSuffix: ' _(precise observed cost; future-savings framing is magnitude, never precise)_',
+      });
     }
-    const total = usage.totals?.billedCost;
-    if (typeof total === 'number') {
+
+    const effectiveRows = services.filter((s) => costRoundsToCents(serviceEffectiveCost(s)) > 0);
+    if (effectiveRows.length > 0) {
+      lines.push('_Net billed cost is $0.00 after included credits or allotments. Showing effective usage cost so active cost drivers are still visible._');
       lines.push('');
-      lines.push(`**Total billed: $${total.toFixed(2)}** _(precise observed cost; future-savings framing is magnitude, never precise)_`);
+      return [
+        ...lines,
+        ...renderServiceCostRows(effectiveRows, {
+          costLabel: 'Effective cost',
+          costOf: serviceEffectiveCost,
+          omittedZeroRows: services.length - effectiveRows.length,
+          total: usage.totals?.effectiveCost,
+          totalLabel: 'Total effective cost',
+          totalSuffix: ' _(usage cost before included-credit or allotment offsets)_',
+        }),
+      ];
     }
-    return lines;
+
+    if (chargedRows.length === 0) {
+      const scope = signals.usageScope === 'team' ? 'team-wide ' : '';
+      lines.push(`_\`vercel usage\` returned a ${scope}billing payload, but every reported service cost was $0.00 for this window._`);
+      return lines;
+    }
   }
 
   // Fallback to o11y-derived ranking when usage payload missing.
   const gbHr = signals.metrics?.fnGbHrByRoute?.rows ?? [];
+  const usageGap = missingUsageSentence(signals);
   if (gbHr.length === 0) {
-    lines.push('_`vercel usage` was not available (free-tier or Costs feature disabled). Without per-route observability data either, we cannot rank cost drivers._');
+    lines.push(`_${usageGap} Without per-route function GB-hour data, this report cannot rank cost drivers._`);
     return lines;
   }
   const top = groupGbHoursByCanonicalRoute(gbHr)
     .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
     .slice(0, 10);
-  lines.push('_`vercel usage` unavailable; ranking by `function_duration_gbhr` instead. These do not translate to dollars directly, but they show which routes consume billable units._');
+  lines.push(`_${usageGap} Ranking by \`function_duration_gbhr\` instead. These do not translate to dollars directly, but they show which routes consume billable units._`);
   lines.push('');
   lines.push('| Route | GB-hr (sum, 14d) |');
   lines.push('|---|---|');
@@ -389,6 +435,58 @@ function renderCostBreakdown(usage, signals) {
     lines.push(`| ${escape(r.route ?? '(unnamed)')} | ${(r.value ?? 0).toFixed(4)} |`);
   }
   return lines;
+}
+
+function renderServiceCostRows(services, { costLabel, costOf, omittedZeroRows = 0, total = null, totalLabel, totalSuffix = '' }) {
+  const lines = [];
+  const rows = services.slice().sort((a, b) => (costOf(b) ?? 0) - (costOf(a) ?? 0));
+  // Drop Usage column when every cell is "(unspecified)" — happens when CLI emits pricingUnit=USD.
+  const usageCells = rows.map((s) => formatUsage(s));
+  const hasRealUsage = usageCells.some((c) => c !== '(unspecified)');
+  if (hasRealUsage) {
+    lines.push(`| Service | Usage | ${costLabel} |`);
+    lines.push('|---|---|---|');
+    for (let i = 0; i < rows.length; i++) {
+      const s = rows[i];
+      const costValue = costOf(s);
+      const cost = typeof costValue === 'number' ? `$${costValue.toFixed(2)}` : '(n/a)';
+      lines.push(`| ${escape(s.name ?? '(unnamed)')} | ${escape(usageCells[i])} | ${cost} |`);
+    }
+  } else {
+    lines.push(`| Service | ${costLabel} |`);
+    lines.push('|---|---|');
+    for (const s of rows) {
+      const costValue = costOf(s);
+      const cost = typeof costValue === 'number' ? `$${costValue.toFixed(2)}` : '(n/a)';
+      lines.push(`| ${escape(s.name ?? '(unnamed)')} | ${cost} |`);
+    }
+  }
+  if (omittedZeroRows > 0) {
+    lines.push('');
+    lines.push(`_${omittedZeroRows} zero-cost service ${omittedZeroRows === 1 ? 'row was' : 'rows were'} omitted._`);
+  }
+  if (typeof total === 'number') {
+    lines.push('');
+    lines.push(`**${totalLabel}: $${total.toFixed(2)}**${totalSuffix}`);
+  }
+  return lines;
+}
+
+function serviceCost(service) {
+  if (typeof service?.billedCost === 'number') return service.billedCost;
+  if (typeof service?.cost === 'number') return service.cost;
+  return null;
+}
+
+function serviceEffectiveCost(service) {
+  if (typeof service?.effectiveCost === 'number') return service.effectiveCost;
+  if (typeof service?.pricingQuantity === 'number' && service?.pricingUnit === 'USD') return service.pricingQuantity;
+  return 0;
+}
+
+function costRoundsToCents(cost) {
+  if (typeof cost !== 'number' || !Number.isFinite(cost)) return 0;
+  return Math.round(cost * 100) / 100;
 }
 
 function renderRecTable(recs, signals = {}) {
@@ -540,6 +638,7 @@ function splitInvestigationOutcomes(abstentions) {
 
 function publicGatedReason(reason) {
   return formatPublicText(String(reason))
+    .replace(/\bhardGated:\s*/gi, '')
     .replace(/skippedByBudget\s*\(max-candidates=([^);]+)(?:;[^)]*)?\)/i, 'left for a larger run (max candidates: $1)')
     .replace(/skippedByBudget\b/gi, 'left for a larger run')
     .replace(/\s*;\s*raise with --max-candidates N or =all/gi, '')
@@ -660,18 +759,109 @@ function renderConfigurationNotes(signals) {
 
 function renderDataGaps(signals) {
   const lines = [];
-  if (signals.observabilityPlus === false) lines.push('- Observability Plus not enabled — per-route latency / cache-hit / cold-start metrics unavailable.');
-  if (!signals.usage) lines.push('- `vercel usage` was unavailable — cost breakdown derived from observability where possible.');
-  const cwv = signals.metrics?.cwvCount?.rows?.[0]?.value ?? 0;
-  if (cwv === 0) lines.push('- No Speed Insights measurements — Core Web Vitals analysis dormant. Wire up Speed Insights to enable LCP/INP/CLS recommendations.');
-  const isrR = signals.metrics?.isrReadsByRoute?.rows ?? [];
-  if (isrR.length === 0) lines.push('- No ISR activity observed — either the project does not use ISR or no eligible routes had traffic in the window.');
-  const images = signals.metrics?.imageCount?.rows?.[0]?.value ?? 0;
-  if (images === 0) lines.push('- No image transformations observed — either `next/image` is not used or no images served in the window.');
-  const middleware = signals.metrics?.middlewareCount?.rows ?? [];
-  if (middleware.length === 0) lines.push('- No middleware invocations — either no `middleware.ts` is shipped or its matcher excludes all observed traffic.');
+  const observabilityGap = observabilityDataGap(signals);
+  if (observabilityGap) lines.push(observabilityGap);
+  if (!signals.usage) lines.push(`- ${missingUsageSentence(signals)}`);
+  const cwvMetric = metricState(signals, 'cwvCount');
+  if (cwvMetric.failed) {
+    lines.push(`- Speed Insights metrics were not usable (\`${cwvMetric.code}\`), so LCP/INP/CLS analysis was skipped.`);
+  } else if (cwvMetric.collected) {
+    const cwv = cwvMetric.rows?.[0]?.value ?? 0;
+    if (cwv === 0) lines.push('- No Speed Insights measurements — Core Web Vitals analysis dormant. Wire up Speed Insights to enable LCP/INP/CLS recommendations.');
+  }
+  const isrMetric = metricState(signals, 'isrReadsByRoute');
+  if (isrMetric.collected) {
+    const isrR = isrMetric.rows ?? [];
+    if (isrR.length === 0) lines.push('- No ISR activity observed — either the project does not use ISR or no eligible routes had traffic in the window.');
+  }
+  const imageMetric = metricState(signals, 'imageCount');
+  if (imageMetric.collected) {
+    const images = imageMetric.rows?.[0]?.value ?? 0;
+    if (images === 0) lines.push('- No image transformations observed — either `next/image` is not used or no images served in the window.');
+  }
+  const middlewareMetric = metricState(signals, 'middlewareCount');
+  if (middlewareMetric.collected) {
+    const middleware = middlewareMetric.rows ?? [];
+    if (middleware.length === 0) lines.push('- No middleware invocations — either no `middleware.ts` is shipped or its matcher excludes all observed traffic.');
+  }
   if (lines.length === 0) lines.push('_(no relevant gaps — every signal had data)_');
   return lines;
+}
+
+function observabilityDataGap(signals = {}) {
+  if (signals.usageError === 'NOT_COLLECTED_UNSUPPORTED_FRAMEWORK') {
+    return '- Observability Plus was not checked because the audit paused at the unsupported-framework preflight.';
+  }
+  if (signals.observabilityPlusUsable === false) {
+    const blocker = signals.observabilityPlusBlocker;
+    if (blocker === 'project_disabled') {
+      return '- Per-route metrics unavailable — Observability Plus is disabled for this project.';
+    }
+    if (blocker === 'forbidden' || blocker === 'project_not_found') {
+      return '- Per-route metrics unavailable — the authenticated Vercel scope cannot read this project.';
+    }
+    if (blocker === 'not_linked') {
+      return '- Per-route metrics unavailable — the app directory is not linked to the Vercel project.';
+    }
+    if (blocker === 'no_oplus_probe') {
+      return '- Per-route metrics unavailable — Observability Plus was not detected for this scope.';
+    }
+    if (blocker === 'payment_required') {
+      return '- Per-route metrics unavailable — Observability Plus metrics were not usable for this scope.';
+    }
+    if (blocker === 'daily_quota_exceeded') {
+      return '- Per-route metrics unavailable — the Observability Plus query quota is exhausted for today.';
+    }
+    if (blocker === 'no_traffic') {
+      return '- Per-route metrics sparse — no route-level traffic was returned in the metrics window.';
+    }
+    if (blocker === 'all_failed_other') {
+      return '- Per-route metrics unavailable — all Observability Plus metric queries failed.';
+    }
+    if (blocker) {
+      return `- Per-route metrics unavailable — Observability Plus metrics returned \`${blocker}\`.`;
+    }
+    return '- Per-route metrics unavailable — Observability Plus data was not usable for this run.';
+  }
+  if (signals.observabilityPlus === false) {
+    return '- Observability Plus not enabled — per-route latency / cache-hit / cold-start metrics unavailable.';
+  }
+  return null;
+}
+
+function missingUsageSentence(signals = {}) {
+  const code = signals.usageError;
+  if (code === 'NOT_COLLECTED_OBSERVABILITY_BLOCKED') {
+    return '`vercel usage` was not collected because the audit paused before billing collection on the Observability Plus blocker.';
+  }
+  if (code === 'NOT_COLLECTED_UNSUPPORTED_FRAMEWORK') {
+    return '`vercel usage` was not collected because the audit paused at the unsupported-framework preflight.';
+  }
+  if (code === 'USAGE_CONTEXT_MISMATCH') {
+    return '`vercel usage` returned data for a different team context, so the billing breakdown was not used.';
+  }
+  if (code === 'USAGE_UNAVAILABLE') {
+    return '`vercel usage` returned `USAGE_UNAVAILABLE`; no billing breakdown was available from the Vercel CLI.';
+  }
+  if (typeof code === 'string' && code.trim() !== '') {
+    return `\`vercel usage\` returned \`${code}\`; no billing breakdown was available from the Vercel CLI.`;
+  }
+  return '`vercel usage` did not return a billing payload.';
+}
+
+function metricState(signals, id) {
+  const metrics = signals.metrics ?? {};
+  if (!Object.prototype.hasOwnProperty.call(metrics, id)) {
+    return { collected: false, failed: false, rows: null, code: null };
+  }
+  const metric = metrics[id] ?? {};
+  const failed = metric.ok === false;
+  return {
+    collected: !failed,
+    failed,
+    rows: Array.isArray(metric.rows) ? metric.rows : [],
+    code: metric.code ?? 'UNKNOWN',
+  };
 }
 
 function sortRecs(recs) {

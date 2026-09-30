@@ -18,7 +18,13 @@
  *   reconciles per-kind only while that kind has no pending op (I6).
  */
 
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { toast } from "sonner";
 
 import {
@@ -268,13 +274,19 @@ export function useEngagement(
   const updateId = baseline.updateId;
 
   const baselineRef = useRef(baseline);
-  baselineRef.current = baseline;
   const transportRef = useRef(transport);
-  transportRef.current = transport;
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
   const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
+  // Latest-value refs for `subscribe`/`toggle`. Written in a layout effect
+  // rather than during render (React may replay or discard render work);
+  // layout effects run before useSyncExternalStore subscribes, so the
+  // subscription and every event handler observe the current props.
+  useLayoutEffect(() => {
+    baselineRef.current = baseline;
+    transportRef.current = transport;
+    onChangeRef.current = onChange;
+    onErrorRef.current = onError;
+  });
 
   const subscribe = useCallback(
     (notify: () => void) => {
@@ -288,9 +300,11 @@ export function useEngagement(
     [updateId],
   );
 
+  // Runs during render, so seed from this render's baseline (not the ref):
+  // when `updateId` changes, the new entry must start from the new update.
   const getView = useCallback(
-    () => ensureEntry(updateId, baselineRef.current).view,
-    [updateId],
+    () => ensureEntry(updateId, baseline).view,
+    [updateId, baseline],
   );
 
   // Server rendering never touches the shared store; each render pass gets
@@ -308,7 +322,7 @@ export function useEngagement(
   // Baseline reconciliation (I6). Runs every commit; internally deduped by
   // fingerprint so unchanged baselines are free.
   useEffect(() => {
-    receiveBaseline(updateId, baselineRef.current);
+    receiveBaseline(updateId, baseline);
   });
 
   // Notify onChange for real snapshot changes only (skips the first render;

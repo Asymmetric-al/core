@@ -9,7 +9,7 @@
 // Storage state reuse — the #1 pattern for fast auth
 await page.goto('/login');
 await page.getByLabel('Email').fill('user@test.com');
-await page.getByLabel('Password').fill('password');
+await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
 await page.getByRole('button', { name: 'Sign in' }).click();
 await page.context().storageState({ path: '.auth/user.json' });
 
@@ -19,7 +19,7 @@ await page.context().storageState({ path: '.auth/user.json' });
 // API login — skip the UI entirely
 const context = await browser.newContext();
 const response = await context.request.post('/api/auth/login', {
-  data: { email: 'user@test.com', password: 'password' },
+  data: { email: 'user@test.com', password: 'password' }, // pragma: allowlist secret
 });
 await context.storageState({ path: '.auth/user.json' });
 ```
@@ -45,7 +45,7 @@ async function saveAuthState() {
 
   await page.goto('http://localhost:3000/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('s3cure!Pass');
+  await page.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -92,7 +92,7 @@ async function saveAuthState() {
 
   await page.goto('http://localhost:3000/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('s3cure!Pass');
+  await page.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -170,7 +170,7 @@ async function globalSetup(config: FullConfig) {
 
   await page.goto(`${baseURL}/login`);
   await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL!);
-  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('**/dashboard');
 
@@ -207,7 +207,7 @@ async function globalSetup(config) {
 
   await page.goto(`${baseURL}/login`);
   await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL);
-  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD);
+  await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('**/dashboard');
 
@@ -256,7 +256,7 @@ export const test = base.extend<{}, AuthFixtures>({
 
     await page.goto('/login');
     await page.getByLabel('Email').fill(`worker-${test.info().parallelIndex}@test.com`);
-    await page.getByLabel('Password').fill('password');
+    await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await page.close();
@@ -294,7 +294,7 @@ const test = base.extend({
 
     await page.goto('/login');
     await page.getByLabel('Email').fill(`worker-${test.info().parallelIndex}@test.com`);
-    await page.getByLabel('Password').fill('password');
+    await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await page.close();
@@ -320,22 +320,22 @@ Use separate Playwright projects with different storage states, one per role. Th
 import { chromium, type FullConfig } from '@playwright/test';
 
 const users = [
-  { role: 'admin', email: 'admin@test.com', password: process.env.ADMIN_PASSWORD! },
-  { role: 'user', email: 'user@test.com', password: process.env.USER_PASSWORD! },
-  { role: 'viewer', email: 'viewer@test.com', password: process.env.VIEWER_PASSWORD! },
+  { role: 'admin', email: 'admin@test.com', password: process.env.ADMIN_PASSWORD! }, // pragma: allowlist secret
+  { role: 'user', email: 'user@test.com', password: process.env.USER_PASSWORD! }, // pragma: allowlist secret
+  { role: 'viewer', email: 'viewer@test.com', password: process.env.VIEWER_PASSWORD! }, // pragma: allowlist secret
 ];
 
 async function globalSetup(config: FullConfig) {
   const { baseURL } = config.projects[0].use;
 
-  for (const { role, email, password } of users) {
+  for (const { role, email, password } of users) { // pragma: allowlist secret
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
 
     await page.goto(`${baseURL}/login`);
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
@@ -406,22 +406,22 @@ test('viewer cannot access admin panel', async ({ page }) => {
 const { chromium } = require('@playwright/test');
 
 const users = [
-  { role: 'admin', email: 'admin@test.com', password: process.env.ADMIN_PASSWORD },
-  { role: 'user', email: 'user@test.com', password: process.env.USER_PASSWORD },
-  { role: 'viewer', email: 'viewer@test.com', password: process.env.VIEWER_PASSWORD },
+  { role: 'admin', email: 'admin@test.com', password: process.env.ADMIN_PASSWORD }, // pragma: allowlist secret
+  { role: 'user', email: 'user@test.com', password: process.env.USER_PASSWORD }, // pragma: allowlist secret
+  { role: 'viewer', email: 'viewer@test.com', password: process.env.VIEWER_PASSWORD }, // pragma: allowlist secret
 ];
 
 async function globalSetup(config) {
   const { baseURL } = config.projects[0].use;
 
-  for (const { role, email, password } of users) {
+  for (const { role, email, password } of users) { // pragma: allowlist secret
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
 
     await page.goto(`${baseURL}/login`);
     await page.getByLabel('Email').fill(email);
-    await page.getByLabel('Password').fill(password);
+    await page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('**/dashboard');
 
@@ -671,7 +671,7 @@ import { generateTOTP } from '../helpers/totp';
 test('login with TOTP two-factor auth', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('mfa-user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // MFA challenge screen
@@ -713,7 +713,7 @@ const { generateTOTP } = require('../helpers/totp');
 test('login with TOTP two-factor auth', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('mfa-user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page.getByText('Enter your authentication code')).toBeVisible();
@@ -734,7 +734,7 @@ test('login with TOTP two-factor auth', async ({ page }) => {
 test('login with MFA bypass code', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('mfa-user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Backend accepts "000000" as a valid MFA code in test environment
@@ -788,7 +788,7 @@ export const test = base.extend<AuthFixtures>({
     const page = await context.newPage();
     await page.goto('/login');
     await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL!);
-    await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!);
+    await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD!); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
 
@@ -850,7 +850,7 @@ const test = base.extend({
     const page = await context.newPage();
     await page.goto('/login');
     await page.getByLabel('Email').fill(process.env.TEST_USER_EMAIL);
-    await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD);
+    await page.getByLabel('Password').fill(process.env.TEST_USER_PASSWORD); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
     await context.storageState({ path: statePath });
@@ -876,18 +876,18 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class LoginPage {
   readonly page: Page;
   readonly emailInput: Locator;
-  readonly passwordInput: Locator;
+  readonly passwordInput: Locator; // pragma: allowlist secret
   readonly signInButton: Locator;
   readonly errorMessage: Locator;
-  readonly forgotPasswordLink: Locator;
+  readonly forgotPasswordLink: Locator; // pragma: allowlist secret
 
   constructor(page: Page) {
     this.page = page;
     this.emailInput = page.getByLabel('Email');
-    this.passwordInput = page.getByLabel('Password');
+    this.passwordInput = page.getByLabel('Password'); // pragma: allowlist secret
     this.signInButton = page.getByRole('button', { name: 'Sign in' });
     this.errorMessage = page.getByRole('alert');
-    this.forgotPasswordLink = page.getByRole('link', { name: 'Forgot password' });
+    this.forgotPasswordLink = page.getByRole('link', { name: 'Forgot password' }); // pragma: allowlist secret
   }
 
   async goto() {
@@ -895,14 +895,14 @@ export class LoginPage {
     await expect(this.signInButton).toBeVisible();
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string) { // pragma: allowlist secret
     await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
+    await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.signInButton.click();
   }
 
-  async loginAndWaitForDashboard(email: string, password: string) {
-    await this.login(email, password);
+  async loginAndWaitForDashboard(email: string, password: string) { // pragma: allowlist secret
+    await this.login(email, password); // pragma: allowlist secret
     await this.page.waitForURL('/dashboard');
   }
 
@@ -910,8 +910,8 @@ export class LoginPage {
     await expect(this.errorMessage).toContainText(message);
   }
 
-  async expectFieldError(field: 'email' | 'password', message: string) {
-    const input = field === 'email' ? this.emailInput : this.passwordInput;
+  async expectFieldError(field: 'email' | 'password', message: string) { // pragma: allowlist secret
+    const input = field === 'email' ? this.emailInput : this.passwordInput; // pragma: allowlist secret
     await expect(input).toHaveAttribute('aria-invalid', 'true');
     // Error message associated with the field
     const errorId = await input.getAttribute('aria-describedby');
@@ -939,13 +939,13 @@ test.describe('login page', () => {
   });
 
   test('successful login redirects to dashboard', async ({ page }) => {
-    await loginPage.loginAndWaitForDashboard('user@test.com', 'password');
+    await loginPage.loginAndWaitForDashboard('user@test.com', 'password'); // pragma: allowlist secret
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   });
 
-  test('wrong password shows error', async () => {
-    await loginPage.login('user@test.com', 'wrong-password');
-    await loginPage.expectError('Invalid email or password');
+  test('wrong password shows error', async () => { // pragma: allowlist secret
+    await loginPage.login('user@test.com', 'wrong-password'); // pragma: allowlist secret
+    await loginPage.expectError('Invalid email or password'); // pragma: allowlist secret
   });
 
   test('empty fields show validation errors', async () => {
@@ -953,10 +953,10 @@ test.describe('login page', () => {
     await loginPage.expectFieldError('email', 'Email is required');
   });
 
-  test('forgot password link navigates correctly', async ({ page }) => {
-    await loginPage.forgotPasswordLink.click();
-    await page.waitForURL('/forgot-password');
-    await expect(page.getByRole('heading', { name: 'Reset password' })).toBeVisible();
+  test('forgot password link navigates correctly', async ({ page }) => { // pragma: allowlist secret
+    await loginPage.forgotPasswordLink.click(); // pragma: allowlist secret
+    await page.waitForURL('/forgot-password'); // pragma: allowlist secret
+    await expect(page.getByRole('heading', { name: 'Reset password' })).toBeVisible(); // pragma: allowlist secret
   });
 });
 ```
@@ -970,10 +970,10 @@ class LoginPage {
   constructor(page) {
     this.page = page;
     this.emailInput = page.getByLabel('Email');
-    this.passwordInput = page.getByLabel('Password');
+    this.passwordInput = page.getByLabel('Password'); // pragma: allowlist secret
     this.signInButton = page.getByRole('button', { name: 'Sign in' });
     this.errorMessage = page.getByRole('alert');
-    this.forgotPasswordLink = page.getByRole('link', { name: 'Forgot password' });
+    this.forgotPasswordLink = page.getByRole('link', { name: 'Forgot password' }); // pragma: allowlist secret
   }
 
   async goto() {
@@ -981,14 +981,14 @@ class LoginPage {
     await expect(this.signInButton).toBeVisible();
   }
 
-  async login(email, password) {
+  async login(email, password) { // pragma: allowlist secret
     await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
+    await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.signInButton.click();
   }
 
-  async loginAndWaitForDashboard(email, password) {
-    await this.login(email, password);
+  async loginAndWaitForDashboard(email, password) { // pragma: allowlist secret
+    await this.login(email, password); // pragma: allowlist secret
     await this.page.waitForURL('/dashboard');
   }
 
@@ -997,7 +997,7 @@ class LoginPage {
   }
 
   async expectFieldError(field, message) {
-    const input = field === 'email' ? this.emailInput : this.passwordInput;
+    const input = field === 'email' ? this.emailInput : this.passwordInput; // pragma: allowlist secret
     await expect(input).toHaveAttribute('aria-invalid', 'true');
     const errorId = await input.getAttribute('aria-describedby');
     if (errorId) {
@@ -1025,13 +1025,13 @@ test.describe('login page', () => {
   });
 
   test('successful login redirects to dashboard', async ({ page }) => {
-    await loginPage.loginAndWaitForDashboard('user@test.com', 'password');
+    await loginPage.loginAndWaitForDashboard('user@test.com', 'password'); // pragma: allowlist secret
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   });
 
-  test('wrong password shows error', async () => {
-    await loginPage.login('user@test.com', 'wrong-password');
-    await loginPage.expectError('Invalid email or password');
+  test('wrong password shows error', async () => { // pragma: allowlist secret
+    await loginPage.login('user@test.com', 'wrong-password'); // pragma: allowlist secret
+    await loginPage.expectError('Invalid email or password'); // pragma: allowlist secret
   });
 
   test('empty fields show validation errors', async () => {
@@ -1062,7 +1062,7 @@ async function globalSetup(config: FullConfig) {
   const response = await requestContext.post('/api/auth/login', {
     data: {
       email: process.env.TEST_USER_EMAIL!,
-      password: process.env.TEST_USER_PASSWORD!,
+      password: process.env.TEST_USER_PASSWORD!, // pragma: allowlist secret
     },
   });
 
@@ -1092,7 +1092,7 @@ export const test = base.extend({
     await apiContext.post('/api/auth/login', {
       data: {
         email: 'user@test.com',
-        password: 'password',
+        password: 'password', // pragma: allowlist secret
       },
     });
 
@@ -1123,7 +1123,7 @@ async function globalSetup(config) {
   const response = await requestContext.post('/api/auth/login', {
     data: {
       email: process.env.TEST_USER_EMAIL,
-      password: process.env.TEST_USER_PASSWORD,
+      password: process.env.TEST_USER_PASSWORD, // pragma: allowlist secret
     },
   });
 
@@ -1149,7 +1149,7 @@ const test = base.extend({
     });
 
     await apiContext.post('/api/auth/login', {
-      data: { email: 'user@test.com', password: 'password' },
+      data: { email: 'user@test.com', password: 'password' }, // pragma: allowlist secret
     });
 
     const state = await apiContext.storageState();
@@ -1168,7 +1168,7 @@ module.exports = { test, expect: require('@playwright/test').expect };
 
 ### Unauthenticated Tests
 
-**Use when**: Testing the login page, signup flow, password reset, public pages, authentication error handling, or redirect behavior for unauthenticated users.
+**Use when**: Testing the login page, signup flow, password reset, public pages, authentication error handling, or redirect behavior for unauthenticated users. // pragma: allowlist secret
 **Avoid when**: The test requires a logged-in user.
 
 When your config sets a default `storageState`, you must explicitly clear it for unauthenticated tests.
@@ -1218,8 +1218,8 @@ test.describe('unauthenticated access', () => {
     await page.goto('/signup');
     await page.getByLabel('Name').fill('New User');
     await page.getByLabel('Email').fill(`test-${Date.now()}@test.com`);
-    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass');
-    await page.getByLabel('Confirm password').fill('s3cure!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('s3cure!Pass'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await page.waitForURL('/onboarding');
@@ -1252,8 +1252,8 @@ test.describe('unauthenticated access', () => {
     await page.goto('/signup');
     await page.getByLabel('Name').fill('New User');
     await page.getByLabel('Email').fill(`test-${Date.now()}@test.com`);
-    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass');
-    await page.getByLabel('Confirm password').fill('s3cure!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('s3cure!Pass'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await page.waitForURL('/onboarding');
@@ -1295,8 +1295,8 @@ Need to test the login page itself?
 | Don't Do This | Problem | Do This Instead |
 |---|---|---|
 | Log in via UI before every test | Adds 2-5 seconds per test. A suite of 200 tests wastes 7-17 minutes just logging in. | Use `storageState` to skip login entirely. Log in once in global setup. |
-| Share a single auth state file across parallel workers that mutate state | Race conditions: worker A changes the password while worker B is mid-test. | Use per-worker fixtures with `{ scope: 'worker' }` or per-worker test accounts. |
-| Hardcode credentials in test files | Security risk. Credentials leak into version control and CI logs. | Use environment variables (`process.env.TEST_USER_PASSWORD`) and `.env` files. |
+| Share a single auth state file across parallel workers that mutate state | Race conditions: worker A changes the password while worker B is mid-test. | Use per-worker fixtures with `{ scope: 'worker' }` or per-worker test accounts. | // pragma: allowlist secret
+| Hardcode credentials in test files | Security risk. Credentials leak into version control and CI logs. | Use environment variables (`process.env.TEST_USER_PASSWORD`) and `.env` files. | // pragma: allowlist secret
 | Ignore token expiration | Tests fail intermittently with 401 errors after running for a while. | Add a session validity check in your auth fixture and re-authenticate when expired. |
 | Hit real OAuth providers in CI | Flaky: provider rate limits, CAPTCHA, network issues. Slow. May violate ToS. | Mock the OAuth callback or use API session injection with a test-only endpoint. |
 | Use `page.waitForTimeout(2000)` after login | Arbitrary delay. Too slow in fast environments, too short in slow ones. | `await page.waitForURL('/dashboard')` or `await expect(heading).toBeVisible()`. |
@@ -1373,7 +1373,7 @@ projects: [
 
 ### Parallel tests interfere with each other's sessions
 
-**Cause**: Multiple workers share the same test account and one worker's actions (logout, password change, session invalidation) affect others.
+**Cause**: Multiple workers share the same test account and one worker's actions (logout, password change, session invalidation) affect others. // pragma: allowlist secret
 
 **Fix**:
 - Use per-worker test accounts: `worker-${test.info().parallelIndex}@test.com`.

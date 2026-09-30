@@ -118,8 +118,10 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       lastSyncedValueRef.current = value;
     }, [value, editor]);
 
+    const contextValue = React.useMemo(() => ({ editor }), [editor]);
+
     return (
-      <EditorContext.Provider value={{ editor }}>
+      <EditorContext.Provider value={contextValue}>
         <div
           ref={ref}
           className={cn(

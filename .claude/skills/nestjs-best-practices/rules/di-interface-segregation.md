@@ -34,7 +34,7 @@ export class OrdersService {
   async confirmOrder(order: Order): Promise<void> {
     await this.notifications.sendEmail(
       order.customer.email,
-      'Order Confirmed',
+      "Order Confirmed",
       `Your order ${order.id} has been confirmed.`,
     );
   }
@@ -43,12 +43,12 @@ export class OrdersService {
 // Testing is painful - must mock unused methods
 const mockNotificationService = {
   sendEmail: jest.fn(),
-  sendSms: jest.fn(),           // Never used, but required
-  sendPush: jest.fn(),          // Never used, but required
-  sendSlack: jest.fn(),         // Never used, but required
-  logNotification: jest.fn(),   // Never used, but required
+  sendSms: jest.fn(), // Never used, but required
+  sendPush: jest.fn(), // Never used, but required
+  sendSlack: jest.fn(), // Never used, but required
+  logNotification: jest.fn(), // Never used, but required
   getDeliveryStatus: jest.fn(), // Never used, but required
-  retryFailed: jest.fn(),       // Never used, but required
+  retryFailed: jest.fn(), // Never used, but required
   scheduleNotification: jest.fn(), // Never used, but required
 };
 ```
@@ -111,7 +111,7 @@ export class OrdersService {
   async confirmOrder(order: Order): Promise<void> {
     await this.emailSender.sendEmail(
       order.customer.email,
-      'Order Confirmed',
+      "Order Confirmed",
       `Your order ${order.id} has been confirmed.`,
     );
   }
@@ -123,8 +123,8 @@ const mockEmailSender: EmailSender = {
 };
 
 // Module registration with tokens
-export const EMAIL_SENDER = Symbol('EMAIL_SENDER');
-export const SMS_SENDER = Symbol('SMS_SENDER');
+export const EMAIL_SENDER = Symbol("EMAIL_SENDER");
+export const SMS_SENDER = Symbol("SMS_SENDER");
 
 @Module({
   providers: [
@@ -155,7 +155,7 @@ export class AlertService {
 
   async sendCriticalAlert(user: User, message: string): Promise<void> {
     await Promise.all([
-      this.sender.sendEmail(user.email, 'Critical Alert', message),
+      this.sender.sendEmail(user.email, "Critical Alert", message),
       this.sender.sendSms(user.phone, message),
     ]);
   }

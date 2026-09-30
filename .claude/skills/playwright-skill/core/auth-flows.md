@@ -17,7 +17,7 @@ test('logs in with valid credentials', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('SecurePass123!');
+  await page.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Wait for navigation to complete after login
@@ -30,10 +30,10 @@ test('shows error for invalid credentials', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('WrongPassword');
+  await page.getByLabel('Password').fill('WrongPassword'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
-  await expect(page.getByRole('alert')).toContainText('Invalid email or password');
+  await expect(page.getByRole('alert')).toContainText('Invalid email or password'); // pragma: allowlist secret
   // Should remain on login page
   await expect(page).toHaveURL('/login');
 });
@@ -44,7 +44,7 @@ test('shows validation errors for empty fields', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page.getByText('Email is required')).toBeVisible();
-  await expect(page.getByText('Password is required')).toBeVisible();
+  await expect(page.getByText('Password is required')).toBeVisible(); // pragma: allowlist secret
 });
 ```
 
@@ -57,7 +57,7 @@ test('logs in with valid credentials', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('SecurePass123!');
+  await page.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page).toHaveURL('/dashboard');
@@ -69,10 +69,10 @@ test('shows error for invalid credentials', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('WrongPassword');
+  await page.getByLabel('Password').fill('WrongPassword'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
-  await expect(page.getByRole('alert')).toContainText('Invalid email or password');
+  await expect(page.getByRole('alert')).toContainText('Invalid email or password'); // pragma: allowlist secret
   await expect(page).toHaveURL('/login');
 });
 
@@ -82,7 +82,7 @@ test('shows validation errors for empty fields', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page.getByText('Email is required')).toBeVisible();
-  await expect(page.getByText('Password is required')).toBeVisible();
+  await expect(page.getByText('Password is required')).toBeVisible(); // pragma: allowlist secret
 });
 ```
 
@@ -104,7 +104,7 @@ test('remember me persists session across browser restarts', async ({ browser })
 
   await page1.goto('/login');
   await page1.getByLabel('Email').fill('user@example.com');
-  await page1.getByLabel('Password').fill('SecurePass123!');
+  await page1.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page1.getByLabel('Remember me').check();
   await page1.getByRole('button', { name: 'Sign in' }).click();
 
@@ -133,7 +133,7 @@ test('no remember me does not persist session', async ({ browser }) => {
 
   await page1.goto('/login');
   await page1.getByLabel('Email').fill('user@example.com');
-  await page1.getByLabel('Password').fill('SecurePass123!');
+  await page1.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   // Explicitly leave "Remember me" unchecked
   await expect(page1.getByLabel('Remember me')).not.toBeChecked();
   await page1.getByRole('button', { name: 'Sign in' }).click();
@@ -170,7 +170,7 @@ test('remember me persists session across browser restarts', async ({ browser })
 
   await page1.goto('/login');
   await page1.getByLabel('Email').fill('user@example.com');
-  await page1.getByLabel('Password').fill('SecurePass123!');
+  await page1.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page1.getByLabel('Remember me').check();
   await page1.getByRole('button', { name: 'Sign in' }).click();
 
@@ -221,8 +221,8 @@ test('completes signup flow with mocked email verification', async ({ page }) =>
 
   await page.getByLabel('Full name').fill('Jane Tester');
   await page.getByLabel('Email').fill('jane@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('SecurePass123!');
-  await page.getByLabel('Confirm password').fill('SecurePass123!');
+  await page.getByLabel('Password', { exact: true }).fill('SecurePass123!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByLabel('I agree to the Terms of Service').check();
   await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -240,7 +240,7 @@ test('completes signup flow with mocked email verification', async ({ page }) =>
 
   // Step 5: Log in with the new account
   await page.getByLabel('Email').fill('jane@example.com');
-  await page.getByLabel('Password').fill('SecurePass123!');
+  await page.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page).toHaveURL('/dashboard');
@@ -275,8 +275,8 @@ test('signup with fully mocked email API (no server dependency)', async ({ page 
 
   await page.getByLabel('Full name').fill('Jane Tester');
   await page.getByLabel('Email').fill('jane@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('SecurePass123!');
-  await page.getByLabel('Confirm password').fill('SecurePass123!');
+  await page.getByLabel('Password', { exact: true }).fill('SecurePass123!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByLabel('I agree to the Terms of Service').check();
   await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -307,8 +307,8 @@ test('completes signup flow with mocked email verification', async ({ page }) =>
 
   await page.getByLabel('Full name').fill('Jane Tester');
   await page.getByLabel('Email').fill('jane@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('SecurePass123!');
-  await page.getByLabel('Confirm password').fill('SecurePass123!');
+  await page.getByLabel('Password', { exact: true }).fill('SecurePass123!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByLabel('I agree to the Terms of Service').check();
   await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -324,7 +324,7 @@ test('completes signup flow with mocked email verification', async ({ page }) =>
 
 ---
 
-## Recipe 4: Password Reset Flow
+## Recipe 4: Password Reset Flow // pragma: allowlist secret
 
 ### Complete Example
 
@@ -333,19 +333,19 @@ test('completes signup flow with mocked email verification', async ({ page }) =>
 ```typescript
 import { test, expect } from '@playwright/test';
 
-test('completes password reset flow', async ({ page }) => {
+test('completes password reset flow', async ({ page }) => { // pragma: allowlist secret
   let resetToken = '';
 
-  // Intercept the password reset API to capture the reset token
-  await page.route('**/api/auth/forgot-password', async (route) => {
+  // Intercept the password reset API to capture the reset token // pragma: allowlist secret
+  await page.route('**/api/auth/forgot-password', async (route) => { // pragma: allowlist secret
     const response = await route.fetch();
     const body = await response.json();
     resetToken = body.resetToken;
     await route.fulfill({ response });
   });
 
-  // Step 1: Request password reset
-  await page.goto('/forgot-password');
+  // Step 1: Request password reset // pragma: allowlist secret
+  await page.goto('/forgot-password'); // pragma: allowlist secret
 
   await page.getByLabel('Email').fill('user@example.com');
   await page.getByRole('button', { name: 'Send reset link' }).click();
@@ -355,30 +355,30 @@ test('completes password reset flow', async ({ page }) => {
 
   // Step 2: Navigate to the reset page with token
   expect(resetToken).toBeTruthy();
-  await page.goto(`/reset-password?token=${resetToken}`);
+  await page.goto(`/reset-password?token=${resetToken}`); // pragma: allowlist secret
 
-  // Step 3: Set new password
-  await page.getByLabel('New password', { exact: true }).fill('NewSecurePass456!');
-  await page.getByLabel('Confirm new password').fill('NewSecurePass456!');
-  await page.getByRole('button', { name: 'Reset password' }).click();
+  // Step 3: Set new password // pragma: allowlist secret
+  await page.getByLabel('New password', { exact: true }).fill('NewSecurePass456!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm new password').fill('NewSecurePass456!'); // pragma: allowlist secret
+  await page.getByRole('button', { name: 'Reset password' }).click(); // pragma: allowlist secret
 
-  await expect(page.getByText('Password reset successfully')).toBeVisible();
+  await expect(page.getByText('Password reset successfully')).toBeVisible(); // pragma: allowlist secret
 
-  // Step 4: Log in with new password
+  // Step 4: Log in with new password // pragma: allowlist secret
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('NewSecurePass456!');
+  await page.getByLabel('Password').fill('NewSecurePass456!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page).toHaveURL('/dashboard');
 });
 
-test('password reset with expired token shows error', async ({ page }) => {
-  await page.goto('/reset-password?token=expired-token-123');
+test('password reset with expired token shows error', async ({ page }) => { // pragma: allowlist secret
+  await page.goto('/reset-password?token=expired-token-123'); // pragma: allowlist secret
 
-  await page.getByLabel('New password', { exact: true }).fill('NewSecurePass456!');
-  await page.getByLabel('Confirm new password').fill('NewSecurePass456!');
-  await page.getByRole('button', { name: 'Reset password' }).click();
+  await page.getByLabel('New password', { exact: true }).fill('NewSecurePass456!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm new password').fill('NewSecurePass456!'); // pragma: allowlist secret
+  await page.getByRole('button', { name: 'Reset password' }).click(); // pragma: allowlist secret
 
   await expect(page.getByRole('alert')).toContainText(
     /token has expired|link is no longer valid/i
@@ -386,13 +386,13 @@ test('password reset with expired token shows error', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Request a new reset link' })).toBeVisible();
 });
 
-test('password reset enforces password strength requirements', async ({ page }) => {
-  await page.goto('/reset-password?token=valid-token');
+test('password reset enforces password strength requirements', async ({ page }) => { // pragma: allowlist secret
+  await page.goto('/reset-password?token=valid-token'); // pragma: allowlist secret
 
-  // Try a weak password
-  await page.getByLabel('New password', { exact: true }).fill('123');
-  await page.getByLabel('Confirm new password').fill('123');
-  await page.getByRole('button', { name: 'Reset password' }).click();
+  // Try a weak password // pragma: allowlist secret
+  await page.getByLabel('New password', { exact: true }).fill('123'); // pragma: allowlist secret
+  await page.getByLabel('Confirm new password').fill('123'); // pragma: allowlist secret
+  await page.getByRole('button', { name: 'Reset password' }).click(); // pragma: allowlist secret
 
   await expect(page.getByText(/at least 8 characters/i)).toBeVisible();
 });
@@ -403,17 +403,17 @@ test('password reset enforces password strength requirements', async ({ page }) 
 ```javascript
 const { test, expect } = require('@playwright/test');
 
-test('completes password reset flow', async ({ page }) => {
+test('completes password reset flow', async ({ page }) => { // pragma: allowlist secret
   let resetToken = '';
 
-  await page.route('**/api/auth/forgot-password', async (route) => {
+  await page.route('**/api/auth/forgot-password', async (route) => { // pragma: allowlist secret
     const response = await route.fetch();
     const body = await response.json();
     resetToken = body.resetToken;
     await route.fulfill({ response });
   });
 
-  await page.goto('/forgot-password');
+  await page.goto('/forgot-password'); // pragma: allowlist secret
 
   await page.getByLabel('Email').fill('user@example.com');
   await page.getByRole('button', { name: 'Send reset link' }).click();
@@ -421,17 +421,17 @@ test('completes password reset flow', async ({ page }) => {
   await expect(page.getByText('Reset link sent')).toBeVisible();
 
   expect(resetToken).toBeTruthy();
-  await page.goto(`/reset-password?token=${resetToken}`);
+  await page.goto(`/reset-password?token=${resetToken}`); // pragma: allowlist secret
 
-  await page.getByLabel('New password', { exact: true }).fill('NewSecurePass456!');
-  await page.getByLabel('Confirm new password').fill('NewSecurePass456!');
-  await page.getByRole('button', { name: 'Reset password' }).click();
+  await page.getByLabel('New password', { exact: true }).fill('NewSecurePass456!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm new password').fill('NewSecurePass456!'); // pragma: allowlist secret
+  await page.getByRole('button', { name: 'Reset password' }).click(); // pragma: allowlist secret
 
-  await expect(page.getByText('Password reset successfully')).toBeVisible();
+  await expect(page.getByText('Password reset successfully')).toBeVisible(); // pragma: allowlist secret
 
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('NewSecurePass456!');
+  await page.getByLabel('Password').fill('NewSecurePass456!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page).toHaveURL('/dashboard');
@@ -574,17 +574,17 @@ function authFile(role: Role): string {
 
 // Auth setup project — runs before all tests
 test.describe('auth setup', () => {
-  const credentials: Record<Role, { email: string; password: string }> = {
-    admin: { email: 'admin@example.com', password: 'AdminPass123!' },
-    editor: { email: 'editor@example.com', password: 'EditorPass123!' },
-    viewer: { email: 'viewer@example.com', password: 'ViewerPass123!' },
+  const credentials: Record<Role, { email: string; password: string }> = { // pragma: allowlist secret
+    admin: { email: 'admin@example.com', password: 'AdminPass123!' }, // pragma: allowlist secret
+    editor: { email: 'editor@example.com', password: 'EditorPass123!' }, // pragma: allowlist secret
+    viewer: { email: 'viewer@example.com', password: 'ViewerPass123!' }, // pragma: allowlist secret
   };
 
   for (const role of roles) {
     test(`authenticate as ${role}`, async ({ page }) => {
       await page.goto('/login');
       await page.getByLabel('Email').fill(credentials[role].email);
-      await page.getByLabel('Password').fill(credentials[role].password);
+      await page.getByLabel('Password').fill(credentials[role].password); // pragma: allowlist secret
       await page.getByRole('button', { name: 'Sign in' }).click();
       await expect(page).toHaveURL('/dashboard');
 
@@ -710,7 +710,7 @@ test('redirects to login after session timeout', async ({ page, context }) => {
   // Log in first
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('SecurePass123!');
+  await page.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL('/dashboard');
 
@@ -792,7 +792,7 @@ const { test, expect } = require('@playwright/test');
 test('redirects to login after session timeout', async ({ page, context }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('SecurePass123!');
+  await page.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL('/dashboard');
 
@@ -938,7 +938,7 @@ setup('authenticate via API', async ({ request }) => {
   const response = await request.post('/api/auth/login', {
     data: {
       email: 'user@example.com',
-      password: 'SecurePass123!',
+      password: 'SecurePass123!', // pragma: allowlist secret
     },
   });
 
@@ -955,7 +955,7 @@ setup('authenticate via API', async ({ request }) => {
 test('logs in with MFA (TOTP)', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('mfa-user@example.com');
-  await page.getByLabel('Password').fill('SecurePass123!');
+  await page.getByLabel('Password').fill('SecurePass123!'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // MFA challenge screen appears
@@ -976,6 +976,57 @@ test('logs in with MFA (TOTP)', async ({ page }) => {
   await expect(page).toHaveURL('/dashboard');
 });
 ```
+
+### Passkeys / WebAuthn (Playwright 1.61+)
+
+Playwright 1.61 ships a virtual WebAuthn authenticator scoped to the browser context: `context.credentials`. Tests can register passkeys and answer `navigator.credentials.create()` / `navigator.credentials.get()` ceremonies without a hardware security key. Call `credentials.install()` before any page in the context starts a WebAuthn ceremony.
+
+**Pattern A: let the app register a passkey, then sign in with it**
+
+```typescript
+test('registers a passkey and signs in with it', async ({ browser }) => {
+  const context = await browser.newContext();
+  await context.credentials.install(); // override navigator.credentials in this context
+
+  const page = await context.newPage();
+
+  // Register: the app's "Create a passkey" flow now talks to the virtual authenticator
+  await page.goto('/settings/security');
+  await page.getByRole('button', { name: 'Create a passkey' }).click();
+  await expect(page.getByText('Passkey added')).toBeVisible();
+
+  // Sign out, then sign back in with the passkey
+  await page.goto('/logout');
+  await page.goto('/login');
+  await page.getByRole('button', { name: 'Sign in with a passkey' }).click();
+  // navigator.credentials.get() is answered with the registered passkey
+  await expect(page).toHaveURL('/dashboard');
+
+  await context.close();
+});
+```
+
+**Pattern B: capture once, seed everywhere (the storageState pattern for passkeys)**
+
+```typescript
+// setup project: register a passkey once and save it (it includes the private key)
+const [credential] = await context.credentials.get({ rpId: 'example.com' });
+fs.writeFileSync('playwright/.auth/passkey.json', JSON.stringify(credential));
+
+// later tests: seed the captured passkey so the user is already enrolled
+const credential = JSON.parse(fs.readFileSync('playwright/.auth/passkey.json', 'utf8'));
+const context = await browser.newContext();
+await context.credentials.create(credential.rpId, credential);
+await context.credentials.install();
+// navigator.credentials.get() now resolves the seeded passkey — no registration UI needed
+```
+
+You can also seed a credential your backend already provisioned for a test user by passing `id`, `userHandle`, `privateKey` (base64url PKCS#8), and `publicKey` (base64url SPKI) to `credentials.create(rpId, …)`, and remove one with `credentials.delete(id)`.
+
+**Tips:**
+- Treat saved passkey JSON like a saved `storageState` — it contains a private key, so keep it out of version control (`.gitignore` the `.auth/` directory).
+- Combine with a setup project (see Recipe 1) so passkey enrollment happens once per run, not per test.
+- Test the fallback path too: what happens when the user cancels the ceremony or has no passkey.
 
 ### Testing Auth with Different Browser Contexts
 
