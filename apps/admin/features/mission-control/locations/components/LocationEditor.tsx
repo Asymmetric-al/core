@@ -285,7 +285,7 @@ export function LocationEditor({
           <form.AppField name="summary">
             {(field) => (
               <field.TextareaField
-                inputClassName="min-h-[100px] resize-none rounded-xl border-zinc-200"
+                inputClassName="min-h-25 resize-none rounded-xl border-zinc-200"
                 label="Summary"
                 labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                 placeholder="Brief description of work at this location..."
@@ -296,7 +296,7 @@ export function LocationEditor({
           <form.Field name="status">
             {(field) => (
               <Field
-                className="rounded-[1.25rem] border border-zinc-100 bg-zinc-50/50 p-4"
+                className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-4"
                 orientation="horizontal"
               >
                 <FieldLabel className="flex-1">

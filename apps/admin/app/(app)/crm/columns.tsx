@@ -68,7 +68,7 @@ export function getCrmColumns({
         const name = record.displayName || "Unnamed";
         const initial = name.trim()[0] ?? "?";
         return (
-          <div className="flex min-w-[220px] items-center gap-3 py-1">
+          <div className="flex min-w-55 items-center gap-3 py-1">
             <SharedNamedViewTransition
               name={crmRecordAvatarTransitionName(record.id)}
             >
@@ -144,7 +144,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Primary contact" />
       ),
       cell: ({ row }) => (
-        <span className="line-clamp-2 max-w-[200px] text-sm text-muted-foreground">
+        <span className="line-clamp-2 max-w-50 text-sm text-muted-foreground">
           {row.original.primaryContactLine ?? EMPTY_CELL_VALUE}
         </span>
       ),
@@ -158,7 +158,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Location" />
       ),
       cell: ({ row }) => (
-        <span className="line-clamp-2 max-w-[160px] text-xs text-muted-foreground">
+        <span className="line-clamp-2 max-w-40 text-xs text-muted-foreground">
           {row.original.location ?? EMPTY_CELL_VALUE}
         </span>
       ),
@@ -237,7 +237,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Funds" />
       ),
       cell: ({ row }) => (
-        <span className="line-clamp-2 max-w-[180px] text-xs text-muted-foreground">
+        <span className="line-clamp-2 max-w-45 text-xs text-muted-foreground">
           {row.original.fundsGivenToSummary ?? EMPTY_CELL_VALUE}
         </span>
       ),
@@ -313,7 +313,7 @@ export function getCrmColumns({
         <DataTableColumnHeader column={column} title="Tags" />
       ),
       cell: ({ row }) => (
-        <div className="flex flex-wrap gap-1 max-w-[200px]">
+        <div className="flex flex-wrap gap-1 max-w-50">
           {(row.original.tags ?? []).length === 0 ? (
             <span className="text-xs text-muted-foreground">
               {EMPTY_CELL_VALUE}
@@ -323,7 +323,7 @@ export function getCrmColumns({
               <Badge
                 key={t}
                 variant="secondary"
-                className="h-5 px-1.5 text-[10px] font-medium"
+                className="h-5 px-1.5 text-[10px]"
               >
                 {t}
               </Badge>

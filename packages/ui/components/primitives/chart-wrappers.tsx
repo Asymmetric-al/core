@@ -67,10 +67,10 @@ export function ChartCard({
         </div>
         {actions && <CardAction>{actions}</CardAction>}
       </CardHeader>
-      <CardContent className="min-h-[200px] flex flex-col justify-center">
+      <CardContent className="min-h-50 flex flex-col justify-center">
         {isLoading ? (
           <div className="space-y-2">
-            <Skeleton className="h-[200px] w-full rounded-lg" />
+            <Skeleton className="h-50 w-full rounded-lg" />
             <div className="flex justify-between">
               <Skeleton className="h-4 w-12" />
               <Skeleton className="h-4 w-12" />
@@ -85,7 +85,7 @@ export function ChartCard({
             <h3 className="text-sm font-semibold text-foreground mb-1">
               {errorTitle}
             </h3>
-            <p className="text-xs text-muted-foreground max-w-[200px]">
+            <p className="text-xs text-muted-foreground max-w-50">
               {errorMessage}
             </p>
           </div>
@@ -147,8 +147,8 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
           className="flex items-center gap-2 group"
         >
           <div
-            className="size-2 rounded-full shrink-0"
-            style={{ backgroundColor: item.color }}
+            className="size-2 rounded-full shrink-0 bg-(--legend-color)"
+            style={{ "--legend-color": item.color } as React.CSSProperties}
           />
           <div className="flex items-baseline gap-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
@@ -170,7 +170,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="bg-popover text-popover-foreground border-border/70 min-w-[120px] rounded-lg border p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+    <div className="bg-popover text-popover-foreground border-border/70 min-w-30 rounded-lg border p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
       <p className="text-muted-foreground border-border/50 mb-2 border-b pb-1.5 text-[10px] font-semibold uppercase tracking-wider">
         {label}
       </p>
@@ -182,8 +182,12 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
           >
             <div className="flex items-center gap-1.5">
               <div
-                className="size-1.5 rounded-full"
-                style={{ backgroundColor: item.color || item.fill }}
+                className="size-1.5 rounded-full bg-(--legend-color)"
+                style={
+                  {
+                    "--legend-color": item.color || item.fill,
+                  } as React.CSSProperties
+                }
               />
               <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-tight">
                 {item.name}

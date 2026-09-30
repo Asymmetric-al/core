@@ -31,7 +31,7 @@ export function Nav() {
           </div>
           <Badge
             variant="secondary"
-            className="rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+            className="text-[10px] font-semibold uppercase tracking-[0.12em]"
           >
             Payload
           </Badge>

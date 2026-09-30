@@ -42,7 +42,7 @@ export function HomeHeroAnimated({
     <LazyMotion features={domAnimation}>
       <section
         aria-labelledby="hero-heading"
-        className="relative h-[100svh] min-h-[700px] flex items-center justify-center overflow-hidden bg-zinc-950 text-white"
+        className="relative h-[100svh] min-h-175 flex items-center justify-center overflow-hidden bg-zinc-950 text-white"
       >
         <div className="absolute inset-0 z-0 select-none">
           <Image

@@ -83,7 +83,7 @@ function WorkerCard({
         <div className="absolute inset-0 opacity-90 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none" />
 
         <div className="absolute top-4 left-4 z-20 transition-transform duration-500 ease-out group-hover:translate-x-0.5">
-          <Badge className="bg-white/10 backdrop-blur-md text-white border-white/20 font-medium text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-xl transition-colors group-hover:bg-white/15 group-hover:border-white/30">
+          <Badge className="bg-white/10 backdrop-blur-md text-white border-white/20 text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-xl transition-colors group-hover:bg-white/15 group-hover:border-white/30">
             {worker.category}
           </Badge>
         </div>
@@ -111,7 +111,7 @@ function WorkerCard({
               >
                 <span className="relative inline-block">
                   {worker.title}
-                  <span className="absolute -bottom-0.5 left-0 w-full h-[2px] bg-emerald-400 origin-left scale-x-0 transition-transform duration-300 ease-out group-hover/name:scale-x-100" />
+                  <span className="absolute -bottom-0.5 left-0 w-full h-0.5 bg-emerald-400 origin-left scale-x-0 transition-transform duration-300 ease-out group-hover/name:scale-x-100" />
                 </span>
               </SharedNamedViewTransition>
               <ArrowRight className="size-4 sm:h-5 sm:w-5 text-emerald-400 opacity-0 -translate-x-2 transition-[opacity,transform] duration-300 ease-out group-hover/name:opacity-100 group-hover/name:translate-x-0" />
@@ -193,8 +193,8 @@ export function WorkersPageClient() {
       <section className="relative bg-zinc-950 pt-32 sm:pt-40 lg:pt-48 pb-40 sm:pb-52 lg:pb-64 overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 to-zinc-950" />
-          <div className="absolute top-0 right-0 w-[600px] sm:w-[800px] lg:w-[1000px] h-[600px] sm:h-[800px] lg:h-[1000px] bg-emerald-600/10 rounded-full blur-[150px] sm:blur-[200px]" />
-          <div className="absolute bottom-0 left-0 w-[500px] sm:w-[600px] lg:w-[800px] h-[500px] sm:h-[600px] lg:h-[800px] bg-blue-600/10 rounded-full blur-[120px] sm:blur-[180px]" />
+          <div className="absolute top-0 right-0 w-150 sm:w-200 lg:w-250 h-150 sm:h-200 lg:h-250 bg-emerald-600/10 rounded-full blur-[150px] sm:blur-[200px]" />
+          <div className="absolute bottom-0 left-0 w-125 sm:w-150 lg:w-200 h-125 sm:h-150 lg:h-200 bg-blue-600/10 rounded-full blur-[120px] sm:blur-[180px]" />
         </div>
 
         <div className="container-responsive relative z-10">
@@ -251,7 +251,7 @@ export function WorkersPageClient() {
                   render={
                     <Button
                       variant="outline"
-                      className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
+                      className="h-11 sm:h-12 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white flex-1 sm:flex-none justify-between sm:justify-start"
                     >
                       <Filter
                         className="size-4 text-zinc-400 shrink-0"
@@ -293,7 +293,7 @@ export function WorkersPageClient() {
                   render={
                     <Button
                       variant="outline"
-                      className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
+                      className="h-11 sm:h-12 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white flex-1 sm:flex-none justify-between sm:justify-start"
                     >
                       <MapPin
                         className="size-4 text-zinc-400 shrink-0"
@@ -366,15 +366,8 @@ export function WorkersPageClient() {
 
         {filteredWorkers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-            {filteredWorkers.map((worker, index) => (
-              <div
-                key={worker.id}
-                style={
-                  withinRouteVt
-                    ? undefined
-                    : { animationDelay: `${Math.min(index * 50, 300)}ms` }
-                }
-              >
+            {filteredWorkers.map((worker) => (
+              <div key={worker.id}>
                 <WorkerCard worker={worker} animateEntrance={!withinRouteVt} />
               </div>
             ))}
@@ -407,7 +400,7 @@ export function WorkersPageClient() {
 
       <section className="bg-zinc-950 py-20 sm:py-28 lg:py-32 relative overflow-hidden text-center">
         <div className="absolute inset-0 opacity-30 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] sm:w-[600px] lg:w-[800px] h-[500px] sm:h-[600px] lg:h-[800px] bg-emerald-600 rounded-full blur-[150px] sm:blur-[200px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 sm:w-150 lg:w-200 h-125 sm:h-150 lg:h-200 bg-emerald-600 rounded-full blur-[150px] sm:blur-[200px]" />
         </div>
 
         <div className="container-responsive relative z-10 px-4">

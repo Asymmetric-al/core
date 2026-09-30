@@ -44,7 +44,7 @@ export function EmailStudioTemplatePickerDialog({
 }: EmailStudioTemplatePickerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent scrollable className="sm:max-w-140">
         <DialogHeader>
           <DialogTitle>Open template</DialogTitle>
           <DialogDescription>
@@ -57,7 +57,7 @@ export function EmailStudioTemplatePickerDialog({
             Loading templates…
           </div>
         ) : templates.length === 0 ? (
-          <Empty className="border-0 py-8">
+          <Empty className="py-8">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <FolderOpen />
@@ -69,7 +69,7 @@ export function EmailStudioTemplatePickerDialog({
             </EmptyHeader>
           </Empty>
         ) : (
-          <ItemGroup className="max-h-[360px] overflow-y-auto">
+          <ItemGroup className="max-h-90 overflow-y-auto">
             {templates.map((template) => (
               <Item
                 key={template.id}

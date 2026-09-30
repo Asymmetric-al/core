@@ -62,7 +62,7 @@ export function ReportFilters({
             type="date"
             value={fromInput}
             onChange={(event) => handleDateChange("from", event.target.value)}
-            className="h-9 w-[160px] font-mono text-[12px]"
+            className="w-40 font-mono text-[12px]"
             aria-label={`Start date (${INPUT_DATE})`}
           />
         </div>
@@ -74,7 +74,7 @@ export function ReportFilters({
             type="date"
             value={toInput}
             onChange={(event) => handleDateChange("to", event.target.value)}
-            className="h-9 w-[160px] font-mono text-[12px]"
+            className="w-40 font-mono text-[12px]"
             aria-label={`End date (${INPUT_DATE})`}
           />
         </div>
@@ -88,7 +88,7 @@ export function ReportFilters({
               setState({ groupBy: value as typeof state.groupBy })
             }
           >
-            <SelectTrigger className="h-9 w-[140px] text-[12px]">
+            <SelectTrigger className="h-9 w-35 text-[12px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -122,7 +122,7 @@ export function ReportFilters({
             variant="ghost"
             size="sm"
             onClick={() => resetState()}
-            className="h-9 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            className="h-9 rounded-lg text-[11px] font-bold uppercase tracking-wider text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
           >
             <RotateCcw className="size-3.5" />
             Reset

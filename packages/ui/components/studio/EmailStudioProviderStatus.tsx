@@ -21,7 +21,7 @@ export function EmailStudioProviderStatus({
   variant = "inline",
 }: EmailStudioProviderStatusProps) {
   const badge = (
-    <Badge variant="default" className="h-7 gap-1.5 rounded-md px-2">
+    <Badge variant="default" className="h-7 gap-1.5 rounded-md">
       <BadgeCheck />
       React Email
     </Badge>

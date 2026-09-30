@@ -64,7 +64,7 @@ export function AutomationRuleList() {
             variant="outline"
             size="sm"
             onClick={() => setEditing("new")}
-            className="h-8 gap-1.5 rounded-lg px-3 text-xs"
+            className="rounded-lg text-xs"
           >
             <Plus className="size-3.5" />
             New rule

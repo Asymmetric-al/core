@@ -29,7 +29,7 @@ export function StatCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col gap-1 px-5 py-4 rounded-2xl border cursor-pointer text-left shadow-sm min-w-[120px] flex-1 md:flex-none relative overflow-hidden group",
+        "flex flex-col gap-1 px-5 py-4 rounded-2xl border cursor-pointer text-left shadow-sm min-w-30 flex-1 md:flex-none relative overflow-hidden group",
         "press-feedback hover-scale-subtle",
         variant === "default" && "bg-card border-border text-foreground",
         variant === "warning" &&
@@ -94,7 +94,7 @@ export function TaskStats({
       initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={reduceMotion ? { duration: 0.15 } : { delay: 0.1 }}
-      className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-5"
+      className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 lg:pb-0 lg:grid lg:grid-cols-5"
     >
       <StatCard
         label="Pending"

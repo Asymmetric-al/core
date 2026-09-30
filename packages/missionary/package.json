@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./styles.css": "./styles.css",
     "./components/*": "./components/*.tsx",
     "./hooks/*": "./hooks/*.ts",
     "./types": "./types/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "node ../../tooling/eslint-config/lint.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -32,6 +33,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@asym/eslint-config": "workspace:*",
+    "eslint": "^9.39.2",
     "@asym/typescript-config": "workspace:*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

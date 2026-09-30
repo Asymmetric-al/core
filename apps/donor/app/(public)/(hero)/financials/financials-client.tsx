@@ -32,7 +32,7 @@ type RechartsModule = {
 function FinancialsChartFallback() {
   return (
     <div
-      className="h-[350px] w-full rounded-2xl bg-zinc-50 animate-pulse"
+      className="h-87.5 w-full rounded-2xl bg-zinc-50 animate-pulse"
       aria-hidden="true"
     />
   );
@@ -96,7 +96,7 @@ export function FinancialsPageClient() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
-              <div className="h-[350px] w-full relative">
+              <div className="h-87.5 w-full relative">
                 {rechartsFailed ? (
                   <p role="status" className="text-sm text-muted-foreground">
                     The chart couldn&apos;t load. Refresh the page to try again.
@@ -239,13 +239,13 @@ export function FinancialsPageClient() {
                 <div className="space-y-3">
                   <Button
                     variant="outline"
-                    className="w-full justify-start gap-3 h-12 text-sm font-semibold border-zinc-200 hover:bg-zinc-50"
+                    className="w-full justify-start gap-3 h-12 font-semibold border-zinc-200 hover:bg-zinc-50"
                   >
                     <Download className="size-4" /> Annual Report (PDF)
                   </Button>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 h-12 text-sm text-zinc-500 hover:text-zinc-900"
+                    className="w-full justify-start gap-3 h-12 text-zinc-500 hover:text-zinc-900"
                   >
                     <Download className="size-4" /> IRS Form 990
                   </Button>
