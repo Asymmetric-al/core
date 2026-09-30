@@ -71,13 +71,13 @@ DANGEROUS_PATTERNS=(
   "git clean -fd"
   "git clean -f"
   "git branch -D"
-  "git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?\.([[:space:];&|]|$)"
-  "git[[:space:]]+restore[[:space:]]+(--[[:space:]]+)?\.([[:space:];&|]|$)"
+  "git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?['\"]?\.['\"]*([[:space:];&|]|$)"
+  "git[[:space:]]+restore[[:space:]]+(--[[:space:]]+)?['\"]?\.['\"]*([[:space:];&|]|$)"
   "push --force"
   "reset --hard"
 )
 
-NORMALIZED=$(printf '%s' "$COMMAND" | tr -s '[:space:]' ' ')
+NORMALIZED=$(printf '%s' "$COMMAND" | sed -E 's/\$\{IFS\}/ /g' | tr -s '[:space:]' ' ')
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   if echo "$NORMALIZED" | grep -qE "$pattern"; then

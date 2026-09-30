@@ -40,6 +40,8 @@ describe("git-guardrails Claude hook", () => {
       "git checkout  .",
       "git restore -- .",
       "git restore .",
+      'git checkout .""',
+      "git checkout${IFS}.",
     ]) {
       const result = runHook(JSON.stringify({ tool_input: { command } }));
       expect(result.status, `${command}\n${result.stderr}`).toBe(2);
@@ -61,6 +63,7 @@ describe("git-guardrails Claude hook", () => {
     for (const command of [
       "git checkout .github/workflows/ci.yml",
       "git restore ./src/index.ts",
+      'git checkout ".github/workflows/ci.yml"',
     ]) {
       const allowed = runHook(JSON.stringify({ tool_input: { command } }));
       expect(allowed.status, `${command}\n${allowed.stderr}`).toBe(0);
