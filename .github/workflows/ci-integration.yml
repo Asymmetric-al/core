@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  BUN_VERSION: "1.3.14"
+  BUN_VERSION: "1.4.0"
   NODE_VERSION: "24.15.0"
 
 jobs:
@@ -182,34 +182,37 @@ jobs:
         run: bun run cms:migrate:status
       - name: Apply demo seed
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
       - name: Start donor app
         run: |
           nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &
           echo $! > /tmp/donor-dev.pid
-      - name: Start admin app
-        run: |
-          nohup bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 > /tmp/admin-dev.log 2>&1 &
-          echo $! > /tmp/admin-dev.pid
-      - name: Install Playwright Chromium
-        run: bunx playwright install --with-deps chromium
       - name: Wait for donor health endpoint
         run: |
           for i in $(seq 1 120); do
-            if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
-              echo "Health endpoint ready after ${i}s"
+            if curl -sf http://127.0.0.1:3005/api/health >/dev/null \
+              && curl -sf http://127.0.0.1:3005/api/auth/demo-account >/dev/null; then
+              echo "Donor health and demo auth ready after ${i}s"
               exit 0
             fi
             if [ "$i" -eq 120 ]; then
-              echo "Timed out waiting for health endpoint"
+              echo "Timed out waiting for donor health or demo auth"
               echo "--- donor dev log (tail) ---"
-              tail -n 100 /tmp/donor-dev.log || true
-              echo "--- curl verbose ---"
-              curl -v http://127.0.0.1:3005/api/health || true
+              tail -n 150 /tmp/donor-dev.log || true
+              echo "--- health ---"
+              curl -sv http://127.0.0.1:3005/api/health || true
+              echo "--- demo auth ---"
+              curl -sv http://127.0.0.1:3005/api/auth/demo-account || true
               kill "$(cat /tmp/donor-dev.pid)" 2>/dev/null || true
               exit 1
             fi
             sleep 1
           done
+      - name: Start admin app
+        run: |
+          nohup bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 > /tmp/admin-dev.log 2>&1 &
+          echo $! > /tmp/admin-dev.pid
       - name: Wait for admin health endpoint
         run: |
           for i in $(seq 1 120); do
@@ -236,6 +239,13 @@ jobs:
           PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
           PLAYWRIGHT_INCLUDE_ADMIN: "1"
         run: bun run test:e2e:smoke
+      - name: Show dev server logs on failure
+        if: failure()
+        run: |
+          echo "--- donor dev log (tail) ---"
+          tail -n 150 /tmp/donor-dev.log || true
+          echo "--- admin dev log (tail) ---"
+          tail -n 150 /tmp/admin-dev.log || true
       - name: Upload artifact on failure
         if: failure()
         uses: actions/upload-artifact@v7
