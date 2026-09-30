@@ -40,7 +40,7 @@ The complete pattern:
 - Errors render inline beside their fields, with an icon or text. Never a red border alone, which is a color-only cue.
 - On submit, focus the first invalid field.
 - Allow incomplete submission so validation can surface. Never disable submit until valid (see below).
-- Accept free text and validate after. Never block typing or filter characters as the user types. Trim values before validating, because autocomplete and text expansion add trailing spaces.
+- Accept free text and validate after. Never block typing or filter characters as the user types. Trim ordinary text before validating, because autocomplete and text expansion add trailing spaces. Leave passwords and other exact-match values unchanged. <!-- pragma: allowlist secret -->
 
 ## Autocomplete and input types
 

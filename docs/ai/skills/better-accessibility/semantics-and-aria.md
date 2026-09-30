@@ -76,7 +76,7 @@ Add `translate="no"` to brand names, code tokens and identifiers so auto-transla
 
 Native `disabled` supplies the platform's complete disabled behavior. It removes the control from the tab order, suppresses activation, applies `:disabled` and excludes form controls from submission. Use it when a native control is genuinely unavailable. `aria-disabled="true"` only announces the state, changing neither focusability, nor behavior, nor styling.
 
-- Never disable submit buttons. Keep them enabled, validate on submit and focus the first error ([forms.md](forms.md)).
+- Never disable submit buttons solely because the form is invalid. Disable them while a submission is pending, and keep the original label beside the spinner ([forms.md](forms.md)).
 - A natively `disabled` control suppresses pointer events and leaves the tab order, so a tooltip on it never opens for keyboard or touch users and is unreliable for mouse users. Put the reason in visible text beside the control, or switch to `aria-disabled="true"`, which keeps it focusable and hoverable and can carry a tooltip.
 - Use `aria-disabled="true"` where keeping a control discoverable in the tab order is intentional, or where a custom control cannot use native `disabled`.
 - With `aria-disabled="true"`, block pointer and keyboard activation in the handler, prevent form submission where applicable, add explicit styling including forced-colors support and explain nearby why the action is unavailable.

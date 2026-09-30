@@ -19,6 +19,8 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 - Interruptible springs, sheets, depth, translucent materials, or Apple-style
   interface critique.
 - Do not load it merely because a task contains ordinary product animation.
+- A concrete interface-design request should be answered directly. The upstream
+  Initial Response applies only to a bare invocation with no question or task.
 
 ### Workflow
 

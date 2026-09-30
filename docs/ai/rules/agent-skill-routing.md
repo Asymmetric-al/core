@@ -106,16 +106,16 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
 - **Frontend design critique, polish, and live UI iteration ([pbakaus/impeccable](https://github.com/pbakaus/impeccable)):** `docs/ai/skills/impeccable/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`)
-- **UI polish details (radius, surfaces, icons, hit areas):** `docs/ai/skills/better-ui/SKILL.md`; keep `base-maia` / Zinc tokens. Do not restyle product apps.
+- **UI polish details (radius, surfaces, icons, hit areas):** `docs/ai/skills/better-ui/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Keep `base-maia` / Zinc tokens. Do not restyle product apps.
 - **Typography craft:** `docs/ai/skills/better-typography/SKILL.md`
-- **Color palettes and contrast heuristics:** `docs/ai/skills/better-colors/SKILL.md`; keep Zinc-oriented semantic tokens.
-- **Layout grouping and spacing:** `docs/ai/skills/better-layout/SKILL.md`
+- **Color palettes and contrast heuristics:** `docs/ai/skills/better-colors/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Keep Zinc-oriented semantic tokens.
+- **Layout grouping and spacing:** `docs/ai/skills/better-layout/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor.
 - **Interface copy, hierarchy, and review structure:** `docs/ai/skills/better-interface/SKILL.md`
 - **UI copy companion for interface review:** `docs/ai/skills/better-writing/SKILL.md`
 - **Explicit change-scoped interface review ([jakubkrehel/skills](https://github.com/jakubkrehel/skills) `interface-review`):** `docs/ai/skills/interface-review/SKILL.md`; keep `disable-model-invocation: true`.
 - **Explicit distinctive-design exploration ([anthropics/skills](https://github.com/anthropics/skills) `frontend-design`):** `docs/ai/skills/frontend-design/SKILL.md`; explicit-only, do not restyle Core product apps. Keep `disable-model-invocation: true`.
 - **Explicit anti-slop taste / redesign exploration ([leonxlnx/taste-skill](https://github.com/leonxlnx/taste-skill)):** `docs/ai/skills/design-taste-frontend/SKILL.md` and `docs/ai/skills/redesign-existing-projects/SKILL.md`; explicit-only. Keep `disable-model-invocation: true`.
-- **obra Superpowers TDD companion:** `docs/ai/skills/test-driven-development/SKILL.md`; Core TDD remains `docs/ai/skills/tdd/SKILL.md`.
+- **obra Superpowers TDD companion:** `docs/ai/skills/test-driven-development/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Core TDD remains `docs/ai/skills/tdd/SKILL.md`.
 - **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first and use `docs/ai/skills/anim/SKILL.md` for Core's operative Base UI, token, route-transition, and reduced-motion contract. That paid animations.dev skill (`emil-design-engineering`) is the default craft entrypoint.
 - **Current Emil Kowalski craft companion:** `docs/ai/skills/emil-design-eng/SKILL.md`; it is subordinate to `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim` when generic upstream examples conflict with Core.
 - **Build a web animation from scratch:** `docs/ai/skills/animate/SKILL.md` after `emil-design-engineering` and `anim`.
