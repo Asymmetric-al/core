@@ -93,6 +93,7 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
           Cancel
         </Button>
         <Button
+          focusableWhenDisabled={saveTeam.isPending}
           type="button"
           size="sm"
           disabled={saveTeam.isPending || name.trim().length === 0}

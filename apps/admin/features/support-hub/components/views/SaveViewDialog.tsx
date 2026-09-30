@@ -129,6 +129,7 @@ function SaveViewForm({
         <div className="space-y-2">
           <Label>Scope</Label>
           <RadioGroup
+            aria-label="Scope"
             value={scope}
             onValueChange={(next) => setScope(next as "personal" | "workspace")}
             className="flex flex-col gap-2"
@@ -163,6 +164,7 @@ function SaveViewForm({
           Cancel
         </Button>
         <Button
+          focusableWhenDisabled={saveSavedView.isPending}
           type="button"
           onClick={handleSave}
           disabled={saveSavedView.isPending || trimmed.length === 0}

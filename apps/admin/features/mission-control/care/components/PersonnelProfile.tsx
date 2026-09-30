@@ -22,6 +22,7 @@ import {
 import {
   Tabs,
   TabsContent,
+  TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
@@ -36,7 +37,7 @@ import {
   AlertTriangle,
   Plus,
 } from "lucide-react";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useId, useMemo, useState, useEffect } from "react";
 
 import { HealthHeatmap } from "./HealthHeatmap";
 import {
@@ -78,6 +79,7 @@ function PersonnelProfileHeaderCard({
   isLoggingCheckIn: boolean;
   isUpdatingAttention: boolean;
 }) {
+  const attentionLabelId = useId();
   return (
     <Card className="border-zinc-200 shadow-sm overflow-hidden">
       <div className="h-24 bg-gradient-to-r from-zinc-900 to-zinc-800" />
@@ -126,18 +128,23 @@ function PersonnelProfileHeaderCard({
               className="h-9 px-4 font-semibold border-zinc-200"
               onClick={onToggleManualAttention}
               disabled={isUpdatingAttention}
+              focusableWhenDisabled={isUpdatingAttention}
+              aria-labelledby={attentionLabelId}
             >
               <AlertTriangle className="mr-2 size-4 text-zinc-400" />
-              {isUpdatingAttention
-                ? "Updating..."
-                : personnel.manualAttention
-                  ? "Clear Attention"
-                  : "Flag Attention"}
+              <span id={attentionLabelId}>
+                {isUpdatingAttention
+                  ? "Updating..."
+                  : personnel.manualAttention
+                    ? "Clear Attention"
+                    : "Flag Attention"}
+              </span>
             </Button>
             <Button
               className="font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200"
               onClick={onLogCheckIn}
               disabled={isLoggingCheckIn}
+              focusableWhenDisabled={isLoggingCheckIn}
             >
               <Heart className="mr-2 size-4" /> Log Check-in
             </Button>
@@ -341,6 +348,7 @@ function CareThreadTabContent({
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
 }) {
+  const pendingActionLabelId = useId();
   const { formatDateTime } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createThreadPost = useCreateCareThreadPost();
@@ -390,6 +398,8 @@ function CareThreadTabContent({
             />
             <div className="mt-3 flex justify-end">
               <Button
+                aria-labelledby={`${pendingActionLabelId}-13`}
+                focusableWhenDisabled={createThreadPost.isPending}
                 size="sm"
                 className="font-semibold bg-zinc-900 text-white"
                 onClick={async () => {
@@ -402,7 +412,9 @@ function CareThreadTabContent({
                 }}
                 disabled={createThreadPost.isPending}
               >
-                {createThreadPost.isPending ? "Posting..." : "Post Update"}
+                <span id={`${pendingActionLabelId}-13`}>
+                  {createThreadPost.isPending ? "Posting..." : "Post Update"}
+                </span>
               </Button>
             </div>
           </div>
@@ -413,6 +425,8 @@ function CareThreadTabContent({
 }
 
 function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
+  const pendingActionLabelId = useId();
+
   const upsertCareGoal = useCreateOrUpdateCareGoal();
   const upsertCareRequirement = useUpsertCareRequirement();
   const planItems = personnel.careGaps.length
@@ -443,6 +457,8 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               </CardDescription>
             </div>
             <Button
+              aria-labelledby={`${pendingActionLabelId}-14`}
+              focusableWhenDisabled={upsertCareGoal.isPending}
               size="sm"
               className="bg-zinc-900 text-white"
               onClick={async () => {
@@ -454,9 +470,13 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               }}
               disabled={upsertCareGoal.isPending}
             >
-              {upsertCareGoal.isPending ? "Saving..." : "Add Goal"}
+              <span id={`${pendingActionLabelId}-14`}>
+                {upsertCareGoal.isPending ? "Saving..." : "Add Goal"}
+              </span>
             </Button>
             <Button
+              aria-labelledby={`${pendingActionLabelId}-15`}
+              focusableWhenDisabled={upsertCareRequirement.isPending}
               size="sm"
               variant="outline"
               className=""
@@ -470,9 +490,11 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               }}
               disabled={upsertCareRequirement.isPending}
             >
-              {upsertCareRequirement.isPending
-                ? "Saving..."
-                : "Add Requirement"}
+              <span id={`${pendingActionLabelId}-15`}>
+                {upsertCareRequirement.isPending
+                  ? "Saving..."
+                  : "Add Requirement"}
+              </span>
             </Button>
           </div>
         </CardHeader>
@@ -574,6 +596,7 @@ function SecureNotesTabContent({
   personnelId: string;
   privateNotes: MemberCarePrivateNote[];
 }) {
+  const pendingActionLabelId = useId();
   const { formatDate } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createPrivateNote = useCreateCarePrivateNote();
@@ -645,6 +668,8 @@ function SecureNotesTabContent({
             />
             <div className="mt-3 flex justify-end">
               <Button
+                aria-labelledby={`${pendingActionLabelId}-16`}
+                focusableWhenDisabled={createPrivateNote.isPending}
                 size="sm"
                 className="font-semibold bg-amber-600 text-white hover:bg-amber-500"
                 onClick={async () => {
@@ -657,7 +682,11 @@ function SecureNotesTabContent({
                 }}
                 disabled={createPrivateNote.isPending}
               >
-                {createPrivateNote.isPending ? "Saving..." : "Save Secure Note"}
+                <span id={`${pendingActionLabelId}-16`}>
+                  {createPrivateNote.isPending
+                    ? "Saving..."
+                    : "Save Secure Note"}
+                </span>
               </Button>
             </div>
           </div>
@@ -725,7 +754,11 @@ export function PersonnelProfile({
 
       <Tabs defaultValue="overview" className="w-full">
         <div className="flex items-center justify-between border-b border-zinc-200 mb-6 pb-px">
-          <div className="flex gap-8">
+          <TabsList
+            aria-label="Personnel profile"
+            variant="line"
+            className="gap-8 p-0 group-data-[orientation=horizontal]/tabs:h-auto"
+          >
             {[
               "overview",
               "care-thread",
@@ -736,12 +769,12 @@ export function PersonnelProfile({
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 data-active:shadow-[0_2px_0_0_#0f172a] rounded-none transition-none capitalize"
+                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 rounded-none transition-none capitalize group-data-[orientation=horizontal]/tabs:after:bottom-0"
               >
                 {tab.replace("-", " ")}
               </TabsTrigger>
             ))}
-          </div>
+          </TabsList>
         </div>
 
         <OverviewTabContentSection

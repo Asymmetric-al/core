@@ -131,6 +131,7 @@ export function StudioSaveButton({
       size="sm"
       onClick={onClick}
       disabled={disabled}
+      focusableWhenDisabled={isSaving}
       className="h-8 px-3 md:px-4 gap-1.5"
     >
       {isSaving ? (

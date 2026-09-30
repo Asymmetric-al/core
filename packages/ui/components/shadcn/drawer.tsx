@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 import {
   resolveDrawerSwipeDirection,
   type LegacyDrawerDirection,
@@ -31,6 +32,8 @@ function Drawer({
   );
 }
 
+const DrawerVirtualKeyboardProvider = DrawerPrimitive.VirtualKeyboardProvider;
+
 function DrawerTrigger({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
@@ -56,8 +59,8 @@ function DrawerOverlay({
   return (
     <DrawerPrimitive.Backdrop
       data-slot="drawer-overlay"
-      className={cn(
-        "fixed inset-0 z-50 bg-black/50 transition-opacity duration-200 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
+      className={mergeBaseUIClassName(
+        "absolute inset-0 z-50 min-h-dvh bg-black/50 transition-opacity duration-[var(--duration-drawer)] data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
         className,
       )}
       {...props}
@@ -79,12 +82,14 @@ function DrawerContent({
       >
         <DrawerPrimitive.Popup
           data-slot="drawer-content"
-          className={cn(
-            "group/drawer-content bg-background fixed z-50 flex h-auto flex-col shadow-lg outline-none transition-opacity duration-200 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
-            "data-[swipe-direction=up]:inset-x-0 data-[swipe-direction=up]:top-0 data-[swipe-direction=up]:mb-24 data-[swipe-direction=up]:max-h-[80vh] data-[swipe-direction=up]:rounded-b-lg data-[swipe-direction=up]:border-b",
-            "data-[swipe-direction=down]:inset-x-0 data-[swipe-direction=down]:bottom-0 data-[swipe-direction=down]:mt-24 data-[swipe-direction=down]:max-h-[80vh] data-[swipe-direction=down]:rounded-t-lg data-[swipe-direction=down]:border-t",
-            "data-[swipe-direction=right]:inset-y-0 data-[swipe-direction=right]:right-0 data-[swipe-direction=right]:w-3/4 data-[swipe-direction=right]:border-l data-[swipe-direction=right]:sm:max-w-sm",
-            "data-[swipe-direction=left]:inset-y-0 data-[swipe-direction=left]:left-0 data-[swipe-direction=left]:w-3/4 data-[swipe-direction=left]:border-r data-[swipe-direction=left]:sm:max-w-sm",
+          className={mergeBaseUIClassName(
+            cn(
+              "group/drawer-content bg-background fixed z-50 flex h-auto flex-col shadow-lg outline-none [transform:translate3d(var(--drawer-swipe-movement-x,0px),calc(var(--drawer-snap-point-offset,0px)_+_var(--drawer-swipe-movement-y,0px)),0)] transition-[transform,opacity] duration-[var(--duration-drawer)] data-swiping:transition-none data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
+              "data-[swipe-direction=up]:inset-x-0 data-[swipe-direction=up]:top-0 data-[swipe-direction=up]:mb-24 data-[swipe-direction=up]:max-h-[80vh] data-[swipe-direction=up]:rounded-b-lg data-[swipe-direction=up]:border-b",
+              "data-[swipe-direction=down]:inset-x-0 data-[swipe-direction=down]:bottom-0 data-[swipe-direction=down]:mt-24 data-[swipe-direction=down]:max-h-[80vh] data-[swipe-direction=down]:rounded-t-lg data-[swipe-direction=down]:border-t",
+              "data-[swipe-direction=right]:inset-y-0 data-[swipe-direction=right]:right-0 data-[swipe-direction=right]:w-3/4 data-[swipe-direction=right]:border-l data-[swipe-direction=right]:sm:max-w-sm",
+              "data-[swipe-direction=left]:inset-y-0 data-[swipe-direction=left]:left-0 data-[swipe-direction=left]:w-3/4 data-[swipe-direction=left]:border-r data-[swipe-direction=left]:sm:max-w-sm",
+            ),
             className,
           )}
           {...props}
@@ -132,7 +137,10 @@ function DrawerTitle({
   return (
     <DrawerPrimitive.Title
       data-slot="drawer-title"
-      className={cn("text-foreground font-semibold", className)}
+      className={mergeBaseUIClassName(
+        "text-foreground font-semibold",
+        className,
+      )}
       {...props}
     />
   );
@@ -145,7 +153,10 @@ function DrawerDescription({
   return (
     <DrawerPrimitive.Description
       data-slot="drawer-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={mergeBaseUIClassName(
+        "text-muted-foreground text-sm",
+        className,
+      )}
       {...props}
     />
   );
@@ -154,6 +165,7 @@ function DrawerDescription({
 export {
   Drawer,
   DrawerPortal,
+  DrawerVirtualKeyboardProvider,
   DrawerOverlay,
   DrawerTrigger,
   DrawerClose,

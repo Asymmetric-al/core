@@ -115,20 +115,6 @@ vi.mock("@asym/ui/components/shadcn/badge", () => ({
   ),
 }));
 
-vi.mock("@asym/ui/components/shadcn/button", () => ({
-  Button: ({
-    children,
-    ...props
-  }: React.PropsWithChildren<
-    React.ButtonHTMLAttributes<HTMLButtonElement>
-  >) => (
-    <button type="button" {...props}>
-      {children}
-    </button>
-  ),
-  buttonVariants: () => "",
-}));
-
 vi.mock("@asym/ui/components/shadcn/input", () => ({
   Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input {...props} />
@@ -590,7 +576,8 @@ describe("CheckoutPageClient live card confirmation", () => {
     const originalButton = screen.getByRole("button", { name: /confirm/i });
     fireEvent.click(originalButton);
     await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(1));
-    expect(originalButton).toHaveProperty("disabled", true);
+    expect(originalButton.getAttribute("aria-disabled")).toBe("true");
+    expect(originalButton).toHaveProperty("disabled", false);
     fireEvent.click(originalButton);
     expect(fetchCallsByMethod("POST")).toHaveLength(1);
     expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
@@ -616,7 +603,8 @@ describe("CheckoutPageClient live card confirmation", () => {
     // Key recovery requires an explicit retry with the unchanged request identity.
     fireEvent.click(retryButton);
     await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(2));
-    expect(retryButton).toHaveProperty("disabled", true);
+    expect(retryButton.getAttribute("aria-disabled")).toBe("true");
+    expect(retryButton).toHaveProperty("disabled", false);
     fireEvent.click(retryButton);
     expect(fetchCallsByMethod("POST")).toHaveLength(2);
     const [firstRequest, retryRequest] = fetchCallsByMethod("POST");
@@ -728,13 +716,8 @@ describe("CheckoutPageClient live card confirmation", () => {
     const processingButton = screen.getByRole("button", {
       name: /processing payment/i,
     });
-    expect(
-      (
-        screen.getByRole("button", {
-          name: /processing payment/i,
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(true);
+    expect(processingButton.getAttribute("aria-disabled")).toBe("true");
+    expect(processingButton).toHaveProperty("disabled", false);
 
     flushSync(() => {
       view.rerender(
@@ -755,13 +738,8 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(screen.getByRole("button", { name: /processing payment/i })).toBe(
       processingButton,
     );
-    expect(
-      (
-        screen.getByRole("button", {
-          name: /processing payment/i,
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(true);
+    expect(processingButton.getAttribute("aria-disabled")).toBe("true");
+    expect(processingButton).toHaveProperty("disabled", false);
 
     await act(async () => {
       resolveDonation?.(
@@ -802,6 +780,8 @@ describe("CheckoutPageClient live card confirmation", () => {
 
     renderCheckout();
     advanceToPayment();
+    const paymentButton = screen.getByRole("button", { name: /confirm/i });
+    paymentButton.focus();
     confirmPayment();
 
     await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
@@ -811,6 +791,19 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(
       screen.queryByRole("heading", { name: /contribution confirmed/i }),
     ).toBeNull();
+
+    expect(document.activeElement).toBe(paymentButton);
+    expect(paymentButton.getAttribute("aria-disabled")).toBe("true");
+    expect(paymentButton).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Processing payment" })).toBe(
+      paymentButton,
+    );
+    expect(screen.getAllByLabelText("Processing payment")).toEqual([
+      paymentButton,
+    ]);
+    fireEvent.click(paymentButton);
+    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
+    expect(fetchMock()).toHaveBeenCalledTimes(1);
 
     resolveConfirmation?.({ paymentIntent: { status: "succeeded" } });
 
@@ -1359,5 +1352,85 @@ describe("CheckoutPageClient Gift processing-fee policy", () => {
       "Card payments are the only checkout method currently available",
     );
     expect(fetchMock()).not.toHaveBeenCalled();
+  });
+});
+
+describe("CheckoutPageClient keyboard selection", () => {
+  it("selects preset amounts with arrow keys and keeps one tab stop", async () => {
+    renderCheckout();
+    const selected = screen.getByRole("radio", { name: "$100" });
+    act(() => selected.focus());
+    fireEvent.keyDown(selected, { key: "ArrowRight" });
+
+    const next = screen.getByRole("radio", { name: "$250" });
+    await waitFor(() => expect(next.getAttribute("aria-checked")).toBe("true"));
+    expect(document.activeElement).toBe(next);
+    expect(
+      screen.getAllByRole("radio").filter((item) => item.tabIndex === 0),
+    ).toEqual([next]);
+    expect(fetchMock()).not.toHaveBeenCalled();
+  });
+
+  it("clears custom amounts when a preset is selected", () => {
+    renderCheckout();
+    const custom = screen.getByLabelText("Custom amount");
+    fireEvent.change(custom, { target: { value: "123.45" } });
+    expect(screen.queryByRole("radio", { checked: true })).toBeNull();
+    fireEvent.click(screen.getByRole("radio", { name: "$50" }));
+    expect(
+      screen.getByRole("radio", { name: "$50", checked: true }),
+    ).toBeTruthy();
+    expect((custom as HTMLInputElement).value).toBe("");
+  });
+
+  it("navigates payment tabs by keyboard with correctly named panels", async () => {
+    renderCheckout();
+    advanceToPayment();
+    const card = screen.getByRole("tab", { name: "Card" });
+    act(() => card.focus());
+    fireEvent.keyDown(card, { key: "ArrowRight" });
+
+    const bank = screen.getByRole("tab", { name: "Bank" });
+    await waitFor(() =>
+      expect(bank.getAttribute("aria-selected")).toBe("true"),
+    );
+    expect(document.activeElement).toBe(bank);
+    const panel = screen.getByRole("tabpanel", { name: "Bank" });
+    expect(panel.id).toBe(bank.getAttribute("aria-controls"));
+    expect(panel.textContent).toContain("Instant Bank Link");
+    expect(
+      screen.getAllByRole("tab").filter((item) => item.tabIndex === 0),
+    ).toEqual([bank]);
+    expect(fetchMock()).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(bank, { key: "Home" });
+    await waitFor(() =>
+      expect(card.getAttribute("aria-selected")).toBe("true"),
+    );
+    expect(screen.getByRole("tabpanel", { name: "Card" })).toBeTruthy();
+  });
+
+  it("prevents changing payment methods during confirmation", async () => {
+    fetchMock().mockImplementation(() => new Promise<Response>(() => {}));
+    renderCheckout();
+    advanceToPayment();
+    confirmPayment();
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+
+    const card = screen.getByRole("tab", { name: "Card" });
+    const bank = screen.getByRole("tab", { name: "Bank" });
+    expect(
+      screen
+        .getAllByRole("tab")
+        .every(
+          (item) =>
+            (item as HTMLButtonElement).disabled ||
+            item.getAttribute("aria-disabled") === "true",
+        ),
+    ).toBe(true);
+    fireEvent.keyDown(card, { key: "ArrowRight" });
+    fireEvent.click(bank);
+    expect(card.getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByTestId("stripe-card-panel")).toBeTruthy();
   });
 });

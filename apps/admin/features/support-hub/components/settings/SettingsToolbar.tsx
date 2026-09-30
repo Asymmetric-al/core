@@ -64,6 +64,7 @@ export function SettingsToolbar({
           Discard
         </Button>
         <Button
+          focusableWhenDisabled={isSaving}
           type="button"
           size="sm"
           disabled={!isDirty || isSaving}

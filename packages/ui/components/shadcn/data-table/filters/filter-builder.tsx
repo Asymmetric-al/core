@@ -22,6 +22,7 @@ import {
   getDefaultOperator,
   getDefaultValue,
 } from "./types";
+import { mergeBaseUIClassName } from "../../../../lib/base-ui";
 import { Badge } from "../../badge";
 import { Button } from "../../button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
@@ -149,7 +150,10 @@ function FilterTriggerButton({
     <Button
       variant="outline"
       size="sm"
-      className={cn("h-9 gap-2 rounded-xl border-dashed", className)}
+      className={mergeBaseUIClassName(
+        "h-9 gap-2 rounded-xl border-dashed",
+        className,
+      )}
       {...props}
     >
       <FilterIcon className="size-4" />

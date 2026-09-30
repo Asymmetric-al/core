@@ -187,6 +187,7 @@ function LaunchManifestImportSection({
         className="mt-2"
         size="sm"
         variant="outline"
+        focusableWhenDisabled={isPending}
         disabled={isPending || manifestJson.trim().length === 0}
         onClick={onSubmit}
       >
@@ -273,6 +274,7 @@ function LaunchIndependentReviewSection({
               key={`${reviewerRole}:${decision}`}
               size="sm"
               variant={decision === "approved" ? "outline" : "destructive"}
+              focusableWhenDisabled={isPending}
               disabled={isPending || !canReview || explanation.length === 0}
               onClick={() => onReview({ decision, reviewerRole })}
             >
@@ -412,6 +414,7 @@ function LaunchReleaseControlsSection({
           <Button
             size="sm"
             variant="outline"
+            focusableWhenDisabled={isPending}
             disabled={isPending || explanation.length === 0}
             onClick={() =>
               onMutate({
@@ -428,6 +431,7 @@ function LaunchReleaseControlsSection({
         <Button
           size="sm"
           variant="destructive"
+          focusableWhenDisabled={isPending}
           disabled={isPending || !governance || explanation.length === 0}
           onClick={() =>
             onMutate({
@@ -444,6 +448,7 @@ function LaunchReleaseControlsSection({
           <Button
             size="sm"
             variant="outline"
+            focusableWhenDisabled={isPending}
             disabled={isPending || explanation.length === 0}
             onClick={() =>
               onMutate({
@@ -489,6 +494,7 @@ function LaunchCanarySection({
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
+          focusableWhenDisabled={isPending}
           disabled={isPending || explanation.length === 0}
           onClick={() =>
             onMutate({
@@ -505,6 +511,7 @@ function LaunchCanarySection({
         <Button
           size="sm"
           variant="destructive"
+          focusableWhenDisabled={isPending}
           disabled={isPending || explanation.length === 0}
           onClick={() =>
             onMutate({

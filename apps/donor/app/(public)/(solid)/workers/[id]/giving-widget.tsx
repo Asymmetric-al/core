@@ -4,7 +4,11 @@ import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designation
 import { formatCurrency } from "@asym/lib/utils";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
-import { Progress } from "@asym/ui/components/shadcn/progress";
+import { Meter } from "@asym/ui/components/shadcn/meter";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@asym/ui/components/shadcn/radio-group";
 import { cn } from "@asym/ui/lib/utils";
 import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
@@ -111,28 +115,29 @@ export function GivingWidget({
             </span>
           </div>
 
-          <div
-            className="grid grid-cols-4 gap-2"
-            role="radiogroup"
+          <RadioGroup
+            className="grid-cols-4 gap-2"
             aria-label="Preset donation amounts"
+            value={customAmount ? null : amount}
+            onValueChange={(value) => {
+              if (typeof value === "number") handleAmountClick(value);
+            }}
           >
             {GivingAmounts.map((amt) => (
-              <button
+              <RadioGroupItem
                 key={amt}
-                onClick={() => handleAmountClick(amt)}
-                role="radio"
-                aria-checked={amount === amt && !customAmount}
+                value={amt}
+                nativeButton
+                render={(radioProps) => <button {...radioProps}>${amt}</button>}
                 className={cn(
-                  "py-2.5 rounded-xl border text-sm font-semibold press-feedback",
+                  "aspect-auto h-auto w-full py-2.5 rounded-xl border text-sm font-semibold shadow-none press-feedback",
                   amount === amt && !customAmount
                     ? "border-zinc-900 bg-zinc-50 text-zinc-900"
                     : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-50",
                 )}
-              >
-                ${amt}
-              </button>
+              />
             ))}
-          </div>
+          </RadioGroup>
         </div>
 
         {hasGoal && (
@@ -149,7 +154,7 @@ export function GivingWidget({
                 {formatCurrency(goal)}
               </span>
             </div>
-            <Progress
+            <Meter
               value={percentRaised}
               className="h-2.5 bg-zinc-100"
               aria-label={`${percentRaised}% of funding goal reached`}

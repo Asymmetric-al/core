@@ -67,7 +67,7 @@ afterEach(cleanup);
 describe("shared form accessible relationships", () => {
   it.each([
     ["textbox", "Full name"],
-    ["spinbutton", "Amount"],
+    ["textbox", "Amount"],
     ["textbox", "Notes"],
     ["combobox", "Frequency"],
     ["switch", "Enabled"],

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Tooltip,
   TooltipContent,
@@ -320,15 +320,21 @@ function NavRailLink({
 }: NavRailLinkProps) {
   if (!collapsed) {
     return (
-      <Button
-        variant={active ? "secondary" : "ghost"}
-        size="sm"
-        className="justify-start gap-2 font-semibold text-xs"
-        render={<Link href={href} title={title} />}
+      <Link
+        href={href}
+        title={title}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          buttonVariants({
+            variant: active ? "secondary" : "ghost",
+            size: "sm",
+          }),
+          "justify-start gap-2 font-semibold text-xs",
+        )}
       >
-        <Icon className="size-4 shrink-0" />
+        <Icon className="size-4 shrink-0" aria-hidden="true" />
         <span>{title}</span>
-      </Button>
+      </Link>
     );
   }
 
@@ -336,14 +342,21 @@ function NavRailLink({
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button
-            variant={active ? "secondary" : "ghost"}
-            size="sm"
-            className={cn("justify-center gap-2 px-0 font-semibold text-xs")}
-            render={<Link href={href} title={title} />}
+          <Link
+            href={href}
+            title={title}
+            aria-label={title}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              buttonVariants({
+                variant: active ? "secondary" : "ghost",
+                size: "sm",
+              }),
+              "justify-center gap-2 px-0 font-semibold text-xs",
+            )}
           >
-            <Icon className="size-4 shrink-0" />
-          </Button>
+            <Icon className="size-4 shrink-0" aria-hidden="true" />
+          </Link>
         }
       />
       <TooltipContent side="right">{title}</TooltipContent>

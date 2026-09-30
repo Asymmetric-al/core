@@ -1,9 +1,12 @@
 "use client";
 
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
+import { useRender } from "@base-ui/react/use-render";
 import { ChevronDownIcon } from "lucide-react";
 
-import { cn } from "@asym/ui/lib/utils";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
+
+import type * as React from "react";
 
 function Accordion({ ...props }: AccordionPrimitive.Root.Props) {
   return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
@@ -13,7 +16,7 @@ function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
   return (
     <AccordionPrimitive.Item
       data-slot="accordion-item"
-      className={cn("border-b last:border-b-0", className)}
+      className={mergeBaseUIClassName("border-b last:border-b-0", className)}
       {...props}
     />
   );
@@ -28,7 +31,7 @@ function AccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
-        className={cn(
+        className={mergeBaseUIClassName(
           "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-colors outline-none hover:underline focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-panel-open]>svg]:rotate-180",
           className,
         )}
@@ -41,9 +44,46 @@ function AccordionTrigger({
   );
 }
 
+function AccordionContentLayout({
+  panelProps,
+  state,
+  render,
+  className,
+  children,
+}: {
+  panelProps: React.ComponentPropsWithRef<"div">;
+  state: AccordionPrimitive.Panel.State;
+  render: AccordionPrimitive.Panel.Props["render"];
+  className: AccordionPrimitive.Panel.Props["className"];
+  children: React.ReactNode;
+}) {
+  const contentClassName = mergeBaseUIClassName("pt-0 pb-4", className);
+  return useRender({
+    defaultTagName: "div",
+    render,
+    ref: panelProps.ref,
+    state: { ...state },
+    props: {
+      ...panelProps,
+      children: (
+        <div
+          className={
+            typeof contentClassName === "function"
+              ? contentClassName(state)
+              : contentClassName
+          }
+        >
+          {children}
+        </div>
+      ),
+    },
+  });
+}
+
 function AccordionContent({
   className,
   children,
+  render,
   ...props
 }: AccordionPrimitive.Panel.Props) {
   return (
@@ -51,9 +91,17 @@ function AccordionContent({
       data-slot="accordion-content"
       className="overflow-hidden text-sm data-closed:animate-accordion-up data-open:animate-accordion-down"
       {...props}
-    >
-      <div className={cn("pt-0 pb-4", className)}>{children}</div>
-    </AccordionPrimitive.Panel>
+      render={(panelProps, state) => (
+        <AccordionContentLayout
+          panelProps={panelProps}
+          state={state}
+          render={render}
+          className={className}
+        >
+          {children}
+        </AccordionContentLayout>
+      )}
+    />
   );
 }
 

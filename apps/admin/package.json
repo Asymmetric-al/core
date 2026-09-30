@@ -42,7 +42,6 @@
     "@payloadcms/richtext-lexical": "4.0.0-internal.1f9ae9a",
     "@payloadcms/storage-vercel-blob": "4.0.0-internal.1f9ae9a",
     "@payloadcms/ui": "4.0.0-internal.1f9ae9a",
-    "@radix-ui/react-visually-hidden": "^1.2.4",
     "@sentry/nextjs": "^10.32.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",

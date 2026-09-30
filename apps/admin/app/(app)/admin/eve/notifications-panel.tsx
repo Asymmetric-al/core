@@ -154,6 +154,12 @@ export function EveNotificationsPanel() {
                   <Button
                     size="sm"
                     variant="outline"
+                    focusableWhenDisabled={
+                      mutation.isPending &&
+                      mutation.variables?.kind === "channel" &&
+                      mutation.variables.channel === channel.channel &&
+                      mutation.variables.enabled !== undefined
+                    }
                     disabled={mutation.isPending}
                     onClick={() =>
                       mutation.mutate({
@@ -168,6 +174,12 @@ export function EveNotificationsPanel() {
                   <Button
                     size="sm"
                     variant="outline"
+                    focusableWhenDisabled={
+                      mutation.isPending &&
+                      mutation.variables?.kind === "channel" &&
+                      mutation.variables.channel === channel.channel &&
+                      mutation.variables.paused !== undefined
+                    }
                     disabled={mutation.isPending || !channel.enabled}
                     onClick={() =>
                       mutation.mutate({
@@ -209,6 +221,11 @@ export function EveNotificationsPanel() {
                 <Button
                   size="sm"
                   variant="outline"
+                  focusableWhenDisabled={
+                    mutation.isPending &&
+                    mutation.variables?.kind === "recipient" &&
+                    mutation.variables.profileId === recipient.profileId
+                  }
                   disabled={mutation.isPending}
                   onClick={() =>
                     mutation.mutate({

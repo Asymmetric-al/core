@@ -27,6 +27,7 @@ import { Input } from "../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 import { Toggle } from "../toggle";
+import { Toolbar, ToolbarButton as ToolbarItem } from "../toolbar";
 import {
   Tooltip,
   TooltipContent,
@@ -333,7 +334,6 @@ function EditorToolbarHistorySection({
       {has("undo") && (
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
-          active={false}
           disabled={!toolbarState.canUndo}
           tooltip="Undo (Ctrl+Z)"
         >
@@ -343,7 +343,6 @@ function EditorToolbarHistorySection({
       {has("redo") && (
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
-          active={false}
           disabled={!toolbarState.canRedo}
           tooltip="Redo (Ctrl+Shift+Z)"
         >
@@ -370,97 +369,99 @@ function EditorToolbarSectionList({
   const sectionIds = editorToolbarSectionIds(enabledTools);
 
   return (
-    <div className="flex items-center gap-0.5 overflow-x-auto px-3 sm:px-4 py-2">
-      {sectionIds.map((sectionId, index) => {
-        switch (sectionId) {
-          case "formatting":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+    <div className="overflow-x-auto px-3 py-2 sm:px-4">
+      <Toolbar aria-label="Text formatting">
+        {sectionIds.map((sectionId, index) => {
+          switch (sectionId) {
+            case "formatting":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarFormattingSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarFormattingSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          case "headings":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "headings":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarHeadingsSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarHeadingsSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          case "lists":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "lists":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarListsSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarListsSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          case "media":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "media":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarMediaSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
+                    onImageUpload={onImageUpload}
+                    onImageClick={onImageClick}
                   />
-                )}
-                <EditorToolbarMediaSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                  onImageUpload={onImageUpload}
-                  onImageClick={onImageClick}
-                />
-              </React.Fragment>
-            );
-          case "history":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "history":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarHistorySection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarHistorySection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          default: {
-            const _exhaustive: never = sectionId;
-            return _exhaustive;
+                </React.Fragment>
+              );
+            default: {
+              const _exhaustive: never = sectionId;
+              return _exhaustive;
+            }
           }
-        }
-      })}
+        })}
+      </Toolbar>
     </div>
   );
 }
@@ -537,7 +538,7 @@ function ToolbarButton({
   className,
 }: {
   onClick: () => void;
-  active: boolean;
+  active?: boolean;
   tooltip: string;
   disabled?: boolean;
   children: React.ReactNode;
@@ -547,12 +548,24 @@ function ToolbarButton({
     <Tooltip>
       <TooltipTrigger
         render={
-          <Toggle
-            aria-label={tooltip}
-            size="sm"
-            pressed={active}
-            onPressedChange={onClick}
+          <ToolbarItem
             disabled={disabled}
+            focusableWhenDisabled={false}
+            aria-label={tooltip}
+            render={
+              active === undefined ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={disabled}
+                  onClick={() => {
+                    if (!disabled) onClick();
+                  }}
+                />
+              ) : (
+                <Toggle size="sm" pressed={active} onPressedChange={onClick} />
+              )
+            }
             className={cn(
               "size-7 p-0 rounded-md transition-colors",
               active
@@ -563,7 +576,7 @@ function ToolbarButton({
             )}
           >
             {children}
-          </Toggle>
+          </ToolbarItem>
         }
       />
       <TooltipContent side="top" className="text-xs">
@@ -620,22 +633,26 @@ function LinkButton({
       <Tooltip>
         <TooltipTrigger
           render={
-            <PopoverTrigger
+            <ToolbarItem
               render={
-                <Button
-                  type="button"
-                  aria-label={isActive ? "Edit link" : "Add link"}
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "size-7 p-0 rounded-md transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <LinkIcon className="size-3.5" />
-                </Button>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      aria-label={isActive ? "Edit link" : "Add link"}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "size-7 p-0 rounded-md transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <LinkIcon className="size-3.5" />
+                    </Button>
+                  }
+                />
               }
             />
           }
@@ -697,16 +714,15 @@ function ImageClickButton({ onClick }: { onClick: () => void }) {
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button
+          <ToolbarItem
+            render={<Button variant="ghost" size="sm" />}
             aria-label="Insert image"
-            variant="ghost"
-            size="sm"
             className="size-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
             type="button"
             onClick={onClick}
           >
             <ImageIcon className="size-3.5" />
-          </Button>
+          </ToolbarItem>
         }
       />
       <TooltipContent side="top" className="text-xs">
@@ -723,6 +739,7 @@ function ImageButton({
   editor: Editor;
   onUpload: (file: File) => Promise<string>;
 }) {
+  const imageActionLabelId = React.useId();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -758,10 +775,10 @@ function ImageButton({
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button
-              aria-label={isUploading ? "Uploading image" : "Upload image"}
-              variant="ghost"
-              size="sm"
+            <ToolbarItem
+              render={<Button variant="ghost" size="sm" />}
+              aria-labelledby={imageActionLabelId}
+              focusableWhenDisabled={isUploading}
               className={cn(
                 "size-7 p-0 rounded-md transition-colors",
                 "hover:bg-muted text-muted-foreground hover:text-foreground",
@@ -771,8 +788,11 @@ function ImageButton({
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
             >
+              <span id={imageActionLabelId} className="sr-only">
+                {isUploading ? "Uploading image" : "Upload image"}
+              </span>
               <ImageIcon className="size-3.5" />
-            </Button>
+            </ToolbarItem>
           }
         />
         <TooltipContent side="top" className="text-xs">
