@@ -966,6 +966,21 @@ const rawAnimationVocabularySkill = [
 ].join("\n");
 
 describe("refresh-upstream-skills", () => {
+  it("re-injects explicit-only invocation flags on interface-review and obra TDD after refresh", async () => {
+    const refreshScript = await readFile(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(refreshScript).toContain('skillName: "interface-review"');
+    expect(refreshScript).toContain(
+      "name: interface-review\\ndisable-model-invocation: true\\ndescription:",
+    );
+    expect(refreshScript).toContain(
+      "name: test-driven-development\\ndisable-model-invocation: true\\ndescription:",
+    );
+  });
+
   it("rejects an empty focused-refresh filter instead of refreshing every source", async () => {
     const tempRoot = await createTempRepo("refresh-empty-only");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
@@ -1548,6 +1563,12 @@ describe("refresh-upstream-skills", () => {
           "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
           "",
         ].join("\n"),
+      },
+      "mobile-native": {
+        "SKILL.md": minimalEmilSkill("mobile-native", [
+          "# Feeling Native On Mobile",
+          "",
+        ]),
       },
       "write-swift": {
         "SKILL.md": minimalEmilSkill("write-swift", [

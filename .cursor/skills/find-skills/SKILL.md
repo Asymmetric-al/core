@@ -63,6 +63,14 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 
 **Example — Emil Kowalski paid design-engineering skill:** [`animations.dev`](https://animations.dev) ($99) installs as **`emil-design-engineering`**. Canonical copy: `docs/ai/skills/emil-design-engineering/`. Refresh with the installer into `~/.cursor/skills/emil-design-engineering/`, then `bun run skills:refresh-upstream --only=animations.dev`, `bun run skills:sync`, and `bun run skills:verify`. This is the default animation/UI-polish entrypoint; it is not the public GitHub companion `emil-design-eng`.
 
+**Example — Jakub Krehel design pack:** [`jakubkrehel/skills`](https://github.com/jakubkrehel/skills) is canonical under `docs/ai/skills/{better-ui,better-typography,better-colors,better-layout,better-interface,better-accessibility,better-writing,interface-review}/`. Refresh with targeted `--skill` adds, then `bun run skills:refresh-jakubkrehel`, `bun run skills:sync`, and `bun run skills:verify`. `interface-review`, `better-ui`, `better-colors`, and `better-layout` are explicit-only. Do not restyle Core apps; `better-accessibility` stays under `accessibility-review`.
+
+**Example — Anthropic frontend-design:** [`anthropics/skills`](https://github.com/anthropics/skills) `frontend-design` is canonical at `docs/ai/skills/frontend-design/SKILL.md`. Explicit-only (`disable-model-invocation: true`). Refresh with `bun run skills:refresh-frontend-design`. Do not restyle Core product apps.
+
+**Example — leonxlnx taste-skill:** [`leonxlnx/taste-skill`](https://github.com/leonxlnx/taste-skill) vendors as `design-taste-frontend` and `redesign-existing-projects`. Both are explicit-only. Refresh with `bun run skills:refresh-taste-skill`. Do not restyle Core product apps.
+
+**Example — obra Superpowers TDD:** [`obra/superpowers`](https://github.com/obra/superpowers) `test-driven-development` is a companion at `docs/ai/skills/test-driven-development/SKILL.md`. Core TDD remains `docs/ai/skills/tdd/SKILL.md`. Refresh with `bun run skills:refresh-obra-tdd`.
+
 **Example — Grill for Unknowns:** the complete [`nicobailon/grill-for-unknowns`](https://github.com/nicobailon/grill-for-unknowns) plugin is canonical under `docs/ai/skills/grill-for-unknowns/`. Refresh with `npx --yes skills@latest add nicobailon/grill-for-unknowns -y`, then `bun run skills:refresh-grill-for-unknowns`, `bun run skills:sync`, and `bun run skills:verify`. It is explicit-only in Core: use it for a requested map-vs-territory, blindspot, unknown-known prototype, or launch-packet workflow; generic grilling stays with `grilling` or `grill-with-docs`.
 
 **Example — Payload CMS:**

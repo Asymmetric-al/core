@@ -21,6 +21,7 @@ const upstreamFiles = {
   "emil-design-eng": ["SKILL.md"],
   "emil-prototype": ["SKILL.md", "PICKER.md"],
   "improve-animations": ["AUDIT.md", "PLAN-TEMPLATE.md", "SKILL.md"],
+  "mobile-native": ["SKILL.md"],
   "pick-ui-library": ["SKILL.md"],
   "review-animations": ["SKILL.md", "STANDARDS.md"],
   "write-swift": ["SKILL.md"],
@@ -198,6 +199,7 @@ describe("emilkowalski skill pack", () => {
     expect(componentDesign).not.toContain("asChild");
     expect(componentDesign).not.toContain("@radix-ui/react-slot");
     expect(componentDesign).toContain("buttonVariants");
+    expect(componentDesign).toContain("nativeButton={false}");
     expect(componentDesign).toContain("Base UI");
     expect(askSonner).not.toMatch(/import \{ Toaster \} from ["']sonner["']/);
     expect(askSonner).toContain("@asym/ui/components/shadcn/sonner");

@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-08-29
+Last updated: 2026-09-30
 
 ## Scope
 
@@ -295,7 +295,7 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
 ## 2026-08-29 - Emil Kowalski pack and paid skill refresh
 
 - Confirmed live upstream `emilkowalski/skills` at
-  `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7` now ships eleven public skills.
+  `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7` now ships twelve public skills.
   Core lockfile-manages eleven of them (`animate`, `animate-expo`,
   `animation-vocabulary`, `apple-design`, `ask-sonner`, `emil-design-eng`,
   `emil-prototype`, `improve-animations`, `pick-ui-library`,
@@ -312,6 +312,33 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
 - Added Core overlays, MIT provenance, and routing for the six new public
   skills. Existing Base UI, motion-token, and reduced-motion overlays remain
   authoritative.
+
+## 2026-09-16 - Design skill packs and Emil refresh
+
+- Confirmed live upstream `emilkowalski/skills` at
+  `85e8e2363b713506e1d5b6e07a0eb2da66be1bc3`. Added the new public
+  `mobile-native` skill and refreshed the rest of the lockfile-managed pack.
+  Kept Core's `find-animation-opportunities` adapter and Matt Pocock
+  `prototype`.
+- Refreshed the paid animations.dev skill **`emil-design-engineering`**
+  (`$99`) from `https://animations.dev` into
+  `~/.cursor/skills/emil-design-engineering/`, then
+  `bun run skills:refresh-upstream --only=animations.dev`.
+- Vendored Jakub Krehel polish skills (`better-ui`, `better-typography`,
+  `better-colors`, `better-layout`, `better-interface`, `better-accessibility`,
+  `better-writing`, `interface-review`), Anthropic `frontend-design`,
+  leonxlnx `design-taste-frontend` / `redesign-existing-projects`, and obra
+  Superpowers `test-driven-development`. `better-writing` is included because
+  `better-interface` depends on it. Did not vendor unlisted Jakub skills
+  (`break`, `variant`, `explain-interface`).
+- Marked `interface-review`, `frontend-design`, `design-taste-frontend`, and
+  `redesign-existing-projects` explicit-only. Overlays keep Base UI /
+  `base-maia` authoritative; these skills must not restyle Core product apps.
+- Core TDD remains `docs/ai/skills/tdd/SKILL.md`; obra TDD is a companion.
+  Core a11y remains `docs/ai/skills/accessibility-review/SKILL.md`.
+- Added focused refresh scripts: `skills:refresh-jakubkrehel`,
+  `skills:refresh-frontend-design`, `skills:refresh-taste-skill`,
+  `skills:refresh-obra-tdd`.
 
 ## Rollback Notes
 

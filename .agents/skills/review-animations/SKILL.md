@@ -21,6 +21,8 @@ after upstream refreshes before running `bun run skills:sync`.
   motion-only diff review.
 - Do not use it for general code review, implementation, or a codebase-wide
   animation audit.
+- A concrete review request should be answered directly. The upstream
+  Initial Response applies only to a bare invocation with no question or task.
 
 ### Workflow
 
@@ -40,6 +42,14 @@ after upstream refreshes before running `bun run skills:sync`.
 - [ ] The response includes the required verdict.
 
 <!-- CORE-OVERLAY-END -->
+
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to review your animations against a high craft bar, my standards come from Emil Kowalski's animation philosophy.
+
+Do not provide any other information until the user asks a question.
 
 A specialized review skill. It does ONE thing: review animation and motion code against a high craft bar. It does not write features, fix unrelated bugs, or review non-motion code. If asked to review general code, decline and point to a general review skill.
 
