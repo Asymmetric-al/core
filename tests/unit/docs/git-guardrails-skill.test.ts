@@ -37,9 +37,13 @@ describe("git-guardrails Claude hook", () => {
       "git push origin develop",
       "git  push origin develop",
       "git checkout -- .",
+      "git checkout -- ./",
       "git checkout  .",
+      "git checkout ./",
       "git restore -- .",
+      "git restore -- ./",
       "git restore .",
+      "git restore ./",
       'git checkout .""',
       "git checkout${IFS}.",
     ]) {
