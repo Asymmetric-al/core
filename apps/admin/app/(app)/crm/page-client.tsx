@@ -45,8 +45,10 @@ import { DetailDrawer } from "./detail-drawer";
 import { KanbanView } from "./kanban-view";
 import { toCrmRecord, toCrmRecordFromDetail } from "./types";
 import { CRM_PAGE_META } from "../../../components/table-page-meta";
-import { isContributionGiftParam } from "../contributions/contribution-detail-overlay";
-import { ContributionDetailOverlay } from "../contributions/contribution-detail-overlay";
+import {
+  ContributionDetailOverlay,
+  isContributionGiftParam,
+} from "../contributions/contribution-detail-overlay";
 import {
   ContributionFreshnessIndicator,
   useContributionFreshness,
