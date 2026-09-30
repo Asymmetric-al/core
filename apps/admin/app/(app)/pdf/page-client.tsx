@@ -502,7 +502,7 @@ function PDFStudioHeaderSection({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5"
+                      className=""
                       disabled={!isEditorReady || isExporting}
                     >
                       {isExporting ? (
@@ -641,7 +641,7 @@ function PDFSaveDialogSection({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-130">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-violet-500/10">
@@ -822,7 +822,7 @@ function PDFExportDialogSection({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[680px]">
+      <DialogContent className="sm:max-w-170">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-violet-500/10">
@@ -933,7 +933,7 @@ function PDFTemplatePickerDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-140">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="rounded-lg bg-violet-500/10 p-2">
@@ -945,7 +945,7 @@ function PDFTemplatePickerDialog({
             Reopen a tenant PDF template from Mission Control storage.
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[420px] overflow-y-auto py-2">
+        <div className="max-h-105 overflow-y-auto py-2">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

@@ -111,7 +111,7 @@ export function MacroActionEditor({
                   handleKindChange(index, value as SupportMacroAction["kind"])
                 }
               >
-                <SelectTrigger className="h-8 min-w-[170px] text-[12px]">
+                <SelectTrigger className="h-8 min-w-42.5 text-[12px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -136,7 +136,7 @@ export function MacroActionEditor({
                     })
                   }
                 >
-                  <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+                  <SelectTrigger className="h-8 min-w-35 text-[12px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -162,7 +162,7 @@ export function MacroActionEditor({
                     })
                   }
                 >
-                  <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+                  <SelectTrigger className="h-8 min-w-35 text-[12px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -188,7 +188,7 @@ export function MacroActionEditor({
                     });
                   }}
                 >
-                  <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+                  <SelectTrigger className="h-8 min-w-50 text-[12px]">
                     <SelectValue placeholder="Pick an agent" />
                   </SelectTrigger>
                   <SelectContent>
@@ -211,7 +211,7 @@ export function MacroActionEditor({
                     handlePatch(index, { kind: "assign_team", teamId: value });
                   }}
                 >
-                  <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+                  <SelectTrigger className="h-8 min-w-50 text-[12px]">
                     <SelectValue placeholder="Pick a team" />
                   </SelectTrigger>
                   <SelectContent>
@@ -237,7 +237,7 @@ export function MacroActionEditor({
                     } as SupportMacroAction);
                   }}
                 >
-                  <SelectTrigger className="h-8 min-w-[180px] text-[12px]">
+                  <SelectTrigger className="h-8 min-w-45 text-[12px]">
                     <SelectValue placeholder="Pick a label" />
                   </SelectTrigger>
                   <SelectContent>
@@ -263,7 +263,7 @@ export function MacroActionEditor({
                     });
                   }}
                 >
-                  <SelectTrigger className="h-8 min-w-[220px] text-[12px]">
+                  <SelectTrigger className="h-8 min-w-55 text-[12px]">
                     <SelectValue placeholder="Pick a canned response" />
                   </SelectTrigger>
                   <SelectContent>
@@ -287,7 +287,7 @@ export function MacroActionEditor({
                       hours: Number(event.target.value) || 1,
                     })
                   }
-                  className="h-8 w-[100px] font-mono text-[12px]"
+                  className="h-8 w-25 font-mono text-[12px]"
                   aria-label="Hours to snooze"
                 />
               ) : null}
@@ -302,7 +302,7 @@ export function MacroActionEditor({
                     })
                   }
                   placeholder="Note text"
-                  className="h-8 min-w-[240px] text-[12px]"
+                  className="h-8 min-w-60 text-[12px]"
                 />
               ) : null}
 

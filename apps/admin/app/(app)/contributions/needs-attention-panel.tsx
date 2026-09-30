@@ -45,7 +45,7 @@ export function ContributionNeedsAttentionPanel({
       <AlertTriangle />
       <AlertTitle className="flex items-center gap-2 text-sm font-semibold uppercase">
         Needs Attention
-        <Badge variant="secondary" className="rounded-full">
+        <Badge variant="secondary" className="">
           {totalCount}
         </Badge>
       </AlertTitle>
@@ -85,7 +85,7 @@ export function ContributionNeedsAttentionPanel({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="mt-3 h-8 px-0 text-xs font-semibold"
+                    className="mt-3 px-0 text-xs font-semibold"
                     onClick={() =>
                       onOpenContribution(firstItem.contributionId!)
                     }

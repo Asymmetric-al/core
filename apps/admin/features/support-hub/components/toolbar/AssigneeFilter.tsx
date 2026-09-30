@@ -46,7 +46,7 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
     <Select value={selectValue} onValueChange={handleChange}>
       <SelectTrigger
         aria-label="Assignee filter"
-        className="h-10 w-[180px] rounded-xl border-zinc-200 bg-white text-[13px] font-medium text-zinc-700"
+        className="h-10 w-45 rounded-xl border-zinc-200 bg-white text-[13px] font-medium text-zinc-700"
       >
         <SelectValue placeholder="Any assignee" />
       </SelectTrigger>

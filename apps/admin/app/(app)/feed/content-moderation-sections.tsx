@@ -562,20 +562,20 @@ function AllPostsFeedPostCard({
                       {post.author.name}
                     </span>
                     {post.author.role === "organization" && (
-                      <Badge className="text-[8px] sm:text-[9px] h-5 px-2 bg-primary/10 text-primary shrink-0 rounded-full font-semibold uppercase tracking-wider border-0">
+                      <Badge className="text-[8px] sm:text-[9px] h-5 bg-primary/10 text-primary shrink-0 font-semibold uppercase tracking-wider border-0">
                         Official
                       </Badge>
                     )}
                     <Badge
                       variant="secondary"
-                      className="text-[8px] sm:text-[9px] h-5 px-2 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                      className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                     >
                       {post.post_type}
                     </Badge>
                     {post.status === "hidden" && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <EyeOff className="size-2.5" /> Hidden
                       </Badge>
@@ -583,7 +583,7 @@ function AllPostsFeedPostCard({
                     {post.isFlagged && (
                       <Badge
                         variant="destructive"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Flag className="size-2.5" /> Flagged
                       </Badge>
@@ -591,7 +591,7 @@ function AllPostsFeedPostCard({
                     {post.isPinned && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Pin className="size-2.5" /> Pinned
                       </Badge>
@@ -937,7 +937,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 px-3 text-[10px] text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-[10px] text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "approve")}
                         >
                           <Check className="size-3 mr-1.5" /> Approve
@@ -950,7 +950,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 px-3 text-[10px] text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-[10px] text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "delete")}
                         >
                           <Trash2 className="size-3 mr-1.5" /> Delete
@@ -1151,7 +1151,7 @@ export function ContentModerationTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 text-[8px] sm:text-[9px] bg-amber-500 text-white rounded-full font-semibold border-0">
+                  <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 text-[8px] sm:text-[9px] bg-amber-500 text-white font-semibold border-0">
                     {flaggedPosts.length}
                   </Badge>
                 </motion.div>
@@ -1186,7 +1186,7 @@ export function ContentModerationTabsSection({
                       value: e.target.value,
                     })
                   }
-                  className="pl-9 h-9 sm:h-10 w-full sm:w-56 lg:w-64 rounded-xl"
+                  className="pl-9 sm:h-10 w-full sm:w-56 lg:w-64 rounded-xl"
                 />
                 {searchQuery && (
                   <motion.button
@@ -1561,7 +1561,7 @@ function ModerationQueuePostCard({
                     </span>
                     <Badge
                       variant="secondary"
-                      className="text-[8px] sm:text-[9px] h-5 px-2 rounded-full shrink-0 font-semibold uppercase tracking-wider"
+                      className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                     >
                       {post.post_type}
                     </Badge>
@@ -1573,7 +1573,7 @@ function ModerationQueuePostCard({
                       >
                         <Badge
                           variant="destructive"
-                          className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 rounded-full shrink-0 font-semibold uppercase tracking-wider"
+                          className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                         >
                           <Flag className="size-2.5" /> Flagged
                         </Badge>
@@ -1582,7 +1582,7 @@ function ModerationQueuePostCard({
                     {post.isPinned && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 rounded-full shrink-0 font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Pin className="size-2.5" /> Pinned
                       </Badge>

@@ -19,7 +19,7 @@ interface ReportBarChartProps {
 
 function Fallback() {
   return (
-    <div className="h-[280px] w-full animate-pulse rounded-xl bg-zinc-50 ring-1 ring-zinc-100" />
+    <div className="h-70 w-full animate-pulse rounded-xl bg-zinc-50 ring-1 ring-zinc-100" />
   );
 }
 
@@ -38,7 +38,7 @@ const BarChartContent = dynamic(
     function BarChartInner({ series }: { series: SupportReportSeries }) {
       if (series.buckets.length === 0) {
         return (
-          <div className="flex h-[280px] items-center justify-center text-[12px] text-zinc-400">
+          <div className="flex h-70 items-center justify-center text-[12px] text-zinc-400">
             No activity in the selected window.
           </div>
         );
@@ -48,7 +48,7 @@ const BarChartContent = dynamic(
         value: bucket.value,
       }));
       return (
-        <div className="h-[280px] w-full">
+        <div className="h-70 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}

@@ -222,10 +222,10 @@ function DataGridViewport<TData extends Record<string, unknown>>({
   return (
     <div ref={parentRef} className="overflow-auto" style={{ maxHeight }}>
       <div
+        className="relative"
         style={{
           height: `${totalSize + headerHeight}px`,
           width: "100%",
-          position: "relative",
         }}
       >
         <div
@@ -252,7 +252,7 @@ function DataGridViewport<TData extends Record<string, unknown>>({
           )}
         </div>
 
-        <div style={{ position: "relative", height: `${totalSize}px` }}>
+        <div className="relative" style={{ height: `${totalSize}px` }}>
           {virtualRows.map((virtualRow) => {
             const row = rows[virtualRow.index];
             if (!row) return null;

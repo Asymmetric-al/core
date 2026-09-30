@@ -5,13 +5,6 @@
 @import "tw-animate-css";
 @import "@react-email/editor/themes/default.css";
 
-/* Tailwind v4 content sources - tells Tailwind where to scan for classes */
-@source "../**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../apps/**/app/**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../apps/**/components/**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../apps/**/features/**/*.{js,ts,jsx,tsx,mdx}";
-@source "../../packages/**/**/*.{js,ts,jsx,tsx,mdx}";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -1098,3 +1091,13 @@
     animation: none !important;
   }
 }
+
+/* Keep source globs after declarations: @shadcn/lint 0.1.0 mistakes glob
+ * delimiters for CSS comments (upstream issue #6), hiding theme tokens.
+ * These unchanged Tailwind sources have no cascade ordering effect.
+ * https://github.com/shadcn-ui/lint/issues/6 */
+@source "../**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../apps/**/app/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../apps/**/components/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../apps/**/features/**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../packages/**/**/*.{js,ts,jsx,tsx,mdx}";

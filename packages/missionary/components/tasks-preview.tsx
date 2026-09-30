@@ -41,7 +41,7 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 border border-transparent hover:border-zinc-100"
+          className="size-8 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 border border-transparent hover:border-zinc-100"
         >
           <Plus className="size-4" />
         </Button>

@@ -26,7 +26,7 @@ function RegistrationTrendsChartFallback() {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="h-[300px] rounded-xl border border-zinc-100 bg-zinc-50/60" />
+        <div className="h-75 rounded-xl border border-zinc-100 bg-zinc-50/60" />
       </CardContent>
     </Card>
   );
@@ -53,7 +53,7 @@ const RegistrationTrendsChartContent = dynamic(
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="h-[300px]">
+            <div className="h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={REGISTRATION_TRENDS}>
                   <defs>

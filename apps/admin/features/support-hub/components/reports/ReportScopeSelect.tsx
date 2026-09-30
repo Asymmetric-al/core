@@ -69,7 +69,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
               })
             }
           >
-            <SelectTrigger className="h-9 w-[140px] text-[12px]">
+            <SelectTrigger className="h-9 w-35 text-[12px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -96,7 +96,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
               setState({ scopeId: value });
             }}
           >
-            <SelectTrigger className="h-9 min-w-[180px] text-[12px]">
+            <SelectTrigger className="h-9 min-w-45 text-[12px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

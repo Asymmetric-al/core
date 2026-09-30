@@ -52,7 +52,7 @@ export function SupportFailureBanner() {
           size="sm"
           onClick={() => void handleRetry()}
           disabled={retrying}
-          className="h-8 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100"
+          className="rounded-lg text-[11px] font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100"
         >
           <RefreshCw
             className={retrying ? "size-3.5 animate-spin" : "size-3.5"}

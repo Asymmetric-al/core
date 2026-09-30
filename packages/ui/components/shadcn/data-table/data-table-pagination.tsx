@@ -56,6 +56,7 @@ function DataTablePaginationImpl<TData extends RowData>({
   // renders needs its own subscription. Do not read `table.state` here — the
   // memoized `table` prop can be an older wrapper whose `.state` snapshot is
   // stale; the slice atoms are always live.
+  const pageSizeLabelId = React.useId();
   const atoms = getTableSliceAtoms(table);
 
   const paginationSource: TableSelectionSource<PaginationState | undefined> =
@@ -105,7 +106,12 @@ function DataTablePaginationImpl<TData extends RowData>({
       </div>
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium whitespace-nowrap">Rows per page</p>
+          <p
+            id={pageSizeLabelId}
+            className="text-sm font-medium whitespace-nowrap"
+          >
+            Rows per page
+          </p>
           <Select
             value={`${pagination.pageSize}`}
             onValueChange={(value) => {
@@ -113,7 +119,10 @@ function DataTablePaginationImpl<TData extends RowData>({
             }}
             disabled={urlStatePending}
           >
-            <SelectTrigger className="h-9 w-[72px] rounded-xl">
+            <SelectTrigger
+              aria-labelledby={pageSizeLabelId}
+              className="h-9 w-18 rounded-xl"
+            >
               <SelectValue placeholder={pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top" className="rounded-xl">

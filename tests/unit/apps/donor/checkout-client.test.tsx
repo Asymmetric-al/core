@@ -1193,6 +1193,23 @@ describe("CheckoutPageClient idempotency retry keys", () => {
   });
 });
 
+describe("CheckoutPageClient shared form composition", () => {
+  it("focuses the custom amount field when its currency prefix is clicked", () => {
+    renderCheckout();
+    const input = screen.getByRole("textbox", { name: "Custom amount" });
+    fireEvent.click(screen.getByText("$", { exact: true }));
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("exposes a label for the disabled country field", () => {
+    renderCheckout();
+    advanceToPayment();
+    const country = screen.getByRole("textbox", { name: "Country" });
+    expect(country).toHaveProperty("disabled", true);
+    expect(country).toHaveProperty("value", "United States");
+  });
+});
+
 describe("CheckoutPageClient StrictMode payment state", () => {
   it("starts one payment when confirmation is repeated before React renders pending state", async () => {
     let resolveDonation: ((value: Response) => void) | undefined;
