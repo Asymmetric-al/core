@@ -2902,6 +2902,16 @@ async function swapPreparedRefresh(preparedRefresh) {
     await moveDirectory(to, backup);
     hasBackup = true;
   } catch (error) {
+    if (error?.backupReady === true && !(await pathExists(to))) {
+      try {
+        await moveDirectory(backup, to);
+      } catch (restoreError) {
+        throw new AggregateError(
+          [error, restoreError],
+          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
+        );
+      }
+    }
     if (getErrorCode(error) !== "ENOENT") {
       throw error;
     }
