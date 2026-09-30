@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  OPERATION_CATEGORY_LABELS,
+  OPERATION_DEFINITIONS,
+  type OperationCategory,
+  type OperationDefinition,
+} from "@asym/api/admin/contribution-operations/catalog";
+import {
   CRM_POSTING_UNAVAILABLE_NEXT_STEP,
   CRM_POSTING_UNAVAILABLE_REASON,
   isContributionCrmPostingSupported,
@@ -23,13 +29,6 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { MoreHorizontal, Pin } from "lucide-react";
-
-import {
-  OPERATION_CATEGORY_LABELS,
-  OPERATION_DEFINITIONS,
-  type OperationCategory,
-  type OperationDefinition,
-} from "../contributions/operation-shell";
 
 import type {
   CrmGiftInlineActionEntry,
