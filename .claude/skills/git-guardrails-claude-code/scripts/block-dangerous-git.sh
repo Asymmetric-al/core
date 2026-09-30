@@ -77,7 +77,13 @@ DANGEROUS_PATTERNS=(
   "reset --hard"
 )
 
-NORMALIZED=$(printf '%s' "$COMMAND" | sed -E 's/\$\{IFS\}/ /g' | tr -s '[:space:]' ' ')
+NORMALIZED=$(
+  printf '%s' "$COMMAND" |
+    sed -E 's/\$\{IFS\}|\$IFS/ /g' |
+    tr -d "\"'" |
+    sed -E 's/\$\././g' |
+    tr -s '[:space:]' ' '
+)
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   if echo "$NORMALIZED" | grep -qE "$pattern"; then
