@@ -2404,11 +2404,15 @@ async function writeSkillsLock(lockfile) {
     version: lockfile.version,
     skills: sortedSkills,
   };
-  await writeFile(
-    skillsLockPath,
-    `${JSON.stringify(sortedLockfile, null, 2)}\n`,
-    "utf8",
-  );
+  const payload = `${JSON.stringify(sortedLockfile, null, 2)}\n`;
+  const temporaryPath = `${skillsLockPath}.${process.pid}.tmp`;
+  await writeFile(temporaryPath, payload, "utf8");
+  try {
+    await rename(temporaryPath, skillsLockPath);
+  } catch (error) {
+    await rm(temporaryPath, { force: true });
+    throw error;
+  }
 }
 
 function buildUpstreamMetadata({ group, skillName, hash, commitSha }) {
@@ -2784,7 +2788,17 @@ async function moveDirectory(fromPath, toPath) {
     }
 
     await cp(fromPath, toPath, { recursive: true, force: true });
-    await rm(fromPath, { recursive: true, force: true });
+    try {
+      await rm(fromPath, { recursive: true, force: true });
+    } catch (removeError) {
+      const copyError = new Error(
+        `Failed to remove ${fromPath} after copying it to ${toPath}`,
+      );
+      copyError.code = getErrorCode(removeError);
+      copyError.backupReady = true;
+      copyError.cause = removeError;
+      throw copyError;
+    }
   }
 }
 
@@ -2878,6 +2892,18 @@ async function swapPreparedRefresh(preparedRefresh) {
     await moveDirectory(to, backup);
     hasBackup = true;
   } catch (error) {
+    if (error?.backupReady === true) {
+      try {
+        await rm(to, { recursive: true, force: true });
+        await moveDirectory(backup, to);
+      } catch (restoreError) {
+        throw new AggregateError(
+          [error, restoreError],
+          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
+        );
+      }
+      throw error;
+    }
     if (getErrorCode(error) !== "ENOENT") {
       throw error;
     }
