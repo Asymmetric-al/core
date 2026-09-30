@@ -1547,15 +1547,18 @@ function annotateEmilDesignEngineeringFormsControls(content) {
       // that contains `type="password"` (not "second <input>" by index: when // pragma: allowlist secret
       // email+password share one line, the next line is `tel` and would get a // pragma: allowlist secret
       // spurious pragma).
-      const passwordLineIndex = inputLineIndexes.find((idx) => // pragma: allowlist secret
-        lines[idx].includes('type="password"'), // pragma: allowlist secret
+      const credentialTypeLineIndex = inputLineIndexes.find(
+        (
+          idx, // pragma: allowlist secret
+        ) => lines[idx].includes('type="password"'), // pragma: allowlist secret
       );
       if (
-        passwordLineIndex !== undefined && // pragma: allowlist secret
-        !lines[passwordLineIndex].includes("// pragma: allowlist secret")
+        credentialTypeLineIndex !== undefined && // pragma: allowlist secret
+        !lines[credentialTypeLineIndex].includes("// pragma: allowlist secret")
       ) {
-        lines[passwordLineIndex] = // pragma: allowlist secret
-          `${lines[passwordLineIndex]} // pragma: allowlist secret`;
+        lines[credentialTypeLineIndex] =
+          // pragma: allowlist secret
+          `${lines[credentialTypeLineIndex]} // pragma: allowlist secret`;
       }
     }
   }
