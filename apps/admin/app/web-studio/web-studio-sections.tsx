@@ -52,34 +52,11 @@ interface PreviewContentProps {
   projects: ProjectPage[];
 }
 
-export const INITIAL_PROJECTS: ProjectPage[] = [
-  {
-    id: "1",
-    title: "Vehicle Fund",
-    slug: "vehicle-2024",
-    status: "Public",
-    goal: "12000",
-    description:
-      "Help us purchase a reliable 4x4 vehicle to reach remote villages.",
-  },
-  {
-    id: "2",
-    title: "Fall Outreach Event",
-    slug: "outreach-fall",
-    status: "Draft",
-    goal: "2500",
-    description: "Funding for the community harvest festival.",
-  },
-];
-
 export const DEFAULT_PROFILE_IMAGE =
   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop";
 
 export const DEFAULT_COVER_IMAGE =
   "https://images.unsplash.com/photo-1528181304800-259b08848526?w=800&h=400&fit=crop";
-
-export const isWebStudioView = (value: string): value is WebStudioView =>
-  value === "content" || value === "projects" || value === "updates";
 
 const PREVIEW_UPDATES = [
   {
@@ -189,14 +166,14 @@ const PreviewContent = ({
           >
             <Button
               size="sm"
-              className="rounded-full bg-zinc-900 text-white font-semibold uppercase tracking-wider text-[10px] h-8 px-6 shadow-md"
+              className="rounded-full bg-zinc-900 text-white font-semibold uppercase tracking-wider text-[10px] px-6 shadow-md"
             >
               Give Support
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full h-8 px-4 text-[10px] font-semibold uppercase tracking-wider"
+              className="rounded-full px-4 text-[10px] font-semibold uppercase tracking-wider"
             >
               Follow
             </Button>
@@ -300,7 +277,7 @@ export function WebStudioHeader({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 bg-white border-zinc-200 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider"
+          className="bg-white border-zinc-200 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider"
         >
           <Eye className="size-3.5 mr-1.5" /> View Live
         </Button>
@@ -308,7 +285,7 @@ export function WebStudioHeader({
           size="sm"
           onClick={onSave}
           disabled={isSaving}
-          className="h-8 px-4 font-semibold uppercase tracking-wider text-[10px] bg-zinc-900 hover:bg-zinc-800"
+          className="px-4 font-semibold uppercase tracking-wider text-[10px] bg-zinc-900 hover:bg-zinc-800"
         >
           {isSaving ? (
             <Loader2 className="size-3.5 animate-spin mr-1.5" />
@@ -396,7 +373,7 @@ export function WebStudioEditorPanel({
                     bio: event.target.value,
                   }))
                 }
-                className="min-h-[150px] bg-zinc-50 border-zinc-200 leading-relaxed text-sm font-medium"
+                className="min-h-37.5 bg-zinc-50 border-zinc-200 leading-relaxed text-sm font-medium"
               />
             </div>
           </div>
@@ -406,7 +383,7 @@ export function WebStudioEditorPanel({
               Active Giving Pages
               <Button
                 size="sm"
-                className="h-7 px-3 text-[10px] font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
+                className="h-7 text-[10px] font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
               >
                 <Plus className="size-3 mr-1" /> New Page
               </Button>
@@ -456,7 +433,7 @@ export function WebStudioEditorPanel({
               Field Journal Updates
               <Button
                 size="sm"
-                className="h-7 px-3 text-[10px] font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
+                className="h-7 text-[10px] font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
               >
                 <Plus className="size-3 mr-1" /> New Update
               </Button>
@@ -520,7 +497,7 @@ export function WebStudioPreviewRail({
   onPreviewModeChange,
 }: WebStudioPreviewRailProps) {
   return (
-    <div className="w-[450px] bg-zinc-50 flex flex-col shrink-0 overflow-hidden relative">
+    <div className="w-112.5 bg-zinc-50 flex flex-col shrink-0 overflow-hidden relative">
       <div className="h-14 border-b border-zinc-200 flex items-center justify-between px-4 bg-white shrink-0">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
           Live Preview
@@ -529,6 +506,8 @@ export function WebStudioPreviewRail({
           <button
             type="button"
             onClick={() => onPreviewModeChange("mobile")}
+            aria-label="Mobile preview"
+            aria-pressed={previewMode === "mobile"}
             className={cn(
               "p-1.5 rounded-md transition-[color,background-color,box-shadow]",
               previewMode === "mobile"
@@ -541,6 +520,8 @@ export function WebStudioPreviewRail({
           <button
             type="button"
             onClick={() => onPreviewModeChange("desktop")}
+            aria-label="Desktop preview"
+            aria-pressed={previewMode === "desktop"}
             className={cn(
               "p-1.5 rounded-md transition-[color,background-color,box-shadow]",
               previewMode === "desktop"
@@ -555,7 +536,7 @@ export function WebStudioPreviewRail({
 
       <div className="flex-1 flex items-center justify-center p-8 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]">
         {previewMode === "mobile" ? (
-          <div className="w-[300px] h-[600px] rounded-[40px] border-[6px] border-zinc-900 bg-white shadow-2xl relative overflow-hidden ring-1 ring-black/5 scale-[0.9] origin-center">
+          <div className="w-75 h-150 rounded-[40px] border-[6px] border-zinc-900 bg-white shadow-2xl relative overflow-hidden ring-1 ring-black/5 scale-[0.9] origin-center">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-zinc-900 rounded-b-2xl z-50" />
             <PreviewContent
               mode="mobile"

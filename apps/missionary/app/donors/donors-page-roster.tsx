@@ -263,9 +263,9 @@ export function DonorsPageRoster() {
           <AnimatePresence mode="popLayout">
             {hasActiveFilters && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
                 className="flex flex-wrap gap-1.5 overflow-hidden"
               >
                 {statusFilter !== "All" && (

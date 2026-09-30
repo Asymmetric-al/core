@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/f
 source_type: github
 upstream_path: cursor-team-kit/skills/fix-merge-conflicts/
 skills_lock_hash: 738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76
-last_reviewed: 2026-06-26
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: fix-merge-conflicts
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/fix-merge-conflicts/` (mirrored to 
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/fix-merge-conflicts/`
 - **Lock skillPath:** `cursor-team-kit/skills/fix-merge-conflicts/SKILL.md`
 - **Computed hash:** `738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76`

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   type AdvancedFilterState,
@@ -43,20 +43,35 @@ export function useAdvancedFilter({
   const [filter, setFilterState] = useState<AdvancedFilterState>(
     initialFilter ?? createEmptyFilterState(),
   );
+  // Latest filter for event handlers. React may replay state updater
+  // functions, so `onFilterChange` must not run inside them; deriving the
+  // next state from this ref keeps updaters pure while still letting several
+  // actions in one tick build on each other.
+  const filterRef = useRef(filter);
 
-  const setFilter = useCallback(
-    (newFilter: AdvancedFilterState) => {
-      setFilterState(newFilter);
-      onFilterChange?.(newFilter);
+  useEffect(() => {
+    filterRef.current = filter;
+  }, [filter]);
+
+  const commit = useCallback(
+    (next: AdvancedFilterState) => {
+      filterRef.current = next;
+      setFilterState(next);
+      onFilterChange?.(next);
     },
     [onFilterChange],
   );
 
+  const setFilter = useCallback(
+    (newFilter: AdvancedFilterState) => {
+      commit(newFilter);
+    },
+    [commit],
+  );
+
   const resetFilter = useCallback(() => {
-    const empty = createEmptyFilterState();
-    setFilterState(empty);
-    onFilterChange?.(empty);
-  }, [onFilterChange]);
+    commit(createEmptyFilterState());
+  }, [commit]);
 
   const addCondition = useCallback(
     (fieldId: string) => {
@@ -70,48 +85,39 @@ export function useAdvancedFilter({
         value: null,
       };
 
-      setFilterState((prev) => {
-        const updated = {
-          ...prev,
-          conditions: [...prev.conditions, newCondition],
-        };
-        onFilterChange?.(updated);
-        return updated;
+      const prev = filterRef.current;
+      commit({
+        ...prev,
+        conditions: [...prev.conditions, newCondition],
       });
     },
-    [fields, onFilterChange],
+    [fields, commit],
   );
 
   const removeCondition = useCallback(
     (conditionId: string) => {
-      setFilterState((prev) => {
-        const updated = {
-          ...prev,
-          conditions: prev.conditions.filter(
-            (c: FilterCondition) => c.id !== conditionId,
-          ),
-        };
-        onFilterChange?.(updated);
-        return updated;
+      const prev = filterRef.current;
+      commit({
+        ...prev,
+        conditions: prev.conditions.filter(
+          (c: FilterCondition) => c.id !== conditionId,
+        ),
       });
     },
-    [onFilterChange],
+    [commit],
   );
 
   const updateCondition = useCallback(
     (conditionId: string, updates: Partial<FilterCondition>) => {
-      setFilterState((prev) => {
-        const updated = {
-          ...prev,
-          conditions: prev.conditions.map((c: FilterCondition) =>
-            c.id === conditionId ? { ...c, ...updates } : c,
-          ),
-        };
-        onFilterChange?.(updated);
-        return updated;
+      const prev = filterRef.current;
+      commit({
+        ...prev,
+        conditions: prev.conditions.map((c: FilterCondition) =>
+          c.id === conditionId ? { ...c, ...updates } : c,
+        ),
       });
     },
-    [onFilterChange],
+    [commit],
   );
 
   const toColumnFilters = useCallback((): ColumnFiltersState => {
@@ -132,11 +138,10 @@ export function useAdvancedFilter({
     (param: string) => {
       const parsed = deserializeFilter(param);
       if (parsed) {
-        setFilterState(parsed);
-        onFilterChange?.(parsed);
+        commit(parsed);
       }
     },
-    [onFilterChange],
+    [commit],
   );
 
   return {

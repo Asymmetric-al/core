@@ -11,6 +11,12 @@
  *      wrapped in `@media (hover: hover) and (pointer: fine)`. Easiest
  *      path: use the shared `.hover-lift` / `.hover-scale-subtle`
  *      utilities.
+ *   3. motion/react props (`initial`, `animate`, `exit`, `while*`,
+ *      `variants`) that animate a layout property such as `height`,
+ *      `width`, margins, padding, or offsets — including inline objects,
+ *      named bindings, and ternary object literals. These re-run layout
+ *      every frame. Use opacity + transform (or the `layout` prop)
+ *      instead.
  *
  * Usage:
  *   node scripts/check-motion-patterns.mjs              # scan the whole repo (apps/**, packages/**)
@@ -55,21 +61,35 @@ const UNGATED_HOVER_SCALE =
 const HOVER_GATE_LITERAL = "hover:hover";
 const HOVER_GATE_REGEX =
   /@media\s*\(hover:\s*hover\)\s*and\s*\(pointer:\s*fine\)/;
+const MOTION_PROP_ASSIGNMENT =
+  /(?<![.\w])(?:initial|animate|exit|whileHover|whileTap|whileFocus|whileInView|whileDrag|variants)=\{/g;
+const LAYOUT_PROPERTY =
+  /(?:^|[\s,{])(height|width|minHeight|maxHeight|minWidth|maxWidth|margin(?:Top|Bottom|Left|Right)?|padding(?:Top|Bottom|Left|Right)?|top|right|bottom|left|inset)\s*:/;
+const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
+const JS_LITERALS = new Set(["true", "false", "null", "undefined"]);
 
 function shouldScan(rel) {
   return !IGNORE_PREFIXES.some((p) => rel.startsWith(p));
 }
 
-function listMatchingFiles() {
+export function listScanTargets() {
   const out = spawnSync("git", ["ls-files", "--", ...SCAN_GLOBS], {
     cwd: repoRoot,
     encoding: "utf8",
   });
   if (out.status !== 0) {
-    console.error(out.stderr);
-    process.exit(out.status ?? 1);
+    throw new Error(out.stderr || "git ls-files failed");
   }
   return out.stdout.split("\n").filter(Boolean).filter(shouldScan);
+}
+
+function listMatchingFiles() {
+  try {
+    return listScanTargets();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
 }
 
 function lineNumberFor(content, idx) {
@@ -99,12 +119,101 @@ function stripComments(text) {
   return out;
 }
 
-async function scanFile(rel) {
-  const abs = path.join(repoRoot, rel);
-  if (!(await isFile(abs))) return [];
-  const raw = await readFile(abs, "utf8");
+function extractBalanced(text, openIndex) {
+  if (text[openIndex] !== "{") return null;
+  let depth = 0;
+  for (let index = openIndex; index < text.length; index += 1) {
+    const char = text[index];
+    if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return {
+          end: index,
+          content: text.slice(openIndex + 1, index),
+        };
+      }
+    }
+  }
+  return null;
+}
+
+function findObjectLiteralContents(text) {
+  const contents = [];
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] !== "{") continue;
+    const extracted = extractBalanced(text, index);
+    if (!extracted) break;
+    contents.push(extracted.content);
+  }
+  return contents;
+}
+
+function findNamedBindingContents(text, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const binding = new RegExp(
+    `(?:(?:const|let|var)\\s+)?\\b${escaped}\\s*=\\s*\\{`,
+    "g",
+  );
+  const contents = [];
+  let match;
+  while ((match = binding.exec(text)) !== null) {
+    const extracted = extractBalanced(text, match.index + match[0].length - 1);
+    if (extracted) contents.push(extracted.content);
+  }
+  return contents;
+}
+
+function objectsForMotionExpr(text, expr) {
+  const trimmed = expr.trim();
+  if (trimmed.startsWith("{")) return [trimmed];
+  if (IDENTIFIER.test(trimmed)) return findNamedBindingContents(text, trimmed);
+
+  const objects = findObjectLiteralContents(trimmed);
+  for (const ident of trimmed.match(/\b[A-Za-z_$][\w$]*\b/g) ?? []) {
+    if (JS_LITERALS.has(ident)) continue;
+    objects.push(...findNamedBindingContents(text, ident));
+  }
+  return objects;
+}
+
+function collectMotionLayoutViolations(rel, text) {
+  const violations = [];
+  if (!rel.endsWith(".tsx") && !rel.endsWith(".jsx")) return violations;
+
+  MOTION_PROP_ASSIGNMENT.lastIndex = 0;
+  let match;
+  while ((match = MOTION_PROP_ASSIGNMENT.exec(text)) !== null) {
+    const extracted = extractBalanced(text, match.index + match[0].length - 1);
+    if (!extracted) continue;
+
+    let layoutProperty = null;
+    for (const objectText of objectsForMotionExpr(text, extracted.content)) {
+      layoutProperty = objectText.match(LAYOUT_PROPERTY)?.[1] ?? null;
+      if (layoutProperty) break;
+    }
+    if (!layoutProperty) continue;
+
+    violations.push({
+      file: rel,
+      line: lineNumberFor(text, match.index),
+      kind: "motion-layout-property",
+      hint:
+        `Animating \`${layoutProperty}\` forces layout every frame. Reveal with ` +
+        "opacity + y/scale, collapse siblings with the `layout` prop, and keep " +
+        'height/width sweeps to and from "auto" out of motion props.',
+    });
+  }
+
+  return violations;
+}
+
+export function scanMotionSource(rel, raw) {
   const text = stripComments(raw);
   const violations = [];
+  TRANSITION_ALL.lastIndex = 0;
+  UNGATED_HOVER_SCALE.lastIndex = 0;
+  MOTION_PROP_ASSIGNMENT.lastIndex = 0;
 
   // 1. transition-all
   let m;
@@ -141,7 +250,17 @@ async function scanFile(rel) {
     });
   }
 
+  // 3. motion props animating layout properties
+  violations.push(...collectMotionLayoutViolations(rel, text));
+
   return violations;
+}
+
+async function scanFile(rel) {
+  const abs = path.join(repoRoot, rel);
+  if (!(await isFile(abs))) return [];
+  const raw = await readFile(abs, "utf8");
+  return scanMotionSource(rel, raw);
 }
 
 async function main() {
@@ -191,7 +310,13 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const isDirectExecution =
+  process.argv[1] !== undefined &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

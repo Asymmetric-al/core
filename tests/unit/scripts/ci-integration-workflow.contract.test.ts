@@ -126,6 +126,24 @@ describe("ci-integration workflow contract", () => {
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
   });
 
+  it("installs Playwright before smoke dev servers and proves demo auth", () => {
+    const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
+    const installAt = testE2eSmoke.indexOf("name: Install Playwright Chromium");
+    const startDonorAt = testE2eSmoke.indexOf("name: Start donor app");
+    const waitDonorAt = testE2eSmoke.indexOf(
+      "name: Wait for donor health endpoint",
+    );
+    const startAdminAt = testE2eSmoke.indexOf("name: Start admin app");
+
+    expect(installAt).toBeGreaterThanOrEqual(0);
+    expect(startDonorAt).toBeGreaterThan(installAt);
+    expect(waitDonorAt).toBeGreaterThan(startDonorAt);
+    expect(startAdminAt).toBeGreaterThan(waitDonorAt);
+    expect(testE2eSmoke).toContain(
+      "http://127.0.0.1:3005/api/auth/demo-account",
+    );
+  });
+
   it("keeps the blocking smoke job on the shared Bun install contract", () => {
     const smoke = jobBlock(workflow, "smoke");
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");

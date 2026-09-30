@@ -74,7 +74,7 @@ export function ConversationLabelMenu({
                 {conversation.labels.length > 0 ? (
                   <Badge
                     variant="secondary"
-                    className="ml-1 h-4 min-w-[1rem] justify-center rounded-md border-transparent bg-zinc-900 px-1 text-[10px] font-semibold text-white"
+                    className="ml-1 h-4 min-w-[1rem] rounded-md bg-zinc-900 px-1 text-[10px] font-semibold text-white"
                   >
                     {conversation.labels.length}
                   </Badge>

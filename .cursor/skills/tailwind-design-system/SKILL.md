@@ -422,7 +422,7 @@ import { z } from 'zod'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'), // pragma: allowlist secret
 })
 
 function LoginForm() {
@@ -442,12 +442,12 @@ function LoginForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Password</Label> // pragma: allowlist secret
         <Input
-          id="password"
-          type="password"
-          {...register('password')}
-          error={errors.password?.message}
+          id="password" // pragma: allowlist secret
+          type="password" // pragma: allowlist secret
+          {...register('password')} // pragma: allowlist secret
+          error={errors.password?.message} // pragma: allowlist secret
         />
       </div>
       <Button type="submit" className="w-full">Sign In</Button>

@@ -360,6 +360,392 @@ function PolicyLifecycleRow({
   );
 }
 
+function EveModelPolicyLoading() {
+  return <Skeleton className="h-52 w-full" aria-label="Loading model policy" />;
+}
+
+function EveModelPolicyLoadError({ message }: { message?: string }) {
+  return (
+    <Alert variant="destructive">
+      <AlertTriangle aria-hidden="true" className="size-4" />
+      <AlertTitle>Could not load Eve model policy</AlertTitle>
+      <AlertDescription>
+        {message ?? "The model-policy store is unavailable."}
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function EveModelPolicyActiveAlert({
+  activePolicy,
+}: {
+  activePolicy: EveModelPolicyRecord | null | undefined;
+}) {
+  if (activePolicy) {
+    return (
+      <Alert className="mb-4">
+        <ShieldCheck aria-hidden="true" className="size-4" />
+        <AlertTitle>
+          Active policy v{activePolicy.version} is eval-passed
+        </AlertTitle>
+        <AlertDescription>
+          Primary routing remains Vercel AI Gateway. Direct providers are
+          fallback-only and are revoked by model-policy kill-switch state.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <Alert className="mb-4">
+      <AlertTriangle aria-hidden="true" className="size-4" />
+      <AlertTitle>No active model policy</AlertTitle>
+      <AlertDescription>
+        Eve remains fail-closed. Draft and evaluate a policy before any
+        activation can succeed.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function EveModelPolicyVersionList({
+  activePolicyId,
+  canManage,
+  isPending,
+  onMutate,
+  policies,
+}: {
+  activePolicyId?: string;
+  canManage: boolean;
+  isPending: boolean;
+  onMutate: (mutation: EveModelPolicyMutation) => void;
+  policies: EveModelPolicyRecord[];
+}) {
+  if (policies.length === 0) {
+    return (
+      <ul className="divide-y divide-border">
+        <li className="py-4 text-sm text-muted-foreground">
+          No model-policy versions have been drafted.
+        </li>
+      </ul>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-border">
+      {policies.map((policy) => (
+        <PolicyLifecycleRow
+          key={policy.id}
+          activePolicyId={activePolicyId}
+          canManage={canManage}
+          isPending={isPending}
+          onMutate={onMutate}
+          policy={policy}
+        />
+      ))}
+    </ul>
+  );
+}
+
+function EveModelPolicyDraftCard({
+  draftText,
+  isPending,
+  onDraftTextChange,
+  onSubmit,
+}: {
+  draftText: string;
+  isPending: boolean;
+  onDraftTextChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Draft a policy version</CardTitle>
+        <CardDescription>
+          Drafts are immutable. Editing this JSON creates a new version;
+          evaluation and activation remain separate deliberate actions.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Textarea
+          aria-label="Model policy JSON"
+          className="min-h-96 font-mono text-xs"
+          value={draftText}
+          onChange={(event) => onDraftTextChange(event.target.value)}
+        />
+        <Button disabled={isPending} onClick={onSubmit}>
+          Create immutable draft
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EveModelPolicyOverrideCard({
+  isPending,
+  overrideMinutes,
+  overrideReason,
+  overrideRequests,
+  overrideScopeId,
+  overrideScopeType,
+  overrideUsdMicros,
+  onOverrideMinutesChange,
+  onOverrideReasonChange,
+  onOverrideRequestsChange,
+  onOverrideScopeIdChange,
+  onOverrideScopeTypeChange,
+  onOverrideUsdMicrosChange,
+  onSubmit,
+}: {
+  isPending: boolean;
+  overrideMinutes: string;
+  overrideReason: string;
+  overrideRequests: string;
+  overrideScopeId: string;
+  overrideScopeType: "role" | "subagent";
+  overrideUsdMicros: string;
+  onOverrideMinutesChange: (value: string) => void;
+  onOverrideReasonChange: (value: string) => void;
+  onOverrideRequestsChange: (value: string) => void;
+  onOverrideScopeIdChange: (value: string) => void;
+  onOverrideScopeTypeChange: (value: "role" | "subagent") => void;
+  onOverrideUsdMicrosChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BadgeDollarSign aria-hidden="true" className="size-5" />
+          Emergency budget override
+        </CardTitle>
+        <CardDescription>
+          Add a bounded, expiring allowance to one active role or subagent.
+          Every override requires the dedicated permission and is audited.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="eve-override-scope-type">Scope type</Label>
+          <select
+            id="eve-override-scope-type"
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            value={overrideScopeType}
+            onChange={(event) =>
+              onOverrideScopeTypeChange(
+                event.target.value as "role" | "subagent",
+              )
+            }
+          >
+            <option value="role">Role</option>
+            <option value="subagent">Subagent</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="eve-override-scope-id">Scope identifier</Label>
+          <Input
+            id="eve-override-scope-id"
+            value={overrideScopeId}
+            onChange={(event) => onOverrideScopeIdChange(event.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="eve-override-usd">Additional USD micros</Label>
+          <Input
+            id="eve-override-usd"
+            max="100000000"
+            min="0"
+            type="number"
+            value={overrideUsdMicros}
+            onChange={(event) => onOverrideUsdMicrosChange(event.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="eve-override-requests">
+            Additional requests/minute
+          </Label>
+          <Input
+            id="eve-override-requests"
+            max="1000"
+            min="0"
+            type="number"
+            value={overrideRequests}
+            onChange={(event) => onOverrideRequestsChange(event.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="eve-override-minutes">Expiry in minutes</Label>
+          <Input
+            id="eve-override-minutes"
+            max="1440"
+            min="1"
+            type="number"
+            value={overrideMinutes}
+            onChange={(event) => onOverrideMinutesChange(event.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="eve-override-reason">Reason</Label>
+          <Input
+            id="eve-override-reason"
+            value={overrideReason}
+            onChange={(event) => onOverrideReasonChange(event.target.value)}
+          />
+        </div>
+        <div className="md:col-span-2">
+          <AlertDialog>
+            <AlertDialogTrigger
+              disabled={
+                isPending || !overrideScopeId.trim() || !overrideReason.trim()
+              }
+              render={
+                <Button variant="destructive">Review emergency override</Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Grant a temporary hard-limit increase?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This applies only to {overrideScopeType} {overrideScopeId},
+                  expires automatically, and creates a permanent accountable
+                  audit record. It does not bypass any other governance gate.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={onSubmit}>
+                  Confirm bounded override
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EveModelPolicyLoadedView({
+  data,
+  draftError,
+  draftText,
+  mutation,
+  overrideMinutes,
+  overrideReason,
+  overrideRequests,
+  overrideScopeId,
+  overrideScopeType,
+  overrideUsdMicros,
+  onDraftTextChange,
+  onOverrideMinutesChange,
+  onOverrideReasonChange,
+  onOverrideRequestsChange,
+  onOverrideScopeIdChange,
+  onOverrideScopeTypeChange,
+  onOverrideUsdMicrosChange,
+  onSubmitDraft,
+  onSubmitOverride,
+}: {
+  data: EveModelPolicyAdminView;
+  draftError?: string;
+  draftText: string;
+  mutation: {
+    error: Error | null;
+    isPending: boolean;
+    mutate: (mutation: EveModelPolicyMutation) => void;
+  };
+  overrideMinutes: string;
+  overrideReason: string;
+  overrideRequests: string;
+  overrideScopeId: string;
+  overrideScopeType: "role" | "subagent";
+  overrideUsdMicros: string;
+  onDraftTextChange: (value: string) => void;
+  onOverrideMinutesChange: (value: string) => void;
+  onOverrideReasonChange: (value: string) => void;
+  onOverrideRequestsChange: (value: string) => void;
+  onOverrideScopeIdChange: (value: string) => void;
+  onOverrideScopeTypeChange: (value: "role" | "subagent") => void;
+  onOverrideUsdMicrosChange: (value: string) => void;
+  onSubmitDraft: () => void;
+  onSubmitOverride: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <Card id="eve-model-policy">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <BrainCircuit aria-hidden="true" className="size-5" />
+                Shared model policy
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Gateway-primary role policy with immutable versions, independent
+                judges, hard limits, eval gates, and rollback.
+              </CardDescription>
+            </div>
+            <Badge variant={data.canManage ? "secondary" : "outline"}>
+              {data.canManage ? "ai.settings.manage" : "Read only"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {mutation.error || draftError ? (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle aria-hidden="true" className="size-4" />
+              <AlertTitle>Model-policy update failed</AlertTitle>
+              <AlertDescription>
+                {draftError ?? mutation.error?.message}
+              </AlertDescription>
+            </Alert>
+          ) : null}
+          <EveModelPolicyActiveAlert activePolicy={data.activePolicy} />
+          <EveModelPolicyReadiness data={data} />
+          <EveModelPolicyVersionList
+            activePolicyId={data.activePolicy?.id}
+            canManage={data.canManage}
+            isPending={mutation.isPending}
+            onMutate={(nextMutation) => mutation.mutate(nextMutation)}
+            policies={data.policies}
+          />
+        </CardContent>
+      </Card>
+
+      {data.canManage ? (
+        <EveModelPolicyDraftCard
+          draftText={draftText}
+          isPending={mutation.isPending}
+          onDraftTextChange={onDraftTextChange}
+          onSubmit={onSubmitDraft}
+        />
+      ) : null}
+
+      {data.canManage && data.activePolicy ? (
+        <EveModelPolicyOverrideCard
+          isPending={mutation.isPending}
+          overrideMinutes={overrideMinutes}
+          overrideReason={overrideReason}
+          overrideRequests={overrideRequests}
+          overrideScopeId={overrideScopeId}
+          overrideScopeType={overrideScopeType}
+          overrideUsdMicros={overrideUsdMicros}
+          onOverrideMinutesChange={onOverrideMinutesChange}
+          onOverrideReasonChange={onOverrideReasonChange}
+          onOverrideRequestsChange={onOverrideRequestsChange}
+          onOverrideScopeIdChange={onOverrideScopeIdChange}
+          onOverrideScopeTypeChange={onOverrideScopeTypeChange}
+          onOverrideUsdMicrosChange={onOverrideUsdMicrosChange}
+          onSubmit={onSubmitOverride}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 export function EveModelPolicyPanel() {
   const queryClient = useQueryClient();
   const [draftText, setDraftText] = useState(() =>
@@ -390,21 +776,11 @@ export function EveModelPolicyPanel() {
   });
 
   if (query.isLoading) {
-    return (
-      <Skeleton className="h-52 w-full" aria-label="Loading model policy" />
-    );
+    return <EveModelPolicyLoading />;
   }
 
   if (query.isError || !query.data) {
-    return (
-      <Alert variant="destructive">
-        <AlertTriangle aria-hidden="true" className="size-4" />
-        <AlertTitle>Could not load Eve model policy</AlertTitle>
-        <AlertDescription>
-          {query.error?.message ?? "The model-policy store is unavailable."}
-        </AlertDescription>
-      </Alert>
-    );
+    return <EveModelPolicyLoadError message={query.error?.message} />;
   }
 
   const data = query.data;
@@ -438,222 +814,26 @@ export function EveModelPolicyPanel() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card id="eve-model-policy">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BrainCircuit aria-hidden="true" className="size-5" />
-                Shared model policy
-              </CardTitle>
-              <CardDescription className="mt-1">
-                Gateway-primary role policy with immutable versions, independent
-                judges, hard limits, eval gates, and rollback.
-              </CardDescription>
-            </div>
-            <Badge variant={data.canManage ? "secondary" : "outline"}>
-              {data.canManage ? "ai.settings.manage" : "Read only"}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {mutation.error || draftError ? (
-            <Alert variant="destructive" className="mb-4">
-              <AlertTriangle aria-hidden="true" className="size-4" />
-              <AlertTitle>Model-policy update failed</AlertTitle>
-              <AlertDescription>
-                {draftError ?? mutation.error?.message}
-              </AlertDescription>
-            </Alert>
-          ) : null}
-          {data.activePolicy ? (
-            <Alert className="mb-4">
-              <ShieldCheck aria-hidden="true" className="size-4" />
-              <AlertTitle>
-                Active policy v{data.activePolicy.version} is eval-passed
-              </AlertTitle>
-              <AlertDescription>
-                Primary routing remains Vercel AI Gateway. Direct providers are
-                fallback-only and are revoked by model-policy kill-switch state.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <Alert className="mb-4">
-              <AlertTriangle aria-hidden="true" className="size-4" />
-              <AlertTitle>No active model policy</AlertTitle>
-              <AlertDescription>
-                Eve remains fail-closed. Draft and evaluate a policy before any
-                activation can succeed.
-              </AlertDescription>
-            </Alert>
-          )}
-          <EveModelPolicyReadiness data={data} />
-          <ul className="divide-y divide-border">
-            {data.policies.length === 0 ? (
-              <li className="py-4 text-sm text-muted-foreground">
-                No model-policy versions have been drafted.
-              </li>
-            ) : (
-              data.policies.map((policy) => (
-                <PolicyLifecycleRow
-                  key={policy.id}
-                  activePolicyId={data.activePolicy?.id}
-                  canManage={data.canManage}
-                  isPending={mutation.isPending}
-                  onMutate={(nextMutation) => mutation.mutate(nextMutation)}
-                  policy={policy}
-                />
-              ))
-            )}
-          </ul>
-        </CardContent>
-      </Card>
-
-      {data.canManage ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Draft a policy version</CardTitle>
-            <CardDescription>
-              Drafts are immutable. Editing this JSON creates a new version;
-              evaluation and activation remain separate deliberate actions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Textarea
-              aria-label="Model policy JSON"
-              className="min-h-96 font-mono text-xs"
-              value={draftText}
-              onChange={(event) => setDraftText(event.target.value)}
-            />
-            <Button disabled={mutation.isPending} onClick={submitDraft}>
-              Create immutable draft
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {data.canManage && data.activePolicy ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BadgeDollarSign aria-hidden="true" className="size-5" />
-              Emergency budget override
-            </CardTitle>
-            <CardDescription>
-              Add a bounded, expiring allowance to one active role or subagent.
-              Every override requires the dedicated permission and is audited.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="eve-override-scope-type">Scope type</Label>
-              <select
-                id="eve-override-scope-type"
-                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                value={overrideScopeType}
-                onChange={(event) =>
-                  setOverrideScopeType(
-                    event.target.value as "role" | "subagent",
-                  )
-                }
-              >
-                <option value="role">Role</option>
-                <option value="subagent">Subagent</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="eve-override-scope-id">Scope identifier</Label>
-              <Input
-                id="eve-override-scope-id"
-                value={overrideScopeId}
-                onChange={(event) => setOverrideScopeId(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="eve-override-usd">Additional USD micros</Label>
-              <Input
-                id="eve-override-usd"
-                max="100000000"
-                min="0"
-                type="number"
-                value={overrideUsdMicros}
-                onChange={(event) => setOverrideUsdMicros(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="eve-override-requests">
-                Additional requests/minute
-              </Label>
-              <Input
-                id="eve-override-requests"
-                max="1000"
-                min="0"
-                type="number"
-                value={overrideRequests}
-                onChange={(event) => setOverrideRequests(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="eve-override-minutes">Expiry in minutes</Label>
-              <Input
-                id="eve-override-minutes"
-                max="1440"
-                min="1"
-                type="number"
-                value={overrideMinutes}
-                onChange={(event) => setOverrideMinutes(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="eve-override-reason">Reason</Label>
-              <Input
-                id="eve-override-reason"
-                value={overrideReason}
-                onChange={(event) => setOverrideReason(event.target.value)}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <AlertDialog>
-                <AlertDialogTrigger
-                  disabled={
-                    mutation.isPending ||
-                    !overrideScopeId.trim() ||
-                    !overrideReason.trim()
-                  }
-                  render={
-                    <Button variant="destructive">
-                      Review emergency override
-                    </Button>
-                  }
-                />
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Grant a temporary hard-limit increase?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This applies only to {overrideScopeType} {overrideScopeId}
-                      , expires automatically, and creates a permanent
-                      accountable audit record. It does not bypass any other
-                      governance gate.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      variant="destructive"
-                      onClick={submitOverride}
-                    >
-                      Confirm bounded override
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-    </div>
+    <EveModelPolicyLoadedView
+      data={data}
+      draftError={draftError}
+      draftText={draftText}
+      mutation={mutation}
+      overrideMinutes={overrideMinutes}
+      overrideReason={overrideReason}
+      overrideRequests={overrideRequests}
+      overrideScopeId={overrideScopeId}
+      overrideScopeType={overrideScopeType}
+      overrideUsdMicros={overrideUsdMicros}
+      onDraftTextChange={setDraftText}
+      onOverrideMinutesChange={setOverrideMinutes}
+      onOverrideReasonChange={setOverrideReason}
+      onOverrideRequestsChange={setOverrideRequests}
+      onOverrideScopeIdChange={setOverrideScopeId}
+      onOverrideScopeTypeChange={setOverrideScopeType}
+      onOverrideUsdMicrosChange={setOverrideUsdMicros}
+      onSubmitDraft={submitDraft}
+      onSubmitOverride={submitOverride}
+    />
   );
 }

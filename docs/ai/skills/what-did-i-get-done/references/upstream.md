@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/w
 source_type: github
 upstream_path: cursor-team-kit/skills/what-did-i-get-done/
 skills_lock_hash: 479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8
-last_reviewed: 2026-06-26
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: what-did-i-get-done
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/what-did-i-get-done/` (mirrored to 
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/what-did-i-get-done/`
 - **Lock skillPath:** `cursor-team-kit/skills/what-did-i-get-done/SKILL.md`
 - **Computed hash:** `479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8`

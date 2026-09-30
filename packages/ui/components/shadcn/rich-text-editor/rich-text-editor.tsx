@@ -76,7 +76,7 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       editorProps: {
         attributes: {
           class: cn(
-            "tiptap prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-[150px] p-4",
+            "tiptap prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-37.5 p-4",
             proseInvert && "dark:prose-invert",
             editorClassName,
           ),
@@ -118,8 +118,10 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       lastSyncedValueRef.current = value;
     }, [value, editor]);
 
+    const contextValue = React.useMemo(() => ({ editor }), [editor]);
+
     return (
-      <EditorContext.Provider value={{ editor }}>
+      <EditorContext.Provider value={contextValue}>
         <div
           ref={ref}
           className={cn(

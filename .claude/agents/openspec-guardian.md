@@ -91,6 +91,12 @@ Check:
 - Did the agent confuse an active change with shipped behavior?
 - Did the agent attempt to restore Twenty CRM?
 
+For design-system lint or UI-workflow changes, compare
+`docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`,
+the executable policy, and the relevant OpenSpec requirements. Flag broad
+exceptions, silent debt growth, unproven discovery/cache claims, or a completion
+claim supported only by documentation. Preserve proportional verification.
+
 ### Scope drift
 
 Look for scope drift.

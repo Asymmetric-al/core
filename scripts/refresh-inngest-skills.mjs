@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -9,9 +9,9 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const skillsRoot = path.join(repoRoot, "docs", "ai", "skills");
 
-const INNGEST_SKILLS_REF = "c1996f94a1c39a10a56bb848a2ce7701bfe7346d";
-const INNGEST_CODEX_PLUGIN_REF = "6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e";
-const INNGEST_CLAUDE_PLUGIN_REF = "bf1b06ea9de8790c679ed54f3ef04e1334d3fb96";
+const INNGEST_SKILLS_REF = "ff42436bcedfb262d6a377571ce64a0d78d386a5";
+const INNGEST_CODEX_PLUGIN_REF = "39a5c1833f7b36ecd3402e04306dd43b9c3f1fa2";
+const INNGEST_CLAUDE_PLUGIN_REF = "10536d34e593c436a76df9d313a66f480ea318c6";
 
 const coreSkills = [
   "inngest-setup",
@@ -28,6 +28,7 @@ const codexSkills = [
   "inngest-agents",
   "inngest-v3-v4-migration",
   "inngest-api",
+  "inngest-api-cli",
 ];
 
 const upstreamSkills = [
@@ -113,12 +114,26 @@ const referenceSources = [
     targetSkillName: "inngest-middleware",
   },
   {
-    fileName: "agent-friction.md",
+    fileName: "rest-api-v2.md",
+    repo: "inngest/inngest-codex-plugin",
+    ref: INNGEST_CODEX_PLUGIN_REF,
+    sourcePath: "plugins/inngest/skills/inngest-api/references/rest-api-v2.md",
+    targetSkillName: "inngest-api",
+  },
+  {
+    fileName: "cli-commands.md",
     repo: "inngest/inngest-codex-plugin",
     ref: INNGEST_CODEX_PLUGIN_REF,
     sourcePath:
-      "plugins/inngest/skills/inngest-api/references/agent-friction.md",
+      "plugins/inngest/skills/inngest-api-cli/references/cli-commands.md",
+    targetSkillName: "inngest-api-cli",
+  },
+];
+
+const retiredReferenceFiles = [
+  {
     targetSkillName: "inngest-api",
+    fileName: "agent-friction.md",
   },
 ];
 
@@ -279,7 +294,9 @@ Use this router only to choose the specific skill to load next.
   \`docs/ai/skills/inngest-agents/SKILL.md\`
 - Existing v3 to v4 migration only:
   \`docs/ai/skills/inngest-v3-v4-migration/SKILL.md\`
-- Inngest API or CLI operations:
+- Inngest CLI API operations (\`npx inngest-cli@latest api\`):
+  \`docs/ai/skills/inngest-api-cli/SKILL.md\`
+- Raw Inngest REST API v2, OpenAPI, or HTTP:
   \`docs/ai/skills/inngest-api/SKILL.md\`
 
 ## Checklist
@@ -393,6 +410,16 @@ async function main() {
 
   for (const reference of referenceSources) {
     await writeReference(reference);
+  }
+
+  for (const retired of retiredReferenceFiles) {
+    const retiredPath = path.join(
+      skillsRoot,
+      retired.targetSkillName,
+      "references",
+      retired.fileName,
+    );
+    await rm(retiredPath, { force: true });
   }
 
   await writeRouterAndReferences();

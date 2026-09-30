@@ -22,8 +22,8 @@ Always use `FieldGroup` + `Field` — never raw `div` with `space-y-*`:
     <Input id="email" type="email" />
   </Field>
   <Field>
-    <FieldLabel htmlFor="password">Password</FieldLabel>
-    <Input id="password" type="password" />
+    <FieldLabel htmlFor="password">Password</FieldLabel> // pragma: allowlist secret
+    <Input id="password" type="password" /> // pragma: allowlist secret
   </Field>
 </FieldGroup>
 ```

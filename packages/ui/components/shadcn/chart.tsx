@@ -48,9 +48,10 @@ function ChartContainer({
 }) {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
+  const contextValue = React.useMemo(() => ({ config }), [config]);
 
   return (
-    <ChartContext.Provider value={{ config }}>
+    <ChartContext.Provider value={contextValue}>
       <div
         data-slot="chart"
         data-chart={chartId}
@@ -95,6 +96,7 @@ ${colorConfig
     )
     .join("\n");
 
+  // eslint-disable-next-line shadcn/no-inline-styles -- TODO(integrate-design-system-lint): ChartConfig owns per-chart runtime theme variables.
   return <style>{css}</style>;
 };
 
@@ -200,7 +202,7 @@ function ChartTooltipContent({
                       !hideIndicator && (
                         <div
                           className={cn(
-                            "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
+                            "shrink-0 rounded-xs border-(--color-border) bg-(--color-bg)",
                             {
                               "size-2.5": indicator === "dot",
                               "w-1": indicator === "line",
@@ -290,10 +292,10 @@ function ChartLegendContent({
                 <itemConfig.icon />
               ) : (
                 <div
-                  className="size-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
+                  className="size-2 shrink-0 rounded-xs bg-(--legend-color)"
+                  style={
+                    { "--legend-color": item.color } as React.CSSProperties
+                  }
                 />
               )}
               {itemConfig?.label}

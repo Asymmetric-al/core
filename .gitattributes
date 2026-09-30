@@ -38,6 +38,9 @@
 *.lock text eol=lf
 bun.lock text eol=lf
 
+# Unified-diff context prefixes precede upstream tab indentation.
+tooling/eslint-config/patches/*.patch text eol=lf whitespace=-space-before-tab
+
 # Windows-native scripts remain CRLF.
 *.bat text eol=crlf
 *.cmd text eol=crlf

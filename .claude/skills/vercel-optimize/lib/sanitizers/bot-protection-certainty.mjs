@@ -27,8 +27,8 @@ export function apply(rec) {
 
   const text = STRING_FIELDS.map((field) => rec?.[field]).filter((s) => typeof s === 'string').join('\n');
   if (/\b(?:Bot Protection|BotID|bot_filter|WAF)\b/i.test(text) &&
-      !/\bLog\s*(?:->|\u2192)\s*Challenge\s*(?:->|\u2192)\s*Deny\b/i.test(text)) {
-    const caveat = ' Use a staged Log -> Challenge -> Deny rollout with allowlist/exclusions for known monitoring and partner clients.';
+      !/\bstaged\b[\s\S]{0,80}\b(?:log|allowlist|exclusions?)\b/i.test(text)) {
+    const caveat = ' Use a staged rollout that starts in Log mode where available, then moves to the appropriate Challenge or Deny action only after allowlist/exclusion review for known monitoring and partner clients.';
     if (typeof rec.fix === 'string') rec.fix += caveat;
     else rec.fix = caveat.trim();
     tags.push('bot-protection-certainty:staged-rollout');

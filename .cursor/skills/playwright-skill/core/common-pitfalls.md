@@ -83,7 +83,7 @@ import { test, expect } from '@playwright/test';
 test('bad: missing await', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   page.getByRole('button', { name: 'Sign in' }).click(); // MISSING AWAIT
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 });
@@ -92,7 +92,7 @@ test('bad: missing await', async ({ page }) => {
 test('good: all actions awaited', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 });
@@ -431,7 +431,7 @@ import { test, expect } from '@playwright/test';
 test('bad: no navigation handling', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   // Page is navigating — this may fail with "Execution context was destroyed"
   await expect(page.getByRole('heading')).toHaveText('Dashboard');
@@ -441,7 +441,7 @@ test('bad: no navigation handling', async ({ page }) => {
 test('good: waitForURL after navigation', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
   await expect(page.getByRole('heading')).toHaveText('Dashboard');
@@ -451,7 +451,7 @@ test('good: waitForURL after navigation', async ({ page }) => {
 test('good: toHaveURL assertion', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/.*dashboard/);
   await expect(page.getByRole('heading')).toHaveText('Dashboard');
@@ -466,7 +466,7 @@ const { test, expect } = require('@playwright/test');
 test('good: waitForURL after navigation', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password');
+  await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
   await expect(page.getByRole('heading')).toHaveText('Dashboard');
@@ -918,7 +918,7 @@ test.describe('admin security settings', () => {
 });
 ```
 
-If you need to organize many tests, split into separate files: `security-2fa.spec.ts`, `security-passwords.spec.ts`, `security-sessions.spec.ts`.
+If you need to organize many tests, split into separate files: `security-2fa.spec.ts`, `security-passwords.spec.ts`, `security-sessions.spec.ts`. // pragma: allowlist secret
 
 ---
 

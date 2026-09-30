@@ -12,6 +12,14 @@ This package is the single source of truth for lint rules used across:
 
 The shared base config enforces architecture boundaries and high-signal bug-catching rules.
 
+Web UI additionally composes `designSystemConfig({ workspace })` from
+`@asym/eslint-config/design-system.mjs`. It applies to the three apps,
+`packages/ui`, and `packages/missionary`; ordinary backend/library consumers
+use the base/library rules without web styling policy. Root and workspace
+scripts run the shared lint adapter. Commands, profiles, exception rationale,
+discovery health, and legacy-debt handling live in the
+[canonical UI lint workflow](../../docs/ai/skills/moai-library-shadcn/references/design-system-lint.md).
+
 ## Usage
 
 ### Next.js app
@@ -109,8 +117,8 @@ builders instead:
 
 ## Adding Rules or Plugins
 
-1. Add plugin dependency at repository root and keep optional peers in this package.
-2. Add shared rules in `base.mjs` unless they are framework-specific.
+1. Declare a plugin in the tooling package that imports it; do not rely on accidental root hoisting. Existing peer dependencies retain their declared ownership.
+2. Add universally applicable rules in `base.mjs`; explicitly scoped design-system rules belong in `design-system.mjs`.
 3. Add framework-specific rules in `nextjs.mjs` or `library.mjs`.
 4. Run:
    - `bun run lint`

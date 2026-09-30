@@ -43,17 +43,33 @@ export function SaveViewDialog({
   routeState,
   editingView,
 }: SaveViewDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        {/* The popup unmounts while closed and the key follows the target
+            view, so the form re-initializes from props on every open without
+            a reset effect. */}
+        <SaveViewForm
+          key={editingView?.id ?? "new"}
+          onOpenChange={onOpenChange}
+          routeState={routeState}
+          editingView={editingView}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function SaveViewForm({
+  onOpenChange,
+  routeState,
+  editingView,
+}: Omit<SaveViewDialogProps, "open">) {
   const saveSavedView = useSaveSupportSavedView();
   const [name, setName] = React.useState(editingView?.name ?? "");
   const [scope, setScope] = React.useState<"personal" | "workspace">(
     editingView?.scope ?? "personal",
   );
-
-  React.useEffect(() => {
-    if (!open) return;
-    setName(editingView?.name ?? "");
-    setScope(editingView?.scope ?? "personal");
-  }, [editingView?.name, editingView?.scope, open]);
 
   const trimmed = name.trim();
 
@@ -88,77 +104,73 @@ export function SaveViewDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {editingView ? "Edit saved view" : "Save current filter"}
-          </DialogTitle>
-          <DialogDescription>
-            Saved views capture the current view, status, label, assignee, and
-            search so the team can return to the same slice with one click.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="support-save-view-name">Name</Label>
-            <Input
-              id="support-save-view-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Mine - Open"
-              maxLength={80}
-              autoFocus
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Scope</Label>
-            <RadioGroup
-              value={scope}
-              onValueChange={(next) =>
-                setScope(next as "personal" | "workspace")
-              }
-              className="flex flex-col gap-2"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="personal" id="scope-personal" />
-                <Label
-                  htmlFor="scope-personal"
-                  className="text-[12px] font-medium"
-                >
-                  Just me
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="workspace" id="scope-workspace" />
-                <Label
-                  htmlFor="scope-workspace"
-                  className="text-[12px] font-medium"
-                >
-                  Whole workspace
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {editingView ? "Edit saved view" : "Save current filter"}
+        </DialogTitle>
+        <DialogDescription>
+          Saved views capture the current view, status, label, assignee, and
+          search so the team can return to the same slice with one click.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex flex-col gap-4 py-2">
+        <div className="space-y-2">
+          <Label htmlFor="support-save-view-name">Name</Label>
+          <Input
+            id="support-save-view-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Mine - Open"
+            maxLength={80}
+            autoFocus
+          />
         </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
+        <div className="space-y-2">
+          <Label>Scope</Label>
+          <RadioGroup
+            value={scope}
+            onValueChange={(next) => setScope(next as "personal" | "workspace")}
+            className="flex flex-col gap-2"
           >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={saveSavedView.isPending || trimmed.length === 0}
-          >
-            {editingView ? "Save changes" : "Save view"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="personal" id="scope-personal" />
+              <Label
+                htmlFor="scope-personal"
+                className="text-[12px] font-medium"
+              >
+                Just me
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="workspace" id="scope-workspace" />
+              <Label
+                htmlFor="scope-workspace"
+                className="text-[12px] font-medium"
+              >
+                Whole workspace
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSave}
+          disabled={saveSavedView.isPending || trimmed.length === 0}
+        >
+          {editingView ? "Save changes" : "Save view"}
+        </Button>
+      </DialogFooter>
+    </>
   );
 }
 

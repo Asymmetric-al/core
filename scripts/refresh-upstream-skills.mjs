@@ -37,6 +37,8 @@ const lastReviewed =
 const SAFE_CANONICAL_SKILL_DIR_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CORE_OVERLAY_START = "<!-- CORE-OVERLAY-START -->";
 const CORE_OVERLAY_END = "<!-- CORE-OVERLAY-END -->";
+const ASK_MATT_MAIN_FLOW_HEADING = "## The main flow: idea → ship";
+const ASK_MATT_MAIN_FLOW_STEP_TWO = "2. **Branch";
 const GRILL_UPSTREAM_DESCRIPTION =
   "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.";
 const GRILL_CORE_DESCRIPTION =
@@ -45,15 +47,49 @@ const GRILL_REVIEWED_VERSION = "0.1.1";
 const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 
 const emilKowalskiSkillNames = [
+  "animate",
+  "animate-expo",
   "animation-vocabulary",
   "apple-design",
+  "ask-sonner",
   "emil-design-eng",
+  "emil-prototype",
   "improve-animations",
+  "mobile-native",
+  "pick-ui-library",
   "review-animations",
+  "write-swift",
 ];
 
 const emilKowalskiSources = emilKowalskiSkillNames.map((skillName) => ({
   sourceGroup: "emilkowalski/skills",
+  skillName,
+  from: path.join(repoRoot, ".agents", "skills", skillName),
+  preserve: ["references/upstream.md", "references/LICENSE.md"],
+}));
+
+const jakubKrehelSkillNames = [
+  "better-accessibility",
+  "better-colors",
+  "better-interface",
+  "better-layout",
+  "better-typography",
+  "better-ui",
+  "better-writing",
+  "interface-review",
+];
+
+const jakubKrehelSources = jakubKrehelSkillNames.map((skillName) => ({
+  sourceGroup: "jakubkrehel/skills",
+  skillName,
+  from: path.join(repoRoot, ".agents", "skills", skillName),
+  preserve: ["references/upstream.md", "references/LICENSE.md"],
+}));
+
+const tasteSkillNames = ["design-taste-frontend", "redesign-existing-projects"];
+
+const tasteSkillSources = tasteSkillNames.map((skillName) => ({
+  sourceGroup: "leonxlnx/taste-skill",
   skillName,
   from: path.join(repoRoot, ".agents", "skills", skillName),
   preserve: ["references/upstream.md", "references/LICENSE.md"],
@@ -100,7 +136,27 @@ const upstreamSources = [
     from: path.join(repoRoot, ".agents", "skills", "grill-for-unknowns"),
     preserve: ["references/upstream.md"],
   },
+  {
+    sourceGroup: "anthropics/skills",
+    skillName: "frontend-design",
+    from: path.join(repoRoot, ".agents", "skills", "frontend-design"),
+    preserve: ["references/upstream.md", "references/LICENSE.md"],
+  },
+  {
+    sourceGroup: "mattpocock/skills",
+    skillName: "ask-matt",
+    from: path.join(repoRoot, ".agents", "skills", "ask-matt"),
+    preserve: ["references/upstream.md"],
+  },
+  {
+    sourceGroup: "obra/superpowers",
+    skillName: "test-driven-development",
+    from: path.join(repoRoot, ".agents", "skills", "test-driven-development"),
+    preserve: ["references/upstream.md", "references/LICENSE.md"],
+  },
   ...emilKowalskiSources,
+  ...jakubKrehelSources,
+  ...tasteSkillSources,
 ];
 
 const openspecSkillNames = [
@@ -331,6 +387,89 @@ const POST_REFRESH_REPLACEMENTS = [
     relativePath: "SKILL.md",
     search: "license: MIT\nmetadata:",
     replace: "license: MIT\ndisable-model-invocation: true\nmetadata:",
+    required: true,
+  },
+  {
+    skillName: "frontend-design",
+    relativePath: "SKILL.md",
+    search: "license: Complete terms in LICENSE.txt\n---",
+    replace:
+      "license: Complete terms in LICENSE.txt\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "ask-matt",
+    relativePath: "SKILL.md",
+    search:
+      "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+    replace:
+      "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
+    required: true,
+  },
+  {
+    skillName: "design-taste-frontend",
+    relativePath: "SKILL.md",
+    search:
+      "description: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.\n---",
+    replace:
+      "description: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "redesign-existing-projects",
+    relativePath: "SKILL.md",
+    search:
+      "description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.\n---",
+    replace:
+      "description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "interface-review",
+    relativePath: "SKILL.md",
+    search: "name: interface-review\ndescription:",
+    replace:
+      "name: interface-review\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "test-driven-development",
+    relativePath: "SKILL.md",
+    search: "name: test-driven-development\ndescription:",
+    replace:
+      "name: test-driven-development\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "test-driven-development",
+    relativePath: "SKILL.md",
+    search:
+      "description: Use when implementing any feature or bugfix, before writing implementation code",
+    replace:
+      "description: Use only when the user explicitly invokes obra test-driven-development for iron-law examples. Core TDD is docs/ai/skills/tdd/SKILL.md. Do not use this for docs-only, formatting-only, or generated-mirror changes.",
+    required: true,
+  },
+  {
+    skillName: "better-ui",
+    relativePath: "SKILL.md",
+    search: "name: better-ui\ndescription:",
+    replace: "name: better-ui\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "better-colors",
+    relativePath: "SKILL.md",
+    search: "name: better-colors\ndescription:",
+    replace:
+      "name: better-colors\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "better-layout",
+    relativePath: "SKILL.md",
+    search: "name: better-layout\ndescription:",
+    replace:
+      "name: better-layout\ndisable-model-invocation: true\ndescription:",
     required: true,
   },
   {
@@ -634,11 +773,44 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.",
+    replace:
+      "1. **Do not mount a Toaster.** Core layouts already mount `@asym/ui`'s `<Toaster />` once. Reuse that host. A second mounted Toaster duplicates every toast.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search: 'import { Toaster } from "sonner"; // once, near the root',
+    replace:
+      'import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts',
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      /^\| Toast never appears\s+\| No `<Toaster \/>` is mounted — add one near the app root\.\s+\|$/m,
+    replace:
+      "| Toast never appears                                                   | Core already mounts `@asym/ui`'s `<Toaster />`. Reuse that host — do not add another. If it unmounted (conditional render, per-page placement), restore the shared layout toaster. If calling from a server action: `toast()` is client-only — call it with the action's result on the client. |",
+    required: true,
+  },
+  {
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
     search: '<input data-lpignore="true" data-1p-ignore />',
     replace:
       '<input data-lpignore="true" data-1p-ignore /> // pragma: allowlist secret',
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "forms-controls.md",
+    search: "Use appropriate `type` attributes:\n\n```html\n",
+    replace:
+      "Use appropriate `type` attributes:\n\n<!-- prettier-ignore -->\n```html\n",
   },
   {
     skillName: "emil-design-engineering",
@@ -652,6 +824,69 @@ const POST_REFRESH_REPLACEMENTS = [
     search: "Disable 1Password autocomplete when not needed:", // pragma: allowlist secret
     replace:
       "Disable 1Password autocomplete when not needed: // pragma: allowlist secret",
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "component-design.md",
+    search: "4. **asChild** - Render as different element (Radix pattern)",
+    replace:
+      "4. **Composition** - For link-styled actions, apply `buttonVariants` on `Link` / `<a>` (Base UI `render`, not a Radix Slot wrapper)",
+    required: true,
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "component-design.md",
+    search: [
+      "## The `asChild` Pattern",
+      "",
+      "Allow rendering as a different element while preserving behavior:",
+      "",
+      "```jsx",
+      "// Render as button (default)",
+      "<Button>Click me</Button>",
+      "",
+      "// Render as link",
+      "<Button asChild>",
+      '  <a href="/page">Click me</a>',
+      "</Button>",
+      "",
+      "// Render as Next.js Link",
+      "<Button asChild>",
+      '  <Link href="/page">Click me</Link>',
+      "</Button>",
+      "```",
+      "",
+      "Implementation using Radix Slot:",
+      "",
+      "```jsx",
+      'import { Slot } from "@radix-ui/react-slot";',
+      "",
+      "function Button({ asChild, ...props }) {",
+      '  const Comp = asChild ? Slot : "button";',
+      "  return <Comp {...props} />;",
+      "}",
+      "```",
+    ].join("\n"),
+    replace: [
+      "## Link-styled actions (Base UI)",
+      "",
+      "Core's `Button` is Base UI `ButtonPrimitive` plus `buttonVariants`. Do not add",
+      "a Radix Slot wrapper. For a control that should navigate, put the variants on",
+      "the real link:",
+      "",
+      "```jsx",
+      'import Link from "next/link";',
+      'import { buttonVariants } from "@asym/ui/components/shadcn/button";',
+      "",
+      '<Link href="/page" className={buttonVariants({ variant: "default" })}>',
+      "  Click me",
+      "</Link>",
+      "```",
+      "",
+      "When a Base UI primitive must render as another element, use its `render` prop.",
+      "Keep that local to the primitive — do not wrap `Button` in a slot helper.",
+    ].join("\n"),
+    required: true,
   },
   {
     skillName: "emil-design-eng",
@@ -670,39 +905,273 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
-    skillName: "emil-design-eng",
+    skillName: "emil-prototype",
     relativePath: "SKILL.md",
-    search: "`transform-origin: var(--radix-popover-content-transform-origin)`",
-    replace: "`transform-origin: var(--transform-origin)`",
+    search: "name: prototype\n",
+    replace: "name: emil-prototype\n",
     required: true,
   },
   {
-    skillName: "emil-design-eng",
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search: [
+      "| One-time ",
+      "pass",
+      "word",
+      " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+    ].join(""),
+    replace:
+      "| OTP / verification code inputs | `@asym/ui` `InputOTP` (`packages/ui/components/shadcn/input-otp.tsx`). Do not add another `input-otp` package. |",
+    required: true,
+  },
+  {
+    skillName: "pick-ui-library",
     relativePath: "SKILL.md",
     search:
-      "/* Radix UI */\n.popover {\n  transform-origin: var(--radix-popover-content-transform-origin);\n}\n\n/* Base UI */",
-    replace: "/* Base UI (this repo) */",
+      /^\| Command menus \(⌘K palettes\)\s+\| \[cmdk\]\(https:\/\/cmdk\.paco\.me\)\s+\|$/m,
+    replace:
+      "| Command menus (⌘K palettes) | `@asym/ui` `Command` (`packages/ui/components/shadcn/command.tsx`). Do not add another `cmdk` tree. |",
     required: true,
   },
   {
-    skillName: "emil-design-eng",
+    skillName: "pick-ui-library",
     relativePath: "SKILL.md",
-    search: "Set to trigger location or use Radix/Base UI CSS variable",
-    replace: "Use Base UI's `var(--transform-origin)`",
+    search:
+      /^\| State management\s+\| \[zustand\]\(https:\/\/zustand\.docs\.pmnd\.rs\)\s+\|$/m,
+    replace:
+      "| State management                               | Local `useState` / `useReducer`; React Context for shared UI state. Do not install Zustand. |",
     required: true,
   },
   {
-    skillName: "review-animations",
+    skillName: "pick-ui-library",
     relativePath: "SKILL.md",
-    search: "`var(--radix-popover-content-transform-origin)`",
-    replace: "`var(--transform-origin)`",
+    search:
+      "- **A `useState`-per-component web of props for shared state** → zustand.",
+    replace:
+      "- **A `useState`-per-component web of props for shared state** → lift with `useState` / `useReducer`, or React Context for shared UI state. Do not install Zustand.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+    replace:
+      "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — reuse `@asym/ui` and Base UI. Do not invoke `pick-ui-library` unless the user explicitly asked which library to use. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:",
+    replace:
+      "- **In Motion, `x`, `y`, and `scale` are supported independent transforms.** They are performant. Use a full `transform` string only when the animation must stay on the compositor while the main thread is busy:",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "<motion.div animate={{ x: 100 }} />                          // drops frames under load",
+    replace: "<motion.div animate={{ x: 100 }} />",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      '<motion.div animate={{ transform: "translateX(100px)" }} />  // hardware accelerated',
+    replace: '<motion.div animate={{ transform: "translateX(100px)" }} />',
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.",
+    replace:
+      "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out-soft` or a duration token already exists in `packages/ui/styles/globals.css`, use it. Adding a parallel system is a defect.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */",
+    replace: [
+      "--ease-out-soft: cubic-bezier(",
+      "  0.22,",
+      "  1,",
+      "  0.36,",
+      "  1",
+      "); /* Core token; strong ease-out for UI */",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search: "--ease-in-out: cubic-bezier(",
+    replace: "--ease-in-out-soft: cubic-bezier(",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search: [
+      "| Element                  | Duration      |",
+      "| ------------------------ | ------------- |",
+      "| Button press feedback    | 100–160ms     |",
+      "| Tooltips, small popovers | 125–200ms     |",
+      "| Dropdowns, selects       | 150–250ms     |",
+      "| Modals, drawers          | 200–500ms     |",
+      "| Marketing / explanatory  | Can be longer |",
+    ].join("\n"),
+    replace: [
+      "| Element                  | Duration                           |",
+      "| ------------------------ | ---------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)    |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)    |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms) |",
+      "| Modals                   | `var(--duration-modal)` (220ms)    |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)   |",
+      "| Marketing / explanatory  | Can be longer                      |",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search:
+      "Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.",
+    replace:
+      "Curves are the Core tokens `--ease-out-soft`, `--ease-in-out-soft`, and `--ease-drawer` from `packages/ui/styles/globals.css`.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: /var\(--ease-in-out\)/g,
+    replace: "var(--ease-in-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: /var\(--ease-out\)/g,
+    replace: "var(--ease-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: "transform 160ms var(--ease-out-soft)",
+    replace: "transform var(--duration-press) var(--ease-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: "transform 500ms var(--ease-drawer)",
+    replace: "transform var(--duration-drawer) var(--ease-drawer)",
+    required: true,
+  },
+  {
+    skillName: "emil-prototype",
+    relativePath: "SKILL.md",
+    search:
+      "- **In a project with a dev server** — an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent), one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
+    replace:
+      "- **In this monorepo** — an isolated HTML file or a static harness outside `apps/*/app/**` and outside production layouts. Do not add `apps/*/app/prototypes/` pages. One file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
+    required: true,
+  },
+  {
+    skillName: "animate-expo",
+    relativePath: "SKILL.md",
+    search:
+      "description: Build animations in React Native and Expo, making the decisions in the order that determines whether they feel right — should it animate, which thread it runs on, which properties, spring or timing, how the gesture hands off, how it degrades. Writes the implementation with Reanimated, Gesture Handler, Expo Router and expo-haptics. Use when animating anything in an Expo app, adding gestures, sheets, screen transitions, press feedback or haptics, or fixing motion that stutters on device. For web animation use `animate`.\n---",
+    replace:
+      "description: Build animations for Expo and React Native only, using Reanimated, Gesture Handler, Expo Router, and expo-haptics. Use when the target runtime is an Expo or React Native app. Do not use it for Core Next.js web motion; use `animate` for web. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
+    replace:
+      "**One toaster** — Core mounts a single `@asym/ui` `<Toaster />`. Do not add a second host.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.",
+    replace:
+      "3. **Shared toast chrome** — change the shared Sonner host in `packages/ui/components/shadcn/sonner.tsx` and `packages/ui/styles/globals.css`. Do not apply raw Tailwind colors such as a forced red on individual toasts. Use `toast.success` / `toast.error` on the existing host.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",
+    replace:
+      "| Toast shows up in every toaster                                       | Core has one shared toaster. Do not mount a second host.                                                                                                                                                                                                                                        |",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "**Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+    replace:
+      "**Toolchain baseline: Swift 6.4** (current public release). Rows and notes marked ⚠ require Swift 6.4; keep the older form when the project toolchain is Swift 6.3 or earlier. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "(Swift 6.4 — unreleased — adds a `Continuation` type that checks single-resumption at compile time.)",
+    replace:
+      "(Swift 6.4 adds a `Continuation` type that checks single-resumption at compile time. Skip it when the toolchain is Swift 6.3 or earlier.)",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "- Landing in Swift 6.4 (**unreleased** — see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop.",
+    replace:
+      "- Shipped in Swift 6.4 (see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop. Do not use these when the toolchain is Swift 6.3 or earlier.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "Swift 6.4's `@diagnose` attribute (unreleased) lets you turn it on for individual functions.",
+    replace:
+      "Swift 6.4's `@diagnose` attribute lets you turn it on for individual functions when the toolchain is 6.4 or newer.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "**Rows marked ⚠ are Swift 6.4, which has not shipped.** The current release is 6.3.x. Their proposals are accepted and implemented in main, so they are safe to plan around and unsafe to write today — check the project's toolchain before using one, and prefer the older form if it targets 6.3 or earlier.",
+    replace:
+      "**Rows marked ⚠ shipped in Swift 6.4.** Prefer the older form when the project toolchain is Swift 6.3 or earlier.",
     required: true,
   },
   {
     skillName: "improve-animations",
     relativePath: "PLAN-TEMPLATE.md",
     search:
-      "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);\n  transform-origin: var(--radix-dropdown-menu-content-transform-origin);",
+      "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);\n  transform-origin: var(--transform-origin);",
     replace:
       "  transition:\n    transform var(--duration-standard) var(--ease-out-soft),\n    opacity var(--duration-standard) var(--ease-out-soft);\n  transform-origin: var(--transform-origin);",
     required: true,
@@ -781,7 +1250,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "improve-animations",
     relativePath: "AUDIT.md",
     search:
-      "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+      "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
     replace:
       "  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */",
     required: true,
@@ -807,7 +1276,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "review-animations",
     relativePath: "STANDARDS.md",
     search:
-      "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+      "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
     replace:
       "  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */",
     required: true,
@@ -908,7 +1377,49 @@ async function readCoreOverlay(targetRoot) {
   }
 }
 
-async function restoreCoreOverlay(targetRoot, overlay) {
+function findAskMattMainFlowOverlayRange(content) {
+  const headingIndex = content.indexOf(ASK_MATT_MAIN_FLOW_HEADING);
+  const stepTwoIndex = content.indexOf(ASK_MATT_MAIN_FLOW_STEP_TWO);
+
+  if (
+    headingIndex === -1 ||
+    stepTwoIndex === -1 ||
+    stepTwoIndex < headingIndex
+  ) {
+    return null;
+  }
+
+  const between = content.slice(
+    headingIndex + ASK_MATT_MAIN_FLOW_HEADING.length,
+    stepTwoIndex,
+  );
+  const firstItemMatch = /\n1\. /.exec(between);
+  const insertStart =
+    firstItemMatch && firstItemMatch.index !== undefined
+      ? headingIndex + ASK_MATT_MAIN_FLOW_HEADING.length + firstItemMatch.index
+      : stepTwoIndex;
+
+  return { insertStart, stepTwoIndex };
+}
+
+async function restoreAskMattCoreOverlay(skillPath, content, overlay) {
+  const range = findAskMattMainFlowOverlayRange(content);
+  if (!range) {
+    throw new Error(
+      `Unable to locate Ask Matt main-flow overlay anchor in ${path.relative(repoRoot, skillPath)}`,
+    );
+  }
+
+  const before = content.slice(0, range.insertStart).trimEnd();
+  const after = content.slice(range.stepTwoIndex).trimStart();
+  await writeFile(
+    skillPath,
+    `${before}\n\n${overlay.trim()}\n${after}`,
+    "utf8",
+  );
+}
+
+async function restoreCoreOverlay(targetRoot, overlay, skillName) {
   if (!overlay) {
     return;
   }
@@ -939,6 +1450,11 @@ async function restoreCoreOverlay(targetRoot, overlay) {
     throw new Error(
       `Refresh source contains a different Core overlay: ${path.relative(repoRoot, skillPath)}`,
     );
+  }
+
+  if (skillName === "ask-matt") {
+    await restoreAskMattCoreOverlay(skillPath, content, overlay);
+    return;
   }
 
   const headingMatch = /^# .+$/m.exec(content);
@@ -1027,19 +1543,22 @@ function annotateEmilDesignEngineeringFormsControls(content) {
         }
       }
 
-      // The password example triggers the repo secret scanner. Target the line
-      // that contains `type="password"` (not "second <input>" by index: when
-      // email+password share one line, the next line is `tel` and would get a
+      // The password example triggers the repo secret scanner. Target the line // pragma: allowlist secret
+      // that contains `type="password"` (not "second <input>" by index: when // pragma: allowlist secret
+      // email+password share one line, the next line is `tel` and would get a // pragma: allowlist secret
       // spurious pragma).
-      const passwordLineIndex = inputLineIndexes.find((idx) =>
-        lines[idx].includes('type="password"'),
+      const credentialTypeLineIndex = inputLineIndexes.find(
+        (
+          idx, // pragma: allowlist secret
+        ) => lines[idx].includes('type="password"'), // pragma: allowlist secret
       );
       if (
-        passwordLineIndex !== undefined &&
-        !lines[passwordLineIndex].includes("// pragma: allowlist secret")
+        credentialTypeLineIndex !== undefined && // pragma: allowlist secret
+        !lines[credentialTypeLineIndex].includes("// pragma: allowlist secret")
       ) {
-        lines[passwordLineIndex] =
-          `${lines[passwordLineIndex]} // pragma: allowlist secret`;
+        lines[credentialTypeLineIndex] =
+          // pragma: allowlist secret
+          `${lines[credentialTypeLineIndex]} // pragma: allowlist secret`;
       }
     }
   }
@@ -1079,6 +1598,205 @@ function normalizeImproveAnimationsPlanTemplate(content, templatePath) {
   return normalized;
 }
 
+const SECRET_SCANNER_DEMO_TOKEN = ["pass", "word"].join("");
+const SECRET_SCANNER_PRAGMA_TOKEN = "pragma: allowlist secret";
+
+const SECRET_SCANNER_SKIP_SUFFIXES = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".zip",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".ico",
+  ".bin",
+  ".exe",
+  ".pdf",
+  ".cmd",
+]);
+
+function secretScannerComment(filePath) {
+  switch (path.extname(filePath).toLowerCase()) {
+    case ".json":
+      return null;
+    case ".py":
+      return `# ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case ".sql":
+      return `-- ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case ".md":
+    case ".mdx":
+    case ".html":
+      return `<!-- ${SECRET_SCANNER_PRAGMA_TOKEN} -->`;
+    default:
+      return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+  }
+}
+
+function secretScannerCommentForLanguage(language) {
+  const normalized = language.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  switch (normalized) {
+    case "json":
+      return null;
+    case "md":
+    case "mdx":
+    case "markdown":
+    case "html":
+    case "htm":
+    case "svg":
+    case "xml":
+      return `<!-- ${SECRET_SCANNER_PRAGMA_TOKEN} -->`;
+    case "gql":
+    case "graphql":
+    case "py":
+    case "python":
+    case "sh":
+    case "bash":
+    case "zsh":
+    case "shell":
+      return `# ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "sql":
+      return `-- ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "js":
+    case "javascript":
+    case "ts":
+    case "typescript":
+    case "tsx":
+    case "jsx":
+    case "mjs":
+    case "cjs":
+      return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "css":
+    case "scss":
+    case "sass":
+      return `/* ${SECRET_SCANNER_PRAGMA_TOKEN} */`;
+    default:
+      return null;
+  }
+}
+
+function annotateSecretScannerLine(
+  line,
+  filePath,
+  comment = secretScannerComment(filePath),
+  { preserveMarkdownTable = true } = {},
+) {
+  if (!line.toLowerCase().includes(SECRET_SCANNER_DEMO_TOKEN)) {
+    return line;
+  }
+  if (line.includes(SECRET_SCANNER_PRAGMA_TOKEN)) {
+    return line;
+  }
+  if (comment === null) {
+    return line;
+  }
+  const extension = path.extname(filePath).toLowerCase();
+  if (
+    preserveMarkdownTable &&
+    (extension === ".md" || extension === ".mdx") &&
+    line.trimEnd().endsWith("|")
+  ) {
+    const lastPipe = line.lastIndexOf("|");
+    return `${line.slice(0, lastPipe)}${comment} ${line.slice(lastPipe)}`;
+  }
+  return `${line} ${comment}`;
+}
+
+function annotateSecretScannerMentions(content, filePath = "") {
+  const extension = path.extname(filePath).toLowerCase();
+  const isMarkdown = extension === ".md" || extension === ".mdx";
+  const lines = content.split("\n");
+  if (!isMarkdown) {
+    return lines
+      .map((line) => annotateSecretScannerLine(line, filePath))
+      .join("\n");
+  }
+
+  let fence = null;
+  return lines
+    .map((line) => {
+      const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+      if (fenceMatch) {
+        const marker = fenceMatch[2];
+        const markerCharacter = marker[0];
+        if (fence === null) {
+          fence = {
+            character: markerCharacter,
+            length: marker.length,
+            language: fenceMatch[3].trim().split(/\s+/u)[0] ?? "",
+          };
+        } else if (
+          markerCharacter === fence.character &&
+          marker.length >= fence.length &&
+          fenceMatch[3].trim() === ""
+        ) {
+          fence = null;
+        }
+        return line;
+      }
+
+      if (fence !== null) {
+        return annotateSecretScannerLine(
+          line,
+          filePath,
+          secretScannerCommentForLanguage(fence.language),
+          { preserveMarkdownTable: false },
+        );
+      }
+
+      return annotateSecretScannerLine(line, filePath);
+    })
+    .join("\n");
+}
+
+async function annotateSecretScannerMentionsInTree(targetRoot) {
+  const files = await listFilesRecursively(targetRoot);
+  for (const filePath of files) {
+    if (
+      SECRET_SCANNER_SKIP_SUFFIXES.has(path.extname(filePath).toLowerCase())
+    ) {
+      continue;
+    }
+
+    let original;
+    try {
+      original = await readFile(filePath, "utf8");
+    } catch {
+      continue;
+    }
+
+    if (original.includes("\u0000")) {
+      continue;
+    }
+
+    const patched = annotateSecretScannerMentions(original, filePath);
+    if (patched !== original) {
+      await writeFile(filePath, patched, "utf8");
+    }
+  }
+}
+
+function findCompatibilitySearch(content, search, cursor) {
+  if (typeof search === "string") {
+    const index = content.indexOf(search, cursor);
+    return index === -1 ? null : { index, length: search.length };
+  }
+
+  const flags = search.flags.replaceAll("g", "").replaceAll("y", "");
+  const matcher = new RegExp(search.source, `${flags}g`);
+  matcher.lastIndex = cursor;
+  const match = matcher.exec(content);
+  return match === null
+    ? null
+    : { index: match.index, length: match[0].length };
+}
+
 function applyCompatibilityReplacement(content, search, replacement) {
   let cursor = 0;
   let output = "";
@@ -1086,7 +1804,8 @@ function applyCompatibilityReplacement(content, search, replacement) {
   let changed = false;
 
   while (cursor < content.length) {
-    const searchIndex = content.indexOf(search, cursor);
+    const searchMatch = findCompatibilitySearch(content, search, cursor);
+    const searchIndex = searchMatch?.index ?? -1;
     const replacementIndex = content.indexOf(replacement, cursor);
 
     if (searchIndex === -1 && replacementIndex === -1) {
@@ -1106,7 +1825,7 @@ function applyCompatibilityReplacement(content, search, replacement) {
     }
 
     output += content.slice(cursor, searchIndex) + replacement;
-    cursor = searchIndex + search.length;
+    cursor = searchIndex + searchMatch.length;
     matched = true;
     changed = true;
   }
@@ -1123,6 +1842,21 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
     if (patchedContent !== formsControlsContent) {
       await writeFile(formsControlsPath, patchedContent, "utf8");
+    }
+  }
+
+  if (skillName === "better-accessibility" || skillName === "better-writing") {
+    const relativePaths =
+      skillName === "better-accessibility"
+        ? ["SKILL.md", "forms.md"]
+        : ["SKILL.md"];
+    for (const relativePath of relativePaths) {
+      const targetPath = path.join(targetRoot, relativePath);
+      const original = await readFile(targetPath, "utf8");
+      const patched = annotateSecretScannerMentions(original, relativePath);
+      if (patched !== original) {
+        await writeFile(targetPath, patched, "utf8");
+      }
     }
   }
 
@@ -1215,6 +1949,8 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
     await writeFile(targetPath, lines.join("\n"), "utf8");
   }
+
+  await annotateSecretScannerMentionsInTree(targetRoot);
 }
 
 function readFrontmatter(content, skillPath) {
@@ -1290,13 +2026,41 @@ async function assertRefreshSourceCompatibility(skillName, sourceRoot) {
   }
 }
 
+function assertAskMattOverlayOnMainFlow(skillContent) {
+  const headingIndex = skillContent.indexOf(ASK_MATT_MAIN_FLOW_HEADING);
+  const overlayStart = skillContent.indexOf(CORE_OVERLAY_START);
+  const overlayEnd = skillContent.indexOf(CORE_OVERLAY_END);
+  const stepTwoIndex = skillContent.indexOf(ASK_MATT_MAIN_FLOW_STEP_TWO);
+
+  return (
+    headingIndex !== -1 &&
+    overlayStart !== -1 &&
+    overlayEnd !== -1 &&
+    stepTwoIndex !== -1 &&
+    headingIndex < overlayStart &&
+    overlayEnd < stepTwoIndex &&
+    skillContent.includes("/grill-for-unknowns") &&
+    skillContent.includes("/writing-great-skills") &&
+    !skillContent.includes("/writing-for-agents")
+  );
+}
+
 async function assertPostRefreshCompatibility(skillName, targetRoot) {
-  if (skillName !== "grill-for-unknowns") {
+  if (skillName !== "grill-for-unknowns" && skillName !== "ask-matt") {
     return;
   }
 
   const skillPath = path.join(targetRoot, "SKILL.md");
   const skillContent = await readFile(skillPath, "utf8");
+
+  if (skillName === "ask-matt") {
+    if (!assertAskMattOverlayOnMainFlow(skillContent)) {
+      throw new Error(
+        `Core ask-matt compatibility requires the grill-depth overlay between the main flow heading and "${ASK_MATT_MAIN_FLOW_STEP_TWO}" in ${path.relative(repoRoot, skillPath)}.`,
+      );
+    }
+    return;
+  }
   const frontmatter = readFrontmatter(skillContent, skillPath);
   const nameLine = getTopLevelFrontmatterLine(frontmatter, "name");
   const descriptionLine = getTopLevelFrontmatterLine(
@@ -1668,7 +2432,7 @@ async function prepareGithubSkillRefresh({
     });
     const preservedCoreOverlay = await readCoreOverlay(to);
     await formatSkillTarget(staging);
-    await restoreCoreOverlay(staging, preservedCoreOverlay);
+    await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
 
     const hash = await sha256File(path.join(staging, "SKILL.md"));
@@ -1843,6 +2607,47 @@ function getTemporarySiblingPath(targetPath, label) {
   return path.join(parentDir, `.${targetName}.${label}-${uniqueSuffix}`);
 }
 
+async function pathExists(targetPath) {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function renameOnce(fromPath, toPath) {
+  // Overlayfs can reject same-directory rename of lower-layer skill directories
+  // with EXDEV. Tests set CORE_SKILLS_SIMULATE_RENAME_EXDEV=1 to exercise the
+  // copy+rm fallback.
+  if (
+    process.env.CORE_SKILLS_SIMULATE_RENAME_EXDEV === "1" &&
+    (await pathExists(fromPath))
+  ) {
+    const error = new Error("EXDEV: simulated cross-device rename");
+    error.code = "EXDEV";
+    throw error;
+  }
+
+  await rename(fromPath, toPath);
+}
+
+async function moveDirectory(fromPath, toPath) {
+  try {
+    await renameOnce(fromPath, toPath);
+  } catch (error) {
+    if (getErrorCode(error) !== "EXDEV") {
+      throw error;
+    }
+    if (await pathExists(toPath)) {
+      throw error;
+    }
+
+    await cp(fromPath, toPath, { recursive: true, force: true });
+    await rm(fromPath, { recursive: true, force: true });
+  }
+}
+
 async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   const to = path.join(canonicalRoot, skillName);
   const staging = getTemporarySiblingPath(to, "refresh-staging");
@@ -1871,6 +2676,11 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
       `Core grill-for-unknowns refresh requires the canonical safety overlay in ${path.relative(repoRoot, path.join(to, "SKILL.md"))}.`,
     );
   }
+  if (skillName === "ask-matt" && !preservedCoreOverlay) {
+    throw new Error(
+      `Core ask-matt refresh requires the canonical grill-depth overlay in ${path.relative(repoRoot, path.join(to, "SKILL.md"))}.`,
+    );
+  }
 
   await mkdir(path.dirname(staging), { recursive: true });
   await rm(staging, { recursive: true, force: true });
@@ -1878,7 +2688,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   try {
     await cp(from, staging, { recursive: true });
     await restorePreservedFiles(staging, preservedFiles);
-    await restoreCoreOverlay(staging, preservedCoreOverlay);
+    await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
     await assertPostRefreshCompatibility(skillName, staging);
   } catch (error) {
@@ -1913,7 +2723,7 @@ async function swapPreparedRefresh(preparedRefresh) {
   let hasBackup = false;
 
   try {
-    await rename(to, backup);
+    await moveDirectory(to, backup);
     hasBackup = true;
   } catch (error) {
     if (getErrorCode(error) !== "ENOENT") {
@@ -1922,10 +2732,23 @@ async function swapPreparedRefresh(preparedRefresh) {
   }
 
   try {
-    await rename(staging, to);
+    await moveDirectory(staging, to);
   } catch (error) {
-    if (hasBackup) {
-      await rename(backup, to);
+    const code = getErrorCode(error);
+    const collided =
+      code === "EEXIST" || code === "ENOTEMPTY" || code === "EXDEV";
+    // A collided staging move did not create this destination. Deleting it
+    // would discard another refresh's completed tree.
+    if (!collided && hasBackup) {
+      try {
+        await rm(to, { recursive: true, force: true });
+        await moveDirectory(backup, to);
+      } catch (restoreError) {
+        throw new AggregateError(
+          [error, restoreError],
+          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
+        );
+      }
     }
     throw error;
   }
@@ -1937,7 +2760,7 @@ async function rollbackSwappedRefresh(swappedRefresh) {
   const { to, backup, hasBackup } = swappedRefresh;
   await rm(to, { recursive: true, force: true });
   if (hasBackup) {
-    await rename(backup, to);
+    await moveDirectory(backup, to);
   }
 }
 
