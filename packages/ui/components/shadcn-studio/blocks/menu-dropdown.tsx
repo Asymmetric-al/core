@@ -71,6 +71,8 @@ function CollapsibleMenuSection({ navItem }: { navItem: NavigationSection }) {
       </DropdownMenuItem>
       <CollapsibleContent className="pl-2">
         {navItem.items?.map((item) => (
+          // Base UI's `render` element receives the item's children at runtime.
+          // react-doctor-disable-next-line react-doctor/anchor-has-content
           <DropdownMenuItem key={item.title} render={<a href={item.href} />}>
             <CircleSmallIcon />
             <span>{item.title}</span>
@@ -91,6 +93,8 @@ const MenuDropdown = ({ trigger, navigationData, align = "start" }: Props) => {
             return (
               <DropdownMenuItem
                 key={navItem.title}
+                // Base UI's `render` element receives the item's children at runtime.
+                // react-doctor-disable-next-line react-doctor/anchor-has-content
                 render={<a href={navItem.href} />}
               >
                 {navItem.icon}

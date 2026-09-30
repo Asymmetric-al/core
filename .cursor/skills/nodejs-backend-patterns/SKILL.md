@@ -197,18 +197,18 @@ export class UserService {
       throw new ValidationError("Email already exists");
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    // Hash password // pragma: allowlist secret
+    const hashedPassword = await bcrypt.hash(userData.password, 10); // pragma: allowlist secret
 
     // Create user
     const user = await this.userRepository.create({
       ...userData,
-      password: hashedPassword,
+      password: hashedPassword, // pragma: allowlist secret
     });
 
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword as User;
+    // Remove password from response // pragma: allowlist secret
+    const { password, ...userWithoutPassword } = user; // pragma: allowlist secret
+    return userWithoutPassword as User; // pragma: allowlist secret
   }
 
   async getUserById(id: string): Promise<User> {
@@ -216,8 +216,8 @@ export class UserService {
     if (!user) {
       throw new NotFoundError("User not found");
     }
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword as User;
+    const { password, ...userWithoutPassword } = user; // pragma: allowlist secret
+    return userWithoutPassword as User; // pragma: allowlist secret
   }
 
   async updateUser(id: string, updates: UpdateUserDTO): Promise<User> {
@@ -225,8 +225,8 @@ export class UserService {
     if (!user) {
       throw new NotFoundError("User not found");
     }
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword as User;
+    const { password, ...userWithoutPassword } = user; // pragma: allowlist secret
+    return userWithoutPassword as User; // pragma: allowlist secret
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -249,17 +249,17 @@ export class UserRepository {
   constructor(private db: Pool) {}
 
   async create(
-    userData: CreateUserDTO & { password: string },
+    userData: CreateUserDTO & { password: string }, // pragma: allowlist secret
   ): Promise<UserEntity> {
     const query = `
-      INSERT INTO users (name, email, password)
+      INSERT INTO users (name, email, password) // pragma: allowlist secret
       VALUES ($1, $2, $3)
-      RETURNING id, name, email, password, created_at, updated_at
+      RETURNING id, name, email, password, created_at, updated_at // pragma: allowlist secret
     `;
     const { rows } = await this.db.query(query, [
       userData.name,
       userData.email,
-      userData.password,
+      userData.password, // pragma: allowlist secret
     ]);
     return rows[0];
   }
@@ -352,7 +352,7 @@ container.singleton(
       port: parseInt(process.env.DB_PORT || "5432"),
       database: process.env.DB_NAME,
       user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
+      password: process.env.DB_PASSWORD, // pragma: allowlist secret
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
@@ -480,7 +480,7 @@ const createUserSchema = z.object({
   body: z.object({
     name: z.string().min(1),
     email: z.string().email(),
-    password: z.string().min(8),
+    password: z.string().min(8), // pragma: allowlist secret
   }),
 });
 
@@ -681,7 +681,7 @@ const poolConfig: PoolConfig = {
   port: parseInt(process.env.DB_PORT || "5432"),
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD, // pragma: allowlist secret
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -743,7 +743,7 @@ import { Schema, model, Document } from "mongoose";
 interface IUser extends Document {
   name: string;
   email: string;
-  password: string;
+  password: string; // pragma: allowlist secret
   createdAt: Date;
   updatedAt: Date;
 }
@@ -752,7 +752,7 @@ const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true }, // pragma: allowlist secret
   },
   {
     timestamps: true,
@@ -827,14 +827,14 @@ import { UnauthorizedError } from "../utils/errors";
 export class AuthService {
   constructor(private userRepository: UserRepository) {}
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string) { // pragma: allowlist secret
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedError("Invalid credentials");
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = await bcrypt.compare(password, user.password); // pragma: allowlist secret
 
     if (!isValid) {
       throw new UnauthorizedError("Invalid credentials");

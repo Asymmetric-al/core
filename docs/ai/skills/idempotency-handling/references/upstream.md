@@ -3,8 +3,8 @@ source_name: aj-geddes/useful-ai-prompts (idempotency-handling)
 source_url: https://github.com/aj-geddes/useful-ai-prompts
 source_type: github
 upstream_path: skills/idempotency-handling/SKILL.md
-skills_lock_hash: 282a4585f756e098318a3d778e7480cb61e90617c290b79d2fd206845e7f82b6
-last_reviewed: 2026-05-29
+skills_lock_hash: 5ed3ee0194ee5236582ac95c5686f59d5cee07428663adf3066e4f7164b11c54
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: idempotency-handling

@@ -406,7 +406,7 @@ test.describe('auth context', () => {
     // Log in
     await page.getByRole('link', { name: 'Sign in' }).click();
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('password123');
+    await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
 
     // Authenticated state -- multiple components update
@@ -623,7 +623,7 @@ test.describe('registration form (react-hook-form)', () => {
 
     // react-hook-form shows errors after submit attempt
     await expect(page.getByText('Email is required')).toBeVisible();
-    await expect(page.getByText('Password is required')).toBeVisible();
+    await expect(page.getByText('Password is required')).toBeVisible(); // pragma: allowlist secret
   });
 
   test('shows inline validation on blur', async ({ page }) => {
@@ -635,16 +635,16 @@ test.describe('registration form (react-hook-form)', () => {
     await expect(page.getByText('Invalid email address')).toBeVisible();
   });
 
-  test('password requirements update in real time', async ({ page }) => {
-    const passwordInput = page.getByLabel('Password', { exact: true });
+  test('password requirements update in real time', async ({ page }) => { // pragma: allowlist secret
+    const passwordInput = page.getByLabel('Password', { exact: true }); // pragma: allowlist secret
 
-    await passwordInput.fill('short');
+    await passwordInput.fill('short'); // pragma: allowlist secret
     await expect(page.getByText('At least 8 characters')).toHaveClass(/text-red/);
 
-    await passwordInput.fill('longenough');
+    await passwordInput.fill('longenough'); // pragma: allowlist secret
     await expect(page.getByText('At least 8 characters')).toHaveClass(/text-green/);
 
-    await passwordInput.fill('LongEnough1!');
+    await passwordInput.fill('LongEnough1!'); // pragma: allowlist secret
     await expect(page.getByText('Contains uppercase')).toHaveClass(/text-green/);
     await expect(page.getByText('Contains number')).toHaveClass(/text-green/);
     await expect(page.getByText('Contains special character')).toHaveClass(/text-green/);
@@ -653,8 +653,8 @@ test.describe('registration form (react-hook-form)', () => {
   test('successful registration submits form and redirects', async ({ page }) => {
     await page.getByLabel('Full name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
     await page.getByLabel('I agree to the terms').check();
 
     await page.getByRole('button', { name: 'Create account' }).click();
@@ -676,8 +676,8 @@ test.describe('registration form (react-hook-form)', () => {
 
     await page.getByLabel('Full name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
     await page.getByLabel('I agree to the terms').check();
 
     await page.getByRole('button', { name: 'Create account' }).click();
@@ -701,7 +701,7 @@ test.describe('registration form (react-hook-form)', () => {
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await expect(page.getByText('Email is required')).toBeVisible();
-    await expect(page.getByText('Password is required')).toBeVisible();
+    await expect(page.getByText('Password is required')).toBeVisible(); // pragma: allowlist secret
   });
 
   test('shows inline validation on blur', async ({ page }) => {
@@ -715,8 +715,8 @@ test.describe('registration form (react-hook-form)', () => {
   test('successful registration submits form and redirects', async ({ page }) => {
     await page.getByLabel('Full name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
     await page.getByLabel('I agree to the terms').check();
 
     await page.getByRole('button', { name: 'Create account' }).click();

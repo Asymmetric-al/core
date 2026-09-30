@@ -43,7 +43,7 @@ tests/
 ├── auth/
 │   ├── login.spec.ts
 │   ├── signup.spec.ts
-│   ├── password-reset.spec.ts
+│   ├── password-reset.spec.ts // pragma: allowlist secret
 │   └── mfa.spec.ts
 ├── dashboard/
 │   ├── widgets.spec.ts
@@ -70,7 +70,7 @@ tests/
 │   ├── auth/
 │   │   ├── login.spec.ts
 │   │   ├── signup.spec.ts
-│   │   ├── password-reset.spec.ts
+│   │   ├── password-reset.spec.ts // pragma: allowlist secret
 │   │   └── mfa.spec.ts
 │   ├── checkout/
 │   │   ├── cart.spec.ts
@@ -175,8 +175,8 @@ test.describe('Shopping Cart', () => {
 
 | Element | Convention | Example |
 |---|---|---|
-| File name | `kebab-case.spec.ts` | `password-reset.spec.ts` |
-| `test.describe()` | Title Case, feature name | `'Password Reset'` |
+| File name | `kebab-case.spec.ts` | `password-reset.spec.ts` | // pragma: allowlist secret
+| `test.describe()` | Title Case, feature name | `'Password Reset'` | // pragma: allowlist secret
 | `test()` | Sentence starting with `should` or `user can` | `'should send reset email'` |
 | Page objects | `PascalCase.page.ts` | `login.page.ts` / `LoginPage` |
 | Fixtures | `kebab-case.fixture.ts` | `auth.fixture.ts` |
@@ -202,14 +202,14 @@ test.describe('Login', () => {
 
   test('should login with valid credentials', async ({ page }) => {
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('securepass123');
+    await page.getByLabel('Password').fill('securepass123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page).toHaveURL('/dashboard');
   });
 
-  test('should show error for invalid password', async ({ page }) => {
+  test('should show error for invalid password', async ({ page }) => { // pragma: allowlist secret
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('wrongpassword');
+    await page.getByLabel('Password').fill('wrongpassword'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page.getByRole('alert')).toHaveText('Invalid credentials');
   });
@@ -219,7 +219,7 @@ test.describe('Login', () => {
     test('should lock account after 5 failed attempts', async ({ page }) => {
       for (let i = 0; i < 5; i++) {
         await page.getByLabel('Email').fill('user@example.com');
-        await page.getByLabel('Password').fill('wrong');
+        await page.getByLabel('Password').fill('wrong'); // pragma: allowlist secret
         await page.getByRole('button', { name: 'Sign in' }).click();
       }
       await expect(page.getByRole('alert')).toContainText('Account locked');
@@ -241,14 +241,14 @@ test.describe('Login', () => {
 
   test('should login with valid credentials', async ({ page }) => {
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('securepass123');
+    await page.getByLabel('Password').fill('securepass123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page).toHaveURL('/dashboard');
   });
 
-  test('should show error for invalid password', async ({ page }) => {
+  test('should show error for invalid password', async ({ page }) => { // pragma: allowlist secret
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('wrongpassword');
+    await page.getByLabel('Password').fill('wrongpassword'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page.getByRole('alert')).toHaveText('Invalid credentials');
   });
@@ -257,7 +257,7 @@ test.describe('Login', () => {
     test('should lock account after 5 failed attempts', async ({ page }) => {
       for (let i = 0; i < 5; i++) {
         await page.getByLabel('Email').fill('user@example.com');
-        await page.getByLabel('Password').fill('wrong');
+        await page.getByLabel('Password').fill('wrong'); // pragma: allowlist secret
         await page.getByRole('button', { name: 'Sign in' }).click();
       }
       await expect(page.getByRole('alert')).toContainText('Account locked');
@@ -428,6 +428,7 @@ test('should fail when submitting empty card form', async ({ page }) => {
 npx playwright test --grep @smoke
 npx playwright test --grep @regression
 npx playwright test --grep-invert @slow     # everything except @slow
+npx playwright test -G @slow                # same — -G is the 1.61+ shorthand
 
 # By file
 npx playwright test tests/auth/

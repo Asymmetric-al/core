@@ -4,7 +4,7 @@ description: Use when working with the Resend email API — sending transactiona
 license: MIT
 metadata:
     author: resend
-    version: "3.3.3"
+    version: "3.10.0"
     homepage: https://resend.com/agent-skills
     source: https://github.com/resend/resend-skills
     openclaw:
@@ -156,12 +156,12 @@ export async function POST(req: Request) {
 | **Send batch emails** | [sending/overview.md](references/sending/overview.md) → [sending/batch-email-examples.md](references/sending/batch-email-examples.md) |
 | **Full SDK examples** (Node.js, Python, Go, cURL) | [sending/single-email-examples.md](references/sending/single-email-examples.md) |
 | **Idempotency, retries, error handling** | [sending/best-practices.md](references/sending/best-practices.md) |
-| **Get, list, reschedule, cancel emails** | [sending/email-management.md](references/sending/email-management.md) |
+| **Get, list, reschedule, cancel emails, retrieve metrics** | [sending/email-management.md](references/sending/email-management.md) |
 | **Receive inbound emails** | [receiving.md](references/receiving.md) — domain setup, webhooks, attachments |
 | **Manage templates** (CRUD, variables) | [templates.md](references/templates.md) — lifecycle, aliases, pagination |
 | **Set up webhooks** (events, verification) | [webhooks.md](references/webhooks.md) — verification, CRUD, retry schedule, IP allowlist |
-| **Manage domains** (create, verify, DNS) | [domains.md](references/domains.md) — regions, TLS, tracking, capabilities |
-| **Manage contacts** (CRUD, properties) | [contacts.md](references/contacts.md) — segments, topics, custom properties |
+| **Manage domains** (create, verify, claim, DNS) | [domains.md](references/domains.md) — regions, TLS, tracking, claiming, capabilities |
+| **Manage contacts** (CRUD, properties) | [contacts.md](references/contacts.md) — segments, topics, custom properties, bulk CSV import |
 | **Send broadcasts** (marketing campaigns) | [broadcasts.md](references/broadcasts.md) — lifecycle, scheduling, template variables |
 | **Manage API keys** | [api-keys.md](references/api-keys.md) — permission scoping, domain restrictions |
 | **View API request logs** | [logs.md](references/logs.md) — list and retrieve API call history, debugging |
@@ -179,16 +179,16 @@ Always install the latest SDK version. These are the minimum versions for full f
 
 | Language | Package | Min Version | Install |
 |----------|---------|-------------|---------|
-| Node.js | `resend` | >= 6.9.2 | `npm install resend` |
-| Python | `resend` | >= 2.21.0 | `pip install resend` |
-| Go | `resend-go/v3` | >= 3.1.0 | `go get github.com/resend/resend-go/v3` |
-| Ruby | `resend` | >= 1.0.0 | `gem install resend` |
+| Node.js | `resend` | >= 6.14.0 | `npm install resend` |
+| Python | `resend` | >= 2.34.0 | `pip install resend` |
+| Go | `resend-go/v3` | >= 3.11.0 | `go get github.com/resend/resend-go/v3` |
+| Ruby | `resend` | >= 1.6.0 | `gem install resend` |
 | PHP | `resend/resend-php` | >= 1.1.0 | `composer require resend/resend-php` |
-| Rust | `resend-rs` | >= 0.20.0 | `cargo add resend-rs` |
-| Java | `resend-java` | >= 4.11.0 | See [installation.md](references/installation.md) |
+| Rust | `resend-rs` | >= 0.26.1 | `cargo add resend-rs` |
+| Java | `resend-java` | >= 4.16.0 | See [installation.md](references/installation.md) |
 | .NET | `Resend` | >= 0.2.1 | `dotnet add package Resend` |
 
-> **If the project already has a Resend SDK installed**, check the version and upgrade if it's below the minimum. Older SDKs may be missing `webhooks.verify()` or `emails.receiving.get()`.
+> **If the project already has a Resend SDK installed**, check the version and upgrade if it's below the minimum. Older SDKs may be missing `webhooks.verify()`, `emails.receiving.get()`, or `domains.claims.*`.
 
 See [installation.md](references/installation.md) for full installation commands, language detection, and cURL fallback.
 

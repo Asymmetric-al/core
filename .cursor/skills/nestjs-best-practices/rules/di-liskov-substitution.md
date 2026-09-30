@@ -37,11 +37,11 @@ export class MockPaymentService implements PaymentGateway {
   async charge(amount: number, currency: string): Promise<PaymentResult> {
     // VIOLATION 1: Throws for valid input (contract says return PaymentResult)
     if (amount > 1000) {
-      throw new Error('Mock does not support large amounts');
+      throw new Error("Mock does not support large amounts");
     }
 
     // VIOLATION 2: Returns null instead of PaymentResult
-    if (currency !== 'USD') {
+    if (currency !== "USD") {
       return null as any; // Real service would convert or reject properly
     }
 
@@ -98,7 +98,7 @@ export class StripeService implements PaymentGateway {
         amount: response.amount,
       };
     } catch (error) {
-      if (error.type === 'card_error') {
+      if (error.type === "card_error") {
         throw new PaymentFailedException(error.message);
       }
       throw error;
@@ -117,13 +117,13 @@ export class MockPaymentService implements PaymentGateway {
 
   async charge(amount: number, currency: string): Promise<PaymentResult> {
     // Honor the contract: validate currency like real service would
-    if (!['USD', 'EUR', 'GBP'].includes(currency)) {
+    if (!["USD", "EUR", "GBP"].includes(currency)) {
       throw new InvalidCurrencyException(`Unsupported currency: ${currency}`);
     }
 
     // Simulate decline for specific test scenarios
     if (amount === 99999) {
-      throw new PaymentFailedException('Card declined (test scenario)');
+      throw new PaymentFailedException("Card declined (test scenario)");
     }
 
     // Return same shape as production
@@ -161,11 +161,11 @@ export class OrdersService {
       const result = await this.payment.charge(order.total, order.currency);
       // Works with both StripeService and MockPaymentService
       order.transactionId = result.transactionId;
-      order.status = 'paid';
+      order.status = "paid";
       return order;
     } catch (error) {
       if (error instanceof PaymentFailedException) {
-        order.status = 'payment_failed';
+        order.status = "payment_failed";
         return order;
       }
       throw error;
@@ -178,42 +178,42 @@ export class OrdersService {
 
 ```typescript
 // Shared test suite that any implementation must pass
-function testPaymentGatewayContract(
-  createGateway: () => PaymentGateway,
-) {
-  describe('PaymentGateway contract', () => {
+function testPaymentGatewayContract(createGateway: () => PaymentGateway) {
+  describe("PaymentGateway contract", () => {
     let gateway: PaymentGateway;
 
     beforeEach(() => {
       gateway = createGateway();
     });
 
-    it('returns PaymentResult with all required fields', async () => {
-      const result = await gateway.charge(1000, 'USD');
-      expect(result).toHaveProperty('success');
-      expect(result).toHaveProperty('transactionId');
-      expect(result).toHaveProperty('amount');
-      expect(typeof result.transactionId).toBe('string');
+    it("returns PaymentResult with all required fields", async () => {
+      const result = await gateway.charge(1000, "USD");
+      expect(result).toHaveProperty("success");
+      expect(result).toHaveProperty("transactionId");
+      expect(result).toHaveProperty("amount");
+      expect(typeof result.transactionId).toBe("string");
     });
 
-    it('throws InvalidCurrencyException for unsupported currency', async () => {
-      await expect(gateway.charge(1000, 'INVALID'))
-        .rejects.toThrow(InvalidCurrencyException);
+    it("throws InvalidCurrencyException for unsupported currency", async () => {
+      await expect(gateway.charge(1000, "INVALID")).rejects.toThrow(
+        InvalidCurrencyException,
+      );
     });
 
-    it('throws TransactionNotFoundException for invalid refund', async () => {
-      await expect(gateway.refund('nonexistent'))
-        .rejects.toThrow(TransactionNotFoundException);
+    it("throws TransactionNotFoundException for invalid refund", async () => {
+      await expect(gateway.refund("nonexistent")).rejects.toThrow(
+        TransactionNotFoundException,
+      );
     });
   });
 }
 
 // Run against all implementations
-describe('StripeService', () => {
+describe("StripeService", () => {
   testPaymentGatewayContract(() => new StripeService(mockStripeClient));
 });
 
-describe('MockPaymentService', () => {
+describe("MockPaymentService", () => {
   testPaymentGatewayContract(() => new MockPaymentService());
 });
 ```

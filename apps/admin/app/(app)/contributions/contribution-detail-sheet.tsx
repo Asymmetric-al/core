@@ -552,7 +552,7 @@ export function ContributionDetailSheet({
             <div className="flex items-center gap-2 pt-2">
               <Badge
                 variant="outline"
-                className="h-5 text-[10px] font-semibold uppercase tracking-wider border shadow-none"
+                className="h-5 text-[10px] font-semibold uppercase tracking-wider shadow-none"
               >
                 <span
                   className={cn(
@@ -796,7 +796,7 @@ export function ContributionDetailSheet({
                       variant="outline"
                       size="sm"
                       disabled={isActionPending}
-                      className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
+                      className="gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
                       onClick={() =>
                         stagedGiftId &&
                         onRetryCrmPost?.(
@@ -887,7 +887,7 @@ export function ContributionDetailSheet({
                             variant="outline"
                             size="sm"
                             disabled={isActionPending}
-                            className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
+                            className="gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
                             onClick={() =>
                               stagedGiftId &&
                               onRetryCrmPost?.(

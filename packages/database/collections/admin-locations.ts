@@ -4,6 +4,7 @@ import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { z } from "zod";
 
+import { parseJsonResponse } from "../http/parse-json-response";
 import { getQueryClient } from "../providers/query-client";
 import { adminSurfaceQueryKeys } from "../query-keys";
 
@@ -44,24 +45,6 @@ type AdminLocationsResponse = {
   locations: AdminLocation[];
   linkedEntities: AdminLocationLinkedEntities;
 };
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error || `Request failed with status ${response.status}`,
-    );
-  }
-
-  if (!payload) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return payload;
-}
 
 export async function fetchAdminLocationsResponse(): Promise<AdminLocationsResponse> {
   const response = await fetch("/api/admin/locations", {

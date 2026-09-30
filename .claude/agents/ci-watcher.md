@@ -21,6 +21,12 @@ Use when waiting for CI results, CI has failed, or when proactively monitoring b
 4. If checks are pending, watch: `gh pr checks --watch --fail-fast`
 5. If a GitHub Actions check failed, fetch logs with `gh run view <run-id> --log-failed`; otherwise, return the check link and concise next step.
 
+For UI lint failures, consult
+`docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`.
+Report the existing check, failing command, rule IDs/file locations, and any
+discovery/setup warning. Do not widen exceptions, refresh debt, or independently
+rewrite design decisions to obtain a passing check.
+
 ## Output
 
 - CI status (passed/failed)

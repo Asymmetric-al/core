@@ -132,7 +132,7 @@ test('server rejects requests without CSRF token', async ({ page, request }) => 
   // First, get a valid session by logging in through the UI
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -187,7 +187,7 @@ test('form submissions include CSRF token', async ({ page }) => {
 test('server rejects requests without CSRF token', async ({ page, request }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -280,7 +280,7 @@ test('session cookie has correct security flags', async ({ page, context }) => {
   // Log in to create a session cookie
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -303,7 +303,7 @@ test('session cookie has correct security flags', async ({ page, context }) => {
 test('sensitive cookies are not exposed to JavaScript', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -321,7 +321,7 @@ const { test, expect } = require('@playwright/test');
 test('session cookie has correct security flags', async ({ page, context }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -361,7 +361,7 @@ test('session is invalidated after logout', async ({ page, context }) => {
   // Log in
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -386,7 +386,7 @@ test('session is invalidated after logout', async ({ page, context }) => {
 test('expired session redirects to login', async ({ page, context }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -415,7 +415,7 @@ test('unauthenticated user cannot access protected routes', async ({ page }) => 
 test('session is invalidated after logout', async ({ page, context }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -460,12 +460,12 @@ test('HSTS header is set', async ({ page }) => {
 test('sensitive data is not in URL parameters', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
-  // Password should never appear in URL
-  expect(page.url()).not.toContain('password');
+  // Password should never appear in URL // pragma: allowlist secret
+  expect(page.url()).not.toContain('password'); // pragma: allowlist secret
   expect(page.url()).not.toContain('token');
   expect(page.url()).not.toContain('secret');
 });
@@ -473,7 +473,7 @@ test('sensitive data is not in URL parameters', async ({ page }) => {
 test('sensitive data is not in localStorage', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -486,7 +486,7 @@ test('sensitive data is not in localStorage', async ({ page }) => {
     return JSON.stringify(data);
   });
 
-  expect(storageData).not.toContain('password');
+  expect(storageData).not.toContain('password'); // pragma: allowlist secret
   expect(storageData.toLowerCase()).not.toContain('secret');
 });
 ```
@@ -498,7 +498,7 @@ const { test, expect } = require('@playwright/test');
 test('sensitive data is not in localStorage', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -511,7 +511,7 @@ test('sensitive data is not in localStorage', async ({ page }) => {
     return JSON.stringify(data);
   });
 
-  expect(storageData).not.toContain('password');
+  expect(storageData).not.toContain('password'); // pragma: allowlist secret
   expect(storageData.toLowerCase()).not.toContain('secret');
 });
 ```
@@ -535,7 +535,7 @@ test('session ID changes after login', async ({ page, context }) => {
 
   // Log in
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -562,7 +562,7 @@ test('session ID changes after login', async ({ page, context }) => {
   const preLoginValue = preLoginSession?.value;
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 

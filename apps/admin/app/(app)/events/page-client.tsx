@@ -686,7 +686,7 @@ const RegistrationTrendsChart = dynamic(
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="h-[300px] animate-pulse rounded-xl bg-zinc-100" />
+          <div className="h-75 animate-pulse rounded-xl bg-zinc-100" />
         </CardContent>
       </Card>
     ),
@@ -888,30 +888,30 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
-        className="flex min-h-[600px] flex-col gap-5 lg:flex-row"
+        className="flex min-h-150 flex-col gap-5 lg:flex-row"
       >
         <div className="w-full shrink-0 space-y-1 rounded-2xl border border-zinc-200 bg-white p-2 shadow-sm lg:w-64">
           <Button
             variant="ghost"
-            className="h-9 w-full justify-start gap-3 rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800 hover:text-white"
+            className="w-full justify-start gap-3 rounded-xl bg-zinc-900 font-semibold text-white hover:bg-zinc-800 hover:text-white"
           >
             <Building className="size-4" /> Venues & Spaces
           </Button>
           <Button
             variant="ghost"
-            className="h-9 w-full justify-start gap-3 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
+            className="w-full justify-start gap-3 rounded-xl text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
             <BedDouble className="size-4" /> Lodging & Travel
           </Button>
           <Button
             variant="ghost"
-            className="h-9 w-full justify-start gap-3 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
+            className="w-full justify-start gap-3 rounded-xl text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
             <Wifi className="size-4" /> Event Logistics
           </Button>
           <Button
             variant="ghost"
-            className="h-9 w-full justify-start gap-3 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
+            className="w-full justify-start gap-3 rounded-xl text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
           >
             <Layers className="size-4" /> Tracks & Types
           </Button>
@@ -926,7 +926,7 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                 Configure physical locations and assign rooms.
               </p>
             </div>
-            <Button className="h-9 rounded-xl bg-zinc-900 px-4 text-xs font-semibold text-white hover:bg-zinc-800">
+            <Button className="rounded-xl bg-zinc-900 text-xs font-semibold text-white hover:bg-zinc-800">
               <Plus className="mr-2 size-4" /> Add Venue
             </Button>
           </div>
@@ -969,7 +969,7 @@ function EventsConfigTab({ event }: { event: ConferenceEvent }) {
                         <Badge
                           key={room.id}
                           variant="secondary"
-                          className="bg-white border-zinc-200 text-zinc-600 font-medium"
+                          className="bg-white border-zinc-200 text-zinc-600"
                         >
                           {room.name} ({room.capacity})
                         </Badge>
@@ -1101,7 +1101,7 @@ function EventsSpeakersTab({
             </Card>
           </motion.div>
         ))}
-        <button className="press-feedback group flex h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-200 text-zinc-500 transition-[background-color,border-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-blue-400 hover:bg-blue-50/30 hover:text-blue-600">
+        <button className="press-feedback group flex h-55 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-200 text-zinc-500 transition-[background-color,border-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-blue-400 hover:bg-blue-50/30 hover:text-blue-600">
           <div className="flex size-12 items-center justify-center rounded-full border border-zinc-100 bg-zinc-50 [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-white [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-sm">
             <Plus className="size-6" />
           </div>
@@ -1273,11 +1273,11 @@ export default function EventsPage() {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-xs font-semibold shadow-sm hover:bg-zinc-50"
+            className="h-10 rounded-xl border-zinc-200 bg-white text-xs font-semibold shadow-sm hover:bg-zinc-50"
           >
             <Eye className="mr-2 size-4" /> Preview Site
           </Button>
-          <Button className="h-10 rounded-xl bg-zinc-900 px-4 text-xs font-semibold text-white shadow-md shadow-zinc-200 hover:bg-zinc-800">
+          <Button className="h-10 rounded-xl bg-zinc-900 text-xs font-semibold text-white shadow-md shadow-zinc-200 hover:bg-zinc-800">
             <Plus className="mr-2 size-4" /> New Event
           </Button>
         </div>

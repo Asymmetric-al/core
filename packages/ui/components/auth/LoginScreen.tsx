@@ -7,6 +7,7 @@ import {
   type AppId,
 } from "@asym/auth/demo-login";
 import { createBrowserClient } from "@asym/database/supabase";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -119,13 +120,13 @@ export function LoginScreen({
         body: JSON.stringify({ role: demoRole }),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as {
+      const { ok, body: payload } = await readJsonBody<{
         ok?: boolean;
         error?: string;
-      };
+      }>(response);
 
-      if (!response.ok || payload.ok !== true) {
-        throw new Error(payload.error ?? "Demo login unavailable.");
+      if (!ok || payload?.ok !== true) {
+        throw new Error(payload?.error ?? "Demo login unavailable.");
       }
 
       replace(targetPath);

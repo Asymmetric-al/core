@@ -30,6 +30,8 @@ await page.routeWebSocket('**/ws', (ws) => {
 **Use when**: You need to verify that your app sends and receives the correct WebSocket messages without modifying them.
 **Avoid when**: You need to intercept or mock the messages. Use `routeWebSocket` instead.
 
+> **Playwright 1.61+**: HAR and trace recordings now include WebSocket requests. For post-mortem debugging you often don't need listener code at all — record a trace and inspect the WS traffic in the Trace Viewer or with `npx playwright trace requests` (see [trace-analysis.md](trace-analysis.md)).
+
 **TypeScript**
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -232,6 +234,55 @@ test('handle WebSocket server error gracefully', async ({ page }) => {
 
   await page.goto('/chat');
   await expect(page.getByText('Connection lost. Reconnecting...')).toBeVisible();
+});
+```
+
+#### Inspecting Requested Subprotocols (`webSocketRoute.protocols()`, Playwright 1.60+)
+
+**Use when**: Your client negotiates a WebSocket subprotocol (e.g. `graphql-transport-ws`, `wamp`, a versioned protocol string) and you want to assert it sent the right one, or branch your mock based on it.
+**Avoid when**: Your app doesn't use subprotocols — there's nothing to inspect.
+
+Playwright 1.60 adds `webSocketRoute.protocols()`, returning the array of subprotocols the client requested during the handshake.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('client requests the graphql-ws subprotocol', async ({ page }) => {
+  await page.routeWebSocket('**/graphql', (ws) => {
+    // Assert the client negotiated the expected subprotocol
+    expect(ws.protocols()).toContain('graphql-transport-ws');
+
+    ws.onMessage((message) => {
+      const data = JSON.parse(message);
+      if (data.type === 'connection_init') {
+        ws.send(JSON.stringify({ type: 'connection_ack' }));
+      }
+    });
+  });
+
+  await page.goto('/explorer');
+  await expect(page.getByText('Connected')).toBeVisible();
+});
+```
+
+**JavaScript**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('client requests the graphql-ws subprotocol', async ({ page }) => {
+  await page.routeWebSocket('**/graphql', (ws) => {
+    expect(ws.protocols()).toContain('graphql-transport-ws');
+    ws.onMessage((message) => {
+      const data = JSON.parse(message);
+      if (data.type === 'connection_init') {
+        ws.send(JSON.stringify({ type: 'connection_ack' }));
+      }
+    });
+  });
+
+  await page.goto('/explorer');
+  await expect(page.getByText('Connected')).toBeVisible();
 });
 ```
 

@@ -12,8 +12,8 @@ playwright-cli snapshot
 playwright-cli fill e1 "user@example.com"
 # Output: await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
 
-playwright-cli fill e2 "password123"
-# Output: await page.getByRole('textbox', { name: 'Password' }).fill('password123');
+playwright-cli fill e2 "password123" // pragma: allowlist secret
+# Output: await page.getByRole('textbox', { name: 'Password' }).fill('password123'); // pragma: allowlist secret
 
 playwright-cli click e3
 # Output: await page.getByRole('button', { name: 'Sign In' }).click();
@@ -42,17 +42,17 @@ playwright-cli open https://example.com/login
 playwright-cli snapshot
 # Output:
 # e1 [textbox "Email"]
-# e2 [textbox "Password"]
+# e2 [textbox "Password"] // pragma: allowlist secret
 # e3 [button "Sign In"]
-# e4 [link "Forgot password?"]
+# e4 [link "Forgot password?"] // pragma: allowlist secret
 
 playwright-cli fill e1 "user@example.com"
 # Ran Playwright code:
 # await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
 
-playwright-cli fill e2 "password123"
+playwright-cli fill e2 "password123" // pragma: allowlist secret
 # Ran Playwright code:
-# await page.getByRole('textbox', { name: 'Password' }).fill('password123');
+# await page.getByRole('textbox', { name: 'Password' }).fill('password123'); // pragma: allowlist secret
 
 playwright-cli click e3
 # Ran Playwright code:
@@ -69,7 +69,7 @@ import { test, expect } from '@playwright/test';
 test('user can log in', async ({ page }) => {
   await page.goto('https://example.com/login');
   await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
-  await page.getByRole('textbox', { name: 'Password' }).fill('password123');
+  await page.getByRole('textbox', { name: 'Password' }).fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign In' }).click();
 
   // Add assertions (not generated — you add these)
@@ -84,7 +84,7 @@ const { test, expect } = require('@playwright/test');
 test('user can log in', async ({ page }) => {
   await page.goto('https://example.com/login');
   await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
-  await page.getByRole('textbox', { name: 'Password' }).fill('password123');
+  await page.getByRole('textbox', { name: 'Password' }).fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign In' }).click();
 
   await expect(page).toHaveURL(/.*dashboard/);
@@ -301,13 +301,13 @@ test('registration', async ({ page }) => {
   const user = {
     name: 'Jane Doe',
     email: `test+${Date.now()}@example.com`,
-    password: 'SecurePass123!'
+    password: 'SecurePass123!' // pragma: allowlist secret
   };
 
   await page.goto('/register');
   await page.getByRole('textbox', { name: 'Name' }).fill(user.name);
   await page.getByRole('textbox', { name: 'Email' }).fill(user.email);
-  await page.getByRole('textbox', { name: 'Password' }).fill(user.password);
+  await page.getByRole('textbox', { name: 'Password' }).fill(user.password); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Create Account' }).click();
 
   await expect(page).toHaveURL(/.*welcome/);

@@ -44,9 +44,12 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  scrollable = false,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
+  /** Keep long content inside the viewport with the standard dialog inset. */
+  scrollable?: boolean;
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -55,6 +58,7 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none data-open:animate-in data-closed:animate-out data-open:fade-in-0 data-closed:fade-out-0 data-open:zoom-in-95 data-closed:zoom-out-95 sm:max-w-lg duration-[var(--duration-modal)]",
+          scrollable && "max-h-[calc(100dvh-var(--spacing)*8)] overflow-y-auto",
           className,
         )}
         {...props}

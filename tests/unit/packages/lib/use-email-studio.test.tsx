@@ -68,4 +68,56 @@ describe("useEmailTemplates", () => {
       root?.unmount();
     });
   });
+
+  it("shares writes across hook instances without an effect round-trip", async () => {
+    const { renderHook } = await import("@testing-library/react");
+    const first = renderHook(() => useEmailTemplates());
+    const second = renderHook(() => useEmailTemplates());
+
+    expect(first.result.current.templates).toEqual([]);
+
+    await act(async () => {
+      await first.result.current.createTemplate("Welcome", { blocks: [] });
+    });
+
+    expect(first.result.current.templates.map((t) => t.name)).toEqual([
+      "Welcome",
+    ]);
+    expect(second.result.current.templates.map((t) => t.name)).toEqual([
+      "Welcome",
+    ]);
+    expect(
+      JSON.parse(localStorage.getItem("email_studio_draft_templates") ?? "[]"),
+    ).toHaveLength(1);
+
+    first.unmount();
+    second.unmount();
+  });
+
+  it("appends concurrent same-tab creates onto the latest stored list", async () => {
+    const { renderHook } = await import("@testing-library/react");
+    const first = renderHook(() => useEmailTemplates());
+    const second = renderHook(() => useEmailTemplates());
+
+    const createFirst = first.result.current.createTemplate;
+    const createSecond = second.result.current.createTemplate;
+
+    await act(async () => {
+      await Promise.all([
+        createFirst("Welcome", { blocks: [] }),
+        createSecond("Receipt", { blocks: [] }),
+      ]);
+    });
+
+    const stored = JSON.parse(
+      localStorage.getItem("email_studio_draft_templates") ?? "[]",
+    ) as { name: string }[];
+    expect(stored.map((template) => template.name).toSorted()).toEqual([
+      "Receipt",
+      "Welcome",
+    ]);
+
+    first.unmount();
+    second.unmount();
+  });
 });
