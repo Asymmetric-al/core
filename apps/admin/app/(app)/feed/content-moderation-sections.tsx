@@ -1471,7 +1471,7 @@ export function ContentModerationSidebarSection({
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className="rounded-2xl border shadow-sm bg-gradient-to-br from-primary/5 to-primary/10"
+        className="rounded-2xl border shadow-sm bg-transparent bg-gradient-to-br from-primary/5 to-primary/10"
       >
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
