@@ -97,6 +97,9 @@ const explicitOnlySkills = [
   "design-taste-frontend",
   "redesign-existing-projects",
   "test-driven-development",
+  "better-ui",
+  "better-colors",
+  "better-layout",
 ] as const;
 
 function listFiles(root: string, relativeRoot = ""): string[] {

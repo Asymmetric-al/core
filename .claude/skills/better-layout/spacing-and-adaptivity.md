@@ -17,8 +17,12 @@ Borderless controls need more clearance, because nothing marks where one target 
 ```html
 <!-- Good: bordered buttons at 12px, icon buttons given room -->
 <div class="flex gap-3">
-  <button class="rounded-lg border px-4 py-2">Cancel</button>
-  <button class="rounded-lg bg-blue-600 px-4 py-2 text-white">Save</button>
+  <button class="rounded-lg border border-border bg-background px-4 py-2">
+    Cancel
+  </button>
+  <button class="rounded-lg bg-primary px-4 py-2 text-primary-foreground">
+    Save
+  </button>
 </div>
 
 <!-- Bad: three borderless icon buttons packed at 4px -->

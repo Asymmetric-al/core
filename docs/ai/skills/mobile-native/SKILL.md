@@ -22,6 +22,8 @@ before running `bun run skills:sync`.
   safe areas, zoom-on-input).
 - Do not use it for React Native (`animate-expo`) or motion implementation
   (`animate`).
+- A concrete task should be answered directly. The upstream Initial Response
+  applies only to a bare invocation with no question or task.
 
 ### Workflow
 

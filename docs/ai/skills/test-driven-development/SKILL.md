@@ -1,7 +1,7 @@
 ---
 name: test-driven-development
 disable-model-invocation: true
-description: Use when implementing any feature or bugfix, before writing implementation code
+description: Use only when the user explicitly invokes obra test-driven-development for iron-law examples. Core TDD is docs/ai/skills/tdd/SKILL.md. Do not use this for docs-only, formatting-only, or generated-mirror changes.
 ---
 
 # Test-Driven Development (TDD)

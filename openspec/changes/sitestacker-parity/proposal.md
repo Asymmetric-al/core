@@ -147,8 +147,11 @@ accepted told-once outcome. Separate actual recipient Party/header coverage
 from per-tribute preference provenance and the exact stream-period letter
 anchor; preserve same-Tenant authorization, override provenance, immutable
 history, suppression and atomic pre-release cancellation. This repairs a
-schema transcription mismatch without selecting pending C-02 storage policy
-or claiming implementation.
+schema transcription mismatch. The subsequent explicit C-02 ruling in
+ADR-0206 requires separate owner operational records, complete posted-row
+immutability and coherent joined projections; the matching contribution-
+operations delta records that target and its qualification scenarios. Neither
+correction claims implementation.
 
 ## Impact
 

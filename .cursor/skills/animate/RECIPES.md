@@ -2,7 +2,7 @@
 
 Ready-to-build implementations for the cases that come up most. Start from the recipe, then adapt — don't rebuild from scratch.
 
-Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.
+Curves are the Core tokens `--ease-out-soft`, `--ease-in-out-soft`, and `--ease-drawer` from `packages/ui/styles/globals.css`.
 
 ---
 
@@ -12,7 +12,7 @@ Any pressable element. Instant feedback that the interface heard the user.
 
 ```css
 .button {
-  transition: transform 160ms var(--ease-out);
+  transition: transform var(--duration-press) var(--ease-out-soft);
 }
 
 .button:active {
@@ -34,8 +34,8 @@ Scales out of its trigger, not out of thin air.
 .popover {
   transform-origin: var(--transform-origin); /* Base UI supplies this */
   transition:
-    opacity 200ms var(--ease-out),
-    transform 200ms var(--ease-out);
+    opacity 200ms var(--ease-out-soft),
+    transform 200ms var(--ease-out-soft);
 }
 
 .popover[data-starting-style],
@@ -57,8 +57,8 @@ Same shape as a popover, faster, plus the detail most implementations miss.
 .tooltip {
   transform-origin: var(--transform-origin);
   transition:
-    transform 125ms var(--ease-out),
-    opacity 125ms var(--ease-out);
+    transform 125ms var(--ease-out-soft),
+    opacity 125ms var(--ease-out-soft);
 }
 
 .tooltip[data-starting-style],
@@ -85,8 +85,8 @@ The one popover that stays centered.
 .modal {
   transform-origin: center; /* exempt — not anchored to a trigger */
   transition:
-    opacity 250ms var(--ease-out),
-    transform 250ms var(--ease-out);
+    opacity 250ms var(--ease-out-soft),
+    transform 250ms var(--ease-out-soft);
 }
 
 .modal[data-starting-style],
@@ -96,7 +96,7 @@ The one popover that stays centered.
 }
 
 .backdrop {
-  transition: opacity 250ms var(--ease-out);
+  transition: opacity 250ms var(--ease-out-soft);
 }
 ```
 
@@ -109,7 +109,7 @@ Animate the backdrop's opacity alongside it so they read as one surface.
 ```css
 .drawer {
   transform: translateY(0);
-  transition: transform 500ms var(--ease-drawer);
+  transition: transform var(--duration-drawer) var(--ease-drawer);
 }
 
 .drawer[data-closed] {
@@ -160,8 +160,8 @@ When toasts stack and the list reflows, the opacity change has to work against t
 .content {
   overflow: hidden;
   transition:
-    height 200ms var(--ease-out),
-    opacity 200ms var(--ease-out);
+    height 200ms var(--ease-out-soft),
+    opacity 200ms var(--ease-out-soft);
 }
 ```
 
@@ -177,7 +177,7 @@ For a list or grid the user sees occasionally — not for a list they scroll pas
 .item {
   opacity: 0;
   transform: translateY(8px);
-  animation: fadeIn 300ms var(--ease-out) forwards;
+  animation: fadeIn 300ms var(--ease-out-soft) forwards;
 }
 
 .item:nth-child(2) {
@@ -209,7 +209,7 @@ For destructive actions where a plain click is too easy to fire by accident.
 ```css
 .overlay {
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 200ms var(--ease-out); /* release: snappy */
+  transition: clip-path 200ms var(--ease-out-soft); /* release: snappy */
 }
 
 .button:active .overlay {
@@ -235,7 +235,7 @@ Duplicate the tab list. Style the copy as the active state — different backgro
 ```css
 .tabs-active-copy {
   clip-path: inset(0 60% 0 20%); /* driven by the active tab's position */
-  transition: clip-path 250ms var(--ease-in-out);
+  transition: clip-path 250ms var(--ease-in-out-soft);
 }
 ```
 
@@ -250,7 +250,7 @@ Marketing surfaces only. Don't do this to functional UI a user visits daily.
 ```css
 .reveal {
   clip-path: inset(0 0 100% 0);
-  transition: clip-path 600ms var(--ease-in-out);
+  transition: clip-path 600ms var(--ease-in-out-soft);
 }
 
 .reveal[data-visible] {

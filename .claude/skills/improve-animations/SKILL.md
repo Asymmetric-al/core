@@ -19,6 +19,8 @@ running `bun run skills:sync`.
   self-contained animation plans.
 - Do not use it for a single diff (`review-animations`) or for immediate source
   implementation (`anim` plus the normal implementation workflow).
+- A concrete audit or plan request should be answered directly. The upstream
+  Initial Response applies only to a bare invocation with no question or task.
 
 ### Workflow
 
