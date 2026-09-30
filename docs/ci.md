@@ -321,3 +321,17 @@ native branch protection control repository writes and merges.
 - **Remote cache (preferred):** All `ci.yml` jobs set `TURBO_TOKEN` (secret) and `TURBO_TEAM` (variable). When both are present, Turborepo uses Vercel's remote cache — unchanged tasks are skipped entirely. To verify: look for `"Remote cache hit"` in the CI job logs.
 - **Local fallback:** Each `ci.yml` job also caches `.turbo/` via `actions/cache@v4`, keyed on `turbo-${{ runner.os }}-${{ github.sha }}` with a restore prefix of `turbo-${{ runner.os }}-`. Remote cache hits still skip work when `TURBO_TOKEN` and `TURBO_TEAM` are configured.
 - **See also:** `file:.github/SECRETS.md` for how to configure `TURBO_TOKEN` and `TURBO_TEAM`.
+
+### Workspace package resolution in unit tests
+
+The Vitest workspace pinning plugin resolves exported `@asym/*` imports through
+Vite using the package in the current checkout as the self-reference anchor.
+Declared export conditions, wildcard mappings and denied subpaths remain owned
+by Vite/package exports. A missing declared target fails instead of falling
+through to private source or another checkout. Filesystem fallback applies only
+to workspace packages with no `exports` field. The focused resolver tests compare
+actual Vite resolution with Node 24 for public, private and conditional paths.
+
+The data-boundary scanner excludes generated `.output` and `.nitro` paths only
+inside `packages/eve-runtime`; directories with the same names elsewhere remain
+subject to the retired Twenty runtime guard.
