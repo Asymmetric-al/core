@@ -2789,6 +2789,16 @@ async function moveDirectory(fromPath, toPath) {
 
     await cp(fromPath, toPath, { recursive: true, force: true });
     try {
+      if (
+        process.env.CORE_SKILLS_SIMULATE_BACKUP_REMOVE_FAILURE === "1" &&
+        path.basename(toPath).includes(".refresh-backup-")
+      ) {
+        const removeError = new Error(
+          `EIO: simulated remove failure for ${fromPath}`,
+        );
+        removeError.code = "EIO";
+        throw removeError;
+      }
       await rm(fromPath, { recursive: true, force: true });
     } catch (removeError) {
       const copyError = new Error(
@@ -2892,18 +2902,6 @@ async function swapPreparedRefresh(preparedRefresh) {
     await moveDirectory(to, backup);
     hasBackup = true;
   } catch (error) {
-    if (error?.backupReady === true) {
-      try {
-        await rm(to, { recursive: true, force: true });
-        await moveDirectory(backup, to);
-      } catch (restoreError) {
-        throw new AggregateError(
-          [error, restoreError],
-          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
-        );
-      }
-      throw error;
-    }
     if (getErrorCode(error) !== "ENOENT") {
       throw error;
     }
