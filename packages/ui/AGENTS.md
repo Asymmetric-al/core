@@ -55,7 +55,9 @@ Where a surface needs higher density, keep `base-maia` components and tokens. Us
 5. Ordinary text/class/layout fixes: edit the shared component or compose in the app. Still preserve Maia.
 6. Registry / generated components: inspect the item, confirm Base UI resolution, adapt output to Maia, review every file, do not `--overwrite` customizations blindly, add only through `packages/ui`. Do not keep the original visual system if it conflicts with Maia.
 7. For substantive UI behavior, use TDD (`docs/ai/skills/tdd/SKILL.md`) and verify keyboard, focus, responsive, loading/empty/error/disabled states, and browser evidence.
-8. Run existing shadcn config, token, drift, and UI audit checks.
+8. Follow `docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`
+   for scoped lint, finding review, authoring boundaries, and consumer checks
+   after shared changes. Keep existing shadcn config, token, drift, and UI audits.
 
 ## Semantic tokens vs Zinc
 

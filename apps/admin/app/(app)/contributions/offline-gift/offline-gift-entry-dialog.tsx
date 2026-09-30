@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -16,6 +17,10 @@ import {
   FieldContent,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 import {
   CircleAlert,
@@ -24,7 +29,7 @@ import {
   LoaderCircle,
   Receipt,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useId, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import {
@@ -73,7 +78,7 @@ export function OfflineGiftEntryDialog({
   // entries (matches the task-form pattern).
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-[560px]">
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-140">
         {open ? (
           <OfflineGiftEntryForm
             onClose={() => onOpenChange(false)}
@@ -92,6 +97,8 @@ function OfflineGiftEntryForm({
   onClose: () => void;
   onRecorded?: (result: OfflineGiftEntryResult) => void;
 }) {
+  const pendingActionLabelId = useId();
+
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [recorded, setRecorded] = useState<OfflineGiftEntryResult | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -267,7 +274,15 @@ function OfflineGiftEntryForm({
           })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button disabled={!canSubmit || isSubmitting} type="submit">
+            <Button
+              aria-labelledby={`${pendingActionLabelId}-2`}
+              focusableWhenDisabled={isSubmitting}
+              disabled={!canSubmit || isSubmitting}
+              type="submit"
+            >
+              <span id={`${pendingActionLabelId}-2`} className="sr-only">
+                {isSubmitting ? "Recording…" : "Record gift"}
+              </span>
               {isSubmitting ? (
                 <>
                   <LoaderCircle className="size-4 animate-spin" />
@@ -317,12 +332,12 @@ function useOfflineGiftForm(handlers: UseOfflineGiftFormHandlers) {
           body: JSON.stringify(toOfflineContributionRequest(value)),
           signal: controller.signal,
         });
-        const rawPayload = await response.json().catch(() => null);
+        const { ok, body: rawPayload } = await readJsonBody(response);
         const parsedPayload =
           offlineGiftEntryResponseSchema.safeParse(rawPayload);
         const payload = parsedPayload.success ? parsedPayload.data : null;
 
-        if (!response.ok) {
+        if (!ok) {
           handlers.onError(payload?.error ?? GENERIC_RECORDING_ERROR);
           return;
         }
@@ -378,20 +393,28 @@ function ModeToggle({
   return (
     <fieldset>
       <legend className={cn(LABEL_CLASS, "mb-2")}>Donor</legend>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <ToggleGroup
+        aria-label="Donor mode"
+        value={[value]}
+        onValueChange={(values) => {
+          const next = values[0];
+          if (next === "known" || next === "unknown_offline") onChange(next);
+        }}
+        spacing={2}
+        className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2"
+      >
         {options.map((option) => {
           const active = option.mode === value;
           return (
-            <button
-              aria-pressed={active}
+            <ToggleGroupItem
+              value={option.mode}
               className={cn(
-                "flex flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors",
+                "flex h-auto flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors data-pressed:bg-primary/5 data-pressed:text-foreground",
                 active
                   ? "border-primary bg-primary/5 ring-1 ring-primary/40"
                   : "border-border bg-card hover:bg-accent",
               )}
               key={option.mode}
-              onClick={() => onChange(option.mode)}
               type="button"
             >
               <span className="text-sm font-medium text-foreground">
@@ -400,10 +423,10 @@ function ModeToggle({
               <span className="text-xs text-muted-foreground">
                 {option.hint}
               </span>
-            </button>
+            </ToggleGroupItem>
           );
         })}
-      </div>
+      </ToggleGroup>
     </fieldset>
   );
 }
@@ -636,7 +659,7 @@ function OptionalMetaSection({ form }: { form: OfflineForm }) {
       <form.AppField name="internalNote">
         {(field) => (
           <field.TextareaField
-            inputClassName="min-h-[64px] resize-none rounded-xl text-sm"
+            inputClassName="min-h-16 resize-none rounded-xl text-sm"
             label="Internal note (optional)"
             labelClassName={LABEL_CLASS}
             placeholder="Not shown to the donor"

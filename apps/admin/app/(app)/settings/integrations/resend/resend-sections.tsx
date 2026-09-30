@@ -47,6 +47,7 @@ import {
   Send,
   XCircle,
 } from "lucide-react";
+import { useId } from "react";
 
 import { formatValidatedAtUtcLabel } from "./validated-at";
 
@@ -190,7 +191,7 @@ export function ResendConnectedView({
 
   return (
     <div className="space-y-6">
-      <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-white">
+      <Card className="border-emerald-200 bg-transparent bg-gradient-to-br from-emerald-50/50 to-white">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -264,7 +265,11 @@ export function ResendConnectedView({
             </Button>
             <Button
               onClick={() =>
-                window.open("https://resend.com/domains", "_blank")
+                window.open(
+                  "https://resend.com/domains",
+                  "_blank",
+                  "noopener,noreferrer",
+                )
               }
               variant="outline"
             >
@@ -293,7 +298,13 @@ export function ResendConnectedView({
                 {warning.helpUrl ? (
                   <Button
                     className="h-auto p-0 text-inherit"
-                    onClick={() => window.open(warning.helpUrl, "_blank")}
+                    onClick={() =>
+                      window.open(
+                        warning.helpUrl,
+                        "_blank",
+                        "noopener,noreferrer",
+                      )
+                    }
                     size="sm"
                     variant="link"
                   >
@@ -358,6 +369,8 @@ export function ResendDisconnectedView({
   showApiKey,
   onToggleApiKeyVisibility,
 }: ResendDisconnectedViewProps) {
+  const pendingActionLabelId = useId();
+
   const resendCredentialFieldId = "resend-api-key";
   const handleConnectSubmit = () => {
     void form.handleSubmit();
@@ -429,7 +442,7 @@ export function ResendDisconnectedView({
                         value={field.state.value}
                       />
                       <Button
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                        className="absolute right-0 top-0 h-full hover:bg-transparent"
                         onClick={onToggleApiKeyVisibility}
                         size="sm"
                         type="button"
@@ -510,7 +523,13 @@ export function ResendDisconnectedView({
         </CardContent>
         <CardFooter className="flex items-center justify-between border-t bg-zinc-50/50 pt-6">
           <Button
-            onClick={() => window.open("https://resend.com/signup", "_blank")}
+            onClick={() =>
+              window.open(
+                "https://resend.com/signup",
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
             type="button"
             variant="outline"
           >
@@ -525,11 +544,16 @@ export function ResendDisconnectedView({
           >
             {({ canSubmit, isSubmitting }) => (
               <Button
-                className="min-w-[140px] bg-blue-600 hover:bg-blue-700"
+                aria-labelledby={`${pendingActionLabelId}-8`}
+                focusableWhenDisabled={isSubmitting}
+                className="min-w-35 bg-blue-600 hover:bg-blue-700"
                 disabled={!canSubmit || isSubmitting}
                 onClick={handleConnectSubmit}
                 type="button"
               >
+                <span id={`${pendingActionLabelId}-8`} className="sr-only">
+                  {isSubmitting ? "Connecting…" : "Connect Resend"}
+                </span>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 size-4 animate-spin" />
@@ -556,6 +580,8 @@ export function ResendTestDialog({
   fromEmail,
   onOpenChange,
 }: ResendTestDialogProps) {
+  const pendingActionLabelId = useId();
+
   const handleTestSubmit = () => {
     void form.handleSubmit();
   };
@@ -639,11 +665,20 @@ export function ResendTestDialog({
             >
               {({ canSubmit, isSubmitting }) => (
                 <Button
+                  aria-labelledby={`${pendingActionLabelId}-9`}
+                  focusableWhenDisabled={isSubmitting}
                   className="bg-blue-600 hover:bg-blue-700"
                   disabled={!canSubmit || isSubmitting}
                   onClick={handleTestSubmit}
                   type="button"
                 >
+                  <span id={`${pendingActionLabelId}-9`} className="sr-only">
+                    {isSubmitting
+                      ? "Sending…"
+                      : testStatus === "success"
+                        ? "Send Another"
+                        : "Send Test"}
+                  </span>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 size-4 animate-spin" />

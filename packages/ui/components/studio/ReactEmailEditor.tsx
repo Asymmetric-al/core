@@ -6,6 +6,7 @@ import {
   type EmailStudioExportOptions,
   type EmailStudioExportResult,
 } from "@asym/email/email-builder-types";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { composeReactEmail } from "@react-email/editor/core";
 import { StarterKit as ReactEmailStarterKit } from "@react-email/editor/extensions";
 import { EmailTheming } from "@react-email/editor/plugins";
@@ -263,12 +264,12 @@ export const ReactEmailEditor = forwardRef<
         body: formData,
       });
 
-      const payload = (await response.json().catch(() => null)) as {
+      const { ok, body: payload } = await readJsonBody<{
         url?: string;
         error?: string;
-      } | null;
+      }>(response);
 
-      if (!response.ok || !payload?.url) {
+      if (!ok || !payload?.url) {
         throw new Error(payload?.error ?? "Image upload failed");
       }
 
@@ -295,7 +296,11 @@ export const ReactEmailEditor = forwardRef<
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 Loading email editor…
               </div>
-              <Progress value={65} className="h-1.5" />
+              <Progress
+                aria-label="Loading email editor"
+                value={null}
+                className="h-1.5"
+              />
             </div>
           </div>
         </div>

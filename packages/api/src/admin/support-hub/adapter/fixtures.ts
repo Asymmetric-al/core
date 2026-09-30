@@ -15,7 +15,7 @@ import type {
   SupportSignature,
   SupportSlaPolicy,
   SupportTeam,
-} from "@asym/database/hooks";
+} from "@asym/database/collections/support-hub.schema";
 
 /**
  * Donor-care fixtures used by the Phase 7 in-memory `SupportHubAdapter`.

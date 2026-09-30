@@ -21,6 +21,8 @@ after upstream refreshes before running `bun run skills:sync`.
   motion-only diff review.
 - Do not use it for general code review, implementation, or a codebase-wide
   animation audit.
+- A concrete review request should be answered directly. The upstream
+  Initial Response applies only to a bare invocation with no question or task.
 
 ### Workflow
 

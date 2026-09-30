@@ -31,7 +31,11 @@ function Badge({
   variant = "default",
   render,
   ...props
-}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
+}: useRender.ComponentProps<
+  "span",
+  { slot: string; variant: VariantProps<typeof badgeVariants>["variant"] }
+> &
+  VariantProps<typeof badgeVariants>) {
   return useRender({
     defaultTagName: "span",
     props: mergeProps<"span">(
@@ -48,4 +52,7 @@ function Badge({
   });
 }
 
+// shadcn registry component: the cva variants are exported alongside the
+// component per the registry convention, and consumers import them from here.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export { Badge, badgeVariants };

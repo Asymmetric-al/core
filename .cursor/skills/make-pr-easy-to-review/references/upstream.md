@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/m
 source_type: github
 upstream_path: cursor-team-kit/skills/make-pr-easy-to-review/
 skills_lock_hash: e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7
-last_reviewed: 2026-09-23
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: make-pr-easy-to-review
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/make-pr-easy-to-review/` (mirrored 
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `70b2dc8b4b85c8d5648624ca40d692c421fff32f`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/make-pr-easy-to-review/`
 - **Lock skillPath:** `cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md`
 - **Computed hash:** `e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7`

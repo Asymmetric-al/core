@@ -12,7 +12,7 @@ import {
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { Progress } from "@asym/ui/components/shadcn/progress";
+import { Meter } from "@asym/ui/components/shadcn/meter";
 import {
   Tabs,
   TabsContent,
@@ -32,6 +32,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
+
+import { WorkerStory } from "./worker-story";
 
 import type { FieldWorker } from "@/lib/mock-data";
 
@@ -74,7 +76,7 @@ const PUBLIC_UPDATES = [
 
 const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
   <div className="group relative pl-8 pb-12 last:pb-0">
-    <div className="absolute left-[11px] top-3 bottom-0 w-px bg-zinc-100 group-last:hidden" />
+    <div className="absolute left-2.75 top-3 bottom-0 w-px bg-zinc-100 group-last:hidden" />
     <div className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-blue-100 group-hover:scale-110 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300">
       <div className="size-1.5 rounded-full bg-zinc-400 group-hover:bg-blue-600 transition-colors" />
     </div>
@@ -86,7 +88,7 @@ const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
         </span>
         <Badge
           variant="secondary"
-          className="px-2 py-0 text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200"
+          className="py-0 text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200"
         >
           {update.type}
         </Badge>
@@ -106,7 +108,7 @@ const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
           />
 
           {update.image && (
-            <div className="rounded-lg overflow-hidden mb-4 border border-zinc-100 relative h-[300px]">
+            <div className="rounded-lg overflow-hidden mb-4 border border-zinc-100 relative h-75">
               <Image
                 src={update.image}
                 alt="Update visual"
@@ -176,47 +178,6 @@ function WorkerProfileHeaderSection({ worker }: { worker: FieldWorker }) {
             <span className="size-1 rounded-full bg-zinc-300" />
             <span>Partner since 2019</span>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function WorkerStoryTabContent({ worker }: { worker: FieldWorker }) {
-  return (
-    <div className="prose prose-lg prose-slate max-w-none text-zinc-600 leading-relaxed font-light">
-      <p className="font-medium text-xl text-zinc-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic">
-        &quot;{worker.description}&quot;
-      </p>
-      <h3>The Mission</h3>
-      <p>
-        We are committed to long-term sustainable change. By partnering with
-        local leaders and utilizing indigenous resources, we ensure that every
-        project has community buy-in and lasting impact. Your support
-        doesn&apos;t just provide temporary relief; it builds a foundation for
-        the future.
-      </p>
-      <p>
-        From organizing community health workshops to overseeing construction
-        projects, our days are filled with the hard but rewarding work of
-        transformation. We believe that true change happens in the context of
-        relationship.
-      </p>
-
-      <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
-        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
-          <h4 className="font-semibold text-zinc-900 mb-2">Direct Impact</h4>
-          <p className="text-sm text-zinc-500">
-            100% of your program donation goes directly to the field account
-            after processing fees.
-          </p>
-        </div>
-        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
-          <h4 className="font-semibold text-zinc-900 mb-2">Accountability</h4>
-          <p className="text-sm text-zinc-500">
-            We conduct quarterly site visits and financial audits to ensure
-            integrity.
-          </p>
         </div>
       </div>
     </div>
@@ -334,7 +295,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                 value="story"
                 className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
               >
-                <WorkerStoryTabContent worker={worker} />
+                <WorkerStory description={worker.description} />
               </TabsContent>
 
               <TabsContent
@@ -393,6 +354,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                       <input
                         id="custom-amount-input"
                         type="number"
+                        aria-label="Custom donation amount"
                         placeholder="0"
                         className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                         value={customAmount}
@@ -435,7 +397,8 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         {formatCurrency(worker.goal || 0)}
                       </span>
                     </div>
-                    <Progress
+                    <Meter
+                      aria-label="Funding goal"
                       value={percentRaised}
                       className="h-2.5 bg-zinc-100"
                     />

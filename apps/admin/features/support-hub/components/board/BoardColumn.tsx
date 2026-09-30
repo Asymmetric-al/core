@@ -51,7 +51,7 @@ export function BoardColumn({
     <section
       aria-label={ariaLabel ?? `${label} column`}
       className={cn(
-        "flex h-full min-h-0 min-w-[260px] flex-1 flex-col rounded-2xl border bg-zinc-50/40 p-3",
+        "flex h-full min-h-0 min-w-65 flex-1 flex-col rounded-2xl border bg-zinc-50/40 p-3",
         tone.tint,
         isHovered && "border-zinc-300 bg-zinc-100/80",
       )}
@@ -65,7 +65,7 @@ export function BoardColumn({
           </h3>
           <Badge
             variant="secondary"
-            className="h-5 min-w-[1.5rem] justify-center rounded-md border-transparent bg-white text-[11px] font-semibold tabular-nums text-zinc-700"
+            className="h-5 min-w-[1.5rem] rounded-md bg-white text-[11px] font-semibold tabular-nums text-zinc-700"
           >
             {count}
           </Badge>

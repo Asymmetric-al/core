@@ -1,11 +1,13 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   isGeneralCheckoutAlias,
   resolveCheckoutFundId,
 } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
+import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
   Avatar,
   AvatarFallback,
@@ -21,9 +23,24 @@ import {
   FieldTitle,
 } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@asym/ui/components/shadcn/radio-group";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Switch } from "@asym/ui/components/shadcn/switch";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 import {
   CardElement,
@@ -51,7 +68,13 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   buildCheckoutRequestFingerprint,
@@ -68,6 +91,13 @@ import {
   type CheckoutPaymentMethod,
   type ServerDonation,
 } from "./checkout-donation";
+import {
+  commitPaymentAttemptState as commitPaymentAttemptSnapshot,
+  commitSuccessfulOriginalPaymentAttempt as commitSuccessfulOriginalPaymentSnapshot,
+  exitStalePaymentAttempt as exitStalePaymentSnapshot,
+  isPaymentAttemptActive as isCurrentPaymentAttemptIdentity,
+  synchronizePaymentAttemptState,
+} from "./checkout-payment-attempt";
 
 import { getFieldWorkerById } from "@/lib/mock-data";
 
@@ -110,6 +140,7 @@ type CheckoutState = {
   idempotencyFingerprint: string | null;
   idempotencyKey: string | null;
   isProcessing: boolean;
+  paymentAttemptId: number | null;
   paymentMethod: PaymentMethod;
   postalCode: string;
   startDate: string;
@@ -236,6 +267,66 @@ const createRuntimeConfigFromPublishableKey = (
     : createRuntimeConfigError();
 };
 
+const LOADING_RUNTIME_CONFIG: CheckoutRuntimeConfig = {
+  error: null,
+  publishableKey: null,
+  status: "loading",
+  stripePromise: null,
+};
+
+/**
+ * Load the tenant's checkout runtime config. Resolves to `null` when the
+ * request was aborted so the caller leaves the current state untouched.
+ */
+async function fetchCheckoutRuntimeConfig(
+  signal: AbortSignal,
+): Promise<CheckoutRuntimeConfig | null> {
+  try {
+    const response = await fetch("/api/donate", { method: "GET", signal });
+    const { ok, body: payload } = await readJsonBody<unknown>(response);
+
+    if (signal.aborted) {
+      return null;
+    }
+
+    if (!ok) {
+      const message =
+        payload && typeof payload === "object"
+          ? (payload as Record<string, unknown>).error
+          : null;
+      return {
+        error:
+          typeof message === "string"
+            ? message
+            : "Checkout configuration could not be loaded. Please try again.",
+        publishableKey: null,
+        status: "error",
+        stripePromise: null,
+      };
+    }
+
+    return createRuntimeConfigFromPublishableKey(
+      readRuntimePublishableKey(payload),
+    );
+  } catch (error) {
+    if (signal.aborted) {
+      return null;
+    }
+
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return null;
+    }
+
+    return {
+      error:
+        "Checkout configuration could not be loaded. Please refresh and try again.",
+      publishableKey: null,
+      status: "error",
+      stripePromise: null,
+    };
+  }
+}
+
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
   return normalizeCheckoutFrequency(readSearchParam(value));
 };
@@ -278,23 +369,21 @@ function SummaryCard({
   total,
 }: SummaryCardProps) {
   return (
-    <div className="bg-white rounded-3xl border border-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden sticky top-32">
-      <div className="p-8 bg-zinc-50/50 border-b border-zinc-100">
-        <h3 className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em] mb-6">
+    <div className="bg-card rounded-3xl border border-border shadow-xl overflow-hidden sticky top-32">
+      <div className="p-8 bg-muted/50 border-b border-border">
+        <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-widest mb-6">
           Contribution Summary
         </h3>
         <div className="flex items-center gap-4">
-          <Avatar className="size-16 border-4 border-white shadow-xl">
-            <AvatarImage src={worker?.image} className="object-cover" />
-            <AvatarFallback className="bg-zinc-100 text-zinc-900 font-semibold">
-              GH
-            </AvatarFallback>
+          <Avatar className="size-16">
+            <AvatarImage src={worker?.image} />
+            <AvatarFallback>GH</AvatarFallback>
           </Avatar>
-          <div className="space-y-1">
-            <p className="text-[10px] font-semibold text-zinc-900 uppercase tracking-widest">
+          <div className="min-w-0 space-y-1 wrap-anywhere">
+            <p className="text-xs font-semibold text-foreground uppercase tracking-widest">
               Supporting
             </p>
-            <p className="text-xl font-semibold text-zinc-950 font-syne leading-tight">
+            <p className="text-xl font-semibold text-foreground font-display leading-tight">
               {worker?.title || "General Mission Fund"}
             </p>
           </div>
@@ -304,55 +393,50 @@ function SummaryCard({
       <div className="p-8 space-y-6">
         <div className="space-y-4">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-zinc-500 font-medium">Your gift</span>
-            <span className="font-semibold text-zinc-950 font-syne">
+            <span className="text-muted-foreground font-medium">Your gift</span>
+            <span className="font-semibold text-foreground font-display">
               {formatCurrency(amount)}
             </span>
           </div>
 
           {coverFees && (
             <div className="flex justify-between items-center text-sm animate-in fade-in slide-in-from-top-2">
-              <span className="text-zinc-500 font-medium flex items-center gap-2">
-                <Zap className="size-3.5 text-zinc-900 fill-zinc-900" /> Cover
+              <span className="text-muted-foreground font-medium flex items-center gap-2">
+                <Zap className="size-3.5 text-foreground fill-current" /> Cover
                 processing fees
               </span>
-              <span className="font-semibold text-zinc-900 font-syne">
+              <span className="font-semibold text-foreground font-display">
                 {formatCurrency(fees)}
               </span>
             </div>
           )}
 
           <div className="flex justify-between items-center text-sm">
-            <span className="text-zinc-500 font-medium">Frequency</span>
-            <Badge
-              variant="outline"
-              className="uppercase text-[10px] font-semibold tracking-[0.2em] px-4 py-1.5 rounded-full border-none shadow-none bg-zinc-100 text-zinc-500"
-            >
-              {frequency}
-            </Badge>
+            <span className="text-muted-foreground font-medium">Frequency</span>
+            <Badge variant="secondary">{frequency}</Badge>
           </div>
         </div>
 
-        <Separator className="bg-zinc-100" />
+        <Separator />
 
         <div className="flex justify-between items-end pt-2">
           <div className="space-y-1">
-            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               Amount Due Today
             </span>
-            <span className="block text-3xl font-semibold text-zinc-950 font-syne tracking-tighter">
+            <span className="block text-3xl font-semibold text-foreground font-display tracking-tighter">
               {formatCurrency(total)}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="px-8 py-4 bg-zinc-950 flex items-center justify-between text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">
+      <div className="px-8 py-4 bg-primary flex flex-wrap gap-4 items-center justify-between text-xs font-semibold uppercase tracking-widest text-primary-foreground/80">
         <div className="flex items-center gap-2">
-          <Shield className="size-3.5 text-zinc-500" /> Secure SSL
+          <Shield className="size-3.5" /> Secure SSL
         </div>
         <div className="flex items-center gap-2">
-          <Lock className="size-3.5 text-zinc-500" /> PCI Compliant
+          <Lock className="size-3.5" /> PCI Compliant
         </div>
       </div>
     </div>
@@ -369,34 +453,36 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
 
   return (
     <nav
-      className="flex items-center justify-center gap-4 mb-20"
+      className="flex items-center justify-center gap-2 sm:gap-4 mb-20"
       aria-label="Checkout progress"
     >
       {steps.map((s, idx) => (
-        <div key={s.key} className="flex items-center gap-4">
+        <div key={s.key} className="flex items-center gap-2 sm:gap-4">
           <div className="flex flex-col items-center gap-2">
             <div
               className={cn(
-                "h-1.5 rounded-full transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700 ease-[0.22, 1, 0.36, 1]",
+                "h-1.5 rounded-full transition-colors duration-700 ease-[var(--ease-out-soft)]",
                 currentIdx === idx
-                  ? "bg-zinc-900 w-12"
+                  ? "bg-primary w-12"
                   : currentIdx > idx
-                    ? "bg-zinc-900 w-6"
-                    : "bg-zinc-200 w-6",
+                    ? "bg-primary w-6"
+                    : "bg-muted w-6",
               )}
               aria-hidden="true"
             />
             <span
               className={cn(
-                "text-[9px] font-semibold uppercase tracking-[0.3em]",
-                currentIdx === idx ? "text-zinc-950" : "text-zinc-300",
+                "text-xs font-semibold uppercase tracking-widest",
+                currentIdx === idx
+                  ? "text-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {s.label}
             </span>
           </div>
           {idx < steps.length - 1 && (
-            <div className="h-px w-8 bg-zinc-100 mb-6" aria-hidden="true" />
+            <div className="h-px w-4 sm:w-8 bg-muted mb-6" aria-hidden="true" />
           )}
         </div>
       ))}
@@ -416,62 +502,63 @@ function SuccessView({
   workerTitle: string;
 }) {
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white max-w-2xl w-full rounded-[3.5rem] shadow-[0_100px_150px_-50px_rgba(0,0,0,0.1)] overflow-hidden text-center"
+        className="bg-card max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden text-center"
       >
-        <div className="bg-zinc-950 pt-24 pb-32 px-12 text-white relative overflow-hidden">
+        <div className="bg-primary px-6 py-12 sm:px-12 sm:pt-24 sm:pb-32 text-primary-foreground relative overflow-hidden">
           <div className="absolute inset-0 opacity-20" aria-hidden="true">
-            <div className="absolute top-0 right-0 size-64 bg-zinc-500 rounded-full blur-[100px]" />
-            <div className="absolute bottom-0 left-0 size-64 bg-zinc-500 rounded-full blur-[100px]" />
+            <div className="absolute top-0 right-0 size-64 bg-muted-foreground rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 size-64 bg-muted-foreground rounded-full blur-3xl" />
           </div>
 
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3, type: "spring" }}
-            className="size-24 bg-white rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-[0_0_50px_rgba(255,255,255,0.1)]"
+            className="size-24 bg-card rounded-4xl flex items-center justify-center mx-auto mb-10 shadow-xl"
           >
             <Check
-              className="size-12 text-zinc-950"
+              className="size-12 text-foreground"
               strokeWidth={3}
               aria-hidden="true"
             />
           </motion.div>
 
-          <h1 className="text-5xl md:text-6xl font-semibold mb-4 font-syne tracking-tighter">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold mb-4 font-display tracking-tighter">
             Contribution Confirmed.
           </h1>
-          <p className="text-zinc-400 font-semibold text-xs uppercase tracking-[0.4em]">
+          <p className="text-primary-foreground/80 font-semibold text-xs uppercase tracking-widest">
             Thank you for your support
           </p>
         </div>
 
-        <div className="px-16 py-20 space-y-12">
+        <div className="px-6 py-10 sm:px-16 sm:py-20 space-y-12">
           <div className="space-y-4">
-            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               Total Contribution
             </p>
-            <p className="text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
+            <p className="text-4xl sm:text-7xl font-semibold text-foreground font-display tracking-tighter tabular-nums wrap-anywhere">
               {formatCurrency(total)}
             </p>
           </div>
 
-          <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
+          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed font-light tracking-tight break-words">
             A secure receipt has been sent to{" "}
-            <span className="text-zinc-950 font-semibold">
+            <span className="text-foreground font-semibold">
               {donorInfo.email}
             </span>
             . Your gift is being routed to{" "}
-            <span className="text-zinc-950 font-semibold">{workerTitle}</span>.
+            <span className="text-foreground font-semibold">{workerTitle}</span>
+            .
           </p>
 
           {mode === "test" && (
             <div
               role="status"
-              className="inline-flex items-center gap-3 rounded-full bg-amber-50 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+              className="inline-flex items-center gap-3 rounded-full bg-muted px-6 py-3 text-xs font-semibold uppercase tracking-widest text-foreground dark:bg-muted/10 dark:text-foreground"
             >
               <AlertTriangle className="size-3.5" aria-hidden="true" /> Test
               mode — no card charge collected
@@ -482,8 +569,8 @@ function SuccessView({
             <Link
               href="/donor-dashboard"
               className={cn(
-                buttonVariants({ size: "lg" }),
-                "flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 font-semibold font-syne text-[11px] uppercase tracking-widest",
+                buttonVariants({ variant: "maia", size: "lg" }),
+                "sm:flex-1",
               )}
             >
               Enter Dashboard
@@ -491,8 +578,8 @@ function SuccessView({
             <Link
               href="/"
               className={cn(
-                buttonVariants({ variant: "outline", size: "lg" }),
-                "flex-1 h-20 rounded-3xl border-zinc-100 hover:bg-zinc-50 font-semibold font-syne text-[11px] uppercase tracking-widest",
+                buttonVariants({ variant: "maia-outline", size: "lg" }),
+                "sm:flex-1",
               )}
             >
               Back to Home
@@ -533,117 +620,94 @@ function ConfigStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
+        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
           Set Up Support
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
           Your Gift.
         </h1>
-        <p className="text-2xl text-zinc-400 font-light tracking-tight">
+        <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Configure the amount of your one-time gift.
         </p>
       </header>
 
       <div className="space-y-8">
-        <div className="rounded-[2rem] border border-zinc-100 bg-zinc-50 p-6">
-          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
+        <div className="rounded-4xl border border-border bg-muted p-6">
+          <p className="text-xs font-semibold text-foreground/80 uppercase tracking-widest">
             Contribution Frequency
           </p>
-          <p className="mt-2 font-semibold text-zinc-950 font-syne">
+          <p className="mt-2 font-semibold text-foreground font-display">
             One-time gift
           </p>
         </div>
 
         <fieldset className="space-y-6">
-          <legend className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
+          <legend className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Support Amount
           </legend>
-          <div
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
-            role="radiogroup"
+          <RadioGroup
+            className="grid-cols-2 md:grid-cols-4 gap-4"
+            aria-label="Preset support amounts"
+            value={customAmount ? null : amount}
+            onValueChange={(value) => {
+              if (typeof value === "number") onAmountSelect(value);
+            }}
           >
             {PRESET_AMOUNTS.map((val) => (
-              <button
+              <RadioGroupItem
                 key={val}
-                onClick={() => onAmountSelect(val)}
-                role="radio"
-                aria-checked={amount === val && !customAmount}
+                value={val}
+                nativeButton
+                render={(radioProps) => <button {...radioProps}>${val}</button>}
                 className={cn(
-                  "h-24 rounded-[1.8rem] border-2 font-semibold font-syne text-2xl press-feedback",
+                  "h-24 rounded-2xl border-2 font-semibold font-display text-2xl press-feedback",
                   amount === val && !customAmount
-                    ? "border-zinc-950 bg-zinc-950 text-white shadow-2xl ring-4 ring-zinc-950/15"
-                    : "border-zinc-50 bg-zinc-50 text-zinc-400 hover:border-zinc-200 hover:bg-zinc-100",
+                    ? "border-primary bg-primary text-primary-foreground shadow-2xl ring-4 ring-ring/15"
+                    : "border-border bg-muted text-foreground hover:border-border hover:bg-accent",
                 )}
-              >
-                ${val}
-              </button>
+              />
             ))}
-          </div>
+          </RadioGroup>
 
-          <div className="relative mt-8">
-            <span
-              className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-300 font-semibold font-syne text-3xl"
-              aria-hidden="true"
-            >
-              $
-            </span>
-            <label className="sr-only" htmlFor="custom-amount">
+          <div className="mt-8">
+            <Label className="sr-only" htmlFor="custom-amount">
               Custom amount
-            </label>
-            <input
-              id="custom-amount"
-              type="text"
-              inputMode="decimal"
-              placeholder="Other Amount"
-              value={customAmount}
-              onChange={onCustomAmountChange}
-              className={cn(
-                "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-semibold font-syne transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 outline-none border-2",
-                customAmount
-                  ? "border-zinc-950 bg-white"
-                  : "border-zinc-50 bg-zinc-50 focus:border-zinc-200",
-              )}
-            />
+            </Label>
+            <InputGroup>
+              <InputGroupAddon aria-hidden="true">$</InputGroupAddon>
+              <InputGroupInput
+                id="custom-amount"
+                type="text"
+                inputMode="decimal"
+                placeholder="Other Amount"
+                value={customAmount}
+                onChange={onCustomAmountChange}
+              />
+            </InputGroup>
           </div>
         </fieldset>
 
-        <Field
-          orientation="horizontal"
-          className={cn(
-            "rounded-[2rem] p-8 border-2 gap-6 items-center transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
-            coverFees
-              ? "bg-zinc-900 border-zinc-900 text-white"
-              : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200",
-          )}
-        >
+        <Field orientation="horizontal">
           <div
             className={cn(
-              "size-14 rounded-2xl flex items-center justify-center transition-colors",
-              coverFees ? "bg-white/20" : "bg-zinc-50",
+              "size-14 shrink-0 rounded-2xl flex items-center justify-center transition-colors",
+              coverFees ? "bg-primary/10" : "bg-muted",
             )}
           >
             <Heart
               className={cn(
                 "size-6",
-                coverFees ? "text-white fill-current" : "text-zinc-900",
+                coverFees
+                  ? "text-primary fill-current"
+                  : "text-muted-foreground",
               )}
               aria-hidden="true"
             />
           </div>
-          <FieldLabel
-            htmlFor="cover-processing-fees"
-            className="flex-1 cursor-pointer items-start"
-          >
+          <FieldLabel htmlFor="cover-processing-fees" className="grow">
             <FieldContent>
-              <FieldTitle className="font-semibold font-syne text-xl text-inherit">
-                Cover Processing Fees
-              </FieldTitle>
-              <FieldDescription
-                className={cn(
-                  "text-xs font-medium mt-1 leading-relaxed",
-                  coverFees ? "text-white/80" : "text-zinc-400",
-                )}
-              >
+              <FieldTitle>Cover Processing Fees</FieldTitle>
+              <FieldDescription className="mt-1 text-xs leading-relaxed">
                 Add <strong>{formatCurrency(calculatedFees)}</strong> to help
                 cover estimated processing costs.
               </FieldDescription>
@@ -660,12 +724,13 @@ function ConfigStep({
       </div>
 
       <Button
+        variant="maia"
         onClick={onNext}
         disabled={amount <= 0}
         size="lg"
-        className="w-full h-24 text-2xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
+        className="w-full"
       >
-        Next Step <ArrowRight className="ml-4 size-8" aria-hidden="true" />
+        Next Step <ArrowRight data-icon="inline-end" aria-hidden="true" />
       </Button>
     </motion.div>
   );
@@ -692,87 +757,65 @@ function DetailsStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
+        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
           Donor Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
           Your Details.
         </h1>
-        <p className="text-2xl text-zinc-400 font-light tracking-tight">
+        <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Information for tax receipts and donation tracking.
         </p>
       </header>
 
-      <div className="bg-zinc-50 p-12 rounded-[3rem] border border-zinc-100 space-y-10">
+      <div className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div className="space-y-4">
-            <Label
-              htmlFor="first-name"
-              className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
-            >
-              First Name
-            </Label>
+            <Label htmlFor="first-name">First Name</Label>
             <Input
               id="first-name"
               value={donorInfo.firstName}
               onChange={(e) => onDonorInfoChange({ firstName: e.target.value })}
               placeholder="Jane"
-              className="h-16 rounded-2xl bg-white border-none text-lg font-medium shadow-sm focus:ring-4 focus:ring-zinc-900/5 px-6"
               autoComplete="given-name"
             />
           </div>
           <div className="space-y-4">
-            <Label
-              htmlFor="last-name"
-              className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
-            >
-              Last Name
-            </Label>
+            <Label htmlFor="last-name">Last Name</Label>
             <Input
               id="last-name"
               value={donorInfo.lastName}
               onChange={(e) => onDonorInfoChange({ lastName: e.target.value })}
               placeholder="Doe"
-              className="h-16 rounded-2xl bg-white border-none text-lg font-medium shadow-sm focus:ring-4 focus:ring-zinc-900/5 px-6"
               autoComplete="family-name"
             />
           </div>
         </div>
         <div className="space-y-4">
-          <Label
-            htmlFor="email"
-            className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
-          >
-            Email Address
-          </Label>
+          <Label htmlFor="email">Email Address</Label>
           <Input
             id="email"
             type="email"
             value={donorInfo.email}
             onChange={(e) => onDonorInfoChange({ email: e.target.value })}
             placeholder="jane.doe@example.com"
-            className="h-16 rounded-2xl bg-white border-none text-lg font-medium shadow-sm focus:ring-4 focus:ring-zinc-900/5 px-6"
             autoComplete="email"
           />
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6">
-        <Button
-          variant="outline"
-          onClick={onBack}
-          size="lg"
-          className="h-20 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest hover:bg-zinc-50"
-        >
+        <Button variant="outline" onClick={onBack} size="lg">
           Back
         </Button>
         <Button
+          variant="maia"
           onClick={onNext}
           disabled={
             !donorInfo.firstName || !donorInfo.lastName || !donorInfo.email
           }
           size="lg"
-          className="flex-1 h-20 text-xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-[color,background-color,border-color,box-shadow,transform,opacity] uppercase tracking-widest"
+          className="grow"
         >
           Continue to Payment
         </Button>
@@ -813,6 +856,7 @@ function PaymentStep({
   stripe: Stripe | null;
   total: number;
 }) {
+  const paymentLabelId = React.useId();
   return (
     <motion.div
       key="payment"
@@ -823,80 +867,57 @@ function PaymentStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
+        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
           Payment Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
           Secure Payment.
         </h1>
-        <p className="text-2xl text-zinc-400 font-light tracking-tight">
+        <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Safely authorize your contribution.
         </p>
       </header>
 
-      <div className="bg-zinc-50 p-12 rounded-[3.5rem] border border-zinc-100 space-y-10">
-        <div
-          className="flex p-2 bg-white rounded-[2rem] border border-zinc-100"
-          role="tablist"
+      <Tabs
+        value={paymentMethod}
+        onValueChange={(value) => {
+          if (
+            !isProcessing &&
+            (value === "card" || value === "ach" || value === "wallet")
+          ) {
+            onPaymentMethodChange(value);
+          }
+        }}
+        className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-10"
+      >
+        <TabsList
+          activateOnFocus
+          aria-label="Payment method"
+          className="grid w-full grid-cols-3 gap-1 p-2 bg-card rounded-2xl border border-border group-data-[orientation=horizontal]/tabs:h-auto"
         >
-          <button
-            role="tab"
-            aria-selected={paymentMethod === "card"}
-            disabled={isProcessing}
-            onClick={() => {
-              if (!isProcessing) onPaymentMethodChange("card");
-            }}
-            className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
-              paymentMethod === "card"
-                ? "bg-zinc-950 text-white shadow-xl"
-                : "text-zinc-400",
-              isProcessing && "cursor-not-allowed opacity-60",
-            )}
-          >
-            Card
-          </button>
-          <button
-            role="tab"
-            aria-selected={paymentMethod === "ach"}
-            disabled={isProcessing}
-            onClick={() => {
-              if (!isProcessing) onPaymentMethodChange("ach");
-            }}
-            className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
-              paymentMethod === "ach"
-                ? "bg-zinc-950 text-white shadow-xl"
-                : "text-zinc-400",
-              isProcessing && "cursor-not-allowed opacity-60",
-            )}
-          >
-            Bank
-          </button>
-          <button
-            role="tab"
-            aria-selected={paymentMethod === "wallet"}
-            disabled={isProcessing}
-            onClick={() => {
-              if (!isProcessing) onPaymentMethodChange("wallet");
-            }}
-            className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
-              paymentMethod === "wallet"
-                ? "bg-zinc-950 text-white shadow-xl"
-                : "text-zinc-400",
-              isProcessing && "cursor-not-allowed opacity-60",
-            )}
-          >
-            Apple/Google
-          </button>
-        </div>
+          {(
+            [
+              ["card", "Card"],
+              ["ach", "Bank"],
+              ["wallet", "Apple/Google"],
+            ] as const
+          ).map(([value, label]) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              disabled={isProcessing}
+              className={cn(
+                "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 text-muted-foreground data-active:bg-primary data-active:text-primary-foreground data-active:shadow-xl",
+                isProcessing && "cursor-not-allowed opacity-60",
+              )}
+            >
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-        <div
-          className="min-h-[300px] flex flex-col justify-center"
-          role="tabpanel"
-        >
-          <AnimatePresence mode="wait">
+        <div className="min-h-75 flex flex-col justify-center">
+          <TabsContent value="card" key="card">
             {paymentMethod === "card" && (
               <motion.div
                 key="card"
@@ -905,11 +926,11 @@ function PaymentStep({
                 className="space-y-8"
               >
                 <div className="space-y-3" data-testid="stripe-card-panel">
-                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2">
+                  <p className="text-xs font-semibold text-foreground/80 uppercase tracking-widest pl-2">
                     Card Details
                   </p>
                   {mode === "live" ? (
-                    <div className="bg-white rounded-[2rem] border border-zinc-100 p-8 shadow-sm">
+                    <div className="bg-card rounded-2xl border border-border p-4 sm:p-8 shadow-sm">
                       {cardElement ?? (
                         <CardElement options={{ hidePostalCode: true }} />
                       )}
@@ -917,35 +938,23 @@ function PaymentStep({
                   ) : (
                     <div
                       role="status"
-                      className="rounded-[2rem] border border-dashed border-amber-200 bg-white p-8 text-sm font-medium leading-relaxed text-amber-700"
+                      className="rounded-4xl border border-dashed border-border bg-card p-8 text-sm font-medium leading-relaxed text-foreground"
                     >
                       Test mode does not collect card details. Configure a
                       Stripe publishable key to mount live Elements.
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <Label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2">
-                      Country
-                    </Label>
-                    <Input
-                      defaultValue="United States"
-                      className="h-16 rounded-2xl bg-white border-none shadow-sm font-medium px-6"
-                      disabled
-                    />
+                    <Label htmlFor="country">Country</Label>
+                    <Input id="country" defaultValue="United States" disabled />
                   </div>
                   <div className="space-y-3">
-                    <Label
-                      htmlFor="postal-code"
-                      className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
-                    >
-                      Postal Code
-                    </Label>
+                    <Label htmlFor="postal-code">Postal Code</Label>
                     <Input
                       id="postal-code"
                       placeholder="12345"
-                      className="h-16 rounded-2xl bg-white border-none shadow-sm font-medium px-6 focus:ring-4 focus:ring-zinc-900/5"
                       autoComplete="postal-code"
                       disabled={isProcessing}
                       inputMode="numeric"
@@ -958,7 +967,9 @@ function PaymentStep({
                 </div>
               </motion.div>
             )}
+          </TabsContent>
 
+          <TabsContent value="ach" key="ach">
             {paymentMethod === "ach" && (
               <motion.div
                 key="ach"
@@ -966,59 +977,61 @@ function PaymentStep({
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-12 text-center"
               >
-                <div className="size-24 bg-zinc-100 rounded-[2rem] flex items-center justify-center mx-auto">
+                <div className="size-24 bg-muted rounded-4xl flex items-center justify-center mx-auto">
                   <Landmark
-                    className="size-10 text-zinc-900"
+                    className="size-10 text-foreground"
                     aria-hidden="true"
                   />
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-2xl font-semibold font-syne">
+                  <h3 className="text-2xl font-semibold font-display">
                     Instant Bank Link
                   </h3>
-                  <p className="text-zinc-500 max-w-sm mx-auto leading-relaxed">
+                  <p className="text-foreground/80 max-w-sm mx-auto leading-relaxed">
                     Securely connect your bank account via Stripe Financial
                     Connections to maximize your impact with 0% credit card
                     fees.
                   </p>
                 </div>
-                <Button className="h-20 px-12 rounded-full bg-zinc-950 text-white font-semibold font-syne text-xs uppercase tracking-widest shadow-2xl hover:bg-zinc-800">
+                <Button variant="maia" size="lg">
                   Connect Securely
                 </Button>
               </motion.div>
             )}
+          </TabsContent>
 
+          <TabsContent value="wallet" key="wallet">
             {paymentMethod === "wallet" && (
               <motion.div
                 key="wallet"
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-center h-full min-h-[300px]"
+                className="flex items-center justify-center h-full min-h-75"
               >
-                <button className="h-20 px-12 rounded-full bg-black text-white font-semibold text-2xl flex items-center gap-4 press-feedback hover-scale-subtle shadow-2xl">
-                  <Wallet className="size-8" aria-hidden="true" /> Pay with
-                  Apple Pay
-                </button>
+                <Button variant="maia" size="lg">
+                  <Wallet data-icon="inline-start" aria-hidden="true" /> Pay
+                  with Apple Pay
+                </Button>
               </motion.div>
             )}
-          </AnimatePresence>
+          </TabsContent>
         </div>
-      </div>
+      </Tabs>
 
       {mode === "test" && (
         <div
           role="status"
-          className="flex items-start gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-6 text-left dark:border-amber-500/30 dark:bg-amber-500/10"
+          className="flex items-start gap-4 rounded-3xl border border-border bg-muted p-6 text-left dark:border-border/30 dark:bg-muted/10"
         >
           <AlertTriangle
-            className="size-5 shrink-0 text-amber-600 dark:text-amber-400"
+            className="size-5 shrink-0 text-foreground dark:text-foreground"
             aria-hidden="true"
           />
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-300">
+            <p className="text-xs font-semibold uppercase tracking-widest text-foreground dark:text-foreground">
               Test mode — card capture disabled
             </p>
-            <p className="text-sm font-medium leading-relaxed text-amber-700/80 dark:text-amber-200/80">
+            <p className="text-sm font-medium leading-relaxed text-foreground/80 dark:text-foreground/80">
               Live card processing needs Stripe credentials that aren&apos;t
               configured yet. Your contribution is recorded server-side; the
               card charge is not collected in this mode.
@@ -1028,42 +1041,37 @@ function PaymentStep({
       )}
 
       {error && (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
-        >
-          <AlertTriangle
-            className="size-5 shrink-0 text-red-600 dark:text-red-400"
-            aria-hidden="true"
-          />
-          <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
-            {error}
-          </p>
-        </div>
+        <Alert variant="destructive" aria-live="assertive">
+          <AlertTriangle aria-hidden="true" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="flex flex-col sm:flex-row gap-6">
         <Button
-          variant="outline"
+          variant="maia-outline"
           onClick={onBack}
           disabled={isProcessing}
           size="lg"
-          className="h-24 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-60"
         >
           Back
         </Button>
         <Button
+          variant="maia"
           onClick={() => onConfirmPayment(stripe, elements)}
           disabled={isProcessing}
+          focusableWhenDisabled={isProcessing}
+          aria-labelledby={paymentLabelId}
           size="lg"
-          className="flex-1 h-24 text-2xl font-semibold font-syne bg-zinc-900 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
+          className="grow"
         >
+          <span id={paymentLabelId} className="sr-only">
+            {isProcessing
+              ? "Processing payment"
+              : `Confirm ${formatCurrency(total)}`}
+          </span>
           {isProcessing ? (
-            <Loader2
-              className="animate-spin size-8"
-              aria-label="Processing payment"
-            />
+            <Loader2 className="animate-spin" aria-hidden="true" />
           ) : (
             `Confirm ${formatCurrency(total)}`
           )}
@@ -1092,17 +1100,17 @@ function CheckoutConfigurationState({
   return (
     <div
       role="status"
-      className="flex min-h-[360px] flex-col items-center justify-center gap-6 rounded-[3.5rem] border border-zinc-100 bg-zinc-50 p-12 text-center"
+      className="flex min-h-90 flex-col items-center justify-center gap-6 rounded-3xl border border-border bg-muted p-12 text-center"
     >
       <Loader2
-        className="size-8 animate-spin text-zinc-400"
+        className="size-8 animate-spin text-muted-foreground"
         aria-hidden="true"
       />
       <div className="space-y-2">
-        <h2 className="font-syne text-2xl font-semibold text-zinc-950">
+        <h2 className="font-display text-2xl font-semibold text-foreground">
           {title}
         </h2>
-        <p className="max-w-md text-sm font-medium leading-relaxed text-zinc-500">
+        <p className="max-w-md text-sm font-medium leading-relaxed text-foreground/80">
           {message}
         </p>
       </div>
@@ -1114,29 +1122,257 @@ function CheckoutConfigurationError({ message }: { message: string | null }) {
   return (
     <div className="space-y-12">
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
+        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
           Payment Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
           Secure Payment.
         </h1>
-        <p className="text-2xl text-zinc-400 font-light tracking-tight">
+        <p className="text-2xl text-muted-foreground font-light tracking-tight">
           Safely authorize your contribution.
         </p>
       </header>
 
-      <div
-        role="alert"
-        className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
-      >
-        <AlertTriangle
-          className="size-5 shrink-0 text-red-600 dark:text-red-400"
-          aria-hidden="true"
-        />
-        <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
+      <Alert variant="destructive">
+        <AlertTriangle aria-hidden="true" />
+        <AlertDescription>
           {message ??
             "Checkout configuration could not be loaded. Please refresh and try again."}
-        </p>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
+function resolveMountedPublishableKey(
+  runtimeConfig: CheckoutRuntimeConfig,
+  stripeOverride: CheckoutStripeOverride | undefined,
+): string | null {
+  if (stripeOverride) {
+    return normalizePublishableKey(stripeOverride.publishableKey);
+  }
+
+  if (runtimeConfig.status === "ready") {
+    return runtimeConfig.publishableKey;
+  }
+
+  return null;
+}
+
+function resolveCheckoutSummaryWorkerTitle({
+  hasGeneralGivingTarget,
+  missionaryId,
+}: {
+  hasGeneralGivingTarget: boolean;
+  missionaryId: string | null;
+}): string {
+  if (hasGeneralGivingTarget) {
+    return "General Mission Fund";
+  }
+
+  if (missionaryId) {
+    return "Missionary Support";
+  }
+
+  return "Urgent Needs";
+}
+
+function CheckoutMissingTargetState() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center space-y-6">
+        <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-xl">
+          <Activity className="size-8 text-zinc-300" />
+        </div>
+        <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
+          Target Unspecified
+        </h2>
+        <Link
+          href="/workers"
+          className={cn(
+            buttonVariants(),
+            "rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800",
+          )}
+        >
+          View Missionaries
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function CheckoutPaymentPane({
+  checkoutMode,
+  error,
+  isProcessing,
+  onBack,
+  onConfirmPayment,
+  onPaymentMethodChange,
+  onPostalCodeChange,
+  paymentMethod,
+  postalCode,
+  runtimeConfig,
+  stripeOverride,
+  total,
+}: {
+  checkoutMode: CheckoutMode;
+  error: string | null;
+  isProcessing: boolean;
+  onBack: () => void;
+  onConfirmPayment: (
+    stripe: Stripe | null,
+    elements: StripeElements | null,
+  ) => void;
+  onPaymentMethodChange: (value: PaymentMethod) => void;
+  onPostalCodeChange: (value: string) => void;
+  paymentMethod: PaymentMethod;
+  postalCode: string;
+  runtimeConfig: CheckoutRuntimeConfig;
+  stripeOverride?: CheckoutStripeOverride;
+  total: number;
+}) {
+  const sharedPaymentProps = {
+    error,
+    isProcessing,
+    mode: checkoutMode,
+    onBack,
+    onConfirmPayment,
+    onPaymentMethodChange,
+    onPostalCodeChange,
+    paymentMethod,
+    postalCode,
+    total,
+  };
+
+  if (stripeOverride) {
+    return (
+      <PaymentStep
+        {...sharedPaymentProps}
+        cardElement={stripeOverride.cardElement}
+        elements={stripeOverride.elements}
+        stripe={stripeOverride.stripe}
+      />
+    );
+  }
+
+  if (runtimeConfig.status === "loading") {
+    return (
+      <CheckoutConfigurationState
+        title="Preparing secure checkout"
+        message="Loading this organization's payment configuration."
+      />
+    );
+  }
+
+  if (runtimeConfig.status === "error") {
+    return <CheckoutConfigurationError message={runtimeConfig.error} />;
+  }
+
+  if (checkoutMode === "live" && runtimeConfig.stripePromise) {
+    return (
+      <Elements
+        key={runtimeConfig.publishableKey}
+        stripe={runtimeConfig.stripePromise}
+      >
+        <StripePaymentStep {...sharedPaymentProps} />
+      </Elements>
+    );
+  }
+
+  return <PaymentStep {...sharedPaymentProps} elements={null} stripe={null} />;
+}
+
+function CheckoutActiveFlow({
+  amount,
+  calculatedFees,
+  coverFees,
+  customAmount,
+  donorInfo,
+  frequency,
+  hasGeneralGivingTarget,
+  missionaryId,
+  onAmountSelect,
+  onBack,
+  onCoverFeesChange,
+  onCustomAmountChange,
+  onDonorInfoChange,
+  onNext,
+  paymentPane,
+  step,
+  total,
+  worker,
+}: {
+  amount: number;
+  calculatedFees: number;
+  coverFees: boolean;
+  customAmount: string;
+  donorInfo: DonorInfo;
+  frequency: Frequency;
+  hasGeneralGivingTarget: boolean;
+  missionaryId: string | null;
+  onAmountSelect: (value: number) => void;
+  onBack: () => void;
+  onCoverFeesChange: (value: boolean) => void;
+  onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onDonorInfoChange: (patch: Partial<DonorInfo>) => void;
+  onNext: () => void;
+  paymentPane: React.ReactNode;
+  step: Step;
+  total: number;
+  worker: { image?: string; title?: string } | null;
+}) {
+  const summaryWorker = worker || {
+    title: resolveCheckoutSummaryWorkerTitle({
+      hasGeneralGivingTarget,
+      missionaryId,
+    }),
+  };
+
+  return (
+    <div className="min-h-screen bg-white font-sans pb-32 pt-24 selection:bg-zinc-900/10">
+      <div className="container mx-auto px-6 max-w-7xl">
+        <StepIndicator currentStep={step} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+          <div className="lg:col-span-7 space-y-16">
+            <AnimatePresence mode="wait">
+              {step === "config" ? (
+                <ConfigStep
+                  amount={amount}
+                  calculatedFees={calculatedFees}
+                  coverFees={coverFees}
+                  customAmount={customAmount}
+                  onAmountSelect={onAmountSelect}
+                  onCoverFeesChange={onCoverFeesChange}
+                  onCustomAmountChange={onCustomAmountChange}
+                  onNext={onNext}
+                />
+              ) : null}
+
+              {step === "details" ? (
+                <DetailsStep
+                  donorInfo={donorInfo}
+                  onBack={onBack}
+                  onDonorInfoChange={onDonorInfoChange}
+                  onNext={onNext}
+                />
+              ) : null}
+
+              {step === "payment" ? paymentPane : null}
+            </AnimatePresence>
+          </div>
+
+          <aside className="lg:col-span-5 hidden lg:block">
+            <SummaryCard
+              worker={summaryWorker}
+              amount={amount}
+              frequency={frequency}
+              coverFees={coverFees}
+              fees={calculatedFees}
+              total={total}
+            />
+          </aside>
+        </div>
       </div>
     </div>
   );
@@ -1162,12 +1398,7 @@ function CheckoutContent({
     () =>
       stripeOverride
         ? createReadyRuntimeConfig(stripeOverride.publishableKey)
-        : {
-            error: null,
-            publishableKey: null,
-            status: "loading",
-            stripePromise: null,
-          },
+        : LOADING_RUNTIME_CONFIG,
   );
   const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
     amount: initialAmount ? Number(initialAmount) : 100,
@@ -1186,6 +1417,7 @@ function CheckoutContent({
     idempotencyFingerprint: null,
     idempotencyKey: null,
     isProcessing: false,
+    paymentAttemptId: null,
     paymentMethod: "card",
     postalCode: "",
     startDate: "",
@@ -1242,15 +1474,13 @@ function CheckoutContent({
   );
   const calculatedFees = feeQuote.coverAmount;
   const total = feeQuote.chargedAmount;
-  const mountedPublishableKey = stripeOverride
-    ? normalizePublishableKey(stripeOverride.publishableKey)
-    : runtimeConfig.status === "ready"
-      ? runtimeConfig.publishableKey
-      : null;
+  const mountedPublishableKey = resolveMountedPublishableKey(
+    runtimeConfig,
+    stripeOverride,
+  );
   const checkoutMode =
     stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
   const mountedPublishableKeyRef = useRef(mountedPublishableKey);
-  mountedPublishableKeyRef.current = mountedPublishableKey;
   const currentRequestFingerprint = useMemo(
     () =>
       buildCheckoutRequestFingerprint({
@@ -1286,6 +1516,26 @@ function CheckoutContent({
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
 
+  // Starts (or restarts) the tenant config request. State is written only in
+  // the promise callback, so the mount effect below performs no synchronous
+  // state update; `loadCheckoutRuntimeConfig` adds the loading transition for
+  // user-initiated retries.
+  const requestRuntimeConfig = () => {
+    runtimeConfigRequestedRef.current = true;
+    runtimeConfigAbortRef.current?.abort();
+    const abortController = new AbortController();
+    runtimeConfigAbortRef.current = abortController;
+
+    void fetchCheckoutRuntimeConfig(abortController.signal).then((next) => {
+      if (runtimeConfigAbortRef.current !== abortController) {
+        return;
+      }
+      if (next) {
+        setRuntimeConfig(next);
+      }
+    });
+  };
+
   const loadCheckoutRuntimeConfig = () => {
     if (stripeOverride) {
       setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
@@ -1299,76 +1549,17 @@ function CheckoutContent({
       return;
     }
 
-    runtimeConfigRequestedRef.current = true;
-    runtimeConfigAbortRef.current?.abort();
-    const abortController = new AbortController();
-    runtimeConfigAbortRef.current = abortController;
-
-    setRuntimeConfig({
-      error: null,
-      publishableKey: null,
-      status: "loading",
-      stripePromise: null,
-    });
-
-    const loadRuntimeConfig = async () => {
-      try {
-        const response = await fetch("/api/donate", {
-          method: "GET",
-          signal: abortController.signal,
-        });
-        const payload = await response.json().catch(() => null);
-
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        if (!response.ok) {
-          const message =
-            payload && typeof payload === "object"
-              ? (payload as Record<string, unknown>).error
-              : null;
-          setRuntimeConfig({
-            error:
-              typeof message === "string"
-                ? message
-                : "Checkout configuration could not be loaded. Please try again.",
-            publishableKey: null,
-            status: "error",
-            stripePromise: null,
-          });
-          return;
-        }
-
-        setRuntimeConfig(
-          createRuntimeConfigFromPublishableKey(
-            readRuntimePublishableKey(payload),
-          ),
-        );
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-
-        setRuntimeConfig({
-          error:
-            "Checkout configuration could not be loaded. Please refresh and try again.",
-          publishableKey: null,
-          status: "error",
-          stripePromise: null,
-        });
-      }
-    };
-
-    void loadRuntimeConfig();
+    setRuntimeConfig(LOADING_RUNTIME_CONFIG);
+    requestRuntimeConfig();
   };
 
   useEffect(() => {
-    loadCheckoutRuntimeConfig();
+    // Overrides start in the ready state already (see the initializer).
+    if (stripeOverride) {
+      return;
+    }
+
+    requestRuntimeConfig();
 
     return () => {
       // The aborted request leaves `runtimeConfig` stuck on "loading"; clear
@@ -1378,126 +1569,56 @@ function CheckoutContent({
       runtimeConfigRequestedRef.current = false;
       runtimeConfigAbortRef.current?.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(checkout-runtime-config): Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
   }, [stripeOverride]);
 
-  useEffect(() => {
-    checkoutStateRef.current = checkoutState;
+  useLayoutEffect(() => {
+    synchronizePaymentAttemptState(checkoutState, {
+      activePaymentAttemptRef,
+      checkoutStateRef,
+    });
     currentRequestFingerprintRef.current = currentRequestFingerprint;
   }, [checkoutState, currentRequestFingerprint]);
 
-  const isPaymentAttemptActive = (attempt: PaymentAttempt) => {
-    const activeAttempt = activePaymentAttemptRef.current;
+  useLayoutEffect(() => {
+    mountedPublishableKeyRef.current = mountedPublishableKey;
+  }, [mountedPublishableKey]);
 
-    return (
-      activeAttempt?.id === attempt.id &&
-      activeAttempt.fingerprint === attempt.fingerprint &&
-      currentRequestFingerprintRef.current === attempt.fingerprint
-    );
+  useEffect(() => {
+    if (step === "success" && donation && successSnapshot)
+      window.scrollTo(0, 0);
+  }, [step, donation, successSnapshot]);
+
+  const paymentAttemptRefs = {
+    activePaymentAttemptRef,
+    checkoutStateRef,
+    currentRequestFingerprintRef,
+    setCheckoutState,
   };
 
-  const isOriginalPaymentAttemptActive = (attempt: PaymentAttempt) => {
-    const activeAttempt = activePaymentAttemptRef.current;
-
-    return (
-      activeAttempt?.id === attempt.id &&
-      activeAttempt.fingerprint === attempt.fingerprint
+  const isPaymentAttemptActive = (attempt: PaymentAttempt) =>
+    isCurrentPaymentAttemptIdentity(
+      attempt,
+      activePaymentAttemptRef.current,
+      currentRequestFingerprintRef.current,
     );
-  };
-
-  const isPaymentAttemptStateActive = (
-    attempt: PaymentAttempt,
-    state: CheckoutState,
-  ) =>
-    state.idempotencyFingerprint === attempt.fingerprint &&
-    state.step === "payment";
-
-  const isOriginalPaymentAttemptStateActive = (
-    attempt: PaymentAttempt,
-    state: CheckoutState,
-  ) =>
-    isOriginalPaymentAttemptActive(attempt) &&
-    state.idempotencyFingerprint === attempt.fingerprint &&
-    state.step === "payment";
 
   const commitPaymentAttemptState = (
     attempt: PaymentAttempt,
     updater: (prev: CheckoutState) => CheckoutState,
-  ) => {
-    if (!isPaymentAttemptActive(attempt)) {
-      return false;
-    }
-
-    setCheckoutState((prev) => {
-      if (!isPaymentAttemptStateActive(attempt, prev)) {
-        return prev;
-      }
-
-      const next = updater(prev);
-      checkoutStateRef.current = next;
-      return next;
-    });
-
-    return true;
-  };
+  ) => commitPaymentAttemptSnapshot(attempt, updater, paymentAttemptRefs);
 
   const commitSuccessfulOriginalPaymentAttempt = (
     attempt: PaymentAttempt,
     donation: ServerDonation,
-  ) => {
-    if (
-      !isOriginalPaymentAttemptStateActive(attempt, checkoutStateRef.current)
-    ) {
-      return false;
-    }
+  ) =>
+    commitSuccessfulOriginalPaymentSnapshot(
+      attempt,
+      donation,
+      paymentAttemptRefs,
+    );
 
-    setCheckoutState((prev) => {
-      if (!isOriginalPaymentAttemptStateActive(attempt, prev)) {
-        return prev;
-      }
-
-      const next = {
-        ...prev,
-        donation,
-        error: null,
-        isProcessing: false,
-        step: "success" as const,
-        successSnapshot: attempt.successSnapshot,
-      };
-      activePaymentAttemptRef.current = null;
-      checkoutStateRef.current = next;
-      return next;
-    });
-
-    return true;
-  };
-
-  const exitStalePaymentAttempt = (attempt: PaymentAttempt) => {
-    setCheckoutState((prev) => {
-      const activeAttempt = activePaymentAttemptRef.current;
-
-      if (
-        activeAttempt?.id !== attempt.id ||
-        activeAttempt.fingerprint !== attempt.fingerprint
-      ) {
-        return prev;
-      }
-
-      const next = {
-        ...prev,
-        donation: null,
-        error:
-          "Checkout details changed while payment was processing. Please review your details and try again.",
-        isProcessing: false,
-        step: "payment" as const,
-        successSnapshot: null,
-      };
-
-      activePaymentAttemptRef.current = null;
-      checkoutStateRef.current = next;
-      return next;
-    });
-  };
+  const exitStalePaymentAttempt = (attempt: PaymentAttempt) =>
+    exitStalePaymentSnapshot(attempt, paymentAttemptRefs);
 
   const handleAmountSelect = (val: number) => {
     setAmount(val);
@@ -1539,6 +1660,13 @@ function CheckoutContent({
     stripe: Stripe | null,
     elements: StripeElements | null,
   ) => {
+    if (
+      activePaymentAttemptRef.current ||
+      checkoutStateRef.current.isProcessing
+    ) {
+      return;
+    }
+
     if (!hasGivingTarget) {
       setCheckoutState((prev) => ({
         ...prev,
@@ -1594,26 +1722,19 @@ function CheckoutContent({
     });
 
     currentRequestFingerprintRef.current = requestFingerprint;
-    checkoutStateRef.current = {
+    const processingState: CheckoutState = {
       ...checkoutStateRef.current,
       donation: isNewKey ? null : checkoutStateRef.current.donation,
       error: null,
       idempotencyFingerprint: requestFingerprint,
       idempotencyKey,
       isProcessing: true,
+      paymentAttemptId: paymentAttempt.id,
       step: "payment",
       successSnapshot: null,
     };
-    setCheckoutState((prev) => ({
-      ...prev,
-      donation: isNewKey ? null : prev.donation,
-      error: null,
-      idempotencyFingerprint: requestFingerprint,
-      idempotencyKey,
-      isProcessing: true,
-      step: "payment",
-      successSnapshot: null,
-    }));
+    checkoutStateRef.current = processingState;
+    setCheckoutState(() => processingState);
 
     try {
       const body = buildDonateRequestBody({
@@ -1639,14 +1760,16 @@ function CheckoutContent({
         return;
       }
 
-      const payload = await response.json().catch(() => null);
+      // The donate API returns interpretable JSON on every status, so the
+      // payload is read for both branches with the status checked first.
+      const { status, body: payload } = await readJsonBody<unknown>(response);
 
       if (!isPaymentAttemptActive(paymentAttempt)) {
         exitStalePaymentAttempt(paymentAttempt);
         return;
       }
 
-      const result = interpretDonateResponse(response.status, payload);
+      const result = interpretDonateResponse(status, payload);
 
       if (isDonationInitialized(result)) {
         const trimmedPostalCode = postalCode.trim();
@@ -1664,33 +1787,25 @@ function CheckoutContent({
             );
           }
 
-          const didCommit = commitPaymentAttemptState(
-            paymentAttempt,
-            (prev) => ({
-              ...prev,
-              donation: null,
-              error:
-                "Checkout configuration changed while payment was preparing. Please try again.",
-              isProcessing: false,
-            }),
-          );
-          if (didCommit) activePaymentAttemptRef.current = null;
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Checkout configuration changed while payment was preparing. Please try again.",
+            isProcessing: false,
+          }));
           return;
         }
 
         if (checkoutMode === "test") {
-          const didCommit = commitPaymentAttemptState(
-            paymentAttempt,
-            (prev) => ({
-              ...prev,
-              donation: result.donation,
-              error: null,
-              isProcessing: false,
-              step: "success",
-              successSnapshot: paymentAttempt.successSnapshot,
-            }),
-          );
-          if (didCommit) window.scrollTo(0, 0);
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: result.donation,
+            error: null,
+            isProcessing: false,
+            step: "success",
+            successSnapshot: paymentAttempt.successSnapshot,
+          }));
           return;
         }
 
@@ -1800,11 +1915,7 @@ function CheckoutContent({
           return;
         }
 
-        const didCommit = commitSuccessfulOriginalPaymentAttempt(
-          paymentAttempt,
-          result.donation,
-        );
-        if (didCommit) window.scrollTo(0, 0);
+        commitSuccessfulOriginalPaymentAttempt(paymentAttempt, result.donation);
         return;
       }
 
@@ -1833,27 +1944,7 @@ function CheckoutContent({
   };
 
   if (step !== "success" && !hasGivingTarget) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center space-y-6">
-          <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-xl">
-            <Activity className="size-8 text-zinc-300" />
-          </div>
-          <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
-            Target Unspecified
-          </h2>
-          <Link
-            href="/workers"
-            className={cn(
-              buttonVariants(),
-              "rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800",
-            )}
-          >
-            View Missionaries
-          </Link>
-        </div>
-      </div>
-    );
+    return <CheckoutMissingTargetState />;
   }
 
   // Success renders ONLY when Stripe confirmation has accepted the initialized
@@ -1871,122 +1962,41 @@ function CheckoutContent({
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-32 pt-24 selection:bg-zinc-900/10">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <StepIndicator currentStep={step} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
-          <div className="lg:col-span-7 space-y-16">
-            <AnimatePresence mode="wait">
-              {step === "config" && (
-                <ConfigStep
-                  amount={amount}
-                  calculatedFees={calculatedFees}
-                  coverFees={coverFees}
-                  customAmount={customAmount}
-                  onAmountSelect={handleAmountSelect}
-                  onCoverFeesChange={setCoverFees}
-                  onCustomAmountChange={handleCustomAmountChange}
-                  onNext={handleNext}
-                />
-              )}
-
-              {step === "details" && (
-                <DetailsStep
-                  donorInfo={donorInfo}
-                  onBack={handleBack}
-                  onDonorInfoChange={(patch) =>
-                    setDonorInfo({ ...donorInfo, ...patch })
-                  }
-                  onNext={handleNext}
-                />
-              )}
-
-              {step === "payment" && (
-                <>
-                  {stripeOverride ? (
-                    <PaymentStep
-                      cardElement={stripeOverride.cardElement}
-                      elements={stripeOverride.elements}
-                      error={error}
-                      isProcessing={isProcessing}
-                      mode={checkoutMode}
-                      onBack={handleBack}
-                      onConfirmPayment={handlePayment}
-                      onPaymentMethodChange={setPaymentMethod}
-                      paymentMethod={paymentMethod}
-                      postalCode={postalCode}
-                      onPostalCodeChange={setPostalCode}
-                      stripe={stripeOverride.stripe}
-                      total={total}
-                    />
-                  ) : runtimeConfig.status === "loading" ? (
-                    <CheckoutConfigurationState
-                      title="Preparing secure checkout"
-                      message="Loading this organization's payment configuration."
-                    />
-                  ) : runtimeConfig.status === "error" ? (
-                    <CheckoutConfigurationError message={runtimeConfig.error} />
-                  ) : checkoutMode === "live" && runtimeConfig.stripePromise ? (
-                    <Elements
-                      key={runtimeConfig.publishableKey}
-                      stripe={runtimeConfig.stripePromise}
-                    >
-                      <StripePaymentStep
-                        error={error}
-                        isProcessing={isProcessing}
-                        mode={checkoutMode}
-                        onBack={handleBack}
-                        onConfirmPayment={handlePayment}
-                        onPaymentMethodChange={setPaymentMethod}
-                        paymentMethod={paymentMethod}
-                        postalCode={postalCode}
-                        onPostalCodeChange={setPostalCode}
-                        total={total}
-                      />
-                    </Elements>
-                  ) : (
-                    <PaymentStep
-                      elements={null}
-                      error={error}
-                      isProcessing={isProcessing}
-                      mode={checkoutMode}
-                      onBack={handleBack}
-                      onConfirmPayment={handlePayment}
-                      onPaymentMethodChange={setPaymentMethod}
-                      paymentMethod={paymentMethod}
-                      postalCode={postalCode}
-                      onPostalCodeChange={setPostalCode}
-                      stripe={null}
-                      total={total}
-                    />
-                  )}
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <aside className="lg:col-span-5 hidden lg:block">
-            <SummaryCard
-              worker={
-                worker || {
-                  title: hasGeneralGivingTarget
-                    ? "General Mission Fund"
-                    : searchParams.missionaryId
-                      ? "Missionary Support"
-                      : "Urgent Needs",
-                }
-              }
-              amount={amount}
-              frequency={frequency}
-              coverFees={coverFees}
-              fees={calculatedFees}
-              total={total}
-            />
-          </aside>
-        </div>
-      </div>
-    </div>
+    <CheckoutActiveFlow
+      amount={amount}
+      calculatedFees={calculatedFees}
+      coverFees={coverFees}
+      customAmount={customAmount}
+      donorInfo={donorInfo}
+      frequency={frequency}
+      hasGeneralGivingTarget={hasGeneralGivingTarget}
+      missionaryId={missionaryId}
+      onAmountSelect={handleAmountSelect}
+      onBack={handleBack}
+      onCoverFeesChange={setCoverFees}
+      onCustomAmountChange={handleCustomAmountChange}
+      onDonorInfoChange={(patch) => setDonorInfo({ ...donorInfo, ...patch })}
+      onNext={handleNext}
+      paymentPane={
+        <CheckoutPaymentPane
+          checkoutMode={checkoutMode}
+          error={error}
+          isProcessing={isProcessing}
+          onBack={handleBack}
+          onConfirmPayment={handlePayment}
+          onPaymentMethodChange={setPaymentMethod}
+          onPostalCodeChange={setPostalCode}
+          paymentMethod={paymentMethod}
+          postalCode={postalCode}
+          runtimeConfig={runtimeConfig}
+          stripeOverride={stripeOverride}
+          total={total}
+        />
+      }
+      step={step}
+      total={total}
+      worker={worker ?? null}
+    />
   );
 }
 

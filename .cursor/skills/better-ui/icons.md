@@ -58,7 +58,7 @@ Never ship separate assets for default, hover, selected and disabled states. Use
 ```html
 <!-- Tailwind -->
 <button
-  class="text-zinc-500 hover:text-zinc-900 aria-pressed:text-blue-600 disabled:opacity-40"
+  class="text-muted-foreground hover:text-foreground aria-pressed:text-primary disabled:opacity-40"
 >
   <BookmarkIcon />
 </button>

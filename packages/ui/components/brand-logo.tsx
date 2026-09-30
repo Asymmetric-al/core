@@ -67,5 +67,3 @@ export function BrandName({ className }: { className?: string }) {
     </span>
   );
 }
-
-export { brandConfig };

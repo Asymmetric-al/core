@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   GithubIcon,
   MenuIcon,
@@ -93,9 +93,9 @@ const Header = ({ navigationData, className }: HeaderProps) => {
             </Button>
           </div>
 
-          <Button className="lg:ml-4" render={<Link href="/" />}>
+          <Link href="/" className={cn(buttonVariants(), "lg:ml-4")}>
             Sign In
-          </Button>
+          </Link>
 
           <MenuDropdown
             align="end"

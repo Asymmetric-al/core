@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-09-23
+Last updated: 2026-09-30
 
 ## Scope
 
@@ -392,54 +392,6 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
   `/writing-great-skills`; add `skills:refresh-ask-matt` without vendoring
   the successor. `skills:sync` now skips and prunes macOS Finder junk
   (`Archive.zip`, `__MACOSX`, `.DS_Store`, `._*`) from ecosystem copies.
-
-## 2026-09-23 - Remaining CLI skill freshness
-
-- Reconfirmed live GitHub-raw `SKILL.md` hashes for lockfile-only CLI skills.
-  True stale updates: `next-dev-loop` (adds Report Next.js friction),
-  `next-cache-components-adoption` (drops `CLAUDE.md`), `resend` 3.11.0,
-  `turborepo` 2.11.3, obra `test-driven-development` (suite-wide green
-  verification), and `resend-cli` skill 2.14.0 against CLI tag **v2.21.1**.
-- Targeted `npx --yes skills@latest add` for those six skills only. Restored
-  the unmarked Resend CLI Core overlay and the marked obra overlay. Did not
-  bump OpenSpec off `@fission-ai/openspec@1.9.0`. Did not vendor
-  `writing-for-agents` or overwrite Core adapters.
-- Realigned those six lock `computedHash` values to GitHub-raw `SKILL.md`
-  SHA-256. Skills CLI hashes are not the repo convention. Lockfile size stays
-  128 names.
-- Cursor Team Kit and Babysitter were already reviewed at `70b2dc8b` /
-  `baae1ad6` on 2026-09-23; grill commit remains `d8d5f4b4` (description
-  overlay only).
-
-## 2026-09-23 - Stripe well-known + live GitHub audit
-
-- Re-ran live GitHub-raw `SKILL.md` hash audit for 125 GitHub lockfile
-  skills: 102 MATCH, 8 kept snapshots (404), 15 DIFF. The remaining DIFF
-  rows are Core overlays or Prettier at already-reviewed commits
-  (babysit fail-closed pin, grill explicit-only YAML, Team Kit prettier
-  at `70b2dc8b`). Did not refresh OpenSpec off v1.9.0. Did not overwrite
-  Core adapters (`prototype`, `tdd`, `vitest`,
-  `find-animation-opportunities`).
-- Re-applied `POST_REFRESH_REPLACEMENTS` on paid
-  `emil-design-engineering` `component-design.md` so link-styled actions
-  use Base UI `buttonVariants` / `render`, not Radix `asChild`.
-- Refreshed lockfile-only Stripe well-known skills from the local Cursor
-  plugin cache (`2026-07-29.dahlia`): `stripe-best-practices` (adds
-  `references/tax.md` and Metronome usage-based billing),
-  `stripe-projects` (preflight init + project variables), and
-  `upgrade-stripe`. Realigned those three `computedHash` values to
-  `SKILL.md` SHA-256. Did not add `stripe-apps`, `stripe-docs`,
-  `stripe-directory`, or `stripe-integration` to the lockfile. Lockfile
-  size stays 128 names.
-
-## 2026-09-23 - git-guardrails fail-closed overlay
-
-- Live mattpocock `git-guardrails-claude-code` hook is a fail-open `jq`
-  one-liner that misses `git checkout -- .` / `git restore -- .`. Restored
-  the previous fail-closed parser (jq, then python, then node) and workspace
-  reset regexes as a Core overlay. Lock `computedHash` stays the upstream
-  `SKILL.md` bytes. `scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh`
-  is the overlay source for future refresh.
 
 ## Rollback Notes
 

@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/w
 source_type: github
 upstream_path: cursor-team-kit/skills/weekly-review/
 skills_lock_hash: b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712
-last_reviewed: 2026-09-23
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: weekly-review
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/weekly-review/` (mirrored to `.curs
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `70b2dc8b4b85c8d5648624ca40d692c421fff32f`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/weekly-review/`
 - **Lock skillPath:** `cursor-team-kit/skills/weekly-review/SKILL.md`
 - **Computed hash:** `b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712`

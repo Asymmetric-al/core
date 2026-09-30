@@ -1,6 +1,8 @@
 "use client";
 
 import { EVE_POLICY_ACTION_IDS } from "@asym/api/eve/approval-budget";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Alert,
   AlertDescription,
@@ -17,6 +19,14 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectControlLabel,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Gauge, ShieldCheck } from "lucide-react";
@@ -93,10 +103,10 @@ async function requestPolicy(body?: MutationBody): Promise<ResponseBody> {
         }
       : { credentials: "same-origin", headers: { accept: "application/json" } },
   );
-  const data = (await response.json().catch(() => null)) as
-    | (ResponseBody & { error?: string })
-    | null;
-  if (!response.ok)
+  const { ok, body: data } = await readJsonBody<
+    ResponseBody & { error?: string }
+  >(response);
+  if (!ok)
     throw new Error(
       data?.error ?? "Could not apply Eve approval and budget policy.",
     );
@@ -111,6 +121,7 @@ function formatNumber(value: number) {
 
 export function EveApprovalBudgetPanel() {
   const client = useQueryClient();
+  const { formatDateTime } = useLocaleFormat();
   const [actionId, setActionId] = useState<EvePolicyActionId>(
     "engineering.review_artifact.write",
   );
@@ -169,21 +180,25 @@ export function EveApprovalBudgetPanel() {
           ) : null}
           <div className="grid gap-4 md:grid-cols-[1fr_18rem]">
             <div>
-              <Label htmlFor="policy-action">Fixed app-owned action</Label>
-              <select
-                id="policy-action"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+              <Select<EvePolicyActionId>
+                items={ACTION_LABELS}
                 value={actionId}
-                onChange={(event) =>
-                  setActionId(event.target.value as EvePolicyActionId)
-                }
+                onValueChange={(value) => {
+                  if (value !== null) setActionId(value);
+                }}
               >
-                {EVE_POLICY_ACTION_IDS.map((id) => (
-                  <option key={id} value={id}>
-                    {ACTION_LABELS[id]}
-                  </option>
-                ))}
-              </select>
+                <SelectControlLabel>Fixed app-owned action</SelectControlLabel>
+                <SelectTrigger id="policy-action" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVE_POLICY_ACTION_IDS.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {ACTION_LABELS[id]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="policy-target">Non-sensitive target key</Label>
@@ -197,6 +212,9 @@ export function EveApprovalBudgetPanel() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
+              focusableWhenDisabled={
+                mutation.isPending && mutation.variables?.action === "execute"
+              }
               disabled={mutation.isPending || !targetKey}
               onClick={() =>
                 mutation.mutate({
@@ -211,6 +229,10 @@ export function EveApprovalBudgetPanel() {
             </Button>
             <Button
               variant="outline"
+              focusableWhenDisabled={
+                mutation.isPending &&
+                mutation.variables?.action === "request_approval"
+              }
               disabled={mutation.isPending || !targetKey}
               onClick={() =>
                 mutation.mutate({
@@ -318,6 +340,12 @@ export function EveApprovalBudgetPanel() {
                 <Button
                   size="sm"
                   variant="outline"
+                  focusableWhenDisabled={
+                    mutation.isPending &&
+                    mutation.variables?.action === "override_budget" &&
+                    mutation.variables.scopeType === budget.scopeType &&
+                    mutation.variables.scopeId === budget.scopeId
+                  }
                   disabled={mutation.isPending}
                   onClick={() =>
                     mutation.mutate({
@@ -372,7 +400,7 @@ export function EveApprovalBudgetPanel() {
                     <p className="text-xs text-muted-foreground">
                       {approval.targetKey} · {approval.trustZone} ·{" "}
                       {approval.approvalLevel} · expires{" "}
-                      {new Date(approval.expiresAt).toLocaleString()}
+                      {formatDateTime(approval.expiresAt)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -387,6 +415,12 @@ export function EveApprovalBudgetPanel() {
                       <>
                         <Button
                           size="sm"
+                          focusableWhenDisabled={
+                            mutation.isPending &&
+                            mutation.variables?.action === "decide_approval" &&
+                            mutation.variables.approvalId === approval.id &&
+                            mutation.variables.approved === true
+                          }
                           disabled={mutation.isPending}
                           onClick={() =>
                             mutation.mutate({
@@ -403,6 +437,12 @@ export function EveApprovalBudgetPanel() {
                         <Button
                           size="sm"
                           variant="destructive"
+                          focusableWhenDisabled={
+                            mutation.isPending &&
+                            mutation.variables?.action === "decide_approval" &&
+                            mutation.variables.approvalId === approval.id &&
+                            mutation.variables.approved === false
+                          }
                           disabled={mutation.isPending}
                           onClick={() =>
                             mutation.mutate({

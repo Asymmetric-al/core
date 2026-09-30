@@ -52,7 +52,7 @@ Interactive elements need a visual signal: a background, a border, an underline,
 
 <!-- Good: the action reads as an action -->
 <p class="text-zinc-600">Your trial ends soon.</p>
-<button class="font-medium text-blue-600">Upgrade now</button>
+<button class="font-medium text-primary">Upgrade now</button>
 ```
 
 The inverse holds too. A non-clickable badge shaped exactly like the buttons beside it collects dead clicks.

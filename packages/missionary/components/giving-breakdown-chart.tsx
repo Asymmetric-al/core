@@ -17,19 +17,21 @@ import type { ChartConfig } from "@asym/ui/components/shadcn/chart";
 const chartConfig = {
   recurring: {
     label: "Recurring",
-    color: "oklch(0.45 0.10 250)",
+    color: "var(--chart-1)",
   },
   oneTime: {
     label: "One-Time",
-    color: "oklch(0.60 0.08 250)",
+    color: "var(--chart-2)",
   },
   offline: {
     label: "Offline",
-    color: "oklch(0.75 0.05 250)",
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
 const CORNER_RADIUS = 4;
+
+type DonationBarKey = "recurring" | "oneTime" | "offline";
 
 interface MonthlyData {
   recurring: number;
@@ -37,56 +39,107 @@ interface MonthlyData {
   offline: number;
 }
 
-function createRoundedBarShape(dataKey: "recurring" | "oneTime" | "offline") {
-  return function RoundedBar(props: unknown): React.ReactElement {
-    const barProps = props as {
-      x?: number;
-      y?: number;
-      width?: number;
-      height?: number;
-      fill?: string;
-      payload?: MonthlyData;
-    };
+interface RenderableBarGeometry {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill?: string;
+  payload?: MonthlyData;
+}
 
-    const { x, y, width, height, fill, payload } = barProps;
+function readRenderableBarGeometry(
+  props: unknown,
+): RenderableBarGeometry | null {
+  const barProps = props as {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    fill?: string;
+    payload?: MonthlyData;
+  };
 
-    if (
-      x === undefined ||
-      y === undefined ||
-      !width ||
-      !height ||
-      height <= 0
-    ) {
-      return <></>;
+  const { x, y, width, height, fill, payload } = barProps;
+
+  if (x === undefined || y === undefined || !width || !height || height <= 0) {
+    return null;
+  }
+
+  return { x, y, width, height, fill, payload };
+}
+
+function stackedBarAmounts(payload: MonthlyData | undefined) {
+  return {
+    recurring: payload?.recurring ?? 0,
+    oneTime: payload?.oneTime ?? 0,
+    offline: payload?.offline ?? 0,
+  };
+}
+
+function stackedBarIsBottom(
+  dataKey: DonationBarKey,
+  payload: MonthlyData | undefined,
+): boolean {
+  const { recurring, oneTime } = stackedBarAmounts(payload);
+
+  switch (dataKey) {
+    case "recurring":
+      return true;
+    case "oneTime":
+      return recurring === 0;
+    case "offline":
+      return recurring === 0 && oneTime === 0;
+    default: {
+      const exhaustive: never = dataKey;
+      return exhaustive;
     }
+  }
+}
 
-    const recurring = payload?.recurring ?? 0;
-    const oneTime = payload?.oneTime ?? 0;
-    const offline = payload?.offline ?? 0;
+function stackedBarIsTop(
+  dataKey: DonationBarKey,
+  payload: MonthlyData | undefined,
+): boolean {
+  const { oneTime, offline } = stackedBarAmounts(payload);
 
-    const isBottom =
-      dataKey === "recurring" ||
-      (dataKey === "oneTime" && recurring === 0) ||
-      (dataKey === "offline" && recurring === 0 && oneTime === 0);
+  switch (dataKey) {
+    case "offline":
+      return true;
+    case "oneTime":
+      return offline === 0;
+    case "recurring":
+      return oneTime === 0 && offline === 0;
+    default: {
+      const exhaustive: never = dataKey;
+      return exhaustive;
+    }
+  }
+}
 
-    const isTop =
-      dataKey === "offline" ||
-      (dataKey === "oneTime" && offline === 0) ||
-      (dataKey === "recurring" && oneTime === 0 && offline === 0);
+function clampCornerRadius(radius: number, width: number, height: number) {
+  return Math.min(radius, width / 2, height / 2);
+}
 
-    const topLeft = isTop ? CORNER_RADIUS : 0;
-    const topRight = isTop ? CORNER_RADIUS : 0;
-    const bottomRight = isBottom ? CORNER_RADIUS : 0;
-    const bottomLeft = isBottom ? CORNER_RADIUS : 0;
+function roundedStackedBarPath(
+  dataKey: DonationBarKey,
+  bar: RenderableBarGeometry,
+): string {
+  const { x, y, width, height, payload } = bar;
+  const isBottom = stackedBarIsBottom(dataKey, payload);
+  const isTop = stackedBarIsTop(dataKey, payload);
 
-    const safeRadius = (r: number, w: number, h: number) =>
-      Math.min(r, w / 2, h / 2);
-    const tl = safeRadius(topLeft, width, height);
-    const tr = safeRadius(topRight, width, height);
-    const br = safeRadius(bottomRight, width, height);
-    const bl = safeRadius(bottomLeft, width, height);
+  const topLeft = isTop ? CORNER_RADIUS : 0;
+  const topRight = isTop ? CORNER_RADIUS : 0;
+  const bottomRight = isBottom ? CORNER_RADIUS : 0;
+  const bottomLeft = isBottom ? CORNER_RADIUS : 0;
 
-    const path = `
+  const tl = clampCornerRadius(topLeft, width, height);
+  const tr = clampCornerRadius(topRight, width, height);
+  const br = clampCornerRadius(bottomRight, width, height);
+  const bl = clampCornerRadius(bottomLeft, width, height);
+
+  return `
       M ${x + tl},${y}
       L ${x + width - tr},${y}
       Q ${x + width},${y} ${x + width},${y + tr}
@@ -98,9 +151,19 @@ function createRoundedBarShape(dataKey: "recurring" | "oneTime" | "offline") {
       Q ${x},${y} ${x + tl},${y}
       Z
     `;
+}
 
-    return <path d={path} fill={fill} />;
-  };
+function createRoundedBarShape(dataKey: DonationBarKey) {
+  function RoundedBar(props: unknown): React.ReactElement {
+    const bar = readRenderableBarGeometry(props);
+    if (!bar) {
+      return <></>;
+    }
+
+    return <path d={roundedStackedBarPath(dataKey, bar)} fill={bar.fill} />;
+  }
+
+  return RoundedBar;
 }
 
 const RecurringBarShape = createRoundedBarShape("recurring");
@@ -125,13 +188,20 @@ const SKELETON_BARS = [
 
 function GivingBreakdownSkeleton() {
   return (
-    <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex flex-col">
+    <div className="h-50 sm:h-62.5 md:h-75 w-full flex flex-col">
       <div className="flex-1 flex items-end justify-around gap-1 px-4 pb-6">
         {SKELETON_BARS.map(({ id, height }) => (
-          <div key={id} className="flex-1 flex flex-col items-center gap-1">
+          <div
+            key={id}
+            className="h-full flex-1 flex flex-col items-center justify-end gap-1"
+          >
             <Skeleton
-              className="w-full rounded-t-sm"
-              style={{ height: `${height}%` }}
+              className="h-(--skeleton-bar-height) w-full rounded-t-sm"
+              style={
+                {
+                  "--skeleton-bar-height": `${height}%`,
+                } as React.CSSProperties
+              }
             />
           </div>
         ))}
@@ -168,7 +238,7 @@ export function GivingBreakdownChart({
 
   if (error) {
     return (
-      <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex items-center justify-center text-sm text-zinc-400">
+      <div className="h-50 sm:h-62.5 md:h-75 w-full flex items-center justify-center text-sm text-muted-foreground">
         Unable to load chart data
       </div>
     );
@@ -178,106 +248,100 @@ export function GivingBreakdownChart({
 
   if (!hasData) {
     return (
-      <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex items-center justify-center text-sm text-zinc-400">
+      <div className="h-50 sm:h-62.5 md:h-75 w-full flex items-center justify-center text-sm text-muted-foreground">
         No donation data available
       </div>
     );
   }
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="h-[200px] sm:h-[250px] md:h-[300px] w-full min-h-[180px]"
-    >
-      <BarChart
-        data={monthlyBreakdown}
-        margin={{
-          top: 5,
-          right: 5,
-          left: 0,
-          bottom: 0,
-        }}
-        barGap={2}
-      >
-        <CartesianGrid
-          vertical={false}
-          strokeDasharray="3 3"
-          stroke="oklch(0.92 0.004 286.32)"
-          opacity={0.3}
-        />
-        <XAxis
-          dataKey="month"
-          tickLine={false}
-          tickMargin={5}
-          axisLine={false}
-          fontSize={9}
-          fontWeight={700}
-          stroke="oklch(0.55 0.01 286.32)"
-          interval="preserveStartEnd"
-        />
-        <YAxis
-          tickLine={false}
-          axisLine={false}
-          fontSize={9}
-          fontWeight={700}
-          tickFormatter={(value) =>
-            value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`
-          }
-          width={35}
-          tickMargin={4}
-          stroke="oklch(0.55 0.01 286.32)"
-        />
-        <ChartTooltip
-          cursor={{ fill: "oklch(0.96 0.004 286.32)", opacity: 0.4 }}
-          content={
-            <ChartTooltipContent
-              indicator="dot"
-              className="bg-white/95 backdrop-blur-xl border-zinc-200 shadow-2xl rounded-xl p-2.5 min-w-[160px] text-[10px] font-bold"
-              formatter={(value, name) => {
-                const labels: Record<string, string> = {
-                  recurring: "Recurring",
-                  oneTime: "One-Time",
-                  offline: "Offline",
-                };
-                return (
-                  <span className="flex items-center gap-2">
-                    <span>{labels[name as string] || name}</span>
-                    <span className="font-black">
-                      ${Number(value).toLocaleString()}
+    <div className="h-50 sm:h-62.5 md:h-75 w-full grid grid-cols-1 grid-rows-1 items-stretch">
+      <ChartContainer config={chartConfig} className="w-full self-stretch">
+        <BarChart
+          data={monthlyBreakdown}
+          margin={{
+            top: 5,
+            right: 5,
+            left: 0,
+            bottom: 0,
+          }}
+          barGap={2}
+        >
+          <CartesianGrid
+            vertical={false}
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+            opacity={0.3}
+          />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            tickMargin={5}
+            axisLine={false}
+            fontSize={12}
+            fontWeight={700}
+            stroke="var(--muted-foreground)"
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            fontSize={12}
+            fontWeight={700}
+            tickFormatter={(value) =>
+              value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`
+            }
+            width={48}
+            tickMargin={4}
+            stroke="var(--muted-foreground)"
+          />
+          <ChartTooltip
+            cursor={{ fill: "var(--muted)", opacity: 0.4 }}
+            content={
+              <ChartTooltipContent
+                indicator="dot"
+                formatter={(value, name) => {
+                  const labels: Record<string, string> = {
+                    recurring: "Recurring",
+                    oneTime: "One-Time",
+                    offline: "Offline",
+                  };
+                  return (
+                    <span className="flex items-center gap-2">
+                      <span>{labels[name as string] || name}</span>
+                      <span className="font-black">
+                        ${Number(value).toLocaleString()}
+                      </span>
                     </span>
-                  </span>
-                );
-              }}
-            />
-          }
-        />
-        <ChartLegend
-          content={<ChartLegendContent />}
-          className="pt-2 text-[10px] [&_.recharts-legend-item-text]:!text-zinc-600"
-          wrapperStyle={{ fontSize: "10px" }}
-        />
-        <Bar
-          dataKey="recurring"
-          stackId="donations"
-          fill="var(--color-recurring)"
-          maxBarSize={48}
-          shape={RecurringBarShape}
-        />
-        <Bar
-          dataKey="oneTime"
-          stackId="donations"
-          fill="var(--color-oneTime)"
-          maxBarSize={48}
-          shape={OneTimeBarShape}
-        />
-        <Bar
-          dataKey="offline"
-          stackId="donations"
-          fill="var(--color-offline)"
-          maxBarSize={48}
-          shape={OfflineBarShape}
-        />
-      </BarChart>
-    </ChartContainer>
+                  );
+                }}
+              />
+            }
+          />
+          <ChartLegend content={<ChartLegendContent />} />
+          <Bar
+            dataKey="recurring"
+            stackId="donations"
+            fill="var(--color-recurring)"
+            maxBarSize={48}
+            shape={RecurringBarShape}
+          />
+          <Bar
+            dataKey="oneTime"
+            stackId="donations"
+            fill="var(--color-oneTime)"
+            maxBarSize={48}
+            shape={OneTimeBarShape}
+          />
+          <Bar
+            dataKey="offline"
+            stackId="donations"
+            fill="var(--color-offline)"
+            maxBarSize={48}
+            shape={OfflineBarShape}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
   );
 }

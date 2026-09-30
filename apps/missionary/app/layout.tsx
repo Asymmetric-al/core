@@ -4,7 +4,7 @@ import { getProtectedAppRedirectPath } from "@asym/auth/redirects";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
-import { MotionProvider } from "@asym/lib/motion";
+import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
@@ -168,37 +168,39 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
-          storageKey="missionary-theme"
-          disableTransitionOnChange
-        >
-          <BoneyardRegistry />
-          <QueryProvider>
-            <MotionProvider>
-              <TooltipProvider delay={0}>
-                <NuqsAdapter>
-                  {/*
-                   * The role gate is a redirect-only sibling of `children`, not
-                   * a wrapper — see MissionaryRoleGate. That keeps the session
-                   * read (the only suspending work) behind the boundary while
-                   * the chrome AND each page's real markup prerender into the
-                   * static shell.
-                   */}
-                  <MissionaryLayoutShell>
-                    <Suspense fallback={null}>
-                      <MissionaryRoleGate />
-                    </Suspense>
-                    {children}
-                  </MissionaryLayoutShell>
-                </NuqsAdapter>
-              </TooltipProvider>
-            </MotionProvider>
-          </QueryProvider>
-        </ThemeProvider>
+        <div className="app-root">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            forcedTheme="light"
+            enableSystem={false}
+            storageKey="missionary-theme"
+            disableTransitionOnChange
+          >
+            <BoneyardRegistry />
+            <QueryProvider>
+              <MotionProvider>
+                <TooltipProvider delay={0}>
+                  <NuqsAdapter>
+                    {/*
+                     * The role gate is a redirect-only sibling of `children`, not
+                     * a wrapper — see MissionaryRoleGate. That keeps the session
+                     * read (the only suspending work) behind the boundary while
+                     * the chrome AND each page's real markup prerender into the
+                     * static shell.
+                     */}
+                    <MissionaryLayoutShell>
+                      <Suspense fallback={null}>
+                        <MissionaryRoleGate />
+                      </Suspense>
+                      {children}
+                    </MissionaryLayoutShell>
+                  </NuqsAdapter>
+                </TooltipProvider>
+              </MotionProvider>
+            </QueryProvider>
+          </ThemeProvider>
+        </div>
         <Toaster />
       </body>
     </html>

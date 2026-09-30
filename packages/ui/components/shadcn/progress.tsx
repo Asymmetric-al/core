@@ -2,7 +2,7 @@
 
 import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
 
-import { cn } from "@asym/ui/lib/utils";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 function Progress({
   className,
@@ -13,7 +13,7 @@ function Progress({
     <ProgressPrimitive.Root
       data-slot="progress"
       value={value === undefined ? 0 : value}
-      className={cn(
+      className={mergeBaseUIClassName(
         "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
         className,
       )}
@@ -22,7 +22,7 @@ function Progress({
       <ProgressPrimitive.Track data-slot="progress-track" className="size-full">
         <ProgressPrimitive.Indicator
           data-slot="progress-indicator"
-          className="h-full bg-primary transition-[width]"
+          className="h-full bg-primary data-indeterminate:w-1/3 data-indeterminate:animate-pulse"
         />
       </ProgressPrimitive.Track>
     </ProgressPrimitive.Root>

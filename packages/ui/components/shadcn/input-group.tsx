@@ -8,6 +8,8 @@ import { cn } from "@asym/ui/lib/utils";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
+import { inputGroupInputStyles } from "../../lib/input-styles";
 
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -111,7 +113,10 @@ function InputGroupButton({
       type={type}
       data-size={size}
       variant={variant}
-      className={cn(inputGroupButtonVariants({ size }), className)}
+      className={mergeBaseUIClassName(
+        inputGroupButtonVariants({ size }),
+        className,
+      )}
       {...props}
     />
   );
@@ -132,14 +137,11 @@ function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
 function InputGroupInput({
   className,
   ...props
-}: React.ComponentProps<"input">) {
+}: React.ComponentProps<typeof Input>) {
   return (
     <Input
       data-slot="input-group-control"
-      className={cn(
-        "flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent",
-        className,
-      )}
+      className={mergeBaseUIClassName(inputGroupInputStyles, className)}
       {...props}
     />
   );

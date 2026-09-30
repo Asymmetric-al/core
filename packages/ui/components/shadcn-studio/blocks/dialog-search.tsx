@@ -42,17 +42,11 @@ const SearchDialog = ({ defaultOpen = false, trigger, className }: Props) => {
 
   return (
     <div className={className}>
-      <div
-        onClick={() => setOpen(true)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setOpen(true);
-          }
-        }}
-        role="button"
-        tabIndex={0}
-      >
+      {/* `trigger` supplies the real, focusable controls (buttons); this
+          wrapper only delegates their click events (including keyboard
+          activation, which fires click on a button) so it stays out of the
+          accessibility tree instead of nesting interactives. */}
+      <div onClick={() => setOpen(true)} role="presentation">
         {trigger}
       </div>
       <CommandDialog open={open} onOpenChange={setOpen}>

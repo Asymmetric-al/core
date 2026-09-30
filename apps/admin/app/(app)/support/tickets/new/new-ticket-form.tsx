@@ -4,9 +4,17 @@ import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectControlLabel,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { supportHubRoutes } from "../../support-hub.routes";
 
@@ -27,16 +35,25 @@ interface NewTicketFormProps {
 const priorities: SupportTicketPriority[] = ["low", "normal", "high", "urgent"];
 
 export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
+  const pendingActionLabelId = useId();
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submissionInFlight = useRef(false);
+  const [contactValue, setContactValue] = useState<string | null>(null);
+  const [queueValue, setQueueValue] = useState<string | null>(null);
+  const [priorityValue, setPriorityValue] =
+    useState<SupportTicketPriority>("normal");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submissionInFlight.current) return;
+    const form = event.currentTarget;
     setError(null);
     setSuccess(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const contactId = String(formData.get("contact") ?? "");
     const contact = contacts.find((item) => item.id === contactId);
     const subject = String(formData.get("subject") ?? "").trim();
@@ -51,6 +68,7 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
       return;
     }
 
+    submissionInFlight.current = true;
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/admin/support/tickets", {
@@ -74,16 +92,25 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
       }
 
       setSuccess(`Created ticket ${body.id ?? ""}`.trim());
-      event.currentTarget.reset();
+      form.reset();
     } catch {
       setError("Unable to create support ticket.");
     } finally {
+      submissionInFlight.current = false;
       setIsSubmitting(false);
     }
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form
+      className="space-y-4"
+      onSubmit={handleSubmit}
+      onReset={() => {
+        setContactValue(null);
+        setQueueValue(null);
+        setPriorityValue("normal");
+      }}
+    >
       {error ? (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -96,23 +123,31 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
       ) : null}
 
       <div className="space-y-2">
-        <Label htmlFor="support-contact">Contact</Label>
-        <select
-          className="min-h-11 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm"
-          defaultValue=""
+        <Select
+          items={contacts.map((contact) => ({
+            value: contact.id,
+            label: contact.name,
+          }))}
+          value={contactValue}
+          onValueChange={(value) => {
+            if (value !== null) setContactValue(value);
+          }}
           id="support-contact"
           name="contact"
           required
         >
-          <option value="" disabled>
-            Select contact
-          </option>
-          {contacts.map((contact) => (
-            <option key={contact.id} value={contact.id}>
-              {contact.name}
-            </option>
-          ))}
-        </select>
+          <SelectControlLabel>Contact</SelectControlLabel>
+          <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+            <SelectValue placeholder="Select contact" />
+          </SelectTrigger>
+          <SelectContent>
+            {contacts.map((contact) => (
+              <SelectItem key={contact.id} value={contact.id}>
+                {contact.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
@@ -127,40 +162,59 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="support-queue">Support track</Label>
-          <select
-            className="min-h-11 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm"
-            defaultValue=""
+          <Select
+            items={queues.map((queue) => ({
+              value: queue.id,
+              label: queue.label,
+            }))}
+            value={queueValue}
+            onValueChange={(value) => {
+              if (value !== null) setQueueValue(value);
+            }}
             id="support-queue"
             name="queueId"
             required
           >
-            <option value="" disabled>
-              Select support track
-            </option>
-            {queues.map((queue) => (
-              <option key={queue.id} value={queue.id}>
-                {queue.label}
-              </option>
-            ))}
-          </select>
+            <SelectControlLabel>Support track</SelectControlLabel>
+            <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+              <SelectValue placeholder="Select support track" />
+            </SelectTrigger>
+            <SelectContent>
+              {queues.map((queue) => (
+                <SelectItem key={queue.id} value={queue.id}>
+                  {queue.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="support-priority">Priority</Label>
-          <select
-            className="min-h-11 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm capitalize"
-            defaultValue="normal"
+          <Select
+            items={priorities.map((priority) => ({
+              value: priority,
+              label: priority,
+            }))}
+            value={priorityValue}
+            onValueChange={(value) => {
+              if (value !== null) setPriorityValue(value);
+            }}
             id="support-priority"
             name="priority"
             required
           >
-            {priorities.map((priority) => (
-              <option key={priority} value={priority}>
-                {priority}
-              </option>
-            ))}
-          </select>
+            <SelectControlLabel>Priority</SelectControlLabel>
+            <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3 capitalize">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {priorities.map((priority) => (
+                <SelectItem key={priority} value={priority}>
+                  {priority}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -175,8 +229,15 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Creating..." : "Create ticket"}
+        <Button
+          aria-labelledby={`${pendingActionLabelId}-10`}
+          focusableWhenDisabled={isSubmitting}
+          disabled={isSubmitting}
+          type="submit"
+        >
+          <span id={`${pendingActionLabelId}-10`}>
+            {isSubmitting ? "Creating..." : "Create ticket"}
+          </span>
         </Button>
         <Link
           href={supportHubRoutes.tickets}

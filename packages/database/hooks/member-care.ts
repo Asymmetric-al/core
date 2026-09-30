@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import * as React from "react";
 
+import { parseJsonResponse } from "../http/parse-json-response";
 import { getAdminSurfaceQueryKey } from "../query-keys";
 
 export type MemberCarePriority =
@@ -119,24 +120,6 @@ async function invalidateMemberCareCaches(
       queryKey: getAdminSurfaceQueryKey("memberCareDetail").concat(personnelId),
     }),
   ]);
-}
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error || `Request failed with status ${response.status}`,
-    );
-  }
-
-  if (!payload) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return payload;
 }
 
 async function fetchMemberCareDashboard(): Promise<MemberCareDashboardResponse> {

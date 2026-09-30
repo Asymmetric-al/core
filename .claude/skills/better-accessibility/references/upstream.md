@@ -25,9 +25,8 @@ Canonical copy in this repo: `docs/ai/skills/better-accessibility/`, mirrored to
 1. Refresh the lockfile-managed skill with a targeted Skills CLI add:
    `npx skills add jakubkrehel/skills --skill better-accessibility -y`.
    Do **not** run `npx skills add emilkowalski/skills -y`.
-2. Run the matching `bun run skills:refresh-*` / `skills:refresh-upstream
---only=jakubkrehel/skills` command so marked Core overlays and this provenance
-   file are preserved.
+2. Run `bun run skills:refresh-jakubkrehel` so marked Core overlays and this
+   provenance file are preserved.
 3. Review newly added or removed upstream files against Core's Base UI,
    `base-maia`, and routing constraints.
 4. Run `bun run skills:sync` and `bun run skills:verify`.

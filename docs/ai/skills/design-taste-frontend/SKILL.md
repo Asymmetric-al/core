@@ -501,14 +501,18 @@ export function HorizontalPan({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (reduce || !wrap.current || !track.current) return;
     const ctx = gsap.context(() => {
-      const distance = track.current!.scrollWidth - window.innerWidth;
+      const getDistance = () =>
+        Math.max(
+          0,
+          (track.current?.scrollWidth ?? 0) - (wrap.current?.clientWidth ?? 0),
+        );
       gsap.to(track.current, {
-        x: -distance,
+        x: () => -getDistance(),
         ease: "none",
         scrollTrigger: {
           trigger: wrap.current,
           start: "top top", // pin starts when section top hits viewport top
-          end: () => `+=${distance}`, // scroll distance = track width minus viewport
+          end: () => `+=${getDistance()}`, // scroll distance = track width minus pinned wrapper
           pin: true,
           scrub: 1,
           invalidateOnRefresh: true,

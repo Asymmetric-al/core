@@ -123,11 +123,11 @@ export default function AdminPage() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold hover:bg-zinc-50"
+            className="h-10 rounded-xl border-zinc-200 font-semibold hover:bg-zinc-50"
           >
             <Activity className="size-4 text-zinc-600" /> Audit Logs
           </Button>
-          <Button className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800">
+          <Button className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800">
             <Shield className="size-4" /> Security Scan
           </Button>
         </div>

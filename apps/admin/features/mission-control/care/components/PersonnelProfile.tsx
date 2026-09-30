@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import {
   Avatar,
   AvatarFallback,
@@ -21,6 +22,7 @@ import {
 import {
   Tabs,
   TabsContent,
+  TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
@@ -35,7 +37,7 @@ import {
   AlertTriangle,
   Plus,
 } from "lucide-react";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useId, useMemo, useState, useEffect } from "react";
 
 import { HealthHeatmap } from "./HealthHeatmap";
 import {
@@ -77,6 +79,7 @@ function PersonnelProfileHeaderCard({
   isLoggingCheckIn: boolean;
   isUpdatingAttention: boolean;
 }) {
+  const attentionLabelId = useId();
   return (
     <Card className="border-zinc-200 shadow-sm overflow-hidden">
       <div className="h-24 bg-gradient-to-r from-zinc-900 to-zinc-800" />
@@ -125,18 +128,23 @@ function PersonnelProfileHeaderCard({
               className="h-9 px-4 font-semibold border-zinc-200"
               onClick={onToggleManualAttention}
               disabled={isUpdatingAttention}
+              focusableWhenDisabled={isUpdatingAttention}
+              aria-labelledby={attentionLabelId}
             >
               <AlertTriangle className="mr-2 size-4 text-zinc-400" />
-              {isUpdatingAttention
-                ? "Updating..."
-                : personnel.manualAttention
-                  ? "Clear Attention"
-                  : "Flag Attention"}
+              <span id={attentionLabelId}>
+                {isUpdatingAttention
+                  ? "Updating..."
+                  : personnel.manualAttention
+                    ? "Clear Attention"
+                    : "Flag Attention"}
+              </span>
             </Button>
             <Button
-              className="h-9 px-4 font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200"
+              className="font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200"
               onClick={onLogCheckIn}
               disabled={isLoggingCheckIn}
+              focusableWhenDisabled={isLoggingCheckIn}
             >
               <Heart className="mr-2 size-4" /> Log Check-in
             </Button>
@@ -156,6 +164,7 @@ function OverviewTabContentSection({
   activities: ActivityLogEntry[];
   heatmapData: Array<{ date: string; intensity: number; type: string }>;
 }) {
+  const { formatDate } = useLocaleFormat();
   return (
     <TabsContent
       value="overview"
@@ -196,7 +205,7 @@ function OverviewTabContentSection({
                           {activity.type}
                         </span>
                         <span className="text-[10px] text-zinc-400 font-medium">
-                          {makeDisplayDate(activity.date).toLocaleDateString()}
+                          {formatDate(activity.date)}
                         </span>
                       </div>
                       <p className="text-xs text-zinc-600 leading-relaxed">
@@ -240,14 +249,18 @@ function OverviewTabContentSection({
                   <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
                     <div
                       className={cn(
-                        "h-full rounded-full transition-colors",
+                        "h-full w-(--health-signal-width) rounded-full transition-colors",
                         value > 80
                           ? "bg-emerald-500"
                           : value > 50
                             ? "bg-amber-500"
                             : "bg-rose-500",
                       )}
-                      style={{ width: `${value}%` }}
+                      style={
+                        {
+                          "--health-signal-width": `${value}%`,
+                        } as React.CSSProperties
+                      }
                     />
                   </div>
                 </div>
@@ -335,6 +348,8 @@ function CareThreadTabContent({
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
 }) {
+  const pendingActionLabelId = useId();
+  const { formatDateTime } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createThreadPost = useCreateCareThreadPost();
   const threadEntries = activities;
@@ -344,7 +359,7 @@ function CareThreadTabContent({
       value="care-thread"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-zinc-200 shadow-sm min-h-[400px]">
+      <Card className="border-zinc-200 shadow-sm min-h-100">
         <CardHeader className="border-b border-zinc-50">
           <CardTitle className="text-base font-semibold">Care Thread</CardTitle>
           <CardDescription className="text-xs">
@@ -367,7 +382,7 @@ function CareThreadTabContent({
                     {entry.authorName}
                   </span>
                   <span className="text-zinc-400">
-                    {makeDisplayDate(entry.date).toLocaleString()}
+                    {formatDateTime(entry.date)}
                   </span>
                 </div>
                 <RichTextViewer value={entry.content} />
@@ -383,8 +398,10 @@ function CareThreadTabContent({
             />
             <div className="mt-3 flex justify-end">
               <Button
+                aria-labelledby={`${pendingActionLabelId}-13`}
+                focusableWhenDisabled={createThreadPost.isPending}
                 size="sm"
-                className="h-8 font-semibold bg-zinc-900 text-white"
+                className="font-semibold bg-zinc-900 text-white"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createThreadPost.mutateAsync({
@@ -395,7 +412,9 @@ function CareThreadTabContent({
                 }}
                 disabled={createThreadPost.isPending}
               >
-                {createThreadPost.isPending ? "Posting..." : "Post Update"}
+                <span id={`${pendingActionLabelId}-13`}>
+                  {createThreadPost.isPending ? "Posting..." : "Post Update"}
+                </span>
               </Button>
             </div>
           </div>
@@ -406,6 +425,8 @@ function CareThreadTabContent({
 }
 
 function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
+  const pendingActionLabelId = useId();
+
   const upsertCareGoal = useCreateOrUpdateCareGoal();
   const upsertCareRequirement = useUpsertCareRequirement();
   const planItems = personnel.careGaps.length
@@ -424,7 +445,7 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
 
   return (
     <TabsContent value="care-plan" className="animate-in fade-in duration-300">
-      <Card className="border-zinc-200 shadow-sm min-h-[400px]">
+      <Card className="border-zinc-200 shadow-sm min-h-100">
         <CardHeader className="border-b border-zinc-50">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -436,8 +457,10 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               </CardDescription>
             </div>
             <Button
+              aria-labelledby={`${pendingActionLabelId}-14`}
+              focusableWhenDisabled={upsertCareGoal.isPending}
               size="sm"
-              className="h-8 bg-zinc-900 text-white"
+              className="bg-zinc-900 text-white"
               onClick={async () => {
                 await upsertCareGoal.mutateAsync({
                   personnelId: personnel.id,
@@ -447,12 +470,16 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               }}
               disabled={upsertCareGoal.isPending}
             >
-              {upsertCareGoal.isPending ? "Saving..." : "Add Goal"}
+              <span id={`${pendingActionLabelId}-14`}>
+                {upsertCareGoal.isPending ? "Saving..." : "Add Goal"}
+              </span>
             </Button>
             <Button
+              aria-labelledby={`${pendingActionLabelId}-15`}
+              focusableWhenDisabled={upsertCareRequirement.isPending}
               size="sm"
               variant="outline"
-              className="h-8"
+              className=""
               onClick={async () => {
                 await upsertCareRequirement.mutateAsync({
                   personnelId: personnel.id,
@@ -463,9 +490,11 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               }}
               disabled={upsertCareRequirement.isPending}
             >
-              {upsertCareRequirement.isPending
-                ? "Saving..."
-                : "Add Requirement"}
+              <span id={`${pendingActionLabelId}-15`}>
+                {upsertCareRequirement.isPending
+                  ? "Saving..."
+                  : "Add Requirement"}
+              </span>
             </Button>
           </div>
         </CardHeader>
@@ -508,6 +537,7 @@ function ActivityTabContent({
   activities: ActivityLogEntry[];
   heatmapData: Array<{ date: string; intensity: number; type: string }>;
 }) {
+  const { formatDateTime } = useLocaleFormat();
   return (
     <TabsContent
       value="activity"
@@ -533,7 +563,7 @@ function ActivityTabContent({
                   {activity.type}
                 </p>
                 <p className="text-[11px] text-zinc-400">
-                  {makeDisplayDate(activity.date).toLocaleString()}
+                  {formatDateTime(activity.date)}
                 </p>
               </div>
               <p className="text-xs text-zinc-600">{activity.content}</p>
@@ -566,6 +596,8 @@ function SecureNotesTabContent({
   personnelId: string;
   privateNotes: MemberCarePrivateNote[];
 }) {
+  const pendingActionLabelId = useId();
+  const { formatDate } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createPrivateNote = useCreateCarePrivateNote();
 
@@ -574,7 +606,7 @@ function SecureNotesTabContent({
       value="secure-notes"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-zinc-200 shadow-sm min-h-[400px] border-amber-100 bg-amber-50/5">
+      <Card className="border-zinc-200 shadow-sm min-h-100 border-amber-100 bg-amber-50/5">
         <CardHeader className="flex flex-row items-center justify-between border-b border-amber-50">
           <div>
             <div className="flex items-center gap-2">
@@ -590,7 +622,7 @@ function SecureNotesTabContent({
           <Button
             size="sm"
             variant="outline"
-            className="h-8 font-semibold border-amber-200 text-amber-700 hover:bg-amber-100"
+            className="font-semibold border-amber-200 text-amber-700 hover:bg-amber-100"
           >
             <Plus className="mr-2 size-3.5" /> Add Private Note
           </Button>
@@ -614,7 +646,7 @@ function SecureNotesTabContent({
                       {note.authorName}
                     </span>
                     <span className="text-[10px] text-zinc-400 font-medium">
-                      {makeDisplayDate(note.date).toLocaleDateString()}
+                      {formatDate(note.date)}
                     </span>
                   </div>
                   <RichTextViewer value={note.content} />
@@ -636,8 +668,10 @@ function SecureNotesTabContent({
             />
             <div className="mt-3 flex justify-end">
               <Button
+                aria-labelledby={`${pendingActionLabelId}-16`}
+                focusableWhenDisabled={createPrivateNote.isPending}
                 size="sm"
-                className="h-8 font-semibold bg-amber-600 text-white hover:bg-amber-500"
+                className="font-semibold bg-amber-600 text-white hover:bg-amber-500"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createPrivateNote.mutateAsync({
@@ -648,7 +682,11 @@ function SecureNotesTabContent({
                 }}
                 disabled={createPrivateNote.isPending}
               >
-                {createPrivateNote.isPending ? "Saving..." : "Save Secure Note"}
+                <span id={`${pendingActionLabelId}-16`}>
+                  {createPrivateNote.isPending
+                    ? "Saving..."
+                    : "Save Secure Note"}
+                </span>
               </Button>
             </div>
           </div>
@@ -716,7 +754,11 @@ export function PersonnelProfile({
 
       <Tabs defaultValue="overview" className="w-full">
         <div className="flex items-center justify-between border-b border-zinc-200 mb-6 pb-px">
-          <div className="flex gap-8">
+          <TabsList
+            aria-label="Personnel profile"
+            variant="line"
+            className="gap-8 p-0 group-data-[orientation=horizontal]/tabs:h-auto"
+          >
             {[
               "overview",
               "care-thread",
@@ -727,12 +769,12 @@ export function PersonnelProfile({
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 data-active:shadow-[0_2px_0_0_#0f172a] rounded-none transition-none capitalize"
+                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 rounded-none transition-none capitalize group-data-[orientation=horizontal]/tabs:after:bottom-0"
               >
                 {tab.replace("-", " ")}
               </TabsTrigger>
             ))}
-          </div>
+          </TabsList>
         </div>
 
         <OverviewTabContentSection

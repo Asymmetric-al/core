@@ -9,6 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectControlLabel,
 } from "@asym/ui/components/shadcn/select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { RotateCcw } from "lucide-react";
@@ -62,7 +63,7 @@ export function ReportFilters({
             type="date"
             value={fromInput}
             onChange={(event) => handleDateChange("from", event.target.value)}
-            className="h-9 w-[160px] font-mono text-[12px]"
+            className="w-40 font-mono text-[12px]"
             aria-label={`Start date (${INPUT_DATE})`}
           />
         </div>
@@ -74,21 +75,26 @@ export function ReportFilters({
             type="date"
             value={toInput}
             onChange={(event) => handleDateChange("to", event.target.value)}
-            className="h-9 w-[160px] font-mono text-[12px]"
+            className="w-40 font-mono text-[12px]"
             aria-label={`End date (${INPUT_DATE})`}
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-            Group by
-          </Label>
-          <Select
+          <Select<typeof state.groupBy>
+            items={[
+              { value: "day", label: "Day" },
+              { value: "week", label: "Week" },
+              { value: "month", label: "Month" },
+            ]}
             value={state.groupBy}
-            onValueChange={(value) =>
-              setState({ groupBy: value as typeof state.groupBy })
-            }
+            onValueChange={(value) => {
+              if (value !== null) setState({ groupBy: value });
+            }}
           >
-            <SelectTrigger className="h-9 w-[140px] text-[12px]">
+            <SelectControlLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+              Group by
+            </SelectControlLabel>
+            <SelectTrigger className="h-9 w-35 text-[12px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -122,7 +128,7 @@ export function ReportFilters({
             variant="ghost"
             size="sm"
             onClick={() => resetState()}
-            className="h-9 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            className="h-9 rounded-lg text-[11px] font-bold uppercase tracking-wider text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
           >
             <RotateCcw className="size-3.5" />
             Reset

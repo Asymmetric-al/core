@@ -1,6 +1,7 @@
 ---
 name: better-ui
-description: Polishes and improves the UI in your project. Covers concentric border radius, optical alignment, surface depth, contextual icons, hit areas and more.
+disable-model-invocation: true
+description: Explicit polish reference for concentric radius, optical alignment, surface depth, contextual icons, and hit areas. Use only after Core frontend rules and packages/ui. Do not restyle product apps from these examples.
 ---
 
 # UI polish

@@ -4,6 +4,7 @@ import {
   getPublicCmsDescriptorError,
   isPublicCmsPublishedPagePayload,
 } from "@asym/lib/cms/public-page";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { headers } from "next/headers";
 
 import type {
@@ -83,19 +84,19 @@ async function fetchPublicCmsJSON(
       },
       next: buildCachePolicy(tenantHost),
     });
-    const body = await response.json().catch(() => null);
+    const { ok, status, body } = await readJsonBody<unknown>(response);
 
-    if (!response.ok) {
+    if (!ok) {
       return {
         status: "error",
-        statusCode: response.status,
+        statusCode: status,
         error: readCmsError(body),
       };
     }
 
     return {
       status: "ok",
-      statusCode: response.status,
+      statusCode: status,
       body,
     };
   } catch {

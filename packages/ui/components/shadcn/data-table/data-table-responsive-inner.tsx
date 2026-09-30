@@ -12,6 +12,7 @@ import {
   type ColumnDef,
   type Row,
   type RowData,
+  type Table,
   createDataTableRowModels,
   dataTableFeatures,
   useTable,
@@ -30,6 +31,7 @@ import {
   EMPTY_RESPONSIVE_FILTER_FIELDS,
   EMPTY_RESPONSIVE_INITIAL_STATE,
   type DataTableResponsiveProps,
+  type ViewMode,
 } from "./data-table-responsive-types";
 import {
   DataTableSkeleton,
@@ -43,15 +45,178 @@ import { createAdvancedFilterFn } from "./filters/use-advanced-filter";
 import {
   useDataTableKeyboard,
   getKeyboardNavigationStyles,
+  type UseDataTableKeyboardReturn,
 } from "./hooks/use-data-table-keyboard";
 
 import type { UseDataTableStateReturn } from "./hooks/use-data-table-state";
-import type { DataTableFilterField } from "./types";
+import type { DataTableConfig, DataTableFilterField } from "./types";
 
 type DataTableResponsiveBodyProps<TData extends RowData, TValue> = Omit<
   DataTableResponsiveProps<TData, TValue>,
   "urlState"
 >;
+
+function resolveResponsiveViewMode(
+  isMobile: boolean,
+  preferredViewMode: ViewMode,
+): ViewMode {
+  switch (preferredViewMode) {
+    case "table":
+      return isMobile ? "card" : "table";
+    case "card":
+      return "card";
+    default: {
+      const _exhaustive: never = preferredViewMode;
+      return _exhaustive;
+    }
+  }
+}
+
+function DataTableResponsiveEmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="rounded-2xl bg-muted/50 p-4 mb-4">
+        <Inbox className="size-10 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold">No results found</h3>
+      <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+        Try adjusting your search or filter criteria to find what you&apos;re
+        looking for.
+      </p>
+    </div>
+  );
+}
+
+function DataTableResponsiveResults<TData extends RowData, TValue>({
+  table,
+  tableColumnsLength,
+  keyboard,
+  keyboardStyles,
+  onRowClick,
+  tableClassName,
+  emptyState,
+  virtualization,
+  enableVirtualization,
+  virtualRowHeight,
+  virtualOverscan,
+  virtualContainerHeight,
+  rowActions,
+  infiniteScroll,
+  stickyHeader,
+  isLoading,
+  isMobile,
+  viewMode,
+  mobileCardConfig,
+  enableRowSelection,
+  getRowActionAriaLabel,
+}: {
+  table: Table<TData>;
+  tableColumnsLength: number;
+  keyboard: UseDataTableKeyboardReturn;
+  keyboardStyles: ReturnType<typeof getKeyboardNavigationStyles>;
+  onRowClick?: (row: Row<TData>) => void;
+  tableClassName?: string;
+  emptyState?: React.ReactNode;
+  virtualization?: DataTableConfig["virtualization"];
+  enableVirtualization?: boolean;
+  virtualRowHeight?: number;
+  virtualOverscan?: number;
+  virtualContainerHeight?: number | string;
+  rowActions?: DataTableResponsiveProps<TData, TValue>["rowActions"];
+  infiniteScroll?: DataTableResponsiveProps<TData, TValue>["infiniteScroll"];
+  stickyHeader: boolean;
+  isLoading: boolean;
+  isMobile: boolean;
+  viewMode: ViewMode;
+  mobileCardConfig?: DataTableResponsiveProps<
+    TData,
+    TValue
+  >["mobileCardConfig"];
+  enableRowSelection: boolean;
+  getRowActionAriaLabel?: DataTableResponsiveProps<
+    TData,
+    TValue
+  >["getRowActionAriaLabel"];
+}) {
+  const showTable = viewMode === "table" && !isMobile;
+  const showCards = viewMode === "card" || isMobile;
+
+  return (
+    <div className="relative">
+      <DataTableLoadingOverlay isLoading={isLoading} />
+
+      {showTable && (
+        <DataTableResponsiveTableView
+          table={table}
+          tableColumnsLength={tableColumnsLength}
+          keyboard={keyboard}
+          keyboardStyles={keyboardStyles}
+          onRowClick={onRowClick}
+          tableClassName={tableClassName}
+          emptyState={emptyState}
+          defaultEmptyState={<DataTableResponsiveEmptyState />}
+          virtualization={virtualization}
+          enableVirtualization={enableVirtualization}
+          virtualRowHeight={virtualRowHeight}
+          virtualOverscan={virtualOverscan}
+          virtualContainerHeight={virtualContainerHeight}
+          rowActions={rowActions}
+          infiniteScroll={infiniteScroll}
+          stickyHeader={stickyHeader}
+        />
+      )}
+
+      {showCards && (
+        <DataTableCardView
+          rows={table.getRowModel().rows}
+          primaryField={mobileCardConfig?.primaryField}
+          secondaryField={mobileCardConfig?.secondaryField}
+          tertiaryField={mobileCardConfig?.tertiaryField}
+          badgeField={mobileCardConfig?.badgeField}
+          avatarField={mobileCardConfig?.avatarField}
+          enableRowSelection={enableRowSelection}
+          onRowClick={onRowClick}
+          rowActions={rowActions}
+          getRowActionAriaLabel={getRowActionAriaLabel}
+          renderCard={mobileCardConfig?.renderCard}
+        />
+      )}
+    </div>
+  );
+}
+
+function DataTableResponsiveFooter<TData extends RowData>({
+  enablePagination,
+  enableRowSelection,
+  table,
+  floatingBarActions,
+  urlStatePending,
+}: {
+  enablePagination: boolean;
+  enableRowSelection: boolean;
+  table: Table<TData>;
+  floatingBarActions?: DataTableResponsiveProps<
+    TData,
+    unknown
+  >["floatingBarActions"];
+  urlStatePending?: boolean;
+}) {
+  return (
+    <>
+      {enablePagination && (
+        <DataTablePagination
+          table={table}
+          showSelectedCount={enableRowSelection}
+          urlStatePending={urlStatePending}
+        />
+      )}
+
+      {enableRowSelection && (
+        <DataTableFloatingBar table={table} actions={floatingBarActions} />
+      )}
+    </>
+  );
+}
 
 export function DataTableResponsiveInner<TData extends RowData, TValue>({
   tableState,
@@ -114,19 +279,17 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
     stickyHeader = false,
   } = config;
 
-  const [viewMode, setViewMode] = React.useState(defaultViewMode);
+  const [preferredViewMode, setViewMode] = React.useState(defaultViewMode);
   const isMobile = useMediaQuery(`(max-width: ${mobileBreakpoint - 1}px)`);
+  // Narrow viewports always render cards; derive the coercion instead of
+  // writing it back into state so the user's table preference survives a
+  // resize back to desktop.
+  const viewMode = resolveResponsiveViewMode(isMobile, preferredViewMode);
   const resolvedEnableVirtualization =
     enableVirtualization ?? configVirtualizationEnabled;
   const [advancedFilter, setAdvancedFilter] = React.useState(
     initialState.advancedFilter ?? createEmptyFilterState(),
   );
-
-  React.useEffect(() => {
-    if (isMobile && viewMode === "table") {
-      setViewMode("card");
-    }
-  }, [isMobile, viewMode]);
 
   const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
     () => ({
@@ -268,22 +431,6 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
     return <DataTableSkeleton columnCount={columns.length} />;
   }
 
-  const defaultEmptyState = (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="rounded-2xl bg-muted/50 p-4 mb-4">
-        <Inbox className="size-10 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold">No results found</h3>
-      <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-        Try adjusting your search or filter criteria to find what you&apos;re
-        looking for.
-      </p>
-    </div>
-  );
-
-  const showTable = viewMode === "table" && !isMobile;
-  const showCards = viewMode === "card" || isMobile;
-
   return (
     <div className={cn("w-full space-y-4", className)}>
       <DataTableResponsiveToolbar
@@ -309,58 +456,37 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
         urlStatePending={tableState.isUrlStatePending}
       />
 
-      <div className="relative">
-        <DataTableLoadingOverlay isLoading={isLoading} />
+      <DataTableResponsiveResults
+        table={table}
+        tableColumnsLength={tableColumns.length}
+        keyboard={keyboard}
+        keyboardStyles={keyboardStyles}
+        onRowClick={onRowClick}
+        tableClassName={tableClassName}
+        emptyState={emptyState}
+        virtualization={config.virtualization}
+        enableVirtualization={resolvedEnableVirtualization}
+        virtualRowHeight={virtualRowHeight}
+        virtualOverscan={virtualOverscan}
+        virtualContainerHeight={virtualContainerHeight}
+        rowActions={rowActions}
+        infiniteScroll={infiniteScroll}
+        stickyHeader={stickyHeader}
+        isLoading={isLoading}
+        isMobile={isMobile}
+        viewMode={viewMode}
+        mobileCardConfig={mobileCardConfig}
+        enableRowSelection={enableRowSelection}
+        getRowActionAriaLabel={getRowActionAriaLabel}
+      />
 
-        {showTable && (
-          <DataTableResponsiveTableView
-            table={table}
-            tableColumnsLength={tableColumns.length}
-            keyboard={keyboard}
-            keyboardStyles={keyboardStyles}
-            onRowClick={onRowClick}
-            tableClassName={tableClassName}
-            emptyState={emptyState}
-            defaultEmptyState={defaultEmptyState}
-            virtualization={config.virtualization}
-            enableVirtualization={resolvedEnableVirtualization}
-            virtualRowHeight={virtualRowHeight}
-            virtualOverscan={virtualOverscan}
-            virtualContainerHeight={virtualContainerHeight}
-            rowActions={rowActions}
-            infiniteScroll={infiniteScroll}
-            stickyHeader={stickyHeader}
-          />
-        )}
-
-        {showCards && (
-          <DataTableCardView
-            rows={table.getRowModel().rows}
-            primaryField={mobileCardConfig?.primaryField}
-            secondaryField={mobileCardConfig?.secondaryField}
-            tertiaryField={mobileCardConfig?.tertiaryField}
-            badgeField={mobileCardConfig?.badgeField}
-            avatarField={mobileCardConfig?.avatarField}
-            enableRowSelection={enableRowSelection}
-            onRowClick={onRowClick}
-            rowActions={rowActions}
-            getRowActionAriaLabel={getRowActionAriaLabel}
-            renderCard={mobileCardConfig?.renderCard}
-          />
-        )}
-      </div>
-
-      {enablePagination && (
-        <DataTablePagination
-          table={table}
-          showSelectedCount={enableRowSelection}
-          urlStatePending={tableState.isUrlStatePending}
-        />
-      )}
-
-      {enableRowSelection && (
-        <DataTableFloatingBar table={table} actions={floatingBarActions} />
-      )}
+      <DataTableResponsiveFooter
+        enablePagination={enablePagination}
+        enableRowSelection={enableRowSelection}
+        table={table}
+        floatingBarActions={floatingBarActions}
+        urlStatePending={tableState.isUrlStatePending}
+      />
     </div>
   );
 }

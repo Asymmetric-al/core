@@ -54,7 +54,7 @@ export const ActivityItem = memo(function ActivityItem({
           <p className="truncate text-sm font-medium text-zinc-900">{action}</p>
           <Badge
             variant="secondary"
-            className="h-4 bg-zinc-100 border-0 px-1.5 text-[10px] font-medium text-zinc-600"
+            className="h-4 bg-zinc-100 border-0 px-1.5 text-[10px] text-zinc-600"
           >
             {time}
           </Badge>

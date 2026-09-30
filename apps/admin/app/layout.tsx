@@ -2,7 +2,7 @@ import "@asym/env";
 import { siteConfig } from "@asym/config/site";
 import { QueryProvider } from "@asym/database/providers";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
-import { MotionProvider } from "@asym/lib/motion";
+import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
@@ -110,24 +110,26 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
-          storageKey="admin-theme"
-          disableTransitionOnChange
-        >
-          <BoneyardRegistry />
-          <QueryProvider>
-            <TooltipProvider delay={0}>
-              <MotionProvider>
-                <NuqsAdapter>{children}</NuqsAdapter>
-              </MotionProvider>
-            </TooltipProvider>
-          </QueryProvider>
-          <AdminTanStackDevtools />
-        </ThemeProvider>
+        <div className="app-root">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            forcedTheme="light"
+            enableSystem={false}
+            storageKey="admin-theme"
+            disableTransitionOnChange
+          >
+            <BoneyardRegistry />
+            <QueryProvider>
+              <TooltipProvider delay={0}>
+                <MotionProvider>
+                  <NuqsAdapter>{children}</NuqsAdapter>
+                </MotionProvider>
+              </TooltipProvider>
+            </QueryProvider>
+            <AdminTanStackDevtools />
+          </ThemeProvider>
+        </div>
         <Toaster />
       </body>
     </html>

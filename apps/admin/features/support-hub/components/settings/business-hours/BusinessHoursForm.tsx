@@ -153,7 +153,7 @@ export function BusinessHoursForm({
                       upsertDay(prev, day, { openTime: event.target.value }),
                     )
                   }
-                  className="h-8 w-[110px] font-mono text-[12px]"
+                  className="h-8 w-27.5 font-mono text-[12px]"
                 />
                 <span className="text-[12px] text-zinc-400">→</span>
                 <Input
@@ -165,7 +165,7 @@ export function BusinessHoursForm({
                       upsertDay(prev, day, { closeTime: event.target.value }),
                     )
                   }
-                  className="h-8 w-[110px] font-mono text-[12px]"
+                  className="h-8 w-27.5 font-mono text-[12px]"
                 />
               </li>
             );
@@ -222,7 +222,7 @@ export function BusinessHoursForm({
                       ),
                     );
                   }}
-                  className="h-8 w-[160px] font-mono text-[12px]"
+                  className="h-8 w-40 font-mono text-[12px]"
                 />
                 <Input
                   value={holiday.label}
@@ -235,7 +235,7 @@ export function BusinessHoursForm({
                       ),
                     )
                   }
-                  className="h-8 min-w-[200px] text-[12px]"
+                  className="h-8 min-w-50 text-[12px]"
                 />
                 <Button
                   type="button"
@@ -278,7 +278,7 @@ export function BusinessHoursForm({
             variant="ghost"
             size="sm"
             onClick={onCancel}
-            className="h-8 rounded-lg px-3 text-xs"
+            className="rounded-lg text-xs"
           >
             <span className="sr-only">Cancel</span>
             Cancel

@@ -7,11 +7,79 @@ import {
   ReactNodeViewRenderer,
 } from "@tiptap/react";
 import { Trash } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+  type TouchEvent,
+} from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
+
+export const IMAGE_RESIZE_MIN_PX = 150;
+
+export function resolveImageResizeAriaValues({
+  currentWidthPx,
+  maxWidthPx,
+}: {
+  currentWidthPx: number;
+  maxWidthPx: number;
+}): { min: number; max: number; now: number } {
+  const min = IMAGE_RESIZE_MIN_PX;
+  const finiteMax =
+    Number.isFinite(maxWidthPx) && maxWidthPx > 0
+      ? maxWidthPx
+      : Math.max(currentWidthPx, min);
+  const max = Math.max(min, finiteMax);
+  const now = Math.min(Math.max(currentWidthPx, min), max);
+  return { min, max, now };
+}
+
+export function ImageResizeHandle({
+  side,
+  ariaValues,
+  onResizeKeyDown,
+  onMouseDown,
+  onTouchStart,
+}: {
+  side: "left" | "right";
+  ariaValues: { min: number; max: number; now: number };
+  onResizeKeyDown: (
+    event: KeyboardEvent<HTMLDivElement>,
+    side: "left" | "right",
+  ) => void;
+  onMouseDown: (event: MouseEvent<HTMLDivElement>) => void;
+  onTouchStart: (event: TouchEvent<HTMLDivElement>) => void;
+}) {
+  const isLeft = side === "left";
+
+  return (
+    <div
+      role="separator"
+      aria-label={
+        isLeft ? "Resize image from the left" : "Resize image from the right"
+      }
+      aria-orientation="vertical"
+      aria-valuemin={ariaValues.min}
+      aria-valuemax={ariaValues.max}
+      aria-valuenow={ariaValues.now}
+      tabIndex={0}
+      onKeyDown={(event) => onResizeKeyDown(event, side)}
+      className={cn(
+        "absolute inset-y-0 z-20 flex w-6 cursor-col-resize items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:[&>div]:opacity-100",
+        isLeft ? "left-0 justify-start pl-1.5" : "right-0 justify-end pr-2",
+      )}
+      onMouseDown={onMouseDown}
+      onTouchStart={onTouchStart}
+    >
+      <div className="h-16 w-2 rounded-full border-2 border-background/60 bg-foreground/60 opacity-0 transition-opacity group-hover:opacity-100" />
+    </div>
+  );
+}
 
 function normalizeImageWidth(value: unknown): string {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -89,6 +157,31 @@ function ResizableImageView({
     };
   }
 
+  /** Keyboard alternative to dragging: arrow keys nudge the width by 10px (50px with Shift). */
+  function handleResizeKeyDown(
+    event: React.KeyboardEvent<HTMLDivElement>,
+    side: "left" | "right",
+  ) {
+    const grows =
+      (side === "right" && event.key === "ArrowRight") ||
+      (side === "left" && event.key === "ArrowLeft");
+    const shrinks =
+      (side === "right" && event.key === "ArrowLeft") ||
+      (side === "left" && event.key === "ArrowRight");
+    if (!grows && !shrinks) return;
+
+    event.preventDefault();
+    const step = (event.shiftKey ? 50 : 10) * (grows ? 1 : -1);
+    const parentWidth =
+      containerRef.current?.parentElement?.offsetWidth ?? Infinity;
+    const startWidth = imgRef.current?.offsetWidth ?? 0;
+    const newWidth = Math.max(
+      IMAGE_RESIZE_MIN_PX,
+      Math.min(startWidth + step, parentWidth),
+    );
+    updateAttributes({ width: `${newWidth}px` });
+  }
+
   useEffect(() => {
     if (!resizing) return;
 
@@ -98,14 +191,17 @@ function ResizableImageView({
     function onMove(clientX: number) {
       const { side, startX, startWidth } = resizeState.current;
       const dx = side === "right" ? clientX - startX : startX - clientX;
-      const newWidth = Math.max(150, Math.min(startWidth + dx, parentWidth));
+      const newWidth = Math.max(
+        IMAGE_RESIZE_MIN_PX,
+        Math.min(startWidth + dx, parentWidth),
+      );
       updateAttributes({ width: `${newWidth}px` });
     }
 
-    function handleMouseMove(e: MouseEvent) {
+    function handleMouseMove(e: globalThis.MouseEvent) {
       onMove(e.clientX);
     }
-    function handleTouchMove(e: TouchEvent) {
+    function handleTouchMove(e: globalThis.TouchEvent) {
       if (e.touches[0]) onMove(e.touches[0].clientX);
     }
     function handleEnd() {
@@ -127,6 +223,17 @@ function ResizableImageView({
 
   const isEditable = editor?.isEditable;
   const currentWidth = normalizeImageWidth(node.attrs.width);
+  const currentWidthPx = (() => {
+    const match = currentWidth.match(/^(\d+(?:\.\d+)?)px$/);
+    if (match) return Number(match[1]);
+    return imgRef.current?.offsetWidth ?? IMAGE_RESIZE_MIN_PX;
+  })();
+  const maxWidthPx =
+    containerRef.current?.parentElement?.offsetWidth ?? currentWidthPx;
+  const ariaValues = resolveImageResizeAriaValues({
+    currentWidthPx,
+    maxWidthPx,
+  });
 
   return (
     <NodeViewWrapper
@@ -150,11 +257,10 @@ function ResizableImageView({
 
         {isEditable && (
           <>
-            <div
-              role="separator"
-              aria-label="Resize image from the left"
-              aria-orientation="vertical"
-              className="absolute inset-y-0 left-0 z-20 flex w-6 cursor-col-resize items-center justify-start pl-1.5"
+            <ImageResizeHandle
+              side="left"
+              ariaValues={ariaValues}
+              onResizeKeyDown={handleResizeKeyDown}
               onMouseDown={(e) => {
                 e.preventDefault();
                 startResize(e.clientX, "left");
@@ -163,15 +269,12 @@ function ResizableImageView({
                 e.preventDefault();
                 if (e.touches[0]) startResize(e.touches[0].clientX, "left");
               }}
-            >
-              <div className="h-16 w-2 rounded-full border-2 border-background/60 bg-foreground/60 opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
+            />
 
-            <div
-              role="separator"
-              aria-label="Resize image from the right"
-              aria-orientation="vertical"
-              className="absolute inset-y-0 right-0 z-20 flex w-6 cursor-col-resize items-center justify-end pr-2"
+            <ImageResizeHandle
+              side="right"
+              ariaValues={ariaValues}
+              onResizeKeyDown={handleResizeKeyDown}
               onMouseDown={(e) => {
                 e.preventDefault();
                 startResize(e.clientX, "right");
@@ -180,9 +283,7 @@ function ResizableImageView({
                 e.preventDefault();
                 if (e.touches[0]) startResize(e.touches[0].clientX, "right");
               }}
-            >
-              <div className="h-16 w-2 rounded-full border-2 border-background/60 bg-foreground/60 opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
+            />
 
             <Button
               variant="destructive"

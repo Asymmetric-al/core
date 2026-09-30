@@ -12,7 +12,7 @@
 
 - The agent needs to choose a canonical skill under `docs/ai/skills/`
 - The agent needs to restore ecosystem skills from `skills-lock.json`
-- The agent needs Core-specific notes for a vendor skill (Supabase, Resend CLI, Emil Kowalski, Jakub Krehel, Anthropic frontend-design, leonxlnx taste-skill, obra Superpowers TDD, Matt Pocock, Inngest, shadcn, TDD)
+- The agent needs Core-specific notes for a vendor skill (Supabase, Resend CLI, Emil Kowalski, Jakub Krehel, Anthropic frontend-design, leonxlnx taste-skill, obra Superpowers TDD, Matt Pocock, Inngest, shadcn, TDD, Next.js app architecture)
 - Root `AGENTS.md` points here when discovered skill metadata is insufficient
   or skill maintenance is requested
 
@@ -74,7 +74,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`grill-for-unknowns`** ([`nicobailon/grill-for-unknowns`](https://github.com/nicobailon/grill-for-unknowns)): refresh the lockfile-managed skill with `npx --yes skills@latest add nicobailon/grill-for-unknowns -y`, then run `bun run skills:refresh-grill-for-unknowns`, `bun run skills:sync`, and `bun run skills:verify`. The complete canonical plugin tree, reviewed commit, lineage, MIT notice, and Core overlay live under `docs/ai/skills/grill-for-unknowns/`. Review upstream inventory and discovery metadata before syncing; the focused refresh preserves Core's explicit-only route.
 
-**Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from [`resend/resend-cli`](https://github.com/resend/resend-cli) (`skills/resend-cli/`), currently reviewed against CLI release **v2.21.1**. Refresh with `npx skills add resend/resend-cli --skill resend-cli -y`, restore the Core overlay, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today. Do not refresh it from `resend/resend-skills`.
+**Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from [`resend/resend-cli`](https://github.com/resend/resend-cli) (`skills/resend-cli/`), currently reviewed against CLI release **v2.21.0**. Refresh with `npx skills add resend/resend-cli --skill resend-cli -y`, restore the Core overlay, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today. Do not refresh it from `resend/resend-skills`.
 
 **`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
@@ -84,6 +84,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`improve`** ([`shadcn/improve`](https://github.com/shadcn/improve)) is in `docs/ai/skills/improve/`. Refresh via `npx skills add shadcn/improve -y`, then **delete any project-level `.claude/skills/improve` symlink the CLI creates** (this repo routes Claude Code through `docs/ai/skills/` + this file, not `.claude/skills/`), reconcile into `docs/ai/skills/improve/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/improve/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
+**`nextjs-app-architecture`** (`aurorascharff/nextjs-app-architecture-skill`) is canonical under `docs/ai/skills/nextjs-app-architecture/`. Follow its `references/upstream.md` reviewed-checkout procedure with `npx --yes skills@1.5.7`; preserve all Core adaptations before `skills:sync` and `skills:verify`. `.claude/skills/nextjs-app-architecture/` is a required generated mirror. This skill is **not** updated by `skills:refresh-upstream`.
+
 **Official Inngest agent skills** (`docs/ai/skills/inngest-*`) are vendored from [`inngest/inngest-skills`](https://github.com/inngest/inngest-skills) and [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin). Refresh them with `bun run skills:refresh-inngest`, then `bun run skills:sync` and `bun run skills:verify`; source SHAs and licenses are documented in `docs/ai/skills/inngest/references/upstream.md`. These skills are agent tooling for integration work, not evidence of product runtime adoption. Use `docs/ai/skills/inngest/SKILL.md` as the router when unsure which Inngest skill applies.
 
 **`eve`**, **`create-agent`**, **`impeccable`**, **`playwright-best-practices`**, and **`nestjs-best-practices`** are vendored under `docs/ai/skills/` with refresh steps in each skill's `references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today. Upstream CLI id for Impeccable is **`impeccable`** (not `critique`). **`create-agent`** is a **kept snapshot**: `ikindacodes/ship-eve` no longer publishes a `skills/` tree. **`nestjs-best-practices`** is NestJS reference only — Core is not a NestJS app.
@@ -92,6 +94,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
+- **Next.js 16 page composition, feature-folder UI layout, colocated Suspense skeletons, and leaf-client UX:** `docs/ai/skills/nextjs-app-architecture/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`, `nextjs-app-router`, `cache-components`, and `docs/guides/architecture/data-access-boundary.md`; do not move business queries or privileged mutations into app feature folders)
 - **Verify Next.js runtime behavior after edits (running dev server + browser + React tree):** `next-dev-loop` (first-party `vercel/next.js` skill; ecosystem install under `.agents/skills/`, mirrored to `.claude/skills/` and `.cursor/skills/`; requires `agent-browser` ≥0.27)
 - **Adopt Cache Components on existing routes (feature-by-feature):** `next-cache-components-adoption` (first-party `vercel/next.js` skill; ecosystem install)
 - **Grow a route's static shell / make navigations instant:** `next-cache-components-optimizer` (first-party `vercel/next.js` skill; ecosystem install) — see **Instant Navigation (Next.js 16.3)** in `docs/ai/rules/frontend.md`
@@ -105,21 +108,21 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
 - **Frontend design critique, polish, and live UI iteration ([pbakaus/impeccable](https://github.com/pbakaus/impeccable)):** `docs/ai/skills/impeccable/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`)
-- **UI polish details (radius, surfaces, icons, hit areas):** `docs/ai/skills/better-ui/SKILL.md`; keep `base-maia` / Zinc tokens. Do not restyle product apps.
+- **UI polish details (radius, surfaces, icons, hit areas):** `docs/ai/skills/better-ui/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Keep `base-maia` / Zinc tokens. Do not restyle product apps.
 - **Typography craft:** `docs/ai/skills/better-typography/SKILL.md`
-- **Color palettes and contrast heuristics:** `docs/ai/skills/better-colors/SKILL.md`; keep Zinc-oriented semantic tokens.
-- **Layout grouping and spacing:** `docs/ai/skills/better-layout/SKILL.md`
+- **Color palettes and contrast heuristics:** `docs/ai/skills/better-colors/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Keep Zinc-oriented semantic tokens.
+- **Layout grouping and spacing:** `docs/ai/skills/better-layout/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor.
 - **Interface copy, hierarchy, and review structure:** `docs/ai/skills/better-interface/SKILL.md`
 - **UI copy companion for interface review:** `docs/ai/skills/better-writing/SKILL.md`
 - **Explicit change-scoped interface review ([jakubkrehel/skills](https://github.com/jakubkrehel/skills) `interface-review`):** `docs/ai/skills/interface-review/SKILL.md`; keep `disable-model-invocation: true`.
 - **Explicit distinctive-design exploration ([anthropics/skills](https://github.com/anthropics/skills) `frontend-design`):** `docs/ai/skills/frontend-design/SKILL.md`; explicit-only, do not restyle Core product apps. Keep `disable-model-invocation: true`.
 - **Explicit anti-slop taste / redesign exploration ([leonxlnx/taste-skill](https://github.com/leonxlnx/taste-skill)):** `docs/ai/skills/design-taste-frontend/SKILL.md` and `docs/ai/skills/redesign-existing-projects/SKILL.md`; explicit-only. Keep `disable-model-invocation: true`.
-- **obra Superpowers TDD companion:** `docs/ai/skills/test-driven-development/SKILL.md`; Core TDD remains `docs/ai/skills/tdd/SKILL.md`.
+- **obra Superpowers TDD companion:** `docs/ai/skills/test-driven-development/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Core TDD remains `docs/ai/skills/tdd/SKILL.md`.
 - **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first and use `docs/ai/skills/anim/SKILL.md` for Core's operative Base UI, token, route-transition, and reduced-motion contract. That paid animations.dev skill (`emil-design-engineering`) is the default craft entrypoint.
 - **Current Emil Kowalski craft companion:** `docs/ai/skills/emil-design-eng/SKILL.md`; it is subordinate to `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim` when generic upstream examples conflict with Core.
 - **Build a web animation from scratch:** `docs/ai/skills/animate/SKILL.md` after `emil-design-engineering` and `anim`.
 - **Expo / React Native motion only:** `docs/ai/skills/animate-expo/SKILL.md`; do not use it for Core Next.js apps.
-- **Mobile web platform tells (sticky hover, tap delay, 100dvh, input zoom, safe areas):** `docs/ai/skills/mobile-native/SKILL.md`; do not use it for React Native or motion implementation.
+- **Mobile web platform tells (sticky hover, tap delay, 100dvh, input zoom, safe areas):** `docs/ai/skills/mobile-native/SKILL.md`; explicit-only. Keep `disable-model-invocation: true`. Do not use it for React Native or motion implementation.
 - **Sonner / toast work:** `docs/ai/skills/ask-sonner/SKILL.md`; reuse the existing `@asym/ui` toaster and never mount a second `<Toaster />`.
 - **Animation-effect naming / reverse lookup only:** `docs/ai/skills/animation-vocabulary/SKILL.md`; do not use it as an implementation or review standard.
 - **Apple-style physical and gesture-driven interfaces:** `docs/ai/skills/apple-design/SKILL.md` for momentum, interruptibility, rubber-banding, springs, depth, and translucent materials; Core's Base UI and motion contracts still win.

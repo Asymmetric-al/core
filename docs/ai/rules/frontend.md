@@ -45,6 +45,15 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - Avoid arbitrary values like `w-[123px]` unless there is no practical alternative.
 - Keep spacing, typography, and radius aligned with existing shared components.
 
+### Design-system lint
+
+For applicable UI work, follow
+`docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`.
+It defines the shared six-rule policy workflow, scoped commands, authoring
+boundaries, raw-finding review, and legacy-debt handling. Normal lint enforces
+the policy; keep existing shadcn, token-drift, motion, Shadscan, and browser/a11y
+checks. Do not widen a contract or exception simply to make a usage pass.
+
 ### Motion rules
 
 Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).
@@ -120,7 +129,7 @@ implementation task.
 
 ## Workflow
 
-1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant.
+1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant. For page composition, feature-folder UI layout, colocated Suspense skeletons, or leaf-client UX, also load `docs/ai/skills/nextjs-app-architecture/SKILL.md`. Keep business queries and privileged mutations in `packages/api`.
 2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md`.
 3. Reuse shared primitives from `@asym/ui` before creating new UI.
 4. Keep Tailwind usage token-based and consistent with Maia/Zinc.

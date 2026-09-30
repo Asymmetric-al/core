@@ -60,5 +60,5 @@ Exact props, types, and defaults. Options passed to `toast()` override the same 
 | `toast.promise(promise, { loading, success, error })`       | Loading toast that resolves with the promise; `success`/`error` accept strings, JSX, functions of the result, or objects of toast options. |
 | `toast.custom((t) => jsx, opts?)`                           | Headless toast — your JSX, Sonner's behavior.                                                                                              |
 | `toast.dismiss(id?)`                                        | Dismiss one toast, or all when called without an id.                                                                                       |
-| `toast.getActiveToasts()`                                   | All active toasts, usable outside React.                                                                                                   |
+| `toast.getToasts()`                                         | All active toasts, usable outside React.                                                                                                   |
 | `useSonner()`                                               | React hook returning `{ toasts }`.                                                                                                         |
