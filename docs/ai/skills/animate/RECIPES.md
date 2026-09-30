@@ -12,7 +12,7 @@ Any pressable element. Instant feedback that the interface heard the user.
 
 ```css
 .button {
-  transition: transform 160ms var(--ease-out-soft);
+  transition: transform var(--duration-press) var(--ease-out-soft);
 }
 
 .button:active {
@@ -109,7 +109,7 @@ Animate the backdrop's opacity alongside it so they read as one surface.
 ```css
 .drawer {
   transform: translateY(0);
-  transition: transform 500ms var(--ease-drawer);
+  transition: transform var(--duration-drawer) var(--ease-drawer);
 }
 
 .drawer[data-closed] {

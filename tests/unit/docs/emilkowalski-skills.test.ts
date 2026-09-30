@@ -233,6 +233,10 @@ describe("emilkowalski skill pack", () => {
     expect(animate).toContain("--ease-out-soft");
     const recipes = readSkillFile("docs/ai/skills", "animate", "RECIPES.md");
     expect(recipes).toContain("var(--ease-out-soft)");
+    expect(recipes).toContain("var(--duration-press)");
+    expect(recipes).toContain("var(--duration-drawer)");
+    expect(recipes).not.toContain("160ms");
+    expect(recipes).not.toContain("500ms");
     expect(recipes).not.toMatch(/var\(--ease-out\)/);
     expect(recipes).not.toMatch(/var\(--ease-in-out\)/);
     expect(prototype).toContain("apps/*/app/prototypes/");

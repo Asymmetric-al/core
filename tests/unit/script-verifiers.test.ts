@@ -1383,6 +1383,7 @@ describe("refresh-upstream-skills", () => {
         "RECIPES.md": [
           "Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.",
           "transition: transform 160ms var(--ease-out);",
+          "transition: transform 500ms var(--ease-drawer);",
           "transition: clip-path 250ms var(--ease-in-out);",
           "",
         ].join("\n"),

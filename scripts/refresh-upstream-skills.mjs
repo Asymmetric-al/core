@@ -931,6 +931,20 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: "transform 160ms var(--ease-out-soft)",
+    replace: "transform var(--duration-press) var(--ease-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: "transform 500ms var(--ease-drawer)",
+    replace: "transform var(--duration-drawer) var(--ease-drawer)",
+    required: true,
+  },
+  {
     skillName: "emil-prototype",
     relativePath: "SKILL.md",
     search:
