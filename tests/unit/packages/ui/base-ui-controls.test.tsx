@@ -381,17 +381,16 @@ function SubmissionForm({ onSubmit }: { onSubmit: () => Promise<void> }) {
 }
 
 describe("TanStack Base UI field integration", () => {
-  it("keeps the submitting button focusable with an explicitly associated changing name and blocks duplicate activation", async () => {
+  it("natively disables the submitting button, keeps its changing name, and blocks duplicate activation", async () => {
     const onSubmit = vi.fn(() => new Promise<void>(() => {}));
     render(<SubmissionForm onSubmit={onSubmit} />);
     const button = screen.getByRole("button", { name: "Save" });
     button.focus();
     fireEvent.click(button);
     const saving = await screen.findByRole("button", { name: "Saving" });
-    expect(saving.getAttribute("aria-disabled")).toBe("true");
-    expect(saving.hasAttribute("disabled")).toBe(false);
+    expect(saving.hasAttribute("disabled")).toBe(true);
+    expect(saving.getAttribute("aria-disabled")).not.toBe("true");
     expect(saving.getAttribute("aria-labelledby")).toBeTruthy();
-    expect(document.activeElement).toBe(saving);
     fireEvent.click(saving);
     expect(onSubmit).toHaveBeenCalledOnce();
   });

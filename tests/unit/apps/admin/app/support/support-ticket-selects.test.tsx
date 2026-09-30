@@ -131,8 +131,8 @@ describe("support ticket intake", () => {
       subject: "Receipt help",
       summary: "Please resend the receipt.",
     });
-    expect(document.activeElement).toBe(submit);
-    expect(submit.getAttribute("aria-disabled")).toBe("true");
+    expect(submit.hasAttribute("disabled")).toBe(true);
+    expect(submit.getAttribute("aria-disabled")).not.toBe("true");
     await act(async () => finish(Response.json({ id: "ticket-1" })));
     expect(screen.getByText("Created ticket ticket-1")).toBeTruthy();
     expect(screen.queryByText("Unable to create support ticket.")).toBeNull();
