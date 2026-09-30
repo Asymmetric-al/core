@@ -59,11 +59,11 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 
 **Example — bendc frontend guidelines:** semantic HTML, CSS discipline, and vanilla JS readability patterns from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) are covered by `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored `README.md` under `references/`); maintainer refresh notes are in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`. Use **`docs/ai/rules/frontend.md`** first for `apps/*` and `packages/ui` work.
 
-**Example — Emil Kowalski design-engineering pack:** the public skills from [`emilkowalski/skills`](https://github.com/emilkowalski/skills) are canonical under `docs/ai/skills/{animate,animate-expo,animation-vocabulary,apple-design,ask-sonner,emil-design-eng,emil-prototype,improve-animations,mobile-native,pick-ui-library,review-animations,write-swift}/`. Copy those trees into `.agents/skills/` (vendor upstream `prototype` as `emil-prototype`). Do **not** blindly run `npx skills add emilkowalski/skills -y`; then `bun run skills:refresh-emilkowalski`, `bun run skills:sync`, and `bun run skills:verify`. Follow the narrow routes in `docs/ai/rules/agent-skill-routing.md` rather than treating installer output as authoritative.
+**Example — Emil Kowalski design-engineering pack:** the public skills from [`emilkowalski/skills`](https://github.com/emilkowalski/skills) are canonical under `docs/ai/skills/{animate,animate-expo,animation-vocabulary,apple-design,ask-sonner,emil-design-eng,emil-prototype,improve-animations,pick-ui-library,review-animations,write-swift}/`. Copy those trees into `.agents/skills/` (vendor upstream `prototype` as `emil-prototype`). Do **not** blindly run `npx skills add emilkowalski/skills -y`; then `bun run skills:refresh-emilkowalski`, `bun run skills:sync`, and `bun run skills:verify`. Follow the narrow routes in `docs/ai/rules/agent-skill-routing.md` rather than treating installer output as authoritative.
 
 **Example — Emil Kowalski paid design-engineering skill:** [`animations.dev`](https://animations.dev) ($99) installs as **`emil-design-engineering`**. Canonical copy: `docs/ai/skills/emil-design-engineering/`. Refresh with the installer into `~/.cursor/skills/emil-design-engineering/`, then `bun run skills:refresh-upstream --only=animations.dev`, `bun run skills:sync`, and `bun run skills:verify`. This is the default animation/UI-polish entrypoint; it is not the public GitHub companion `emil-design-eng`.
 
-**Example — Jakub Krehel design pack:** [`jakubkrehel/skills`](https://github.com/jakubkrehel/skills) is canonical under `docs/ai/skills/{better-ui,better-typography,better-colors,better-layout,better-interface,better-accessibility,better-writing,interface-review}/`. Refresh with targeted `--skill` adds, then `bun run skills:refresh-jakubkrehel`, `bun run skills:sync`, and `bun run skills:verify`. `interface-review` is explicit-only. Do not restyle Core apps; `better-accessibility` stays under `accessibility-review`.
+**Example — Jakub Krehel design pack:** [`jakubkrehel/skills`](https://github.com/jakubkrehel/skills) is canonical under `docs/ai/skills/{better-ui,better-typography,better-colors,better-layout,better-interface,better-accessibility,better-writing,interface-review}/`. Refresh with targeted `--skill` adds, then `bun run skills:refresh-jakubkrehel`, `bun run skills:sync`, and `bun run skills:verify`. `interface-review`, `better-ui`, `better-colors`, and `better-layout` are explicit-only. Do not restyle Core apps; `better-accessibility` stays under `accessibility-review`.
 
 **Example — Anthropic frontend-design:** [`anthropics/skills`](https://github.com/anthropics/skills) `frontend-design` is canonical at `docs/ai/skills/frontend-design/SKILL.md`. Explicit-only (`disable-model-invocation: true`). Refresh with `bun run skills:refresh-frontend-design`. Do not restyle Core product apps.
 
@@ -89,6 +89,20 @@ is covered by official skills vendored under `docs/ai/skills/inngest-*`, with
 workflows, and use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly
 adding product runtime Inngest. Refresh with `bun run skills:refresh-inngest`,
 then `bun run skills:sync` and `bun run skills:verify`.
+
+**Example — Next.js app architecture:** page composition, feature-folder UI
+layout, colocated Suspense skeletons, and leaf-client UX are covered by
+`docs/ai/skills/nextjs-app-architecture/SKILL.md`. Install or refresh from
+[`aurorascharff/nextjs-app-architecture-skill`](https://github.com/aurorascharff/nextjs-app-architecture-skill)
+using the reviewed-checkout procedure and pinned `npx --yes skills@1.5.7` in
+`docs/ai/skills/nextjs-app-architecture/references/upstream.md`, then
+restore the local overlay from `docs/ai/skills/nextjs-app-architecture/SKILL.md`
+and `docs/ai/skills/nextjs-app-architecture/references/upstream.md`, then
+`bun run skills:sync` and `bun run skills:verify`. Keep it subordinate to
+`docs/ai/rules/frontend.md`, `docs/ai/skills/nextjs-app-router/SKILL.md`,
+`docs/ai/skills/cache-components/SKILL.md`, and
+`docs/guides/architecture/data-access-boundary.md`. Do not move business
+queries or privileged mutations into app feature folders.
 
 ## How to Help Users Find Skills
 

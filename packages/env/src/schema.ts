@@ -280,7 +280,7 @@ export const env = createEnv({
       "NEXT_PUBLIC_CLOUDINARY_API_KEY",
     ),
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
-    /** Opt-in experimental React View Transitions (see `experimental.viewTransition` in Next config). */
+    /** Opt-in React View Transitions (App Router, Next.js 16.3.3+; no config flag). */
     NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED: optionalBoolean,
     /** Donor app origin for CMS page preview links from admin Web Studio (default dev: http://127.0.0.1:3000). */
     NEXT_PUBLIC_DONOR_URL: z.string().url().optional(),

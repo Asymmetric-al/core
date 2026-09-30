@@ -22,6 +22,8 @@ before running `bun run skills:sync`.
   safe areas, zoom-on-input).
 - Do not use it for React Native (`animate-expo`) or motion implementation
   (`animate`).
+- A concrete task should be answered directly. The upstream Initial Response
+  applies only to a bare invocation with no question or task.
 
 ### Workflow
 
@@ -55,7 +57,7 @@ The user's phone is the source of truth. If you can't run it on hardware, say wh
 
 Two failure modes, and the first is worse:
 
-1. **Fixing what the desktop shows you.** The bugs in this skill don't reproduce in Chrome's device emulation. If you only test there, you ship all of them.
+1. **Fixing what the desktop shows you.** Chrome device mode can check a mobile viewport and some touch layout. It does not reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard. If you only test there, you ship those.
 2. **Reaching for JavaScript when CSS or a meta tag does it.** Almost every item here is one declaration. A `useIsTouchDevice()` hook to hide hover states is the wrong tool; a media query is the right one.
 
 ## Hard Rules
@@ -64,7 +66,7 @@ Two failure modes, and the first is worse:
 2. **Media queries over device sniffing.** `(hover: hover)`, `(pointer: fine)`, `env()`, `dvh` — the platform tells you what it can do. Never branch on user agent strings or screen width to guess at touch.
 3. **Touch and mouse are not exclusive.** iPads with trackpads, laptops with touchscreens, phones with a mouse. Write for both at once; gate by capability, not by device.
 4. **Never disable zoom.** `user-scalable=no` and `maximum-scale=1` are accessibility failures. Fix the input font size instead, which is what was causing the zoom.
-5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Emulation cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.
+5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Device mode can check viewport and some touch layout; it cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.
 
 ## The Symptom Table
 
@@ -297,7 +299,7 @@ Match the value to the color at the very top of your page — the header backgro
 
 ### 11. Right in Chrome, wrong on phone
 
-Nothing above reproduces in device emulation. Sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, the software keyboard — every one is a real-hardware behavior.
+Device mode can check a mobile viewport and some touch layout. It cannot replace hardware for sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, or the software keyboard.
 
 - Connect the phone over USB, run the dev server on `0.0.0.0`, open it by the machine's LAN IP.
 - iOS: Safari → Develop → the device. Android: `chrome://inspect`.

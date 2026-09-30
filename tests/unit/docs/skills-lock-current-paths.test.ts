@@ -19,8 +19,8 @@ function readLock() {
 }
 
 describe("skills lock current upstream paths", () => {
-  it("keeps the original 128 lockfile names", () => {
-    expect(Object.keys(readLock().skills)).toHaveLength(128);
+  it("keeps the current lockfile skill names", () => {
+    expect(Object.keys(readLock().skills)).toHaveLength(129);
   });
 
   it("pins moved GitHub skill paths and the Resend CLI source", () => {

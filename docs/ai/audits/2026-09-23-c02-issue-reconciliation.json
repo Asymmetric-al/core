@@ -1,0 +1,696 @@
+{
+  "decision": "C-02",
+  "acceptedBy": "Conrad",
+  "acceptedOn": "2026-09-23",
+  "ruling": "Separate operational records; keep posted rows immutable.",
+  "observedAt": "2026-09-23T04:31:25.286480+00:00",
+  "scope": "Direct Phase 13-15 storage, projection, writer and regression-oracle consumers; existing receipt/artifact/delivery/correction rules preserved. C-01 remains unresolved.",
+  "previousLedger": "2026-09-23-issue-reconciliation.json",
+  "previousLedgerMeaning": "Historical exact evidence of the original 50 amendments. This later publication supersedes body hashes only for listed amended issues.",
+  "revisedFromPreviousLedger": [691, 697, 713, 720, 726],
+  "issueCount": 16,
+  "issues": [
+    {
+      "issue": 691,
+      "url": "https://github.com/Asymmetric-al/core/issues/691",
+      "family": "finance",
+      "originalSha256": "e09bf74c87aecdf1ca2ce590098f509bed60894a412040475563acbf3f95a8f6",
+      "publishedSha256": "5d5a940a9c6b265d231de675ed1bc297321df036dc51ad538d5f6d25b55eadc3",
+      "readbackSha256": "5d5a940a9c6b265d231de675ed1bc297321df036dc51ad538d5f6d25b55eadc3",
+      "title": "[Phase 13] Docs, ADRs, OpenSpec, ownership-matrix rows & glossary",
+      "bodyCharacters": 7936,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:27:18.493952+00:00"
+    },
+    {
+      "issue": 695,
+      "url": "https://github.com/Asymmetric-al/core/issues/695",
+      "family": "finance",
+      "originalSha256": "baa6a871c39b8ef3c19653b61a6f6e552273b44855eceb44d7091b22c4e6a334",
+      "publishedSha256": "a96945949b2bb749ef42616c7ddb06796011d9d52ccb5d6d155682060124d024",
+      "readbackSha256": "a96945949b2bb749ef42616c7ddb06796011d9d52ccb5d6d155682060124d024",
+      "title": "[Phase 13] Contribution ledger core + atomic donations cutover (D3+D2)",
+      "bodyCharacters": 28211,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1511],
+        "blocking": [
+          984, 1017, 1053, 1080, 1083, 1094, 1144, 1465, 1497, 1512, 1611, 1629
+        ]
+      },
+      "verifiedAt": "2026-09-23T04:27:26.904879+00:00"
+    },
+    {
+      "issue": 697,
+      "url": "https://github.com/Asymmetric-al/core/issues/697",
+      "family": "finance",
+      "originalSha256": "1a15100494da789a3a339127806192898220c7cf63cb196c8d62f9b3e3d4279d",
+      "publishedSha256": "c0b2b2f181fbc0410c4b9ce1b213f9acd5b235e6fba41d02cefc2524845bee03",
+      "readbackSha256": "c0b2b2f181fbc0410c4b9ce1b213f9acd5b235e6fba41d02cefc2524845bee03",
+      "title": "[Phase 13] Three-axis contribution lifecycle and owner-labelled downstream projections",
+      "bodyCharacters": 9236,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1144]
+      },
+      "verifiedAt": "2026-09-23T04:29:42.159475+00:00",
+      "readbackRecovery": "PATCH succeeded; a subsequent dependency GET lost its connection. Recovery fetched body, metadata and both dependency endpoints again, then compared the fresh edges with the preceding verified publication. No repeat PATCH.",
+      "nativeDependenciesReadbackAt": "2026-09-23T05:44:30.998425+00:00"
+    },
+    {
+      "issue": 713,
+      "url": "https://github.com/Asymmetric-al/core/issues/713",
+      "family": "finance",
+      "originalSha256": "49fc63e2010ba3f9f8a1af533e5e09848cbe57b2d0612e6560919a80a90efca2",
+      "publishedSha256": "e9b7bb01879bfdb7e0e33fe1e34498c94d61517de61eb8e93e8198e24a675fa2",
+      "readbackSha256": "e9b7bb01879bfdb7e0e33fe1e34498c94d61517de61eb8e93e8198e24a675fa2",
+      "title": "[Phase 13] Negative/safety test tier + observability + evidence",
+      "bodyCharacters": 9924,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:29:48.591437+00:00"
+    },
+    {
+      "issue": 720,
+      "url": "https://github.com/Asymmetric-al/core/issues/720",
+      "family": "phase14",
+      "originalSha256": "d01c41f56575288d29634e4e157dfb6299ed852099bee7223b83e1d9c563eaae",
+      "publishedSha256": "26b189d8484166acc819673fef4a2312783e7057cbc7a7c9a6ae274a598a75df",
+      "readbackSha256": "26b189d8484166acc819673fef4a2312783e7057cbc7a7c9a6ae274a598a75df",
+      "title": "[Phase 14] Schema migration: all Phase 14 tables + every identity/scope/bound constraint, composite tenant FKs, FORCE RLS, census rows",
+      "bodyCharacters": 19577,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:29:56.105410+00:00"
+    },
+    {
+      "issue": 721,
+      "url": "https://github.com/Asymmetric-al/core/issues/721",
+      "family": "phase14",
+      "originalSha256": "eaf2c6c41a28b0a1e9972a1b31f56cd12fbf0a65025cde622f37b23476126828",
+      "publishedSha256": "7524cb4ce5b6c9d18783868e2840c40509a892569ccdb36a95c8a2abed995ac4",
+      "readbackSha256": "7524cb4ce5b6c9d18783868e2840c40509a892569ccdb36a95c8a2abed995ac4",
+      "title": "[Phase 14] Locked SECURITY DEFINER credit-mutation function, freeze/supersede triggers & audit polymorphic subject",
+      "bodyCharacters": 17426,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:30:05.977480+00:00"
+    },
+    {
+      "issue": 726,
+      "url": "https://github.com/Asymmetric-al/core/issues/726",
+      "family": "phase14",
+      "originalSha256": "767512796b1ed590fa6be07f074dcb4fa507671452ebc3dc40d089e4c5b9af80",
+      "publishedSha256": "0fcb6ac1db19ddcc2e6c93643e7f671fc4bc6908179af38410c19e51babbdca6",
+      "readbackSha256": "0fcb6ac1db19ddcc2e6c93643e7f671fc4bc6908179af38410c19e51babbdca6",
+      "title": "[Phase 14] getPartyCreditActivity + Giving-tab credit columns + MAX-per-(party, header) rollup",
+      "bodyCharacters": 18921,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1628]
+      },
+      "verifiedAt": "2026-09-23T04:30:15.165841+00:00"
+    },
+    {
+      "issue": 728,
+      "url": "https://github.com/Asymmetric-al/core/issues/728",
+      "family": "phase14",
+      "originalSha256": "97a57bb6b7608a8fdda29a41fb1dfe4b73d248734b240722e11f1d9e9abfc9cf",
+      "publishedSha256": "e7e5d27990b5694c5bd0ce9d2751f65eed8636d0483b3dad0e16dda99fe321da",
+      "readbackSha256": "e7e5d27990b5694c5bd0ce9d2751f65eed8636d0483b3dad0e16dda99fe321da",
+      "title": "[Phase 14] Required 4-state DAF attribution combobox, fund-name memory & Attribution Inbox",
+      "bodyCharacters": 20592,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:30:23.734661+00:00"
+    },
+    {
+      "issue": 729,
+      "url": "https://github.com/Asymmetric-al/core/issues/729",
+      "family": "phase14",
+      "originalSha256": "bb37e0862722f5c50a6ca81f5a794a0a7d470861826f33a176a41b1ebe437fd4",
+      "publishedSha256": "327036012b0844ba15187afa6799ed69163ae7afbf7d6dfb085f3a8e8a3b41d2",
+      "readbackSha256": "327036012b0844ba15187afa6799ed69163ae7afbf7d6dfb085f3a8e8a3b41d2",
+      "title": "[Phase 14] Advisor thank-you auto-send: full D2 guardrail set + sponsor receipt delivery suppression",
+      "bodyCharacters": 21908,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:30:31.390482+00:00"
+    },
+    {
+      "issue": 735,
+      "url": "https://github.com/Asymmetric-al/core/issues/735",
+      "family": "phase14",
+      "originalSha256": "7599b5ac8c091d6c5dc3217c18cef169e5f329221f6175c7a978789ee7501448",
+      "publishedSha256": "ea0e163fb32fd54a70edb7f50e8168d09de54402b15d3336589e7aa6c82e931f",
+      "readbackSha256": "ea0e163fb32fd54a70edb7f50e8168d09de54402b15d3336589e7aa6c82e931f",
+      "title": "[Phase 14] Matching received flow: settlements, async matched_employee credits, employee thank-you",
+      "bodyCharacters": 18175,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1625]
+      },
+      "verifiedAt": "2026-09-23T04:30:37.106535+00:00"
+    },
+    {
+      "issue": 762,
+      "url": "https://github.com/Asymmetric-al/core/issues/762",
+      "family": "phase14",
+      "originalSha256": "6e97b3fb4c4e4fa5cdd766b6dfd1b7f99fcd37072c30afb689abd672cfebecf3",
+      "publishedSha256": "d30b398301419bb49ae816df0dc91d7d51450212d6dc0c7184bd78809edf90ae",
+      "readbackSha256": "d30b398301419bb49ae816df0dc91d7d51450212d6dc0c7184bd78809edf90ae",
+      "title": "[Phase 15] Minimal Phase 13 posting-ledger substrate",
+      "bodyCharacters": 15829,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:30:43.281535+00:00"
+    },
+    {
+      "issue": 763,
+      "url": "https://github.com/Asymmetric-al/core/issues/763",
+      "family": "finance",
+      "originalSha256": "e1b8f35fac578831c9350cf6c4956e62dabe1086542e243593b7e8925b6d7325",
+      "publishedSha256": "fbd41279bf1eca0515a9dd547eb571e66daf546060503d720fae58b2a07abb15",
+      "readbackSha256": "fbd41279bf1eca0515a9dd547eb571e66daf546060503d720fae58b2a07abb15",
+      "title": "[Phase 15] P15 domain schema migration + retire the Track-B offline 501 bridge",
+      "bodyCharacters": 20437,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:30:49.404287+00:00"
+    },
+    {
+      "issue": 780,
+      "url": "https://github.com/Asymmetric-al/core/issues/780",
+      "family": "finance",
+      "originalSha256": "7b21bcd54cc7cdeb24e929a36dae6a2372356ab91d2108f68c34719629f9a9a8",
+      "publishedSha256": "a7647066eb1fd9671c0e129f9a70ad2a13f7838d64913d6e58cbf4ac4087c108",
+      "readbackSha256": "a7647066eb1fd9671c0e129f9a70ad2a13f7838d64913d6e58cbf4ac4087c108",
+      "title": "[Phase 15] Deposit grouping — undeposited-funds spine & the deposit-state axis",
+      "bodyCharacters": 17820,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1085]
+      },
+      "verifiedAt": "2026-09-23T04:30:55.378262+00:00"
+    },
+    {
+      "issue": 781,
+      "url": "https://github.com/Asymmetric-al/core/issues/781",
+      "family": "finance",
+      "originalSha256": "618a947eccf0ce47c72d3d11793d1532f039ecce45052a6b91faa21829059858",
+      "publishedSha256": "af0f5c8bd8e9d6db23142bb0ac2f4444bed77c9ef2147f27a3180e2f7c16a0e1",
+      "readbackSha256": "af0f5c8bd8e9d6db23142bb0ac2f4444bed77c9ef2147f27a3180e2f7c16a0e1",
+      "title": "[Phase 15] Deposits area, deposit slip & aging signals",
+      "bodyCharacters": 19209,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:31:02.624394+00:00"
+    },
+    {
+      "issue": 783,
+      "url": "https://github.com/Asymmetric-al/core/issues/783",
+      "family": "phase14",
+      "originalSha256": "c658051234f76e20c14d2bb7b8d43573c5a656ca6581f1406168bbda63458f28",
+      "publishedSha256": "cc4a5f39d5a5a5b9bcf07b46cd51b56e293a53d000d384e68fea072b08ae3232",
+      "readbackSha256": "cc4a5f39d5a5a5b9bcf07b46cd51b56e293a53d000d384e68fea072b08ae3232",
+      "title": "[Phase 15] Send-acknowledgments gate (NF3) — the one human release edge",
+      "bodyCharacters": 17945,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:31:09.405605+00:00"
+    },
+    {
+      "issue": 785,
+      "url": "https://github.com/Asymmetric-al/core/issues/785",
+      "family": "phase14",
+      "originalSha256": "a7a94364e5e614dfcc60b53e9f72cfea54d06289a29753e7197f5984b7898b48",
+      "publishedSha256": "0169314388ba574b1edbc4a3bb5c768f8043661e02752be9024a076a940ef3bf",
+      "readbackSha256": "0169314388ba574b1edbc4a3bb5c768f8043661e02752be9024a076a940ef3bf",
+      "title": "[Phase 15] Consolidated safety-test tier — the one money-integrity CI gate",
+      "bodyCharacters": 17231,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:31:15.987207+00:00"
+    }
+  ],
+  "sourceHashes": {
+    "docs/adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md": "3d72bd0f8edbd00d38e25aa3662944fbdea1c5a15386d3e5f40213618494d691",
+    "docs/prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md": "139b514af5726fe0b0a6d7744462def760318ff05bbb8afe3b127030f33b1461",
+    "docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md": "72ccbde35bba464599189ea00f4d9fbc2f8e471a0e19511d867716c64ce37982",
+    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "a42a45c57c8427e099cbde4b509801d534d6389164969a637c9d1d398d2dc541",
+    "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md": "54b5c4bd594098a4ee4023cfdbb26aacfd542c02ddf51de1f96cc05cb4410457"
+  },
+  "evidenceLimit": "Exact source and issue readback evidence, not implementation, provider, database, migration or activation proof.",
+  "initialPublicationIssues": [
+    {
+      "issue": 691,
+      "url": "https://github.com/Asymmetric-al/core/issues/691",
+      "family": "finance",
+      "originalSha256": "608c6bed6e09d5fbdb249748043708cb20df0b7b607be8075f5bf4887d7aa99b",
+      "publishedSha256": "e09bf74c87aecdf1ca2ce590098f509bed60894a412040475563acbf3f95a8f6",
+      "readbackSha256": "e09bf74c87aecdf1ca2ce590098f509bed60894a412040475563acbf3f95a8f6",
+      "title": "[Phase 13] Docs, ADRs, OpenSpec, ownership-matrix rows & glossary",
+      "bodyCharacters": 7936,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:16:19.969496+00:00"
+    },
+    {
+      "issue": 695,
+      "url": "https://github.com/Asymmetric-al/core/issues/695",
+      "family": "finance",
+      "originalSha256": "5ada910711d2bd93b1d43379c0a3cf9c6f10ec533234f2a3ff9f42f967641a71",
+      "publishedSha256": "baa6a871c39b8ef3c19653b61a6f6e552273b44855eceb44d7091b22c4e6a334",
+      "readbackSha256": "baa6a871c39b8ef3c19653b61a6f6e552273b44855eceb44d7091b22c4e6a334",
+      "title": "[Phase 13] Contribution ledger core + atomic donations cutover (D3+D2)",
+      "bodyCharacters": 28211,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1511],
+        "blocking": [
+          984, 1017, 1053, 1080, 1083, 1094, 1144, 1465, 1497, 1512, 1611, 1629
+        ]
+      },
+      "verifiedAt": "2026-09-23T04:16:27.377849+00:00"
+    },
+    {
+      "issue": 697,
+      "url": "https://github.com/Asymmetric-al/core/issues/697",
+      "family": "finance",
+      "originalSha256": "145f1e6e9293f74a1408ff91aead9ac7d5ed161943f9ef6be6feeffce602ce4b",
+      "publishedSha256": "1a15100494da789a3a339127806192898220c7cf63cb196c8d62f9b3e3d4279d",
+      "readbackSha256": "1a15100494da789a3a339127806192898220c7cf63cb196c8d62f9b3e3d4279d",
+      "title": "[Phase 13] Three-axis contribution lifecycle and owner-labelled downstream projections",
+      "bodyCharacters": 9236,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1144]
+      },
+      "verifiedAt": "2026-09-23T04:16:33.688978+00:00"
+    },
+    {
+      "issue": 713,
+      "url": "https://github.com/Asymmetric-al/core/issues/713",
+      "family": "finance",
+      "originalSha256": "a76d224e2a26c72fe2f3a886a87635355cd46f2bd78c458546438db7256f5433",
+      "publishedSha256": "49fc63e2010ba3f9f8a1af533e5e09848cbe57b2d0612e6560919a80a90efca2",
+      "readbackSha256": "49fc63e2010ba3f9f8a1af533e5e09848cbe57b2d0612e6560919a80a90efca2",
+      "title": "[Phase 13] Negative/safety test tier + observability + evidence",
+      "bodyCharacters": 9924,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:16:39.985734+00:00"
+    },
+    {
+      "issue": 720,
+      "url": "https://github.com/Asymmetric-al/core/issues/720",
+      "family": "phase14",
+      "originalSha256": "81fe1f3e1f936351e14bf1a9d31508999fe122e9f06f193c9ed4bb4cf949c20a",
+      "publishedSha256": "d01c41f56575288d29634e4e157dfb6299ed852099bee7223b83e1d9c563eaae",
+      "readbackSha256": "d01c41f56575288d29634e4e157dfb6299ed852099bee7223b83e1d9c563eaae",
+      "title": "[Phase 14] Schema migration: all Phase 14 tables + every identity/scope/bound constraint, composite tenant FKs, FORCE RLS, census rows",
+      "bodyCharacters": 19577,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:16:46.254841+00:00"
+    },
+    {
+      "issue": 721,
+      "url": "https://github.com/Asymmetric-al/core/issues/721",
+      "family": "phase14",
+      "originalSha256": "e5a02684858ccbc23a3cc6f1198ff57864cb6c54ba6bfb4e5f6504570184006a",
+      "publishedSha256": "eaf2c6c41a28b0a1e9972a1b31f56cd12fbf0a65025cde622f37b23476126828",
+      "readbackSha256": "eaf2c6c41a28b0a1e9972a1b31f56cd12fbf0a65025cde622f37b23476126828",
+      "title": "[Phase 14] Locked SECURITY DEFINER credit-mutation function, freeze/supersede triggers & audit polymorphic subject",
+      "bodyCharacters": 17426,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:16:52.679101+00:00"
+    },
+    {
+      "issue": 726,
+      "url": "https://github.com/Asymmetric-al/core/issues/726",
+      "family": "phase14",
+      "originalSha256": "1e5fc80b9cfb38452240372c1f50697e84b36e6241c9b8cf56da3861650d5689",
+      "publishedSha256": "767512796b1ed590fa6be07f074dcb4fa507671452ebc3dc40d089e4c5b9af80",
+      "readbackSha256": "767512796b1ed590fa6be07f074dcb4fa507671452ebc3dc40d089e4c5b9af80",
+      "title": "[Phase 14] getPartyCreditActivity + Giving-tab credit columns + MAX-per-(party, header) rollup",
+      "bodyCharacters": 18921,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1628]
+      },
+      "verifiedAt": "2026-09-23T04:16:58.918634+00:00"
+    },
+    {
+      "issue": 728,
+      "url": "https://github.com/Asymmetric-al/core/issues/728",
+      "family": "phase14",
+      "originalSha256": "d1112d97bd9a84d40bcdc5340e35a51f3cae75fe33918693967437d145dfc40a",
+      "publishedSha256": "97a57bb6b7608a8fdda29a41fb1dfe4b73d248734b240722e11f1d9e9abfc9cf",
+      "readbackSha256": "97a57bb6b7608a8fdda29a41fb1dfe4b73d248734b240722e11f1d9e9abfc9cf",
+      "title": "[Phase 14] Required 4-state DAF attribution combobox, fund-name memory & Attribution Inbox",
+      "bodyCharacters": 20592,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:17:05.680651+00:00"
+    },
+    {
+      "issue": 729,
+      "url": "https://github.com/Asymmetric-al/core/issues/729",
+      "family": "phase14",
+      "originalSha256": "d323f9fe67099887c8afab203b2017999282f303a7c8a975f371a7d92e0033af",
+      "publishedSha256": "bb37e0862722f5c50a6ca81f5a794a0a7d470861826f33a176a41b1ebe437fd4",
+      "readbackSha256": "bb37e0862722f5c50a6ca81f5a794a0a7d470861826f33a176a41b1ebe437fd4",
+      "title": "[Phase 14] Advisor thank-you auto-send: full D2 guardrail set + sponsor receipt delivery suppression",
+      "bodyCharacters": 21908,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:17:13.486778+00:00"
+    },
+    {
+      "issue": 735,
+      "url": "https://github.com/Asymmetric-al/core/issues/735",
+      "family": "phase14",
+      "originalSha256": "6cc0dd69498e5bae9752e8061c02b75258f3e6478e5e361753e99857241b2183",
+      "publishedSha256": "7599b5ac8c091d6c5dc3217c18cef169e5f329221f6175c7a978789ee7501448",
+      "readbackSha256": "7599b5ac8c091d6c5dc3217c18cef169e5f329221f6175c7a978789ee7501448",
+      "title": "[Phase 14] Matching received flow: settlements, async matched_employee credits, employee thank-you",
+      "bodyCharacters": 18175,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1625]
+      },
+      "verifiedAt": "2026-09-23T04:17:20.303970+00:00"
+    },
+    {
+      "issue": 762,
+      "url": "https://github.com/Asymmetric-al/core/issues/762",
+      "family": "phase14",
+      "originalSha256": "8c7768ce9dd83df10aab24e6946177272ea3c642f3d4cdf0fd17e6a751229630",
+      "publishedSha256": "6e97b3fb4c4e4fa5cdd766b6dfd1b7f99fcd37072c30afb689abd672cfebecf3",
+      "readbackSha256": "6e97b3fb4c4e4fa5cdd766b6dfd1b7f99fcd37072c30afb689abd672cfebecf3",
+      "title": "[Phase 15] Minimal Phase 13 posting-ledger substrate",
+      "bodyCharacters": 15829,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:17:26.874412+00:00"
+    },
+    {
+      "issue": 763,
+      "url": "https://github.com/Asymmetric-al/core/issues/763",
+      "family": "finance",
+      "originalSha256": "3c90e398fb1b24734d627106cb34406c2037d5e131ffb99060514885d8a8b115",
+      "publishedSha256": "e1b8f35fac578831c9350cf6c4956e62dabe1086542e243593b7e8925b6d7325",
+      "readbackSha256": "e1b8f35fac578831c9350cf6c4956e62dabe1086542e243593b7e8925b6d7325",
+      "title": "[Phase 15] P15 domain schema migration + retire the Track-B offline 501 bridge",
+      "bodyCharacters": 20437,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:17:32.551854+00:00"
+    },
+    {
+      "issue": 780,
+      "url": "https://github.com/Asymmetric-al/core/issues/780",
+      "family": "finance",
+      "originalSha256": "4e9f00fedb3eec5b4acc42b993ef494869bda8c9220d9ad95877d0e610ca2718",
+      "publishedSha256": "7b21bcd54cc7cdeb24e929a36dae6a2372356ab91d2108f68c34719629f9a9a8",
+      "readbackSha256": "7b21bcd54cc7cdeb24e929a36dae6a2372356ab91d2108f68c34719629f9a9a8",
+      "title": "[Phase 15] Deposit grouping — undeposited-funds spine & the deposit-state axis",
+      "bodyCharacters": 17820,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1085]
+      },
+      "verifiedAt": "2026-09-23T04:17:38.526731+00:00"
+    },
+    {
+      "issue": 781,
+      "url": "https://github.com/Asymmetric-al/core/issues/781",
+      "family": "finance",
+      "originalSha256": "4d4a67577e15c8ed27d81aaf697fe3d04138d2c5412c4dc4f72f478f989e3e03",
+      "publishedSha256": "618a947eccf0ce47c72d3d11793d1532f039ecce45052a6b91faa21829059858",
+      "readbackSha256": "618a947eccf0ce47c72d3d11793d1532f039ecce45052a6b91faa21829059858",
+      "title": "[Phase 15] Deposits area, deposit slip & aging signals",
+      "bodyCharacters": 19209,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:17:45.807446+00:00"
+    },
+    {
+      "issue": 783,
+      "url": "https://github.com/Asymmetric-al/core/issues/783",
+      "family": "phase14",
+      "originalSha256": "471b6f97d3abf27ea4cbc1de87f1b59d1d3923289c5d1b1251125d9e92677474",
+      "publishedSha256": "c658051234f76e20c14d2bb7b8d43573c5a656ca6581f1406168bbda63458f28",
+      "readbackSha256": "c658051234f76e20c14d2bb7b8d43573c5a656ca6581f1406168bbda63458f28",
+      "title": "[Phase 15] Send-acknowledgments gate (NF3) — the one human release edge",
+      "bodyCharacters": 17945,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:17:54.614119+00:00"
+    },
+    {
+      "issue": 785,
+      "url": "https://github.com/Asymmetric-al/core/issues/785",
+      "family": "phase14",
+      "originalSha256": "7392491f32c054785c36d9b17bb7c86b373e791a172cbdd0bd0d2bef77e162a1",
+      "publishedSha256": "a7a94364e5e614dfcc60b53e9f72cfea54d06289a29753e7197f5984b7898b48",
+      "readbackSha256": "a7a94364e5e614dfcc60b53e9f72cfea54d06289a29753e7197f5984b7898b48",
+      "title": "[Phase 15] Consolidated safety-test tier — the one money-integrity CI gate",
+      "bodyCharacters": 17231,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T04:18:00.153538+00:00"
+    }
+  ],
+  "sourceCarrier": {
+    "pr": "https://github.com/Asymmetric-al/core/pull/1901",
+    "predecessorPr": "https://github.com/Asymmetric-al/core/pull/1897",
+    "predecessorMergedAt": "2026-09-23T03:31:11Z",
+    "baseCommit": "ea8086cf398fb20878994f5979cbeea7959a1845",
+    "reason": "PR1897 merged the earlier reconciliation while the C02 follow-up was being prepared. Only the C02 source-carrier link in these 16 bodies was corrected to PR1901; historical #1897 citations remain. The initial publication and current readback are both retained."
+  },
+  "titleEncodingCorrection": {
+    "reason": "Restore titles from explicit UTF-8 provider captures; an earlier Windows locale decode corrupted em dashes in three titles. No GitHub titles or body hashes changed.",
+    "observedAt": "2026-09-23T04:45:54.768473+00:00",
+    "correctedIssues": [780, 783, 785]
+  },
+  "currentBodyReadbackConfirmedAt": "2026-09-23T04:45:54.768498+00:00",
+  "sourceHashesAtPublication": {
+    "docs/adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md": "3d72bd0f8edbd00d38e25aa3662944fbdea1c5a15386d3e5f40213618494d691",
+    "docs/prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md": "867e4b5fcf1811ba063f7e7efaa350133960316ef96ba3e0574573abe1b71f3c",
+    "docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md": "92215a3ee96e8ecefeb4eaa6344565514e820e810716a0358ef53da2dfc138e5",
+    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "9662cad45df5eacaeed0d83e7599e3f3058b11c141bb5c0e5a2802ad8f2cf63d",
+    "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md": "b9720ee7d3273e558f6673fbbd25eea6fbd77e7c4b0d58f9f82abb2f3e28c6cc"
+  },
+  "openSpecProjectionProof": {
+    "helper": "@fission-ai/openspec@1.9.0 core/specs-apply.js buildUpdatedSpec (read-only)",
+    "operations": {
+      "added": 2,
+      "modified": 1,
+      "removed": 0,
+      "renamed": 0
+    },
+    "originalRequirementCount": 15,
+    "effectiveRequirementCount": 17,
+    "preservedUnrelatedRequirements": [
+      "Contribution Operations Core Owns Staff Gift Actions",
+      "High-Risk Contribution Actions Require A Granular Capability And Reason",
+      "Contribution Operation Audit Is Canonical And Cross-Surface",
+      "Stripe Remains Payment Authority For Refund And Provider State",
+      "Donor-Visible Contribution State Uses The Same Truth",
+      "Donor Correction Communications Use Governed Content and Shared Dispatch",
+      "Bulk Contribution Actions Use The Single-Action Contract",
+      "Contribution Operations Protect Donor Trust Through Corrections",
+      "Contribution Operations Prefer Shared System Behavior",
+      "Contribution Operation Completion Requires Trustworthy Feedback",
+      "Donor Correction Notifications Are Clear And Accountable",
+      "Mission Control Contribution Operations Has Gift-First And Donor-First Entry Points",
+      "Contribution Detail Shows Operational And Donor-Visible Consequences",
+      "Staff Contribution Search Supports Gift Operations"
+    ],
+    "originalScenariosPreserved": true,
+    "originalMoneyIdentityScenarioBytesPreserved": true,
+    "originalRefundProviderCorrectionClassesPreserved": true,
+    "postedMetadataRequiresSeparateOwner": true,
+    "draftInPlaceRequiresSourceAuthorization": true,
+    "postedResetDoesNotUnlock": true,
+    "previousAddedOnlyDeltaFailsEffectivePermissionCheck": true,
+    "effectiveStrictValidation": {
+      "valid": true,
+      "issues": [
+        {
+          "level": "INFO",
+          "path": "requirements[0]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[1]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[2]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[3]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[4]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[6]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[7]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[13]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[14]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[15]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[16]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        }
+      ],
+      "summary": {
+        "errors": 0,
+        "warnings": 0,
+        "info": 11
+      }
+    },
+    "deterministicRebuild": true,
+    "idempotentReapply": {
+      "added": 0,
+      "modified": 0,
+      "removed": 0,
+      "renamed": 0
+    },
+    "durableUnchanged": true,
+    "durableSha256": "1c6d01768007ebd4b8d6f14afe2ec8f8872804885d37bdf920a6bb043428e11a",
+    "deltaSha256": "54b5c4bd594098a4ee4023cfdbb26aacfd542c02ddf51de1f96cc05cb4410457",
+    "effectiveSpecSha256": "e469e87925266c80584f6f925ffe6b5f8041d5a1a5a30485562c722911ebe256",
+    "noRepositorySpecAppliedOrArchived": true,
+    "durablePath": "openspec/specs/contribution-operations/spec.md",
+    "deltaPath": "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md"
+  },
+  "sourceReviewFollowup": {
+    "verifiedAt": "2026-09-23T04:50:45.021779+00:00",
+    "changes": [
+      "Formally replace the harmless-metadata requirement through an active MODIFIED delta; leave durable runtime specs unapplied.",
+      "Restore returned in the Phase13 PAYMENT list without conflating refund/dispute.",
+      "Make existing Not Provided, Anonymous and identified acknowledgment defaults explicit.",
+      "Name the separate Phase15 current membership relation in overviews; 1:N describes batch grouping only."
+    ],
+    "issueBodiesChanged": false,
+    "bodyReadback": "All 16 current body hashes match a fresh explicit UTF-8 GraphQL read. Title encoding was repaired from provider captures without changing GitHub titles or body hashes."
+  },
+  "laterOwnerContractAmendments": [
+    {
+      "sourcePath": "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md",
+      "priorHead": "d50bcb4325b1ce4ad5e2b221f604902e270a2d75",
+      "priorSha256": "5085a833b3268498570da8c4b41e16887334ebcd8f54dc75b46e9e73fb504b95",
+      "currentSha256": "a42a45c57c8427e099cbde4b509801d534d6389164969a637c9d1d398d2dc541",
+      "evidence": "2026-09-23-receipt-qualification-readback.json",
+      "reason": "Qualify receipt/correction outputs under already accepted owner contracts. C02 immutable-row choice and C01 pending approval policy are unchanged."
+    }
+  ]
+}

@@ -39,7 +39,6 @@ const nextConfig: NextConfig & {
   ],
   experimental: {
     globalNotFound: true,
-    viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
     /** Instant-navigation e2e rig only (see instant-nav.rig.md); preview deploys only. */
     exposeTestingApiInProductionBuild:

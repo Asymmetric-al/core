@@ -63,7 +63,7 @@ The fix is to reduce vividness while holding hue and lightness. Generate ramps a
 }
 ```
 
-Order matters. The sRGB value comes first so every display gets something, and the P3 rule overrides only where it will render. A P3 color with no fallback is a `HIGH` finding; it does not degrade, it fails.
+Order matters. The sRGB value comes first so every display gets something, and the P3 rule overrides only where it will render. A missing sRGB or syntax fallback for a P3 color is a `HIGH` finding. A valid P3 color on an sRGB display is gamut-mapped; that mapping is not itself a failure. Judge the rendered ramp.
 
 For browser matrices predating `oklch()` support, the same layering works with `@supports`:
 

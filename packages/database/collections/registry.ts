@@ -244,12 +244,12 @@ export const collectionRegistry = [
   },
   {
     name: "supportHubCollections",
-    kind: "local-only",
+    kind: "route-backed",
     realtime: "not-applicable",
-    rls: "staff-scoped",
-    mutationPolicy: "local-only",
+    rls: "not-applicable",
+    mutationPolicy: "server-command",
     notes:
-      "Seeded Support Hub collections should migrate to staff-scoped `support_*` tables; audit/inbound email side effects stay server-only.",
+      "Reads `/api/admin/support/**`. Privileged writes stay server-command owned. Tenant isolation lives on the route + adapter, not in the browser collection. Thread messages stay on the conversation messages route; there is no tenant-wide messages collection.",
   },
   {
     name: "querySupabaseCollectionOnce",

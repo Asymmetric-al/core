@@ -78,7 +78,7 @@ Too much customization: API becomes confusing, maintenance nightmare.
 1. **Variants** - Predefined options (primary, secondary, destructive)
 2. **Size** - Predefined sizes (sm, md, lg)
 3. **className** - Escape hatch for one-off customizations
-4. **asChild** - Render as different element (Radix pattern)
+4. **Composition** - For link-styled actions, apply `buttonVariants` on `Link` / `<a>` (Base UI `render`, not a Radix Slot wrapper)
 
 ## Props API Design
 
@@ -186,34 +186,30 @@ function Card({ children, header, footer }) {
 </Card>;
 ```
 
-## The `asChild` Pattern
+## Link-styled actions (Base UI)
 
-Allow rendering as a different element while preserving behavior:
+Core's `Button` is Base UI `ButtonPrimitive` plus `buttonVariants`. Do not add
+a Radix Slot wrapper. For a control that should navigate, put the variants on
+the real link:
 
 ```jsx
-// Render as button (default)
-<Button>Click me</Button>
+import Link from "next/link";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 
-// Render as link
-<Button asChild>
-  <a href="/page">Click me</a>
-</Button>
-
-// Render as Next.js Link
-<Button asChild>
-  <Link href="/page">Click me</Link>
-</Button>
+<Link href="/page" className={buttonVariants({ variant: "default" })}>
+  Click me
+</Link>;
 ```
 
-Implementation using Radix Slot:
+When a Base UI primitive that accepts `nativeButton` must render as another
+element, use its `render` prop and set `nativeButton={false}` when the host is
+not a native button. `Tooltip.Trigger` does not accept `nativeButton`. Keep
+that local to the primitive — do not wrap `Button` in a slot helper.
 
 ```jsx
-import { Slot } from "@radix-ui/react-slot";
-
-function Button({ asChild, ...props }) {
-  const Comp = asChild ? Slot : "button";
-  return <Comp {...props} />;
-}
+<Button render={<a href="/docs" />} nativeButton={false}>
+  Docs
+</Button>
 ```
 
 ## Forwarding Refs

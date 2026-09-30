@@ -8,7 +8,7 @@ import {
 
 import { GiftInlineActionControls } from "./gift-inline-action-controls";
 
-import type { OperationDefinition } from "../contributions/operation-shell";
+import type { OperationDefinition } from "@asym/api/admin/contribution-operations/catalog";
 import type {
   CrmGiftHistoryRow,
   CrmGiftHistoryViewSettings,
