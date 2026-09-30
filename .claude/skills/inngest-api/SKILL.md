@@ -1,222 +1,133 @@
 ---
 name: inngest-api
-description: Use when inspecting or operating Inngest accounts, environments, keys, webhooks, app syncs, function invocations, runs, or traces through the Inngest CLI alpha REST API wrapper. Covers `npx inngest-cli@latest alpha api`, Cloud Production with `--prod`, local/custom API targets, authentication environment variables, safe secret handling, JSON body flags, and run/debug workflows.
+description: >-
+  Use when the user explicitly asks for the Inngest REST API v2, raw HTTP,
+  OpenAPI, API docs, API authentication, or an endpoint that the Inngest CLI
+  does not expose. Covers api-docs.inngest.com, llms.txt, the OpenAPI v2 spec,
+  Bearer authentication with API keys or signing keys, production and local
+  base URLs, raw curl/fetch requests, request-shape discovery, pagination,
+  secret redaction, and when to prefer the `inngest-api-cli` skill instead.
 ---
 
-# Inngest API CLI
+# Inngest REST API v2
 
-Use the alpha API CLI when the user needs account/environment operations,
-webhook management, app syncs, direct function invocation, or Cloud/local run
-inspection from Codex.
+Use this skill for raw REST API v2 work and API reference lookup. If the task
+can be completed through `npx inngest-cli@latest api`, use `inngest-api-cli`
+instead; the CLI is safer for agents because it handles target/auth flags and
+endpoint command wiring.
 
-Because this command is alpha, verify the current interface before relying on
-memorized flags:
+## Prefer CLI First
 
-```bash
-npx inngest-cli@latest alpha api --prod --help
-npx inngest-cli@latest alpha api <command> --help
-```
+Use `inngest-api-cli` for:
 
-If the user asks about CLI agent experience, product friction, or why an agent
-is stuck, also read [agent-friction.md](references/agent-friction.md).
+- Run and trace debugging from a run ID or event ID.
+- Account, environment, key, webhook, app sync, and function invocation checks.
+- Insights table/schema/query workflows.
+- Local dev server or Cloud operational checks.
 
-## Secret Handling
+Use raw REST API v2 only when:
 
-- Prefer credentials from environment variables: `INNGEST_API_KEY`,
-  `INNGEST_SIGNING_KEY`, and `INNGEST_ENV`.
-- Do not write keys into source files, docs, committed `.env` files, or command
-  examples.
-- Avoid `--api-key <secret>` in shell commands because it exposes the key in the
-  transcript and process list.
-- If the user must provide a key interactively, ask them to set
-  `INNGEST_API_KEY` in their shell/session and confirm when it is available.
-- Never print API keys, event keys, or signing keys in the final answer. When
-  listing key resources, redact sensitive token values.
+- The CLI does not expose the needed endpoint.
+- The user explicitly asks for HTTP, curl, fetch, OpenAPI, or API docs.
+- You need to inspect request/response schemas before deciding what to do.
 
-## Targeting
+## Docs Lookup
 
-By default, the command targets the local dev server.
+When precision matters, fetch current docs instead of guessing:
 
-```bash
-# Local dev server
-npx inngest-cli@latest alpha api health
+- API overview: `https://api-docs.inngest.com/`
+- Authentication: `https://api-docs.inngest.com/authentication`
+- LLM index: `https://api-docs.inngest.com/llms.txt`
+- OpenAPI v2 spec: `https://api-docs.inngest.com/api-specs/v2.json`
+- Markdown page pattern: add `.md` to a docs URL, for example
+  `https://api-docs.inngest.com/v2/runs/GetFunctionTrace.md`
+- Endpoint request/response schemas:
+  [references/rest-api-v2.md](references/rest-api-v2.md)
 
-# Inngest Cloud Production
-npx inngest-cli@latest alpha api --prod get-account
+If a Markdown page returns an error or omits generated reference details, use
+the OpenAPI spec for methods, paths, parameters, request bodies, and schemas.
 
-# Branch/customer environment in Cloud
-INNGEST_ENV=staging npx inngest-cli@latest alpha api --prod get-webhooks
+## Base URLs
 
-# Custom API origin
-npx inngest-cli@latest alpha api --api-host http://127.0.0.1 --api-port 8288 health
-```
+- Cloud v2: `https://api.inngest.com/v2`
+- Local dev server v2: `http://localhost:8288/api/v2`
+- API docs say the dev server may also be reached through the local server
+  origin. Confirm the actual dev server port before making local requests.
 
-Common target/auth flags:
+## Authentication
 
-- `--prod`: target Inngest Cloud Production unless `--api-host` or `--api-port`
-  is set.
-- `--api-host`, `--api-port`: target a custom API server.
-- `--config`: read target configuration from an Inngest config file.
-- `--timeout`: adjust HTTP timeout.
-- `--env`: send `X-Inngest-Env`, or use `INNGEST_ENV`.
-- `--api-key`: Bearer token, or use `INNGEST_API_KEY`.
-- `--signing-key`: Bearer token, or use `INNGEST_SIGNING_KEY`.
-- `--raw`: print the response body without JSON formatting.
+The REST API uses Bearer token authentication.
 
-For env-scoped write operations, do not rely on implicit production targeting.
-Set `INNGEST_ENV` or pass `--env` explicitly and confirm the target environment
-before running `create-webhook`, `sync-app`, `invoke-function`, or `patch-env`.
+- Prefer `INNGEST_API_KEY` for requests from CI, scripts, tools, and agents.
+- Signing keys are primarily for apps communicating with Inngest; use them for
+  API requests only when that is the available, appropriate credential.
+- API keys are for v2 endpoints only.
+- Include `X-Inngest-Env` or use an environment-scoped API key when operating
+  outside the default production environment.
+- Never paste, print, commit, or log API keys, event keys, signing keys,
+  webhook URLs, or decrypted secrets.
 
-## Command Map
-
-Account and environment:
-
-- `health`: `GET /health`
-- `get-account`: `GET /account`
-- `get-account-envs`: `GET /envs`, supports `--cursor` and `--limit`
-- `create-env`: `POST /envs`, supports `--id`, `--name`, `--body`,
-  `--body-file`
-- `patch-env`: `PATCH /envs/{id}`, supports `--id`, `--is-archived`,
-  `--body`, `--body-file`
-
-Keys and webhooks:
-
-- `get-account-event-keys`: `GET /keys/events`, supports `--cursor`,
-  `--limit`
-- `get-account-signing-keys`: `GET /keys/signing`, supports `--cursor`,
-  `--limit`
-- `get-webhooks`: `GET /env/webhooks`, supports `--cursor`, `--limit`
-- `create-webhook`: `POST /env/webhooks`, supports `--name`,
-  `--event-filter`, `--transform`, `--response`, `--body`, `--body-file`
-
-Apps, functions, and runs:
-
-- `sync-app`: `POST /apps/{app_id}/syncs`, supports `--app-id`, `--url`,
-  `--body`, `--body-file`
-- `invoke-function`: `POST /apps/{app_id}/functions/{function_id}/invoke`,
-  supports `--app-id`, `--function-id`, `--data`, `--idempotency-key`,
-  `--body`, `--body-file`
-- `get-function-run`: `GET /runs/{run_id}`, supports `--run-id`,
-  `--include-output`
-- `get-function-trace`: `GET /runs/{run_id}/trace`, supports `--run-id`,
-  `--include-output`
-
-Current discovery limitation: the alpha CLI does not expose `list-apps`,
-`list-functions`, or `list-runs`. If the user has not provided the required
-`app_id`, `function_id`, or `run_id`, first explain that the CLI cannot
-discover those IDs yet and ask for the ID or an alternate source such as the
-dashboard.
-
-## Workflows
-
-### Authenticated Smoke Test
-
-When validating a provided API key or a new CLI install, start with low-risk
-read-only calls:
+Example:
 
 ```bash
-npx inngest-cli@latest alpha api --prod get-account
-npx inngest-cli@latest alpha api --prod get-account-envs --limit 5
+curl -fsSL \
+  -H "Authorization: Bearer $INNGEST_API_KEY" \
+  -H "X-Inngest-Env: $INNGEST_ENV" \
+  https://api.inngest.com/v2/account
 ```
 
-These confirm that authentication, Cloud targeting, and account/environment
-access work before making changes such as app syncs, webhooks, or invocations.
+## Endpoint Discovery
 
-### Inspect a Failed Production Run
-
-1. Confirm the user has provided `INNGEST_API_KEY` through the environment, not
-   in source files or visible command text.
-2. If using a branch environment, set or pass `INNGEST_ENV`.
-3. Fetch run metadata first:
-
-   ```bash
-   npx inngest-cli@latest alpha api --prod get-function-run --run-id <run_id>
-   ```
-
-4. Fetch the trace when step-level detail is needed:
-
-   ```bash
-   npx inngest-cli@latest alpha api --prod get-function-trace --run-id <run_id> --include-output
-   ```
-
-5. Summarize failed steps, retry state, error messages, and likely code changes.
-   Do not paste large raw traces unless the user asks.
-
-### Sync an App
-
-Use `sync-app` when validating Cloud registration for an app URL and you already
-know the app ID. The current command shape is a re-sync for an existing app, not
-a first-time "register this serve URL" workflow.
+Use the OpenAPI spec as the source of truth:
 
 ```bash
-npx inngest-cli@latest alpha api --prod sync-app --app-id <app_id> --url https://example.com/api/inngest
+curl -fsSL https://api-docs.inngest.com/api-specs/v2.json
 ```
 
-After sync, inspect the response for registration errors and compare them to the
-project's `serve()` endpoint, `INNGEST_SIGNING_KEY`, and deployed URL.
+Current v2 areas include account, environments, keys, webhooks, apps, function
+invocation, event-run lookup, function runs, traces, Insights, and partner APIs.
+Endpoint coverage can change, so inspect the spec before writing a raw request.
 
-### Invoke a Function
+For API-only or access-gated endpoints, such as partner-account endpoints,
+confirm the user has the needed access before attempting a call.
 
-Use direct invocation for manual smoke tests or operational one-offs.
+## Request Rules
 
-```bash
-npx inngest-cli@latest alpha api --prod invoke-function \
-  --app-id <app_id> \
-  --function-id <function_id> \
-  --idempotency-key <stable_test_key> \
-  --data '{"example":true}'
-```
+- Derive method, path, query params, headers, and body from OpenAPI.
+- Do not invent undocumented request fields.
+- Use structured JSON parsing before making decisions from responses.
+- Use body files or here-docs for complex JSON instead of shell-escaped one
+  liners.
+- Add pagination cursors when `page.hasMore` is true and complete results are
+  needed.
+- Treat missing `data` in list responses as an empty list unless an error is
+  present.
 
-Prefer stable idempotency keys for repeatable tests. For complex payloads, use
-`--body-file` to avoid escaping mistakes.
+## Mutation Safety
 
-### Manage Webhooks
+Read before write. Confirm target account, environment, resource, and intent
+before raw HTTP mutations unless the user's instruction already makes all of
+that explicit.
 
-Before creating a webhook, list existing webhooks to avoid duplicates:
+Treat these categories as mutating or side-effecting:
 
-```bash
-npx inngest-cli@latest alpha api --prod get-webhooks
-```
-
-For `create-webhook`, prefer a body file when transforms, filters, or response
-templates contain quotes or multiline strings.
+- Creating or patching environments.
+- Creating webhooks.
+- Syncing apps.
+- Invoking functions.
+- Partner account creation.
+- Broad Insights queries that may be expensive or noisy.
 
 ## Output Handling
 
-- Default output is formatted JSON. Use `--raw` only when a downstream tool
-  needs the exact response body.
-- Parse JSON with a structured tool when making decisions from CLI output.
-- Keep terminal summaries concise: account/env names, IDs, statuses, and
-  actionable errors are usually enough.
-- Paginated list responses include a `page` object. If `page.hasMore` is true,
-  continue with `--cursor <cursor>` when the user needs complete results.
-- Empty list responses may omit `data`; treat a missing `data` field as an empty
-  list unless an error is present.
-- Webhook URLs and decrypted signing keys are secrets. Redact them in summaries
-  and never write them to docs, source files, or committed fixtures.
-
-## Agent Experience Notes
-
-The CLI is suitable for Codex usage because common failure modes are concise and
-actionable:
-
-- Missing or invalid Cloud auth returns `401 Unauthorized` with `access_denied`;
-  first verify a key was actually provided, then ask the user to provide or
-  rotate `INNGEST_API_KEY` through the environment.
-- Missing required path flags fail before a network request, for example
-  `missing required --run-id`.
-- A missing local dev server explains that `inngest dev` should be started or
-  `--prod` should be used for Cloud.
-- Unknown environments return `404 Not Found` with `env_not_found`; list
-  environments with `get-account-envs` before retrying.
-- `--raw` returns compact JSON and is still parseable; prefer default formatted
-  JSON for human summaries.
-- Subcommand `--help` may hide inherited target/auth flags; check the top-level
-  `alpha api --help` when target or auth behavior is unclear.
-
-Treat `create-env`, `patch-env`, `create-webhook`, `sync-app`, and
-`invoke-function` as mutating or side-effecting operations. Use read-only checks
-first, then confirm intent and target environment before running them.
+- Summarize IDs, names, statuses, pagination, and actionable errors.
+- Redact token values, webhook URLs, sensitive payload fields, and decrypted
+  secrets.
+- Do not paste large raw traces, full OpenAPI fragments, or full response
+  bodies unless the user asks.
+- If auth fails, first verify that a credential is present in the environment;
+  then ask the user to provide or rotate `INNGEST_API_KEY` without pasting it
+  into chat.
 
 ## This Repository
 

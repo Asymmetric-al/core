@@ -45,7 +45,7 @@ export function DonorSubNav() {
   return (
     <nav className="border-b border-zinc-200 bg-white sticky top-16 z-40">
       <div className="container-responsive">
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex items-center gap-1 overflow-x-auto py-1 -mx-4 px-4 sm:mx-0 sm:px-0">
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||

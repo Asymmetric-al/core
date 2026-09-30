@@ -4,7 +4,7 @@
 // Byte-stable apart from totalWallMs; each CLI query is isolated.
 
 import { readFile } from 'node:fs/promises';
-import { queryMetric, readProjectJson } from '../lib/vercel.mjs';
+import { queryMetric, readProjectJson, resolveCommandScope } from '../lib/vercel.mjs';
 import { specsForCandidate, mergeIntoEvidence, SCANNER_KINDS, TIME_WINDOW } from '../lib/deep-dive.mjs';
 
 const SCHEMA_VERSION = '1.0';
@@ -55,9 +55,33 @@ async function main() {
     console.error('         Re-run with --cwd <dir-linked-to-the-collected-project>.');
     process.exit(2);
   }
+  if (merged.orgId && link.orgId && link.orgId !== merged.orgId) {
+    console.error('[deep-dive] FATAL: cwd .vercel/ links the project to a different Vercel scope than signals.json.');
+    console.error('         Re-run with --cwd <dir-linked-to-the-collected-project>, or rerun collect-signals.mjs from the intended app directory.');
+    process.exit(2);
+  }
   log(`cwd link OK (source ${link.source})`);
 
-  const scope = merged.orgId || undefined;
+  const commandScope = await resolveDeepDiveCommandScope(merged, link);
+  if (!commandScope.ok) {
+    console.error(`[deep-dive] FATAL: could not resolve a CLI-safe Vercel scope (${commandScope.detail ?? commandScope.error ?? 'unknown'}).`);
+    console.error('         Re-run collect-signals.mjs with the current skill, run `vercel switch <team>`, or re-link with `vercel link --yes --project <project> --team <team-slug>`.');
+    process.exit(2);
+  }
+  if (typeof commandScope.cliScope === 'string' && /^(team|usr)_/.test(commandScope.cliScope)) {
+    console.error('[deep-dive] FATAL: commandScope.cliScope is a raw account ID, not a CLI-safe scope.');
+    console.error('         Re-run collect-signals.mjs with the current skill so deep-dive queries use the same team as the broad pass.');
+    process.exit(2);
+  }
+  const commandAccountId = commandScope.teamId ?? commandScope.userId ?? null;
+  if (commandAccountId && link.orgId && link.orgId !== commandAccountId) {
+    console.error('[deep-dive] FATAL: cwd .vercel/ links the project to a different Vercel scope than commandScope.');
+    console.error('         Re-run with --cwd <dir-linked-to-the-collected-project>, or rerun collect-signals.mjs from the intended app directory.');
+    process.exit(2);
+  }
+  const scope = commandScope.cliScope || undefined;
+  log(`command scope resolved (source=${commandScope.source}; scoped=${scope ? 'yes' : 'no'})`);
+
   const toLaunch = Array.isArray(gate.toLaunch) ? gate.toLaunch : [];
   const platform = Array.isArray(gate.platform) ? gate.platform : [];
 
@@ -208,6 +232,19 @@ async function main() {
   };
 
   process.stdout.write(JSON.stringify(out, null, 2) + '\n');
+}
+
+async function resolveDeepDiveCommandScope(merged, link) {
+  const linkedOrgId = merged.orgId ?? link.orgId ?? null;
+  if (merged.commandScope?.ok && (merged.commandScope.cliScope || !linkedOrgId)) {
+    return merged.commandScope;
+  }
+  if (merged.commandScope && merged.commandScope.ok === false) return merged.commandScope;
+
+  return await resolveCommandScope({
+    projectId: merged.projectId ?? link.projectId ?? null,
+    orgId: merged.orgId ?? link.orgId ?? null,
+  });
 }
 
 // Reduce CLI response to {value} or {rows:[{value,...dims}]}. The per-metric

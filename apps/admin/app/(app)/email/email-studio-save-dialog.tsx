@@ -61,7 +61,11 @@ function EmailStudioSaveDialogFields({
   const [draft, setDraft] = useState<EmailMetadata>(metadata);
 
   return (
-    <DialogContent className="sm:max-w-[480px]" showCloseButton={!isSaving}>
+    <DialogContent
+      scrollable
+      className="sm:max-w-120"
+      showCloseButton={!isSaving}
+    >
       <DialogHeader>
         <DialogTitle>Save Email Template</DialogTitle>
         <DialogDescription>

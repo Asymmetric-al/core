@@ -58,7 +58,7 @@ export function getCrmRelationshipColumns(): ColumnDef<CrmRelationshipRow>[] {
       cell: ({ row }) => {
         const relationship = row.original;
         return (
-          <div className="min-w-[220px]">
+          <div className="min-w-55">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-semibold">
                 {relationship.displayName}
@@ -121,7 +121,7 @@ export function getCrmRelationshipColumns(): ColumnDef<CrmRelationshipRow>[] {
         <DataTableColumnHeader column={column} title="Contact" />
       ),
       cell: ({ row }) => (
-        <span className="line-clamp-2 max-w-[180px] text-xs text-muted-foreground">
+        <span className="line-clamp-2 max-w-45 text-xs text-muted-foreground">
           {row.original.primaryContactName ?? "—"}
         </span>
       ),

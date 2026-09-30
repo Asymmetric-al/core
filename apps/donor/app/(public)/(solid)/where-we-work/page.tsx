@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function WhereWeWorkPage() {
   return (
-    <main className="w-full">
+    <div className="w-full">
       <WhereWeWorkContent />
-    </main>
+    </div>
   );
 }

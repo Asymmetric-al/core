@@ -61,7 +61,7 @@ export function CareTools({ personnel }: CareToolsProps) {
       >
         <Button
           onClick={() => setOpen(true)}
-          className="size-14 rounded-2xl bg-primary text-primary-foreground shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 transition-[transform,box-shadow] group border-none"
+          className="size-14 rounded-2xl shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 transition-[transform,box-shadow] group border-none"
         >
           <Zap className="size-6 transition-transform group-hover:rotate-12 fill-current" />
           <span className="sr-only">Open Care Tools</span>
@@ -80,7 +80,7 @@ export function CareTools({ personnel }: CareToolsProps) {
             className="border-none focus:ring-0 text-sm font-medium"
           />
         </div>
-        <CommandList className="max-h-[400px] p-2">
+        <CommandList className="max-h-100 p-2">
           <CommandEmpty className="py-12 text-center">
             <div className="size-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
               <Search className="size-6 text-muted-foreground/40" />

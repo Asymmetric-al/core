@@ -124,7 +124,7 @@ export function EditDonorDialog({
       }}
       open={open}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[700px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-175">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold tracking-tight">
             Edit Partner
@@ -386,7 +386,7 @@ export function EditDonorDialog({
           <form.AppField name="notes">
             {(field) => (
               <field.TextareaField
-                inputClassName="min-h-[100px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                inputClassName="min-h-25 resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                 label="Internal Notes"
                 labelClassName={LABEL_CLASS_NAME}
               />

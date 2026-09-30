@@ -67,10 +67,10 @@ export function ChartCard({
         </div>
         {actions && <CardAction>{actions}</CardAction>}
       </CardHeader>
-      <CardContent className="min-h-[200px] flex flex-col justify-center">
+      <CardContent className="min-h-50 flex flex-col justify-center">
         {isLoading ? (
           <div className="space-y-2">
-            <Skeleton className="h-[200px] w-full rounded-lg" />
+            <Skeleton className="h-50 w-full rounded-lg" />
             <div className="flex justify-between">
               <Skeleton className="h-4 w-12" />
               <Skeleton className="h-4 w-12" />
@@ -85,7 +85,7 @@ export function ChartCard({
             <h3 className="text-sm font-semibold text-foreground mb-1">
               {errorTitle}
             </h3>
-            <p className="text-xs text-muted-foreground max-w-[200px]">
+            <p className="text-xs text-muted-foreground max-w-50">
               {errorMessage}
             </p>
           </div>
@@ -147,8 +147,8 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
           className="flex items-center gap-2 group"
         >
           <div
-            className="size-2 rounded-full shrink-0"
-            style={{ backgroundColor: item.color }}
+            className="size-2 rounded-full shrink-0 bg-(--legend-color)"
+            style={{ "--legend-color": item.color } as React.CSSProperties}
           />
           <div className="flex items-baseline gap-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
@@ -170,7 +170,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="bg-popover text-popover-foreground border-border/70 min-w-[120px] rounded-lg border p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+    <div className="bg-popover text-popover-foreground border-border/70 min-w-30 rounded-lg border p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
       <p className="text-muted-foreground border-border/50 mb-2 border-b pb-1.5 text-[10px] font-semibold uppercase tracking-wider">
         {label}
       </p>
@@ -182,8 +182,12 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
           >
             <div className="flex items-center gap-1.5">
               <div
-                className="size-1.5 rounded-full"
-                style={{ backgroundColor: item.color || item.fill }}
+                className="size-1.5 rounded-full bg-(--legend-color)"
+                style={
+                  {
+                    "--legend-color": item.color || item.fill,
+                  } as React.CSSProperties
+                }
               />
               <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-tight">
                 {item.name}
@@ -219,6 +223,56 @@ interface KpiTileProps {
   className?: string;
 }
 
+type KpiDeltaTrend = NonNullable<KpiTileProps["delta"]>["trend"];
+
+function kpiDeltaBadgeClass(trend: KpiDeltaTrend): string {
+  switch (trend) {
+    case "up":
+      return "bg-emerald-50 text-emerald-700";
+    case "down":
+      return "bg-rose-50 text-rose-700";
+    case "neutral":
+      return "bg-muted text-muted-foreground";
+    default: {
+      const _exhaustive: never = trend;
+      return _exhaustive;
+    }
+  }
+}
+
+function KpiTileLoading({ className }: { className?: string }) {
+  return (
+    <Card className={cn("p-6", className)}>
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="size-8 rounded-lg" />
+      </div>
+      <Skeleton className="h-8 w-32 mb-2" />
+      <Skeleton className="h-4 w-40" />
+    </Card>
+  );
+}
+
+function KpiTileDeltaBadge({
+  delta,
+}: {
+  delta: NonNullable<KpiTileProps["delta"]>;
+}) {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(
+        "h-5 px-1.5 text-[10px] font-semibold border-none",
+        kpiDeltaBadgeClass(delta.trend),
+      )}
+    >
+      {delta.trend === "up" && <TrendingUp className="mr-1 size-3" />}
+      {delta.trend === "down" && <TrendingDown className="mr-1 size-3" />}
+      {delta.value}
+    </Badge>
+  );
+}
+
 export function KpiTile({
   label,
   value,
@@ -231,16 +285,7 @@ export function KpiTile({
   className,
 }: KpiTileProps) {
   if (isLoading) {
-    return (
-      <Card className={cn("p-6", className)}>
-        <div className="flex items-center justify-between mb-4">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="size-8 rounded-lg" />
-        </div>
-        <Skeleton className="h-8 w-32 mb-2" />
-        <Skeleton className="h-4 w-40" />
-      </Card>
-    );
+    return <KpiTileLoading className={className} />;
   }
 
   return (
@@ -260,26 +305,7 @@ export function KpiTile({
               <h3 className="text-2xl font-semibold tracking-tight text-foreground">
                 {isEmpty ? "--" : value}
               </h3>
-              {delta && !isEmpty && (
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    "h-5 px-1.5 text-[10px] font-semibold border-none",
-                    delta.trend === "up" && "bg-emerald-50 text-emerald-700",
-                    delta.trend === "down" && "bg-rose-50 text-rose-700",
-                    delta.trend === "neutral" &&
-                      "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {delta.trend === "up" && (
-                    <TrendingUp className="mr-1 size-3" />
-                  )}
-                  {delta.trend === "down" && (
-                    <TrendingDown className="mr-1 size-3" />
-                  )}
-                  {delta.value}
-                </Badge>
-              )}
+              {delta && !isEmpty && <KpiTileDeltaBadge delta={delta} />}
             </div>
             {(subtitle || (delta?.label && !isEmpty)) && (
               <p className="text-xs text-muted-foreground font-medium">

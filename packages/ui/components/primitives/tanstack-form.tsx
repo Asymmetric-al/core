@@ -171,9 +171,11 @@ function AsymFieldShell({
   children,
   className,
   contentClassName,
+  controlId,
   description,
   descriptionClassName,
   errorClassName,
+  errorId,
   errors,
   isInvalid,
   label,
@@ -181,6 +183,8 @@ function AsymFieldShell({
   orientation = "vertical",
 }: AsymFieldBaseProps & {
   children: React.ReactNode;
+  controlId: string;
+  errorId: string;
   errors: AsymFieldError[];
   isInvalid: boolean;
 }) {
@@ -191,7 +195,9 @@ function AsymFieldShell({
       orientation={orientation}
     >
       {label ? (
-        <FieldLabel className={labelClassName}>{label}</FieldLabel>
+        <FieldLabel className={labelClassName} htmlFor={controlId}>
+          {label}
+        </FieldLabel>
       ) : null}
       <FieldContent className={contentClassName}>
         {children}
@@ -200,7 +206,7 @@ function AsymFieldShell({
             {description}
           </FieldDescription>
         ) : null}
-        <FieldError className={errorClassName} errors={errors} />
+        <FieldError className={errorClassName} errors={errors} id={errorId} />
       </FieldContent>
     </Field>
   );
@@ -236,6 +242,8 @@ function AsymTextField({
 
   return (
     <AsymFieldShell
+      controlId={controlId}
+      errorId={errorId}
       className={className}
       contentClassName={contentClassName}
       description={
@@ -311,6 +319,8 @@ function AsymNumberField({
 
   return (
     <AsymFieldShell
+      controlId={controlId}
+      errorId={errorId}
       className={className}
       contentClassName={contentClassName}
       description={
@@ -401,6 +411,8 @@ function AsymTextareaField({
 
   return (
     <AsymFieldShell
+      controlId={controlId}
+      errorId={errorId}
       className={className}
       contentClassName={contentClassName}
       description={
@@ -462,6 +474,8 @@ function AsymSelectField({
 
   return (
     <AsymFieldShell
+      controlId={controlId}
+      errorId={errorId}
       className={className}
       contentClassName={contentClassName}
       description={
@@ -476,6 +490,7 @@ function AsymSelectField({
       orientation={orientation}
     >
       <Select
+        items={options}
         disabled={disabled}
         name={name ?? field.name}
         onOpenChange={(open: boolean) => {
@@ -542,6 +557,8 @@ function AsymSwitchField({
 
   return (
     <AsymFieldShell
+      controlId={controlId}
+      errorId={errorId}
       className={cn("items-center justify-between", className)}
       contentClassName={cn(
         orientation === "horizontal" ? "items-end" : undefined,
@@ -627,7 +644,7 @@ const asymFormComponents = {
   SubmitButton: AsymSubmitButton,
 };
 
-export function createAsymFormHook<
+function createAsymFormHook<
   const TFieldComponents extends Record<
     string,
     React.ComponentType<Record<string, unknown>>
@@ -660,9 +677,9 @@ export function createAsymFormHook<
 const defaultAsymFormHook = createAsymFormHook();
 
 const useAsymForm = defaultAsymFormHook.useAppForm;
-const withAsymForm = defaultAsymFormHook.withForm;
-const withAsymFieldGroup = defaultAsymFormHook.withFieldGroup;
 
+// Only components and hooks are exported so Fast Refresh can preserve state;
+// the form-hook factory and the component bundles stay module-private.
 export {
   AsymNumberField,
   AsymSelectField,
@@ -670,11 +687,7 @@ export {
   AsymSwitchField,
   AsymTextField,
   AsymTextareaField,
-  asymFieldComponents,
-  asymFormComponents,
   useAsymFieldContext,
   useAsymForm,
   useAsymFormContext,
-  withAsymFieldGroup,
-  withAsymForm,
 };

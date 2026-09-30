@@ -56,6 +56,9 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       data-slot="breadcrumb-page"
+      // shadcn registry component kept in sync with upstream, which marks the
+      // current crumb as a disabled link rather than rendering an <a>.
+      // react-doctor-disable-next-line react-doctor/prefer-tag-over-role
       role="link"
       aria-disabled="true"
       aria-current="page"

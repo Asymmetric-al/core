@@ -412,7 +412,7 @@ test('displays incremented count when clicked', () => {
 
 ### Data Protection
 
-- [ ] Passwords hashed (bcrypt/argon2)?
+- [ ] Passwords hashed (bcrypt/argon2)? // pragma: allowlist secret
 - [ ] Sensitive data encrypted at rest?
 - [ ] HTTPS enforced for sensitive data?
 - [ ] PII handled according to regulations?

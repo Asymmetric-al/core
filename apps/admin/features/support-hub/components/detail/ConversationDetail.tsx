@@ -59,7 +59,7 @@ export function ConversationDetail({
       <aside
         aria-label="Conversation detail"
         className={cn(
-          "flex h-full min-h-[480px] flex-col rounded-2xl border border-zinc-100 bg-white shadow-sm",
+          "flex h-full min-h-120 flex-col rounded-2xl border border-zinc-100 bg-white shadow-sm",
           conversationId === null && "items-center justify-center text-center",
         )}
       >
@@ -130,7 +130,13 @@ function DetailBody({ conversation, isLoading, onClose }: DetailBodyProps) {
         <ConversationTimeline conversationId={conversation.id} />
       </div>
       <div className="border-t border-zinc-100 bg-zinc-50/40 p-3">
-        <ConversationComposer conversation={conversation} agent={agent} />
+        {/* Keyed per conversation so drafts, attachments, and mode start fresh
+            when the agent switches threads instead of being reset in an effect. */}
+        <ConversationComposer
+          key={conversation.id}
+          conversation={conversation}
+          agent={agent}
+        />
       </div>
     </div>
   );
@@ -170,7 +176,7 @@ function ConversationNotFound({ onClose }: ConversationNotFoundProps) {
         variant="outline"
         size="sm"
         onClick={onClose}
-        className="mt-1 h-8 gap-1.5 rounded-lg border-zinc-200 px-3 text-xs"
+        className="mt-1 rounded-lg border-zinc-200 text-xs"
       >
         <ArrowLeft className="size-3.5" />
         Back to inbox

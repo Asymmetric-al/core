@@ -11,7 +11,6 @@ import type {
   ListNode,
   TextNode,
 } from "@openpolicy/core";
-import type { PolicyComponents } from "@openpolicy/react";
 import type { ReactNode } from "react";
 
 const headingTagByLevel = {
@@ -32,7 +31,7 @@ const headingClassByLevel = {
   6: "text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground",
 } as const;
 
-function PolicySection({
+export function PolicySection({
   section,
   children,
 }: {
@@ -50,7 +49,7 @@ function PolicySection({
   );
 }
 
-function PolicyHeading({ node }: { node: HeadingNode }) {
+export function PolicyHeading({ node }: { node: HeadingNode }) {
   const level = node.level ?? 2;
   const Comp = headingTagByLevel[level];
 
@@ -66,7 +65,7 @@ function PolicyHeading({ node }: { node: HeadingNode }) {
   );
 }
 
-function PolicyParagraph({ children }: { children: ReactNode }) {
+export function PolicyParagraph({ children }: { children: ReactNode }) {
   return (
     <p className="text-sm leading-7 text-muted-foreground sm:text-base sm:leading-8">
       {children}
@@ -74,7 +73,7 @@ function PolicyParagraph({ children }: { children: ReactNode }) {
   );
 }
 
-function PolicyList({
+export function PolicyList({
   node,
   children,
 }: {
@@ -97,7 +96,7 @@ function PolicyList({
   );
 }
 
-function PolicyLink({ node }: { node: LinkNode }) {
+export function PolicyLink({ node }: { node: LinkNode }) {
   const className =
     "rounded-sm text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
@@ -121,27 +120,16 @@ function PolicyLink({ node }: { node: LinkNode }) {
   );
 }
 
-function PolicyText({ node }: { node: TextNode }) {
+export function PolicyText({ node }: { node: TextNode }) {
   return <>{node.value}</>;
 }
 
-function PolicyBold({ node }: { node: BoldNode }) {
+export function PolicyBold({ node }: { node: BoldNode }) {
   return (
     <strong className="font-semibold text-foreground">{node.value}</strong>
   );
 }
 
-function PolicyItalic({ node }: { node: ItalicNode }) {
+export function PolicyItalic({ node }: { node: ItalicNode }) {
   return <em className="italic">{node.value}</em>;
 }
-
-export const policyComponents: PolicyComponents = {
-  Section: PolicySection,
-  Heading: PolicyHeading,
-  Paragraph: PolicyParagraph,
-  List: PolicyList,
-  Link: PolicyLink,
-  Text: PolicyText,
-  Bold: PolicyBold,
-  Italic: PolicyItalic,
-};

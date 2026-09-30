@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -15,12 +16,8 @@ import { useQuery } from "@tanstack/react-query";
 import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo, useState } from "react";
 
-import {
-  TENANT_REQUIRED_MESSAGE,
-  TenantSelectField,
-  buildTenantsQuery,
-  isSuperAdminUser,
-} from "./tenant-picker";
+import { buildTenantsQuery, isSuperAdminUser } from "./tenant-options";
+import { TENANT_REQUIRED_MESSAGE, TenantSelectField } from "./tenant-picker";
 import { Link, useRouter, useSearchParams } from "../routing";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
@@ -119,14 +116,16 @@ function ProjectPageCreateViewContent() {
         }),
       });
 
-      const body = (await res.json().catch(() => ({}))) as {
+      // Read the payload for both branches (409 conflicts and errors carry
+      // data) with the status check made before the body is consumed.
+      const { ok, status, body } = await readJsonBody<{
         id?: string;
         collectionSlug?: string;
         error?: string;
         existingId?: string;
-      };
+      }>(res);
 
-      if (res.status === 409 && body.existingId) {
+      if (status === 409 && body?.existingId) {
         const editPath = formatAdminURL({
           adminRoute: routes.admin,
           path: `/collections/project-pages/${body.existingId}`,
@@ -135,12 +134,12 @@ function ProjectPageCreateViewContent() {
         return;
       }
 
-      if (!res.ok) {
-        setSubmitError(body.error ?? "Create failed");
+      if (!ok) {
+        setSubmitError(body?.error ?? "Create failed");
         return;
       }
 
-      if (body.id && body.collectionSlug) {
+      if (body?.id && body.collectionSlug) {
         const editPath = formatAdminURL({
           adminRoute: routes.admin,
           path: `/collections/${body.collectionSlug}/${body.id}`,

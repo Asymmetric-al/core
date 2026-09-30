@@ -73,6 +73,9 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
 
     files.forEach((file) => {
       const isVideo = file.type.startsWith("video/");
+      // Every URL is tracked in previewUrlsRef and revoked on remove, close,
+      // and unmount (revokeAllPreviewUrls); the linter cannot follow the Set.
+      // react-doctor-disable-next-line react-doctor/no-create-object-url-without-revoke
       const url = URL.createObjectURL(file);
 
       previewUrlsRef.current.add(url);

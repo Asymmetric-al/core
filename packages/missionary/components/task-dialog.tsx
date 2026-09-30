@@ -555,10 +555,7 @@ function DonorSelectorField({
                 }
               />
 
-              <PopoverContent
-                align="start"
-                className="w-[400px] rounded-xl p-0"
-              >
+              <PopoverContent align="start" className="w-100 rounded-xl p-0">
                 <Command className="rounded-xl">
                   <CommandInput
                     className="h-11"
@@ -643,7 +640,7 @@ function TaskDescriptionField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="description">
       {(field) => (
         <field.TextareaField
-          inputClassName="min-h-[80px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+          inputClassName="min-h-20 resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
           label="Description"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Add details about this task..."
@@ -660,7 +657,7 @@ function TaskNotesField({ form }: { form: MissionaryTaskFormApi }) {
         <field.TextareaField
           description="These notes are only visible to you"
           descriptionClassName="text-xs text-zinc-400"
-          inputClassName="min-h-[60px] resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
+          inputClassName="min-h-15 resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
           label="Internal Notes"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Private notes (not visible to partner)..."
@@ -774,7 +771,7 @@ export function TaskDialog({
       open={open}
     >
       {trigger ? <DialogTrigger render={trigger} /> : null}
-      <DialogContent className="max-h-[90vh] overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[600px]">
+      <DialogContent className="max-h-[90vh] overflow-hidden rounded-4xl border-zinc-100 p-0 sm:max-w-150">
         <div className="bg-zinc-900 p-8 text-white">
           <DialogTitle className="text-2xl font-black tracking-tight">
             {isEditing ? "Edit Task" : "Create Task"}

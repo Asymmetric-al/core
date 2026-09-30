@@ -29,7 +29,10 @@ before running `bun run skills:sync`.
    review the full diff. Never `--overwrite` without reviewing customizations.
 5. Use Base UI `render` (not Radix `asChild`). Prefer semantic tokens over
    literal `zinc-*` or hardcoded colors.
-6. Verify with existing shadcn guardrails and browser evidence when visible.
+6. Follow [Core design-system lint](references/design-system-lint.md) for
+   scoped lint, raw-finding review, authoring exceptions, and checking consumers
+   after shared changes. Preserve other shadcn guardrails and browser evidence
+   when visible. Do not load this workflow for unrelated work.
 
 ### Checklist
 

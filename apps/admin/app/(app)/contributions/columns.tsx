@@ -155,7 +155,7 @@ export function getContributionColumns({
           : contribution.donorName;
 
         return (
-          <div className="flex items-center gap-3 min-w-[240px]">
+          <div className="flex items-center gap-3 min-w-60">
             <Avatar className="size-9 border border-border/60">
               <AvatarImage
                 src={contribution.donorAvatar ?? undefined}
@@ -277,7 +277,7 @@ export function getContributionColumns({
         <DataTableColumnHeader column={column} title="Type" />
       ),
       cell: ({ row }) => (
-        <Badge variant="secondary" className="font-medium text-xs">
+        <Badge variant="secondary" className="">
           {row.original.type}
         </Badge>
       ),

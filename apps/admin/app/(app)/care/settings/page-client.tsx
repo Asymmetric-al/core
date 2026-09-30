@@ -99,7 +99,7 @@ function CareSettingsHeader() {
 
 function RegionalLocalizationCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
+    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-4xl">
       <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
         <div className="flex items-center gap-3">
           <Globe className="size-5 text-zinc-400" />
@@ -161,7 +161,7 @@ function RegionalLocalizationCard() {
 
 function ConnectedServicesCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
+    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-4xl">
       <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
         <div className="flex items-center gap-3">
           <LinkIcon className="size-5 text-zinc-400" />
@@ -224,7 +224,7 @@ function ConnectedServicesCard() {
 
 function AlertPreferencesCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[2rem]">
+    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-4xl">
       <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
         <div className="flex items-center gap-3">
           <Bell className="size-5 text-zinc-400" />
@@ -314,7 +314,7 @@ function ModuleInfoCard() {
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="text-zinc-500 font-medium">Status</span>
-            <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] px-2 h-5 font-semibold shadow-none">
+            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] h-5 font-semibold shadow-none">
               Active
             </Badge>
           </div>

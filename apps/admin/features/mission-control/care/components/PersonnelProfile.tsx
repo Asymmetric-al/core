@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import {
   Avatar,
   AvatarFallback,
@@ -134,7 +135,7 @@ function PersonnelProfileHeaderCard({
                   : "Flag Attention"}
             </Button>
             <Button
-              className="h-9 px-4 font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200"
+              className="font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200"
               onClick={onLogCheckIn}
               disabled={isLoggingCheckIn}
             >
@@ -156,6 +157,7 @@ function OverviewTabContentSection({
   activities: ActivityLogEntry[];
   heatmapData: Array<{ date: string; intensity: number; type: string }>;
 }) {
+  const { formatDate } = useLocaleFormat();
   return (
     <TabsContent
       value="overview"
@@ -196,7 +198,7 @@ function OverviewTabContentSection({
                           {activity.type}
                         </span>
                         <span className="text-[10px] text-zinc-400 font-medium">
-                          {makeDisplayDate(activity.date).toLocaleDateString()}
+                          {formatDate(activity.date)}
                         </span>
                       </div>
                       <p className="text-xs text-zinc-600 leading-relaxed">
@@ -240,14 +242,18 @@ function OverviewTabContentSection({
                   <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
                     <div
                       className={cn(
-                        "h-full rounded-full transition-colors",
+                        "h-full w-(--health-signal-width) rounded-full transition-colors",
                         value > 80
                           ? "bg-emerald-500"
                           : value > 50
                             ? "bg-amber-500"
                             : "bg-rose-500",
                       )}
-                      style={{ width: `${value}%` }}
+                      style={
+                        {
+                          "--health-signal-width": `${value}%`,
+                        } as React.CSSProperties
+                      }
                     />
                   </div>
                 </div>
@@ -335,6 +341,7 @@ function CareThreadTabContent({
   personnel: CarePersonnel;
   activities: ActivityLogEntry[];
 }) {
+  const { formatDateTime } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createThreadPost = useCreateCareThreadPost();
   const threadEntries = activities;
@@ -344,7 +351,7 @@ function CareThreadTabContent({
       value="care-thread"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-zinc-200 shadow-sm min-h-[400px]">
+      <Card className="border-zinc-200 shadow-sm min-h-100">
         <CardHeader className="border-b border-zinc-50">
           <CardTitle className="text-base font-semibold">Care Thread</CardTitle>
           <CardDescription className="text-xs">
@@ -367,7 +374,7 @@ function CareThreadTabContent({
                     {entry.authorName}
                   </span>
                   <span className="text-zinc-400">
-                    {makeDisplayDate(entry.date).toLocaleString()}
+                    {formatDateTime(entry.date)}
                   </span>
                 </div>
                 <RichTextViewer value={entry.content} />
@@ -384,7 +391,7 @@ function CareThreadTabContent({
             <div className="mt-3 flex justify-end">
               <Button
                 size="sm"
-                className="h-8 font-semibold bg-zinc-900 text-white"
+                className="font-semibold bg-zinc-900 text-white"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createThreadPost.mutateAsync({
@@ -424,7 +431,7 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
 
   return (
     <TabsContent value="care-plan" className="animate-in fade-in duration-300">
-      <Card className="border-zinc-200 shadow-sm min-h-[400px]">
+      <Card className="border-zinc-200 shadow-sm min-h-100">
         <CardHeader className="border-b border-zinc-50">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -437,7 +444,7 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
             </div>
             <Button
               size="sm"
-              className="h-8 bg-zinc-900 text-white"
+              className="bg-zinc-900 text-white"
               onClick={async () => {
                 await upsertCareGoal.mutateAsync({
                   personnelId: personnel.id,
@@ -452,7 +459,7 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
             <Button
               size="sm"
               variant="outline"
-              className="h-8"
+              className=""
               onClick={async () => {
                 await upsertCareRequirement.mutateAsync({
                   personnelId: personnel.id,
@@ -508,6 +515,7 @@ function ActivityTabContent({
   activities: ActivityLogEntry[];
   heatmapData: Array<{ date: string; intensity: number; type: string }>;
 }) {
+  const { formatDateTime } = useLocaleFormat();
   return (
     <TabsContent
       value="activity"
@@ -533,7 +541,7 @@ function ActivityTabContent({
                   {activity.type}
                 </p>
                 <p className="text-[11px] text-zinc-400">
-                  {makeDisplayDate(activity.date).toLocaleString()}
+                  {formatDateTime(activity.date)}
                 </p>
               </div>
               <p className="text-xs text-zinc-600">{activity.content}</p>
@@ -566,6 +574,7 @@ function SecureNotesTabContent({
   personnelId: string;
   privateNotes: MemberCarePrivateNote[];
 }) {
+  const { formatDate } = useLocaleFormat();
   const [draft, setDraft] = useState("");
   const createPrivateNote = useCreateCarePrivateNote();
 
@@ -574,7 +583,7 @@ function SecureNotesTabContent({
       value="secure-notes"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-zinc-200 shadow-sm min-h-[400px] border-amber-100 bg-amber-50/5">
+      <Card className="border-zinc-200 shadow-sm min-h-100 border-amber-100 bg-amber-50/5">
         <CardHeader className="flex flex-row items-center justify-between border-b border-amber-50">
           <div>
             <div className="flex items-center gap-2">
@@ -590,7 +599,7 @@ function SecureNotesTabContent({
           <Button
             size="sm"
             variant="outline"
-            className="h-8 font-semibold border-amber-200 text-amber-700 hover:bg-amber-100"
+            className="font-semibold border-amber-200 text-amber-700 hover:bg-amber-100"
           >
             <Plus className="mr-2 size-3.5" /> Add Private Note
           </Button>
@@ -614,7 +623,7 @@ function SecureNotesTabContent({
                       {note.authorName}
                     </span>
                     <span className="text-[10px] text-zinc-400 font-medium">
-                      {makeDisplayDate(note.date).toLocaleDateString()}
+                      {formatDate(note.date)}
                     </span>
                   </div>
                   <RichTextViewer value={note.content} />
@@ -637,7 +646,7 @@ function SecureNotesTabContent({
             <div className="mt-3 flex justify-end">
               <Button
                 size="sm"
-                className="h-8 font-semibold bg-amber-600 text-white hover:bg-amber-500"
+                className="font-semibold bg-amber-600 text-white hover:bg-amber-500"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createPrivateNote.mutateAsync({

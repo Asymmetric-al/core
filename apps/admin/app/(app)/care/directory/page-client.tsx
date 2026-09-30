@@ -23,11 +23,11 @@ export default function CareDirectoryPage() {
       <Button
         variant="outline"
         size="sm"
-        className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
+        className="h-10 rounded-xl border-zinc-200 px-4 font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
       >
         <Download className="mr-2 size-4 text-zinc-500" /> Export
       </Button>
-      <Button className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800">
+      <Button className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800">
         <Plus className="mr-2 size-4" /> Add Personnel
       </Button>
     </>
@@ -58,7 +58,7 @@ export default function CareDirectoryPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-white hover:text-zinc-950"
+                  className="h-10 rounded-xl border-zinc-200 px-4 font-semibold text-zinc-700 hover:bg-white hover:text-zinc-950"
                 >
                   <Filter className="mr-2 size-4" /> Advanced Filters
                 </Button>

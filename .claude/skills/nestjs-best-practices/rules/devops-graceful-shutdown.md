@@ -49,21 +49,21 @@ async function bootstrap() {
   server.setTimeout(30000); // 30 second timeout
 
   // Handle graceful shutdown
-  const signals = ['SIGTERM', 'SIGINT'];
+  const signals = ["SIGTERM", "SIGINT"];
   signals.forEach((signal) => {
     process.on(signal, async () => {
       console.log(`Received ${signal}, starting graceful shutdown...`);
 
       // Stop accepting new connections
       server.close(async () => {
-        console.log('HTTP server closed');
+        console.log("HTTP server closed");
         await app.close();
         process.exit(0);
       });
 
       // Force exit after timeout
       setTimeout(() => {
-        console.error('Forced shutdown after timeout');
+        console.error("Forced shutdown after timeout");
         process.exit(1);
       }, 30000);
     });
@@ -79,11 +79,9 @@ export class DatabaseService implements OnApplicationShutdown {
     console.log(`Database service shutting down on ${signal}`);
 
     // Close all connections gracefully
-    await Promise.all(
-      this.connections.map((conn) => conn.close()),
-    );
+    await Promise.all(this.connections.map((conn) => conn.close()));
 
-    console.log('All database connections closed');
+    console.log("All database connections closed");
   }
 }
 
@@ -103,7 +101,7 @@ export class QueueService implements OnApplicationShutdown, OnModuleDestroy {
 
   async processJob(job: Job): Promise<void> {
     if (this.isShuttingDown) {
-      throw new Error('Service is shutting down');
+      throw new Error("Service is shutting down");
     }
     await this.doWork(job);
   }
@@ -117,7 +115,7 @@ export class EventsGateway implements OnApplicationShutdown {
 
   async onApplicationShutdown(): Promise<void> {
     // Notify all connected clients
-    this.server.emit('shutdown', { message: 'Server is shutting down' });
+    this.server.emit("shutdown", { message: "Server is shutting down" });
 
     // Close all connections
     this.server.disconnectSockets();
@@ -138,21 +136,19 @@ export class ShutdownService {
   }
 }
 
-@Controller('health')
+@Controller("health")
 export class HealthController {
   constructor(private shutdownService: ShutdownService) {}
 
-  @Get('ready')
+  @Get("ready")
   @HealthCheck()
   readiness(): Promise<HealthCheckResult> {
     // Return 503 during shutdown - k8s stops sending traffic
     if (this.shutdownService.isShutdown()) {
-      throw new ServiceUnavailableException('Shutting down');
+      throw new ServiceUnavailableException("Shutting down");
     }
 
-    return this.health.check([
-      () => this.db.pingCheck('database'),
-    ]);
+    return this.health.check([() => this.db.pingCheck("database")]);
   }
 }
 
@@ -182,15 +178,19 @@ export class RequestTracker implements NestMiddleware, OnApplicationShutdown {
 
   use(req: Request, res: Response, next: NextFunction): void {
     if (this.isShuttingDown) {
-      res.status(503).send('Service Unavailable');
+      res.status(503).send("Service Unavailable");
       return;
     }
 
     this.activeRequests++;
 
-    res.on('finish', () => {
+    res.on("finish", () => {
       this.activeRequests--;
-      if (this.isShuttingDown && this.activeRequests === 0 && this.resolveShutdown) {
+      if (
+        this.isShuttingDown &&
+        this.activeRequests === 0 &&
+        this.resolveShutdown
+      ) {
         this.resolveShutdown();
       }
     });
@@ -214,7 +214,7 @@ export class RequestTracker implements NestMiddleware, OnApplicationShutdown {
       ]);
     }
 
-    console.log('All requests completed');
+    console.log("All requests completed");
   }
 }
 ```

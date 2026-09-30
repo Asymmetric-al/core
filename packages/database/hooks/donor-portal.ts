@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { parseJsonResponse } from "../http/parse-json-response";
+
 export type DonorPortalDonation = {
   id: string;
   date: string;
@@ -108,24 +110,6 @@ export type DonorPortalPatch = {
 
 const DONOR_PORTAL_QUERY_KEY = ["donor", "portal"] as const;
 
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error || `Request failed with status ${response.status}`,
-    );
-  }
-
-  if (!payload) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return payload;
-}
-
 export async function fetchDonorPortalSnapshot(): Promise<DonorPortalSnapshot> {
   const response = await fetch("/api/donor/portal", {
     credentials: "same-origin",
@@ -173,6 +157,9 @@ export function useUpdateDonorPortal() {
 }
 
 export function useCreateDonorBillingPortalSession() {
+  // Creates a Stripe Billing Portal session and returns its redirect URL; it
+  // changes no cached donor data, and the return trip is a full navigation.
+  // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation
   return useMutation({
     mutationFn: async () => {
       const response = await fetch("/api/donor/billing-portal", {

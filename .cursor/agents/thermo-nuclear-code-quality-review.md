@@ -18,6 +18,11 @@ You are a **Task subagent**. The parent agent already collected git output and c
 - Output in the **priority order** the rubric specifies. Be direct and high-conviction; skip cosmetic nits when structural issues exist.
 - Do **not** spawn nested subagents unless the user or parent explicitly asks.
 
+For UI-policy changes, use
+`docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`
+to review shared ownership, actual authoring boundaries, discovery evidence,
+and exception/debt changes. Do not treat a lint pass as visual or a11y proof.
+
 ## Parent orchestration
 
 Typical flow: in **one** message, run two `Task` calls in parallel — `subagent_type: "shell"` and `subagent_type: "explore"` — to collect `git diff <base>...HEAD` output and full contents of changed files (default base `main`). Then invoke this agent with `subagent_type: "thermo-nuclear-code-quality-review"` and a user prompt containing `### Git / diff output` and `### Changed file contents`.

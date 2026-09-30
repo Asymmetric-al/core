@@ -36,7 +36,7 @@ function ChartSkeleton({ height }: { height: number }) {
 
 function ChartEmptyState({ message }: { message: string }) {
   return (
-    <div className="flex h-[300px] w-full items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 text-center text-sm font-medium text-muted-foreground">
+    <div className="flex h-75 w-full items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 text-center text-sm font-medium text-muted-foreground">
       {message}
     </div>
   );
@@ -56,7 +56,7 @@ const GivingChart = dynamic<{ data: GivingByFundPoint[] }>(
 
     function GivingChartInner({ data }: { data: GivingByFundPoint[] }) {
       return (
-        <div className="h-[320px] w-full">
+        <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data}
@@ -145,7 +145,7 @@ const DonorsChart = dynamic<{ data: DonorsByFundPoint[] }>(
 
     function DonorsChartInner({ data }: { data: DonorsByFundPoint[] }) {
       return (
-        <div className="h-[300px] w-full">
+        <div className="h-75 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
