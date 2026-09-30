@@ -370,7 +370,6 @@ function AsymNumberField({
       orientation={orientation}
     >
       <NumberField
-        id={controlId}
         disabled={disabled}
         name={name ?? field.name}
         min={min}
@@ -400,6 +399,7 @@ function AsymNumberField({
         }}
       >
         <NumberFieldInput
+          id={controlId}
           aria-describedby={describedBy}
           aria-errormessage={isInvalid ? errorId : undefined}
           aria-invalid={isInvalid}

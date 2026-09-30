@@ -114,11 +114,11 @@ export function DonorsPageRoster() {
                   align="end"
                   className="w-48 rounded-xl border-border shadow-xl"
                 >
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Sort By
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Sort By
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-muted" />
                     {[
                       { value: "last_gift", label: "Last Gift Date" },
                       { value: "total_given", label: "Total Given" },
@@ -169,11 +169,11 @@ export function DonorsPageRoster() {
                   align="end"
                   className="w-56 rounded-xl border-border shadow-xl max-h-[400px] overflow-y-auto"
                 >
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Filter by Status
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Filter by Status
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-muted" />
                     {[
                       "All",
                       "Active",
@@ -193,11 +193,11 @@ export function DonorsPageRoster() {
                     ))}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator className="bg-muted" />
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Filter by Recurring
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Filter by Recurring
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-muted" />
                     {["All", "Active", "Inactive"].map((p) => (
                       <DropdownMenuCheckboxItem
                         key={p}
@@ -214,11 +214,11 @@ export function DonorsPageRoster() {
                     ))}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator className="bg-muted" />
-                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Filter by Tag
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-muted" />
                   <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Filter by Tag
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-muted" />
                     {AVAILABLE_TAGS.map((tag) => (
                       <DropdownMenuCheckboxItem
                         key={tag.id}

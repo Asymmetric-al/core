@@ -50,6 +50,9 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  disabled,
+  focusableWhenDisabled,
+  type,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
@@ -62,6 +65,11 @@ function Button({
         className,
       )}
       {...props}
+      type={type}
+      disabled={disabled}
+      focusableWhenDisabled={
+        type === "submit" && disabled ? false : focusableWhenDisabled
+      }
     />
   );
 }

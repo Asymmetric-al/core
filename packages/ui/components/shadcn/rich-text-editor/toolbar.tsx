@@ -27,7 +27,7 @@ import { Input } from "../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 import { Toggle } from "../toggle";
-import { ToolbarButton as ToolbarItem } from "../toolbar";
+import { Toolbar, ToolbarButton as ToolbarItem } from "../toolbar";
 import {
   Tooltip,
   TooltipContent,
@@ -334,7 +334,6 @@ function EditorToolbarHistorySection({
       {has("undo") && (
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
-          active={false}
           disabled={!toolbarState.canUndo}
           tooltip="Undo (Ctrl+Z)"
         >
@@ -344,7 +343,6 @@ function EditorToolbarHistorySection({
       {has("redo") && (
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
-          active={false}
           disabled={!toolbarState.canRedo}
           tooltip="Redo (Ctrl+Shift+Z)"
         >
@@ -371,97 +369,99 @@ function EditorToolbarSectionList({
   const sectionIds = editorToolbarSectionIds(enabledTools);
 
   return (
-    <div className="flex items-center gap-0.5 overflow-x-auto px-3 sm:px-4 py-2">
-      {sectionIds.map((sectionId, index) => {
-        switch (sectionId) {
-          case "formatting":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+    <div className="overflow-x-auto px-3 py-2 sm:px-4">
+      <Toolbar aria-label="Text formatting">
+        {sectionIds.map((sectionId, index) => {
+          switch (sectionId) {
+            case "formatting":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarFormattingSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarFormattingSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          case "headings":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "headings":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarHeadingsSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarHeadingsSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          case "lists":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "lists":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarListsSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarListsSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          case "media":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "media":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarMediaSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
+                    onImageUpload={onImageUpload}
+                    onImageClick={onImageClick}
                   />
-                )}
-                <EditorToolbarMediaSection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                  onImageUpload={onImageUpload}
-                  onImageClick={onImageClick}
-                />
-              </React.Fragment>
-            );
-          case "history":
-            return (
-              <React.Fragment key={sectionId}>
-                {index > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
+                </React.Fragment>
+              );
+            case "history":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarHistorySection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
                   />
-                )}
-                <EditorToolbarHistorySection
-                  editor={editor}
-                  enabledTools={enabledTools}
-                  toolbarState={toolbarState}
-                />
-              </React.Fragment>
-            );
-          default: {
-            const _exhaustive: never = sectionId;
-            return _exhaustive;
+                </React.Fragment>
+              );
+            default: {
+              const _exhaustive: never = sectionId;
+              return _exhaustive;
+            }
           }
-        }
-      })}
+        })}
+      </Toolbar>
     </div>
   );
 }
@@ -554,7 +554,14 @@ function ToolbarButton({
             aria-label={tooltip}
             render={
               active === undefined ? (
-                <Button variant="ghost" size="sm" onClick={onClick} />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={disabled}
+                  onClick={() => {
+                    if (!disabled) onClick();
+                  }}
+                />
               ) : (
                 <Toggle size="sm" pressed={active} onPressedChange={onClick} />
               )

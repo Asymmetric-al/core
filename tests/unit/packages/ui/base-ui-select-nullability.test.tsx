@@ -457,13 +457,11 @@ describe("remaining single-Select callback contracts", () => {
 
   it("preserves the required admin reminder type in form state", async () => {
     render(<AdminReminderHarness />);
-    fireEvent.click(
-      screen.getByRole("button", { name: "Reminders", exact: true }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Add Reminder" }));
     expect(screen.getByRole("status").textContent).toBe("notification");
     emitChange("notification", null);
     expect(screen.getByRole("status").textContent).toBe("notification");
-    await choose("Reminder type", "Email");
+    await choose("Reminder 1 channel", "Email");
     expect(screen.getByRole("status").textContent).toBe("email");
   });
 });

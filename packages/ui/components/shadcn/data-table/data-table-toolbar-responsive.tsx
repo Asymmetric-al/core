@@ -29,6 +29,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -253,23 +254,27 @@ function DataTableToolbarActions<TData extends RowData>({
             }
           />
           <DropdownMenuContent align="end" className="w-56 rounded-xl">
-            <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
-              Toggle columns
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {columns.map((column) => {
-              const columnMeta = column.columnDef.meta;
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize rounded-lg"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {columnMeta?.label ?? column.id}
-                </DropdownMenuCheckboxItem>
-              );
-            })}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                Toggle columns
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {columns.map((column) => {
+                const columnMeta = column.columnDef.meta;
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize rounded-lg"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {columnMeta?.label ?? column.id}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
