@@ -126,6 +126,10 @@ export function validateEvidence(run, reports, repository) {
     Array.isArray(reports.proof.protected_paths),
     "Missing protected-path manifest",
   );
+  requireValue(
+    reports.proof.protected_paths.length > 0,
+    "Empty protected-path manifest",
+  );
   const findings = [];
   for (const role of ["micaiah", "luke"]) {
     const report = reports[role];
@@ -218,26 +222,39 @@ export function guardFile(filename) {
   );
   const protectedPaths = reports.proof.protected_paths;
   requireValue(Array.isArray(protectedPaths), "Invalid protected paths");
+  requireValue(protectedPaths.length > 0, "Empty protected-path manifest");
   requireValue(
     protectedPaths.every(
       (p) =>
         typeof p === "string" &&
         p.length > 0 &&
         !p.startsWith("/") &&
+        !p.startsWith(":") &&
+        p === path.posix.normalize(p) &&
         !p.split("/").includes(".."),
     ),
     "Invalid protected path",
   );
-  const changed = protectedPaths.length
-    ? git([
-        "diff",
-        "--name-only",
-        run.proof_sha,
-        run.candidate_sha,
-        "--",
-        ...protectedPaths,
-      ])
-    : "";
+  for (const protectedPath of protectedPaths) {
+    const object = spawnSync(
+      "git",
+      ["cat-file", "-t", `${run.proof_sha}:${protectedPath}`],
+      { encoding: "utf8", shell: false },
+    );
+    requireValue(
+      object.status === 0 && object.stdout.trim() === "blob",
+      `Protected path is not a file at proof commit: ${protectedPath}`,
+    );
+  }
+  const changed = git([
+    "--literal-pathspecs",
+    "diff",
+    "--name-only",
+    run.proof_sha,
+    run.candidate_sha,
+    "--",
+    ...protectedPaths,
+  ]);
   return validateEvidence(run, reports, {
     head: git(["rev-parse", "HEAD"]),
     clean: git(["status", "--porcelain"]) === "",

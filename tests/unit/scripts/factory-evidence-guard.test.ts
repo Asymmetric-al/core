@@ -1,4 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
+import {
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { execFileSync, spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { afterEach, describe, expect, it } from "vitest";
 import { validateEvidence } from "../../../scripts/factory/evidence-guard.mjs";
 
 function fixture() {
@@ -93,6 +106,86 @@ function fixture() {
   };
 }
 
+const temporaryRoots = new Set<string>();
+afterEach(() => {
+  for (const root of temporaryRoots)
+    rmSync(root, { recursive: true, force: true });
+  temporaryRoots.clear();
+});
+
+function repositoryFixture() {
+  const root = realpathSync(
+    mkdtempSync(path.join(os.tmpdir(), "factory-guard-")),
+  );
+  temporaryRoots.add(root);
+  const checkout = path.join(root, "checkout");
+  const evidence = path.join(root, "evidence");
+  mkdirSync(checkout);
+  mkdirSync(evidence);
+  const git = (...args: string[]) =>
+    execFileSync("git", args, { cwd: checkout, encoding: "utf8" }).trim();
+  git("init", "--quiet");
+  git("config", "user.name", "Factory fixture");
+  git("config", "user.email", "fixture@example.invalid");
+  const commit = (message: string) => {
+    git("add", ".");
+    git(
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "--quiet",
+      "--allow-empty",
+      "-m",
+      message,
+    );
+    return git("rev-parse", "HEAD");
+  };
+  const f = fixture();
+  f.run.base_sha = commit("base");
+  mkdirSync(path.join(checkout, "tests/unit"), { recursive: true });
+  writeFileSync(
+    path.join(checkout, "tests/unit/example.test.ts"),
+    "protected proof\n",
+  );
+  f.run.proof_sha = commit("proof");
+  f.run.candidate_sha = commit("candidate");
+  const save = () => {
+    for (const [key, report] of Object.entries(f.reports)) {
+      report.base_sha = f.run.base_sha;
+      report.subject_sha =
+        key === "intent"
+          ? f.run.base_sha
+          : key === "proof"
+            ? f.run.proof_sha
+            : f.run.candidate_sha;
+      for (const input of Object.keys(report.input_digests))
+        report.input_digests[input] = f.run.artifacts[input].sha256;
+      const bytes = JSON.stringify(report);
+      writeFileSync(path.join(evidence, `${key}.json`), bytes);
+      f.run.artifacts[key].sha256 = createHash("sha256")
+        .update(bytes)
+        .digest("hex");
+    }
+    writeFileSync(path.join(evidence, "run.json"), JSON.stringify(f.run));
+  };
+  save();
+  const guard = () =>
+    spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(
+          new URL(
+            "../../../scripts/factory/evidence-guard.mjs",
+            import.meta.url,
+          ),
+        ),
+        path.join(evidence, "run.json"),
+      ],
+      { cwd: checkout, encoding: "utf8" },
+    );
+  return { ...f, root, checkout, evidence, save, guard, commit };
+}
+
 describe("factory evidence binding", () => {
   it("accepts one complete exact-current candidate", () => {
     const f = fixture();
@@ -167,5 +260,51 @@ describe("factory evidence binding", () => {
     expect(() =>
       validateEvidence(writer.run, writer.reports, writer.repository),
     ).toThrow(/ratification role/);
+  });
+});
+
+describe("factory evidence file boundary", () => {
+  it("accepts bound files in a complete clean Git repository", () => {
+    const f = repositoryFixture();
+    const result = f.guard();
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout).status).toBe("EVIDENCE_BOUND");
+  });
+  it("rejects artifact bytes changed after their digest was recorded", () => {
+    const f = repositoryFixture();
+    writeFileSync(path.join(f.evidence, "intent.json"), "{}");
+    expect(f.guard().stderr).toContain("Changed intent artifact");
+  });
+  it("rejects an artifact symlink resolving outside the run directory", () => {
+    const f = repositoryFixture();
+    const external = path.join(f.root, "external.json");
+    writeFileSync(external, JSON.stringify(f.reports.intent));
+    rmSync(path.join(f.evidence, "intent.json"));
+    symlinkSync(external, path.join(f.evidence, "intent.json"));
+    expect(f.guard().stderr).toContain("Artifact escapes run directory");
+  });
+  it("rejects an empty protected-proof manifest", () => {
+    const f = repositoryFixture();
+    f.reports.proof.protected_paths = [];
+    f.save();
+    expect(f.guard().stderr).toContain("Empty protected-path manifest");
+  });
+  it("rejects a protected path that never existed at the proof commit", () => {
+    const f = repositoryFixture();
+    f.reports.proof.protected_paths = ["tests/unit/missing.test.ts"];
+    f.save();
+    expect(f.guard().stderr).toContain(
+      "Protected path is not a file at proof commit",
+    );
+  });
+  it("rejects a committed change to the protected proof", () => {
+    const f = repositoryFixture();
+    writeFileSync(
+      path.join(f.checkout, "tests/unit/example.test.ts"),
+      "weakened proof\n",
+    );
+    f.run.candidate_sha = f.commit("changed proof");
+    f.save();
+    expect(f.guard().stderr).toContain("Protected proof was changed");
   });
 });

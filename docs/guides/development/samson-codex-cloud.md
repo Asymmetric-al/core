@@ -21,8 +21,10 @@ and demo-auth bypass are development-only and do not establish live Supabase,
 tenant, migration or money correctness. Those claims need separately authorized
 production-shaped disposable evidence.
 
-Publish only after the setup report and required capability verification are
-complete. A cloud environment is a reusable filesystem/tool template; each task
+Publish a private evaluation template when a fresh workspace is needed for
+capability testing. Keep product issue processing on hold until the setup report
+and required capability verification are complete. A cloud environment is a
+reusable filesystem/tool template; each task
 starts an isolated workspace. It is not a permanently running queue controller.
 All six roles consume the same personal account's usage allowance.
 
