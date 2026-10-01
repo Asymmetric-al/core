@@ -70,9 +70,18 @@ Quote fields go on first-shot PaymentIntent metadata and on
 extras before PaymentIntent create. A lookup or parse failure must fail closed.
 An empty stored `{}` (GraphQL or legacy begin without a Gift quote) still omits
 `payment_method_types`. HTTP donate replay with matching charged cents treats
-that empty/legacy default as absent, not as a colliding quote, so the saga can
-persist the current extras onto empty before claim. A stored full quote that
-differs from the current extras still `409`s. Recovery and batch first-shot
+that empty/legacy default as absent, not as a colliding quote. It passes the
+stored absence to the saga and leaves stored extras empty, preserving the
+original fee metadata and payment-method parameters. Empty extras do not
+prove that no provider request occurred: a PaymentIntent may have succeeded
+before its database completion write failed. This replay-safety correction
+supersedes the earlier instruction to fill legacy extras. A stored full quote
+that differs from the current extras still `409`s. HTTP replay compares stored
+extras under a database row lock before claiming, so a quote hydrated by an
+older in-flight request is also checked without consuming a recovery attempt.
+A database trigger freezes fee extras, including absence, once processing has
+begun and prevents replacing an existing quote. Replays never persist caller extras.
+Recovery and batch first-shot
 PaymentIntents MAY omit extras only for that empty/legacy `{}`; newly quoted
 Guest Giving rows keep stored extras including `payment_method` because
 `p_amount` does not preserve method. Documented in the donation-saga-outbox
@@ -90,13 +99,45 @@ is Guest Giving Gift intake only.
 - ACH/wallet quotes can appear on the payment step while live confirm stays
   blocked. Tests lock the reject-before-POST behavior.
 - Estimated fee ≠ Stripe settlement. Copy must stay “estimated.”
-- Persist-onto-empty HTTP donate replay is a first-write window, not CAS:
-  concurrent first quotes onto stored `{}` can race until one full quote
-  lands; later colliding full quotes `409`. Do not treat empty `{}` as an
-  immutable “no cover-fees” quote.
+- Never hydrate an empty legacy quote during HTTP donate replay. The provider
+  may have seen the original request even if Core still needs to complete it.
+  Newly quoted gifts persist their quote atomically at intake; a later replay
+  cannot replace a stored full quote. Caller-actor metadata is a separate
+  pre-existing recovery limitation: the outbox does not retain the first
+  provider actor, so a worker retry can still change `metadata.user_id`. This
+  fee repair does not reconstruct that identity or prove actor-independent
+  recovery. See the operational guide for the bounded verification claim.
 
 ## Verification
 
 - Unit tests at the Core **interface**, schema defaults, Gift intake `p_amount`,
   saga metadata merge, checkout adapter POST body, and cover-fees UI.
 - `bun run openspec:validate`.
+
+### Preview validation prerequisite
+
+The exact-head admin preview failed before compilation because Vercel's build
+image used Bun 1.3.14 against the Bun 1.4.0 frozen lockfile. Pin only installation
+in the three app Vercel configs with `bunx bun@1.4.0 install`; keep Node Functions,
+app build commands, deployment targeting, and the frozen lockfile unchanged.
+
+### Migration rollout
+
+Apply `20261001053404_preserve_donation_saga_fee_replay.sql` before deploying
+HTTP replay code that calls the fee-aware claim RPC. The new RPC is invoker-only
+and service-role-only; existing claim/recovery RPCs and RLS remain unchanged.
+Older in-flight writers cannot change a quote after processing has started.
+Application rollback can retain the protective trigger; database rollback
+requires pausing donation processors first. The required migration CI job runs
+the rollback-only SQL proof after the ordinary seed.
+
+### Hosted smoke identity
+
+Preview smoke exposed production-bound datasource/provider settings and a QA
+identity that could not sign into the isolated test project. Preview-only
+configuration now uses the dedicated development datasource and test-mode
+provider keys. Use separate preview CI credentials for a test identity with
+legitimate scoped surface access and donor/missionary fixture records. Restore
+the committed membership lookup RPC in that test datasource; do not weaken
+application authorization to satisfy smoke. Existing QA credentials remain the
+workflow fallback.

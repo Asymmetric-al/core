@@ -191,7 +191,7 @@ describe("Bun toolchain pin sync", () => {
         `${app} vercel.json bunVersion (Functions runtime opt-in)`,
       ).toBeUndefined();
       expect(vercelConfig.installCommand, `${app} installCommand`).toBe(
-        "bun install --cwd ../.. --frozen-lockfile",
+        `bunx bun@${VERIFIED_STABLE_BUN} install --cwd ../.. --frozen-lockfile`,
       );
       expect(vercelConfig.installCommand).not.toContain("--save-text-lockfile");
       expect(buildCommand, `${app} buildCommand`).not.toMatch(/--bun\b/);

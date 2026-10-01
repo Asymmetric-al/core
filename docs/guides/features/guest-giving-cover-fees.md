@@ -47,8 +47,12 @@ Giving rows keep stored extras, including `payment_method`, because charged
 cents in `p_amount` do not preserve method.
 
 HTTP `POST /api/donate` replay of empty/legacy `{}` with matching charged
-cents continues so the saga can persist the current extras onto empty. A
-stored full quote that differs still returns `409`.
+cents continues with the original empty extras and fee-related provider parameters. It must
+not attach the current quote: the provider may have created a PaymentIntent
+before the database completion write failed, and changing metadata or payment
+methods under the same idempotency key would break that retry. A stored full
+quote that differs still returns `409`; newly quoted gifts still persist their
+quote at intake.
 
 ## Related
 

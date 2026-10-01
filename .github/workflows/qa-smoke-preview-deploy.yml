@@ -141,8 +141,8 @@ jobs:
         if: steps.scope.outputs.any == 'true'
         env:
           CLAUDE_QA_ROUTINE_WEBHOOK_URL: ${{ secrets.CLAUDE_QA_ROUTINE_WEBHOOK_URL }}
-          QA_TEST_EMAIL: ${{ secrets.QA_TEST_EMAIL }}
-          QA_TEST_PASSWORD: ${{ secrets.QA_TEST_PASSWORD }}
+          QA_TEST_EMAIL: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_EMAIL || secrets.QA_TEST_EMAIL }}
+          QA_TEST_PASSWORD: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_PASSWORD || secrets.QA_TEST_PASSWORD }}
           VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
           VERCEL_ADMIN_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
           VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET }}
@@ -175,11 +175,12 @@ jobs:
       - name: Validate required preview smoke secrets
         if: steps.scope.outputs.any == 'true'
         env:
+          QA_PREVIEW_CREDENTIALS_PARTIAL: ${{ (secrets.QA_PREVIEW_TEST_EMAIL != '' && secrets.QA_PREVIEW_TEST_PASSWORD == '') || (secrets.QA_PREVIEW_TEST_EMAIL == '' && secrets.QA_PREVIEW_TEST_PASSWORD != '') }}
           ADMIN_AFFECTED: ${{ steps.scope.outputs.admin }}
           DONOR_AFFECTED: ${{ steps.scope.outputs.donor }}
           MISSIONARY_AFFECTED: ${{ steps.scope.outputs.missionary }}
-          QA_TEST_EMAIL: ${{ secrets.QA_TEST_EMAIL }}
-          QA_TEST_PASSWORD: ${{ secrets.QA_TEST_PASSWORD }}
+          QA_TEST_EMAIL: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_EMAIL || secrets.QA_TEST_EMAIL }}
+          QA_TEST_PASSWORD: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_PASSWORD || secrets.QA_TEST_PASSWORD }}
           VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
           VERCEL_ADMIN_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
           VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET }}
@@ -191,6 +192,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          if [[ "${QA_PREVIEW_CREDENTIALS_PARTIAL}" == "true" ]]; then
+            echo "::error::Both QA_PREVIEW_TEST_EMAIL and QA_PREVIEW_TEST_PASSWORD must be configured together."
+            exit 1
+          fi
 
           missing=()
 
@@ -434,8 +440,8 @@ jobs:
           QA_ADMIN_BASE_URL: ${{ steps.deploy_admin.outputs.url }}
           QA_DONOR_BASE_URL: ${{ steps.deploy_donor.outputs.url }}
           QA_MISSIONARY_BASE_URL: ${{ steps.deploy_missionary.outputs.url }}
-          QA_TEST_EMAIL: ${{ secrets.QA_TEST_EMAIL }}
-          QA_TEST_PASSWORD: ${{ secrets.QA_TEST_PASSWORD }}
+          QA_TEST_EMAIL: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_EMAIL || secrets.QA_TEST_EMAIL }}
+          QA_TEST_PASSWORD: ${{ secrets.QA_PREVIEW_TEST_EMAIL && secrets.QA_PREVIEW_TEST_PASSWORD && secrets.QA_PREVIEW_TEST_PASSWORD || secrets.QA_TEST_PASSWORD }}
           VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET }}
           VERCEL_DONOR_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET }}
           VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET }}
