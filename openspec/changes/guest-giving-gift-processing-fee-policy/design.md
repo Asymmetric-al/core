@@ -76,7 +76,10 @@ original fee metadata and payment-method parameters. Empty extras do not
 prove that no provider request occurred: a PaymentIntent may have succeeded
 before its database completion write failed. This replay-safety correction
 supersedes the earlier instruction to fill legacy extras. A stored full quote
-that differs from the current extras still `409`s. Recovery and batch first-shot
+that differs from the current extras still `409`s. HTTP replay revalidates stored
+extras after saga claim and before provider calls, so a quote hydrated by an
+older in-flight request is also checked. Replays never persist caller extras.
+Recovery and batch first-shot
 PaymentIntents MAY omit extras only for that empty/legacy `{}`; newly quoted
 Guest Giving rows keep stored extras including `payment_method` because
 `p_amount` does not preserve method. Documented in the donation-saga-outbox

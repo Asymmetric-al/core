@@ -114,3 +114,11 @@ immutable and newly quoted gifts still persist their quote at intake.
 - WHEN the handler starts the donation saga
 - THEN `p_amount` remains the already-charged cents from the staff payload
 - AND Gift processing-fee policy MUST NOT run on that path
+
+#### Scenario: A rolling-deployment request hydrates legacy extras before replay claim
+
+- GIVEN HTTP intake reads empty legacy fee extras for a matching charged amount
+- AND an older in-flight request stores a different full quote before saga claim
+- WHEN the replay claims the outbox and revalidates the stored quote
+- THEN it MUST return `409` before creating a customer or PaymentIntent
+- AND it MUST NOT overwrite the stored fee extras

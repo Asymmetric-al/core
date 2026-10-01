@@ -382,6 +382,13 @@ describe("POST /api/donate Gift processing-fee policy", () => {
         outboxId: "outbox-1",
         actorUserId: "user-1",
         extraPaymentIntentMetadata: undefined,
+        replayFeeQuote: toGiftProcessingFeeStripeMetadata(
+          resolveGiftIntakeCharge({
+            amount: 100,
+            coverFees: false,
+            paymentMethod: "card",
+          }),
+        ),
       });
       expect(await response.json()).toMatchObject(
         status === "completed"
@@ -395,135 +402,309 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     },
   );
 
-  it("finishes a legacy provider success after persistence fails without changing retry parameters", async () => {
-    const { processDonationSagaOutboxEvent: processActualSaga } =
-      await vi.importActual<{
-        processDonationSagaOutboxEvent: typeof processDonationSagaOutboxEvent;
-      }>("../../src/donate/saga");
-    const row: {
-      fee_extras: Record<string, string>;
-      status: string;
-      attempts: number;
-    } = { fee_extras: {}, status: "pending", attempts: 0 };
-    let completionFails = true;
-    const providerRequests = new Map<string, unknown>();
-    const createPaymentIntent = vi.fn(
-      async (params: unknown, options: { idempotencyKey: string }) => {
-        const previous = providerRequests.get(options.idempotencyKey);
-        if (previous && !isDeepStrictEqual(previous, params)) {
-          throw new Error("Idempotency key parameters changed on retry");
-        }
-        providerRequests.set(options.idempotencyKey, params);
-        return {
-          id: "pi_legacy",
-          client_secret: "cs_legacy",
-          status: "requires_payment_method",
-        };
-      },
-    );
-    const stripe = { paymentIntents: { create: createPaymentIntent } };
-    const updateFeeExtras = vi.fn(
-      (value: { fee_extras: Record<string, string> }) => ({
-        eq: async () => {
-          row.fee_extras = value.fee_extras;
-          return { data: null, error: null };
-        },
-      }),
-    );
-    const rpc = vi.fn(async (name: string) => {
-      if (name === "begin_donation_saga") {
-        return { data: { ...beginRpcResult, replayed: true }, error: null };
-      }
-      if (name === "claim_donation_saga_event") {
-        row.status = "processing";
-        row.attempts++;
-        return {
-          data: {
-            claimed: true,
-            donation_id: "donation-1",
-            donor_id: "donor-1",
-            tenant_id: "tenant-1",
-            amount: 10000,
-            currency: "usd",
-            attempt_count: row.attempts,
-            idempotency_key: "guest-giving-fee-policy-test",
-            stripe_customer_id: "cus_existing",
-          },
-          error: null,
-        };
-      }
-      if (name === "complete_donation_saga_event") {
-        if (completionFails) {
-          completionFails = false;
-          return { data: null, error: { message: "completion write failed" } };
-        }
-        row.status = "completed";
-        return { data: { completed: true }, error: null };
-      }
-      if (name === "record_donation_saga_failure") {
-        row.status = "pending";
-        return { data: null, error: null };
-      }
-      throw new Error(`Unexpected RPC: ${name}`);
-    });
-    const readExtras = async () => ({
-      data: { fee_extras: row.fee_extras },
-      error: null,
-    });
-    const from = vi.fn((table: string) => {
-      if (table === "donations") return createDonationsFromMock(10000)(table);
-      expect(table).toBe("donation_saga_outbox");
-      return {
-        select: () => ({
-          eq: () => ({
-            maybeSingle: readExtras,
-            eq: () => ({ single: readExtras }),
-          }),
-        }),
-        update: updateFeeExtras,
+  it.each([
+    {
+      label: "legacy card",
+      amountCents: 10000,
+      paymentMethod: "card",
+      coverFees: false,
+      quoted: false,
+      missingCustomer: false,
+      changesDuringClaim: false,
+    },
+    {
+      label: "legacy cover-card",
+      amountCents: 10330,
+      paymentMethod: "card",
+      coverFees: true,
+      quoted: false,
+      missingCustomer: false,
+      changesDuringClaim: false,
+    },
+    {
+      label: "legacy cover-ACH with an unpersisted customer",
+      amountCents: 10081,
+      paymentMethod: "ach",
+      coverFees: true,
+      quoted: false,
+      missingCustomer: true,
+      changesDuringClaim: false,
+    },
+    {
+      label: "new quoted cover-ACH with an unpersisted customer",
+      amountCents: 10081,
+      paymentMethod: "ach",
+      coverFees: true,
+      quoted: true,
+      missingCustomer: true,
+      changesDuringClaim: false,
+    },
+    {
+      label: "legacy quote changed during claim",
+      amountCents: 10000,
+      paymentMethod: "card",
+      coverFees: false,
+      quoted: false,
+      missingCustomer: false,
+      changesDuringClaim: true,
+    },
+  ] as const)(
+    "preserves provider parameters after a failed completion: $label",
+    async ({
+      amountCents,
+      paymentMethod,
+      coverFees,
+      quoted,
+      missingCustomer,
+      changesDuringClaim,
+    }) => {
+      const requestBody = {
+        amount: 100,
+        currency: "usd",
+        cover_fees: coverFees,
+        payment_method: paymentMethod,
       };
-    });
-    const client = { from, rpc };
-    await expect(
-      processActualSaga({
-        supabaseAdmin: client as never,
+      const quote = toGiftProcessingFeeStripeMetadata(
+        resolveGiftIntakeCharge({ amount: 100, coverFees, paymentMethod }),
+      );
+      const { processDonationSagaOutboxEvent: processActualSaga } =
+        await vi.importActual<{
+          processDonationSagaOutboxEvent: typeof processDonationSagaOutboxEvent;
+        }>("../../src/donate/saga");
+      const row: {
+        fee_extras: Record<string, string>;
+        status: string;
+        attempts: number;
+      } = { fee_extras: quoted ? quote : {}, status: "pending", attempts: 0 };
+      let completionFails = true;
+      const providerRequests = new Map<string, unknown>();
+      const createPaymentIntent = vi.fn(
+        async (params: unknown, options: { idempotencyKey: string }) => {
+          const previous = providerRequests.get(options.idempotencyKey);
+          if (previous && !isDeepStrictEqual(previous, params)) {
+            throw new Error("Idempotency key parameters changed on retry");
+          }
+          providerRequests.set(options.idempotencyKey, params);
+          return {
+            id: "pi_legacy",
+            client_secret: "cs_legacy",
+            status: "requires_payment_method",
+          };
+        },
+      );
+      const customerRequests = new Map<string, unknown>();
+      const createCustomer = vi.fn(
+        async (params: unknown, options: { idempotencyKey: string }) => {
+          const previous = customerRequests.get(options.idempotencyKey);
+          if (previous && !isDeepStrictEqual(previous, params)) {
+            throw new Error("Customer parameters changed on retry");
+          }
+          customerRequests.set(options.idempotencyKey, params);
+          return { id: "cus_existing" };
+        },
+      );
+      const stripe = {
+        paymentIntents: { create: createPaymentIntent },
+        customers: { create: createCustomer },
+      };
+      const updateFeeExtras = vi.fn(
+        (value: { fee_extras: Record<string, string> }) => ({
+          eq: async () => {
+            row.fee_extras = value.fee_extras;
+            return { data: null, error: null };
+          },
+        }),
+      );
+      const rpc = vi.fn(async (name: string) => {
+        if (name === "begin_donation_saga") {
+          return {
+            data: { ...beginRpcResult, replayed: row.attempts > 0 || !quoted },
+            error: null,
+          };
+        }
+        if (name === "claim_donation_saga_event") {
+          row.status = "processing";
+          row.attempts++;
+          if (changesDuringClaim && row.attempts === 2) {
+            row.fee_extras = toGiftProcessingFeeStripeMetadata(
+              resolveGiftIntakeCharge({
+                amount: 100,
+                coverFees: false,
+                paymentMethod: "ach",
+              }),
+            );
+          }
+          return {
+            data: {
+              claimed: true,
+              donation_id: "donation-1",
+              donor_id: "donor-1",
+              tenant_id: "tenant-1",
+              amount: amountCents,
+              currency: "usd",
+              attempt_count: row.attempts,
+              idempotency_key: "guest-giving-fee-policy-test",
+              stripe_customer_id: missingCustomer ? null : "cus_existing",
+            },
+            error: null,
+          };
+        }
+        if (name === "complete_donation_saga_event") {
+          if (completionFails) {
+            completionFails = false;
+            return {
+              data: null,
+              error: { message: "completion write failed" },
+            };
+          }
+          row.status = "completed";
+          return { data: { completed: true }, error: null };
+        }
+        if (name === "record_donation_saga_failure") {
+          row.status = "pending";
+          return { data: null, error: null };
+        }
+        throw new Error(`Unexpected RPC: ${name}`);
+      });
+      const readExtras = async () => ({
+        data: { fee_extras: row.fee_extras },
+        error: null,
+      });
+      const from = vi.fn((table: string) => {
+        if (table === "donations")
+          return createDonationsFromMock(amountCents)(table);
+        if (table === "donors")
+          return {
+            select: () => ({
+              eq: () => ({
+                single: async () => ({
+                  data: {
+                    id: "donor-1",
+                    profile_id: "profile-1",
+                    stripe_customer_id: null,
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        if (table === "profiles")
+          return {
+            select: () => ({
+              eq: () => ({
+                single: async () => ({
+                  data: {
+                    email: "donor@example.com",
+                    first_name: "Test",
+                    last_name: "Donor",
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        expect(table).toBe("donation_saga_outbox");
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: readExtras,
+              eq: () => ({ single: readExtras }),
+            }),
+          }),
+          update: updateFeeExtras,
+        };
+      });
+      const client = { from, rpc };
+      mockedGetAdminClient.mockReturnValue({
+        client: client as never,
+        error: null,
+      });
+      mockedResolveTenantStripe.mockResolvedValue({
+        ok: true,
         stripe: stripe as never,
-        outboxId: "outbox-1",
-        actorUserId: "user-1",
-      }),
-    ).rejects.toThrow("completion write failed");
-    expect(row.status).toBe("pending");
-    expect(providerRequests.size).toBe(1);
+        secretKey: "rk_test_restricted",
+        publishableKey: "pk_test_123",
+      });
+      mockedProcessDonationSagaOutboxEvent.mockImplementation(
+        processActualSaga,
+      );
+      if (quoted) {
+        const firstResponse = await POST(createDonateRequest(requestBody));
+        expect(firstResponse.status).toBe(500);
+      } else {
+        await expect(
+          processActualSaga({
+            supabaseAdmin: client as never,
+            stripe: stripe as never,
+            outboxId: "outbox-1",
+            actorUserId: "user-1",
+          }),
+        ).rejects.toThrow("completion write failed");
+      }
+      expect(row.status).toBe("pending");
+      expect(providerRequests.size).toBe(1);
 
-    mockedGetAdminClient.mockReturnValue({
-      client: client as never,
-      error: null,
-    });
-    mockedResolveTenantStripe.mockResolvedValue({
-      ok: true,
-      stripe: stripe as never,
-      secretKey: "rk_test_restricted",
-      publishableKey: "pk_test_123",
-    });
-    mockedProcessDonationSagaOutboxEvent.mockImplementation(processActualSaga);
-    const response = await POST(
-      createDonateRequest({ amount: 100, currency: "usd" }),
-    );
+      const response = await POST(createDonateRequest(requestBody));
 
-    expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({
-      paymentIntentId: "pi_legacy",
-      clientSecret: "cs_legacy",
-      replayed: true,
-    });
-    expect(row).toEqual({ fee_extras: {}, status: "completed", attempts: 2 });
-    expect(updateFeeExtras).not.toHaveBeenCalled();
-    expect(providerRequests.size).toBe(1);
-    expect(createPaymentIntent).toHaveBeenCalledTimes(2);
-    expect(createPaymentIntent.mock.calls[1]).toEqual(
-      createPaymentIntent.mock.calls[0],
-    );
-  });
+      if (changesDuringClaim) {
+        expect(response.status).toBe(409);
+        expect(await response.json()).toMatchObject({
+          error:
+            "This idempotency key was already used for a different gift fee quote.",
+        });
+        expect(createPaymentIntent).toHaveBeenCalledTimes(1);
+        expect(updateFeeExtras).not.toHaveBeenCalled();
+        return;
+      }
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        paymentIntentId: "pi_legacy",
+        clientSecret: "cs_legacy",
+        replayed: true,
+      });
+      expect(row).toEqual({
+        fee_extras: quoted ? quote : {},
+        status: "completed",
+        attempts: 2,
+      });
+      expect(updateFeeExtras).not.toHaveBeenCalled();
+      expect(providerRequests.size).toBe(1);
+      expect(createPaymentIntent.mock.calls[0]?.[0]).toMatchObject(
+        quoted
+          ? {
+              amount: amountCents,
+              payment_method_types: ["us_bank_account"],
+              metadata: quote,
+            }
+          : {
+              amount: amountCents,
+              automatic_payment_methods: { enabled: true },
+            },
+      );
+      if (!quoted) {
+        expect(createPaymentIntent.mock.calls[0]?.[0]).not.toHaveProperty(
+          "payment_method_types",
+        );
+        expect(createPaymentIntent.mock.calls[0]?.[0]).not.toHaveProperty(
+          "metadata.gift_amount_cents",
+        );
+      }
+      expect(createCustomer).toHaveBeenCalledTimes(missingCustomer ? 2 : 0);
+      if (missingCustomer) {
+        expect(customerRequests.size).toBe(1);
+        expect(createCustomer.mock.calls[1]).toEqual(
+          createCustomer.mock.calls[0],
+        );
+        expect(createCustomer.mock.calls[0]?.[1]).toEqual({
+          idempotencyKey: "guest-giving-fee-policy-test:customer",
+        });
+      }
+      expect(createPaymentIntent).toHaveBeenCalledTimes(2);
+      expect(createPaymentIntent.mock.calls[1]).toEqual(
+        createPaymentIntent.mock.calls[0],
+      );
+    },
+  );
 
   it("replays a matching Gift with the current fee metadata so PI params stay bound", async () => {
     const expectedQuote = resolveGiftIntakeCharge({

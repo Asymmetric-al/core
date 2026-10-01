@@ -11,6 +11,7 @@ import {
   mergeDonationPaymentIntentMetadata,
   type DonationPaymentIntentMethodType,
 } from "./payment-intent";
+import { ApiHttpError } from "../shared/api-http-error";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
@@ -25,6 +26,7 @@ interface DonationSagaProcessParams {
   outboxId: string;
   actorUserId: string;
   extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
+  replayFeeQuote?: GiftProcessingFeeStripeMetadata;
 }
 
 interface DonationSagaProcessResult {
@@ -141,7 +143,26 @@ async function resolveDonationSagaFeeExtras(params: {
   supabaseAdmin: DonationSupabaseClient;
   outboxId: string;
   extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
+  replayFeeQuote?: GiftProcessingFeeStripeMetadata;
 }): Promise<GiftProcessingFeeStripeMetadata | undefined> {
+  if (params.replayFeeQuote) {
+    // Revalidate after claim: an older in-flight request may have hydrated
+    // legacy extras since HTTP intake read them. Never persist a replay quote.
+    const stored = await loadDonationSagaFeeExtras(
+      params.supabaseAdmin,
+      params.outboxId,
+    );
+    if (
+      stored &&
+      !giftProcessingFeeStripeMetadataEquals(stored, params.replayFeeQuote)
+    ) {
+      throw new ApiHttpError(
+        409,
+        "This idempotency key was already used for a different gift fee quote.",
+      );
+    }
+    return stored;
+  }
   if (params.extraPaymentIntentMetadata) {
     return params.extraPaymentIntentMetadata;
   }
@@ -266,6 +287,7 @@ async function processClaimedDonationSagaEvent(params: {
   outboxId: string;
   claim: DonationSagaClaimRow;
   extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
+  replayFeeQuote?: GiftProcessingFeeStripeMetadata;
 }): Promise<DonationSagaProcessResult> {
   const donationId = stringOrNull(params.claim.donation_id);
   const donorId = stringOrNull(params.claim.donor_id);
@@ -281,6 +303,13 @@ async function processClaimedDonationSagaEvent(params: {
     throw new Error("Invalid donation amount in saga claim");
   }
 
+  const extraPaymentIntentMetadata = await resolveDonationSagaFeeExtras({
+    supabaseAdmin: params.supabaseAdmin,
+    outboxId: params.outboxId,
+    extraPaymentIntentMetadata: params.extraPaymentIntentMetadata,
+    replayFeeQuote: params.replayFeeQuote,
+  });
+
   const stripeCustomerId = await ensureStripeCustomerId({
     supabaseAdmin: params.supabaseAdmin,
     stripe: params.stripe,
@@ -289,12 +318,6 @@ async function processClaimedDonationSagaEvent(params: {
     actorUserId: params.actorUserId,
     idempotencyKey,
     existingStripeCustomerId: stringOrNull(params.claim.stripe_customer_id),
-  });
-
-  const extraPaymentIntentMetadata = await resolveDonationSagaFeeExtras({
-    supabaseAdmin: params.supabaseAdmin,
-    outboxId: params.outboxId,
-    extraPaymentIntentMetadata: params.extraPaymentIntentMetadata,
   });
 
   const paymentIntent = await createDonationPaymentIntent(params.stripe, {
@@ -354,13 +377,14 @@ export async function processDonationSagaOutboxEvent({
   outboxId,
   actorUserId,
   extraPaymentIntentMetadata,
+  replayFeeQuote,
 }: DonationSagaProcessParams): Promise<DonationSagaProcessResult> {
   const lockId = randomUUID();
   let lockClaimed = false;
   let lockedOutboxId = outboxId;
 
   try {
-    if (extraPaymentIntentMetadata) {
+    if (extraPaymentIntentMetadata && !replayFeeQuote) {
       await persistDonationSagaFeeExtras(
         supabaseAdmin,
         outboxId,
@@ -423,6 +447,7 @@ export async function processDonationSagaOutboxEvent({
       outboxId: claimOutboxId,
       claim: claim ?? {},
       extraPaymentIntentMetadata,
+      replayFeeQuote,
     });
   } catch (error) {
     if (lockClaimed) {

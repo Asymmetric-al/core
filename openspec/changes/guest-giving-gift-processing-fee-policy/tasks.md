@@ -44,6 +44,10 @@
       with identical provider parameters. Run focused tests, typechecking, and
       strict OpenSpec validation after the replay-safety correction.
 
+- [x] 4.8 Cover matching-cents legacy card-cover and ACH-cover retries, an
+      unpersisted customer, modern quoted HTTP completion recovery, and a
+      late conflicting quote rejected before provider calls.
+
 - [ ] 4.7 Complete `bun run ci:preflight` and applicable current-head CI and smoke
       verification after the final integration-base update, then merge through
       ordinary repository protections.

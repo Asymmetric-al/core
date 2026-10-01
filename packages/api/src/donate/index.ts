@@ -204,6 +204,9 @@ export const POST = withOperation(
       outboxId: begin.outboxId,
       actorUserId: ctx.userId,
       extraPaymentIntentMetadata,
+      ...(begin.replayed
+        ? { replayFeeQuote: toGiftProcessingFeeStripeMetadata(feeQuote) }
+        : {}),
     });
 
     if (sagaResult.status !== "completed") {
