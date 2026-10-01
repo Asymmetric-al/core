@@ -65,6 +65,6 @@
   },
   "dependencies": {
     "@shadcn/lint": "0.2.0",
-    "eslint-config-next": "16.3.3"
+    "eslint-config-next": "16.3.6"
   }
 }
