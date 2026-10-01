@@ -5,6 +5,7 @@ import {
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { reportAccessDiagnostic } from "./access-diagnostics";
 import { safeNextParam } from "./demo-login";
 import {
   assertSupabaseDatasourceAllowedForE2EBypass,
@@ -311,6 +312,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             : null;
 
           if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {
+            if (roleSnapshot) {
+              reportAccessDiagnostic("role_denied");
+            }
             return redirectWithCookies(
               buildRedirectUrl(request, unauthorizedRedirectTo),
               supabaseResponse,
@@ -356,6 +360,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         : null;
 
       if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {
+        if (roleSnapshot) {
+          reportAccessDiagnostic("role_denied");
+        }
         return redirectWithCookies(
           buildRedirectUrl(request, unauthorizedRedirectTo),
           supabaseResponse,

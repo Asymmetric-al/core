@@ -621,7 +621,7 @@ playwright-cli tracing-start
 playwright-cli goto https://app.example.com/login
 playwright-cli snapshot
 playwright-cli fill e1 "test@example.com"
-playwright-cli fill e2 "password123" // pragma: allowlist secret
+playwright-cli fill e2 "password123" # pragma: allowlist secret
 playwright-cli click e3
 playwright-cli state-save auth-state.json
 

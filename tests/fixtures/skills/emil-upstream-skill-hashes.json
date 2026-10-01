@@ -1,0 +1,18 @@
+{
+  "source": "emilkowalski/skills",
+  "commit": "85e8e2363b713506e1d5b6e07a0eb2da66be1bc3",
+  "skills": {
+    "animate": "b8ede161270458e6ae2e45e8a1985373515d4c63de5568ddb0f9012d7634356c",
+    "animate-expo": "9a01a91701e6563c67677dde6b66ab30f066a5341d42c21a90ba51d99679274a",
+    "animation-vocabulary": "40d2b27adfdfeb0570a9f20e7d0255109d9233c50603878bcd0dcd04c923fd94",
+    "apple-design": "77bb63b7043bb93aca2ff4ab040c249484eef35682bb6ff7163433c31d30adc7",
+    "ask-sonner": "39f3ee185b3aa2cf70a689052ff078953ce7ba5915ed7a9391d232e9d4dcf57f",
+    "emil-design-eng": "ffbe68e6007fb42cb8149f089b400a1ca007d59ba23e8948e2be4476f3175939",
+    "emil-prototype": "bba39c955eb1871c5a02733976ceec5d0324198e0812e667604756489c89f7b9",
+    "improve-animations": "73962447464433476343e2c12cd08ab39cc99a9e5f3c118c5fb54ed897574ef6",
+    "mobile-native": "888b7651d66d66dbac4e72b7c554638eb19bd971d686d6cbdf030a5ef3788f55",
+    "pick-ui-library": "675fdce308683256ed617351a9b74d23457a5fbd0a562d9831b9c764b8c5e682",
+    "review-animations": "6ff590d29e436766135aa3d137be1fac2a867165c7257fc315b189361f1873af",
+    "write-swift": "16a4b6adb74e338e55e704ce5753ad54d825438b8a63930eeaede9f3c04c9447"
+  }
+}

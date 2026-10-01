@@ -34,7 +34,7 @@ await expect(page.getByText('Email is required')).toBeVisible();
 
 ### Filling Basic Form Fields
 
-**Use when**: Testing any form with standard HTML inputs — text, email, password, number, textarea, select, checkbox, radio. // pragma: allowlist secret
+**Use when**: Testing any form with standard HTML inputs — text, email, password, number, textarea, select, checkbox, radio. <!-- pragma: allowlist secret -->
 **Avoid when**: Never. This is the foundation pattern.
 
 **TypeScript**
@@ -272,7 +272,7 @@ test('native HTML5 validation with required attribute', async ({ page }) => {
 
 ### Format Validation and Custom Rules
 
-**Use when**: Testing email format, phone number format, password strength, and business-specific validation rules. // pragma: allowlist secret
+**Use when**: Testing email format, phone number format, password strength, and business-specific validation rules. <!-- pragma: allowlist secret -->
 **Avoid when**: The validation is purely server-side with no client-side feedback. Test via API instead.
 
 **TypeScript**

@@ -14,6 +14,7 @@ import { createHash } from "node:crypto";
 import {
   access,
   cp,
+  lstat,
   mkdir,
   mkdtemp,
   readdir,
@@ -25,6 +26,10 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  annotateSecretScannerMentions,
+  SECRET_SCANNER_SKIP_SUFFIXES,
+} from "./lib/skill-scanner-annotations.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
@@ -1652,163 +1657,6 @@ function normalizeImproveAnimationsPlanTemplate(content, templatePath) {
   return normalized;
 }
 
-const SECRET_SCANNER_DEMO_TOKEN = ["pass", "word"].join("");
-const SECRET_SCANNER_PRAGMA_TOKEN = "pragma: allowlist secret";
-
-const SECRET_SCANNER_SKIP_SUFFIXES = new Set([
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".gif",
-  ".webp",
-  ".zip",
-  ".woff",
-  ".woff2",
-  ".ttf",
-  ".ico",
-  ".bin",
-  ".exe",
-  ".pdf",
-  ".cmd",
-]);
-
-function secretScannerComment(filePath) {
-  switch (path.extname(filePath).toLowerCase()) {
-    case ".json":
-      return null;
-    case ".py":
-      return `# ${SECRET_SCANNER_PRAGMA_TOKEN}`;
-    case ".sql":
-      return `-- ${SECRET_SCANNER_PRAGMA_TOKEN}`;
-    case ".md":
-    case ".mdx":
-    case ".html":
-      return `<!-- ${SECRET_SCANNER_PRAGMA_TOKEN} -->`;
-    default:
-      return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
-  }
-}
-
-function secretScannerCommentForLanguage(language) {
-  const normalized = language.trim().toLowerCase();
-  if (!normalized) {
-    return null;
-  }
-
-  switch (normalized) {
-    case "json":
-      return null;
-    case "md":
-    case "mdx":
-    case "markdown":
-    case "html":
-    case "htm":
-    case "svg":
-    case "xml":
-      return `<!-- ${SECRET_SCANNER_PRAGMA_TOKEN} -->`;
-    case "gql":
-    case "graphql":
-    case "py":
-    case "python":
-    case "sh":
-    case "bash":
-    case "zsh":
-    case "shell":
-      return `# ${SECRET_SCANNER_PRAGMA_TOKEN}`;
-    case "sql":
-      return `-- ${SECRET_SCANNER_PRAGMA_TOKEN}`;
-    case "js":
-    case "javascript":
-    case "ts":
-    case "typescript":
-    case "tsx":
-    case "jsx":
-    case "mjs":
-    case "cjs":
-      return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
-    case "css":
-    case "scss":
-    case "sass":
-      return `/* ${SECRET_SCANNER_PRAGMA_TOKEN} */`;
-    default:
-      return null;
-  }
-}
-
-function annotateSecretScannerLine(
-  line,
-  filePath,
-  comment = secretScannerComment(filePath),
-  { preserveMarkdownTable = true } = {},
-) {
-  if (!line.toLowerCase().includes(SECRET_SCANNER_DEMO_TOKEN)) {
-    return line;
-  }
-  if (line.includes(SECRET_SCANNER_PRAGMA_TOKEN)) {
-    return line;
-  }
-  if (comment === null) {
-    return line;
-  }
-  const extension = path.extname(filePath).toLowerCase();
-  if (
-    preserveMarkdownTable &&
-    (extension === ".md" || extension === ".mdx") &&
-    line.trimEnd().endsWith("|")
-  ) {
-    const lastPipe = line.lastIndexOf("|");
-    return `${line.slice(0, lastPipe)}${comment} ${line.slice(lastPipe)}`;
-  }
-  return `${line} ${comment}`;
-}
-
-function annotateSecretScannerMentions(content, filePath = "") {
-  const extension = path.extname(filePath).toLowerCase();
-  const isMarkdown = extension === ".md" || extension === ".mdx";
-  const lines = content.split("\n");
-  if (!isMarkdown) {
-    return lines
-      .map((line) => annotateSecretScannerLine(line, filePath))
-      .join("\n");
-  }
-
-  let fence = null;
-  return lines
-    .map((line) => {
-      const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
-      if (fenceMatch) {
-        const marker = fenceMatch[2];
-        const markerCharacter = marker[0];
-        if (fence === null) {
-          fence = {
-            character: markerCharacter,
-            length: marker.length,
-            language: fenceMatch[3].trim().split(/\s+/u)[0] ?? "",
-          };
-        } else if (
-          markerCharacter === fence.character &&
-          marker.length >= fence.length &&
-          fenceMatch[3].trim() === ""
-        ) {
-          fence = null;
-        }
-        return line;
-      }
-
-      if (fence !== null) {
-        return annotateSecretScannerLine(
-          line,
-          filePath,
-          secretScannerCommentForLanguage(fence.language),
-          { preserveMarkdownTable: false },
-        );
-      }
-
-      return annotateSecretScannerLine(line, filePath);
-    })
-    .join("\n");
-}
-
 async function annotateSecretScannerMentionsInTree(targetRoot) {
   const files = await listFilesRecursively(targetRoot);
   for (const filePath of files) {
@@ -1851,11 +1699,31 @@ function findCompatibilitySearch(content, search, cursor) {
     : { index: match.index, length: match[0].length };
 }
 
+function whitespaceFlexiblePattern(value) {
+  return new RegExp(
+    value
+      .trim()
+      .split(/\s+/u)
+      .map((part) => part.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"))
+      .join("\\s+")
+      .replaceAll("\\s+>", "\\s*>"),
+    "u",
+  );
+}
+
 function applyCompatibilityReplacement(content, search, replacement) {
   let cursor = 0;
   let output = "";
   let matched = false;
   let changed = false;
+
+  if (
+    findCompatibilitySearch(content, search, 0) === null &&
+    typeof replacement === "string" &&
+    whitespaceFlexiblePattern(replacement).test(content)
+  ) {
+    return { content, matched: true, changed: false };
+  }
 
   while (cursor < content.length) {
     const searchMatch = findCompatibilitySearch(content, search, cursor);
@@ -2279,9 +2147,13 @@ function assertPathInside(parent, child, context) {
 }
 
 function runGit(args, context, { capture = false } = {}) {
+  const gitEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+  );
   const result = spawnSync("git", args, {
     cwd: repoRoot,
     encoding: "utf8",
+    env: gitEnv,
     stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
   });
 
@@ -2609,6 +2481,7 @@ async function prepareGithubSkillRefresh({
   if (!(await fileExists(upstreamSkillFile))) {
     return null;
   }
+  await assertCanonicalDirectoryEntry(to);
 
   const staging = getTemporarySiblingPath(to, "refresh-staging");
   await mkdir(path.dirname(staging), { recursive: true });
@@ -2707,18 +2580,32 @@ async function refreshGithubGroup(group, lockfile) {
 
       const companionFiles = await readCompanionFiles({ cloneDir, group });
 
-      // Everything staged successfully — commit the swaps, then side effects.
-      await commitPreparedRefreshes(preparedRefreshes);
-      await writeCompanionFiles(companionFiles);
-      for (const [skillName, lockEntry] of lockEntries) {
-        lockfile.skills[skillName] = lockEntry;
-      }
-    } catch (error) {
-      await Promise.all(
-        preparedRefreshes.map(({ staging }) =>
-          rm(staging, { recursive: true, force: true }),
+      const nextSkills = {
+        ...lockfile.skills,
+        ...Object.fromEntries(lockEntries),
+      };
+      const nextLockfile = {
+        version: lockfile.version,
+        skills: Object.fromEntries(
+          Object.entries(nextSkills).sort(([left], [right]) =>
+            left.localeCompare(right),
+          ),
         ),
+      };
+      // Retain directory backups until every companion and the lockfile is
+      // committed. A later side-file failure restores earlier file writes too.
+      await commitPreparedRefreshes(preparedRefreshes, () =>
+        commitFileUpdates([
+          ...companionFiles,
+          {
+            targetPath: skillsLockPath,
+            content: `${JSON.stringify(nextLockfile, null, 2)}\n`,
+          },
+        ]),
       );
+      lockfile.skills = nextSkills;
+    } catch (error) {
+      await cleanupRefreshStaging(preparedRefreshes);
       throw error;
     }
 
@@ -2730,7 +2617,16 @@ async function refreshGithubGroup(group, lockfile) {
 
     return preparedRefreshes.length;
   } finally {
-    await rm(tempRoot, { recursive: true, force: true });
+    try {
+      await rm(tempRoot, { recursive: true, force: true });
+    } catch (cleanupError) {
+      // Keep any transaction error intact: broad refreshes must still abort
+      // after incomplete rollback rather than treating cleanup as a safe skip.
+      console.warn(
+        `warning: failed to remove GitHub clone directory ${tempRoot}`,
+        cleanupError,
+      );
+    }
   }
 }
 
@@ -2740,6 +2636,7 @@ async function refreshGithubGroup(group, lockfile) {
  * without `skills-lock.json` (e.g. the script-verifier fixtures) skips GitHub
  * vendoring instead of failing the whole run.
  */
+
 async function refreshGithubGroups(groups, { focused }) {
   if (!(await fileExists(skillsLockPath))) {
     const message =
@@ -2760,17 +2657,14 @@ async function refreshGithubGroups(groups, { focused }) {
       refreshedCount += await refreshGithubGroup(group, lockfile);
     } catch (error) {
       if (focused) {
-        const rollbackIncomplete = isIncompleteSkillRefreshRollbackError(error);
         throw new Error(
-          rollbackIncomplete
+          isIncompleteSkillRefreshRollbackError(error)
             ? `Focused upstream refresh for ${group.source} failed and skill rollback was incomplete`
             : `Focused upstream refresh for ${group.source} failed without changing canonical skills`,
           { cause: error },
         );
       }
-      if (isIncompleteSkillRefreshRollbackError(error)) {
-        throw error;
-      }
+      if (isIncompleteSkillRefreshRollbackError(error)) throw error;
       console.warn(
         `[warn] skipping ${group.name} (${group.skillNames.join(", ")}): ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -2779,7 +2673,6 @@ async function refreshGithubGroups(groups, { focused }) {
   }
 
   if (refreshedCount > 0) {
-    await writeSkillsLock(lockfile);
     console.log(
       `updated skills-lock.json for ${refreshedCount} GitHub skill(s)`,
     );
@@ -2805,12 +2698,7 @@ function getTemporarySiblingPath(targetPath, label) {
 }
 
 async function pathExists(targetPath) {
-  try {
-    await access(targetPath);
-    return true;
-  } catch {
-    return false;
-  }
+  return (await pathEntry(targetPath)) !== null;
 }
 
 async function renameOnce(fromPath, toPath) {
@@ -2837,7 +2725,12 @@ async function moveDirectory(fromPath, toPath) {
       throw error;
     }
     if (await pathExists(toPath)) {
-      throw error;
+      throw Object.assign(
+        new Error(`Refusing occupied refresh destination ${toPath}`, {
+          cause: error,
+        }),
+        { code: "EEXIST" },
+      );
     }
 
     await cp(fromPath, toPath, { recursive: true, force: true });
@@ -2889,6 +2782,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   const emilCloneSkillHash = emilKowalskiSkillNames.includes(skillName)
     ? await hashEmilCloneSkillMd(path.join(from, "SKILL.md"))
     : null;
+  await assertCanonicalDirectoryEntry(to);
   const preservedFiles = await readPreservedFiles(to, preserve);
   const preservedCoreOverlay = await readCoreOverlay(to);
   if (skillName === "grill-for-unknowns" && !preservedCoreOverlay) {
@@ -2928,11 +2822,7 @@ async function prepareSkillRefreshes(sources) {
     }
     return preparedRefreshes;
   } catch (error) {
-    await Promise.all(
-      preparedRefreshes.map(({ staging }) =>
-        rm(staging, { recursive: true, force: true }),
-      ),
-    );
+    await cleanupRefreshStaging(preparedRefreshes);
     throw error;
   }
 }
@@ -2946,60 +2836,197 @@ function isIncompleteSkillRefreshRollbackError(error) {
   );
 }
 
+async function writeFileAtomically(targetPath, content) {
+  const staging = getTemporarySiblingPath(targetPath, "refresh-file");
+  await mkdir(path.dirname(targetPath), { recursive: true });
+  try {
+    await writeFile(staging, content, { flag: "wx" });
+    await rename(staging, targetPath);
+  } finally {
+    try {
+      await rm(staging, { force: true });
+    } catch (cleanupError) {
+      // A successful rename has already published the file. Housekeeping
+      // cannot hide that success from the transaction or mask a write error.
+      console.warn(
+        `warning: failed to remove refresh file staging ${staging}`,
+        cleanupError,
+      );
+    }
+  }
+}
+
+async function commitFileUpdates(updates) {
+  const originals = new Map();
+  const written = [];
+  let preserveBackups = false;
+  try {
+    // Persist all original bytes before replacing a companion or lockfile. An
+    // interrupted rollback must leave recoverable data after this process exits.
+    for (const { targetPath } of updates) {
+      let original;
+      try {
+        original = await readFile(targetPath);
+      } catch (error) {
+        if (getErrorCode(error) !== "ENOENT") throw error;
+        originals.set(targetPath, null);
+        continue;
+      }
+      const backup = getTemporarySiblingPath(targetPath, "refresh-backup");
+      originals.set(targetPath, backup);
+      await writeFile(backup, original, { flag: "wx" });
+    }
+    for (const { targetPath, content } of updates) {
+      await writeFileAtomically(targetPath, content);
+      written.push(targetPath);
+    }
+  } catch (error) {
+    const rollbackErrors = [];
+    for (const targetPath of written.reverse()) {
+      const backup = originals.get(targetPath);
+      try {
+        if (backup === null) await rm(targetPath, { force: true });
+        else await writeFileAtomically(targetPath, await readFile(backup));
+      } catch (rollbackError) {
+        rollbackErrors.push(
+          new Error(
+            `Failed to restore ${targetPath}; recovery copy retained at ${backup}`,
+            { cause: rollbackError },
+          ),
+        );
+      }
+    }
+    if (rollbackErrors.length > 0) {
+      preserveBackups = true;
+      throw new AggregateError(
+        [error, ...rollbackErrors],
+        "Skill refresh rollback failed",
+      );
+    }
+    throw error;
+  } finally {
+    if (!preserveBackups) {
+      for (const backup of originals.values()) {
+        if (backup === null) continue;
+        try {
+          await rm(backup, { force: true });
+        } catch (cleanupError) {
+          console.warn(
+            `warning: failed to remove refresh backup ${backup}`,
+            cleanupError,
+          );
+        }
+      }
+    }
+  }
+}
+
+async function pathEntry(targetPath) {
+  try {
+    return await lstat(targetPath);
+  } catch (error) {
+    if (getErrorCode(error) === "ENOENT") return null;
+    throw error;
+  }
+}
+
+async function assertCanonicalDirectoryEntry(targetPath) {
+  const entry = await pathEntry(targetPath);
+  if (entry && !entry.isDirectory()) {
+    throw new Error(
+      `Refusing unexpected non-directory canonical destination ${targetPath}`,
+    );
+  }
+  return entry;
+}
+
+async function cleanupRefreshStaging(preparedRefreshes) {
+  for (const { staging } of preparedRefreshes) {
+    try {
+      await rm(staging, { recursive: true, force: true });
+    } catch (cleanupError) {
+      // Cleanup of a temporary path must not replace an earlier recovery
+      // failure and let a broad refresh misclassify it as a harmless skip.
+      console.warn(
+        `warning: failed to remove refresh staging ${staging}`,
+        cleanupError,
+      );
+    }
+  }
+}
+
 async function swapPreparedRefresh(preparedRefresh) {
   const { to, staging } = preparedRefresh;
   const backup = getTemporarySiblingPath(to, "refresh-backup");
-  let hasBackup = false;
+  const hasBackup = (await assertCanonicalDirectoryEntry(to)) !== null;
 
-  try {
-    await moveDirectory(to, backup);
-    hasBackup = true;
-  } catch (error) {
-    if (error?.backupReady === true && !(await pathExists(to))) {
-      try {
-        await moveDirectory(backup, to);
-      } catch (restoreError) {
-        throw new AggregateError(
-          [error, restoreError],
-          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
-        );
-      }
+  if (hasBackup) {
+    // A copy leaves the canonical source intact if creating a backup fails.
+    // Record the complete backup before any removal of the canonical tree.
+    if (await pathExists(backup)) {
+      throw Object.assign(
+        new Error(`EXDEV: refusing occupied refresh backup ${backup}`),
+        { code: "EXDEV" },
+      );
     }
-    if (getErrorCode(error) !== "ENOENT") {
+    try {
+      await cp(to, backup, {
+        recursive: true,
+        force: false,
+        errorOnExist: true,
+      });
+    } catch (error) {
+      await rm(backup, { recursive: true, force: true });
       throw error;
+    }
+
+    if (process.env.CORE_SKILLS_SIMULATE_BACKUP_REMOVE_FAILURE === "1") {
+      const removeError = new Error(`EIO: simulated remove failure for ${to}`);
+      removeError.code = "EIO";
+      throw removeError;
     }
   }
 
+  const swappedRefresh = { ...preparedRefresh, backup, hasBackup };
   try {
+    if (hasBackup) await rm(to, { recursive: true, force: true });
     await moveDirectory(staging, to);
   } catch (error) {
-    const code = getErrorCode(error);
-    const collided =
-      code === "EEXIST" || code === "ENOTEMPTY" || code === "EXDEV";
-    // A collided staging move did not create this destination. Deleting it
-    // would discard another refresh's completed tree.
-    if (!collided && hasBackup) {
-      try {
-        await rm(to, { recursive: true, force: true });
-        await moveDirectory(backup, to);
-      } catch (restoreError) {
-        throw new AggregateError(
-          [error, restoreError],
-          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
-        );
-      }
+    if (
+      ["EEXIST", "ENOTEMPTY", "ENOTDIR", "EISDIR"].includes(
+        getErrorCode(error),
+      ) &&
+      (await pathExists(to))
+    ) {
+      // A competing destination is not ours to remove. Keep both it and the
+      // complete recovery copy and stop instead of claiming a clean rollback.
+      throw new AggregateError(
+        [error],
+        hasBackup
+          ? `Failed to restore ${to}; occupied destination preserved and backup retained at ${backup}`
+          : `Failed to restore ${to}; occupied destination preserved and no prior canonical tree existed`,
+      );
+    }
+    try {
+      await rollbackSwappedRefresh(swappedRefresh);
+    } catch (restoreError) {
+      throw new AggregateError(
+        [error, restoreError],
+        `Failed to restore ${to} from backup ${backup} after refresh swap error`,
+      );
     }
     throw error;
   }
-
-  return { ...preparedRefresh, backup, hasBackup };
+  return swappedRefresh;
 }
 
 async function rollbackSwappedRefresh(swappedRefresh) {
   const { to, backup, hasBackup } = swappedRefresh;
   await rm(to, { recursive: true, force: true });
   if (hasBackup) {
-    await moveDirectory(backup, to);
+    // Keep the complete recovery copy if restoration itself is interrupted.
+    await cp(backup, to, { recursive: true, force: false, errorOnExist: true });
+    await rm(backup, { recursive: true, force: true });
   }
 }
 
@@ -3008,7 +3035,6 @@ async function commitPreparedRefreshes(
   afterSwap = async () => {},
 ) {
   const swappedRefreshes = [];
-
   try {
     for (const preparedRefresh of preparedRefreshes) {
       swappedRefreshes.push(await swapPreparedRefresh(preparedRefresh));
@@ -3031,11 +3057,7 @@ async function commitPreparedRefreshes(
     }
     throw error;
   } finally {
-    await Promise.all(
-      preparedRefreshes.map(({ staging }) =>
-        rm(staging, { recursive: true, force: true }),
-      ),
-    );
+    await cleanupRefreshStaging(preparedRefreshes);
   }
 
   for (const { backup, hasBackup } of swappedRefreshes) {
