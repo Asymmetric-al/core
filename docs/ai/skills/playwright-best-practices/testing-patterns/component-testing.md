@@ -274,7 +274,7 @@ test("form submission", async ({ mount }) => {
 
   expect(submittedData).toEqual({
     email: "test@example.com",
-    password: "secret123",
+    password: "secret123", // pragma: allowlist secret
   });
 });
 ```

@@ -254,7 +254,11 @@ function run(
       cwd: root,
       encoding: "utf8",
       env: {
-        ...process.env,
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(
+            ([key]) => !key.startsWith("GIT_"),
+          ),
+        ),
         HOME: root,
         TMPDIR: root,
         TEMP: root,

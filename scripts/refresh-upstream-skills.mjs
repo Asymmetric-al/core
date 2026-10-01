@@ -2147,9 +2147,13 @@ function assertPathInside(parent, child, context) {
 }
 
 function runGit(args, context, { capture = false } = {}) {
+  const gitEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
+  );
   const result = spawnSync("git", args, {
     cwd: repoRoot,
     encoding: "utf8",
+    env: gitEnv,
     stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
   });
 

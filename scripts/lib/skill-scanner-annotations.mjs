@@ -268,19 +268,24 @@ export function annotateSecretScannerMentions(content, filePath = "") {
       const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/u.exec(line);
       if (fenceMatch) {
         const marker = fenceMatch[2];
-        if (fence === null) {
-          fence = {
-            character: marker[0],
-            length: marker.length,
-            context: codeContext(fenceMatch[3].trim().split(/\s+/u)[0] ?? ""),
-          };
-        } else if (
-          marker[0] === fence.character &&
-          marker.length >= fence.length &&
-          fenceMatch[3].trim() === ""
-        )
-          fence = null;
-        return line;
+        const info = fenceMatch[3];
+        const rejectedOpener =
+          fence === null && marker[0] === "`" && info.includes("`");
+        if (!rejectedOpener) {
+          if (fence === null) {
+            fence = {
+              character: marker[0],
+              length: marker.length,
+              context: codeContext(info.trim().split(/\s+/u)[0] ?? ""),
+            };
+          } else if (
+            marker[0] === fence.character &&
+            marker.length >= fence.length &&
+            info.trim() === ""
+          )
+            fence = null;
+          return line;
+        }
       }
       if (fence !== null)
         return annotateCodeLine(line, filePath, fence.context);
