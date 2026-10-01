@@ -3,6 +3,7 @@
 import {
   access,
   cp,
+  lstat,
   mkdir,
   readFile,
   readdir,
@@ -745,6 +746,38 @@ async function mirrorAgentSkill(skillName, mirrorRoots) {
   }
 }
 
+async function restoreGitGuardrailsFailClosedHook() {
+  const skillRoot = path.join(
+    repoRoot,
+    ".agents",
+    "skills",
+    "git-guardrails-claude-code",
+  );
+  if (!(await pathExists(skillRoot))) {
+    return;
+  }
+
+  const overlayPath = path.join(
+    repoRoot,
+    "scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh",
+  );
+  const hookPath = path.join(skillRoot, "scripts", "block-dangerous-git.sh");
+  await mkdir(path.dirname(hookPath), { recursive: true });
+  const existing = await lstat(hookPath).catch((error) => {
+    if (error && error.code === "ENOENT") return null;
+    throw error;
+  });
+  if (existing?.isSymbolicLink()) {
+    throw new Error(
+      `Refusing to overwrite symlinked git-guardrails hook at ${path.relative(repoRoot, hookPath)}`,
+    );
+  }
+  await cp(overlayPath, hookPath);
+  console.log(
+    `restored git-guardrails hook overlay -> ${path.relative(repoRoot, hookPath)}`,
+  );
+}
+
 async function mirrorDirectoryTree(sourceRoot, targetRoot, label) {
   let entries;
 
@@ -1063,6 +1096,7 @@ async function main() {
     await pruneVendoredSkillJunk(targetRoot);
   }
 
+  await restoreGitGuardrailsFailClosedHook();
   await annotateSecretScannerMentionsInTree(targetRoots[0]);
 
   const agentMirrorSkills = await listAgentSkillsForMirror();
