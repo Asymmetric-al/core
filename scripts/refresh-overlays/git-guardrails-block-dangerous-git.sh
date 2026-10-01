@@ -96,7 +96,24 @@ for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   fi
 done
 
-if echo "$NORMALIZED" | grep -qE 'git[[:space:]]+(checkout|restore)[[:space:]].*(^|[[:space:]])(\./?)([[:space:];&|]|$)'; then
+DISCARDS_WORKTREE="false"
+while IFS= read -r COMMAND_PART; do
+  if echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])git[[:space:]]+checkout[[:space:]].*(^|[[:space:]])(\./?)([[:space:]]|$)'; then
+    DISCARDS_WORKTREE="true"
+    break
+  fi
+
+  if echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])git[[:space:]]+restore[[:space:]].*(^|[[:space:]])(\./?)([[:space:]]|$)' &&
+    { ! echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])--staged([[:space:]]|$)' ||
+      echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])--worktree([[:space:]]|$)'; }; then
+    DISCARDS_WORKTREE="true"
+    break
+  fi
+done <<EOF
+$(printf '%s' "$NORMALIZED" | tr ';&|' '\n')
+EOF
+
+if [ "$DISCARDS_WORKTREE" = "true" ]; then
   echo "BLOCKED: '$COMMAND' discards the working tree." >&2
   exit 2
 fi
