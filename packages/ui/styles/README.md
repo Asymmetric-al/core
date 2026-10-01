@@ -22,7 +22,7 @@ This directory contains the shared Tailwind v4 CSS-first design token stylesheet
 
 - **Colors**: semantic (`--primary`, `--background`, etc.), card/popover, sidebar, charts - all OKLCH, Zinc palette
 - **Radius**: `--radius` base (1rem) + sm/md/lg/xl/2xl variants
-- **Fonts**: `--font-sans` (Inter), `--font-display` (Syne), `--font-mono` (Geist Mono); Next apps inject `--font-inter`, `--font-syne`, `--font-geist-mono` from `next/font/google`
+- **Fonts**: `--font-sans` (Inter), `--font-display` (Syne), `--font-mono` (Geist Mono); Next apps inject `--font-inter`, `--font-syne`, `--font-geist-mono` from the shared [`@asym/ui/fonts`](../fonts/README.md) local assets
 - **Spacing**: `--space-*` scale + responsive gap/container/touch-target variables
 - **Dark mode**: `.dark` class toggles all color tokens; `color-scheme` is set automatically
 

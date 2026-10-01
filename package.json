@@ -11,6 +11,7 @@
     "tooling/*"
   ],
   "scripts": {
+    "verify:fonts:offline": "node scripts/verify/local-fonts-offline.mjs",
     "dev": "turbo run dev",
     "dev:admin": "turbo run dev --filter=@asym/admin",
     "dev:mission-control": "node scripts/run-with-ci-env.mjs -- bun run dev:admin",
