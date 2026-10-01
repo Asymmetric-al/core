@@ -244,7 +244,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/a5c-ai/babysitter-cursor.git",
     source: "a5c-ai/babysitter-cursor",
     sourceUrl: "https://github.com/a5c-ai/babysitter-cursor",
-    ref: "develop",
+    ref: "main",
     sourceRoot: "skills",
     skillNames: ["babysit"],
     lockSkillPath() {
@@ -254,7 +254,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/a5c-ai/babysitter-cursor/tree/develop/skills/${skillName}`;
+      return `https://github.com/a5c-ai/babysitter-cursor/tree/main/skills/${skillName}`;
     },
     skillExtraCopies: {
       babysit: [
@@ -294,13 +294,19 @@ const githubUpstreamGroups = [
 const BABYSIT_UPSTREAM_DEPENDENCY_BLOCK = `Read the SDK version from \`versions.json\` to ensure version compatibility:
 
 \`\`\`bash
-SDK_VERSION=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('\${PLUGIN_ROOT}/versions.json','utf8')).sdkVersion||'latest')}catch{console.log('latest')}")
-npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION
+SDK_VERSION=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('\${CURSOR_PLUGIN_ROOT}/versions.json','utf8')).sdkVersion||'latest')}catch{console.log('latest')}")
+npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION || npm i -g @a5c-ai/babysitter-sdk@latest
 
-CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+if command -v babysitter >/dev/null 2>&1 && babysitter --version >/dev/null 2>&1; then
+  CLI="babysitter"
+else
+  CLI="npm exec --yes --package @a5c-ai/babysitter-sdk@$SDK_VERSION -- babysitter"
+fi
 \`\`\`
 
-If \`babysitter\` is already installed globally at the correct version, you may use \`CLI="babysitter"\` instead.`;
+If the pinned version fails to install (e.g. not yet published), the fallback installs \`latest\`.
+
+If a stale or broken global shim fails with \`MODULE_NOT_FOUND\`, repair it with \`npm rm -g @a5c-ai/babysitter @a5c-ai/babysitter-sdk && npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION\`, then re-run \`babysitter --version\`.`;
 
 const BABYSIT_CORE_DEPENDENCY_BLOCK = `Resolve the repository root and read the reviewed SDK version from
 \`docs/ai/skills/babysit/versions.json\`. Stop immediately if the repository root
@@ -335,8 +341,33 @@ try {
 ' "$REPO_ROOT"
 ) || exit 1
 
-CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+CLI="npm exec --yes --package @a5c-ai/babysitter-sdk@$SDK_VERSION -- babysitter"
 \`\`\``;
+
+const BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK = `Run the following command to get full instructions:
+
+\`\`\`bash
+$CLI instructions:babysit-skill --harness cursor --interactive
+\`\`\`
+
+For non-interactive mode (running with \`-p\` flag or no AskUserQuestion tool):
+
+\`\`\`bash
+$CLI instructions:babysit-skill --harness cursor --no-interactive
+\`\`\`
+
+Follow the instructions returned by the command above to orchestrate the run.`;
+
+const BABYSIT_CORE_INSTRUCTIONS_BLOCK = `Run the non-interactive Cursor harness instructions so they can be reconciled
+with the Core overlay's in-turn loop:
+
+\`\`\`bash
+$CLI instructions:babysit-skill --harness cursor --no-interactive
+\`\`\`
+
+Follow the returned instructions only where they do not conflict with this
+file's Core overlay. In Cursor, keep driving \`$CLI run:iterate\` in this same
+turn; do not switch to interactive mode or rely on a Stop hook.`;
 
 const POST_REFRESH_REPLACEMENTS = [
   {
@@ -344,6 +375,13 @@ const POST_REFRESH_REPLACEMENTS = [
     relativePath: "SKILL.md",
     search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK,
     replace: BABYSIT_CORE_DEPENDENCY_BLOCK,
+    required: true,
+  },
+  {
+    skillName: "babysit",
+    relativePath: "SKILL.md",
+    search: BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK,
+    replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK,
     required: true,
   },
   {
@@ -1921,6 +1959,20 @@ async function ensureEmilDisableModelInvocation(skillName, targetRoot) {
   await writeFile(skillPath, lines.join("\n"), "utf8");
 }
 
+async function ensureGitGuardrailsFailClosed(skillName, targetRoot) {
+  if (skillName !== "git-guardrails-claude-code") {
+    return;
+  }
+
+  const overlayPath = path.join(
+    repoRoot,
+    "scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh",
+  );
+  const hookPath = path.join(targetRoot, "scripts", "block-dangerous-git.sh");
+  await mkdir(path.dirname(hookPath), { recursive: true });
+  await cp(overlayPath, hookPath);
+}
+
 async function applyPostRefreshReplacements(skillName, targetRoot) {
   if (skillName === "emil-design-engineering") {
     const formsControlsPath = path.join(targetRoot, "forms-controls.md");
@@ -1992,6 +2044,7 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
   await rewriteAskSonnerToasterImport(skillName, targetRoot);
   await ensureEmilDisableModelInvocation(skillName, targetRoot);
+  await ensureGitGuardrailsFailClosed(skillName, targetRoot);
 
   if (skillName === "emil-design-engineering") {
     const targetPath = path.join(targetRoot, "forms-controls.md");

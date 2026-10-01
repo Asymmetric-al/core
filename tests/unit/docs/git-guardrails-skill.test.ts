@@ -35,10 +35,41 @@ describe("git-guardrails Claude hook", () => {
   it("blocks push and discard-all checkout or restore", () => {
     for (const command of [
       "git push origin develop",
+      "git  push origin develop",
       "git checkout -- .",
+      "git checkout -- ./",
       "git checkout  .",
+      "git checkout ./",
       "git restore -- .",
+      "git restore -- ./",
       "git restore .",
+      "git restore ./",
+      'git checkout .""',
+      'git checkout "."/',
+      'git checkout ."/"',
+      "git checkout $'.'",
+      'git restore "."/',
+      'git restore ."/"',
+      "git restore $'.'",
+      "git checkout${IFS}.",
+      "git checkout$IFS.",
+      "git$IFSpush",
+      "git checkout -f .",
+      "git checkout HEAD -- .",
+      "git restore --worktree .",
+      "git restore --staged -W .",
+      "git restore --staged -SW .",
+      "git checkout -- ./.",
+      "git restore -- .///",
+      "git restore --staged . $(git restore .)",
+      "git restore --staged . $(echo $(git restore .))",
+      "/usr/bin/git checkout .",
+      "git -C . restore .",
+      "git -c core.pager=cat restore .",
+      "git --git-dir=.git --work-tree=. restore .",
+      "git restore :/",
+      "git checkout -- :(top)",
+      "git restore -sHEAD .",
     ]) {
       const result = runHook(JSON.stringify({ tool_input: { command } }));
       expect(result.status, `${command}\n${result.stderr}`).toBe(2);
@@ -56,5 +87,20 @@ describe("git-guardrails Claude hook", () => {
     );
     expect(status.status, status.stderr).toBe(0);
     expect(status.stderr).toBe("");
+
+    for (const command of [
+      "git checkout .github/workflows/ci.yml",
+      "git restore ./src/index.ts",
+      'git checkout ".github/workflows/ci.yml"',
+      "git checkout main && find . -name '*.ts'",
+      "git restore --staged .",
+      "git -C . status --short",
+      "git -C . restore --staged .",
+      "git -C . checkout .github/workflows/ci.yml",
+      "git restore :/sub",
+    ]) {
+      const allowed = runHook(JSON.stringify({ tool_input: { command } }));
+      expect(allowed.status, `${command}\n${allowed.stderr}`).toBe(0);
+    }
   });
 });
