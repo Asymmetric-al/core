@@ -57,6 +57,19 @@ describe("qa smoke preview deployment workflow", () => {
     }
   });
 
+  it("prefers isolated preview credentials while keeping existing QA credentials as fallback", () => {
+    expect(
+      workflow.match(
+        /QA_TEST_EMAIL: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL \|\| secrets\.QA_TEST_EMAIL \}\}/g,
+      ),
+    ).toHaveLength(3);
+    expect(
+      workflow.match(
+        /QA_TEST_PASSWORD: \$\{\{ secrets\.QA_PREVIEW_TEST_PASSWORD \|\| secrets\.QA_TEST_PASSWORD \}\}/g,
+      ),
+    ).toHaveLength(3);
+  });
+
   it("uses the required Vercel deployment and Playwright smoke secrets", () => {
     expect(workflow).toContain("secrets.VERCEL_ADMIN_PROJECT_ID");
     expect(workflow).toContain("secrets.VERCEL_DONOR_PROJECT_ID");

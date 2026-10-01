@@ -130,3 +130,14 @@ Older in-flight writers cannot change a quote after processing has started.
 Application rollback can retain the protective trigger; database rollback
 requires pausing donation processors first. The required migration CI job runs
 the rollback-only SQL proof after the ordinary seed.
+
+### Hosted smoke identity
+
+Preview smoke exposed production-bound datasource/provider settings and a QA
+identity that could not sign into the isolated test project. Preview-only
+configuration now uses the dedicated development datasource and test-mode
+provider keys. Use separate preview CI credentials for a test identity with
+legitimate scoped surface access and donor/missionary fixture records. Restore
+the committed membership lookup RPC in that test datasource; do not weaken
+application authorization to satisfy smoke. Existing QA credentials remain the
+workflow fallback.

@@ -72,6 +72,16 @@ Production.
     preview URL payload for Claude QA handoff. Missing webhook configuration is
     a skip, not a failure.
 
+## Preview test identity
+
+Use a dedicated identity in the isolated preview datasource. The workflow
+prefers `QA_PREVIEW_TEST_EMAIL` / `QA_PREVIEW_TEST_PASSWORD` and falls back to the
+existing QA pair when the preview-specific pair is absent. The suite still
+receives `QA_TEST_EMAIL` / `QA_TEST_PASSWORD`, so credential redaction is
+unchanged. The identity must have legitimate access to the three tested
+surfaces and the associated donor/missionary fixture records; login success
+alone does not establish that access.
+
 ## Required Secrets
 
 Configure these GitHub repository secrets:
@@ -81,8 +91,9 @@ Configure these GitHub repository secrets:
 - `VERCEL_ADMIN_PROJECT_ID`
 - `VERCEL_DONOR_PROJECT_ID`
 - `VERCEL_MISSIONARY_PROJECT_ID`
-- `QA_TEST_EMAIL`
-- `QA_TEST_PASSWORD`
+- `QA_PREVIEW_TEST_EMAIL`
+- `QA_PREVIEW_TEST_PASSWORD`
+- Legacy fallback: `QA_TEST_EMAIL` / `QA_TEST_PASSWORD`
 - `VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET`
 - `VERCEL_DONOR_AUTOMATION_BYPASS_SECRET`
 - `VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET`
