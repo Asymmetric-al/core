@@ -45,7 +45,7 @@ Production.
    - shared runtime/config/smoke changes -> all three previews
 4. If no surface is affected, the action comments that all previews were
    skipped and exits successfully.
-5. For affected surfaces, the action runs `vercel deploy --target=preview` with
+5. For affected surfaces, the action runs `vercel pull --environment=preview`, `vercel build --target=preview`, then `vercel deploy --prebuilt --target=preview` with
    the selected project ID.
 6. The action upserts a PR comment with preview URLs and this marker:
 
@@ -161,7 +161,7 @@ or ready-for-review state changes again.
 ## Vercel Settings
 
 The app-level Vercel configs currently disable automatic Git deployments for
-feature branches while keeping `develop` and `production` enabled:
+feature branches and `develop`, with automatic Git deployment enabled only for `production`:
 
 - `apps/admin/vercel.json`
 - `apps/donor/vercel.json`
@@ -173,7 +173,7 @@ Each file keeps:
 "git": {
   "deploymentEnabled": {
     "*": false,
-    "develop": true,
+    "develop": false,
     "production": true,
     "main": false
   }
@@ -182,7 +182,7 @@ Each file keeps:
 
 This is safe for the label-gated workflow because the action creates explicit
 CLI preview deployments only after `qa:smoke` passes, while branch-bound
-development and production deployments remain available.
+production deployments remain available. Existing development URLs keep the last successful deployment until an explicit refresh.
 
 ## Checklist
 
@@ -199,3 +199,5 @@ development and production deployments remain available.
       posted
 
 Configure both Preview credential secrets together. A partial Preview pair fails validation; the legacy QA pair is used only when both Preview secrets are absent.
+
+Preview compilation runs on the standard GitHub runner using the pinned Vercel CLI helper, with Node Functions and artifact-only Eve builds. Downloaded environment files and build output are transient and excluded from diagnostic artifacts; local `.vercel` state is removed between surfaces and on failure.

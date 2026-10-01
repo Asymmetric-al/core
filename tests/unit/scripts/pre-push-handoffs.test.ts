@@ -37,6 +37,26 @@ describe("feature branch handoffs", () => {
       rmSync(dir, { recursive: true, force: true });
   });
 
+  it("requires full preflight for an authorized production-targeting push", () => {
+    const runCommand = vi.fn(() => ({ status: 0 }));
+    const env = {
+      ASYM_RELEASE_PRODUCTION_PUSH: "1",
+      ASYM_RELEASE_PRODUCTION_REASON: "release checkpoint",
+    };
+    expect(
+      runPrePush({
+        input: `refs/heads/develop ${"a".repeat(40)} refs/heads/production ${"b".repeat(40)}\n`,
+        env,
+        runCommand,
+      }),
+    ).toBe(0);
+    expect(runCommand).toHaveBeenCalledWith(
+      "bun",
+      ["run", "ci:preflight", "--", "--full"],
+      expect.objectContaining({ env }),
+    );
+  });
+
   it("accepts unsigned mixed human and agent history without identity repair", () => {
     const cwd = mkdtempSync(path.join(os.tmpdir(), "core-handoffs-"));
     created.push(cwd);

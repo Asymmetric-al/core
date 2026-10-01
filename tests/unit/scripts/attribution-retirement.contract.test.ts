@@ -15,8 +15,8 @@ describe("commit metadata is not a development gate", () => {
       expect(source).not.toContain("verify:git-attribution");
     }
     expect(ci).toContain("bun run format:check");
-    expect(ci).toContain(
-      "needs: [format, integrity, lint, typecheck, build, test-unit]",
+    expect(ci.replace(/\s+/g, " ")).toContain(
+      "needs: [compilation-plan, format, integrity, lint, typecheck, build, test-unit]",
     );
     const format = ci.slice(
       ci.indexOf("  format:"),

@@ -36,7 +36,7 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
 - **GitHub operations:** internal Windows developers may use their authenticated
   Windows `gh` for normal issue, pull-request, review, check, and Actions work;
   see `docs/guides/development/contributing.md`.
-- **Required local PR/push-readiness gate:** `bun run ci:preflight` (exact stages
+- **Required local PR/push-readiness gate:** `bun run ci:preflight` (conditional development compilation; exact stages
   and focused debugging commands are documented in `docs/ci.md`).
 - **Font asset changes:** run `bun run verify:fonts:offline` in Linux/WSL with
   Playwright Chromium installed. See [shared font maintenance](packages/ui/fonts/README.md)
@@ -60,3 +60,7 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
 ## License for contributions
 
 By contributing, you agree that we will release your contributions under the same license as this project: AGPL-3.0-only.
+
+## Development-phase build policy
+
+Routine `develop` PRs retain formatting, integrity, lint, type checking, unit tests, migration and smoke feedback. Dependency/build-configuration changes compile affected apps; ordinary source/docs changes may merge without a full release build. Merges into `develop` do not automatically deploy. Request `qa:smoke` for a ready preview; GitHub builds and uploads prebuilt output. Use `bun run ci:preflight -- --full` for full QA. Production releases and production-targeting pushes always require full preflight. See [CI reference](docs/ci.md).

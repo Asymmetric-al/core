@@ -192,7 +192,12 @@ async function main() {
     "run",
     "verify:deployment-discipline",
   ]);
-  runGate("run CI preflight", "bun", ["run", "ci:preflight"]);
+  runGate("run full CI preflight", "bun", [
+    "run",
+    "ci:preflight",
+    "--",
+    "--full",
+  ]);
 
   assertReleaseSourceIsOnDevelop(args.remote, commit);
 

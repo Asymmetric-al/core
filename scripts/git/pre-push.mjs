@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import {
   evaluatePrePushGuard,
   parsePrePushUpdates,
+  targetsBranch,
 } from "./pre-push-guard.mjs";
 
 export function runPrePush({
@@ -24,7 +25,10 @@ export function runPrePush({
 
   console.log(`[pre-push-guard] allowed: ${guardResult.reason}`);
 
-  const result = runCommand("bun", ["run", "ci:preflight"], {
+  const args = ["run", "ci:preflight"];
+  if (updates.some((update) => targetsBranch(update)))
+    args.push("--", "--full");
+  const result = runCommand("bun", args, {
     env,
     stdio: "inherit",
   });

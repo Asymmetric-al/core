@@ -64,9 +64,7 @@ export function validateLocalVercelConfig({ project, config }) {
   const expectedIgnoreCommand = EXPECTED_IGNORE_COMMANDS[project.key];
   const enabledBranches = listEnabledBranches(config);
   const onlyExpectedBranches =
-    enabledBranches.length === 2 &&
-    enabledBranches.includes(PRODUCTION_BRANCH) &&
-    enabledBranches.includes(DEVELOPMENT_BRANCH);
+    enabledBranches.length === 1 && enabledBranches.includes(PRODUCTION_BRANCH);
 
   requireCheck(
     checks,
@@ -82,8 +80,8 @@ export function validateLocalVercelConfig({ project, config }) {
   );
   requireCheck(
     checks,
-    isBranchDeploymentEnabled(config, DEVELOPMENT_BRANCH),
-    `${project.project} allows ${DEVELOPMENT_BRANCH} deployments`,
+    !isBranchDeploymentEnabled(config, DEVELOPMENT_BRANCH),
+    `${project.project} disables automatic ${DEVELOPMENT_BRANCH} deployments`,
     JSON.stringify(config?.git?.deploymentEnabled ?? null),
   );
   requireCheck(

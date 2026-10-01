@@ -33,25 +33,22 @@ describe("qa smoke preview deployment workflow", () => {
   it("checks out the PR head SHA and deploys preview targets only", () => {
     expect(workflow).toContain("ref: ${{ steps.gate.outputs.head_sha }}");
     expect(workflow).toContain(
-      "vercel@latest deploy --yes --target=preview --archive=tgz",
+      "node scripts/qa/deploy-prebuilt-preview.mjs admin",
     );
     expect(workflow).toContain(
-      "vercel@latest deploy --yes --target=preview --archive=tgz",
+      "node scripts/qa/deploy-prebuilt-preview.mjs donor",
     );
     expect(workflow).toContain(
-      "vercel@latest deploy --yes --target=preview --archive=tgz",
+      "node scripts/qa/deploy-prebuilt-preview.mjs missionary",
     );
     expect(workflow).not.toContain("--prod");
     expect(workflow).not.toContain("--target=production");
   });
 
-  it("applies each configured Vercel project root once from the monorepo root", () => {
+  it("uses the prebuilt delivery helper once per requested surface", () => {
     expect(
-      workflow.match(
-        /bunx vercel@latest deploy --yes --target=preview --archive=tgz --project/g,
-      ),
+      workflow.match(/node scripts\/qa\/deploy-prebuilt-preview\.mjs /g),
     ).toHaveLength(3);
-    expect(workflow.match(/--archive=tgz/g)).toHaveLength(3);
     for (const app of ["admin", "donor", "missionary"]) {
       expect(workflow).not.toContain(`--cwd apps/${app} deploy`);
     }
