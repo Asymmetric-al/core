@@ -51,3 +51,7 @@
 - [ ] 4.7 Complete `bun run ci:preflight` and applicable current-head CI and smoke
       verification after the final integration-base update, then merge through
       ordinary repository protections.
+
+- [ ] 4.9 Repair the verified preview install-tool mismatch by pinning Bun 1.4.0
+      installation, verify the toolchain/build-control contracts, and rerun
+      current-head hosted smoke.

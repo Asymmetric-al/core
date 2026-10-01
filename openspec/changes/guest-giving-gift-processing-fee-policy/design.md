@@ -111,3 +111,10 @@ is Guest Giving Gift intake only.
 - Unit tests at the Core **interface**, schema defaults, Gift intake `p_amount`,
   saga metadata merge, checkout adapter POST body, and cover-fees UI.
 - `bun run openspec:validate`.
+
+### Preview validation prerequisite
+
+The exact-head admin preview failed before compilation because Vercel's build
+image used Bun 1.3.14 against the Bun 1.4.0 frozen lockfile. Pin only installation
+in the three app Vercel configs with `bunx bun@1.4.0 install`; keep Node Functions,
+app build commands, deployment targeting, and the frozen lockfile unchanged.

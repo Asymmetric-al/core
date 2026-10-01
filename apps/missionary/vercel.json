@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "bun install --cwd ../.. --frozen-lockfile",
+  "installCommand": "bunx bun@1.4.0 install --cwd ../.. --frozen-lockfile",
   "buildCommand": "cd ../.. && bun run build:missionary",
   "ignoreCommand": "node ../../scripts/vercel/should-ignore-build.mjs missionary",
   "git": {
