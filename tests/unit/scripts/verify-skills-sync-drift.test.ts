@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -45,6 +45,11 @@ async function copyScript(tempRoot: string, relativePath: string) {
   const targetPath = path.join(tempRoot, relativePath);
   await mkdir(path.dirname(targetPath), { recursive: true });
   await writeFile(targetPath, await readFile(sourcePath));
+  await cp(
+    path.join(repoRoot, "scripts/lib"),
+    path.join(tempRoot, "scripts/lib"),
+    { recursive: true },
+  );
 }
 
 function runNodeScript(

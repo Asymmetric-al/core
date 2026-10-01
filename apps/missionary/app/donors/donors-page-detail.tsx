@@ -251,11 +251,11 @@ export function DonorsPageDetail() {
                         align="end"
                         className="rounded-xl border-border shadow-xl"
                       >
-                        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                          Actions
-                        </DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-muted" />
                         <DropdownMenuGroup>
+                          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            Actions
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-muted" />
                           <DropdownMenuItem
                             onClick={editDialog.open}
                             disabled={selectedDonor.is_anonymous}

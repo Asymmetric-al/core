@@ -7,6 +7,8 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { mergeBaseUIClassName } from "../../lib/base-ui";
+
 function NavigationMenu({
   align = "start",
   className,
@@ -17,7 +19,7 @@ function NavigationMenu({
   return (
     <NavigationMenuPrimitive.Root
       data-slot="navigation-menu"
-      className={cn(
+      className={mergeBaseUIClassName(
         "group/navigation-menu relative flex max-w-max flex-1 items-center justify-center",
         className,
       )}
@@ -36,7 +38,7 @@ function NavigationMenuList({
   return (
     <NavigationMenuPrimitive.List
       data-slot="navigation-menu-list"
-      className={cn(
+      className={mergeBaseUIClassName(
         "group flex flex-1 list-none items-center justify-center gap-1",
         className,
       )}
@@ -52,7 +54,7 @@ function NavigationMenuItem({
   return (
     <NavigationMenuPrimitive.Item
       data-slot="navigation-menu-item"
-      className={cn("relative", className)}
+      className={mergeBaseUIClassName("relative", className)}
       {...props}
     />
   );
@@ -70,7 +72,10 @@ function NavigationMenuTrigger({
   return (
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
-      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      className={mergeBaseUIClassName(
+        cn(navigationMenuTriggerStyle(), "group"),
+        className,
+      )}
       {...props}
     >
       {children}{" "}
@@ -89,7 +94,7 @@ function NavigationMenuContent({
   return (
     <NavigationMenuPrimitive.Content
       data-slot="navigation-menu-content"
-      className={cn(
+      className={mergeBaseUIClassName(
         "isolate z-50 h-full w-auto p-2 pr-2.5 transition-[opacity,transform,translate] duration-[var(--duration-standard)] data-starting-style:opacity-0 data-ending-style:opacity-0 data-[activation-direction=right]:slide-in-from-right-52 data-[activation-direction=left]:slide-in-from-left-52 data-ending-style:data-[activation-direction=right]:slide-out-to-right-52 data-ending-style:data-[activation-direction=left]:slide-out-to-left-52 data-[activation-direction]:animate-in data-[activation-direction]:fade-in data-ending-style:data-[activation-direction]:animate-out data-ending-style:data-[activation-direction]:fade-out **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none",
         className,
       )}
@@ -113,7 +118,7 @@ function NavigationMenuPositioner({
         sideOffset={sideOffset}
         align={align}
         alignOffset={alignOffset}
-        className={cn(
+        className={mergeBaseUIClassName(
           "isolate z-50 h-(--positioner-height) w-(--positioner-width) max-w-(--available-width) transition-[top,left,right,bottom] duration-[var(--duration-standard)] data-instant:transition-none data-[side=bottom]:before:top-[-10px] data-[side=bottom]:before:right-0 data-[side=bottom]:before:left-0",
           className,
         )}
@@ -134,7 +139,10 @@ function NavigationMenuViewport({
   return (
     <NavigationMenuPrimitive.Viewport
       data-slot="navigation-menu-viewport"
-      className={cn("relative size-full overflow-hidden", className)}
+      className={mergeBaseUIClassName(
+        "relative size-full overflow-hidden",
+        className,
+      )}
       {...props}
     />
   );
@@ -147,8 +155,8 @@ function NavigationMenuLink({
   return (
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
-      className={cn(
-        "flex flex-col gap-1 rounded-sm p-2 text-sm transition-[color,box-shadow] outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-[active=true]:bg-accent/50 data-[active=true]:text-accent-foreground data-[active=true]:hover:bg-accent data-[active=true]:focus:bg-accent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+      className={mergeBaseUIClassName(
+        "flex flex-col gap-1 rounded-sm p-2 text-sm transition-[color,box-shadow] outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-accent/50 data-active:text-accent-foreground data-active:hover:bg-accent data-active:focus:bg-accent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         className,
       )}
       {...props}
@@ -163,8 +171,8 @@ function NavigationMenuIndicator({
   return (
     <NavigationMenuPrimitive.Icon
       data-slot="navigation-menu-indicator"
-      className={cn(
-        "top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:animate-in data-[state=visible]:fade-in",
+      className={mergeBaseUIClassName(
+        "top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden opacity-0 data-popup-open:opacity-100 data-popup-open:animate-in data-popup-open:fade-in",
         className,
       )}
       {...props}

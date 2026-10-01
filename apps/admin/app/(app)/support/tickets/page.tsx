@@ -10,6 +10,14 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectControlLabel,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import Link from "next/link";
 
 import { SUPPORT_TICKETS_PAGE_META } from "../../../../components/table-page-meta";
@@ -23,6 +31,8 @@ interface SupportTicketsPageProps {
     status?: string;
   }>;
 }
+
+const ticketStatuses = ["open", "waiting", "resolved", "escalated"];
 
 function toSearchParams(params: Record<string, string | undefined>) {
   const searchParams = new URLSearchParams();
@@ -77,40 +87,70 @@ export default async function SupportTicketsPage({
             />
           </div>
           <div className="space-y-2">
-            <Label className="sr-only" htmlFor="support-ticket-queue">
-              Support track
-            </Label>
-            <select
-              className="min-h-11 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm"
-              defaultValue={params.queueId ?? ""}
+            <Select
+              items={[
+                { value: "", label: "All tracks" },
+                ...model.queues.map((queue) => ({
+                  value: queue.id,
+                  label: queue.label,
+                })),
+              ]}
+              defaultValue={
+                model.queues.some((queue) => queue.id === params.queueId)
+                  ? params.queueId
+                  : ""
+              }
               id="support-ticket-queue"
               name="queueId"
             >
-              <option value="">All tracks</option>
-              {model.queues.map((queue) => (
-                <option key={queue.id} value={queue.id}>
-                  {queue.label}
-                </option>
-              ))}
-            </select>
+              <SelectControlLabel className="sr-only">
+                Support track
+              </SelectControlLabel>
+              <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All tracks</SelectItem>
+                {model.queues.map((queue) => (
+                  <SelectItem key={queue.id} value={queue.id}>
+                    {queue.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label className="sr-only" htmlFor="support-ticket-status">
-              Status
-            </Label>
-            <select
-              className="min-h-11 w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm"
-              defaultValue={params.status ?? ""}
+            <Select
+              items={[
+                { value: "", label: "All statuses" },
+                ...ticketStatuses.map((status) => ({
+                  value: status,
+                  label: status,
+                })),
+              ]}
+              defaultValue={
+                ticketStatuses.includes(params.status ?? "")
+                  ? params.status
+                  : ""
+              }
               id="support-ticket-status"
               name="status"
             >
-              <option value="">All statuses</option>
-              {["open", "waiting", "resolved", "escalated"].map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
+              <SelectControlLabel className="sr-only">
+                Status
+              </SelectControlLabel>
+              <SelectTrigger className="min-h-11 w-full rounded-2xl px-4 py-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All statuses</SelectItem>
+                {ticketStatuses.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button type="submit">Filter</Button>
         </form>

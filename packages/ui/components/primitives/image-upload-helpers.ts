@@ -1,5 +1,6 @@
 type EventWithDefaultPrevention = {
   defaultPrevented?: boolean;
+  baseUIHandlerPrevented?: boolean;
 };
 
 type ButtonTriggerType = "button" | "submit" | "reset";
@@ -34,7 +35,7 @@ export function composeEventHandlers<TEvent extends EventWithDefaultPrevention>(
   return (event: TEvent) => {
     consumerHandler?.(event);
 
-    if (event.defaultPrevented) {
+    if (event.defaultPrevented || event.baseUIHandlerPrevented) {
       return;
     }
 

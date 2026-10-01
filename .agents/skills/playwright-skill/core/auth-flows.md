@@ -324,7 +324,7 @@ test('completes signup flow with mocked email verification', async ({ page }) =>
 
 ---
 
-## Recipe 4: Password Reset Flow // pragma: allowlist secret
+## Recipe 4: Password Reset Flow <!-- pragma: allowlist secret -->
 
 ### Complete Example
 

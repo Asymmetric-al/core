@@ -1,10 +1,14 @@
 # Custom files in `components/shadcn`
 
-All primitives here are **Base UI-backed** (`@base-ui/react` via the shadcn
+The primitive base is **Base UI** (`@base-ui/react` via the shadcn
 `base-maia` style). Never add `radix-ui`/`@radix-ui/*` imports; composition
-uses Base UI's `render` prop, not `asChild`. Known intentional deviations
-from upstream base-maia: `DropdownMenuLabel`/`ContextMenuLabel` wrap their
-`GroupLabel` in an implicit `Group` to keep standalone labels valid.
+uses Base UI's `render` prop, not `asChild`. Established specialist integrations
+are documented in [the compliance guide](../../../../docs/guides/base-ui-compliance.md).
+
+`DropdownMenuLabel`, `ContextMenuLabel`, and `MenubarLabel` must be children of
+the corresponding public `Group` or `RadioGroup` that also owns their items.
+They do not create an implicit group. Keep labels presentational: interactive
+controls must be siblings, because Base UI's `GroupLabel` is `aria-hidden`.
 
 This directory contains two kinds of files:
 
@@ -28,6 +32,13 @@ When running future shadcn CLI updates, treat the following as **custom** and re
 - `data-table/`
 - `data-grid/`
 - `icons/`
+- `input-otp.tsx` — intentionally adapts Base UI's stable `OTPField`, using
+  `length`, `onValueChange`, and ordered slot children. It does not expose the
+  `input-otp` package's `maxLength`/indexed-slot API; review CLI updates manually.
+- `number-field.tsx`
+- `meter.tsx`
+- `toolbar.tsx`
+- `searchable-select.tsx`
 
 Rules:
 

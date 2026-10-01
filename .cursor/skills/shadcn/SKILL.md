@@ -64,9 +64,7 @@ These rules are **always enforced**. Each links to a file with Incorrect/Correct
 - **Use existing components before custom markup.** Check if a component exists before writing a styled `div`.
 - **Callouts use `Alert`.** Don't build custom styled divs.
 - **Empty states use `Empty`.** Don't build custom empty state markup.
-- **Toast follows the project base.** Use `toast` from the `toast` component for
-  Base UI projects. Use `toast()` from `sonner` for Radix and React Aria
-  projects.
+- **Core uses the existing Sonner host.** Import `toast` from `sonner`; the app layout already mounts `@asym/ui/components/shadcn/sonner`. Preserve base-maia and Base UI for components. Do not add another toast primitive or host.
 - **Use `Separator`** instead of `<hr>` or `<div className="border-t">`.
 - **Use `Skeleton`** for loading placeholders. No custom `animate-pulse` divs.
 - **Use `Badge`** instead of custom styled spans.

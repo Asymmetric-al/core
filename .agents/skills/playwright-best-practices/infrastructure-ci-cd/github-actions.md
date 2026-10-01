@@ -251,7 +251,7 @@ jobs:
     env:
       CI: true
       BASE_URL: ${{ vars.STAGING_URL }}
-      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }} // pragma: allowlist secret
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }} # pragma: allowlist secret
       API_TOKEN: ${{ secrets.API_TOKEN }}
 
     steps:
@@ -359,7 +359,7 @@ on:
     secrets:
       BASE_URL:
         required: false
-      TEST_PASSWORD: // pragma: allowlist secret
+      TEST_PASSWORD: # pragma: allowlist secret
         required: false
 
 jobs:
@@ -370,7 +370,7 @@ jobs:
     env:
       CI: true
       BASE_URL: ${{ secrets.BASE_URL }}
-      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} // pragma: allowlist secret
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} # pragma: allowlist secret
 
     steps:
       - uses: actions/checkout@v4
@@ -424,7 +424,7 @@ jobs:
       node-version: "lts/*"
     secrets:
       BASE_URL: ${{ secrets.STAGING_URL }}
-      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} // pragma: allowlist secret
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} # pragma: allowlist secret
 ```
 
 ## Scenario Guide

@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -24,6 +24,11 @@ async function copyScript(tempRoot: string, relativePath: string) {
   const targetPath = path.join(tempRoot, relativePath);
   await mkdir(path.dirname(targetPath), { recursive: true });
   await cp(sourcePath, targetPath);
+  await cp(
+    path.join(repoRoot, "scripts/lib"),
+    path.join(tempRoot, "scripts/lib"),
+    { recursive: true },
+  );
 }
 
 function runSync(tempRoot: string, environment: Record<string, string> = {}) {
@@ -68,6 +73,93 @@ afterEach(async () => {
 });
 
 describe("sync-agent-skills EXDEV fallback", () => {
+  it.each(["occupied", "partial-remove"])(
+    "preserves recoverable data after %s failure",
+    async (fault) => {
+      const tempRoot = await createTempRepo("sync-failure");
+      await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+      for (const directory of [
+        "docs/ai/skills/vitest",
+        ".agents/skills/vitest",
+      ]) {
+        await mkdir(path.join(tempRoot, directory), { recursive: true });
+        await writeFile(
+          path.join(tempRoot, directory, "SKILL.md"),
+          directory.startsWith("docs") ? "# New\n" : "# Original\n",
+        );
+        await writeFile(
+          path.join(tempRoot, directory, "second.txt"),
+          "keep complete tree\n",
+        );
+      }
+      const scriptPath = path.join(tempRoot, "scripts/sync-agent-skills.mjs");
+      let script = await readFile(scriptPath, "utf8");
+      script = script
+        .replace("  rename,\n", "  rename as realRename,\n")
+        .replace("  rm,\n", "  rm as realRm,\n");
+      script += `
+let faultReached = false;
+async function rename(from, to) {
+  if (process.env.SYNC_FAULT === "occupied" && String(from).includes(".staging-") && String(to).endsWith("/.agents/skills/vitest")) {
+    await mkdir(to); await writeFile(path.join(to, "concurrent.txt"), "preserve concurrent destination");
+    console.error("REACHED_OCCUPIED_SYNC");
+    throw Object.assign(new Error("occupied"), {code: "EXDEV"});
+  }
+  return realRename(from, to);
+}
+async function rm(target, options) {
+  if (process.env.SYNC_FAULT === "partial-remove" && !faultReached && String(target).endsWith("/.agents/skills/vitest")) {
+    faultReached = true; await realRm(path.join(target, "SKILL.md"));
+    console.error("REACHED_PARTIAL_SYNC_REMOVE");
+    throw Object.assign(new Error("partial remove"), {code: "EIO"});
+  }
+  return realRm(target, options);
+}
+`;
+      await writeFile(scriptPath, script);
+      const result = spawnSync(process.execPath, [scriptPath], {
+        cwd: tempRoot,
+        encoding: "utf8",
+        env: {
+          ...isolatedGitEnv,
+          SYNC_FAULT: fault,
+          ...(fault === "partial-remove"
+            ? { CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1" }
+            : {}),
+        },
+      });
+      expect(result.stderr).toContain(
+        fault === "occupied"
+          ? "REACHED_OCCUPIED_SYNC"
+          : "REACHED_PARTIAL_SYNC_REMOVE",
+      );
+      expect(result.status).not.toBe(0);
+      const live = path.join(tempRoot, ".agents/skills/vitest");
+      if (fault === "occupied") {
+        expect(await readFile(path.join(live, "concurrent.txt"), "utf8")).toBe(
+          "preserve concurrent destination",
+        );
+        const backup = readdirSync(path.dirname(live)).find((name) =>
+          name.startsWith(".vitest.backup-"),
+        );
+        expect(backup).toBeDefined();
+        expect(
+          await readFile(
+            path.join(path.dirname(live), backup!, "SKILL.md"),
+            "utf8",
+          ),
+        ).toBe("# Original\n");
+      } else {
+        expect(await readFile(path.join(live, "SKILL.md"), "utf8")).toBe(
+          "# Original\n",
+        );
+        expect(await readFile(path.join(live, "second.txt"), "utf8")).toBe(
+          "keep complete tree\n",
+        );
+      }
+    },
+  );
+
   it("replaces existing skill mirrors when rename throws EXDEV", async () => {
     const tempRoot = await createTempRepo("sync-exdev-replace");
     await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");

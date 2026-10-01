@@ -1,5 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import {
   access,
   cp,
@@ -37,6 +37,12 @@ async function copyScript(tempRoot: string, relativePath: string) {
   const targetPath = path.join(tempRoot, relativePath);
   await mkdir(path.dirname(targetPath), { recursive: true });
   await cp(sourcePath, targetPath);
+  const libSource = path.join(repoRoot, "scripts/lib");
+  if (relativePath.startsWith("scripts/") && existsSync(libSource)) {
+    await cp(libSource, path.join(tempRoot, "scripts/lib"), {
+      recursive: true,
+    });
+  }
 }
 
 function fencedMarkdownBlock(markdown: string, language: string) {
@@ -2531,7 +2537,10 @@ describe("data-boundary-check", () => {
       );
       expect(sqlFence).toContain("-- pragma: allowlist secret");
       expect(sqlFence).not.toContain("<!--");
-      expect(htmlFence).toContain("<!-- pragma: allowlist secret -->");
+      expect(htmlFence).toContain(
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+      );
+      expect(htmlFence).not.toContain("<!--");
       expect(graphqlFence).toContain("# pragma: allowlist secret");
       expect(markdownFence).toContain(
         `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
@@ -2727,9 +2736,8 @@ describe("data-boundary-check", () => {
       "-- pragma: allowlist secret",
     );
     expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
-    expect(fencedMarkdownBlock(refreshed, "html")).toContain(
-      "<!-- pragma: allowlist secret -->",
-    );
+    expect(fencedMarkdownBlock(refreshed, "html")).toContain("<input");
+    expect(fencedMarkdownBlock(refreshed, "html")).not.toContain("<!--");
     expect(fencedMarkdownBlock(refreshed, "graphql")).toContain(
       "# pragma: allowlist secret",
     );
@@ -2896,5 +2904,48 @@ describe("data-boundary-check", () => {
     await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
       askMattCanonicalSkill,
     );
+  });
+
+  it("does not delete the canonical skill when backing it up fails after copy", async () => {
+    const tempRoot = await createTempRepo("refresh-backup-remove-failure");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalRoot = path.join(tempRoot, "docs/ai/skills/ask-matt");
+    const canonicalSkillPath = path.join(canonicalRoot, "SKILL.md");
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, askMattUpstreamBody);
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, askMattCanonicalSkill);
+
+    expect(() =>
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=mattpocock/skills"],
+        {
+          CORE_SKILLS_SIMULATE_BACKUP_REMOVE_FAILURE: "1",
+          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+        },
+      ),
+    ).toThrow(/failed without changing canonical skills/);
+
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      askMattCanonicalSkill,
+    );
+
+    const backupNames = readdirSync(path.dirname(canonicalRoot)).filter(
+      (name) => name.startsWith(".ask-matt.refresh-backup-"),
+    );
+    expect(backupNames).toHaveLength(1);
+    await expect(
+      readFile(
+        path.join(path.dirname(canonicalRoot), backupNames[0], "SKILL.md"),
+        "utf8",
+      ),
+    ).resolves.toBe(askMattCanonicalSkill);
   });
 });

@@ -80,24 +80,26 @@ export default function RootLayout({
         <meta name="theme-color" content="#ffffff" />
       </head>
       <body className={`${fontVariables} font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
-          storageKey="admin-theme"
-          disableTransitionOnChange
-        >
-          <BoneyardRegistry />
-          <QueryProvider>
-            <TooltipProvider delay={0}>
-              <MotionProvider>
-                <NuqsAdapter>{children}</NuqsAdapter>
-              </MotionProvider>
-            </TooltipProvider>
-          </QueryProvider>
-          <AdminTanStackDevtools />
-        </ThemeProvider>
+        <div className="app-root">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            forcedTheme="light"
+            enableSystem={false}
+            storageKey="admin-theme"
+            disableTransitionOnChange
+          >
+            <BoneyardRegistry />
+            <QueryProvider>
+              <TooltipProvider delay={0}>
+                <MotionProvider>
+                  <NuqsAdapter>{children}</NuqsAdapter>
+                </MotionProvider>
+              </TooltipProvider>
+            </QueryProvider>
+            <AdminTanStackDevtools />
+          </ThemeProvider>
+        </div>
         <Toaster />
       </body>
     </html>

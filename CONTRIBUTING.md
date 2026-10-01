@@ -41,6 +41,12 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
 - **Font asset changes:** run `bun run verify:fonts:offline` in Linux/WSL with
   Playwright Chromium installed. See [shared font maintenance](packages/ui/fonts/README.md)
   for the exact asset, license, subset and preload contract.
+- **Eve build boundary:** web builds and hosted admin previews emit unqualified
+  Eve artifacts without sandbox provisioning. Production services retain full
+  prewarming; use `bun run --cwd packages/eve-runtime build:full` in the approved
+  target environment for full qualification. Follow the
+  [build runbook](docs/guides/development/build-runbook.md#eve-artifacts-and-qualification)
+  and keep Release Off until the separate launch requirements are met.
 - **Production E2E:** `bun run test:e2e:production-gate` is the bounded
   release gate required for `production`; broader `bun run test:e2e` remains useful
   for local feature validation.

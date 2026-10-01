@@ -1,17 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { createServiceEveSessionIdentity } from "../../../../packages/api/src/eve/session-ownership/identity";
 import {
   readEveSharedContext,
   resolveEveSharedContextConflict,
   writeEveSharedContext,
 } from "../../../../packages/api/src/eve/shared-context/control";
-
 import {
   EveSharedContextValidationError,
   hasBlockingEveSharedContextConflict,
   prepareEveSharedContextClaim,
 } from "../../../../packages/api/src/eve/shared-context/validation";
-import { createServiceEveSessionIdentity } from "../../../../packages/api/src/eve/session-ownership/identity";
 
 import type { EveSharedContextStore } from "../../../../packages/api/src/eve/shared-context/types";
 

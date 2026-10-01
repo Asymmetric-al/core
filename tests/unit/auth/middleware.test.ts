@@ -6,6 +6,8 @@ import {
   E2E_AUTH_COOKIE_NAMES,
 } from "../../../packages/auth/e2e-auth";
 
+import type { RoleSnapshot } from "../../../packages/auth/permissions";
+
 type MockCookieToSet = {
   name: string;
   value: string;
@@ -526,6 +528,136 @@ describe("createAuthMiddleware", () => {
       expect.stringContaining("E2E bypass blocked"),
     );
   });
+});
+
+describe("preview role-gate diagnostics", () => {
+  const middlewareFor = (snapshot: RoleSnapshot | null) =>
+    createAuthMiddleware({
+      protectedRoutePrefixes: ["/crm"],
+      allowedRoles: ["staff"],
+      redirectAuthenticatedTo: "/crm",
+      unauthorizedRedirectTo: "/no-access",
+      resolveUserRole: async () => snapshot,
+    });
+
+  beforeEach(() => {
+    mockNoConfig();
+    mockConfigWithUser("private-user");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("E2E_AUTH_BYPASS", "false");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("VERCEL_TARGET_ENV", "preview");
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+    mockNoConfig();
+  });
+
+  it.each(["/crm", "/login"])(
+    "identifies role denial on %s while preserving redirect and refreshed cookies",
+    async (pathname) => {
+      supabaseCookiesToSetRef.cookies = [
+        {
+          name: "sb-access-token",
+          value: "private-refresh-cookie",
+          options: { path: "/", httpOnly: true, sameSite: "lax" },
+        },
+      ];
+      const middleware = middlewareFor({
+        profileRole: "donor",
+        memberships: [],
+      });
+
+      const response = await middleware(
+        createRequest(pathname + "?private=secret-query"),
+      );
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(
+        "https://example.org/no-access",
+      );
+      expect(response.cookies.get("sb-access-token")).toMatchObject({
+        value: "private-refresh-cookie",
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+      });
+      expect(console.warn).toHaveBeenCalledExactlyOnceWith({
+        event: "auth_access_diagnostic",
+        stage: "role_gate",
+        outcome: "role_denied",
+        code: null,
+      });
+    },
+  );
+
+  it.each(["/crm", "/login"])(
+    "keeps %s denied with refreshed cookies when the diagnostic sink throws",
+    async (pathname) => {
+      vi.mocked(console.warn).mockImplementation(() => {
+        throw new Error("private sink error");
+      });
+      supabaseCookiesToSetRef.cookies = [
+        {
+          name: "sb-access-token",
+          value: "private-refresh-cookie",
+          options: { path: "/", httpOnly: true },
+        },
+      ];
+      const middleware = middlewareFor({
+        profileRole: "donor",
+        memberships: [],
+      });
+      const response = await middleware(createRequest(pathname));
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(
+        "https://example.org/no-access",
+      );
+      expect(response.cookies.get("sb-access-token")?.value).toBe(
+        "private-refresh-cookie",
+      );
+      expect(console.warn).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each(["/crm", "/login"])(
+    "keeps %s denied but silent when production contradicts a preview target",
+    async (pathname) => {
+      vi.stubEnv("VERCEL_ENV", "production");
+      const middleware = middlewareFor({
+        profileRole: "donor",
+        memberships: [],
+      });
+      const response = await middleware(createRequest(pathname));
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(
+        "https://example.org/no-access",
+      );
+      expect(console.warn).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["/crm", "/login"])(
+    "preserves allowed and unresolved behavior on %s without a role-denial event",
+    async (pathname) => {
+      const allowed = await middlewareFor({
+        profileRole: "staff",
+        memberships: [],
+      })(createRequest(pathname));
+      expect(allowed.status).toBe(pathname === "/login" ? 307 : 200);
+      expect(allowed.headers.get("location")).toBe(
+        pathname === "/login" ? "https://example.org/crm" : null,
+      );
+      const unresolved = await middlewareFor(null)(createRequest(pathname));
+      expect(unresolved.status).toBe(307);
+      expect(unresolved.headers.get("location")).toBe(
+        "https://example.org/no-access",
+      );
+      expect(console.warn).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("edge role enforcement", () => {

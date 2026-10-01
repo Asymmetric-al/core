@@ -32,6 +32,13 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 - [v1.0.0-rc.2](https://base-ui.com/react/overview/releases/v1-0-0-rc-2.md)
 - [v1.1.0](https://base-ui.com/react/overview/releases/v1-1-0.md)
 - [v1.2.0](https://base-ui.com/react/overview/releases/v1-2-0.md)
+- [v1.3.0](https://base-ui.com/react/overview/releases/v1-3-0.md)
+- [v1.4.0](https://base-ui.com/react/overview/releases/v1-4-0.md)
+- [v1.4.1](https://base-ui.com/react/overview/releases/v1-4-1.md)
+- [v1.5.0](https://base-ui.com/react/overview/releases/v1-5-0.md)
+- [v1.6.0](https://base-ui.com/react/overview/releases/v1-6-0.md)
+- [v1.7.0](https://base-ui.com/react/overview/releases/v1-7-0.md)
+- [v1.8.0](https://base-ui.com/react/overview/releases/v1-8-0.md)
 
 ## Handbook
 
@@ -65,10 +72,11 @@ Use this file as the long-form lookup index. Keep `SKILL.md` concise and jump he
 - [Meter](https://base-ui.com/react/components/meter.md)
 - [Navigation Menu](https://base-ui.com/react/components/navigation-menu.md)
 - [Number Field](https://base-ui.com/react/components/number-field.md)
+- [OTP Field](https://base-ui.com/react/components/otp-field.md)
 - [Popover](https://base-ui.com/react/components/popover.md)
 - [Preview Card](https://base-ui.com/react/components/preview-card.md)
 - [Progress](https://base-ui.com/react/components/progress.md)
-- [Radio](https://base-ui.com/react/components/radio.md)
+- [Radio Group](https://base-ui.com/react/components/radio-group.md)
 - [Scroll Area](https://base-ui.com/react/components/scroll-area.md)
 - [Select](https://base-ui.com/react/components/select.md)
 - [Separator](https://base-ui.com/react/components/separator.md)

@@ -151,7 +151,7 @@ Use the `cn()` utility from the project for conditional or merged class names. D
 **Correct:**
 
 ```tsx
-import { cn } from "cn"
+import { cn } from "@asym/ui/lib/utils"
 
 <div className={cn("flex items-center", isActive ? "bg-primary text-primary-foreground" : "bg-muted")}>
 ```

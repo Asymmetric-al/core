@@ -3,16 +3,17 @@
 ## Why
 
 Core already routes an older Emil Kowalski design-engineering skill, but the
-current `emilkowalski/skills` pack contains four additional skills and a newer
+current `emilkowalski/skills` pack contains additional skills and a newer
 `emil-design-eng`. Installing the pack only into `.agents/skills/` bypasses the
 repo's canonical source and can leave Cursor and Claude Code with stale or
 different content.
 
 ## What Changes
 
-- Vendor all five current `emilkowalski/skills` skill trees under
-  `docs/ai/skills/` with source paths, reviewed commit SHA, MIT notice, and
-  refresh instructions.
+- Vendor the current `emilkowalski/skills` trees under `docs/ai/skills/`
+  with source paths, reviewed commit SHA, MIT notice, and refresh
+  instructions. Copy them into `.agents/skills/<slug>/`. Do not run
+  `npx skills add emilkowalski/skills`.
 - Preserve Core's frontend, Base UI, motion-token, and reduced-motion rules as
   higher-priority overlays.
 - Route each skill narrowly from `AGENTS.md` and keep `cursor.md` aligned.

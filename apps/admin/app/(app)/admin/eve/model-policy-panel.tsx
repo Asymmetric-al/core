@@ -32,6 +32,13 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -527,20 +534,28 @@ function EveModelPolicyOverrideCard({
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="eve-override-scope-type">Scope type</Label>
-          <select
-            id="eve-override-scope-type"
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          <Label id="eve-override-scope-type-label">Scope type</Label>
+          <Select
+            items={{ role: "Role", subagent: "Subagent" }}
             value={overrideScopeType}
-            onChange={(event) =>
-              onOverrideScopeTypeChange(
-                event.target.value as "role" | "subagent",
-              )
-            }
+            onValueChange={(value) => {
+              if (value === "role" || value === "subagent") {
+                onOverrideScopeTypeChange(value);
+              }
+            }}
           >
-            <option value="role">Role</option>
-            <option value="subagent">Subagent</option>
-          </select>
+            <SelectTrigger
+              id="eve-override-scope-type"
+              aria-labelledby="eve-override-scope-type-label"
+              className="w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="role">Role</SelectItem>
+              <SelectItem value="subagent">Subagent</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="eve-override-scope-id">Scope identifier</Label>

@@ -40,6 +40,8 @@ export interface ConversationComposerHandlers {
 
   /** True while a send / draft / note mutation is in flight. */
   isPending: boolean;
+  /** Identifies the initiating action; private notes use the primary send action. */
+  pendingAction: "send" | "draft" | null;
   /** True when the editor body is non-empty (used to gate send / save buttons). */
   isDirty: boolean;
 
@@ -103,6 +105,14 @@ export function useConversationComposer({
   const addNote = useAddSupportPrivateNote();
   const failure = useSupportFailureRecovery();
   const isPending = sendReply.isPending || addNote.isPending;
+  const pendingAction: ConversationComposerHandlers["pendingAction"] =
+    addNote.isPending
+      ? "send"
+      : sendReply.isPending
+        ? sendReply.variables?.mode === "draft"
+          ? "draft"
+          : "send"
+        : null;
 
   // Drafts are scoped to one conversation: <ConversationComposer /> is keyed
   // by conversation id, so this hook remounts (and its state resets) when the
@@ -274,6 +284,7 @@ export function useConversationComposer({
     appendSignature,
     setAppendSignature,
     isPending,
+    pendingAction,
     isDirty,
     send,
     saveDraft,

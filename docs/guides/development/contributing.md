@@ -92,6 +92,9 @@ bun run format
 # Canonical PR/push-readiness gate
 bun run ci:preflight
 
+# After font asset or loader changes, in Linux/WSL with Playwright Chromium
+bun run verify:fonts:offline
+
 # React/Next.js cleanup audit, when relevant
 bun run react-doctor:first-party -- --full --offline --fail-on none
 

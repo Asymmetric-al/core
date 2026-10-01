@@ -18,6 +18,7 @@ import {
 import type { DataGridCellType, DataGridColumnOption } from "./types";
 
 interface DataGridCellProps {
+  label: string;
   value: unknown;
   cellType: DataGridCellType;
   isEditing: boolean;
@@ -91,10 +92,12 @@ function DataGridReadonlyCell({
 }
 
 function DataGridCheckboxCell({
+  label,
   value,
   onChange,
   className,
 }: {
+  label: string;
   value: unknown;
   onChange: (value: unknown) => void;
   className: string;
@@ -102,6 +105,7 @@ function DataGridCheckboxCell({
   return (
     <div className={cn(className, "flex items-center justify-center")}>
       <Checkbox
+        aria-label={label}
         checked={Boolean(value)}
         onCheckedChange={(checked) => onChange(checked)}
       />
@@ -110,6 +114,7 @@ function DataGridCheckboxCell({
 }
 
 function DataGridSelectCell({
+  label,
   value,
   options,
   placeholder,
@@ -119,6 +124,7 @@ function DataGridSelectCell({
   onEndEdit,
   className,
 }: {
+  label: string;
   value: unknown;
   options: DataGridColumnOption[];
   placeholder?: string;
@@ -143,15 +149,23 @@ function DataGridSelectCell({
 
   return (
     <Select
+      items={options.map((option) => ({
+        value: option.value,
+        label: option.label,
+      }))}
       value={String(value ?? "")}
       onValueChange={(val) => {
+        if (val === null) return;
         onChange(val);
         onEndEdit();
       }}
       open={isEditing}
       onOpenChange={(open) => !open && onEndEdit()}
     >
-      <SelectTrigger className={cn(className, "border-0 h-full")}>
+      <SelectTrigger
+        aria-label={label}
+        className={cn(className, "border-0 h-full")}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="rounded-xl">
@@ -196,6 +210,7 @@ function DataGridDisplayCell({
 }
 
 function DataGridEditingInput({
+  label,
   value,
   cellType,
   placeholder,
@@ -203,6 +218,7 @@ function DataGridEditingInput({
   onEndEdit,
   className,
 }: {
+  label: string;
   value: unknown;
   cellType: DataGridCellType;
   placeholder?: string;
@@ -230,6 +246,7 @@ function DataGridEditingInput({
 
   return (
     <Input
+      aria-label={label}
       ref={inputRef}
       type={dataGridInputType(cellType)}
       value={String(value ?? "")}
@@ -253,6 +270,7 @@ function DataGridEditingInput({
 }
 
 export function DataGridCell({
+  label,
   value,
   cellType,
   isEditing,
@@ -278,6 +296,7 @@ export function DataGridCell({
   if (cellType === "checkbox") {
     return (
       <DataGridCheckboxCell
+        label={label}
         value={value}
         onChange={onChange}
         className={cellClassName}
@@ -288,6 +307,7 @@ export function DataGridCell({
   if (cellType === "select" && options) {
     return (
       <DataGridSelectCell
+        label={label}
         value={value}
         options={options}
         placeholder={placeholder}
@@ -314,6 +334,7 @@ export function DataGridCell({
 
   return (
     <DataGridEditingInput
+      label={label}
       value={value}
       cellType={cellType}
       placeholder={placeholder}

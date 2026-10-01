@@ -29,8 +29,18 @@ import {
   InputGroupInput,
 } from "@asym/ui/components/shadcn/input-group";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@asym/ui/components/shadcn/radio-group";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Switch } from "@asym/ui/components/shadcn/switch";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 import {
   CardElement,
@@ -635,27 +645,29 @@ function ConfigStep({
           <legend className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Support Amount
           </legend>
-          <div
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
-            role="radiogroup"
+          <RadioGroup
+            className="grid-cols-2 md:grid-cols-4 gap-4"
+            aria-label="Preset support amounts"
+            value={customAmount ? null : amount}
+            onValueChange={(value) => {
+              if (typeof value === "number") onAmountSelect(value);
+            }}
           >
             {PRESET_AMOUNTS.map((val) => (
-              <button
+              <RadioGroupItem
                 key={val}
-                onClick={() => onAmountSelect(val)}
-                role="radio"
-                aria-checked={amount === val && !customAmount}
+                value={val}
+                nativeButton
+                render={(radioProps) => <button {...radioProps}>${val}</button>}
                 className={cn(
                   "h-24 rounded-2xl border-2 font-semibold font-display text-2xl press-feedback",
                   amount === val && !customAmount
                     ? "border-primary bg-primary text-primary-foreground shadow-2xl ring-4 ring-ring/15"
                     : "border-border bg-muted text-foreground hover:border-border hover:bg-accent",
                 )}
-              >
-                ${val}
-              </button>
+              />
             ))}
-          </div>
+          </RadioGroup>
 
           <div className="mt-8">
             <Label className="sr-only" htmlFor="custom-amount">
@@ -844,6 +856,7 @@ function PaymentStep({
   stripe: Stripe | null;
   total: number;
 }) {
+  const paymentLabelId = React.useId();
   return (
     <motion.div
       key="payment"
@@ -865,66 +878,46 @@ function PaymentStep({
         </p>
       </header>
 
-      <div className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-10">
-        <div
-          className="grid grid-cols-3 gap-1 p-2 bg-card rounded-2xl border border-border"
-          role="tablist"
+      <Tabs
+        value={paymentMethod}
+        onValueChange={(value) => {
+          if (
+            !isProcessing &&
+            (value === "card" || value === "ach" || value === "wallet")
+          ) {
+            onPaymentMethodChange(value);
+          }
+        }}
+        className="bg-muted p-6 sm:p-12 rounded-3xl border border-border space-y-10"
+      >
+        <TabsList
+          activateOnFocus
+          aria-label="Payment method"
+          className="grid w-full grid-cols-3 gap-1 p-2 bg-card rounded-2xl border border-border group-data-[orientation=horizontal]/tabs:h-auto"
         >
-          <button
-            role="tab"
-            aria-selected={paymentMethod === "card"}
-            disabled={isProcessing}
-            onClick={() => {
-              if (!isProcessing) onPaymentMethodChange("card");
-            }}
-            className={cn(
-              "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2",
-              paymentMethod === "card"
-                ? "bg-primary text-primary-foreground shadow-xl"
-                : "text-muted-foreground",
-              isProcessing && "cursor-not-allowed opacity-60",
-            )}
-          >
-            Card
-          </button>
-          <button
-            role="tab"
-            aria-selected={paymentMethod === "ach"}
-            disabled={isProcessing}
-            onClick={() => {
-              if (!isProcessing) onPaymentMethodChange("ach");
-            }}
-            className={cn(
-              "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2",
-              paymentMethod === "ach"
-                ? "bg-primary text-primary-foreground shadow-xl"
-                : "text-muted-foreground",
-              isProcessing && "cursor-not-allowed opacity-60",
-            )}
-          >
-            Bank
-          </button>
-          <button
-            role="tab"
-            aria-selected={paymentMethod === "wallet"}
-            disabled={isProcessing}
-            onClick={() => {
-              if (!isProcessing) onPaymentMethodChange("wallet");
-            }}
-            className={cn(
-              "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2",
-              paymentMethod === "wallet"
-                ? "bg-primary text-primary-foreground shadow-xl"
-                : "text-muted-foreground",
-              isProcessing && "cursor-not-allowed opacity-60",
-            )}
-          >
-            Apple/Google
-          </button>
-        </div>
+          {(
+            [
+              ["card", "Card"],
+              ["ach", "Bank"],
+              ["wallet", "Apple/Google"],
+            ] as const
+          ).map(([value, label]) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              disabled={isProcessing}
+              className={cn(
+                "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 text-muted-foreground data-active:bg-primary data-active:text-primary-foreground data-active:shadow-xl",
+                isProcessing && "cursor-not-allowed opacity-60",
+              )}
+            >
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-        <div className="min-h-75 flex flex-col justify-center" role="tabpanel">
-          <AnimatePresence mode="wait">
+        <div className="min-h-75 flex flex-col justify-center">
+          <TabsContent value="card" key="card">
             {paymentMethod === "card" && (
               <motion.div
                 key="card"
@@ -974,7 +967,9 @@ function PaymentStep({
                 </div>
               </motion.div>
             )}
+          </TabsContent>
 
+          <TabsContent value="ach" key="ach">
             {paymentMethod === "ach" && (
               <motion.div
                 key="ach"
@@ -1003,7 +998,9 @@ function PaymentStep({
                 </Button>
               </motion.div>
             )}
+          </TabsContent>
 
+          <TabsContent value="wallet" key="wallet">
             {paymentMethod === "wallet" && (
               <motion.div
                 key="wallet"
@@ -1017,9 +1014,9 @@ function PaymentStep({
                 </Button>
               </motion.div>
             )}
-          </AnimatePresence>
+          </TabsContent>
         </div>
-      </div>
+      </Tabs>
 
       {mode === "test" && (
         <div
@@ -1063,11 +1060,18 @@ function PaymentStep({
           variant="maia"
           onClick={() => onConfirmPayment(stripe, elements)}
           disabled={isProcessing}
+          focusableWhenDisabled={isProcessing}
+          aria-labelledby={paymentLabelId}
           size="lg"
           className="grow"
         >
+          <span id={paymentLabelId} className="sr-only">
+            {isProcessing
+              ? "Processing payment"
+              : `Confirm ${formatCurrency(total)}`}
+          </span>
           {isProcessing ? (
-            <Loader2 className="animate-spin" aria-label="Processing payment" />
+            <Loader2 className="animate-spin" aria-hidden="true" />
           ) : (
             `Confirm ${formatCurrency(total)}`
           )}

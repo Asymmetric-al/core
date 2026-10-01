@@ -73,7 +73,7 @@ const id = toast.loading("Uploading…");
 toast.success("Uploaded", { id });
 ```
 
-**Persist** — `{ duration: Infinity }`. **Dismiss** — `toast.dismiss(id)`, or `toast.dismiss()` for all. **Read active toasts** — `useSonner()` in React, `toast.getActiveToasts()` outside it.
+**Persist** — `{ duration: Infinity }`. **Dismiss** — `toast.dismiss(id)`, or `toast.dismiss()` for all. **Read active toasts** — `useSonner()` in React, `toast.getToasts()` outside it.
 
 **Links or components in the text** — pass a function for the title or description: `toast(() => <a href="…">View</a>)`.
 

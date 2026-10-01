@@ -69,7 +69,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useId, useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { buildSecurityDialogState, SECURITY_OPTIONS } from "./feed-model";
@@ -196,7 +196,7 @@ function FollowerRequestItem({
         <motion.div whileHover={{ scale: 1.02 }} transition={springTransition}>
           <Avatar className="size-9 shrink-0 border border-border/50 shadow-sm">
             <AvatarImage src={request.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
+            <AvatarFallback className="bg-transparent bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
               {request.initials}
             </AvatarFallback>
           </Avatar>
@@ -545,12 +545,15 @@ function SecurityAccessDialog({
   securityLevel: SecurityLevel;
   setSecurityLevel: (level: SecurityLevel) => void;
 }) {
+  const pendingActionLabelId = useId();
+
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [dialogState, setDialogState] = useState<SecurityDialogState>(() =>
     buildSecurityDialogState("medium"),
   );
   const { level: localLevel, publicMirror, autoApproval } = dialogState;
+  const settingsId = React.useId();
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -760,7 +763,10 @@ function SecurityAccessDialog({
                     <Globe className="size-4 text-primary" />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold cursor-pointer">
+                    <Label
+                      htmlFor={`${settingsId}-mirror`}
+                      className="text-xs font-semibold cursor-pointer"
+                    >
                       Public Mirror
                     </Label>
                     <p className="text-[10px] text-muted-foreground">
@@ -769,6 +775,8 @@ function SecurityAccessDialog({
                   </div>
                 </div>
                 <Switch
+                  id={`${settingsId}-mirror`}
+                  aria-label="Public Mirror"
                   checked={publicMirror}
                   onCheckedChange={handlePublicMirrorChange}
                 />
@@ -780,7 +788,10 @@ function SecurityAccessDialog({
                     <Users className="size-4 text-purple-600" />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold cursor-pointer">
+                    <Label
+                      htmlFor={`${settingsId}-approval`}
+                      className="text-xs font-semibold cursor-pointer"
+                    >
                       Auto-Approve Donors
                     </Label>
                     <p className="text-[10px] text-muted-foreground">
@@ -789,6 +800,8 @@ function SecurityAccessDialog({
                   </div>
                 </div>
                 <Switch
+                  id={`${settingsId}-approval`}
+                  aria-label="Auto-Approve Donors"
                   checked={autoApproval}
                   onCheckedChange={handleAutoApprovalChange}
                 />
@@ -812,10 +825,15 @@ function SecurityAccessDialog({
               className="flex-1"
             >
               <Button
+                aria-labelledby={`${pendingActionLabelId}-27`}
+                focusableWhenDisabled={isSaving}
                 onClick={handleSave}
                 disabled={isSaving}
                 className="w-full h-10 rounded-xl text-xs font-semibold"
               >
+                <span id={`${pendingActionLabelId}-27`} className="sr-only">
+                  {isSaving ? "Saving…" : "Save Changes"}
+                </span>
                 {isSaving ? (
                   <>
                     <Loader2 className="size-4 mr-2 animate-spin" />
@@ -864,7 +882,7 @@ type PostComposerActionsProps = {
   handlePost: (status?: PostStatus) => Promise<void>;
 };
 
-function PostComposerActions({
+export function PostComposerActions({
   selectedMedia,
   lastSaved,
   isUploading,
@@ -876,6 +894,26 @@ function PostComposerActions({
   simulateUpload,
   handlePost,
 }: PostComposerActionsProps) {
+  const publishLabelId = useId();
+  const [pendingAction, setPendingAction] = useState<PostStatus | null>(null);
+  const pendingActionRef = useRef<PostStatus | null>(null);
+  const draftPending = pendingAction === "draft";
+  const publishPending = pendingAction === "published";
+  const actionsDisabled =
+    postActionDisabled || isSaving || pendingAction !== null;
+
+  const runPostAction = async (status: PostStatus) => {
+    if (postActionDisabled || isSaving || pendingActionRef.current) return;
+    pendingActionRef.current = status;
+    setPendingAction(status);
+    try {
+      await handlePost(status);
+    } finally {
+      pendingActionRef.current = null;
+      setPendingAction(null);
+    }
+  };
+
   const { formatTime } = useLocaleFormat();
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -936,6 +974,7 @@ function PostComposerActions({
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
+            focusableWhenDisabled={isUploading}
             variant="ghost"
             size="sm"
             disabled={isUploading}
@@ -962,6 +1001,7 @@ function PostComposerActions({
 
         <DropdownMenu>
           <DropdownMenuTrigger
+            aria-label={`Post visibility: ${postPrivacy}`}
             render={
               <Button
                 variant="ghost"
@@ -1014,13 +1054,15 @@ function PostComposerActions({
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
-            onClick={() => handlePost("draft")}
+            onClick={() => void runPostAction("draft")}
+            aria-label="Save draft"
             variant="maia-outline"
             size="sm"
-            disabled={postActionDisabled}
+            disabled={actionsDisabled}
+            focusableWhenDisabled={draftPending}
             className="px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
           >
-            {isSaving ? (
+            {draftPending ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
@@ -1040,13 +1082,18 @@ function PostComposerActions({
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
-            onClick={() => handlePost("published")}
+            onClick={() => void runPostAction("published")}
+            aria-labelledby={publishLabelId}
             variant="maia"
             size="sm"
-            disabled={postActionDisabled}
+            disabled={actionsDisabled}
+            focusableWhenDisabled={publishPending}
             className="sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
           >
-            {isSaving ? (
+            <span id={publishLabelId} className="sr-only">
+              {publishPending ? "Publishing update" : "Publish"}
+            </span>
+            {publishPending ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
