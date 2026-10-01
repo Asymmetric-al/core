@@ -229,7 +229,7 @@ test("handles concurrent session limit", async ({ browser }) => {
 });
 ```
 
-### Test Password Reset Security // pragma: allowlist secret
+### Test Password Reset Security <!-- pragma: allowlist secret -->
 
 ```typescript
 test("password reset token is single-use", async ({ page, request }) => { // pragma: allowlist secret
