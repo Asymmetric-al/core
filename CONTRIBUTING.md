@@ -38,6 +38,9 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
   see `docs/guides/development/contributing.md`.
 - **Required local PR/push-readiness gate:** `bun run ci:preflight` (exact stages
   and focused debugging commands are documented in `docs/ci.md`).
+- **Font asset changes:** run `bun run verify:fonts:offline` in Linux/WSL with
+  Playwright Chromium installed. See [shared font maintenance](packages/ui/fonts/README.md)
+  for the exact asset, license, subset and preload contract.
 - **Eve build boundary:** web builds and hosted admin previews emit unqualified
   Eve artifacts without sandbox provisioning. Production services retain full
   prewarming; use `bun run --cwd packages/eve-runtime build:full` in the approved

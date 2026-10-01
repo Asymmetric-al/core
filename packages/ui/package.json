@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./fonts": "./fonts/index.ts",
     ".": "./index.ts",
     "./components/shadcn": "./components/shadcn/index.ts",
     "./components/shadcn/*": "./components/shadcn/*.tsx",

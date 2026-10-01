@@ -1,0 +1,24 @@
+@font-face {
+  font-family: Inter Fallback;
+  src: local(Arial);
+  ascent-override: 90.44%;
+  descent-override: 22.52%;
+  line-gap-override: 0%;
+  size-adjust: 107.12%;
+}
+@font-face {
+  font-family: Syne Fallback;
+  src: local(Arial);
+  ascent-override: 93.93%;
+  descent-override: 27.93%;
+  line-gap-override: 0%;
+  size-adjust: 98.47%;
+}
+@font-face {
+  font-family: Geist Mono Fallback;
+  src: local(Arial);
+  ascent-override: 74.67%;
+  descent-override: 21.92%;
+  line-gap-override: 0%;
+  size-adjust: 134.59%;
+}

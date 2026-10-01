@@ -5,8 +5,8 @@ import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion-provider";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
+import { fontVariables } from "@asym/ui/fonts";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
-import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { BoneyardRegistry } from "./_providers/boneyard-registry";
@@ -15,29 +15,6 @@ import { AdminTanStackDevtools } from "./_providers/tanstack-devtools";
 import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-  preload: true,
-});
-
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  preload: true,
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  preload: false,
-});
 
 function getSupabaseOrigin() {
   const { url } = getSupabasePublicConfig();
@@ -95,11 +72,6 @@ export default function RootLayout({
             <link rel="dns-prefetch" href={supabaseOrigin} />
           </>
         ) : null}
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
 
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
@@ -107,9 +79,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body
-        className={`${inter.variable} ${geistMono.variable} ${syne.variable} font-sans antialiased`}
-      >
+      <body className={`${fontVariables} font-sans antialiased`}>
         <div className="app-root">
           <ThemeProvider
             attribute="class"
