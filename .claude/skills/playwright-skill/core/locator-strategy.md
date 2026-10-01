@@ -105,7 +105,7 @@ The strongest locator. It mirrors how assistive technology and real users percei
 Queries by the associated `<label>` text. This is often the most readable locator for form fields.
 
 **Pros**
-- Extremely readable: `getByLabel('Password')` tells you exactly what field // pragma: allowlist secret
+- Extremely readable: `getByLabel('Password')` tells you exactly what field <!-- pragma: allowlist secret -->
 - Works with `<label for="...">`, wrapping `<label>`, and `aria-labelledby`
 
 **Cons**

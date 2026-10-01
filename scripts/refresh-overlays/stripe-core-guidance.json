@@ -1,0 +1,27 @@
+[
+  {
+    "path": "stripe-best-practices/SKILL.md",
+    "upstream": "Latest Stripe API version: **2026-07-29.dahlia**. Always use the latest API version and SDK unless the user specifies otherwise.",
+    "core": "In Core, read `packages/api/src/stripe/api-version.ts` and `packages/api/package.json` for the approved API version and SDK. Reuse the existing Stripe client. Preserve those pins unless the requested work explicitly includes a reviewed version upgrade; choose and verify that upgrade target before changing code. The upstream versions and examples below are reference snapshots, not Core upgrade instructions.\n\nUpstream API reference snapshot: **2026-07-29.dahlia**."
+  },
+  {
+    "path": "stripe-best-practices/SKILL.md",
+    "upstream": "Latest SDK versions:",
+    "core": "Upstream SDK reference snapshots (Core uses its approved manifest and lockfile):"
+  },
+  {
+    "path": "upgrade-stripe/SKILL.md",
+    "upstream": "The latest Stripe API version is 2026-07-29.dahlia - use this version when upgrading unless the user specifies a different target version.",
+    "core": "In Core, read `packages/api/src/stripe/api-version.ts` and `packages/api/package.json` for the approved API version and SDK. Reuse the existing Stripe client. Preserve those pins unless the requested work explicitly includes a reviewed version upgrade; choose and verify that upgrade target before changing code. The upstream versions and examples below are reference snapshots, not Core upgrade instructions."
+  },
+  {
+    "path": "stripe-best-practices/SKILL.md",
+    "upstream": "- *Never include `payment_method_types` in any Stripe API call*, with one exception: Terminal (in-person payments) integrations must pass `payment_method_types: ['card_present']` on the PaymentIntent. For all other integrations, omit this parameter entirely to enable dynamic payment methods, which enables you to configure payment method settings from the Dashboard and dynamically display the most relevant eligible payment methods to each customer to maximize conversion. To customize which payment methods you accept, use [`payment_method_configurations`](https://docs.stripe.com/payments/payment-method-configurations.md) or `excluded_payment_method_types` instead of `payment_method_types`.",
+    "core": "- **Preserve Core's quoted payment method.** `packages/api/src/donate/payment-intent.ts` intentionally passes `payment_method_types` when the gift quote binds the allowed method (including card versus ACH fee assumptions). Keep that allowlist and its idempotent recovery behavior. The same helper enables `automatic_payment_methods` only when no method restriction is supplied. Do not replace this contract with Dashboard-driven dynamic methods during unrelated work. For a new integration, verify the supported options in the pinned SDK and [PaymentIntent creation API](https://docs.stripe.com/api/payment_intents/create)."
+  },
+  {
+    "path": "stripe-best-practices/references/tax.md",
+    "upstream": "1. Verify the product has a valid tax code (`txcd_10103001` for SaaS; for other products see [Choosing a product tax code](undefined#choosing-a-product-tax-code)) by checking that the Product object\u2019s `tax_code` is set and that it isn\u2019t `txcd_00000000` (Nontaxable). Also confirm the Customer\u2019s `tax_exempt` property isn\u2019t set to `'exempt'`.",
+    "core": "1. Verify the product has a reviewed tax code appropriate to the actual product and customer use. Use [Stripe product tax codes](https://docs.stripe.com/tax/tax-codes) and the [Tax codes API](https://docs.stripe.com/api/tax_codes); do not assume one SaaS code applies to every product. Preserve the registration and product-classification checks above."
+  }
+]

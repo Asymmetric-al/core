@@ -79,3 +79,6 @@ supabase/.temp/
 
 # Immutable founder-supplied roadmap and original reference assets (hash verified)
 docs/prds/program-roadmap/source-2026-09-22/
+
+# Exact MIT upstream bytes used by refresh regression tests; provenance hashes are checked.
+tests/fixtures/skills/emil-upstream/

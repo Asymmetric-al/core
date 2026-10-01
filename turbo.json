@@ -23,6 +23,7 @@
       ],
       "env": [
         "NODE_ENV",
+        "CORE_EVE_BUILD_MODE",
         "NEXT_PUBLIC_*",
         "GOOGLE_SITE_VERIFICATION",
         "BING_SITE_VERIFICATION",

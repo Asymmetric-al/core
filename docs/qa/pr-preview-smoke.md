@@ -115,6 +115,26 @@ Playwright. The preferred flow is that GitHub Actions deploys previews, runs
 Playwright, uploads sanitized failure artifacts, and comments the PASS/FAIL
 result for Claude to read.
 
+Each surface invocation also sets `PLAYWRIGHT_REPORT_DIR` to
+`playwright-report/pr-preview-smoke-<surface>` and `PLAYWRIGHT_OUTPUT_DIR` to
+`test-results/pr-preview-smoke-<surface>`. The development smoke configuration
+uses these paths for its bounded HTML/JSON summaries and redacted test evidence,
+preserving earlier surfaces' evidence. The upload step allowlists only
+`playwright-report/pr-preview-smoke-*/sanitized/index.html` and
+`playwright-report/pr-preview-smoke-*/sanitized/results.json`; it never uploads
+raw test output and fails if no sanitized file exists. Raw trace/media, DOM
+snapshots and API-step/assertion bodies are excluded because they can retain
+QA credentials and Vercel bypass values. URL
+queries and fragments are removed; test status, title, duration, and safe
+origin/path/title/heading remain available. Up to 50 authentication response
+method/status/origin/path entries show browser-visible responses without
+recording headers, cookies or bodies. Server-side profile reads may be absent;
+these entries alone do not establish a profile, membership, tenant or role
+failure. See the
+[artifact boundary](./development-headless-smoke.md#evidence-captured-on-failure).
+An artifact records the failed check; it does not turn a failed smoke test into
+a pass.
+
 ## Rerun Method
 
 Use one of these:

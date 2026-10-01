@@ -330,14 +330,14 @@ qpdf --show-all-pages input.pdf > structure.txt
 
 #### Advanced Encryption
 ```bash
-# Add password protection with specific permissions // pragma: allowlist secret
+# Add password protection with specific permissions # pragma: allowlist secret
 qpdf --encrypt user_pass owner_pass 256 --print=none --modify=none -- input.pdf encrypted.pdf
 
 # Check encryption status
 qpdf --show-encryption encrypted.pdf
 
-# Remove password protection (requires password) // pragma: allowlist secret
-qpdf --password=secret123 --decrypt encrypted.pdf decrypted.pdf // pragma: allowlist secret
+# Remove password protection (requires password) # pragma: allowlist secret
+qpdf --password=secret123 --decrypt encrypted.pdf decrypted.pdf # pragma: allowlist secret
 ```
 
 ## Advanced Python Techniques
@@ -568,13 +568,13 @@ def process_large_pdf(pdf_path, chunk_size=10):
 
 ### Encrypted PDFs
 ```python
-# Handle password-protected PDFs // pragma: allowlist secret
+# Handle password-protected PDFs # pragma: allowlist secret
 from pypdf import PdfReader
 
 try:
     reader = PdfReader("encrypted.pdf")
     if reader.is_encrypted:
-        reader.decrypt("password") // pragma: allowlist secret
+        reader.decrypt("password") # pragma: allowlist secret
 except Exception as e:
     print(f"Failed to decrypt: {e}")
 ```

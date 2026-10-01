@@ -13,6 +13,26 @@ import {
 } from "../../../scripts/verify/ci-build.mjs";
 
 describe("ci-build command planning", () => {
+  it("marks web dependency and app builds as Eve artifacts only", () => {
+    const app = {
+      id: "admin",
+      filter: "@asym/admin",
+      cwd: "apps/admin",
+      nextDir: "apps/admin/.next",
+    };
+    for (const platform of ["linux", "win32"]) {
+      for (const strict of [false, true]) {
+        const steps = [
+          ...getSharedPackageBuildSteps({ platform, strict, apps: [app] }),
+          getAppBuildStep(app, { platform, strict }),
+        ];
+        for (const step of steps) {
+          expect(step.env).toEqual({ CORE_EVE_BUILD_MODE: "artifacts" });
+        }
+      }
+    }
+  });
+
   it("keeps the workspace-link repair wired into CI and postinstall", () => {
     // CI correctness depends on these two call sites, but neither is reachable
     // from a unit test - only the repair script's own tests exercise the logic.
@@ -100,6 +120,7 @@ describe("ci-build command planning", () => {
 
     expect(steps).toContainEqual({
       label: "api",
+      env: { CORE_EVE_BUILD_MODE: "artifacts" },
       command: "node",
       args: [
         "scripts/run-with-ci-env.mjs",
@@ -131,6 +152,7 @@ describe("ci-build command planning", () => {
     ).toEqual([
       {
         label: "shared packages",
+        env: { CORE_EVE_BUILD_MODE: "artifacts" },
         command: "node",
         args: [
           "scripts/run-with-ci-env.mjs",
@@ -157,6 +179,7 @@ describe("ci-build command planning", () => {
     ).toEqual([
       {
         label: "shared packages",
+        env: { CORE_EVE_BUILD_MODE: "artifacts" },
         command: "node_modules/.bin/turbo",
         args: [
           "run",
@@ -184,6 +207,7 @@ describe("ci-build command planning", () => {
     ).toEqual({
       label: "admin",
       command: "node",
+      env: { CORE_EVE_BUILD_MODE: "artifacts" },
       args: [
         "scripts/run-with-ci-env.mjs",
         "--",

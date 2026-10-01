@@ -1,6 +1,6 @@
 ---
 name: react-email
-description: Use when building HTML email templates with React components, adding a visual email editor to an application using the React Email visual editor, rendering emails to HTML, or sending emails with Resend. Covers welcome emails, password resets, notifications, order confirmations, newsletters, transactional emails, and the embeddable email editor component. // pragma: allowlist secret
+description: Use when building HTML email templates with React components, adding a visual email editor to an application using the React Email visual editor, rendering emails to HTML, or sending emails with Resend. Covers welcome emails, password resets, notifications, order confirmations, newsletters, transactional emails, and the embeddable email editor component. # pragma: allowlist secret
 license: MIT
 metadata:
   author: Resend
@@ -345,7 +345,7 @@ export function MyEditor() {
 ## Common Patterns
 
 See [references/PATTERNS.md](references/PATTERNS.md) for complete examples including:
-- Password reset emails // pragma: allowlist secret
+- Password reset emails <!-- pragma: allowlist secret -->
 - Order confirmations with product lists
 - Notification emails with code blocks
 - Multi-column layouts

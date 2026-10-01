@@ -59,10 +59,10 @@ export function AuthLayout() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="password">Password</Label> // pragma: allowlist secret
+                  <Label htmlFor="password">Password</Label>
                   <Input
-                    id="password" // pragma: allowlist secret
-                    type="password" // pragma: allowlist secret
+                    id="password"
+                    type="password"
                     required
                   />
                 </div>
@@ -80,7 +80,7 @@ export function AuthLayout() {
                   variant="link"
                   className="w-full text-sm text-muted-foreground"
                 >
-                  Forgot password? // pragma: allowlist secret
+                  Forgot password?
                 </Button>
               </CardFooter>
             </form>
@@ -115,18 +115,18 @@ export function AuthLayout() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="register-password">Password</Label> // pragma: allowlist secret
+                  <Label htmlFor="register-password">Password</Label>
                   <Input
-                    id="register-password" // pragma: allowlist secret
-                    type="password" // pragma: allowlist secret
+                    id="register-password"
+                    type="password"
                     required
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label> // pragma: allowlist secret
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
                   <Input
-                    id="confirm-password" // pragma: allowlist secret
-                    type="password" // pragma: allowlist secret
+                    id="confirm-password"
+                    type="password"
                     required
                   />
                 </div>

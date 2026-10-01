@@ -656,7 +656,7 @@ test('handle dynamic content without manual waits', async ({ page }) => {
 | Button | `getByRole('button', { name })` | `getByRole('button', { name: 'Submit' })` | Matches `<button>`, `<input type="submit">`, `role="button"` |
 | Link | `getByRole('link', { name })` | `getByRole('link', { name: 'Home' })` | Matches any `<a href>` regardless of styling |
 | Text input | `getByRole('textbox', { name })` | `getByRole('textbox', { name: 'Email' })` | Matches by accessible name (label) |
-| Password input | `getByLabel()` | `getByLabel('Password')` | Password fields have no distinct role; label is the best match | // pragma: allowlist secret
+| Password input | `getByLabel()` | `getByLabel('Password')` | Password fields have no distinct role; label is the best match <!-- pragma: allowlist secret --> |
 | Checkbox | `getByRole('checkbox', { name })` | `getByRole('checkbox', { name: 'Agree' })` | Also use `.check()` / `.uncheck()` instead of `.click()` |
 | Radio button | `getByRole('radio', { name })` | `getByRole('radio', { name: 'Express' })` | Group radios with `getByRole('radiogroup')` |
 | Select/dropdown | `getByRole('combobox', { name })` | `getByRole('combobox', { name: 'Country' })` | Native `<select>` maps to combobox role |

@@ -1168,7 +1168,7 @@ module.exports = { test, expect: require('@playwright/test').expect };
 
 ### Unauthenticated Tests
 
-**Use when**: Testing the login page, signup flow, password reset, public pages, authentication error handling, or redirect behavior for unauthenticated users. // pragma: allowlist secret
+**Use when**: Testing the login page, signup flow, password reset, public pages, authentication error handling, or redirect behavior for unauthenticated users. <!-- pragma: allowlist secret -->
 **Avoid when**: The test requires a logged-in user.
 
 When your config sets a default `storageState`, you must explicitly clear it for unauthenticated tests.
@@ -1295,8 +1295,8 @@ Need to test the login page itself?
 | Don't Do This | Problem | Do This Instead |
 |---|---|---|
 | Log in via UI before every test | Adds 2-5 seconds per test. A suite of 200 tests wastes 7-17 minutes just logging in. | Use `storageState` to skip login entirely. Log in once in global setup. |
-| Share a single auth state file across parallel workers that mutate state | Race conditions: worker A changes the password while worker B is mid-test. | Use per-worker fixtures with `{ scope: 'worker' }` or per-worker test accounts. | // pragma: allowlist secret
-| Hardcode credentials in test files | Security risk. Credentials leak into version control and CI logs. | Use environment variables (`process.env.TEST_USER_PASSWORD`) and `.env` files. | // pragma: allowlist secret
+| Share a single auth state file across parallel workers that mutate state | Race conditions: worker A changes the password while worker B is mid-test. | Use per-worker fixtures with `{ scope: 'worker' }` or per-worker test accounts. <!-- pragma: allowlist secret --> |
+| Hardcode credentials in test files | Security risk. Credentials leak into version control and CI logs. | Use environment variables (`process.env.TEST_USER_PASSWORD`) and `.env` files. <!-- pragma: allowlist secret --> |
 | Ignore token expiration | Tests fail intermittently with 401 errors after running for a while. | Add a session validity check in your auth fixture and re-authenticate when expired. |
 | Hit real OAuth providers in CI | Flaky: provider rate limits, CAPTCHA, network issues. Slow. May violate ToS. | Mock the OAuth callback or use API session injection with a test-only endpoint. |
 | Use `page.waitForTimeout(2000)` after login | Arbitrary delay. Too slow in fast environments, too short in slow ones. | `await page.waitForURL('/dashboard')` or `await expect(heading).toBeVisible()`. |
@@ -1373,7 +1373,7 @@ projects: [
 
 ### Parallel tests interfere with each other's sessions
 
-**Cause**: Multiple workers share the same test account and one worker's actions (logout, password change, session invalidation) affect others. // pragma: allowlist secret
+**Cause**: Multiple workers share the same test account and one worker's actions (logout, password change, session invalidation) affect others. <!-- pragma: allowlist secret -->
 
 **Fix**:
 - Use per-worker test accounts: `worker-${test.info().parallelIndex}@test.com`.

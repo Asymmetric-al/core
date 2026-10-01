@@ -1,3 +1,4 @@
+import { reportAccessDiagnostic } from "./access-diagnostics";
 import { DEMO_TENANT_ID } from "./constants";
 
 import type { SupabaseUserRoleReader } from "./middleware";
@@ -49,6 +50,10 @@ export async function resolveUserRoleFromDatabase({
     } | null;
 
     if (profileError || !profile) {
+      reportAccessDiagnostic(
+        profileError ? "profile_query_failed" : "no_visible_profile",
+        profileError,
+      );
       return null;
     }
 
@@ -73,7 +78,8 @@ export async function resolveUserRoleFromDatabase({
     }
 
     return { profileRole, memberships };
-  } catch {
+  } catch (error) {
+    reportAccessDiagnostic("resolver_exception", error);
     return null;
   }
 }
@@ -100,6 +106,7 @@ async function loadActiveMemberships(
   });
 
   if (error) {
+    reportAccessDiagnostic("membership_query_failed", error);
     return null;
   }
 
