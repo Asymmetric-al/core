@@ -1,14 +1,8 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
@@ -116,14 +110,16 @@ function MissionaryGivingCreateViewContent() {
         }),
       });
 
-      const body = (await res.json().catch(() => ({}))) as {
+      // Read the payload for both branches (409 conflicts and errors carry
+      // data) with the status check made before the body is consumed.
+      const { ok, status, body } = await readJsonBody<{
         id?: string;
         collectionSlug?: string;
         error?: string;
         existingId?: string;
-      };
+      }>(res);
 
-      if (res.status === 409 && body.existingId) {
+      if (status === 409 && body?.existingId) {
         const editPath = formatAdminURL({
           adminRoute: routes.admin,
           path: `/collections/missionary-giving-pages/${body.existingId}`,
@@ -132,12 +128,12 @@ function MissionaryGivingCreateViewContent() {
         return;
       }
 
-      if (!res.ok) {
-        setSubmitError(body.error ?? "Create failed");
+      if (!ok) {
+        setSubmitError(body?.error ?? "Create failed");
         return;
       }
 
-      if (body.id && body.collectionSlug) {
+      if (body?.id && body.collectionSlug) {
         const editPath = formatAdminURL({
           adminRoute: routes.admin,
           path: `/collections/${body.collectionSlug}/${body.id}`,
@@ -204,8 +200,14 @@ function MissionaryGivingCreateViewContent() {
           <form.Field name="missionaryId">
             {(field) => (
               <div className="flex flex-col gap-2">
-                <Label>Missionary</Label>
-                <Select
+                <SearchableSelect
+                  items={(missionaries ?? []).map((m) => ({
+                    value: m.id,
+                    label:
+                      m.profile?.full_name?.trim() ||
+                      m.profile?.display_name?.trim() ||
+                      m.id,
+                  }))}
                   value={field.state.value || null}
                   onValueChange={(v) => {
                     if (v === null) {
@@ -214,24 +216,9 @@ function MissionaryGivingCreateViewContent() {
                     field.handleChange(v);
                   }}
                   disabled={missionariesIsPending || missionariesIsError}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select missionary" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(missionaries ?? []).map((m) => {
-                      const label =
-                        m.profile?.full_name?.trim() ||
-                        m.profile?.display_name?.trim() ||
-                        m.id;
-                      return (
-                        <SelectItem key={m.id} value={m.id}>
-                          {label}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select missionary"
+                  label="Missionary"
+                />
               </div>
             )}
           </form.Field>

@@ -31,6 +31,7 @@ import {
   DialogFooter,
 } from "@asym/ui/components/shadcn/dialog";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -562,20 +563,20 @@ function AllPostsFeedPostCard({
                       {post.author.name}
                     </span>
                     {post.author.role === "organization" && (
-                      <Badge className="text-[8px] sm:text-[9px] h-5 px-2 bg-primary/10 text-primary shrink-0 rounded-full font-semibold uppercase tracking-wider border-0">
+                      <Badge className="text-[8px] sm:text-[9px] h-5 bg-primary/10 text-primary shrink-0 font-semibold uppercase tracking-wider border-0">
                         Official
                       </Badge>
                     )}
                     <Badge
                       variant="secondary"
-                      className="text-[8px] sm:text-[9px] h-5 px-2 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                      className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                     >
                       {post.post_type}
                     </Badge>
                     {post.status === "hidden" && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <EyeOff className="size-2.5" /> Hidden
                       </Badge>
@@ -583,7 +584,7 @@ function AllPostsFeedPostCard({
                     {post.isFlagged && (
                       <Badge
                         variant="destructive"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Flag className="size-2.5" /> Flagged
                       </Badge>
@@ -591,7 +592,7 @@ function AllPostsFeedPostCard({
                     {post.isPinned && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 shrink-0 rounded-full font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Pin className="size-2.5" /> Pinned
                       </Badge>
@@ -618,6 +619,7 @@ function AllPostsFeedPostCard({
                     whileTap={{ scale: 0.95 }}
                   >
                     <DropdownMenuTrigger
+                      aria-label="Open actions"
                       render={
                         <Button
                           variant="ghost"
@@ -633,61 +635,64 @@ function AllPostsFeedPostCard({
                     align="end"
                     className="w-52 rounded-xl p-1.5"
                   >
-                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2">
-                      Quick Actions
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => onAction(post.id, "edit")}
-                      className="rounded-lg py-2.5 cursor-pointer gap-2.5"
-                    >
-                      <Edit3 className="size-4 text-muted-foreground" /> Edit
-                      Post
-                    </DropdownMenuItem>
-                    {post.isPinned ? (
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <Pin className="size-4 text-muted-foreground" /> Unpin
-                        Post
-                      </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <Pin className="size-4 text-muted-foreground" /> Pin to
-                        Top
-                      </DropdownMenuItem>
-                    )}
-                    {post.status === "hidden" ? (
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2">
+                        Quick Actions
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => onAction(post.id, "approve")}
+                        onClick={() => onAction(post.id, "edit")}
                         className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                       >
-                        <Eye className="size-4 text-muted-foreground" /> Restore
+                        <Edit3 className="size-4 text-muted-foreground" /> Edit
                         Post
                       </DropdownMenuItem>
-                    ) : (
+                      {post.isPinned ? (
+                        <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                          <Pin className="size-4 text-muted-foreground" /> Unpin
+                          Post
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                          <Pin className="size-4 text-muted-foreground" /> Pin
+                          to Top
+                        </DropdownMenuItem>
+                      )}
+                      {post.status === "hidden" ? (
+                        <DropdownMenuItem
+                          onClick={() => onAction(post.id, "approve")}
+                          className="rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        >
+                          <Eye className="size-4 text-muted-foreground" />{" "}
+                          Restore Post
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onClick={() => onAction(post.id, "hide")}
+                          className="rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        >
+                          <EyeOff className="size-4 text-muted-foreground" />{" "}
+                          Hide Post
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                        <ExternalLink className="size-4 text-muted-foreground" />{" "}
+                        View Public Post
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                        <UserX className="size-4 text-muted-foreground" /> View
+                        Author
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => onAction(post.id, "hide")}
-                        className="rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        className="text-destructive rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        onClick={() => onAction(post.id, "delete")}
                       >
-                        <EyeOff className="size-4 text-muted-foreground" /> Hide
-                        Post
+                        <Trash2 className="size-4" /> Delete Post
                       </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                      <ExternalLink className="size-4 text-muted-foreground" />{" "}
-                      View Public Post
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                      <UserX className="size-4 text-muted-foreground" /> View
-                      Author
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive rounded-lg py-2.5 cursor-pointer gap-2.5"
-                      onClick={() => onAction(post.id, "delete")}
-                    >
-                      <Trash2 className="size-4" /> Delete Post
-                    </DropdownMenuItem>
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -937,7 +942,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 px-3 text-[10px] text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-[10px] text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "approve")}
                         >
                           <Check className="size-3 mr-1.5" /> Approve
@@ -950,7 +955,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 px-3 text-[10px] text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-[10px] text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "delete")}
                         >
                           <Trash2 className="size-3 mr-1.5" /> Delete
@@ -1151,7 +1156,7 @@ export function ContentModerationTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 text-[8px] sm:text-[9px] bg-amber-500 text-white rounded-full font-semibold border-0">
+                  <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 text-[8px] sm:text-[9px] bg-amber-500 text-white font-semibold border-0">
                     {flaggedPosts.length}
                   </Badge>
                 </motion.div>
@@ -1186,7 +1191,7 @@ export function ContentModerationTabsSection({
                       value: e.target.value,
                     })
                   }
-                  className="pl-9 h-9 sm:h-10 w-full sm:w-56 lg:w-64 rounded-xl"
+                  className="pl-9 sm:h-10 w-full sm:w-56 lg:w-64 rounded-xl"
                 />
                 {searchQuery && (
                   <motion.button
@@ -1224,133 +1229,146 @@ export function ContentModerationTabsSection({
                   align="end"
                   className="w-56 rounded-xl p-1.5"
                 >
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
-                    Visibility
-                  </DropdownMenuLabel>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "all"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "all",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    All
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "public"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "public",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Public
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "partners"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "partners",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Partners
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "private"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "private",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Private
-                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
+                      Visibility
+                    </DropdownMenuLabel>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "all"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "all",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      All
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "public"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "public",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Public
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "partners"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "partners",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Partners
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "private"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "private",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Private
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
-                    Type
-                  </DropdownMenuLabel>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "all"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "all",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    All Types
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "update"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "update",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Updates
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "prayer request"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "prayer request",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Prayer Requests
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "story"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "story",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Stories
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "announcement"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "announcement",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Announcements
-                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
+                      Type
+                    </DropdownMenuLabel>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "all"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "all",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      All Types
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "update"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "update",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Updates
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "prayer request"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "prayer request",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Prayer Requests
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "story"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "story",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Stories
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "announcement"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "announcement",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Announcements
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Select
+              <Select<SortOption>
+                items={[
+                  { value: "newest", label: "Newest" },
+                  { value: "oldest", label: "Oldest" },
+                  { value: "engagement", label: "Engagement" },
+                ]}
                 value={sortBy}
-                onValueChange={(value) =>
+                onValueChange={(value) => {
+                  if (value === null) return;
                   dispatchUi({
                     type: "set_sort_by",
-                    value: value as SortOption,
-                  })
-                }
+                    value,
+                  });
+                }}
               >
-                <SelectTrigger className="h-9 sm:h-10 w-28 sm:w-36 rounded-xl">
+                <SelectTrigger
+                  aria-label="Sort content"
+                  className="h-9 sm:h-10 w-28 sm:w-36 rounded-xl"
+                >
                   <ArrowUpDown className="size-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -1471,7 +1489,7 @@ export function ContentModerationSidebarSection({
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className="rounded-2xl border shadow-sm bg-gradient-to-br from-primary/5 to-primary/10"
+        className="rounded-2xl border shadow-sm bg-transparent bg-gradient-to-br from-primary/5 to-primary/10"
       >
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
@@ -1561,7 +1579,7 @@ function ModerationQueuePostCard({
                     </span>
                     <Badge
                       variant="secondary"
-                      className="text-[8px] sm:text-[9px] h-5 px-2 rounded-full shrink-0 font-semibold uppercase tracking-wider"
+                      className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                     >
                       {post.post_type}
                     </Badge>
@@ -1573,7 +1591,7 @@ function ModerationQueuePostCard({
                       >
                         <Badge
                           variant="destructive"
-                          className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 rounded-full shrink-0 font-semibold uppercase tracking-wider"
+                          className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                         >
                           <Flag className="size-2.5" /> Flagged
                         </Badge>
@@ -1582,7 +1600,7 @@ function ModerationQueuePostCard({
                     {post.isPinned && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 px-2 gap-1 rounded-full shrink-0 font-semibold uppercase tracking-wider"
+                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Pin className="size-2.5" /> Pinned
                       </Badge>
@@ -1616,6 +1634,7 @@ function ModerationQueuePostCard({
                         whileTap={{ scale: 0.9 }}
                       >
                         <TooltipTrigger
+                          aria-label="Approve"
                           render={
                             <Button
                               variant="ghost"
@@ -1641,6 +1660,7 @@ function ModerationQueuePostCard({
                         whileTap={{ scale: 0.9 }}
                       >
                         <TooltipTrigger
+                          aria-label="Hide Post"
                           render={
                             <Button
                               variant="ghost"
@@ -1666,6 +1686,7 @@ function ModerationQueuePostCard({
                         whileTap={{ scale: 0.9 }}
                       >
                         <TooltipTrigger
+                          aria-label="Delete Post"
                           render={
                             <Button
                               variant="ghost"
@@ -1690,6 +1711,7 @@ function ModerationQueuePostCard({
                       whileTap={{ scale: 0.95 }}
                     >
                       <DropdownMenuTrigger
+                        aria-label="Open actions"
                         render={
                           <Button
                             variant="ghost"
@@ -1729,12 +1751,12 @@ function ModerationQueuePostCard({
                 </div>
               </div>
 
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {post.flagReason && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
                     className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 rounded-xl text-amber-800 border border-amber-200"
                   >
                     <AlertCircle className="size-4 shrink-0" />

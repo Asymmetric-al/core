@@ -164,6 +164,7 @@ interface ContributionDetailSheetProps {
    */
   onRefund?: (contributionId: string) => void;
   isActionPending?: boolean;
+  pendingAction?: ContributionDetailPendingAction | null;
   /**
    * Server-computed action availability (ADR-CD-017 / ADR-CD-018). When
    * provided it is the authority for which workflow actions render; the
@@ -223,6 +224,24 @@ interface ContributionDetailSheetProps {
   /** Called after a correction request decision succeeds. */
   onDecided?: () => void;
 }
+
+export type ContributionDetailPendingAction =
+  | {
+      actionType: "approve_staged_gift";
+      contributionId: string;
+      stagedGiftId: string;
+    }
+  | {
+      actionType: "retry_staged_gift";
+      contributionId: string;
+      stagedGiftId: string;
+      scope?: CrmPostFailedScope;
+    }
+  | {
+      actionType: "resend_receipt";
+      contributionId: string;
+      stagedGiftId: string;
+    };
 
 const FUND_TYPE_LABELS: Record<ContributionDesignationFundType, string> = {
   missionary: "Missionary fund",
@@ -320,6 +339,19 @@ function ContributionDetailErrorState({
   );
 }
 
+function crmRetryScopeMatches(
+  left: CrmPostFailedScope | undefined,
+  right: CrmPostFailedScope | undefined,
+) {
+  if (!left && !right) return true;
+  if (!left || !right) return false;
+  if (left.scope !== right.scope) return false;
+  if (left.scope === "designation" && right.scope === "designation") {
+    return left.allocationId === right.allocationId;
+  }
+  return true;
+}
+
 export function ContributionDetailSheet({
   contribution,
   onClose,
@@ -332,6 +364,7 @@ export function ContributionDetailSheet({
   onSendReceipt,
   onRefund,
   isActionPending = false,
+  pendingAction = null,
   actionAvailability,
   designations,
   providerProof,
@@ -496,6 +529,29 @@ export function ContributionDetailSheet({
       crmPostState.failedScopes.length > 0 ||
       crmPostState.adapterLimitation),
   );
+  const pendingActionMatches = (
+    actionType: ContributionDetailPendingAction["actionType"],
+    scope?: CrmPostFailedScope,
+  ) => {
+    if (
+      !pendingAction ||
+      pendingAction.actionType !== actionType ||
+      pendingAction.contributionId !== contribution.id ||
+      pendingAction.stagedGiftId !== stagedGiftId
+    ) {
+      return false;
+    }
+    if (pendingAction.actionType !== "retry_staged_gift") {
+      return true;
+    }
+    return crmRetryScopeMatches(pendingAction.scope, scope);
+  };
+  const receiptActionPending = pendingActionMatches("resend_receipt");
+  const approveActionPending = pendingActionMatches("approve_staged_gift");
+  const stagedRetryActionPending = pendingActionMatches("retry_staged_gift");
+  const parentRetryActionPending = parentRetryScope
+    ? pendingActionMatches("retry_staged_gift", parentRetryScope)
+    : false;
 
   // Recurring context renders whenever the gift is recurring OR has an
   // internal agreement link — a one-time gift inside a recurring series
@@ -552,7 +608,7 @@ export function ContributionDetailSheet({
             <div className="flex items-center gap-2 pt-2">
               <Badge
                 variant="outline"
-                className="h-5 text-[10px] font-semibold uppercase tracking-wider border shadow-none"
+                className="h-5 text-[10px] font-semibold uppercase tracking-wider shadow-none"
               >
                 <span
                   className={cn(
@@ -793,10 +849,16 @@ export function ContributionDetailSheet({
                     )}
                   {canRetryCrmScope && parentRetryScope && (
                     <Button
+                      focusableWhenDisabled={parentRetryActionPending}
                       variant="outline"
                       size="sm"
                       disabled={isActionPending}
-                      className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
+                      tabIndex={
+                        isActionPending && !parentRetryActionPending
+                          ? -1
+                          : undefined
+                      }
+                      className="gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
                       onClick={() =>
                         stagedGiftId &&
                         onRetryCrmPost?.(
@@ -828,6 +890,9 @@ export function ContributionDetailSheet({
                       scope.scope === "designation" &&
                       scope.allocationId === allocationId,
                   );
+                  const lineRetryActionPending = retryScope
+                    ? pendingActionMatches("retry_staged_gift", retryScope)
+                    : false;
 
                   return (
                     <li
@@ -884,10 +949,16 @@ export function ContributionDetailSheet({
                           "designation",
                         ) && (
                           <Button
+                            focusableWhenDisabled={lineRetryActionPending}
                             variant="outline"
                             size="sm"
                             disabled={isActionPending}
-                            className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
+                            tabIndex={
+                              isActionPending && !lineRetryActionPending
+                                ? -1
+                                : undefined
+                            }
+                            className="gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
                             onClick={() =>
                               stagedGiftId &&
                               onRetryCrmPost?.(
@@ -980,10 +1051,14 @@ export function ContributionDetailSheet({
             </Button>
             {canSendReceipt && (
               <Button
+                focusableWhenDisabled={receiptActionPending}
                 variant="outline"
                 size="sm"
                 className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
                 disabled={!stagedGiftId || isActionPending}
+                tabIndex={
+                  isActionPending && !receiptActionPending ? -1 : undefined
+                }
                 onClick={() =>
                   stagedGiftId && onSendReceipt?.(stagedGiftId, contribution.id)
                 }
@@ -994,9 +1069,13 @@ export function ContributionDetailSheet({
             )}
             {canApproveGift && (
               <Button
+                focusableWhenDisabled={approveActionPending}
                 variant="outline"
                 size="sm"
                 disabled={isActionPending}
+                tabIndex={
+                  isActionPending && !approveActionPending ? -1 : undefined
+                }
                 className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
                 onClick={() =>
                   stagedGiftId &&
@@ -1009,9 +1088,13 @@ export function ContributionDetailSheet({
             )}
             {canRetryGift && (
               <Button
+                focusableWhenDisabled={stagedRetryActionPending}
                 variant="outline"
                 size="sm"
                 disabled={isActionPending}
+                tabIndex={
+                  isActionPending && !stagedRetryActionPending ? -1 : undefined
+                }
                 className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
                 onClick={() =>
                   stagedGiftId &&
@@ -1027,6 +1110,7 @@ export function ContributionDetailSheet({
                 variant="outline"
                 size="sm"
                 disabled={!canRefund || isActionPending}
+                tabIndex={isActionPending ? -1 : undefined}
                 className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
                 onClick={() => onRefund?.(contribution.id)}
               >

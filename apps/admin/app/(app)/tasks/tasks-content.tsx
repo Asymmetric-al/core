@@ -274,10 +274,7 @@ export function TasksPageContent() {
       description={TASKS_PAGE_META.description}
       density={TASKS_PAGE_META.density}
       actions={
-        <Button
-          onClick={() => dispatchUi({ type: "open-create-modal" })}
-          className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800"
-        >
+        <Button onClick={() => dispatchUi({ type: "open-create-modal" })}>
           <Plus className="mr-2 size-4" />
           New Mission Task
         </Button>

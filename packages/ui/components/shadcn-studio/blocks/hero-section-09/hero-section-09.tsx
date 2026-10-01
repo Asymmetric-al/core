@@ -64,6 +64,7 @@ const HeroSection = () => {
 
               <Tooltip>
                 <TooltipTrigger
+                  aria-label="View Core on GitHub"
                   render={
                     <a
                       href="https://github.com/asymmetric-al/core"
@@ -74,9 +75,7 @@ const HeroSection = () => {
                     </a>
                   }
                 />
-                <TooltipContent>
-                  Integrate with all your framework
-                </TooltipContent>
+                <TooltipContent>View Core on GitHub</TooltipContent>
               </Tooltip>
             </MotionPreset>
 
@@ -135,7 +134,7 @@ const HeroSection = () => {
               </Link>
               <Button
                 size="lg"
-                className="bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer rounded-lg font-mono text-base"
+                className="bg-primary/10 text-primary hover:bg-primary/20 rounded-lg font-mono text-base"
                 onClick={() => {
                   navigator.clipboard.writeText("npx asymmetric@latest init");
                 }}

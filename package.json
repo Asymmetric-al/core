@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "AGPL-3.0-only",
-  "packageManager": "bun@1.3.14",
+  "packageManager": "bun@1.4.0",
   "workspaces": [
     "apps/*",
     "packages/*",
@@ -31,6 +31,7 @@
     "start:missionary": "turbo run start --filter=@asym/missionary-app",
     "start:donor": "turbo run start --filter=@asym/donor",
     "lint": "turbo run lint",
+    "lint:ui": "node tooling/eslint-config/lint.mjs",
     "lint:admin": "turbo run lint --filter=@asym/admin",
     "lint:missionary": "turbo run lint --filter=@asym/missionary-app",
     "lint:donor": "turbo run lint --filter=@asym/donor",
@@ -48,8 +49,9 @@
     "test:unit:feedback": "node scripts/verify/unit-feedback.mjs",
     "test:unit:cms": "vitest run tests/unit/cms",
     "test:e2e": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test --grep-invert \"@perf|@manual|@cms\"",
+    "test:e2e:base-ui": "node node_modules/typescript/bin/tsc -p tests/fixtures/base-ui-compliance/tsconfig.json && node node_modules/@playwright/test/cli.js test --config tests/fixtures/base-ui-compliance/playwright.config.ts",
     "test:e2e:strict": "node node_modules/@playwright/test/cli.js test --grep-invert \"@perf|@manual|@cms\"",
-    "test:e2e:production-gate": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/usability-smoke.spec.ts tests/e2e/donate.spec.ts tests/e2e/support-hub.smoke.spec.ts --project=chromium --workers=1",
+    "test:e2e:production-gate": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/usability-smoke.spec.ts tests/e2e/donate.spec.ts tests/e2e/support-hub.smoke.spec.ts tests/e2e/dialog-dismissal.spec.ts tests/e2e/shared-primitive-contrast.spec.ts tests/e2e/giving-breakdown-skeleton.spec.ts tests/e2e/missionary-summary-layout.spec.ts tests/e2e/data-table-accessibility.spec.ts tests/e2e/popover-positioning.spec.ts tests/e2e/public-about-layout.spec.ts tests/e2e/teams-surface.spec.ts tests/e2e/missionary-dashboard-charts.spec.ts tests/e2e/donor-wallet-layout.spec.ts --project=chromium --workers=1",
     "test:e2e:cms": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test --grep \"@cms\" --grep-invert \"@manual|@cms-local\"",
     "test:e2e:cms:strict": "node node_modules/@playwright/test/cli.js test --grep \"@cms\" --grep-invert \"@manual|@cms-local\"",
     "test:e2e:auth-preflight": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/demo-auth-preflight.spec.ts --project=chromium",
@@ -110,6 +112,11 @@
     "skills:refresh-upstream": "node scripts/refresh-upstream-skills.mjs",
     "skills:refresh-emilkowalski": "node scripts/refresh-upstream-skills.mjs --only=emilkowalski/skills",
     "skills:refresh-grill-for-unknowns": "node scripts/refresh-upstream-skills.mjs --only=nicobailon/grill-for-unknowns",
+    "skills:refresh-jakubkrehel": "node scripts/refresh-upstream-skills.mjs --only=jakubkrehel/skills",
+    "skills:refresh-frontend-design": "node scripts/refresh-upstream-skills.mjs --only=anthropics/skills",
+    "skills:refresh-taste-skill": "node scripts/refresh-upstream-skills.mjs --only=leonxlnx/taste-skill",
+    "skills:refresh-obra-tdd": "node scripts/refresh-upstream-skills.mjs --only=obra/superpowers",
+    "skills:refresh-ask-matt": "node scripts/refresh-upstream-skills.mjs --only=mattpocock/skills",
     "skills:refresh-inngest": "node scripts/refresh-inngest-skills.mjs",
     "check:motion": "node scripts/check-motion-patterns.mjs",
     "legal:validate": "turbo run legal:validate --filter=@asym/donor",
@@ -173,12 +180,12 @@
     "@asym/pdf-renderer": "file:vendor/react-pdf-packages/asym-pdf-renderer",
     "@asym/pdf-studio-adapter": "file:vendor/react-pdf-packages/asym-pdf-studio-adapter",
     "@asym/pdf-template-schema": "file:vendor/react-pdf-packages/asym-pdf-template-schema",
-    "@next/env": "16.3.0-preview.9",
+    "@next/env": "16.3.3",
     "@supabase/supabase-js": "^2.89.0",
     "@tailwindcss/typography": "^0.5.19",
     "graphql": "16.12.0",
     "graphql-yoga": "5.17.1",
-    "next": "16.3.0-preview.9",
+    "next": "16.3.3",
     "require-in-the-middle": "^8.0.1",
     "sharp": "^0.34.5"
   },
@@ -188,7 +195,7 @@
     "@fission-ai/openspec": "1.9.0",
     "@inngest/test": "1.0.0",
     "@lhci/cli": "^0.15.1",
-    "@next/playwright": "16.3.0-preview.9",
+    "@next/playwright": "16.3.3",
     "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4",
     "@tanstack/cli": "^0.63.1",
@@ -203,8 +210,8 @@
     "agent-browser": "^0.33.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "canvas": "^3.2.1",
-    "eslint": "^9.39.2",
-    "eslint-config-next": "16.3.0-preview.9",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.3",
     "eslint-plugin-import-x": "^4.16.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-unused-imports": "^4.3.0",
@@ -240,10 +247,13 @@
   },
   "lint-staged": {
     "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "eslint --fix"
+      "node tooling/eslint-config/lint.mjs --fix"
     ],
     "*": [
       "prettier --ignore-unknown --write"
     ]
+  },
+  "patchedDependencies": {
+    "@shadcn/lint@0.2.0": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.0.patch"
   }
 }

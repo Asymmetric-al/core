@@ -1,4 +1,4 @@
-@import "@asym/ui/styles/globals.css";
+@import "@asym/missionary/styles.css";
 
 @source "../../**/*.{js,ts,jsx,tsx,mdx}";
 @source "../../../packages/**/**/*.{js,ts,jsx,tsx,mdx}";

@@ -45,6 +45,15 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - Avoid arbitrary values like `w-[123px]` unless there is no practical alternative.
 - Keep spacing, typography, and radius aligned with existing shared components.
 
+### Design-system lint
+
+For applicable UI work, follow
+`docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`.
+It defines the shared six-rule policy workflow, scoped commands, authoring
+boundaries, raw-finding review, and legacy-debt handling. Normal lint enforces
+the policy; keep existing shadcn, token-drift, motion, Shadscan, and browser/a11y
+checks. Do not widen a contract or exception simply to make a usage pass.
+
 ### Motion rules
 
 Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).

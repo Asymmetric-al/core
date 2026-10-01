@@ -4,13 +4,13 @@ Real-world examples of common email templates using React Email with Tailwind CS
 
 ## Table of Contents
 
-- [Password Reset Email](#password-reset-email)
+- [Password Reset Email](#password-reset-email) <!-- pragma: allowlist secret -->
 - [Order Confirmation with Product List](#order-confirmation-with-product-list)
 - [Notification Email with Code Block](#notification-email-with-code-block)
 - [Multi-Column Newsletter](#multi-column-newsletter)
 - [Team Invitation Email](#team-invitation-email)
 
-## Password Reset Email
+## Password Reset Email <!-- pragma: allowlist secret -->
 
 ```tsx
 import {
@@ -58,7 +58,7 @@ export default function PasswordReset({ resetUrl, email, expiryHours = 1 }: Pass
             </Button>
             <Hr className="border-solid border-gray-200 my-6" />
             <Text className="text-sm text-gray-500 leading-5 my-2">
-              If you didn't request this, please ignore this email. Your password will remain unchanged.
+              If you didn't request this, please ignore this email. Your password will remain unchanged. // pragma: allowlist secret
             </Text>
             <Text className="text-sm text-gray-500 leading-5 my-2">
               For security, this link will only work once.
@@ -70,7 +70,7 @@ export default function PasswordReset({ resetUrl, email, expiryHours = 1 }: Pass
   );
 }
 
-PasswordReset.PreviewProps = {
+PasswordReset.PreviewProps = { // pragma: allowlist secret
   resetUrl: 'https://example.com/reset/abc123',
   email: 'user@example.com',
   expiryHours: 1

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://v2-10-0.turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "lint": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/ui/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css,json,jsonc}",
+        "!$TURBO_ROOT$/packages/ui/node_modules/**",
+        "!$TURBO_ROOT$/packages/ui/.turbo/**",
+        "$TURBO_ROOT$/tooling/eslint-config/*.{mjs,json}",
+        "$TURBO_ROOT$/packages/missionary/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css,json,jsonc}",
+        "!$TURBO_ROOT$/packages/missionary/node_modules/**",
+        "!$TURBO_ROOT$/packages/missionary/.turbo/**",
+        "$TURBO_ROOT$/eslint.config.mjs",
+        "$TURBO_ROOT$/tsconfig.json",
+        "$TURBO_ROOT$/tooling/typescript-config/*.json",
+        "$TURBO_ROOT$/tooling/eslint-config/patches/@shadcn%2Flint@*.patch"
+      ]
+    }
+  }
+}

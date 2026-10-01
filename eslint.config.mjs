@@ -2,6 +2,7 @@ import { defineConfig } from "eslint/config";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 import { baseConfig } from "@asym/eslint-config/base.mjs";
+import { designSystemConfig } from "@asym/eslint-config/design-system.mjs";
 import { appRestrictedImports } from "@asym/eslint-config/restricted-imports.mjs";
 
 const sourceCodeFiles = "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
@@ -15,6 +16,7 @@ const tableEngineImportRestriction = [
 ];
 
 const eslintConfig = defineConfig([
+  ...designSystemConfig(),
   // Root fallback/orchestrator config.
   // Individual apps/packages should define local eslint.config.mjs files.
   ...baseConfig,
@@ -191,6 +193,7 @@ const eslintConfig = defineConfig([
       "scripts/**",
       "next-env.d.ts",
       "eslint.config.mjs",
+      "**/public/maplibre/**",
     ],
   },
 ]);

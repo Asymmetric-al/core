@@ -67,6 +67,80 @@ function mergeTransition(
   };
 }
 
+type MotionSlideDirection = "up" | "down" | "left" | "right";
+
+function motionSlideAxis(direction: MotionSlideDirection): "x" | "y" {
+  switch (direction) {
+    case "up":
+    case "down":
+      return "y";
+    case "left":
+    case "right":
+      return "x";
+    default: {
+      const _exhaustive: never = direction;
+      return _exhaustive;
+    }
+  }
+}
+
+function motionSlideHiddenOffset(
+  direction: MotionSlideDirection,
+  offset: number,
+): number {
+  switch (direction) {
+    case "left":
+    case "up":
+      return -offset;
+    case "right":
+    case "down":
+      return offset;
+    default: {
+      const _exhaustive: never = direction;
+      return _exhaustive;
+    }
+  }
+}
+
+function buildMotionPresetVariants({
+  blur,
+  slide,
+  fade,
+  zoom,
+}: Pick<MotionPresetProps, "blur" | "slide" | "fade" | "zoom">): {
+  hidden: Variant;
+  visible: Variant;
+} {
+  const hiddenVariant: Variant = {};
+  const visibleVariant: Variant = {};
+
+  if (blur) {
+    hiddenVariant.filter = blur === true ? "blur(10px)" : `blur(${blur})`;
+    visibleVariant.filter = "blur(0px)";
+  }
+
+  if (slide) {
+    const offset = slide === true ? 100 : (slide.offset ?? 100);
+    const direction = slide === true ? "left" : (slide.direction ?? "left");
+    const axis = motionSlideAxis(direction);
+
+    hiddenVariant[axis] = motionSlideHiddenOffset(direction, offset);
+    visibleVariant[axis] = 0;
+  }
+
+  if (fade) {
+    hiddenVariant.opacity = fade === true ? 0 : (fade.initialOpacity ?? 0);
+    visibleVariant.opacity = fade === true ? 1 : (fade.opacity ?? 1);
+  }
+
+  if (zoom) {
+    hiddenVariant.scale = zoom === true ? 0.5 : (zoom.initialScale ?? 0.5);
+    visibleVariant.scale = zoom === true ? 1 : (zoom.scale ?? 1);
+  }
+
+  return { hidden: hiddenVariant, visible: visibleVariant };
+}
+
 function MotionPreset({
   ref,
   children,
@@ -97,35 +171,7 @@ function MotionPreset({
   });
 
   const isInView = !inView || inViewResult;
-
-  const hiddenVariant: Variant = {};
-  const visibleVariant: Variant = {};
-
-  if (blur) {
-    hiddenVariant.filter = blur === true ? "blur(10px)" : `blur(${blur})`;
-    visibleVariant.filter = "blur(0px)";
-  }
-
-  if (slide) {
-    const offset = slide === true ? 100 : (slide.offset ?? 100);
-    const direction = slide === true ? "left" : (slide.direction ?? "left");
-    const axis = direction === "up" || direction === "down" ? "y" : "x";
-
-    hiddenVariant[axis] =
-      direction === "left" || direction === "up" ? -offset : offset;
-    visibleVariant[axis] = 0;
-  }
-
-  if (fade) {
-    hiddenVariant.opacity = fade === true ? 0 : (fade.initialOpacity ?? 0);
-    visibleVariant.opacity = fade === true ? 1 : (fade.opacity ?? 1);
-  }
-
-  if (zoom) {
-    hiddenVariant.scale = zoom === true ? 0.5 : (zoom.initialScale ?? 0.5);
-    visibleVariant.scale = zoom === true ? 1 : (zoom.scale ?? 1);
-  }
-
+  const variants = buildMotionPresetVariants({ blur, slide, fade, zoom });
   const MotionComponent = motionComponents[component] || m.div;
 
   const effectiveTransition = mergeTransition(
@@ -142,10 +188,7 @@ function MotionPreset({
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           exit="hidden"
-          variants={{
-            hidden: hiddenVariant,
-            visible: visibleVariant,
-          }}
+          variants={variants}
           transition={effectiveTransition}
           className={className}
           {...motionProps}

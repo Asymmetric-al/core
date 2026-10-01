@@ -22,12 +22,12 @@ export function HistorySkeleton() {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
-          <Skeleton className="h-[280px] rounded-2xl" />
-          <Skeleton className="h-[180px] rounded-2xl" />
+          <Skeleton className="h-70 rounded-2xl" />
+          <Skeleton className="h-45 rounded-2xl" />
         </div>
         <div className="flex flex-col gap-6 lg:col-span-2">
           <Skeleton className="h-14 rounded-2xl" />
-          <Skeleton className="h-[420px] rounded-2xl" />
+          <Skeleton className="h-105 rounded-2xl" />
         </div>
       </div>
     </div>

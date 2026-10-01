@@ -5,7 +5,7 @@
 - Items always inside their Group component
 - Callouts use Alert
 - Empty states use Empty component
-- Toast notifications use sonner
+- Toast notifications follow the project base
 - Choosing between overlay components
 - Dialog, Sheet, and Drawer always need a Title
 - Card structure
@@ -51,6 +51,12 @@ This applies to all group-based components:
 | `MenubarItem` | `MenubarGroup` |
 | `ContextMenuItem` | `ContextMenuGroup` |
 | `CommandItem` | `CommandGroup` |
+| `MessageScrollerItem` | `MessageScrollerContent` |
+| `Message` (consecutive, same sender) | `MessageGroup` |
+| `Bubble` (stacked) | `BubbleGroup` |
+| `Attachment` (in a row) | `AttachmentGroup` |
+
+Chat components nest in a fixed order (`MessageScrollerProvider` → `MessageScroller` → `MessageScrollerViewport` → `MessageScrollerContent` → `MessageScrollerItem`). See [chat.md](./chat.md).
 
 ---
 
@@ -82,7 +88,9 @@ This applies to all group-based components:
 
 ---
 
-## Toast notifications use sonner
+## Toast notifications follow the project base
+
+Core's base-maia system uses the existing Sonner host, including Base UI apps. Reuse the shared `@asym/ui/components/shadcn/sonner` mounted by each app layout; do not install or mount another toaster. Send notifications with the existing Sonner API:
 
 ```tsx
 import { toast } from "sonner"

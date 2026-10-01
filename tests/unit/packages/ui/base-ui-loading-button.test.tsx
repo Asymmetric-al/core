@@ -1,0 +1,88 @@
+// @vitest-environment jsdom
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+
+import { AuthButton } from "../../../../packages/ui/components/auth/auth-primitives";
+import { Button } from "../../../../packages/ui/components/shadcn/button";
+afterEach(cleanup);
+it("retains focus and changing names while an auth action is loading, without duplicate activation", () => {
+  const click = vi.fn();
+  const view = render(
+    <AuthButton disabled={false} onClick={click}>
+      Sign in
+    </AuthButton>,
+  );
+  const button = screen.getByRole("button", { name: "Sign in" });
+  button.focus();
+  fireEvent.click(button);
+  view.rerender(
+    <AuthButton loading disabled={false} onClick={click}>
+      Signing in
+    </AuthButton>,
+  );
+  expect(document.activeElement).toBe(button);
+  expect(button.getAttribute("aria-disabled")).toBe("true");
+  expect(button.hasAttribute("disabled")).toBe(false);
+  const id = button.getAttribute("aria-labelledby");
+  expect(id).not.toBeNull();
+  expect(document.getElementById(id!)?.textContent).toBe("Signing in");
+  fireEvent.click(button);
+  expect(click).toHaveBeenCalledOnce();
+});
+it("keeps ordinary disabled auth actions unfocusable", () => {
+  render(<AuthButton disabled>Sign in</AuthButton>);
+  expect(
+    screen.getByRole("button", { name: "Sign in" }).hasAttribute("disabled"),
+  ).toBe(true);
+});
+it("natively disables a loading submit AuthButton instead of using aria-disabled", () => {
+  render(
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <label>
+        Password
+        <input name="password" defaultValue="fixture-password" />
+      </label>
+      <AuthButton type="submit" loading>
+        Signing in
+      </AuthButton>
+    </form>,
+  );
+  const button = screen.getByRole("button", { name: "Signing in" });
+  const field = screen.getByRole("textbox", { name: "Password" });
+  field.focus();
+  expect(document.activeElement).toBe(field);
+  expect(button.getAttribute("type")).toBe("submit");
+  expect(button.hasAttribute("disabled")).toBe(true);
+  expect(button.getAttribute("aria-disabled")).not.toBe("true");
+});
+it("natively disables a submit Button even when focusableWhenDisabled is set", () => {
+  render(
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <Button disabled focusableWhenDisabled type="submit">
+        Record gift
+      </Button>
+    </form>,
+  );
+  const button = screen.getByRole("button", { name: "Record gift" });
+  expect(button.getAttribute("type")).toBe("submit");
+  expect(button.hasAttribute("disabled")).toBe(true);
+  expect(button.getAttribute("aria-disabled")).not.toBe("true");
+});
+it("keeps a non-submit Button focusable when focusableWhenDisabled is set", () => {
+  render(
+    <Button disabled focusableWhenDisabled type="button">
+      Save draft
+    </Button>,
+  );
+  const button = screen.getByRole("button", { name: "Save draft" });
+  expect(button.hasAttribute("disabled")).toBe(false);
+  expect(button.getAttribute("aria-disabled")).toBe("true");
+});

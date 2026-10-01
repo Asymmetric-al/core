@@ -131,7 +131,7 @@ function PreviewView({
           href={safeHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-primary hover:bg-muted truncate max-w-[220px]"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-primary hover:bg-muted truncate max-w-55"
           title={safeHref}
         >
           <ExternalLink className="size-3.5 shrink-0" />
@@ -139,7 +139,7 @@ function PreviewView({
         </a>
       ) : (
         <div
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground truncate max-w-[220px]"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground truncate max-w-55"
           title={href}
         >
           <ExternalLink className="size-3.5 shrink-0" />
@@ -192,7 +192,7 @@ const EditView = React.forwardRef<
         value={url}
         onChange={(e) => onUrlChange(e.target.value)}
         placeholder="https://example.com"
-        className="h-7 w-[200px] rounded-md border-border bg-muted/30 text-sm px-2"
+        className="h-7 w-50 rounded-md border-border bg-muted/30 text-sm px-2"
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             e.preventDefault();

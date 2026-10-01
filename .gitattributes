@@ -38,10 +38,20 @@
 *.lock text eol=lf
 bun.lock text eol=lf
 
+# Unified-diff context prefixes precede upstream tab indentation.
+tooling/eslint-config/patches/*.patch text eol=lf whitespace=-space-before-tab
+
 # Windows-native scripts remain CRLF.
 *.bat text eol=crlf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
+
+# Agent skill mirrors: normalize to LF so CI sync matches committed files.
+.agents/** text eol=lf
+.cursor/skills/** text eol=lf
+.cursor/skills-cursor/** text eol=lf
+# Legacy agent dir (if present) leave untouched.
+.agent/** -text
 
 # Binary assets should never be normalized.
 *.png binary
@@ -64,10 +74,3 @@ bun.lock text eol=lf
 *.7z binary
 *.mp4 binary
 *.webm binary
-
-# Agent skill mirrors: normalize to LF so CI sync matches committed files.
-.agents/** text eol=lf
-.cursor/skills/** text eol=lf
-.cursor/skills-cursor/** text eol=lf
-# Legacy agent dir (if present) leave untouched.
-.agent/** -text

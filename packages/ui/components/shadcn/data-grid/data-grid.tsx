@@ -19,6 +19,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
 import { DataGridCell } from "./data-grid-cell";
+import { activateDataGridCellFromKeyboard } from "./data-grid-keyboard";
 import { useDataTableVirtualization } from "../data-table/hooks/use-data-table-virtualization";
 import { Input } from "../input";
 import {
@@ -127,6 +128,7 @@ function DataGridToolbar({
               size="icon"
               onClick={onUndo}
               disabled={!canUndo}
+              aria-label="Undo"
               className="size-9 rounded-xl"
             >
               <Undo className="size-4" />
@@ -136,6 +138,7 @@ function DataGridToolbar({
               size="icon"
               onClick={onRedo}
               disabled={!canRedo}
+              aria-label="Redo"
               className="size-9 rounded-xl"
             >
               <Redo className="size-4" />
@@ -202,6 +205,7 @@ function DataGridViewport<TData extends Record<string, unknown>>({
   selectedRows,
   headerGroups,
   onSelectCell,
+  onActivateCell,
 }: {
   parentRef: React.RefObject<HTMLDivElement | null>;
   maxHeight: number | string;
@@ -213,14 +217,15 @@ function DataGridViewport<TData extends Record<string, unknown>>({
   selectedRows: Set<number>;
   headerGroups: HeaderGroup<TData>[];
   onSelectCell: (rowIndex: number, columnId: string) => void;
+  onActivateCell: (rowIndex: number, columnId: string) => void;
 }) {
   return (
     <div ref={parentRef} className="overflow-auto" style={{ maxHeight }}>
       <div
+        className="relative"
         style={{
           height: `${totalSize + headerHeight}px`,
           width: "100%",
-          position: "relative",
         }}
       >
         <div
@@ -247,7 +252,7 @@ function DataGridViewport<TData extends Record<string, unknown>>({
           )}
         </div>
 
-        <div style={{ position: "relative", height: `${totalSize}px` }}>
+        <div className="relative" style={{ height: `${totalSize}px` }}>
           {virtualRows.map((virtualRow) => {
             const row = rows[virtualRow.index];
             if (!row) return null;
@@ -281,9 +286,9 @@ function DataGridViewport<TData extends Record<string, unknown>>({
                       onSelectCell(virtualRow.index, cell.column.id)
                     }
                     onKeyDown={(e) => {
-                      if (e.key !== "Enter" && e.key !== " ") return;
-                      e.preventDefault();
-                      onSelectCell(virtualRow.index, cell.column.id);
+                      activateDataGridCellFromKeyboard(e, () => {
+                        onActivateCell(virtualRow.index, cell.column.id);
+                      });
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -452,6 +457,10 @@ function buildDataGridColumns<TData extends Record<string, unknown>>({
       header: () => (
         <div className="flex items-center justify-center">
           <Checkbox
+            aria-label="Select all rows"
+            indeterminate={
+              selectedRows.size > 0 && selectedRows.size < rowCount
+            }
             checked={selectedRows.size === rowCount && rowCount > 0}
             onCheckedChange={(checked) => {
               if (checked) {
@@ -468,6 +477,7 @@ function buildDataGridColumns<TData extends Record<string, unknown>>({
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
           <Checkbox
+            aria-label={`Select row ${row.index + 1}`}
             checked={selectedRows.has(row.index)}
             onCheckedChange={(checked) => {
               setSelectedRows((prev) => {
@@ -507,6 +517,7 @@ function buildDataGridColumns<TData extends Record<string, unknown>>({
 
         return (
           <DataGridCell
+            label={`${col.header}, row ${rowIndex + 1}`}
             value={value}
             cellType={col.cellType ?? "text"}
             isEditing={isEditing}
@@ -809,6 +820,16 @@ export function DataGrid<TData extends Record<string, unknown>>({
     },
     [onSelectionChange],
   );
+  const activateCell = React.useCallback(
+    (rowIndex: number, columnId: string) => {
+      selectCell(rowIndex, columnId);
+      if (columnId === "select" || !enableEditing) return;
+      const column = columns.find((col) => col.id === columnId);
+      if (column?.editable === false) return;
+      setEditingCell({ rowIndex, columnId });
+    },
+    [columns, enableEditing, selectCell],
+  );
 
   return (
     <div
@@ -854,6 +875,7 @@ export function DataGrid<TData extends Record<string, unknown>>({
         selectedRows={selectedRows}
         headerGroups={table.getHeaderGroups()}
         onSelectCell={selectCell}
+        onActivateCell={activateCell}
       />
 
       <DataGridSummary

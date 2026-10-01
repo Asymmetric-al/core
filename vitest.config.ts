@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 import { perImporterAtAlias } from "./vitest.per-importer-alias";
+import { pinWorkspacePackages } from "./vitest.pin-workspace-packages";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 
@@ -14,7 +15,11 @@ export default defineConfig({
    * `paths` mapping (there is no repo-root `src/`); see
    * vitest.per-importer-alias.ts.
    */
-  plugins: [perImporterAtAlias(rootDir), react()],
+  plugins: [
+    pinWorkspacePackages(rootDir),
+    perImporterAtAlias(rootDir),
+    react(),
+  ],
   resolve: {
     alias: {
       /** Vitest runs in Node (a server context); the marker must not throw. */
@@ -25,6 +30,15 @@ export default defineConfig({
       ),
       /** Bun's isolated store can split `next` into per-peer-set copies (root vs apps); pin one instance so `vi.mock("next/navigation")` patches the same module the app code under test imports. */
       next: path.join(rootDir, "node_modules/next"),
+      /** Stripe is installed in the donor workspace. Resolve root-test mocks and app imports to the same SDK modules so the real provider cannot leak into isolated checkout tests. */
+      "@stripe/react-stripe-js": path.join(
+        rootDir,
+        "apps/donor/node_modules/@stripe/react-stripe-js",
+      ),
+      "@stripe/stripe-js": path.join(
+        rootDir,
+        "apps/donor/node_modules/@stripe/stripe-js",
+      ),
       /** Not hoisted to the repo root, so `vi.mock("@supabase/ssr")` in a test resolves to nothing while `@asym/auth` resolves its own copy — pin both to one module. */
       "@supabase/ssr": path.join(
         rootDir,
@@ -32,6 +46,8 @@ export default defineConfig({
       ),
       /** Tests live outside `packages/ui`; pin Sonner so `vi.mock('sonner')` patches the same module as `@asym/ui`. */
       sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
+      /** Tests live outside `packages/ui`; pin MapLibre so `vi.mock("maplibre-gl")` patches the same module as the Map primitive. */
+      "maplibre-gl": path.join(rootDir, "packages/ui/node_modules/maplibre-gl"),
       /** Tests live outside `packages/database`; pin the Supabase adapter so `vi.mock("@supabase-labs/tanstack-db")` patches the same module as `@asym/database`. */
       "@supabase-labs/tanstack-db": path.join(
         rootDir,

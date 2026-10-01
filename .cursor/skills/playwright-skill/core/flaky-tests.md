@@ -24,6 +24,9 @@ npx playwright test --retries=3 --trace=on
 # Run in fully parallel mode to expose isolation issues
 npx playwright test --fully-parallel --workers=4
 
+# Run all retries at the end in one worker to rule out concurrency (1.62+)
+npx playwright test --retries=2 --retry-strategy=isolated
+
 # List flaky tests (tests that failed then passed on retry)
 npx playwright test --retries=2 --reporter=json | jq '.suites[].specs[] | select(.ok == true and (.tests[].results | length > 1))'
 ```
@@ -97,6 +100,29 @@ export default defineConfig({
 ```
 
 This is especially effective when a test fails once, passes on retry, and you need to diff those attempts in Trace Viewer.
+
+### Capture `errorContext` for Intermittent Assertion Failures (Playwright 1.60+)
+
+When a flaky test fails only sometimes on an `expect()` matcher, the bare error message rarely explains *why*. Playwright 1.60 attaches `errorContext` to each `testInfo` error — including the aria snapshot of the element at the moment the matcher failed. Log it from `afterEach` so every flaky failure leaves a breadcrumb, even on the runs you can't reproduce locally.
+
+```typescript
+import { test } from '@playwright/test';
+
+test.afterEach(async ({}, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    for (const err of testInfo.errors) {
+      if (err.errorContext) {
+        await testInfo.attach('failure-context', {
+          body: err.errorContext,
+          contentType: 'text/plain',
+        });
+      }
+    }
+  }
+});
+```
+
+Pair this with `trace: 'retain-on-failure-and-retries'`: the trace shows the timeline, and `errorContext` captures the receiver's accessibility state at the exact failure point.
 
 ### Use UI Mode and Trace Viewer Filters
 
@@ -274,7 +300,7 @@ export const test = base.extend<{}, WorkerFixtures>({
   workerAccount: [async ({ request }, use) => {
     const email = `worker-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
     const response = await request.post('/api/users', {
-      data: { email, password: 'TestP@ss123!' },
+      data: { email, password: 'TestP@ss123!' }, // pragma: allowlist secret
     });
     const account = await response.json();
 
@@ -340,7 +366,7 @@ const test = base.extend({
   workerAccount: [async ({ request }, use) => {
     const email = `worker-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
     const response = await request.post('/api/users', {
-      data: { email, password: 'TestP@ss123!' },
+      data: { email, password: 'TestP@ss123!' }, // pragma: allowlist secret
     });
     const account = await response.json();
 
@@ -673,6 +699,39 @@ jobs:
       - name: Report flaky test results
         run: node scripts/report-flaky-metrics.js
 ```
+
+#### Option 4: Quarantine From a Reporter (`reporter.preprocess()`, Playwright 1.62+)
+
+Options 1 to 3 all require editing the spec file, which means the quarantine list lives in source control and is updated by hand. Playwright 1.62 adds `reporter.preprocess()`, a hook that runs after collection and before execution, so the list can come from run history instead.
+
+```js
+class QuarantineReporter {
+  async preprocess({ config, suite, testRun }) {
+    for (const test of suite.allTests()) {
+      if (shouldSkip(test))
+        testRun.skip(test);
+    }
+  }
+}
+```
+
+`testRun` marks a test as `skip`, `exclude`, `fixed`, or `failing`. Prefer `failing` over `skip` for quarantine: the test still runs, red is expected, and the run fails when it unexpectedly passes — so a recovered test removes itself from the list instead of sitting there forever.
+
+Driving this from an external flakiness API, matching on full title paths, and the exemption guard that stops auto-quarantine from silencing your most critical test are covered in [core/dynamic-test-selection.md](dynamic-test-selection.md).
+
+#### Isolated Retries (`retryStrategy: 'isolated'`, Playwright 1.62+)
+
+The default retry runs immediately in the same worker, inheriting whatever state may have caused the failure. `'isolated'` defers every retry to the end of the run and executes them in a single worker.
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  retries: 2,
+  retryStrategy: 'isolated',
+});
+```
+
+This is a diagnostic, not a fix. A test that fails in the parallel run and passes on isolated retry is telling you the failure is concurrency-related rather than inherent — which points at [Fix: Test Isolation Issues](#fix-test-isolation-issues) above. Note the retry phase is serial, so a suite with many retrying tests pays real wall-clock time for the signal.
 
 ### Prevention Checklist
 

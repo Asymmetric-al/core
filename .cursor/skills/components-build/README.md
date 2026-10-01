@@ -1,9 +1,3 @@
-> **Repo notice (Asymmetric-al/core):** This repository is **Base UI only**.
-> Shared primitives come from `@base-ui/react` via the shadcn `base-maia`
-> style in `packages/ui`. Ignore any Radix UI guidance below — never add
-> `radix-ui`/`@radix-ui/*` imports or dependencies; composition uses Base
-> UI's `render` prop, not `asChild`. See `docs/ai/rules/frontend.md`.
-
 # Components Build Skill
 
 An agent skill for building modern, composable, and accessible React UI components following the [components.build](https://components.build) specification. Co-authored by Hayden Bleasel and shadcn.
@@ -36,24 +30,24 @@ components-build/
 
 ## Rule Categories
 
-| # | Category | Impact | Description |
-|---|----------|--------|-------------|
-| 1 | Overview | MEDIUM | Specification scope, goals, and philosophy |
-| 2 | Principles | HIGH | Core design philosophy (composability, accessibility, etc.) |
-| 3 | Definitions | MEDIUM | Common terminology (primitive, compound, headless) |
-| 4 | Composition | HIGH | Breaking down complex components |
-| 5 | Accessibility | CRITICAL | Keyboard, screen readers, ARIA, focus management |
-| 6 | State | HIGH | Controlled/uncontrolled patterns |
-| 7 | Types | HIGH | TypeScript props and interfaces |
-| 8 | Polymorphism | MEDIUM | `as` prop for element switching |
-| 9 | As-Child | MEDIUM | Radix Slot composition pattern |
-| 10 | Data Attributes | LOW | `data-state` and `data-slot` patterns |
-| 11 | Styling | HIGH | Tailwind CSS, cn utility, CVA |
-| 12 | Design Tokens | MEDIUM | CSS variables and theming |
-| 13 | Documentation | MEDIUM | JSDoc and usage examples |
-| 14 | Registry | LOW | Component registry structure |
-| 15 | NPM | LOW | Publishing to npm |
-| 16 | Marketplaces | LOW | Distribution strategies |
+| #   | Category        | Impact   | Description                                                 |
+| --- | --------------- | -------- | ----------------------------------------------------------- |
+| 1   | Overview        | MEDIUM   | Specification scope, goals, and philosophy                  |
+| 2   | Principles      | HIGH     | Core design philosophy (composability, accessibility, etc.) |
+| 3   | Definitions     | MEDIUM   | Common terminology (primitive, compound, headless)          |
+| 4   | Composition     | HIGH     | Breaking down complex components                            |
+| 5   | Accessibility   | CRITICAL | Keyboard, screen readers, ARIA, focus management            |
+| 6   | State           | HIGH     | Controlled/uncontrolled patterns                            |
+| 7   | Types           | HIGH     | TypeScript props and interfaces                             |
+| 8   | Polymorphism    | MEDIUM   | `as` prop for element switching                             |
+| 9   | As-Child        | MEDIUM   | Radix Slot composition pattern                              |
+| 10  | Data Attributes | LOW      | `data-state` and `data-slot` patterns                       |
+| 11  | Styling         | HIGH     | Tailwind CSS, cn utility, CVA                               |
+| 12  | Design Tokens   | MEDIUM   | CSS variables and theming                                   |
+| 13  | Documentation   | MEDIUM   | JSDoc and usage examples                                    |
+| 14  | Registry        | LOW      | Component registry structure                                |
+| 15  | NPM             | LOW      | Publishing to npm                                           |
+| 16  | Marketplaces    | LOW      | Distribution strategies                                     |
 
 ## Installation
 
@@ -109,6 +103,7 @@ Brief explanation of why this matters.
 **Incorrect (using generic div):**
 
 \`\`\`tsx
+
 <div onClick={handleClick}>Click me</div>
 \`\`\`
 
@@ -138,7 +133,7 @@ Reference: [MDN Semantic HTML](https://developer.mozilla.org/en-US/docs/Glossary
 4. **Extend HTML Attributes** - Always extend native element props
 5. **Export Types** - Make prop types available to consumers
 6. **Support Both State Patterns** - Controlled and uncontrolled
-7. **Intelligent Class Merging** - Use `cn()` utility backed by cnfast
+7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge
 
 ## References
 
@@ -152,6 +147,7 @@ Reference: [MDN Semantic HTML](https://developer.mozilla.org/en-US/docs/Glossary
 - **shadcn** ([@shadcn](https://x.com/shadcn))
 
 Adapted as an AI skill by:
+
 - **Jordan Gilliam** ([@nolansym](https://x.com/nolansym))
 
 ## License

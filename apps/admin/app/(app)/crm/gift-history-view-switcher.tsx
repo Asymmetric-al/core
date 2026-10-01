@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
@@ -51,7 +50,7 @@ export function GiftHistoryViewSwitcher({
           <Button
             variant="outline"
             size="sm"
-            className="h-8 max-w-36 gap-1 truncate text-xs"
+            className="max-w-36 gap-1 truncate text-xs"
             aria-label="Gift history views"
           >
             {label}
@@ -79,9 +78,12 @@ export function GiftHistoryViewSwitcher({
             ))}
           </DropdownMenuRadioGroup>
         ) : (
-          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          <div
+            role="status"
+            className="px-2 py-1.5 text-xs font-normal text-muted-foreground"
+          >
             No saved views yet.
-          </DropdownMenuLabel>
+          </div>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSaveCurrentAs}>

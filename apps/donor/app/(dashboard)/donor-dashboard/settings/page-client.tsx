@@ -53,7 +53,7 @@ import {
   Globe,
   AlertTriangle,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 
 // --- Types ---
 type TabId = "profile" | "notifications" | "security";
@@ -104,6 +104,8 @@ const PasswordInput = ({
         <button
           type="button"
           onClick={() => setIsVisible(!isVisible)}
+          aria-label={`${isVisible ? "Hide" : "Show"} ${label}`}
+          aria-pressed={isVisible}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors focus:outline-none"
         >
           {isVisible ? (
@@ -121,11 +123,304 @@ const PasswordInput = ({
 
 const COMING_SOON = "Coming soon — not editable here yet.";
 
+type ProfileFormFields = {
+  avatarUrl: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+};
+
+function ProfileTabLoading() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Loading profile">
+      <Skeleton className="h-40 w-full rounded-xl" />
+      <Skeleton className="h-80 w-full rounded-xl" />
+    </div>
+  );
+}
+
+function ProfileTabError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Card className="border-destructive/40 text-left rounded-xl">
+      <CardContent className="p-6 space-y-3">
+        <p role="alert" className="text-sm font-medium text-destructive">
+          We couldn&apos;t load your profile.
+        </p>
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Try again
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ProfileAvatarCard({
+  avatarUrl,
+  initials,
+  onAvatarUrlChange,
+}: {
+  avatarUrl: string;
+  initials: string;
+  onAvatarUrlChange: (url: string) => void;
+}) {
+  return (
+    <Card className="border-border shadow-sm overflow-hidden text-left rounded-xl">
+      <CardHeader className="bg-muted/40 border-b border-border pb-4">
+        <CardTitle className="text-lg">Public Avatar</CardTitle>
+        <CardDescription>
+          Displayed on your profile and interactions.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <ImageUpload
+            value={avatarUrl}
+            onChange={onAvatarUrlChange}
+            path="avatars"
+            aspect={1}
+            triggerAriaLabel="Upload public avatar"
+          >
+            <div className="relative group cursor-pointer">
+              <Avatar className="size-20 border-4 border-background shadow-md ring-1 ring-border">
+                <AvatarImage src={avatarUrl} />
+                <AvatarFallback className="bg-foreground text-background text-2xl uppercase font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="text-white size-6" />
+              </div>
+            </div>
+          </ImageUpload>
+          <div className="flex flex-col gap-3 text-center sm:text-left">
+            <div>
+              <h4 className="font-semibold text-foreground uppercase tracking-tight">
+                Profile Photo
+              </h4>
+              <p className="text-[10px] font-semibold text-muted-foreground mt-1 uppercase tracking-widest">
+                JPG, GIF or PNG. Large files auto-optimized.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-center sm:justify-start">
+              <ImageUpload
+                value={avatarUrl}
+                onChange={onAvatarUrlChange}
+                path="avatars"
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-[10px] font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
+                >
+                  Upload New
+                </Button>
+              </ImageUpload>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onAvatarUrlChange("")}
+                className="text-destructive h-8 text-[10px] font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
+              >
+                Remove
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ProfilePersonalInfoCard({
+  errorMessage,
+  form,
+  onFieldChange,
+  onSave,
+  saving,
+  success,
+}: {
+  errorMessage: string | null;
+  form: ProfileFormFields;
+  onFieldChange: (key: keyof ProfileFormFields, value: string) => void;
+  onSave: () => void;
+  saving: boolean;
+  success: boolean;
+}) {
+  return (
+    <Card className="border-border shadow-sm text-left rounded-xl">
+      <CardHeader className="bg-muted/40 border-b border-border pb-4">
+        <CardTitle className="text-lg uppercase font-semibold tracking-tight">
+          Personal Information
+        </CardTitle>
+        <CardDescription className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Update your identity and contact details.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2">
+            <Label
+              htmlFor="firstName"
+              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+            >
+              First Name
+            </Label>
+            <Input
+              id="firstName"
+              value={form.firstName}
+              onChange={(event) =>
+                onFieldChange("firstName", event.target.value)
+              }
+              className="focus:border-foreground transition-colors h-10 rounded-lg"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label
+              htmlFor="lastName"
+              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+            >
+              Last Name
+            </Label>
+            <Input
+              id="lastName"
+              value={form.lastName}
+              onChange={(event) =>
+                onFieldChange("lastName", event.target.value)
+              }
+              className="focus:border-foreground transition-colors h-10 rounded-lg"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-2">
+            <Label
+              htmlFor="email"
+              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+            >
+              Email Address
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                value={form.email}
+                disabled
+                aria-describedby="email-note"
+                className="pl-9 h-10 rounded-lg"
+              />
+            </div>
+            <p id="email-note" className="text-[10px] text-muted-foreground">
+              Contact support to change your email.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label
+              htmlFor="phone"
+              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+            >
+              Phone Number
+            </Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-3 size-4 text-muted-foreground" />
+              <Input
+                id="phone"
+                type="tel"
+                value={form.phone}
+                onChange={(event) => onFieldChange("phone", event.target.value)}
+                className="pl-9 focus:border-foreground transition-colors h-10 rounded-lg"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Mailing address — not yet editable via the portal API. */}
+        <fieldset
+          disabled
+          aria-describedby="address-note"
+          className="space-y-4 pt-2 opacity-60"
+        >
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="address"
+              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+            >
+              Street Address
+            </Label>
+            <Badge variant="secondary" className="text-[9px] uppercase">
+              Coming soon
+            </Badge>
+          </div>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-3 size-4 text-muted-foreground" />
+            <Input
+              id="address"
+              placeholder="123 Mission Way"
+              className="pl-9 h-10 rounded-lg"
+            />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+            <Input
+              placeholder="City"
+              className="h-10 rounded-lg"
+              aria-label="City"
+            />
+            <Input
+              placeholder="State"
+              className="h-10 rounded-lg"
+              aria-label="State"
+            />
+            <Input
+              placeholder="Postal Code"
+              className="h-10 rounded-lg col-span-2 md:col-span-1"
+              aria-label="Postal code"
+            />
+          </div>
+          <p id="address-note" className="text-[10px] text-muted-foreground">
+            {COMING_SOON}
+          </p>
+        </fieldset>
+      </CardContent>
+      <CardFooter className="bg-muted/40 border-t border-border p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+        <p
+          role={errorMessage ? "alert" : undefined}
+          className={cn(
+            "text-[10px] font-semibold uppercase tracking-widest",
+            errorMessage ? "text-destructive" : "text-muted-foreground",
+          )}
+        >
+          {errorMessage ?? "Changes sync to your giving record."}
+        </p>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <Button
+            onClick={onSave}
+            disabled={saving}
+            focusableWhenDisabled={saving}
+            className={cn(
+              "min-w-[120px] transition-colors w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+              success && "bg-emerald-600 hover:bg-emerald-700",
+            )}
+          >
+            {saving ? (
+              <Loader2 className="mr-2 size-3 animate-spin" />
+            ) : success ? (
+              <Check className="mr-2 size-3" />
+            ) : null}
+            {saving ? "Saving..." : success ? "Saved" : "Save Changes"}
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
+
 const ProfileTab = () => {
   const snapshot = useDonorPortalSnapshot();
   const update = useUpdateDonorPortal();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ProfileFormFields>({
     firstName: "",
     lastName: "",
     email: "",
@@ -152,7 +447,7 @@ const ProfileTab = () => {
     );
   }
 
-  const setField = (key: keyof typeof form, value: string) => {
+  const setField = (key: keyof ProfileFormFields, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setSuccess(false);
     setErrorMessage(null);
@@ -176,31 +471,11 @@ const ProfileTab = () => {
   };
 
   if (snapshot.isLoading) {
-    return (
-      <div className="space-y-6" aria-busy="true" aria-label="Loading profile">
-        <Skeleton className="h-40 w-full rounded-xl" />
-        <Skeleton className="h-80 w-full rounded-xl" />
-      </div>
-    );
+    return <ProfileTabLoading />;
   }
 
   if (snapshot.error) {
-    return (
-      <Card className="border-destructive/40 text-left rounded-xl">
-        <CardContent className="p-6 space-y-3">
-          <p role="alert" className="text-sm font-medium text-destructive">
-            We couldn&apos;t load your profile.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => snapshot.refetch()}
-          >
-            Try again
-          </Button>
-        </CardContent>
-      </Card>
-    );
+    return <ProfileTabError onRetry={() => snapshot.refetch()} />;
   }
 
   const initials =
@@ -214,233 +489,21 @@ const ProfileTab = () => {
       exit={{ opacity: 0, y: -10 }}
       className="space-y-6"
     >
-      {/* Avatar Section */}
-      <Card className="border-border shadow-sm overflow-hidden text-left rounded-xl">
-        <CardHeader className="bg-muted/40 border-b border-border pb-4">
-          <CardTitle className="text-lg">Public Avatar</CardTitle>
-          <CardDescription>
-            Displayed on your profile and interactions.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <ImageUpload
-              value={form.avatarUrl}
-              onChange={(url) => setField("avatarUrl", url)}
-              path="avatars"
-              aspect={1}
-              triggerAriaLabel="Upload public avatar"
-            >
-              <div className="relative group cursor-pointer">
-                <Avatar className="size-20 border-4 border-background shadow-md ring-1 ring-border">
-                  <AvatarImage src={form.avatarUrl} />
-                  <AvatarFallback className="bg-foreground text-background text-2xl uppercase font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera className="text-white size-6" />
-                </div>
-              </div>
-            </ImageUpload>
-            <div className="flex flex-col gap-3 text-center sm:text-left">
-              <div>
-                <h4 className="font-semibold text-foreground uppercase tracking-tight">
-                  Profile Photo
-                </h4>
-                <p className="text-[10px] font-semibold text-muted-foreground mt-1 uppercase tracking-widest">
-                  JPG, GIF or PNG. Large files auto-optimized.
-                </p>
-              </div>
-              <div className="flex gap-3 justify-center sm:justify-start">
-                <ImageUpload
-                  value={form.avatarUrl}
-                  onChange={(url) => setField("avatarUrl", url)}
-                  path="avatars"
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-[10px] font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
-                  >
-                    Upload New
-                  </Button>
-                </ImageUpload>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setField("avatarUrl", "")}
-                  className="text-destructive h-8 text-[10px] font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
-                >
-                  Remove
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Personal Info Form */}
-      <Card className="border-border shadow-sm text-left rounded-xl">
-        <CardHeader className="bg-muted/40 border-b border-border pb-4">
-          <CardTitle className="text-lg uppercase font-semibold tracking-tight">
-            Personal Information
-          </CardTitle>
-          <CardDescription className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Update your identity and contact details.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-2">
-              <Label
-                htmlFor="firstName"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                First Name
-              </Label>
-              <Input
-                id="firstName"
-                value={form.firstName}
-                onChange={(event) => setField("firstName", event.target.value)}
-                className="focus:border-foreground transition-colors h-10 rounded-lg"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label
-                htmlFor="lastName"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                Last Name
-              </Label>
-              <Input
-                id="lastName"
-                value={form.lastName}
-                onChange={(event) => setField("lastName", event.target.value)}
-                className="focus:border-foreground transition-colors h-10 rounded-lg"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                Email Address
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  disabled
-                  aria-describedby="email-note"
-                  className="pl-9 h-10 rounded-lg"
-                />
-              </div>
-              <p id="email-note" className="text-[10px] text-muted-foreground">
-                Contact support to change your email.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label
-                htmlFor="phone"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                Phone Number
-              </Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 size-4 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={(event) => setField("phone", event.target.value)}
-                  className="pl-9 focus:border-foreground transition-colors h-10 rounded-lg"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Mailing address — not yet editable via the portal API. */}
-          <fieldset
-            disabled
-            aria-describedby="address-note"
-            className="space-y-4 pt-2 opacity-60"
-          >
-            <div className="flex items-center gap-2">
-              <Label
-                htmlFor="address"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                Street Address
-              </Label>
-              <Badge variant="secondary" className="text-[9px] uppercase">
-                Coming soon
-              </Badge>
-            </div>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-3 size-4 text-muted-foreground" />
-              <Input
-                id="address"
-                placeholder="123 Mission Way"
-                className="pl-9 h-10 rounded-lg"
-              />
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-              <Input
-                placeholder="City"
-                className="h-10 rounded-lg"
-                aria-label="City"
-              />
-              <Input
-                placeholder="State"
-                className="h-10 rounded-lg"
-                aria-label="State"
-              />
-              <Input
-                placeholder="Postal Code"
-                className="h-10 rounded-lg col-span-2 md:col-span-1"
-                aria-label="Postal code"
-              />
-            </div>
-            <p id="address-note" className="text-[10px] text-muted-foreground">
-              {COMING_SOON}
-            </p>
-          </fieldset>
-        </CardContent>
-        <CardFooter className="bg-muted/40 border-t border-border p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-          <p
-            role={errorMessage ? "alert" : undefined}
-            className={cn(
-              "text-[10px] font-semibold uppercase tracking-widest",
-              errorMessage ? "text-destructive" : "text-muted-foreground",
-            )}
-          >
-            {errorMessage ?? "Changes sync to your giving record."}
-          </p>
-          <div className="flex gap-3 w-full sm:w-auto">
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className={cn(
-                "min-w-[120px] transition-colors w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
-                success && "bg-emerald-600 hover:bg-emerald-700",
-              )}
-            >
-              {saving ? (
-                <Loader2 className="mr-2 size-3 animate-spin" />
-              ) : success ? (
-                <Check className="mr-2 size-3" />
-              ) : null}
-              {saving ? "Saving..." : success ? "Saved" : "Save Changes"}
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+      <ProfileAvatarCard
+        avatarUrl={form.avatarUrl}
+        initials={initials}
+        onAvatarUrlChange={(url) => setField("avatarUrl", url)}
+      />
+      <ProfilePersonalInfoCard
+        errorMessage={errorMessage}
+        form={form}
+        onFieldChange={setField}
+        onSave={() => {
+          void handleSave();
+        }}
+        saving={saving}
+        success={success}
+      />
     </motion.div>
   );
 };
@@ -472,6 +535,8 @@ interface NotificationCategory {
 }
 
 const NotificationsTab = () => {
+  const pendingActionLabelId = useId();
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -636,10 +701,12 @@ const NotificationsTab = () => {
           System alerts cannot be disabled.
         </p>
         <Button
+          aria-labelledby={`${pendingActionLabelId}-20`}
+          focusableWhenDisabled={loading}
           onClick={handleSave}
           disabled={loading || success}
           className={cn(
-            "min-w-[140px] shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto text-[10px] uppercase tracking-widest rounded-lg px-6",
+            "min-w-35 shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto text-[10px] uppercase tracking-widest rounded-lg px-6",
             success
               ? "bg-emerald-600 hover:bg-emerald-700"
               : "bg-zinc-900 hover:bg-zinc-800",
@@ -650,11 +717,13 @@ const NotificationsTab = () => {
           ) : success ? (
             <Check className="mr-2 size-3" />
           ) : null}
-          {loading
-            ? "Saving..."
-            : success
-              ? "Changes Saved"
-              : "Save Preferences"}
+          <span id={`${pendingActionLabelId}-20`}>
+            {loading
+              ? "Saving..."
+              : success
+                ? "Changes Saved"
+                : "Save Preferences"}
+          </span>
         </Button>
       </CardFooter>
     </Card>
@@ -662,6 +731,8 @@ const NotificationsTab = () => {
 };
 
 const SecurityTab = () => {
+  const pendingActionLabelId = useId();
+
   const [passwords, setPasswords] = useState({
     current: "",
     new: "",
@@ -774,9 +845,8 @@ const SecurityTab = () => {
                   <motion.div
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: Math.min(widthPercent, 100) / 100 }}
-                    style={{ originX: 0 }}
                     className={cn(
-                      "h-full w-full transition-colors",
+                      "h-full w-full origin-left transition-colors",
                       strengthColor,
                     )}
                   />
@@ -809,6 +879,8 @@ const SecurityTab = () => {
         </CardContent>
         <CardFooter className="bg-zinc-50/50 border-t border-zinc-100 p-4 flex justify-end">
           <Button
+            aria-labelledby={`${pendingActionLabelId}-21`}
+            focusableWhenDisabled={loading}
             onClick={handleUpdate}
             disabled={
               loading ||
@@ -816,7 +888,7 @@ const SecurityTab = () => {
               passwords.new !== passwords.confirm
             }
             className={cn(
-              "min-w-[140px] h-9 shadow-sm transition-colors w-full sm:w-auto text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+              "min-w-35 h-9 shadow-sm transition-colors w-full sm:w-auto text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
               success
                 ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-zinc-900 hover:bg-zinc-800",
@@ -827,11 +899,13 @@ const SecurityTab = () => {
             ) : success ? (
               <Check className="mr-2 size-3" />
             ) : null}
-            {loading
-              ? "Updating..."
-              : success
-                ? "Password Updated"
-                : "Update Password"}
+            <span id={`${pendingActionLabelId}-21`}>
+              {loading
+                ? "Updating..."
+                : success
+                  ? "Password Updated"
+                  : "Update Password"}
+            </span>
           </Button>
         </CardFooter>
       </Card>
@@ -864,7 +938,7 @@ const SecurityTab = () => {
           <CardFooter className="pt-0 pb-4">
             <Button
               variant="outline"
-              className="w-full text-[10px] font-semibold uppercase tracking-widest h-9 rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
+              className="w-full text-[10px] font-semibold uppercase tracking-widest rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
             >
               Configure 2FA
             </Button>
@@ -896,7 +970,7 @@ const SecurityTab = () => {
           <CardFooter className="pt-0 pb-4">
             <Button
               variant="ghost"
-              className="w-full text-[10px] font-semibold uppercase tracking-widest h-9 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
+              className="w-full text-[10px] font-semibold uppercase tracking-widest text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
             >
               Sign out other devices
             </Button>
@@ -939,7 +1013,7 @@ export default function DonorSettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-[10px] font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-[140px] lg:w-full",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg text-[10px] font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-35 lg:w-full",
                     activeTab === tab.id
                       ? "bg-zinc-900 text-white shadow-md shadow-zinc-200"
                       : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900",

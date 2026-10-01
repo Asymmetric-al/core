@@ -1,13 +1,10 @@
 "use client";
 
+import { brandConfig } from "@asym/config/site-client";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
-import {
-  BrandAvatar,
-  BrandLogo,
-  brandConfig,
-} from "@asym/ui/components/brand-logo";
+import { BrandAvatar, BrandLogo } from "@asym/ui/components/brand-logo";
 import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
@@ -96,7 +93,7 @@ const RichTextEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[140px] w-full bg-muted rounded-xl animate-pulse" />
+      <div className="h-35 w-full bg-muted rounded-xl animate-pulse" />
     ),
   },
 );
@@ -247,6 +244,7 @@ function FeedSettingsSheet({
               </div>
 
               <RadioGroup
+                aria-label="Feed Visibility"
                 value={visibility}
                 onValueChange={(val) => setVisibility(val as OrgPostVisibility)}
                 className="space-y-2"
@@ -329,6 +327,7 @@ function FeedSettingsSheet({
                     </div>
                   </div>
                   <Switch
+                    aria-label="Email for Org Posts"
                     checked={emailOrgPosts}
                     onCheckedChange={setEmailOrgPosts}
                   />
@@ -347,6 +346,7 @@ function FeedSettingsSheet({
 
         <SheetFooter className="p-4 border-t">
           <Button
+            focusableWhenDisabled={isSaving}
             onClick={handleSave}
             disabled={isSaving}
             className="w-full h-10 rounded-xl font-semibold"
@@ -405,14 +405,14 @@ function PostCard({
                 </h3>
                 <Badge
                   variant="secondary"
-                  className="font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  className="font-semibold text-[9px] uppercase tracking-wider"
                 >
                   {post.post_type}
                 </Badge>
                 {post.isPinned && (
                   <Badge
                     variant="outline"
-                    className="text-[9px] px-2 py-0.5 gap-1 rounded-full font-semibold uppercase tracking-wider"
+                    className="text-[9px] font-semibold uppercase tracking-wider"
                   >
                     <Pin className="size-2.5" /> Pinned
                   </Badge>
@@ -439,11 +439,12 @@ function PostCard({
           <DropdownMenu>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <DropdownMenuTrigger
+                aria-label="Open actions"
                 render={
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
+                    className="sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
                   >
                     <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                   </Button>
@@ -452,7 +453,7 @@ function PostCard({
             </motion.div>
             <DropdownMenuContent
               align="end"
-              className="rounded-xl border shadow-lg p-2 min-w-[160px]"
+              className="rounded-xl border shadow-lg p-2 min-w-40"
             >
               <DropdownMenuItem
                 onClick={onTogglePin}
@@ -566,7 +567,7 @@ function DraftCard({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Badge
                 variant="secondary"
-                className="font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full"
+                className="font-semibold text-[9px] uppercase tracking-wider"
               >
                 Draft • {draft.post_type}
               </Badge>
@@ -588,7 +589,7 @@ function DraftCard({
             >
               <Button
                 onClick={onEdit}
-                className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl font-semibold"
+                className="w-full sm:h-10 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl font-semibold"
               >
                 <ExternalLink className="size-3.5 mr-2" />
                 <span className="hidden sm:inline">Edit & Publish</span>
@@ -603,7 +604,7 @@ function DraftCard({
               <Button
                 variant="ghost"
                 onClick={onDelete}
-                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
+                className="w-full sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
               >
                 <Trash2 className="size-3.5 mr-2" />
                 Delete
@@ -617,12 +618,14 @@ function DraftCard({
 }
 
 type ComposeMediaItem = { url: string; type: string };
+type ComposePendingAction = "draft" | "publish" | null;
 
 interface ComposeCardState {
   postContent: string;
   postType: string;
   visibility: Visibility;
   isPublishing: boolean;
+  pendingAction: ComposePendingAction;
   selectedMedia: ComposeMediaItem[];
   isUploading: boolean;
 }
@@ -631,7 +634,7 @@ type ComposeCardAction =
   | { type: "set-content"; value: string }
   | { type: "set-post-type"; value: string }
   | { type: "set-visibility"; value: Visibility }
-  | { type: "set-publishing"; value: boolean }
+  | { type: "set-pending-action"; value: ComposePendingAction }
   | { type: "set-uploading"; value: boolean }
   | { type: "add-media"; item: ComposeMediaItem }
   | { type: "remove-media"; item: ComposeMediaItem }
@@ -660,6 +663,7 @@ const buildInitialComposeState = (
   postType: sourcePost?.post_type || "Announcement",
   visibility: sourcePost?.visibility || "public",
   isPublishing: false,
+  pendingAction: null,
   selectedMedia: dedupeComposeMedia(sourcePost?.media),
   isUploading: false,
 });
@@ -675,8 +679,12 @@ function composeCardReducer(
       return { ...state, postType: action.value };
     case "set-visibility":
       return { ...state, visibility: action.value };
-    case "set-publishing":
-      return { ...state, isPublishing: action.value };
+    case "set-pending-action":
+      return {
+        ...state,
+        isPublishing: action.value !== null,
+        pendingAction: action.value,
+      };
     case "set-uploading":
       return { ...state, isUploading: action.value };
     case "add-media":
@@ -708,9 +716,11 @@ function composeCardReducer(
         postContent: "",
         selectedMedia: [],
         isPublishing: false,
+        pendingAction: null,
       };
     default:
-      return state;
+      const exhaustiveAction: never = action;
+      return exhaustiveAction;
   }
 }
 
@@ -772,10 +782,11 @@ function ComposeCardTypeSelector({
   );
 }
 
-function ComposeCardActions({
+export function ComposeCardActions({
   selectedMedia,
   isUploading,
   isPublishing,
+  pendingAction,
   visibility,
   isDisabled,
   onAddMedia,
@@ -787,6 +798,7 @@ function ComposeCardActions({
   selectedMedia: ComposeMediaItem[];
   isUploading: boolean;
   isPublishing: boolean;
+  pendingAction: ComposePendingAction;
   visibility: Visibility;
   isDisabled: boolean;
   onAddMedia: () => void;
@@ -797,12 +809,12 @@ function ComposeCardActions({
 }) {
   return (
     <div className="flex flex-col gap-3 w-full">
-      <AnimatePresence>
+      <AnimatePresence mode="popLayout">
         {selectedMedia.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
           >
             {selectedMedia.map((item) => (
@@ -839,11 +851,12 @@ function ComposeCardActions({
       <div className="flex flex-wrap items-center gap-2 w-full">
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
+            focusableWhenDisabled={isUploading}
             variant="ghost"
             size="sm"
             disabled={isUploading}
             onClick={onAddMedia}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+            className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
           >
             {isUploading ? (
               <Loader2 className="size-3 animate-spin" />
@@ -857,11 +870,12 @@ function ComposeCardActions({
         <DropdownMenu>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <DropdownMenuTrigger
+              aria-label={`Post visibility: ${visibility}`}
               render={
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+                  className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
                 >
                   {visibility === "public" ? (
                     <Globe className="size-3" />
@@ -880,7 +894,7 @@ function ComposeCardActions({
           </motion.div>
           <DropdownMenuContent
             align="start"
-            className="rounded-xl border shadow-lg p-1.5 min-w-[160px]"
+            className="rounded-xl border shadow-lg p-1.5 min-w-40"
           >
             <DropdownMenuItem
               onClick={() => onSetVisibility("public")}
@@ -908,10 +922,12 @@ function ComposeCardActions({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onSaveDraft}
+            aria-label="Save draft"
             variant="outline"
             size="sm"
             disabled={isDisabled}
-            className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+            focusableWhenDisabled={pendingAction === "draft"}
+            className="px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -925,9 +941,11 @@ function ComposeCardActions({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onPublish}
+            aria-label="Publish update"
             size="sm"
             disabled={isDisabled}
-            className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
+            focusableWhenDisabled={pendingAction === "publish"}
+            className="sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -961,6 +979,7 @@ function ComposeCard({
     postType,
     visibility,
     isPublishing,
+    pendingAction,
     selectedMedia,
     isUploading,
   } = composeState;
@@ -968,7 +987,7 @@ function ComposeCard({
   const handlePublish = async () => {
     if (isPostContentEmpty(postContent)) return;
 
-    dispatchCompose({ type: "set-publishing", value: true });
+    dispatchCompose({ type: "set-pending-action", value: "publish" });
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     onSave({
@@ -988,7 +1007,7 @@ function ComposeCard({
   const handleSaveDraft = async () => {
     if (isPostContentEmpty(postContent)) return;
 
-    dispatchCompose({ type: "set-publishing", value: true });
+    dispatchCompose({ type: "set-pending-action", value: "draft" });
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     onSave({
@@ -1065,7 +1084,7 @@ function ComposeCard({
               }
               placeholder={`Write your ${postType.toLowerCase()}…`}
               className="rounded-xl sm:rounded-2xl"
-              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
+              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed"
               toolbarPosition="bottom"
               proseInvert={false}
               actions={
@@ -1073,6 +1092,7 @@ function ComposeCard({
                   selectedMedia={selectedMedia}
                   isUploading={isUploading}
                   isPublishing={isPublishing}
+                  pendingAction={pendingAction}
                   visibility={visibility}
                   isDisabled={isDisabled}
                   onAddMedia={handleAddMedia}
@@ -1273,7 +1293,7 @@ function OrgUpdatesTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
+                  <Badge className="border-none h-4 px-1 text-[8px] font-semibold">
                     {drafts.length}
                   </Badge>
                 </motion.div>
@@ -1447,7 +1467,7 @@ export default function OrgUpdatesPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-[1200px] mx-auto"
+      className="max-w-300 mx-auto"
     >
       <PageShell
         title={`${brandConfig.name} Updates`}

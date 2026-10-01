@@ -87,7 +87,10 @@ function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
 }
 
-function collectTypeScriptFiles(directoryPath) {
+export function collectTypeScriptFiles(
+  directoryPath,
+  repositoryRoot = repoRoot,
+) {
   const entries = readdirSync(directoryPath, { withFileTypes: true });
   const files = [];
 
@@ -96,11 +99,13 @@ function collectTypeScriptFiles(directoryPath) {
     if (entry.isDirectory()) {
       if (
         SKIP_DIRECTORY_NAMES.has(entry.name) ||
-        SKIP_REPO_RELATIVE_DIRECTORIES.has(toRepoRelative(entryPath))
+        SKIP_REPO_RELATIVE_DIRECTORIES.has(
+          path.relative(repositoryRoot, entryPath).split(path.sep).join("/"),
+        )
       ) {
         continue;
       }
-      files.push(...collectTypeScriptFiles(entryPath));
+      files.push(...collectTypeScriptFiles(entryPath, repositoryRoot));
       continue;
     }
 

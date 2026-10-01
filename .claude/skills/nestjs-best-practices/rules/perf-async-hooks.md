@@ -22,7 +22,7 @@ export class DatabaseService implements OnModuleInit {
 
   private async connect() {
     await this.pool.connect();
-    console.log('Database connected');
+    console.log("Database connected");
   }
 }
 
@@ -33,7 +33,7 @@ export class ConfigService {
 
   constructor() {
     // BLOCKS entire module instantiation synchronously
-    this.config = fs.readFileSync('config.json');
+    this.config = fs.readFileSync("config.json");
   }
 }
 ```
@@ -49,13 +49,13 @@ export class DatabaseService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     // NestJS waits for this to complete before continuing
     await this.pool.connect();
-    console.log('Database connected');
+    console.log("Database connected");
   }
 
   async onModuleDestroy(): Promise<void> {
     // Clean up resources on shutdown
     await this.pool.end();
-    console.log('Database disconnected');
+    console.log("Database disconnected");
   }
 }
 
@@ -89,7 +89,7 @@ export class ConfigService implements OnModuleInit {
   }
 
   private async loadConfig(): Promise<Config> {
-    const file = await fs.promises.readFile('config.json');
+    const file = await fs.promises.readFile("config.json");
     return JSON.parse(file.toString());
   }
 

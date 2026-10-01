@@ -433,7 +433,12 @@ test('moves a card through all stages', async ({ page }) => {
 
 ## Recipe 4: File Drop Zone
 
-### Complete Example
+> **Playwright 1.60+**: `locator.drop()` now simulates a *native* external file drop — dispatching real `dragenter` / `dragover` / `drop` events with a synthetic `DataTransfer`. This is the preferred approach for drop zones that listen for `drop` events (not just a hidden `input[type=file]`). On earlier versions, fall back to `setInputFiles` on the underlying file input (shown below).
+
+### Recommended: `locator.drop()` (Playwright 1.60+)
+
+**Use when**: The drop zone is driven by `drop`/`dragover` DOM events (most modern uploaders, editors that accept dropped images, or zones with no `input[type=file]` fallback).
+**Avoid when**: You're on Playwright < 1.60 — use the `setInputFiles` approach instead.
 
 **TypeScript**
 
@@ -441,7 +446,76 @@ test('moves a card through all stages', async ({ page }) => {
 import { test, expect } from '@playwright/test';
 import path from 'path';
 
-test('uploads a file by dropping it on the drop zone', async ({ page }) => {
+test('drops a file directly onto the drop zone', async ({ page }) => {
+  await page.goto('/upload');
+
+  const dropZone = page.locator('[data-testid="file-drop-zone"]');
+  await expect(dropZone).toContainText('Drag files here');
+
+  // Drop a real file from disk — fires native dragenter/dragover/drop events
+  await dropZone.drop({
+    files: path.resolve(__dirname, '../fixtures/sample-document.pdf'),
+  });
+
+  await expect(page.getByText('sample-document.pdf')).toBeVisible();
+});
+
+test('drops an in-memory file buffer', async ({ page }) => {
+  await page.goto('/upload');
+
+  await page.locator('[data-testid="file-drop-zone"]').drop({
+    files: {
+      name: 'note.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('hello from a dropped file'),
+    },
+  });
+
+  await expect(page.getByText('note.txt')).toBeVisible();
+});
+
+test('drops text/url payloads (not a file)', async ({ page }) => {
+  await page.goto('/editor');
+
+  // `data` maps MIME types to string values — great for dropped links/text
+  await page.locator('#canvas').drop({
+    data: {
+      'text/plain': 'Hello world',
+      'text/uri-list': 'https://example.com/image.png',
+    },
+  });
+
+  await expect(page.getByText('https://example.com/image.png')).toBeVisible();
+});
+```
+
+**JavaScript**
+
+```javascript
+const { test, expect } = require('@playwright/test');
+const path = require('path');
+
+test('drops a file directly onto the drop zone', async ({ page }) => {
+  await page.goto('/upload');
+
+  const dropZone = page.locator('[data-testid="file-drop-zone"]');
+  await dropZone.drop({
+    files: path.resolve(__dirname, '../fixtures/sample-document.pdf'),
+  });
+
+  await expect(page.getByText('sample-document.pdf')).toBeVisible();
+});
+```
+
+### Legacy / fallback: file input + dispatched events
+
+**TypeScript**
+
+```typescript
+import { test, expect } from '@playwright/test';
+import path from 'path';
+
+test('uploads a file via the underlying input (Playwright < 1.60)', async ({ page }) => {
   await page.goto('/upload');
 
   const dropZone = page.locator('[data-testid="file-drop-zone"]');
@@ -449,9 +523,8 @@ test('uploads a file by dropping it on the drop zone', async ({ page }) => {
   // Verify initial state
   await expect(dropZone).toContainText('Drag files here');
 
-  // Create a DataTransfer-like event using the file chooser approach
-  // Since Playwright cannot simulate native DnD file events from the OS,
-  // we use the underlying input[type=file] that drop zones rely on
+  // On older Playwright, native OS file drops can't be simulated — drive the
+  // underlying input[type=file] that most drop zones fall back to instead.
   const fileInput = page.locator('input[type="file"]');
 
   await fileInput.setInputFiles(path.resolve(__dirname, '../fixtures/sample-document.pdf'));

@@ -1,3 +1,4 @@
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Field,
@@ -14,13 +15,15 @@ import { toast } from "sonner";
 import { invalidateContributionOperationQueries } from "./contribution-detail-overlay";
 import {
   ReceiptDeliveryChoiceField,
-  receiptSnapshotPdfUrl,
-  resolveInitialReceiptDeliveryValue,
-  resolveReceiptDeliveryError,
   type ContributionReceiptDeliveryContext,
   type ReceiptDeliveryProposal,
   type ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
+import {
+  receiptSnapshotPdfUrl,
+  resolveInitialReceiptDeliveryValue,
+  resolveReceiptDeliveryError,
+} from "./receipt-delivery-model";
 
 import type { ReceiptDeliveryOutcome } from "@asym/api/admin/contribution-operations";
 
@@ -79,12 +82,12 @@ async function postCorrectionRequestDecision(input: {
     },
   );
 
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     result?: { receiptOutcome?: ReceiptDeliveryOutcome | null } | null;
     error?: string;
-  } | null;
+  }>(response);
 
-  if (!response.ok) {
+  if (!ok) {
     throw new Error(body?.error ?? "The correction decision failed.");
   }
 
@@ -309,13 +312,13 @@ function CorrectionApprovalRequestCard({
         <div className="flex flex-wrap justify-end gap-2">
           <Button
             variant="outline"
-            className="h-9"
+            className=""
             onClick={() => submitDecision("reject")}
           >
             Reject
           </Button>
           <Button
-            className="h-9"
+            className=""
             disabled={Boolean(deliveryError)}
             onClick={() => submitDecision("approve")}
           >

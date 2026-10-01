@@ -149,6 +149,7 @@ export function CommentsDialog({
             aria-label="Comment text"
           />
           <Button
+            focusableWhenDisabled={addComment.isPending}
             type="submit"
             size="icon"
             disabled={!content.trim() || addComment.isPending}

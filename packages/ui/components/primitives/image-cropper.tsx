@@ -9,7 +9,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useId, useReducer, useRef } from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import { toast } from "sonner";
 
@@ -109,6 +109,7 @@ export function ImageCropper({
   quality = 0.92,
 }: ImageCropperProps) {
   const [state, dispatch] = useReducer(cropperReducer, INITIAL_CROPPER_STATE);
+  const saveLabelId = useId();
   const processingRef = useRef(false);
   const cropperHasLoadedRef = useRef(false);
   const loadAttemptRef = useRef(0);
@@ -222,7 +223,7 @@ export function ImageCropper({
   if (state.imageError) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-        <DialogContent className="border-border bg-background p-6 sm:max-w-[400px]">
+        <DialogContent className="border-border bg-background p-6 sm:max-w-100">
           <DialogHeader className="sr-only">
             <DialogTitle>Image load error</DialogTitle>
             <DialogDescription>
@@ -250,7 +251,7 @@ export function ImageCropper({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-      <DialogContent className="border-border bg-background flex h-[90vh] max-h-[700px] flex-col overflow-hidden p-0 sm:max-w-[600px]">
+      <DialogContent className="border-border bg-background flex h-[90vh] max-h-175 flex-col overflow-hidden p-0 sm:max-w-150">
         <DialogHeader className="border-border/70 shrink-0 border-b p-4 sm:p-6">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold uppercase tracking-tight sm:text-xl">
             <Scissors className="text-foreground size-4 sm:h-5 sm:w-5" />
@@ -261,7 +262,7 @@ export function ImageCropper({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-foreground relative min-h-[200px] flex-1 sm:min-h-[300px]">
+        <div className="bg-foreground relative min-h-50 flex-1 sm:min-h-75">
           <Cropper
             image={image}
             crop={state.crop}
@@ -284,6 +285,10 @@ export function ImageCropper({
             <div className="flex items-center gap-3 sm:gap-4">
               <ZoomOut className="text-muted-foreground size-4 flex-shrink-0" />
               <Slider
+                thumbProps={{
+                  "aria-label": "Zoom",
+                  getAriaValueText: (_formatted, value) => `${value} times`,
+                }}
                 value={[state.zoom]}
                 min={minZoom}
                 max={maxZoom}
@@ -302,6 +307,10 @@ export function ImageCropper({
             <div className="flex items-center gap-3 sm:gap-4">
               <RotateCw className="text-muted-foreground size-4 flex-shrink-0" />
               <Slider
+                thumbProps={{
+                  "aria-label": "Rotation",
+                  getAriaValueText: (_formatted, value) => `${value} degrees`,
+                }}
                 value={[state.rotation]}
                 min={0}
                 max={360}
@@ -334,15 +343,17 @@ export function ImageCropper({
               type="button"
               onClick={handleSave}
               disabled={state.isProcessing || !state.croppedAreaPixels}
-              className="bg-primary text-primary-foreground h-9 min-w-[100px] flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 sm:h-10 sm:min-w-[120px] sm:flex-none"
+              focusableWhenDisabled={state.isProcessing}
+              aria-labelledby={saveLabelId}
+              className="bg-primary text-primary-foreground h-9 min-w-25 flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 sm:h-10 sm:min-w-30 sm:flex-none"
             >
               {state.isProcessing ? (
                 <>
                   <Loader2 className="mr-1.5 size-3.5 animate-spin" />
-                  Processing
+                  <span id={saveLabelId}>Processing</span>
                 </>
               ) : (
-                "Apply Crop"
+                <span id={saveLabelId}>Apply Crop</span>
               )}
             </Button>
           </DialogFooter>

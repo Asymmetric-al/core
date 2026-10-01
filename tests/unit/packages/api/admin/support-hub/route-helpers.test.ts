@@ -5,7 +5,10 @@ import {
   requireSupportHubAccess,
   toApiErrorResponse,
 } from "../../../../../../packages/api/src/admin/support-hub/route-helpers";
-import { saveLabelSchema } from "../../../../../../packages/api/src/admin/support-hub/schemas";
+import {
+  saveBusinessHoursSchema,
+  saveLabelSchema,
+} from "../../../../../../packages/api/src/admin/support-hub/schemas";
 
 const getAuthContextMock = vi.hoisted(() => vi.fn());
 const hasAnyContextRoleMock = vi.hoisted(() => vi.fn());
@@ -101,6 +104,50 @@ describe("readJsonBody", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.response.status).toBe(422);
+  });
+});
+
+describe("Support Hub mutation schemas", () => {
+  const businessHoursInput = {
+    name: "Office",
+    timezone: "UTC",
+    weeklySchedule: [
+      {
+        day: "monday",
+        enabled: true,
+        openTime: "09:00",
+        closeTime: "17:00",
+      },
+    ],
+    holidays: [
+      {
+        id: "holiday_thanksgiving",
+        date: "2026-11-26",
+        label: "Thanksgiving",
+      },
+    ],
+    isDefault: true,
+  };
+
+  it("accepts date-only business-hours holiday inputs", () => {
+    expect(saveBusinessHoursSchema.parse(businessHoursInput).holidays).toEqual([
+      expect.objectContaining({ date: "2026-11-26" }),
+    ]);
+  });
+
+  it("rejects non-ISO business-hours holiday inputs", () => {
+    expect(
+      saveBusinessHoursSchema.safeParse({
+        ...businessHoursInput,
+        holidays: [
+          {
+            id: "holiday_invalid",
+            date: "Thanksgiving",
+            label: "Thanksgiving",
+          },
+        ],
+      }).success,
+    ).toBe(false);
   });
 });
 

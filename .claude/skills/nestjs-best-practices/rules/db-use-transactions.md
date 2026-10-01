@@ -17,11 +17,15 @@ When multiple database operations must succeed or fail together, wrap them in a 
 export class OrdersService {
   async createOrder(userId: string, items: OrderItem[]): Promise<Order> {
     // If any step fails, data is inconsistent
-    const order = await this.orderRepo.save({ userId, status: 'pending' });
+    const order = await this.orderRepo.save({ userId, status: "pending" });
 
     for (const item of items) {
       await this.orderItemRepo.save({ orderId: order.id, ...item });
-      await this.inventoryRepo.decrement({ productId: item.productId }, 'stock', item.quantity);
+      await this.inventoryRepo.decrement(
+        { productId: item.productId },
+        "stock",
+        item.quantity,
+      );
     }
 
     await this.paymentService.charge(order.id);
@@ -43,14 +47,14 @@ export class OrdersService {
   async createOrder(userId: string, items: OrderItem[]): Promise<Order> {
     return this.dataSource.transaction(async (manager) => {
       // All operations use the same transactional manager
-      const order = await manager.save(Order, { userId, status: 'pending' });
+      const order = await manager.save(Order, { userId, status: "pending" });
 
       for (const item of items) {
         await manager.save(OrderItem, { orderId: order.id, ...item });
         await manager.decrement(
           Inventory,
           { productId: item.productId },
-          'stock',
+          "stock",
           item.quantity,
         );
       }
@@ -78,7 +82,7 @@ export class TransferService {
       await queryRunner.manager.decrement(
         Account,
         { id: fromId },
-        'balance',
+        "balance",
         amount,
       );
 
@@ -87,14 +91,14 @@ export class TransferService {
         where: { id: fromId },
       });
       if (source.balance < 0) {
-        throw new BadRequestException('Insufficient funds');
+        throw new BadRequestException("Insufficient funds");
       }
 
       // Credit destination account
       await queryRunner.manager.increment(
         Account,
         { id: toId },
-        'balance',
+        "balance",
         amount,
       );
 

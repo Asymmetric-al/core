@@ -194,6 +194,8 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
 
         const result = await response.json();
 
+        if (!isMounted) return;
+
         if (result.error) {
           throw new Error(result.error);
         }

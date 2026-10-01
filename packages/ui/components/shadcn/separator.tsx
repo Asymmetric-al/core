@@ -2,7 +2,7 @@
 
 import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
 
-import { cn } from "@asym/ui/lib/utils";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 function Separator({
   className,
@@ -13,7 +13,7 @@ function Separator({
     <SeparatorPrimitive
       data-slot="separator"
       orientation={orientation}
-      className={cn(
+      className={mergeBaseUIClassName(
         "shrink-0 bg-border data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px",
         className,
       )}

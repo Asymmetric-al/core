@@ -18,6 +18,9 @@ before running `bun run skills:sync`.
 - A user describes a motion effect but does not know its name.
 - A design or implementation discussion needs precise animation vocabulary.
 - Do not use this skill as the implementation or review standard.
+- A concrete request to name a motion effect should be answered directly. The
+  upstream Initial Response applies only to a bare invocation with no question
+  or task.
 
 ### Workflow
 
@@ -34,6 +37,12 @@ before running `bun run skills:sync`.
       rules.
 
 <!-- CORE-OVERLAY-END -->
+
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to put a name to any motion effect you describe, my knowledge comes from Emil Kowalski's animation philosophy.
 
 Turn a vague description of a motion or effect into the precise term, so the user knows what to ask for.
 

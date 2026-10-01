@@ -90,7 +90,12 @@ export function SetTenantDefaultDialog({
           <Button variant="outline" className="h-11" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" disabled={isSaving} onClick={onConfirm}>
+          <Button
+            className="h-11"
+            disabled={isSaving}
+            focusableWhenDisabled={isSaving}
+            onClick={onConfirm}
+          >
             {isSaving ? "Saving..." : "Set tenant default"}
           </Button>
         </div>
@@ -220,48 +225,6 @@ export function DeleteNamedViewDialog({
           </Button>
           <Button variant="destructive" className="h-11" onClick={onConfirm}>
             Delete view
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-interface TenantDefaultDialogProps {
-  isSaving: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-  open: boolean;
-}
-
-export function TenantDefaultDialog({
-  isSaving,
-  onCancel,
-  onConfirm,
-  open,
-}: TenantDefaultDialogProps) {
-  if (!open) {
-    return null;
-  }
-
-  return (
-    <Dialog open onOpenChange={(nextOpen) => !nextOpen && onCancel()}>
-      <DialogContent
-        className="sm:max-w-md"
-        data-testid="tenant-default-confirm"
-      >
-        <DialogTitle>Set tenant default</DialogTitle>
-        <DialogDescription>
-          The current columns, filters, sort, and pinned row action become the
-          default for everyone in this tenant. Personal view settings are not
-          changed and keep overriding the tenant default.
-        </DialogDescription>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" className="h-11" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button className="h-11" disabled={isSaving} onClick={onConfirm}>
-            {isSaving ? "Saving..." : "Set tenant default"}
           </Button>
         </div>
       </DialogContent>

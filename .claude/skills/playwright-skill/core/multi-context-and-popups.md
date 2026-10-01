@@ -107,7 +107,7 @@ test('Google OAuth popup flow', async ({ page }) => {
   // Fill in credentials on the OAuth provider page
   await oauthPopup.getByLabel('Email or phone').fill('testuser@gmail.com');
   await oauthPopup.getByRole('button', { name: 'Next' }).click();
-  await oauthPopup.getByLabel('Enter your password').fill('test-password');
+  await oauthPopup.getByLabel('Enter your password').fill('test-password'); // pragma: allowlist secret
   await oauthPopup.getByRole('button', { name: 'Next' }).click();
 
   // The popup closes automatically after authorization
@@ -127,7 +127,7 @@ test('GitHub OAuth popup flow', async ({ page }) => {
   expect(popup.url()).toContain('github.com');
 
   await popup.getByLabel('Username or email address').fill('testuser');
-  await popup.getByLabel('Password').fill('test-password');
+  await popup.getByLabel('Password').fill('test-password'); // pragma: allowlist secret
   await popup.getByRole('button', { name: 'Sign in' }).click();
 
   // Authorize the app if prompted
@@ -155,7 +155,7 @@ test('GitHub OAuth popup flow', async ({ page }) => {
 
   await popup.waitForLoadState();
   await popup.getByLabel('Username or email address').fill('testuser');
-  await popup.getByLabel('Password').fill('test-password');
+  await popup.getByLabel('Password').fill('test-password'); // pragma: allowlist secret
   await popup.getByRole('button', { name: 'Sign in' }).click();
 
   await page.waitForURL('/dashboard');
@@ -189,7 +189,7 @@ test('PayPal popup checkout flow', async ({ page }) => {
   // Complete PayPal flow
   await paypalPopup.getByLabel('Email').fill('buyer@paypal-test.com');
   await paypalPopup.getByRole('button', { name: 'Next' }).click();
-  await paypalPopup.getByLabel('Password').fill('test-password');
+  await paypalPopup.getByLabel('Password').fill('test-password'); // pragma: allowlist secret
   await paypalPopup.getByRole('button', { name: 'Log In' }).click();
   await paypalPopup.getByRole('button', { name: 'Complete Purchase' }).click();
 
@@ -237,7 +237,7 @@ test('PayPal popup checkout flow', async ({ page }) => {
   await paypalPopup.waitForLoadState();
   await paypalPopup.getByLabel('Email').fill('buyer@paypal-test.com');
   await paypalPopup.getByRole('button', { name: 'Next' }).click();
-  await paypalPopup.getByLabel('Password').fill('test-password');
+  await paypalPopup.getByLabel('Password').fill('test-password'); // pragma: allowlist secret
   await paypalPopup.getByRole('button', { name: 'Log In' }).click();
   await paypalPopup.getByRole('button', { name: 'Complete Purchase' }).click();
 
@@ -440,7 +440,7 @@ test('admin sees user changes in real-time', async ({ browser }) => {
   await userPage.goto('/register');
   await userPage.getByLabel('Name').fill('New User');
   await userPage.getByLabel('Email').fill('newuser@example.com');
-  await userPage.getByLabel('Password').fill('password123');
+  await userPage.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await userPage.getByRole('button', { name: 'Register' }).click();
 
   // Admin should see the new user appear
@@ -467,7 +467,7 @@ test('admin sees user changes in real-time', async ({ browser }) => {
   await userPage.goto('/register');
   await userPage.getByLabel('Name').fill('New User');
   await userPage.getByLabel('Email').fill('newuser@example.com');
-  await userPage.getByLabel('Password').fill('password123');
+  await userPage.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await userPage.getByRole('button', { name: 'Register' }).click();
 
   await expect(adminPage.getByText('newuser@example.com')).toBeVisible({ timeout: 10000 });
@@ -476,6 +476,61 @@ test('admin sees user changes in real-time', async ({ browser }) => {
   await userContext.close();
 });
 ```
+
+### Observing New Contexts and Mirrored Events (Playwright 1.60+)
+
+**Use when**: You're orchestrating many contexts/pages (multi-user suites, agent-driven sessions) and want a single place to react when a new context is created, or to listen for page lifecycle events at the context level rather than wiring a listener onto every page.
+**Avoid when**: You have one context and one page — listen on the `page` directly.
+
+Playwright 1.60 adds `browser.on('context')`, fired whenever a new context is created, and makes `BrowserContext` mirror its pages' lifecycle events (`download`, frame events, page close/load). This means you can attach logging or diagnostics once at the browser/context level.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('log every context and download across the browser', async ({ browser }) => {
+  // Fires for each new context created on this browser (1.60+)
+  browser.on('context', (context) => {
+    console.log('New context created');
+
+    // Context mirrors page-level events — no per-page wiring needed (1.60+)
+    context.on('download', (download) => {
+      console.log('Download started:', download.suggestedFilename());
+    });
+  });
+
+  const userA = await browser.newContext();
+  const userB = await browser.newContext();
+
+  const pageA = await userA.newPage();
+  await pageA.goto('/reports');
+  await pageA.getByRole('button', { name: 'Export CSV' }).click();
+
+  await userA.close();
+  await userB.close();
+});
+```
+
+**JavaScript**
+```javascript
+const { test } = require('@playwright/test');
+
+test('log every context and download across the browser', async ({ browser }) => {
+  browser.on('context', (context) => {
+    context.on('download', (download) => {
+      console.log('Download started:', download.suggestedFilename());
+    });
+  });
+
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto('/reports');
+  await page.getByRole('button', { name: 'Export CSV' }).click();
+  await ctx.close();
+});
+```
+
+> Context-level mirrored events are for cross-cutting concerns (logging, artifacts, counters). For assertions tied to a specific page, still listen on that `page`.
 
 ## Decision Guide
 

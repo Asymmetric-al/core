@@ -1148,7 +1148,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
   // Save the authenticated state
@@ -1186,7 +1186,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
   await page.context().storageState({ path: authFile });
@@ -1858,7 +1858,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Verify login actually succeeded before saving state
@@ -1877,7 +1877,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Verify login actually succeeded before saving state

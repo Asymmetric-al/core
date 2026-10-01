@@ -69,10 +69,12 @@ export function exportToCSV<TData extends RowData>(
   } = options;
 
   const allColumns = table.getAllLeafColumns();
+  const excludeColumnIds = new Set(excludeColumns);
+  const includeColumnIds = includeColumns ? new Set(includeColumns) : null;
 
   const exportColumns = allColumns.filter((column) => {
-    if (excludeColumns.includes(column.id)) return false;
-    if (includeColumns && !includeColumns.includes(column.id)) return false;
+    if (excludeColumnIds.has(column.id)) return false;
+    if (includeColumnIds && !includeColumnIds.has(column.id)) return false;
     if (!column.getIsVisible()) return false;
     return true;
   });

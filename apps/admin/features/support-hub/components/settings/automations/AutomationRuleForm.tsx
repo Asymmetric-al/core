@@ -71,7 +71,7 @@ export function AutomationRuleForm({
   const previewRule: SupportAutomationRule = React.useMemo(
     () => ({
       id: rule?.id ?? "draft",
-      tenantId: rule?.tenantId ?? "tenant-give-hope",
+      tenantId: rule?.tenantId ?? "draft",
       name: name || "Untitled rule",
       description: description ? description : null,
       enabled,
@@ -152,16 +152,26 @@ export function AutomationRuleForm({
         </div>
       </SettingsRow>
       <SettingsRow
+        control
         label="Trigger"
         description="Event that causes the rule to evaluate."
       >
         <Select
+          items={[
+            ...SUPPORT_AUTOMATION_TRIGGERS.map((kind) => ({
+              value: kind,
+              label: formatTrigger(kind),
+            })),
+          ]}
           value={trigger}
-          onValueChange={(value) =>
-            setTrigger(value as SupportAutomationRule["trigger"])
-          }
+          onValueChange={(value) => {
+            if (value !== null) setTrigger(value);
+          }}
         >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
+          <SelectTrigger
+            aria-label="Trigger"
+            className="h-9 max-w-sm text-[12px]"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -272,7 +282,7 @@ export function AutomationRuleForm({
           variant="ghost"
           size="sm"
           onClick={onCancel}
-          className="h-8 rounded-lg px-3 text-xs"
+          className="rounded-lg text-xs"
         >
           Cancel
         </Button>

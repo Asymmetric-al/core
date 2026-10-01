@@ -46,7 +46,7 @@ export function ReportExportMenu({ series, disabled }: ReportExportMenuProps) {
             variant="outline"
             size="sm"
             disabled={disabled || series.buckets.length === 0}
-            className="h-9 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider"
+            className="h-9 rounded-lg text-[11px] font-bold uppercase tracking-wider"
           >
             <Download className="size-3.5" />
             Export

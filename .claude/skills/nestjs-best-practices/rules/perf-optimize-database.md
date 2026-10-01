@@ -24,7 +24,12 @@ export class UsersService {
   async getUserSummary(id: string): Promise<UserSummary> {
     const user = await this.repo.findOne({
       where: { id },
-      relations: ['posts', 'posts.comments', 'posts.comments.author', 'followers'],
+      relations: [
+        "posts",
+        "posts.comments",
+        "posts.comments.author",
+        "followers",
+      ],
     });
     // Over-fetches massive relation tree
     return { name: user.name, postCount: user.posts.length };
@@ -50,7 +55,7 @@ export class Order {
 export class UsersService {
   async findAllEmails(): Promise<string[]> {
     const users = await this.repo.find({
-      select: ['email'], // Only fetch email column
+      select: ["email"], // Only fetch email column
     });
     return users.map((u) => u.email);
   }
@@ -58,12 +63,12 @@ export class UsersService {
   // Use QueryBuilder for complex selections
   async getUserSummary(id: string): Promise<UserSummary> {
     return this.repo
-      .createQueryBuilder('user')
-      .select('user.name', 'name')
-      .addSelect('COUNT(post.id)', 'postCount')
-      .leftJoin('user.posts', 'post')
-      .where('user.id = :id', { id })
-      .groupBy('user.id')
+      .createQueryBuilder("user")
+      .select("user.name", "name")
+      .addSelect("COUNT(post.id)", "postCount")
+      .leftJoin("user.posts", "post")
+      .where("user.id = :id", { id })
+      .groupBy("user.id")
       .getRawOne();
   }
 
@@ -71,7 +76,7 @@ export class UsersService {
   async getFullProfile(id: string): Promise<User> {
     return this.repo.findOne({
       where: { id },
-      relations: ['posts'], // Only immediate relation
+      relations: ["posts"], // Only immediate relation
       select: {
         id: true,
         name: true,
@@ -87,12 +92,12 @@ export class UsersService {
 
 // Add indexes on frequently queried columns
 @Entity()
-@Index(['userId'])
-@Index(['status'])
-@Index(['createdAt'])
-@Index(['userId', 'status']) // Composite index for common query pattern
+@Index(["userId"])
+@Index(["status"])
+@Index(["createdAt"])
+@Index(["userId", "status"]) // Composite index for common query pattern
 export class Order {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()
@@ -112,7 +117,7 @@ export class OrdersService {
     const [items, total] = await this.repo.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
 
     return {

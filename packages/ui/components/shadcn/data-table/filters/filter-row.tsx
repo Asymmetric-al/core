@@ -104,13 +104,14 @@ export function FilterRow({
       )}
     >
       <Select
+        items={[...fields.map((f) => ({ value: f.id, label: f.label }))]}
         value={condition.field}
         onValueChange={(newFieldId) => {
           if (newFieldId === null) return;
           handleFieldChange(newFieldId);
         }}
       >
-        <SelectTrigger className="h-8 w-[160px] text-sm">
+        <SelectTrigger aria-label="Filter field" className="h-8 w-40 text-sm">
           <SelectValue placeholder="Select field" />
         </SelectTrigger>
         <SelectContent>
@@ -123,13 +124,22 @@ export function FilterRow({
       </Select>
 
       <Select
+        items={[
+          ...availableOperators.map((op) => ({
+            value: op,
+            label: OPERATOR_LABELS[op],
+          })),
+        ]}
         value={condition.operator}
         onValueChange={(newOperator) => {
           if (newOperator === null) return;
           handleOperatorChange(newOperator);
         }}
       >
-        <SelectTrigger className="h-8 w-[160px] text-sm">
+        <SelectTrigger
+          aria-label="Filter operator"
+          className="h-8 w-40 text-sm"
+        >
           <SelectValue placeholder="Select operator" />
         </SelectTrigger>
         <SelectContent>
@@ -155,6 +165,7 @@ export function FilterRow({
           variant="ghost"
           size="icon"
           onClick={onRemove}
+          aria-label={field ? `Remove ${field.label} filter` : "Remove filter"}
           className="size-8 text-muted-foreground hover:text-destructive shrink-0"
         >
           <Trash2Icon className="size-4" />

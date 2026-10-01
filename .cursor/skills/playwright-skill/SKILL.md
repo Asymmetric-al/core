@@ -4,7 +4,7 @@ description: Battle-tested Playwright patterns for writing, debugging, and scali
 license: MIT
 metadata:
   author: testdino.com
-  version: "2.2.0"
+  version: "2.5.0"
 ---
 
 # Playwright Skill
@@ -13,7 +13,9 @@ metadata:
 
 **50+ reference guides** covering the full Playwright surface: selectors, assertions, fixtures, page objects, network mocking, auth, visual regression, accessibility, API testing, CI/CD, debugging, and more — with TypeScript and JavaScript examples throughout.
 
-Playwright 1.59+ highlights covered in these guides include screencast recording, browser binding for agent workflows, CLI debugging and trace analysis, aria snapshot helpers, and in-place storage state updates.
+Playwright 1.63 highlights covered in these guides: test `lock` for serializing contention on a shared resource, `locator.visible()` replacing the `:visible` pseudo-class, aria and screen snapshots in traces (`snapshots: { dom, aria, screen }`), `--add-reporter` for appending rather than replacing reporters, the `perfetto` reporter, typed `request.get<User>()`, and `ariaSnapshotJSON()`. From 1.62: `reporter.preprocess()` for selecting tests before execution, `retryStrategy: 'isolated'`, WebP screenshots with a `quality` parameter, `AbortSignal` on actions and assertions, `locator.waitForFunction()`, `apiResponse.timing()`, and the stories-and-galleries component testing model that replaces the deprecated experimental CT packages. A dedicated [dynamic-test-selection.md](core/dynamic-test-selection.md) guide covers driving quarantine from an external flakiness API.
+
+Earlier releases remain covered: 1.61 (WebAuthn passkeys via `context.credentials`, `page.localStorage` / `page.sessionStorage`, video retention modes, `expect.soft.poll()`, WebSockets in HAR and traces), 1.60 (on-demand HAR in tracing, `locator.drop()`, page-level aria snapshots, `test.abort()`), and 1.59 (screencast recording, CLI debugging and trace analysis). A dedicated [trace-analysis.md](core/trace-analysis.md) guide covers agent-native debugging of `trace.zip` reports with the `npx playwright trace` CLI.
 
 ## Security Trust Boundary
 
@@ -70,7 +72,9 @@ For CI/CD workflows, pin all external dependencies (GitHub Actions, Docker image
 | General debugging workflow | [debugging.md](core/debugging.md) |
 | Specific error message | [error-index.md](core/error-index.md) |
 | Flaky / intermittent tests | [flaky-tests.md](core/flaky-tests.md) |
+| Quarantine or select tests from a reporter | [dynamic-test-selection.md](core/dynamic-test-selection.md) |
 | Common beginner mistakes | [common-pitfalls.md](core/common-pitfalls.md) |
+| Debug a `trace.zip` from the terminal / with an agent | [trace-analysis.md](core/trace-analysis.md) |
 
 ### Framework Recipes
 

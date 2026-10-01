@@ -7,6 +7,7 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "./button";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -31,8 +32,8 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
-      className={cn(
-        "fixed inset-0 z-50 bg-black/50 data-open:animate-in data-closed:animate-out data-open:fade-in-0 data-closed:fade-out-0 duration-[var(--duration-modal)]",
+      className={mergeBaseUIClassName(
+        "absolute inset-0 z-50 min-h-dvh bg-black/50 data-open:animate-in data-closed:animate-out data-open:fade-in-0 data-closed:fade-out-0 duration-[var(--duration-modal)]",
         className,
       )}
       {...props}
@@ -44,17 +45,24 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  scrollable = false,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
+  /** Keep long content inside the viewport with the standard dialog inset. */
+  scrollable?: boolean;
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
-        className={cn(
-          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none data-open:animate-in data-closed:animate-out data-open:fade-in-0 data-closed:fade-out-0 data-open:zoom-in-95 data-closed:zoom-out-95 sm:max-w-lg duration-[var(--duration-modal)]",
+        className={mergeBaseUIClassName(
+          cn(
+            "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none data-open:animate-in data-closed:animate-out data-open:fade-in-0 data-closed:fade-out-0 data-open:zoom-in-95 data-closed:zoom-out-95 sm:max-w-lg duration-[var(--duration-modal)]",
+            scrollable &&
+              "max-h-[calc(100dvh-var(--spacing)*8)] overflow-y-auto",
+          ),
           className,
         )}
         {...props}
@@ -115,7 +123,10 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={mergeBaseUIClassName(
+        "text-lg leading-none font-semibold",
+        className,
+      )}
       {...props}
     />
   );
@@ -128,7 +139,10 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-sm text-muted-foreground", className)}
+      className={mergeBaseUIClassName(
+        "text-sm text-muted-foreground",
+        className,
+      )}
       {...props}
     />
   );

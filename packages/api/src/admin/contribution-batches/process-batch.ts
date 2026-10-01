@@ -1,11 +1,11 @@
 import { asPayload, createContributionBatchPreview } from "./preview";
 import { summarizeContributionBatchResults } from "./results";
+import { asString, isRecord } from "../../shared/json-coerce";
 import {
   CRM_POSTING_UNAVAILABLE_NEXT_STEP,
   CRM_POSTING_UNAVAILABLE_REASON,
   isContributionCrmPostingSupported,
 } from "../contribution-operations/crm-retry-support";
-import { asString, isRecord } from "../../shared/json-coerce";
 
 import type {
   ContributionBatchStatus,
