@@ -21,6 +21,10 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
 
 ## Development workflow (short)
 
+The optional [Samson Codex Cloud factory](docs/guides/development/samson-codex-cloud.md)
+keeps independent proof, two adversarial reviewers and evidence adjudication
+before the normal human-authorized merge into `develop`.
+
 - **Base branch:** branch from and open normal pull requests to `develop`.
   `production` is updated only through the intentional release workflow, and
   the canonical repository has no `main` branch; do not create or target one.

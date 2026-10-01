@@ -15,3 +15,32 @@ args = [
 
 [mcp_servers.reui]
 url = "https://mcp.reui.io"
+
+# Named factory roles are used only by the samson-factory workflow.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 2
+
+[agents.samson]
+description = "Coordinate the six-agent issue-to-develop workflow, compile authorized intent, and ratify the final exact artifact in a fresh read-only session."
+config_file = "agents/samson.toml"
+
+[agents.ezra]
+description = "Independently design acceptance proof and protected tests before implementation; never write production code."
+config_file = "agents/ezra.toml"
+
+[agents.bezalel]
+description = "Implement accepted Core issues with vertical TDD and perform only Agabus-authorized bounded repairs."
+config_file = "agents/bezalel.toml"
+
+[agents.micaiah]
+description = "Independently review a frozen candidate for contract fidelity, test validity, architecture, quality and product completeness."
+config_file = "agents/micaiah.toml"
+
+[agents.luke]
+description = "Independently review the frozen candidate for authority, state, concurrency, failure, recovery and operational composition."
+config_file = "agents/luke.toml"
+
+[agents.agabus]
+description = "Read-only evidence referee: adjudicate sealed Micaiah and Luke reports and issue accepted bounded Repair Contracts."
+config_file = "agents/agabus.toml"
