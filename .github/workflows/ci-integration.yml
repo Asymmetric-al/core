@@ -59,6 +59,8 @@ jobs:
         run: bun run cms:migrate:status
       - name: Apply demo seed
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+      - name: Verify donation fee replay
+        run: psql "$DATABASE_URL" -f tests/integration/supabase/donation-fee-replay-verification.sql -v ON_ERROR_STOP=1
       - name: Verify seed counts
         run: |
           profile_count=$(psql "$DATABASE_URL" -t -A -c "SELECT COUNT(*) FROM public.profiles;" | tr -d '[:space:]')

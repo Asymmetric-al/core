@@ -61,6 +61,16 @@ describe("ci-integration workflow contract", () => {
   const workflow = readWorkflow();
   const scripts = readPackageScripts();
 
+  it("runs the donation fee replay SQL proof after seeding in the required migration job", () => {
+    const migrate = jobBlock(workflow, "migrate");
+    expect(migrate).toContain(
+      "tests/integration/supabase/donation-fee-replay-verification.sql",
+    );
+    expect(migrate.indexOf("Apply demo seed")).toBeLessThan(
+      migrate.indexOf("Verify donation fee replay"),
+    );
+  });
+
   it("keeps develop merges gated by smoke while full E2E stays informational", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
