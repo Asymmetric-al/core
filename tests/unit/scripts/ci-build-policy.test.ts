@@ -12,7 +12,11 @@ describe("development compilation policy", () => {
     expect(
       resolveCompilation({
         ...development,
-        changedFiles: ["apps/donor/app/page.tsx", "docs/ci.md"],
+        changedFiles: [
+          "apps/donor/app/page.tsx",
+          "docs/ci.md",
+          "tooling/typescript-config/README.md",
+        ],
       }),
     ).toEqual([]);
   });
