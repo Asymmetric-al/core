@@ -32,6 +32,7 @@ describe("qa smoke preview deployment workflow", () => {
 
   it("checks out the PR head SHA and deploys preview targets only", () => {
     expect(workflow).toContain("ref: ${{ steps.gate.outputs.head_sha }}");
+    expect(workflow).toContain("persist-credentials: false");
     expect(workflow).toContain(
       "node scripts/qa/deploy-prebuilt-preview.mjs admin",
     );

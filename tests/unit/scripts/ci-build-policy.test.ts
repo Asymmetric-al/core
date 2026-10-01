@@ -32,6 +32,18 @@ describe("development compilation policy", () => {
     ).toEqual(["admin", "donor", "missionary"]);
   });
 
+  it.each(["base.json", "nextjs.json", "react.json"])(
+    "compiles all apps for shared TypeScript configuration: %s",
+    (file) => {
+      expect(
+        resolveCompilation({
+          ...development,
+          changedFiles: [`tooling/typescript-config/${file}`],
+        }),
+      ).toEqual(["admin", "donor", "missionary"]);
+    },
+  );
+
   it("does not repeat compilation after development merges", () => {
     expect(
       resolveCompilation({

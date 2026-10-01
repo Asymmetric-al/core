@@ -100,6 +100,7 @@ jobs:
         with:
           ref: ${{ steps.gate.outputs.head_sha }}
           fetch-depth: 1
+          persist-credentials: false
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         if: steps.gate.outputs.should_run == 'true'
