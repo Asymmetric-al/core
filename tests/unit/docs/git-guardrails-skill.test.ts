@@ -62,6 +62,7 @@ describe("git-guardrails Claude hook", () => {
       "git checkout -- ./.",
       "git restore -- .///",
       "git restore --staged . $(git restore .)",
+      "git restore --staged . $(echo $(git restore .))",
       "/usr/bin/git checkout .",
       "git -C . restore .",
       "git -c core.pager=cat restore .",

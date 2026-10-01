@@ -121,10 +121,17 @@ command_discards_worktree() {
   read -r -a tokens <<< "$part"
 
   for token in "${tokens[@]}"; do
-    case "$token" in
-      :\(*) ;;
-      *\)) token="${token%)}" ;;
-    esac
+    while true; do
+      case "$token" in
+        *\))
+          if pathspec_discards_worktree "$token"; then
+            break
+          fi
+          token="${token%)}"
+          ;;
+        *) break ;;
+      esac
+    done
 
     if [ "$skip_next" -eq 1 ]; then
       skip_next=0
