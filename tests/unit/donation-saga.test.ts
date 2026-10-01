@@ -34,7 +34,7 @@ function emptyOutboxFeeExtrasSelect() {
 }
 
 describe("donation saga helpers", () => {
-  it("processes a claimed event to completion", async () => {
+  it("processes a legacy event without rewriting its PaymentIntent parameters", async () => {
     const rpc = vi.fn().mockImplementation((fn: string) => {
       if (fn === "claim_donation_saga_event") {
         return Promise.resolve({
@@ -88,7 +88,23 @@ describe("donation saga helpers", () => {
       paymentIntentId: "pi_1",
       clientSecret: "secret_1",
     });
-    expect(stripe.paymentIntents.create).toHaveBeenCalledTimes(1);
+    expect(stripe.paymentIntents.create).toHaveBeenCalledExactlyOnceWith(
+      {
+        amount: 5000,
+        currency: "usd",
+        customer: "cus_existing",
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          donation_id: "don-1",
+          donor_id: "dor-1",
+          missionary_id: "",
+          fund_id: "",
+          tenant_id: "ten-1",
+          user_id: "usr-1",
+        },
+      },
+      { idempotencyKey: "idem-1:payment_intent" },
+    );
     expect(stripe.customers.create).not.toHaveBeenCalled();
     expect(rpc).toHaveBeenCalledWith("complete_donation_saga_event", {
       p_outbox_id: "out-1",
@@ -827,6 +843,80 @@ describe("donation saga helpers", () => {
 
     expect(rpc).not.toHaveBeenCalled();
     expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a resolved fee-extras write error before claiming or charging", async () => {
+    const extras = {
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "ach" as const,
+      cover_amount_cents: "81",
+      estimated_fee_cents: "81",
+    };
+    const outbox = { fee_extras: {}, status: "pending" };
+    const persistEq = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "fee extras write rejected" },
+    });
+    const update = vi.fn().mockReturnValue({ eq: persistEq });
+    const maybeSingle = vi
+      .fn()
+      .mockResolvedValue({ data: outbox, error: null });
+    const from = vi.fn(() => ({
+      update,
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ maybeSingle }),
+      }),
+    }));
+    const rpc = vi.fn().mockImplementation((name: string) => {
+      if (name === "claim_donation_saga_event") {
+        outbox.status = "processing";
+        return Promise.resolve({
+          data: {
+            claimed: true,
+            donation_id: "don-write-error",
+            donor_id: "donor-write-error",
+            tenant_id: "tenant-write-error",
+            amount: 10081,
+            currency: "usd",
+            attempt_count: 1,
+            idempotency_key: "idem-write-error",
+            stripe_customer_id: "cus_write_error",
+          },
+          error: null,
+        });
+      }
+      if (name === "complete_donation_saga_event") {
+        outbox.status = "completed";
+        return Promise.resolve({ data: { completed: true }, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const stripe = createStripeMock();
+    (
+      stripe.paymentIntents.create as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      id: "pi_write_error",
+      client_secret: "cs_write_error",
+      status: "requires_payment_method",
+    });
+
+    await expect(
+      processDonationSagaOutboxEvent({
+        supabaseAdmin: { rpc, from } as never,
+        stripe,
+        outboxId: "out-write-error",
+        actorUserId: "actor-write-error",
+        extraPaymentIntentMetadata: extras,
+      }),
+    ).rejects.toThrow("fee extras write rejected");
+
+    expect(update).toHaveBeenCalledWith({ fee_extras: extras });
+    expect(persistEq).toHaveBeenCalledWith("id", "out-write-error");
+    expect(rpc).not.toHaveBeenCalled();
+    expect(stripe.customers.create).not.toHaveBeenCalled();
+    expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+    expect(outbox).toEqual({ fee_extras: {}, status: "pending" });
   });
 
   it("fails closed when Gift fee extras cannot be persisted before claim", async () => {

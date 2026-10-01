@@ -113,11 +113,11 @@ the [Bun Functions runtime](https://vercel.com/docs/functions/runtimes/bun)
 (`"1.4.x"` or `"1.x"`), not the package manager. These projects stay on the
 Next.js + Node 24.x Functions runtime.
 
-| Vercel project | `installCommand`                            | `buildCommand`                         | `ignoreCommand`                                                |
-| -------------- | ------------------------------------------- | -------------------------------------- | -------------------------------------------------------------- |
-| `admin`        | `bun install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:admin`      | `node ../../scripts/vercel/should-ignore-build.mjs admin`      |
-| `donor`        | `bun install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:donor`      | `node ../../scripts/vercel/should-ignore-build.mjs donor`      |
-| `missionary`   | `bun install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:missionary` | `node ../../scripts/vercel/should-ignore-build.mjs missionary` |
+| Vercel project | `installCommand`                                       | `buildCommand`                         | `ignoreCommand`                                                |
+| -------------- | ------------------------------------------------------ | -------------------------------------- | -------------------------------------------------------------- |
+| `admin`        | `bunx bun@1.4.0 install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:admin`      | `node ../../scripts/vercel/should-ignore-build.mjs admin`      |
+| `donor`        | `bunx bun@1.4.0 install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:donor`      | `node ../../scripts/vercel/should-ignore-build.mjs donor`      |
+| `missionary`   | `bunx bun@1.4.0 install --cwd ../.. --frozen-lockfile` | `cd ../.. && bun run build:missionary` | `node ../../scripts/vercel/should-ignore-build.mjs missionary` |
 
 Vercel runs `ignoreCommand` from the app root. The helper returns `0` to skip
 the build and `1` to continue the build, matching Vercel's ignored-build

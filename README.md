@@ -243,6 +243,8 @@ This repo uses **Bun** pinned in root `package.json` `packageManager` and `.bun-
 
 ### Monorepo Workspace Contract
 
+Vercel installs with `bunx bun@1.4.0 install --cwd ../.. --frozen-lockfile` to keep the build-image package manager on the workspace pin. See [CI toolchain guidance](docs/ci.md#bun-toolchain).
+
 Bun workspaces + Turborepo:
 
 ```text
