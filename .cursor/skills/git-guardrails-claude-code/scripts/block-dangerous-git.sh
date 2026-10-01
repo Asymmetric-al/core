@@ -96,27 +96,113 @@ for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   fi
 done
 
-DISCARDS_WORKTREE="false"
-while IFS= read -r COMMAND_PART; do
-  if ! echo "$COMMAND_PART" | grep -qE '(^|[[:space:]/])git[[:space:]]+(checkout|restore)([[:space:]]|$)'; then
-    continue
-  fi
+pathspec_discards_worktree() {
+  case "$1" in
+    ':/'|':/*'|':.'|'::'|':(top)'|':(top)*'|':(prefix:0)'|':(prefix:0)*'|':(literal).'|':(literal)./'|':(icase).'|':(icase)./')
+      return 0
+      ;;
+  esac
 
-  if echo "$COMMAND_PART" | grep -qE '(^|[[:space:]/])git[[:space:]]+restore([[:space:]]|$)' &&
-    echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])(--staged|-S)([[:space:]]|$)' &&
-    ! echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])(--worktree|-W)([[:space:]]|$)'; then
-    continue
-  fi
+  printf '%s' "$1" | grep -qE '^\.$|^\.(/\.*)+$'
+}
 
-  for TOKEN in $COMMAND_PART; do
-    TOKEN=$(printf '%s' "$TOKEN" | tr -d '()')
-    if echo "$TOKEN" | grep -qE '^\.$|^\.(/\.*)+$'; then
-      DISCARDS_WORKTREE="true"
-      break
+command_discards_worktree() {
+  local part="$1"
+  local -a tokens=()
+  local token=""
+  local seen_git=0
+  local skip_next=0
+  local subcommand=""
+  local staged=0
+  local worktree=0
+  local past_double_dash=0
+  local discards=0
+
+  read -r -a tokens <<< "$part"
+
+  for token in "${tokens[@]}"; do
+    case "$token" in
+      :\(*) ;;
+      *\)) token="${token%)}" ;;
+    esac
+
+    if [ "$skip_next" -eq 1 ]; then
+      skip_next=0
+      continue
+    fi
+
+    if [ "$seen_git" -eq 0 ]; then
+      case "$token" in
+        git|*/git) seen_git=1 ;;
+      esac
+      continue
+    fi
+
+    if [ -z "$subcommand" ]; then
+      case "$token" in
+        --*=*) continue ;;
+        -C|-c|--git-dir|--work-tree|--namespace|--super-prefix|--config-env|--exec-path)
+          skip_next=1
+          continue
+          ;;
+        -*) continue ;;
+        *) subcommand="$token" ;;
+      esac
+      continue
+    fi
+
+    if [ "$past_double_dash" -eq 0 ]; then
+      case "$token" in
+        --)
+          past_double_dash=1
+          continue
+          ;;
+        --staged)
+          staged=1
+          continue
+          ;;
+        --worktree)
+          worktree=1
+          continue
+          ;;
+        --source|--pathspec-from-file|--conflict)
+          skip_next=1
+          continue
+          ;;
+        --*=*) continue ;;
+        --*) continue ;;
+        -*)
+          case "$token" in
+            *W*) worktree=1 ;;
+          esac
+          case "$token" in
+            *S*) staged=1 ;;
+          esac
+          case "$token" in
+            *s*) skip_next=1 ;;
+          esac
+          continue
+          ;;
+      esac
+    fi
+
+    if pathspec_discards_worktree "$token"; then
+      discards=1
     fi
   done
 
-  if [ "$DISCARDS_WORKTREE" = "true" ]; then
+  [ "$subcommand" = "checkout" ] || [ "$subcommand" = "restore" ] || return 1
+  [ "$discards" -eq 1 ] || return 1
+  if [ "$subcommand" = "restore" ] && [ "$staged" -eq 1 ] && [ "$worktree" -eq 0 ]; then
+    return 1
+  fi
+  return 0
+}
+
+DISCARDS_WORKTREE="false"
+while IFS= read -r COMMAND_PART; do
+  if command_discards_worktree "$COMMAND_PART"; then
+    DISCARDS_WORKTREE="true"
     break
   fi
 done <<EOF
