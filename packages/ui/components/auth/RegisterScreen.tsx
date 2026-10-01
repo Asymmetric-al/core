@@ -53,51 +53,53 @@ export function RegisterScreen({
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
-  const [isSubmitting, startSubmitting] = React.useTransition();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const submissionInFlight = React.useRef(false);
 
   const handleSubmit = React.useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!enabled) return;
+      if (!enabled || submissionInFlight.current) return;
+      submissionInFlight.current = true;
+      setIsSubmitting(true);
 
-      startSubmitting(() => {
-        void (async () => {
-          try {
-            setError(null);
-            setNotice(null);
+      try {
+        setError(null);
+        setNotice(null);
 
-            if (password.length < 8) {
-              throw new Error("Password must be at least 8 characters.");
-            }
+        if (password.length < 8) {
+          throw new Error("Password must be at least 8 characters.");
+        }
 
-            const supabase = createBrowserClient();
-            const { data, error: signUpError } = await supabase.auth.signUp({
-              email: email.trim().toLowerCase(),
-              password,
-              options: {
-                data: {
-                  first_name: firstName.trim(),
-                  last_name: lastName.trim(),
-                },
-              },
-            });
+        const supabase = createBrowserClient();
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim().toLowerCase(),
+          password,
+          options: {
+            data: {
+              first_name: firstName.trim(),
+              last_name: lastName.trim(),
+            },
+          },
+        });
 
-            if (signUpError) throw new Error(signUpError.message);
+        if (signUpError) throw new Error(signUpError.message);
 
-            if (data.session) {
-              replace(defaultPostLoginPath);
-              refresh();
-              return;
-            }
+        if (data.session) {
+          replace(defaultPostLoginPath);
+          refresh();
+          return;
+        }
 
-            setNotice(
-              "Account created. Check your email for verification before signing in.",
-            );
-          } catch (cause) {
-            setError(toRegistrationErrorMessage(cause));
-          }
-        })();
-      });
+        setNotice(
+          "Account created. Check your email for verification before signing in.",
+        );
+      } catch (cause) {
+        setError(toRegistrationErrorMessage(cause));
+      } finally {
+        submissionInFlight.current = false;
+        setIsSubmitting(false);
+      }
     },
     [
       defaultPostLoginPath,
@@ -108,7 +110,6 @@ export function RegisterScreen({
       password,
       refresh,
       replace,
-      startSubmitting,
     ],
   );
 

@@ -21,7 +21,9 @@ describe("support new ticket page", () => {
       "Priority",
       "Summary",
     ]) {
-      expect(source).toContain(`>${label}</Label>`);
+      expect(source).toMatch(
+        new RegExp(`>\\s*${label}\\s*</(?:Label|SelectControlLabel)>`),
+      );
     }
     expect(source).toContain("Create ticket");
   });

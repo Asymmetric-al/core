@@ -36,7 +36,7 @@ function BreadcrumbLink({
   className,
   render,
   ...props
-}: useRender.ComponentProps<"a">) {
+}: useRender.ComponentProps<"a", { slot: string }>) {
   return useRender({
     defaultTagName: "a",
     props: mergeProps<"a">(

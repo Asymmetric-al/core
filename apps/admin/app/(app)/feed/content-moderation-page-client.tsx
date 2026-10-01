@@ -47,6 +47,7 @@ export default function ContentModerationPage() {
               className="rounded-xl"
               onClick={handleRefresh}
               disabled={isRefreshing}
+              focusableWhenDisabled={isRefreshing}
               aria-label="Refresh moderation queue"
             >
               <RefreshCw

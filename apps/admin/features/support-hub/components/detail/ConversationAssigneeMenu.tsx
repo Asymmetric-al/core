@@ -7,6 +7,7 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -71,69 +72,72 @@ export function ConversationAssigneeMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
-          Assign conversation
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {currentAgentId ? (
-          <DropdownMenuItem
-            onClick={() =>
-              assign.mutate({
-                conversationId: conversation.id,
-                assigneeAgentId: currentAgentId,
-              })
-            }
-            className="gap-2 text-[12px]"
-          >
-            <UserCheck className="size-3.5 text-zinc-500" />
-            Assign to me
-          </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuItem
-          onClick={() =>
-            assign.mutate({
-              conversationId: conversation.id,
-              assigneeAgentId: null,
-            })
-          }
-          className="gap-2 text-[12px]"
-        >
-          <UserMinus className="size-3.5 text-zinc-500" />
-          Unassign
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {agents.map((agent) => {
-          const isActive = assignee?.id === agent.id;
-          return (
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+            Assign conversation
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+          {currentAgentId ? (
             <DropdownMenuItem
-              key={agent.id}
               onClick={() =>
                 assign.mutate({
                   conversationId: conversation.id,
-                  assigneeAgentId: agent.id,
+                  assigneeAgentId: currentAgentId,
                 })
               }
               className="gap-2 text-[12px]"
             >
-              <Check
-                className={cn(
-                  "size-3.5",
-                  isActive ? "text-zinc-900" : "text-transparent",
-                )}
-              />
-              <Avatar className="size-5 border border-zinc-100">
-                <AvatarImage
-                  src={agent.avatarUrl ?? undefined}
-                  alt={agent.name}
-                />
-                <AvatarFallback className="text-[10px] font-semibold">
-                  {agent.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="truncate">{agent.name}</span>
+              <UserCheck className="size-3.5 text-zinc-500" />
+              Assign to me
             </DropdownMenuItem>
-          );
-        })}
+          ) : null}
+          <DropdownMenuItem
+            onClick={() =>
+              assign.mutate({
+                conversationId: conversation.id,
+                assigneeAgentId: null,
+              })
+            }
+            className="gap-2 text-[12px]"
+          >
+            <UserMinus className="size-3.5 text-zinc-500" />
+            Unassign
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {agents.map((agent) => {
+            const isActive = assignee?.id === agent.id;
+            return (
+              <DropdownMenuItem
+                key={agent.id}
+                onClick={() =>
+                  assign.mutate({
+                    conversationId: conversation.id,
+                    assigneeAgentId: agent.id,
+                  })
+                }
+                className="gap-2 text-[12px]"
+              >
+                <Check
+                  className={cn(
+                    "size-3.5",
+                    isActive ? "text-zinc-900" : "text-transparent",
+                  )}
+                />
+                <Avatar className="size-5 border border-zinc-100">
+                  <AvatarImage
+                    src={agent.avatarUrl ?? undefined}
+                    alt={agent.name}
+                  />
+                  <AvatarFallback className="text-[10px] font-semibold">
+                    {agent.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate">{agent.name}</span>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -659,6 +659,7 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                 </Badge>
                 <DropdownMenu>
                   <DropdownMenuTrigger
+                    aria-label="Open actions"
                     render={
                       <Button
                         variant="ghost"

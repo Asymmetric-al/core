@@ -61,6 +61,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { type ComponentType } from "react";
 
 import { DEFAULT_TASK_TAGS, TAG_CATEGORIES, getTagConfig } from "./tags";
 import {
@@ -71,7 +72,6 @@ import { TASK_PRIORITIES, TASK_TYPES } from "./types";
 
 import type { LinkedEntity, StaffMember, TaskType } from "./types";
 import type { TaskFormApi } from "./use-task-form";
-import type { ComponentType } from "react";
 
 const TYPE_ICONS: Record<TaskType, ComponentType<{ className?: string }>> = {
   call: Phone,
@@ -528,7 +528,7 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
 
                         <form.Field name={`reminders[${index}].type`}>
                           {(field) => (
-                            <Select
+                            <Select<TaskFormReminder["type"]>
                               items={{
                                 notification: "Notification",
                                 email: "Email",
@@ -539,11 +539,9 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
                                   field.handleBlur();
                                 }
                               }}
-                              onValueChange={(value) =>
-                                field.handleChange(
-                                  value as TaskFormReminder["type"],
-                                )
-                              }
+                              onValueChange={(value) => {
+                                if (value !== null) field.handleChange(value);
+                              }}
                               value={field.state.value || "notification"}
                             >
                               <SelectTrigger

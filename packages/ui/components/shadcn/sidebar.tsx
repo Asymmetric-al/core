@@ -21,6 +21,7 @@ import {
 } from "./sheet";
 import { Skeleton } from "./skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -261,11 +262,10 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
-      onClick={(event) => {
-        onClick?.(event);
-        toggleSidebar();
-      }}
+      className={mergeBaseUIClassName("size-7", className)}
+      onClick={
+        mergeProps<"button">({ onClick: toggleSidebar }, { onClick }).onClick
+      }
       {...props}
     >
       <PanelLeftIcon aria-hidden="true" />
@@ -322,7 +322,10 @@ function SidebarInput({
     <Input
       data-slot="sidebar-input"
       data-sidebar="input"
-      className={cn("bg-background h-8 w-full shadow-none", className)}
+      className={mergeBaseUIClassName(
+        "bg-background h-8 w-full shadow-none",
+        className,
+      )}
       {...props}
     />
   );
@@ -358,7 +361,10 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("bg-sidebar-border mx-2 w-auto", className)}
+      className={mergeBaseUIClassName(
+        "bg-sidebar-border mx-2 w-auto",
+        className,
+      )}
       {...props}
     />
   );
@@ -393,7 +399,7 @@ function SidebarGroupLabel({
   className,
   render,
   ...props
-}: useRender.ComponentProps<"div">) {
+}: useRender.ComponentProps<"div", { slot: string; sidebar: string }>) {
   return useRender({
     defaultTagName: "div",
     props: mergeProps<"div">(
@@ -418,7 +424,7 @@ function SidebarGroupAction({
   className,
   render,
   ...props
-}: useRender.ComponentProps<"button">) {
+}: useRender.ComponentProps<"button", { slot: string; sidebar: string }>) {
   return useRender({
     defaultTagName: "button",
     props: mergeProps<"button">(
@@ -507,7 +513,15 @@ function SidebarMenuButton({
   tooltip,
   className,
   ...props
-}: useRender.ComponentProps<"button"> & {
+}: useRender.ComponentProps<
+  "button",
+  {
+    slot: string;
+    sidebar: string;
+    size: VariantProps<typeof sidebarMenuButtonVariants>["size"];
+    active: string;
+  }
+> & {
   isActive?: boolean;
   tooltip?: string | React.ComponentProps<typeof TooltipContent>;
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
@@ -521,7 +535,7 @@ function SidebarMenuButton({
       },
       props,
     ),
-    render: !tooltip ? render : <TooltipTrigger render={render} />,
+    render,
     state: {
       slot: "sidebar-menu-button",
       sidebar: "menu-button",
@@ -542,7 +556,7 @@ function SidebarMenuButton({
 
   return (
     <Tooltip>
-      {button}
+      <TooltipTrigger render={button} />
       <TooltipContent
         side="right"
         align="center"
@@ -558,7 +572,7 @@ function SidebarMenuAction({
   render,
   showOnHover = false,
   ...props
-}: useRender.ComponentProps<"button"> & {
+}: useRender.ComponentProps<"button", { slot: string; sidebar: string }> & {
   showOnHover?: boolean;
 }) {
   return useRender({
@@ -686,7 +700,10 @@ function SidebarMenuSubButton({
   isActive = false,
   className,
   ...props
-}: useRender.ComponentProps<"a"> & {
+}: useRender.ComponentProps<
+  "a",
+  { slot: string; sidebar: string; size: "sm" | "md"; active: string }
+> & {
   size?: "sm" | "md";
   isActive?: boolean;
 }) {

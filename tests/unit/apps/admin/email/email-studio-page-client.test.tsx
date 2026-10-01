@@ -71,9 +71,26 @@ vi.mock("@/lib/utils", () => ({
 vi.mock("@asym/ui/components/shadcn/button", () => ({
   Button: ({
     children,
+    disabled,
+    focusableWhenDisabled,
+    onClick,
     ...props
-  }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button type="button" {...props}>
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    focusableWhenDisabled?: boolean;
+  }) => (
+    <button
+      aria-disabled={disabled && focusableWhenDisabled ? true : undefined}
+      disabled={disabled && !focusableWhenDisabled}
+      onClick={(event) => {
+        if (disabled) {
+          event.preventDefault();
+          return;
+        }
+        onClick?.(event);
+      }}
+      type="button"
+      {...props}
+    >
       {children}
     </button>
   ),
@@ -1066,10 +1083,11 @@ describe("EmailStudio page", () => {
     fireEvent.submit(recipient.closest("form")!);
 
     await waitFor(() => {
-      expect(
-        (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
-          .disabled,
-      ).toBe(true);
+      const saveButton = screen.getByRole("button", {
+        name: /^save$/i,
+      }) as HTMLButtonElement;
+      expect(saveButton.disabled).toBe(true);
+      expect(saveButton.getAttribute("aria-disabled")).toBeNull();
     });
 
     fireEvent.keyDown(recipient, { key: "s", metaKey: true });

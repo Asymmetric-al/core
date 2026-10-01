@@ -90,7 +90,12 @@ export function SetTenantDefaultDialog({
           <Button variant="outline" className="h-11" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" disabled={isSaving} onClick={onConfirm}>
+          <Button
+            className="h-11"
+            disabled={isSaving}
+            focusableWhenDisabled={isSaving}
+            onClick={onConfirm}
+          >
             {isSaving ? "Saving..." : "Set tenant default"}
           </Button>
         </div>

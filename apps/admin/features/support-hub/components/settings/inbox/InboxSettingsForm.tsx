@@ -1,13 +1,7 @@
 "use client";
 
 import { Input } from "@asym/ui/components/shadcn/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import * as React from "react";
 import { toast } from "sonner";
@@ -90,82 +84,76 @@ export function InboxSettingsForm() {
       description="Default sender, signature, SLA, and off-hours behavior for this inbox."
     >
       <SettingsRow
+        control
         label="Default signature"
         description="Applied when an agent has no personal signature yet."
       >
-        <Select
+        <SearchableSelect
+          items={[
+            { value: "none", label: "No default signature" },
+            ...signatures.map((sig) => ({ value: sig.id, label: sig.name })),
+          ]}
           value={draft.defaultSignatureId ?? "none"}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             setDraft({
               ...draft,
               defaultSignatureId: value === "none" ? null : value,
-            })
-          }
-        >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No default signature</SelectItem>
-            {signatures.map((sig) => (
-              <SelectItem key={sig.id} value={sig.id}>
-                {sig.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            });
+          }}
+          aria-label="Default signature"
+          className="h-9 max-w-sm text-[12px]"
+        />
       </SettingsRow>
       <SettingsRow
+        control
         label="Default SLA policy"
         description="Timer applied to new conversations routed to this inbox."
       >
-        <Select
+        <SearchableSelect
+          items={[
+            { value: "none", label: "No SLA policy" },
+            ...(slaPolicies.data ?? []).map((row) => ({
+              value: row.id,
+              label: row.name,
+            })),
+          ]}
           value={draft.defaultSlaPolicyId ?? "none"}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             setDraft({
               ...draft,
               defaultSlaPolicyId: value === "none" ? null : value,
-            })
-          }
-        >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No SLA policy</SelectItem>
-            {(slaPolicies.data ?? []).map((row) => (
-              <SelectItem key={row.id} value={row.id}>
-                {row.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            });
+          }}
+          aria-label="Default SLA policy"
+          className="h-9 max-w-sm text-[12px]"
+        />
       </SettingsRow>
       <SettingsRow
+        control
         label="Business hours"
         description="Used by the reports business-hours filter + off-hours routing rules."
       >
-        <Select
+        <SearchableSelect
+          items={[
+            { value: "none", label: "24/7 coverage" },
+            ...(businessHours.data ?? []).map((row) => ({
+              value: row.id,
+              label: row.name,
+            })),
+          ]}
           value={draft.defaultBusinessHoursId ?? "none"}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             setDraft({
               ...draft,
               defaultBusinessHoursId: value === "none" ? null : value,
-            })
-          }
-        >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">24/7 coverage</SelectItem>
-            {(businessHours.data ?? []).map((row) => (
-              <SelectItem key={row.id} value={row.id}>
-                {row.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            });
+          }}
+          aria-label="Business hours"
+          className="h-9 max-w-sm text-[12px]"
+        />
       </SettingsRow>
       <SettingsRow
         label="Round-robin assignment"

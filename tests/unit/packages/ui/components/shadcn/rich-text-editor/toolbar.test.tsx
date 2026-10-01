@@ -1,6 +1,5 @@
 /** @vitest-environment jsdom */
 
-import React from "react";
 import {
   cleanup,
   fireEvent,
@@ -8,8 +7,9 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import React from "react";
 import { flushSync } from "react-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { toastError } = vi.hoisted(() => ({
   toastError: vi.fn(),
@@ -112,6 +112,54 @@ afterEach(() => {
 });
 
 describe("rich-text-editor/toolbar", () => {
+  it("provides one named toolbar with arrow navigation across control groups", async () => {
+    const { editor } = createEditorMock();
+    render(
+      <EditorToolbar
+        editor={editor as never}
+        tools={["bold", "italic", "link", "image"]}
+        onImageClick={() => {}}
+      />,
+    );
+    expect(
+      screen.getByRole("toolbar", { name: "Text formatting" }),
+    ).toBeTruthy();
+    const bold = screen.getByRole("button", { name: "Bold (Ctrl+B)" });
+    bold.focus();
+    fireEvent.keyDown(bold, { key: "ArrowRight" });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Italic (Ctrl+I)" }),
+      ),
+    );
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Add link" }),
+      ),
+    );
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Insert image" }),
+      ),
+    );
+    expect(
+      screen.getAllByRole("button").filter((button) => button.tabIndex === 0),
+    ).toHaveLength(1);
+  });
+
+  it("exposes history commands as actions and blocks disabled activation", () => {
+    const { editor, calls } = createEditorMock({
+      canUndo: false,
+      canRedo: false,
+    });
+    render(<EditorToolbar editor={editor as never} tools={["undo", "redo"]} />);
+    const undo = screen.getByRole("button", { name: "Undo (Ctrl+Z)" });
+    expect(undo.hasAttribute("aria-pressed")).toBe(false);
+    fireEvent.click(undo);
+    expect(calls).not.toContain("undo");
+  });
   it("renders default tools and hides image without image handlers", () => {
     const { editor } = createEditorMock();
     render(<EditorToolbar editor={editor as never} />);

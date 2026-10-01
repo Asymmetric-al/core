@@ -440,6 +440,7 @@ function PDFStudioHeaderSection({
         <div className="hidden xl:flex items-center gap-1 p-0.5 bg-muted rounded-lg">
           <Tooltip>
             <TooltipTrigger
+              aria-label="Undo"
               render={
                 <Button
                   variant="ghost"
@@ -459,6 +460,7 @@ function PDFStudioHeaderSection({
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
+              aria-label="Redo"
               render={
                 <Button
                   variant="ghost"
@@ -496,6 +498,7 @@ function PDFStudioHeaderSection({
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger
+              aria-label="Export"
               render={
                 <DropdownMenuTrigger
                   render={

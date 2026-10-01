@@ -201,13 +201,20 @@ export function QuickDateFilter({
 
   return (
     <Select
+      items={[
+        { value: "any", label: placeholder },
+        ...presets.map((preset) => ({ value: preset.id, label: preset.label })),
+      ]}
       value={selectedPreset}
       onValueChange={(presetId) => {
         if (presetId === null) return;
         handleChange(presetId);
       }}
     >
-      <SelectTrigger className={cn("h-8 w-40 text-sm", className)}>
+      <SelectTrigger
+        aria-label="Date range"
+        className={cn("h-8 w-40 text-sm", className)}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

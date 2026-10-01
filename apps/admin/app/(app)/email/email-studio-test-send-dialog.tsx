@@ -75,6 +75,7 @@ export function EmailStudioTestSendDialog({
               Cancel
             </Button>
             <Button
+              focusableWhenDisabled={isSending}
               type="submit"
               disabled={isSending || toEmail.trim().length === 0}
             >

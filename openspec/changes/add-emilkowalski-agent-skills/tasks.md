@@ -3,7 +3,7 @@
 ## 1. Canonical skills and provenance
 
 - [x] 1.1 Install the current upstream pack and record its lock metadata.
-- [x] 1.2 Promote all five complete skill trees into `docs/ai/skills/`.
+- [x] 1.2 Promote the complete skill trees into `docs/ai/skills/`.
 - [x] 1.3 Add commit, source-path, license, and refresh documentation.
 - [x] 1.4 Preserve Core overlays and adapt incompatible Radix/raw-token examples.
 
