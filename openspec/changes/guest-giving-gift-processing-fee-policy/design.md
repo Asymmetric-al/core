@@ -76,9 +76,11 @@ original fee metadata and payment-method parameters. Empty extras do not
 prove that no provider request occurred: a PaymentIntent may have succeeded
 before its database completion write failed. This replay-safety correction
 supersedes the earlier instruction to fill legacy extras. A stored full quote
-that differs from the current extras still `409`s. HTTP replay revalidates stored
-extras after saga claim and before provider calls, so a quote hydrated by an
-older in-flight request is also checked. Replays never persist caller extras.
+that differs from the current extras still `409`s. HTTP replay compares stored
+extras under a database row lock before claiming, so a quote hydrated by an
+older in-flight request is also checked without consuming a recovery attempt.
+A database trigger freezes fee extras, including absence, once processing has
+begun and prevents replacing an existing quote. Replays never persist caller extras.
 Recovery and batch first-shot
 PaymentIntents MAY omit extras only for that empty/legacy `{}`; newly quoted
 Guest Giving rows keep stored extras including `payment_method` because
@@ -118,3 +120,13 @@ The exact-head admin preview failed before compilation because Vercel's build
 image used Bun 1.3.14 against the Bun 1.4.0 frozen lockfile. Pin only installation
 in the three app Vercel configs with `bunx bun@1.4.0 install`; keep Node Functions,
 app build commands, deployment targeting, and the frozen lockfile unchanged.
+
+### Migration rollout
+
+Apply `20261001053404_preserve_donation_saga_fee_replay.sql` before deploying
+HTTP replay code that calls the fee-aware claim RPC. The new RPC is invoker-only
+and service-role-only; existing claim/recovery RPCs and RLS remain unchanged.
+Older in-flight writers cannot change a quote after processing has started.
+Application rollback can retain the protective trigger; database rollback
+requires pausing donation processors first. The required migration CI job runs
+the rollback-only SQL proof after the ordinary seed.

@@ -87,6 +87,17 @@ Verification:
    `packages/api/tests/unit/donate-post-charge.test.ts` using the real saga with
    deterministic database and provider boundaries.
 
+### Replay migration rollout
+
+Apply `20261001053404_preserve_donation_saga_fee_replay.sql` before deploying
+this HTTP replay path. The service-role-only fee-aware claim compares quotes
+under a row lock before incrementing attempts. Conflicting requests return
+`409` without recording a donation failure. The fee-extras trigger preserves
+both full quotes and legacy absence after processing begins, including when an
+older in-flight writer tries to hydrate the row. Existing worker claim and
+recovery RPCs remain compatible. Keep the protective trigger during an
+application rollback; pause donation processors before any database rollback.
+
 ### Separate actor-recovery limitation
 
 This fee repair does not establish actor-independent provider recovery. The

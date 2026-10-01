@@ -119,6 +119,13 @@ immutable and newly quoted gifts still persist their quote at intake.
 
 - GIVEN HTTP intake reads empty legacy fee extras for a matching charged amount
 - AND an older in-flight request stores a different full quote before saga claim
-- WHEN the replay claims the outbox and revalidates the stored quote
+- WHEN the replay atomically validates the stored quote before claiming the outbox
 - THEN it MUST return `409` before creating a customer or PaymentIntent
-- AND it MUST NOT overwrite the stored fee extras
+- AND it MUST NOT overwrite the stored fee extras or consume a recovery attempt
+
+#### Scenario: An older writer tries to hydrate a legacy row after processing begins
+
+- GIVEN a legacy donation has begun a provider attempt with absent fee extras
+- WHEN an older in-flight request tries to write a new quote
+- THEN the database MUST reject the quote change
+- AND completion retry and worker recovery MUST retain the original fee-related provider parameters

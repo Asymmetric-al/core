@@ -46,7 +46,7 @@
 
 - [x] 4.8 Cover matching-cents legacy card-cover and ACH-cover retries, an
       unpersisted customer, modern quoted HTTP completion recovery, and a
-      late conflicting quote rejected before provider calls.
+      late conflicting quote rejected before claim or provider calls.
 
 - [ ] 4.7 Complete `bun run ci:preflight` and applicable current-head CI and smoke
       verification after the final integration-base update, then merge through
@@ -55,3 +55,7 @@
 - [ ] 4.9 Repair the verified preview install-tool mismatch by pinning Bun 1.4.0
       installation, verify the toolchain/build-control contracts, and rerun
       current-head hosted smoke.
+
+- [x] 4.10 Validate the quote atomically before claim without consuming recovery
+      attempts; freeze fee extras once processing starts. Verify the actual
+      migration and rollback-only SQL proof on seeded disposable Postgres.

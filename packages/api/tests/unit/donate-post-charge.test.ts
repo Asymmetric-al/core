@@ -440,7 +440,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       changesDuringClaim: false,
     },
     {
-      label: "legacy quote changed during claim",
+      label: "conflicting quote before first claim",
       amountCents: 10000,
       paymentMethod: "card",
       coverFees: false,
@@ -449,7 +449,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       changesDuringClaim: true,
     },
   ] as const)(
-    "preserves provider parameters after a failed completion: $label",
+    "preserves payment replay state: $label",
     async ({
       amountCents,
       paymentMethod,
@@ -515,17 +515,18 @@ describe("POST /api/donate Gift processing-fee policy", () => {
           },
         }),
       );
-      const rpc = vi.fn(async (name: string) => {
+      const rpc = vi.fn(async (name: string, args: Record<string, unknown>) => {
         if (name === "begin_donation_saga") {
           return {
             data: { ...beginRpcResult, replayed: row.attempts > 0 || !quoted },
             error: null,
           };
         }
-        if (name === "claim_donation_saga_event") {
-          row.status = "processing";
-          row.attempts++;
-          if (changesDuringClaim && row.attempts === 2) {
+        if (
+          name === "claim_donation_saga_event" ||
+          name === "claim_donation_saga_event_with_fee_quote"
+        ) {
+          if (changesDuringClaim) {
             row.fee_extras = toGiftProcessingFeeStripeMetadata(
               resolveGiftIntakeCharge({
                 amount: 100,
@@ -534,6 +535,18 @@ describe("POST /api/donate Gift processing-fee policy", () => {
               }),
             );
           }
+          if (
+            name === "claim_donation_saga_event_with_fee_quote" &&
+            Object.keys(row.fee_extras).length > 0 &&
+            !isDeepStrictEqual(row.fee_extras, args.p_expected_fee_extras)
+          ) {
+            return {
+              data: { claimed: false, fee_quote_conflict: true },
+              error: null,
+            };
+          }
+          row.status = "processing";
+          row.attempts++;
           return {
             data: {
               claimed: true,
@@ -628,7 +641,9 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       mockedProcessDonationSagaOutboxEvent.mockImplementation(
         processActualSaga,
       );
-      if (quoted) {
+      if (changesDuringClaim) {
+        expect(row.attempts).toBe(0);
+      } else if (quoted) {
         const firstResponse = await POST(createDonateRequest(requestBody));
         expect(firstResponse.status).toBe(500);
       } else {
@@ -642,7 +657,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
         ).rejects.toThrow("completion write failed");
       }
       expect(row.status).toBe("pending");
-      expect(providerRequests.size).toBe(1);
+      expect(providerRequests.size).toBe(changesDuringClaim ? 0 : 1);
 
       const response = await POST(createDonateRequest(requestBody));
 
@@ -652,8 +667,16 @@ describe("POST /api/donate Gift processing-fee policy", () => {
           error:
             "This idempotency key was already used for a different gift fee quote.",
         });
-        expect(createPaymentIntent).toHaveBeenCalledTimes(1);
+        expect(createPaymentIntent).not.toHaveBeenCalled();
+        expect(createCustomer).not.toHaveBeenCalled();
         expect(updateFeeExtras).not.toHaveBeenCalled();
+        expect(row.attempts).toBe(0);
+        expect(row.status).toBe("pending");
+        expect(
+          rpc.mock.calls.some(
+            ([name]) => name === "record_donation_saga_failure",
+          ),
+        ).toBe(false);
         return;
       }
       expect(response.status).toBe(200);

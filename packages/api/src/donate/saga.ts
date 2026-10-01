@@ -40,6 +40,7 @@ interface DonationSagaProcessResult {
 
 interface DonationSagaClaimRow {
   claimed?: boolean;
+  fee_quote_conflict?: boolean;
   outbox_id?: string;
   donation_id?: string;
   donor_id?: string;
@@ -143,26 +144,7 @@ async function resolveDonationSagaFeeExtras(params: {
   supabaseAdmin: DonationSupabaseClient;
   outboxId: string;
   extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
-  replayFeeQuote?: GiftProcessingFeeStripeMetadata;
 }): Promise<GiftProcessingFeeStripeMetadata | undefined> {
-  if (params.replayFeeQuote) {
-    // Revalidate after claim: an older in-flight request may have hydrated
-    // legacy extras since HTTP intake read them. Never persist a replay quote.
-    const stored = await loadDonationSagaFeeExtras(
-      params.supabaseAdmin,
-      params.outboxId,
-    );
-    if (
-      stored &&
-      !giftProcessingFeeStripeMetadataEquals(stored, params.replayFeeQuote)
-    ) {
-      throw new ApiHttpError(
-        409,
-        "This idempotency key was already used for a different gift fee quote.",
-      );
-    }
-    return stored;
-  }
   if (params.extraPaymentIntentMetadata) {
     return params.extraPaymentIntentMetadata;
   }
@@ -287,7 +269,6 @@ async function processClaimedDonationSagaEvent(params: {
   outboxId: string;
   claim: DonationSagaClaimRow;
   extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
-  replayFeeQuote?: GiftProcessingFeeStripeMetadata;
 }): Promise<DonationSagaProcessResult> {
   const donationId = stringOrNull(params.claim.donation_id);
   const donorId = stringOrNull(params.claim.donor_id);
@@ -307,7 +288,6 @@ async function processClaimedDonationSagaEvent(params: {
     supabaseAdmin: params.supabaseAdmin,
     outboxId: params.outboxId,
     extraPaymentIntentMetadata: params.extraPaymentIntentMetadata,
-    replayFeeQuote: params.replayFeeQuote,
   });
 
   const stripeCustomerId = await ensureStripeCustomerId({
@@ -393,10 +373,13 @@ export async function processDonationSagaOutboxEvent({
     }
 
     const { data: claimRaw, error: claimError } = await supabaseAdmin.rpc(
-      "claim_donation_saga_event",
+      replayFeeQuote
+        ? "claim_donation_saga_event_with_fee_quote"
+        : "claim_donation_saga_event",
       {
         p_outbox_id: outboxId,
         p_lock_id: lockId,
+        ...(replayFeeQuote ? { p_expected_fee_extras: replayFeeQuote } : {}),
       },
     );
 
@@ -405,6 +388,12 @@ export async function processDonationSagaOutboxEvent({
     }
 
     const claim = parseRpcObject<DonationSagaClaimRow>(claimRaw);
+    if (claim?.fee_quote_conflict) {
+      throw new ApiHttpError(
+        409,
+        "This idempotency key was already used for a different gift fee quote.",
+      );
+    }
     const claimed = Boolean(claim?.claimed);
 
     if (!claimed) {
@@ -447,7 +436,6 @@ export async function processDonationSagaOutboxEvent({
       outboxId: claimOutboxId,
       claim: claim ?? {},
       extraPaymentIntentMetadata,
-      replayFeeQuote,
     });
   } catch (error) {
     if (lockClaimed) {
