@@ -2537,7 +2537,10 @@ describe("data-boundary-check", () => {
       );
       expect(sqlFence).toContain("-- pragma: allowlist secret");
       expect(sqlFence).not.toContain("<!--");
-      expect(htmlFence).toContain("<!-- pragma: allowlist secret -->");
+      expect(htmlFence).toContain(
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+      );
+      expect(htmlFence).not.toContain("<!--");
       expect(graphqlFence).toContain("# pragma: allowlist secret");
       expect(markdownFence).toContain(
         `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
@@ -2733,9 +2736,8 @@ describe("data-boundary-check", () => {
       "-- pragma: allowlist secret",
     );
     expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
-    expect(fencedMarkdownBlock(refreshed, "html")).toContain(
-      "<!-- pragma: allowlist secret -->",
-    );
+    expect(fencedMarkdownBlock(refreshed, "html")).toContain("<input");
+    expect(fencedMarkdownBlock(refreshed, "html")).not.toContain("<!--");
     expect(fencedMarkdownBlock(refreshed, "graphql")).toContain(
       "# pragma: allowlist secret",
     );

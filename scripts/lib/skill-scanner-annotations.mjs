@@ -215,7 +215,6 @@ function annotateCodeLine(line, filePath, context) {
   if (lineIsProtectedData(line, context)) return line;
   const comment = secretScannerCommentForLanguage(context.language);
   const markup = /^(?:tsx|jsx|html|htm|svg|xml|mdx)$/u.test(context.language);
-  const closedMarkup = /^(?:html|htm|svg|xml)$/u.test(context.language);
   if (!markup && comment !== null && line.trim() === comment) return line;
   // Removing the tool-owned trailing marker is safe outside quoted data. A
   // markup suffix can render as text; keep markup scanner-visible instead of
@@ -223,13 +222,7 @@ function annotateCodeLine(line, filePath, context) {
   const normalized = annotateSecretScannerLine(line, filePath, null, {
     preserveMarkdownTable: false,
   });
-  if (markup) {
-    const lastOpen = normalized.lastIndexOf("<");
-    const lastClose = normalized.lastIndexOf(">");
-    if (!closedMarkup || lastOpen === -1 || lastClose < lastOpen) {
-      return normalized;
-    }
-  }
+  if (markup) return normalized;
   if (/\\\s*$/u.test(normalized)) {
     // A continuation can split a shell operator across physical lines.
     context.preserveRemainder = true;

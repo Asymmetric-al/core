@@ -26,7 +26,7 @@ Use appropriate `type` attributes:
 <!-- prettier-ignore -->
 ```html
 <input type="email" />
-<input type="password" /> <!-- pragma: allowlist secret -->
+<input type="password" />
 <input type="tel" />
 <input type="url" />
 <input type="number" />
