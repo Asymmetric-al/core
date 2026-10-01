@@ -64,6 +64,7 @@ const HeroSection = () => {
 
               <Tooltip>
                 <TooltipTrigger
+                  aria-label="View Core on GitHub"
                   render={
                     <a
                       href="https://github.com/asymmetric-al/core"
@@ -74,9 +75,7 @@ const HeroSection = () => {
                     </a>
                   }
                 />
-                <TooltipContent>
-                  Integrate with all your framework
-                </TooltipContent>
+                <TooltipContent>View Core on GitHub</TooltipContent>
               </Tooltip>
             </MotionPreset>
 

@@ -27,6 +27,7 @@ import {
   isImageUploadButtonLike,
   type ImageUploadTriggerProps,
 } from "./image-upload-helpers";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 import { Button } from "../shadcn/button";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
@@ -97,7 +98,8 @@ function ImageUploadCustomTrigger({
 
   if (isSingleElement) {
     const element = content as React.ReactElement<{
-      className?: string;
+      className?: React.ComponentProps<typeof Button>["className"];
+      focusableWhenDisabled?: boolean;
       onClick?: React.MouseEventHandler;
       onKeyDown?: React.KeyboardEventHandler;
       role?: string;
@@ -109,17 +111,37 @@ function ImageUploadCustomTrigger({
     }>;
     const isButtonLike = isImageUploadButtonLike(element.type, Button);
 
-    return React.cloneElement(
-      element,
-      imageUploadClonedTriggerProps({
-        elementProps: element.props as ImageUploadTriggerProps,
-        isInteractive,
-        isButtonLike,
-        openFilePicker,
-        triggerAriaLabel,
-        className: cn(element.props.className, sharedClassName),
-      }),
-    );
+    const clonedTriggerProps = imageUploadClonedTriggerProps({
+      elementProps: element.props as ImageUploadTriggerProps,
+      isInteractive,
+      isButtonLike,
+      openFilePicker,
+      triggerAriaLabel,
+      className:
+        typeof element.props.className === "string"
+          ? cn(element.props.className, sharedClassName)
+          : sharedClassName,
+    });
+    const isBaseButton = element.type === Button;
+
+    return React.cloneElement(element, {
+      ...clonedTriggerProps,
+      "aria-label": isButtonLike
+        ? element.props["aria-label"]
+        : (element.props["aria-label"] ?? triggerAriaLabel),
+      className: isBaseButton
+        ? mergeBaseUIClassName(sharedClassName, element.props.className)
+        : clonedTriggerProps.className,
+      ...(isBaseButton
+        ? {
+            focusableWhenDisabled:
+              element.props.focusableWhenDisabled ?? isUploading,
+          }
+        : {}),
+      disabled: isButtonLike
+        ? Boolean(element.props.disabled) || !isInteractive
+        : undefined,
+    });
   }
 
   return (
@@ -153,6 +175,7 @@ function ImageUploadDefaultContent({
   isDragging: boolean;
   openFilePicker: () => void;
 }) {
+  const labelId = React.useId();
   return (
     <div className="flex flex-col items-center gap-4">
       {value ? (
@@ -186,11 +209,16 @@ function ImageUploadDefaultContent({
           variant="outline"
           onClick={openFilePicker}
           disabled={isUploading || disabled}
+          focusableWhenDisabled={isUploading}
+          aria-labelledby={labelId}
           className={cn(
             "flex size-24 flex-col items-center justify-center gap-2 rounded-full border-dashed",
             isDragging && "border-ring bg-accent",
           )}
         >
+          <span id={labelId} className="sr-only">
+            {isUploading ? "Uploading image" : "Upload image"}
+          </span>
           {isUploading ? (
             <Loader2 className="text-muted-foreground size-6 animate-spin" />
           ) : (

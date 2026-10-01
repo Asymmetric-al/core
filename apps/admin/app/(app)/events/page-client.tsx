@@ -24,7 +24,7 @@ import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-tab
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { Progress } from "@asym/ui/components/shadcn/progress";
+import { Meter } from "@asym/ui/components/shadcn/meter";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Tabs,
@@ -777,7 +777,8 @@ function EventsOverviewTab({ event }: { event: ConferenceEvent }) {
                 </>
               }
             >
-              <Progress
+              <Meter
+                aria-label="Event registration capacity"
                 value={registrationCapacity.progressValue}
                 className="mt-3 h-1.5"
               />

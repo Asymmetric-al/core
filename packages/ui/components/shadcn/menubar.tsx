@@ -5,8 +5,6 @@ import { Menubar as MenubarPrimitive } from "@base-ui/react/menubar";
 import { CheckIcon, CircleIcon } from "lucide-react";
 import * as React from "react";
 
-import { cn } from "@asym/ui/lib/utils";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,12 +20,13 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 function Menubar({ className, ...props }: MenubarPrimitive.Props) {
   return (
     <MenubarPrimitive
       data-slot="menubar"
-      className={cn(
+      className={mergeBaseUIClassName(
         "flex h-9 items-center gap-1 rounded-md border bg-background p-1 shadow-xs",
         className,
       )}
@@ -65,7 +64,7 @@ function MenubarTrigger({
   return (
     <DropdownMenuTrigger
       data-slot="menubar-trigger"
-      className={cn(
+      className={mergeBaseUIClassName(
         "flex items-center rounded-sm px-2 py-1 text-sm font-medium outline-hidden select-none focus:bg-accent focus:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground",
         className,
       )}
@@ -87,7 +86,7 @@ function MenubarContent({
       align={align}
       alignOffset={alignOffset}
       sideOffset={sideOffset}
-      className={cn("z-50 min-w-[12rem]", className)}
+      className={mergeBaseUIClassName("z-50 min-w-[12rem]", className)}
       {...props}
     />
   );
@@ -119,7 +118,7 @@ function MenubarCheckboxItem({
   return (
     <MenuPrimitive.CheckboxItem
       data-slot="menubar-checkbox-item"
-      className={cn(
+      className={mergeBaseUIClassName(
         "relative flex cursor-default items-center gap-2 rounded-xs py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
@@ -144,7 +143,7 @@ function MenubarRadioItem({
   return (
     <MenuPrimitive.RadioItem
       data-slot="menubar-radio-item"
-      className={cn(
+      className={mergeBaseUIClassName(
         "relative flex cursor-default items-center gap-2 rounded-xs py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
@@ -169,7 +168,7 @@ function MenubarLabel({
     <DropdownMenuLabel
       data-slot="menubar-label"
       inset={inset}
-      className={cn(
+      className={mergeBaseUIClassName(
         "px-2 py-1.5 text-sm font-medium data-[inset]:pl-8",
         className,
       )}
@@ -185,7 +184,7 @@ function MenubarSeparator({
   return (
     <DropdownMenuSeparator
       data-slot="menubar-separator"
-      className={cn("-mx-1 my-1 h-px bg-border", className)}
+      className={mergeBaseUIClassName("-mx-1 my-1 h-px bg-border", className)}
       {...props}
     />
   );
@@ -198,7 +197,7 @@ function MenubarShortcut({
   return (
     <DropdownMenuShortcut
       data-slot="menubar-shortcut"
-      className={cn(
+      className={mergeBaseUIClassName(
         "ml-auto text-xs tracking-widest text-muted-foreground",
         className,
       )}
@@ -222,7 +221,7 @@ function MenubarSubTrigger({
     <DropdownMenuSubTrigger
       data-slot="menubar-sub-trigger"
       inset={inset}
-      className={cn(
+      className={mergeBaseUIClassName(
         "flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-popup-open:bg-accent data-popup-open:text-accent-foreground",
         className,
       )}
@@ -238,7 +237,7 @@ function MenubarSubContent({
   return (
     <DropdownMenuSubContent
       data-slot="menubar-sub-content"
-      className={cn(
+      className={mergeBaseUIClassName(
         "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg",
         className,
       )}

@@ -294,6 +294,31 @@ describe("DataTable searching", () => {
 });
 
 describe("DataTable pagination", () => {
+  it("keeps a nondefault current size selected across reopening the popup", async () => {
+    const { container } = renderPeopleTable({
+      initialState: { pagination: { pageIndex: 0, pageSize: 5 } },
+    });
+
+    for (let opening = 0; opening < 2; opening += 1) {
+      fireEvent.mouseDown(
+        screen.getByRole("combobox", { name: "Rows per page" }),
+      );
+      const selected = await screen.findByRole("option", {
+        name: "5",
+        exact: true,
+      });
+      expect(selected.getAttribute("aria-selected")).toBe("true");
+      fireEvent.keyDown(selected, { key: "Escape" });
+      await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+      expect(visibleNames(container)).toEqual(namesInDataOrder.slice(0, 5));
+      expect(screen.getByText("Page 1 of 2")).toBeTruthy();
+    }
+
+    await chooseRowsPerPage("20");
+    expect(visibleNames(container)).toEqual(namesInDataOrder);
+    expect(screen.getByText("Page 1 of 1")).toBeTruthy();
+  });
+
   it("pages forward and backward with the next and previous buttons", () => {
     const { container } = renderPeopleTable({
       initialState: { pagination: { pageIndex: 0, pageSize: 5 } },

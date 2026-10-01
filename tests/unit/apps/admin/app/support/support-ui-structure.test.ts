@@ -38,14 +38,13 @@ describe("support hub UI structure", () => {
     );
   });
 
-  it("labels ticket filters and avoids placeholder-only controls", () => {
+  it("labels ticket search instead of relying on its placeholder", () => {
     const source = readRepoFile(
       "apps/admin/app/(app)/support/tickets/page.tsx",
     );
 
     expect(source).toMatch(/htmlFor="support-ticket-search"/);
-    expect(source).toMatch(/htmlFor="support-ticket-queue"/);
-    expect(source).toMatch(/htmlFor="support-ticket-status"/);
+    // Select filter names are exercised through real controls in support-ticket-selects.test.tsx.
   });
 
   it("uses semantic token badge classes instead of raw palette chips", () => {

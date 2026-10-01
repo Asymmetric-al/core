@@ -185,11 +185,15 @@ function MobileTabSelect({ tabs, activeHref }: MobileTabSelectProps) {
   return (
     <div className="md:hidden">
       <Select
+        items={[...tabs.map((tab) => ({ value: tab.href, label: tab.label }))]}
         value={active.href}
         onValueChange={handleChange}
         disabled={navigating}
       >
-        <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white text-[12px] font-medium">
+        <SelectTrigger
+          aria-label="Support section"
+          className="h-10 rounded-xl border-zinc-200 bg-white text-[12px] font-medium"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

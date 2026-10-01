@@ -342,36 +342,25 @@ function makeHubContribution(input: {
 }
 
 function getFilterChipTrigger(label: string): HTMLElement {
-  const triggers = Array.from(
-    document.querySelectorAll('button[data-slot="popover-trigger"]'),
-  );
-  const trigger = triggers.find((candidate) =>
-    candidate.textContent?.includes(label),
-  );
-  if (!trigger) {
-    throw new Error(`Filter chip "${label}" not found`);
-  }
-  return trigger as HTMLElement;
+  return within(document.body).getByRole("combobox", {
+    name: label,
+    exact: true,
+  });
 }
 
 /**
- * Opens a toolbar filter chip popover (no-op when already open) and returns
- * the popover content element so option clicks can be scoped to it.
+ * Opens a toolbar filter combobox (no-op when already open) and returns its
+ * named search dialog so option clicks stay scoped to the requested filter.
  */
 async function openFilterChip(label: string): Promise<HTMLElement> {
   const trigger = getFilterChipTrigger(label);
   if (trigger.getAttribute("aria-expanded") !== "true") {
     fireEvent.click(trigger);
   }
-  let popup: HTMLElement | null = null;
-  await waitFor(() => {
-    const popups = document.querySelectorAll('[data-slot="popover-content"]');
-    popup = (popups[popups.length - 1] as HTMLElement | undefined) ?? null;
-    if (!popup) {
-      throw new Error(`Popover for filter chip "${label}" did not open`);
-    }
+  return within(document.body).findByRole("dialog", {
+    name: label,
+    exact: true,
   });
-  return popup!;
 }
 
 async function toggleChipOption(popup: HTMLElement, optionName: RegExp) {

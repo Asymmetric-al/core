@@ -2,6 +2,7 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -61,33 +62,36 @@ export function ConversationStatusMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
-          Set status
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {SUPPORT_CONVERSATION_STATUSES.map((status) => {
-          const isActive = status === conversation.status;
-          return (
-            <DropdownMenuItem
-              key={status}
-              onClick={() =>
-                setStatus.mutate({
-                  conversationId: conversation.id,
-                  status,
-                })
-              }
-              className="gap-2 text-[12px]"
-            >
-              <Check
-                className={cn(
-                  "size-3.5",
-                  isActive ? "text-zinc-900" : "text-transparent",
-                )}
-              />
-              {STATUS_LABELS[status]}
-            </DropdownMenuItem>
-          );
-        })}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+            Set status
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+          {SUPPORT_CONVERSATION_STATUSES.map((status) => {
+            const isActive = status === conversation.status;
+            return (
+              <DropdownMenuItem
+                key={status}
+                onClick={() =>
+                  setStatus.mutate({
+                    conversationId: conversation.id,
+                    status,
+                  })
+                }
+                className="gap-2 text-[12px]"
+              >
+                <Check
+                  className={cn(
+                    "size-3.5",
+                    isActive ? "text-zinc-900" : "text-transparent",
+                  )}
+                />
+                {STATUS_LABELS[status]}
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

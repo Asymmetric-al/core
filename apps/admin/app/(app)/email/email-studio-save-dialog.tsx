@@ -138,6 +138,7 @@ function EmailStudioSaveDialogFields({
           Cancel
         </Button>
         <Button
+          focusableWhenDisabled={isSaving}
           onClick={() => onConfirmSave(draft)}
           disabled={!draft.name.trim() || isSaving}
         >

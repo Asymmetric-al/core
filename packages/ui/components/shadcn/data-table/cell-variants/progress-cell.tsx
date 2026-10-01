@@ -17,12 +17,13 @@ const sizeClasses = {
 
 const variantColors = {
   default: "",
-  success: "[&>div]:bg-emerald-500",
-  warning: "[&>div]:bg-amber-500",
-  destructive: "[&>div]:bg-destructive",
+  success: "[&_[data-slot=progress-indicator]]:bg-emerald-500",
+  warning: "[&_[data-slot=progress-indicator]]:bg-amber-500",
+  destructive: "[&_[data-slot=progress-indicator]]:bg-destructive",
 };
 
 export function ProgressCell<TData extends RowData>({
+  cell,
   value,
   className,
   max = 100,
@@ -46,6 +47,7 @@ export function ProgressCell<TData extends RowData>({
   return (
     <div className={cn("flex items-center gap-2 w-full min-w-20", className)}>
       <Progress
+        aria-label={cell.column.columnDef.meta?.label ?? cell.column.id}
         value={percentage}
         className={cn(
           "flex-1",

@@ -122,7 +122,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Current Emil Kowalski craft companion:** `docs/ai/skills/emil-design-eng/SKILL.md`; it is subordinate to `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim` when generic upstream examples conflict with Core.
 - **Build a web animation from scratch:** `docs/ai/skills/animate/SKILL.md` after `emil-design-engineering` and `anim`.
 - **Expo / React Native motion only:** `docs/ai/skills/animate-expo/SKILL.md`; do not use it for Core Next.js apps.
-- **Mobile web platform tells (sticky hover, tap delay, 100dvh, input zoom, safe areas):** `docs/ai/skills/mobile-native/SKILL.md`; do not use it for React Native or motion implementation.
+- **Mobile web platform tells (sticky hover, tap delay, 100dvh, input zoom, safe areas):** `docs/ai/skills/mobile-native/SKILL.md`; explicit-only. Keep `disable-model-invocation: true`. Do not use it for React Native or motion implementation.
 - **Sonner / toast work:** `docs/ai/skills/ask-sonner/SKILL.md`; reuse the existing `@asym/ui` toaster and never mount a second `<Toaster />`.
 - **Animation-effect naming / reverse lookup only:** `docs/ai/skills/animation-vocabulary/SKILL.md`; do not use it as an implementation or review standard.
 - **Apple-style physical and gesture-driven interfaces:** `docs/ai/skills/apple-design/SKILL.md` for momentum, interruptibility, rubber-banding, springs, depth, and translucent materials; Core's Base UI and motion contracts still win.
