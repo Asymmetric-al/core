@@ -701,7 +701,7 @@ export { expect } from "@playwright/test";
 
 ### Unauthenticated Tests
 
-**Use when**: Testing the login page, signup flow, password reset, public pages, or redirect behavior for unauthenticated users. // pragma: allowlist secret
+**Use when**: Testing the login page, signup flow, password reset, public pages, or redirect behavior for unauthenticated users. <!-- pragma: allowlist secret -->
 **Avoid when**: The test requires a logged-in user.
 
 When your config sets a default `storageState`, you must explicitly clear it for unauthenticated tests.

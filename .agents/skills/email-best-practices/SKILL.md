@@ -44,7 +44,7 @@ Guidance for building deliverable, compliant, user-friendly emails.
 | Need to... | See |
 |------------|-----|
 | Set up SPF/DKIM/DMARC, fix spam issues | [Deliverability](./references/deliverability.md) |
-| Build password reset, OTP, confirmations | [Transactional Emails](./references/transactional-emails.md) | // pragma: allowlist secret
+| Build password reset, OTP, confirmations | [Transactional Emails](./references/transactional-emails.md) <!-- pragma: allowlist secret --> |
 | Plan which emails your app needs | [Transactional Email Catalog](./references/transactional-email-catalog.md) |
 | Build newsletter signup, validate emails | [Email Capture](./references/email-capture.md) |
 | Send newsletters, promotions | [Marketing Emails](./references/marketing-emails.md) |
@@ -58,7 +58,7 @@ Guidance for building deliverable, compliant, user-friendly emails.
 ## Start Here
 
 **New app?**
-Start with the [Catalog](./references/transactional-email-catalog.md) to plan which emails your app needs (password reset, verification, etc.), then set up [Deliverability](./references/deliverability.md) (DNS authentication) before sending your first email. // pragma: allowlist secret
+Start with the [Catalog](./references/transactional-email-catalog.md) to plan which emails your app needs (password reset, verification, etc.), then set up [Deliverability](./references/deliverability.md) (DNS authentication) before sending your first email. <!-- pragma: allowlist secret -->
 
 **Spam issues?**
 Check [Deliverability](./references/deliverability.md) first—authentication problems are the most common cause. Gmail/Yahoo reject unauthenticated emails.

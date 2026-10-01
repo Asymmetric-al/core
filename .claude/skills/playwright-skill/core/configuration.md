@@ -522,17 +522,17 @@ module.exports = globalTeardown;
 ```bash
 # .env.example (commit this)
 BASE_URL=http://localhost:3000
-TEST_PASSWORD= // pragma: allowlist secret
+TEST_PASSWORD= # pragma: allowlist secret
 API_KEY=
 
 # .env.local (gitignored)
 BASE_URL=http://localhost:3000
-TEST_PASSWORD=s3cret // pragma: allowlist secret
+TEST_PASSWORD=s3cret # pragma: allowlist secret
 API_KEY=test-key-abc123
 
 # .env.staging (gitignored)
 BASE_URL=https://staging.example.com
-TEST_PASSWORD=staging-password // pragma: allowlist secret
+TEST_PASSWORD=staging-password # pragma: allowlist secret
 API_KEY=staging-key-xyz789
 ```
 
