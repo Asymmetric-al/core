@@ -127,7 +127,7 @@ The platform uses a **Zinc**-oriented light theme (Maia tokens) for desktop and 
 
 ### Typography
 
-Fonts are loaded per app in each app’s `app/layout.tsx` via `next/font/google`:
+Fonts are loaded per app in each app’s `app/layout.tsx` through shared `next/font/local` modules in `@asym/ui/fonts`:
 
 - **Sans / body**: Inter
 - **Display / headings**: Syne
