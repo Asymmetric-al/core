@@ -150,6 +150,9 @@ export function useSupabaseRealtime<TData extends Record<string, unknown>>({
       );
     });
 
+    // Cleanup is owned by `unsubscribe()` below via `channelRef`, which the
+    // mount effect returns; the linter cannot follow the ref indirection.
+    // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
     channel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
         setIsConnected(true);

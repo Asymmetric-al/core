@@ -23,10 +23,11 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { ImageCropper } from "./image-cropper";
 import {
-  composeEventHandlers,
-  isKeyboardClickKey,
-  resolveButtonTriggerType,
+  imageUploadClonedTriggerProps,
+  isImageUploadButtonLike,
+  type ImageUploadTriggerProps,
 } from "./image-upload-helpers";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 import { Button } from "../shadcn/button";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
@@ -90,18 +91,15 @@ function ImageUploadCustomTrigger({
   });
   const sharedClassName = cn(
     "cursor-pointer",
-    isDragging && "ring-2 ring-zinc-400 ring-offset-2 rounded-lg",
+    isDragging && "ring-2 ring-ring ring-offset-2 rounded-lg",
     (disabled || isUploading) && "cursor-not-allowed opacity-50",
   );
   const isSingleElement = React.isValidElement(content);
-  const elementType = isSingleElement ? content.type : null;
-  const isButtonLike =
-    (typeof elementType === "string" && elementType === "button") ||
-    elementType === Button;
 
   if (isSingleElement) {
     const element = content as React.ReactElement<{
-      className?: string;
+      className?: React.ComponentProps<typeof Button>["className"];
+      focusableWhenDisabled?: boolean;
       onClick?: React.MouseEventHandler;
       onKeyDown?: React.KeyboardEventHandler;
       role?: string;
@@ -111,42 +109,38 @@ function ImageUploadCustomTrigger({
       "aria-disabled"?: boolean;
       "aria-label"?: string;
     }>;
+    const isButtonLike = isImageUploadButtonLike(element.type, Button);
+
+    const clonedTriggerProps = imageUploadClonedTriggerProps({
+      elementProps: element.props as ImageUploadTriggerProps,
+      isInteractive,
+      isButtonLike,
+      openFilePicker,
+      triggerAriaLabel,
+      className:
+        typeof element.props.className === "string"
+          ? cn(element.props.className, sharedClassName)
+          : sharedClassName,
+    });
+    const isBaseButton = element.type === Button;
 
     return React.cloneElement(element, {
-      onClick: composeEventHandlers(
-        element.props.onClick,
-        isInteractive
-          ? () => {
-              openFilePicker();
-            }
-          : undefined,
-      ),
-      onKeyDown: isButtonLike
-        ? element.props.onKeyDown
-        : composeEventHandlers(
-            element.props.onKeyDown,
-            (e: React.KeyboardEvent) => {
-              if (!isInteractive || !isKeyboardClickKey(e.key)) {
-                return;
-              }
-
-              e.preventDefault();
-              openFilePicker();
-            },
-          ),
-      role: isButtonLike
-        ? element.props.role
-        : (element.props.role ?? "button"),
-      tabIndex: isButtonLike
-        ? element.props.tabIndex
-        : (element.props.tabIndex ?? (isInteractive ? 0 : -1)),
-      "aria-disabled": isInteractive ? undefined : true,
-      "aria-label": isButtonLike ? undefined : triggerAriaLabel,
-      type: isButtonLike
-        ? resolveButtonTriggerType(element.props.type)
+      ...clonedTriggerProps,
+      "aria-label": isButtonLike
+        ? element.props["aria-label"]
+        : (element.props["aria-label"] ?? triggerAriaLabel),
+      className: isBaseButton
+        ? mergeBaseUIClassName(sharedClassName, element.props.className)
+        : clonedTriggerProps.className,
+      ...(isBaseButton
+        ? {
+            focusableWhenDisabled:
+              element.props.focusableWhenDisabled ?? isUploading,
+          }
+        : {}),
+      disabled: isButtonLike
+        ? Boolean(element.props.disabled) || !isInteractive
         : undefined,
-      disabled: isButtonLike ? !isInteractive : undefined,
-      className: cn(element.props.className, sharedClassName),
     });
   }
 
@@ -181,6 +175,7 @@ function ImageUploadDefaultContent({
   isDragging: boolean;
   openFilePicker: () => void;
 }) {
+  const labelId = React.useId();
   return (
     <div className="flex flex-col items-center gap-4">
       {value ? (
@@ -201,6 +196,7 @@ function ImageUploadDefaultContent({
                 e.stopPropagation();
                 onRemove();
               }}
+              aria-label="Remove image"
               className="absolute -top-1 -right-1 bg-rose-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <X className="size-3" />
@@ -213,11 +209,16 @@ function ImageUploadDefaultContent({
           variant="outline"
           onClick={openFilePicker}
           disabled={isUploading || disabled}
+          focusableWhenDisabled={isUploading}
+          aria-labelledby={labelId}
           className={cn(
             "flex size-24 flex-col items-center justify-center gap-2 rounded-full border-dashed",
             isDragging && "border-ring bg-accent",
           )}
         >
+          <span id={labelId} className="sr-only">
+            {isUploading ? "Uploading image" : "Upload image"}
+          </span>
           {isUploading ? (
             <Loader2 className="text-muted-foreground size-6 animate-spin" />
           ) : (

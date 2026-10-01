@@ -59,16 +59,17 @@ export function SettingsToolbar({
           size="sm"
           disabled={!isDirty || isSaving}
           onClick={onCancel}
-          className="h-8 rounded-lg px-3 text-[11px] font-medium"
+          className="rounded-lg text-[11px]"
         >
           Discard
         </Button>
         <Button
+          focusableWhenDisabled={isSaving}
           type="button"
           size="sm"
           disabled={!isDirty || isSaving}
           onClick={onSave}
-          className="h-8 rounded-lg px-3 text-[11px] font-black uppercase tracking-wider"
+          className="rounded-lg text-[11px] font-black uppercase tracking-wider"
         >
           {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : null}
           Save changes

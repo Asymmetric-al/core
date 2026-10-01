@@ -146,7 +146,7 @@ export default defineConfig({
 
 ### Environment Variables and Secrets
 
-**Use when**: Tests need secrets (API keys, passwords) and should only run on merge requests or the default branch. <!-- pragma: allowlist secret -->
+**Use when**: Tests need secrets (API keys, passwords) and should only run on merge requests or the default branch. // pragma: allowlist secret
 
 ```yaml
 image: mcr.microsoft.com/playwright:v1.48.0-noble
@@ -161,7 +161,7 @@ e2e:staging:
   stage: test
   variables:
     BASE_URL: $STAGING_URL
-    TEST_PASSWORD: $TEST_PASSWORD # pragma: allowlist secret
+    TEST_PASSWORD: $TEST_PASSWORD // pragma: allowlist secret
     API_KEY: $API_KEY
   before_script:
     - npm ci
@@ -184,7 +184,7 @@ e2e:staging:
 Navigate to **Settings > CI/CD > Variables** and add:
 
 - `STAGING_URL` -- not masked, not protected
-- `TEST_PASSWORD` -- masked, protected <!-- pragma: allowlist secret -->
+- `TEST_PASSWORD` -- masked, protected // pragma: allowlist secret
 - `API_KEY` -- masked, protected
 
 ### Multi-Browser Matrix
@@ -262,7 +262,7 @@ e2e:integration:
     CI: "true"
     DATABASE_URL: "postgresql://postgres:postgres@db:5432/testdb"
     REDIS_URL: "redis://cache:6379"
-    POSTGRES_PASSWORD: "postgres" # pragma: allowlist secret
+    POSTGRES_PASSWORD: "postgres" // pragma: allowlist secret
     POSTGRES_DB: "testdb"
   before_script:
     - npm ci

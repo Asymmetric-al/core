@@ -90,7 +90,17 @@ Chat components nest in a fixed order (`MessageScrollerProvider` → `MessageScr
 
 ## Toast notifications follow the project base
 
-Core's base-maia system uses the existing Sonner host, including Base UI apps. Reuse the shared `@asym/ui/components/shadcn/sonner` mounted by each app layout; do not install or mount another toaster. Send notifications with the existing Sonner API:
+For Base UI projects, use the `toast` component:
+
+```tsx
+import { toast } from "@/components/ui/toast"
+
+toast.add({
+  title: "Changes saved.",
+})
+```
+
+For Radix and React Aria projects, use Sonner:
 
 ```tsx
 import { toast } from "sonner"
@@ -173,7 +183,7 @@ Never render `TabsTrigger` directly inside `Tabs` — always wrap in `TabsList`:
 <Tabs defaultValue="account">
   <TabsList>
     <TabsTrigger value="account">Account</TabsTrigger>
-    <TabsTrigger value="password">Password</TabsTrigger>
+    <TabsTrigger value="password">Password</TabsTrigger> // pragma: allowlist secret
   </TabsList>
   <TabsContent value="account">...</TabsContent>
 </Tabs>

@@ -90,7 +90,7 @@ services:
     image: postgres:latest-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+      POSTGRES_PASSWORD: postgres // pragma: allowlist secret
       POSTGRES_DB: test
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]

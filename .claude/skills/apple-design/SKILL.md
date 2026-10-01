@@ -19,6 +19,8 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 - Interruptible springs, sheets, depth, translucent materials, or Apple-style
   interface critique.
 - Do not load it merely because a task contains ordinary product animation.
+- A concrete interface-design request should be answered directly. The upstream
+  Initial Response applies only to a bare invocation with no question or task.
 
 ### Workflow
 
@@ -44,11 +46,11 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 ## Initial Response
 
-Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
+When this skill is first invoked without a specific question, respond only with:
 
 > I'm ready to help you build fluid, Apple-style interfaces on the web, my knowledge comes from Apple's WWDC design talks, translated for the web.
 
-For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
+Do not provide any other information until the user asks a question.
 
 How Apple builds interfaces that stop feeling like a computer and start feeling like an extension of you. This knowledge comes from Apple's WWDC design talks — chiefly _Designing Fluid Interfaces_ (WWDC 2018) — distilled and translated into the web platform (CSS, Pointer Events, `requestAnimationFrame`, spring libraries like Motion/Framer Motion).
 

@@ -322,7 +322,7 @@ jobs:
   run: npx playwright test
   env:
     TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
-    TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} # pragma: allowlist secret
+    TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} // pragma: allowlist secret
 ```
 
 ```typescript

@@ -15,19 +15,19 @@ const ShortcutRow = ({
   keys: string[];
   description: string;
 }) => (
-  <div className="flex items-center justify-between py-3 border-b last:border-0 border-stone-100 group">
-    <span className="text-sm text-stone-600 group-hover:text-stone-900 transition-colors font-sans font-medium">
+  <div className="flex items-center justify-between gap-3 border-b border-border py-3 last:border-0">
+    <span className="text-sm text-foreground font-sans font-medium">
       {description}
     </span>
-    <div className="flex items-center gap-1.5">
+    <div className="flex shrink-0 items-center gap-1.5">
       {keys.map((key, i) => (
         <React.Fragment key={`${description}-${key}`}>
-          <kbd className="min-w-[28px] h-7 px-2 flex items-center justify-center bg-white border-2 border-stone-100 rounded-xl text-[10px] font-semibold text-stone-500 shadow-sm font-sans uppercase">
+          <kbd className="flex h-7 min-w-7 items-center justify-center rounded-lg border border-border bg-background px-2 text-xs font-semibold uppercase text-foreground shadow-sm">
             {key === "cmd" ? <Command className="size-3" /> : key}
           </kbd>
           {i < keys.length - 1 && (
-            <span className="text-[10px] text-stone-300 mx-0.5 font-semibold">
-              &plus;
+            <span className="mx-0.5 text-xs font-semibold text-muted-foreground">
+              +
             </span>
           )}
         </React.Fragment>
@@ -44,35 +44,35 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      className="max-w-md bg-white p-8"
+      className="max-h-[calc(100dvh-2rem)] overflow-y-auto bg-background p-4 sm:max-w-md sm:p-6"
     >
       <DialogHeader>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="p-3 bg-stone-100 rounded-2xl text-stone-600 shadow-inner">
+        <div className="flex items-center gap-3 pr-6 text-left">
+          <div className="shrink-0 rounded-xl bg-muted p-2 text-foreground sm:p-3">
             <Keyboard className="size-6" />
           </div>
-          <DialogTitle className="text-2xl font-semibold text-stone-900 font-serif">
+          <DialogTitle className="text-xl font-semibold text-foreground sm:text-2xl">
             Keyboard Shortcuts
           </DialogTitle>
         </div>
       </DialogHeader>
 
-      <div className="space-y-8 pt-4">
+      <div className="flex flex-col gap-6">
         <div>
-          <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
+          <h4 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Global Controls
           </h4>
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <ShortcutRow keys={["cmd", "k"]} description="Global Search" />
             <ShortcutRow keys={["?"]} description="Show Shortcuts" />
           </div>
         </div>
 
         <div>
-          <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
+          <h4 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Quick Navigation
           </h4>
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <ShortcutRow keys={["g", "h"]} description="Go to Dashboard" />
             <ShortcutRow keys={["g", "d"]} description="Go to Directory" />
             <ShortcutRow keys={["g", "s"]} description="Go to Settings" />
@@ -80,10 +80,10 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
         </div>
 
         <div>
-          <h4 className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.2em] mb-4 px-1">
+          <h4 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Profile Actions
           </h4>
-          <div className="space-y-1">
+          <div className="flex flex-col gap-1">
             <ShortcutRow keys={["l"]} description="Log Activity" />
             <ShortcutRow keys={["e"]} description="Send Email" />
             <ShortcutRow keys={["n"]} description="New Private Note" />
@@ -91,13 +91,13 @@ export const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({
         </div>
       </div>
 
-      <div className="mt-8 p-4 bg-stone-50 rounded-2xl border border-stone-100 flex items-center justify-between group">
-        <span className="text-xs text-stone-500 font-semibold font-sans">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted p-3">
+        <span className="text-xs font-semibold text-muted-foreground">
           Pro Tip
         </span>
-        <div className="flex items-center gap-2 text-[10px] font-semibold text-stone-400 font-sans tracking-tight">
+        <div className="flex items-center gap-2 text-xs font-semibold tracking-tight text-muted-foreground">
           PRESS{" "}
-          <kbd className="bg-white px-2 py-1 border-2 border-stone-100 rounded-lg shadow-sm text-stone-600 group-hover:border-stone-200 transition-colors">
+          <kbd className="rounded-md border border-border bg-background px-2 py-1 text-foreground shadow-sm">
             ESC
           </kbd>{" "}
           TO CLOSE

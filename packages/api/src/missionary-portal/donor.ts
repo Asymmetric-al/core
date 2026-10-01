@@ -163,6 +163,8 @@ export async function updateMissionaryDonorTags(input: {
     .eq("id", input.donorId)
     .eq("tenant_id", input.tenantId)
     .eq("missionary_id", input.profileId)
+    // Match the row redactor's explicit boolean opt-in at the write boundary.
+    .contains("giving_preferences", { defaultAnonymousToRecipient: false })
     .select("id")
     .single();
 
@@ -183,6 +185,8 @@ export async function updateMissionaryDonor(input: {
     .eq("id", input.donorId)
     .eq("tenant_id", input.tenantId)
     .eq("missionary_id", input.profileId)
+    // Match the row redactor's explicit boolean opt-in at the write boundary.
+    .contains("giving_preferences", { defaultAnonymousToRecipient: false })
     .select("id")
     .single();
 

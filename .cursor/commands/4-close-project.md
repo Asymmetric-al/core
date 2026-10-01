@@ -34,6 +34,11 @@
    - Use TDD for behavioral work.
    - If scope changes materially, update the OpenSpec artifacts before proceeding.
 
+   - For UI implementation or repairs, use
+     `docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`.
+     Run scoped lint while iterating; pass raw findings and discovery evidence
+     to QA, and expand to consumers when shared contracts change.
+
 3. **Run focused tests, then applicable Core checks**
    - Run the focused tests that prove the change.
    - `bun run format:check`

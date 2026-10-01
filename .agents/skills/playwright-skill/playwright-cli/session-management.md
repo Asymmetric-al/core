@@ -52,11 +52,11 @@ playwright-cli -s=viewer open https://app.example.com/login
 
 # All commands in a session are isolated
 playwright-cli -s=admin fill e1 "admin@company.com"
-playwright-cli -s=admin fill e2 "admin-password" # pragma: allowlist secret
+playwright-cli -s=admin fill e2 "admin-password" // pragma: allowlist secret
 playwright-cli -s=admin click e3
 
 playwright-cli -s=viewer fill e1 "viewer@company.com"
-playwright-cli -s=viewer fill e2 "viewer-password" # pragma: allowlist secret
+playwright-cli -s=viewer fill e2 "viewer-password" // pragma: allowlist secret
 playwright-cli -s=viewer click e3
 ```
 
@@ -348,7 +348,7 @@ playwright-cli close-all
 # Log in once and save state
 playwright-cli -s=login open https://app.example.com/login
 playwright-cli -s=login fill e1 "user@example.com"
-playwright-cli -s=login fill e2 "password123" # pragma: allowlist secret
+playwright-cli -s=login fill e2 "password123" // pragma: allowlist secret
 playwright-cli -s=login click e3
 playwright-cli -s=login state-save auth.json
 playwright-cli -s=login close

@@ -132,14 +132,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // Verify token wasn't issued before password change // pragma: allowlist secret
     if (user.passwordChangedAt) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+      // pragma: allowlist secret
+      // pragma: allowlist secret
+      // pragma: allowlist secret
       const tokenIssuedAt = new Date(payload.iat * 1000);
       if (tokenIssuedAt < user.passwordChangedAt) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+        // pragma: allowlist secret
+        // pragma: allowlist secret
+        // pragma: allowlist secret
         throw new UnauthorizedException("Token invalidated by password change"); // pragma: allowlist secret
       }
     }

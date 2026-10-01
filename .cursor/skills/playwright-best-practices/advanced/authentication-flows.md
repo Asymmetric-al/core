@@ -3,14 +3,14 @@
 ## Table of Contents
 
 1. [Email Verification Flows](#email-verification-flows)
-2. [Password Reset](#password-reset) <!-- pragma: allowlist secret -->
+2. [Password Reset](#password-reset) // pragma: allowlist secret
 3. [Session Timeout](#session-timeout)
 4. [Remember Me Persistence](#remember-me-persistence)
 5. [Logout Patterns](#logout-patterns)
 6. [Tips](#tips)
 7. [Related](#related)
 
-> **When to use**: Testing email verification, password reset, session timeout/expiration, or remember-me functionality. For basic auth setup (storage state, OAuth mocking, MFA, role-based access), see [authentication.md](authentication.md). <!-- pragma: allowlist secret -->
+> **When to use**: Testing email verification, password reset, session timeout/expiration, or remember-me functionality. For basic auth setup (storage state, OAuth mocking, MFA, role-based access), see [authentication.md](authentication.md). // pragma: allowlist secret
 
 ---
 
@@ -86,21 +86,21 @@ test("verifies email with mocked endpoints", async ({ page }) => {
 
 ---
 
-## Password Reset <!-- pragma: allowlist secret -->
+## Password Reset // pragma: allowlist secret
 
 ### Complete Reset Flow
 
 ```typescript
 test("resets password through email link", async ({ page }) => { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+  // pragma: allowlist secret
+  // pragma: allowlist secret
+  // pragma: allowlist secret
   let resetToken = "";
 
   await page.route("**/api/auth/forgot-password", async (route) => { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     const response = await route.fetch();
     const body = await response.json();
     resetToken = body.resetToken;
@@ -140,13 +140,13 @@ test("shows error for expired reset token", async ({ page }) => {
 });
 ```
 
-### Password Strength Validation <!-- pragma: allowlist secret -->
+### Password Strength Validation // pragma: allowlist secret
 
 ```typescript
 test("enforces password requirements on reset", async ({ page }) => { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+  // pragma: allowlist secret
+  // pragma: allowlist secret
+  // pragma: allowlist secret
   await page.goto("/reset-password?token=valid-token"); // pragma: allowlist secret
 
   await page.getByLabel("New password", { exact: true }).fill("weak"); // pragma: allowlist secret
@@ -376,7 +376,7 @@ test("logs out from all devices", async ({ page }) => {
 1. **Configure shorter session timeouts in test environments** — Enables testing timeout behavior without slow tests
 2. **Test token expiration edge cases** — Expired tokens, invalid tokens, already-used tokens
 3. **Verify cleanup on logout** — Check both cookies and localStorage are cleared
-4. **Test the full flow end-to-end** — Password reset should verify login with new password works <!-- pragma: allowlist secret -->
+4. **Test the full flow end-to-end** — Password reset should verify login with new password works // pragma: allowlist secret
 
 ---
 

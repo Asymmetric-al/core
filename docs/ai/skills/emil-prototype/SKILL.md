@@ -1,6 +1,6 @@
 ---
 name: emil-prototype
-description: Use only when the user explicitly invokes emil-prototype for isolated interface experiments outside Core app routes. It does not replace Matt Pocock prototype.
+description: Build multiple genuinely different versions of a UI piece you describe, rendered behind a visual picker so you can flip through them live and promote the one that feels right. Only runs when explicitly invoked; it does not trigger on its own.
 disable-model-invocation: true
 ---
 
@@ -35,14 +35,6 @@ refreshes before running `bun run skills:sync`.
 - [ ] Production code stayed untouched during exploration.
 
 <!-- CORE-OVERLAY-END -->
-
-## Initial Response
-
-Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
-
-> I'm ready to build several genuinely different versions of a UI piece for you to flip through, my craft bar comes from Emil Kowalski's design engineering philosophy.
-
-For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 A divergence skill. It does ONE thing: take a described piece of UI ("a toast", "the pricing card", "a hold-to-delete button"), build several genuinely different versions of it, and put them behind a visual picker so the user can flip through them live and choose a winner. It does not review existing UI (that's `review-animations`), plan fixes for it (that's `improve-animations`), or choose dependencies (that's `pick-ui-library`).
 
@@ -89,7 +81,7 @@ Before writing any code, list the set: a name and an axis for each. Names descri
 
 Two branches, by what exists:
 
-- **In a project with a dev server** — an isolated static prototype surface outside app routes and production layouts, one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.
+- **In this monorepo** — an isolated HTML file or a static harness outside `apps/*/app/**` and outside production layouts. Do not add `apps/*/app/prototypes/` pages. One file per variant plus a small harness file. Nothing imports from the prototype surface into production code.
 - **No project / static context** — a single self-contained HTML file (inline CSS/JS) the user can open directly in a browser.
 
 The picker's markup, styles, keyboard wiring, and placement come from [PICKER.md](PICKER.md), verbatim — load it now and build exactly that. Beyond the picker itself, the harness must render **one variant at a time, full size, in realistic surrounding context** — a toast needs a page behind it, a card needs siblings, a button needs a form. Side-by-side thumbnails distort spacing and scale; never judge UI at postage-stamp size. Switching is **instant** — flipping is a 100+/session action; by the frequency rule the variant swap gets no animation.

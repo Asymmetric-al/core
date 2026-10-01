@@ -96,6 +96,10 @@ const explicitOnlySkills = [
   "frontend-design",
   "design-taste-frontend",
   "redesign-existing-projects",
+  "test-driven-development",
+  "better-ui",
+  "better-colors",
+  "better-layout",
 ] as const;
 
 function listFiles(root: string, relativeRoot = ""): string[] {
@@ -127,16 +131,11 @@ function expectCanonicalOverlayAndMirrors(
   const canonicalRoot = path.join(repoRoot, "docs/ai/skills", skillName);
   const canonicalFiles = listFiles(canonicalRoot).sort();
   const skill = readSkillFile("docs/ai/skills", skillName, "SKILL.md");
-  const licenseFiles = requiredFiles.some(
-    (file) => file === "LICENSE.txt" || file.endsWith("/LICENSE.md"),
-  )
-    ? []
-    : ["references/LICENSE.md"];
 
   expect(canonicalFiles).toEqual(
     expect.arrayContaining([
       ...requiredFiles,
-      ...licenseFiles,
+      "references/LICENSE.md",
       "references/upstream.md",
     ]),
   );
@@ -206,10 +205,8 @@ describe("jakubkrehel, anthropic, taste, and obra skill packs", () => {
     }
 
     for (const skillName of explicitOnlySkills) {
-      const skill = readSkillFile("docs/ai/skills", skillName, "SKILL.md");
-      const frontmatter = skill.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1];
-      expect(frontmatter, skillName).toMatch(
-        /^disable-model-invocation: true$/m,
+      expect(readSkillFile("docs/ai/skills", skillName, "SKILL.md")).toContain(
+        "disable-model-invocation: true",
       );
     }
 
@@ -222,6 +219,43 @@ describe("jakubkrehel, anthropic, taste, and obra skill packs", () => {
     expect(
       readSkillFile("docs/ai/skills", "better-writing", "SKILL.md"),
     ).toContain("pragma: allowlist secret");
+    const betterWritingRow = readSkillFile(
+      "docs/ai/skills",
+      "better-writing",
+      "SKILL.md",
+    )
+      .split("\n")
+      .find((line) => line.includes("too short"));
+    expect(betterWritingRow?.match(/\|/g)?.length).toBe(3);
+    const accessibilityLoginRow = readSkillFile(
+      "docs/ai/skills",
+      "better-accessibility",
+      "forms.md",
+    )
+      .split("\n")
+      .find((line) => line.includes("username"));
+    expect(accessibilityLoginRow?.match(/\|/g)?.length).toBe(3);
+    expect(
+      readSkillFile(
+        "docs/ai/skills",
+        "emil-design-engineering",
+        "component-design.md",
+      ),
+    ).not.toContain("asChild");
+    expect(
+      readSkillFile(
+        "docs/ai/skills",
+        "emil-design-engineering",
+        "component-design.md",
+      ),
+    ).toContain("buttonVariants");
+    expect(
+      readSkillFile(
+        "docs/ai/skills",
+        "better-accessibility",
+        "references/upstream.md",
+      ),
+    ).toContain("bun run skills:refresh-jakubkrehel");
     expect(
       readSkillFile("docs/ai/skills", "better-interface", "SKILL.md"),
     ).toContain("better-writing");

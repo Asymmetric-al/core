@@ -918,7 +918,7 @@ test.describe('admin security settings', () => {
 });
 ```
 
-If you need to organize many tests, split into separate files: `security-2fa.spec.ts`, `security-passwords.spec.ts`, `security-sessions.spec.ts`. <!-- pragma: allowlist secret -->
+If you need to organize many tests, split into separate files: `security-2fa.spec.ts`, `security-passwords.spec.ts`, `security-sessions.spec.ts`. // pragma: allowlist secret
 
 ---
 

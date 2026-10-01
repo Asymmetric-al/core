@@ -351,7 +351,7 @@ function AppHeader() {
               <>
                 <Button
                   variant="ghost"
-                  className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex gap-2"
+                  className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex"
                   aria-label="Open Mission Control search"
                 >
                   <Search className="size-4" />
@@ -442,7 +442,7 @@ function AppHeader() {
             variant="ghost"
             size="sm"
             data-testid="auth-signout"
-            className="h-8 px-2 text-xs hidden md:inline-flex"
+            className="px-2 text-xs hidden md:inline-flex"
             onClick={handleSignOut}
           >
             <LogOut className="mr-1 size-3.5" />

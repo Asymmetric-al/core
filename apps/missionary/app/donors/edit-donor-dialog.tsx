@@ -71,6 +71,8 @@ export function EditDonorDialog({
   onSuccess,
   open,
 }: EditDonorDialogProps) {
+  const pendingActionLabelId = React.useId();
+
   const initialValues = React.useMemo(
     () => createInitialEditDonorFormValues(donor),
     [donor],
@@ -124,7 +126,7 @@ export function EditDonorDialog({
       }}
       open={open}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[700px]">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-175">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold tracking-tight">
             Edit Partner
@@ -386,7 +388,7 @@ export function EditDonorDialog({
           <form.AppField name="notes">
             {(field) => (
               <field.TextareaField
-                inputClassName="min-h-[100px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                inputClassName="min-h-25 resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                 label="Internal Notes"
                 labelClassName={LABEL_CLASS_NAME}
               />
@@ -411,10 +413,15 @@ export function EditDonorDialog({
             >
               {({ canSubmit, isSubmitting }) => (
                 <Button
+                  aria-labelledby={`${pendingActionLabelId}-22`}
+                  focusableWhenDisabled={isSubmitting}
                   className="h-10 rounded-xl px-6"
                   disabled={!canSubmit || isSubmitting}
                   type="submit"
                 >
+                  <span id={`${pendingActionLabelId}-22`} className="sr-only">
+                    {isSubmitting ? "Saving…" : "Save Changes"}
+                  </span>
                   {isSubmitting ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (

@@ -106,7 +106,7 @@ Common item fields:
   "name": "login-form",
   "type": "registry:block",
   "title": "Login Form",
-  "description": "A login form with email and password fields.",
+  "description": "A login form with email and password fields.", // pragma: allowlist secret
   "dependencies": ["zod"],
   "registryDependencies": ["button", "input", "label"],
   "files": [

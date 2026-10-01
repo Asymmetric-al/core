@@ -1,6 +1,6 @@
 ---
 name: redesign-existing-projects
-description: Use only when the user explicitly invokes redesign-existing-projects. Preserve Core shared UI and accepted design intent.
+description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.
 disable-model-invocation: true
 ---
 

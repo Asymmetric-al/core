@@ -1,26 +1,16 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo, useState } from "react";
 
-import {
-  TENANT_REQUIRED_MESSAGE,
-  TenantSelectField,
-  buildTenantsQuery,
-  isSuperAdminUser,
-} from "./tenant-picker";
+import { buildTenantsQuery, isSuperAdminUser } from "./tenant-options";
+import { TENANT_REQUIRED_MESSAGE, TenantSelectField } from "./tenant-picker";
 import { Link, useRouter, useSearchParams } from "../routing";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
@@ -119,14 +109,16 @@ function ProjectPageCreateViewContent() {
         }),
       });
 
-      const body = (await res.json().catch(() => ({}))) as {
+      // Read the payload for both branches (409 conflicts and errors carry
+      // data) with the status check made before the body is consumed.
+      const { ok, status, body } = await readJsonBody<{
         id?: string;
         collectionSlug?: string;
         error?: string;
         existingId?: string;
-      };
+      }>(res);
 
-      if (res.status === 409 && body.existingId) {
+      if (status === 409 && body?.existingId) {
         const editPath = formatAdminURL({
           adminRoute: routes.admin,
           path: `/collections/project-pages/${body.existingId}`,
@@ -135,12 +127,12 @@ function ProjectPageCreateViewContent() {
         return;
       }
 
-      if (!res.ok) {
-        setSubmitError(body.error ?? "Create failed");
+      if (!ok) {
+        setSubmitError(body?.error ?? "Create failed");
         return;
       }
 
-      if (body.id && body.collectionSlug) {
+      if (body?.id && body.collectionSlug) {
         const editPath = formatAdminURL({
           adminRoute: routes.admin,
           path: `/collections/${body.collectionSlug}/${body.id}`,
@@ -198,8 +190,13 @@ function ProjectPageCreateViewContent() {
           <form.Field name="fundId">
             {(field) => (
               <div className="flex flex-col gap-2">
-                <Label>Fund</Label>
-                <Select
+                <SearchableSelect
+                  items={[
+                    ...(funds ?? []).map((f) => ({
+                      value: f.id,
+                      label: f.name?.trim() || f.id,
+                    })),
+                  ]}
                   value={field.state.value || null}
                   onValueChange={(v) => {
                     if (v === null) {
@@ -208,18 +205,9 @@ function ProjectPageCreateViewContent() {
                     field.handleChange(v);
                   }}
                   disabled={fundsIsPending || fundsIsError}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select fund" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(funds ?? []).map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.name?.trim() || f.id}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select fund"
+                  label="Fund"
+                />
               </div>
             )}
           </form.Field>

@@ -116,7 +116,7 @@ Ask your human:
 **Safer options:**
 
 1. **Environment file method:** Human creates `.env` file directly: `echo "RESEND_API_KEY=re_xxx" >> .env`
-2. **Password manager / secrets manager:** Human stores key in 1Password, Vault, etc. <!-- pragma: allowlist secret -->
+2. **Password manager / secrets manager:** Human stores key in 1Password, Vault, etc. // pragma: allowlist secret
 3. **If key must be shared in chat:** Human should rotate the key immediately after setup
 
 ### Domain-Scoped API Keys (Recommended for Existing Accounts)

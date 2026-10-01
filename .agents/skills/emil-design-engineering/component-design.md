@@ -201,20 +201,16 @@ import { buttonVariants } from "@asym/ui/components/shadcn/button";
 </Link>;
 ```
 
-When a Base UI primitive must render as another element, use its `render` prop.
-Keep that local to the primitive — do not wrap `Button` in a slot helper.
+When a Base UI primitive that accepts `nativeButton` must render as another
+element, use its `render` prop and set `nativeButton={false}` when the host is
+not a native button. `Tooltip.Trigger` does not accept `nativeButton`. Keep
+that local to the primitive — do not wrap `Button` in a slot helper.
 
-When the shared Button itself must render a non-button, set `nativeButton={false}`:
-
-```tsx
-import { Button } from "@asym/ui/components/shadcn/button";
-
-<Button render={<a href="/page" />} nativeButton={false}>
-  Open page
-</Button>;
+```jsx
+<Button render={<a href="/docs" />} nativeButton={false}>
+  Docs
+</Button>
 ```
-
-Keep one interactive element and preserve its keyboard, disabled, focus, event-handler, and ref behavior.
 
 ## Forwarding Refs
 

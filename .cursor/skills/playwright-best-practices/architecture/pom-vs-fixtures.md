@@ -316,9 +316,9 @@ class LoginPage {
     /* API call */
   }
   async signIn(email: string, password: string) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     /* UI */
   }
 }

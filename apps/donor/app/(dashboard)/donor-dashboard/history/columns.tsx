@@ -7,10 +7,11 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -189,24 +190,21 @@ export const columns: ColumnDef<Transaction>[] = [
       return (
         <div className="flex justify-end gap-2">
           {tx.status === "Succeeded" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              nativeButton={false}
-              className="h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg"
-              render={
-                <a
-                  href={tx.receiptUrl}
-                  download
-                  aria-label={`Download receipt for ${tx.recipient}`}
-                >
-                  <DownloadCloud className="size-3.5 mr-1.5" /> Receipt
-                </a>
-              }
-            />
+            <a
+              href={tx.receiptUrl}
+              download
+              aria-label={`Download receipt for ${tx.recipient}`}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg",
+              )}
+            >
+              <DownloadCloud className="size-3.5 mr-1.5" /> Receipt
+            </a>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger
+              aria-label="Open actions"
               render={
                 <Button
                   variant="ghost"
@@ -218,13 +216,15 @@ export const columns: ColumnDef<Transaction>[] = [
               }
             />
             <DropdownMenuContent align="end" className="rounded-xl">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem className="rounded-lg">
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-lg">
-                Manage Recurring
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem className="rounded-lg">
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-lg">
+                  Manage Recurring
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="rounded-lg"

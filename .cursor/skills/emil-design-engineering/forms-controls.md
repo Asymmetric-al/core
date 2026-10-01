@@ -25,8 +25,8 @@ Use appropriate `type` attributes:
 
 <!-- prettier-ignore -->
 ```html
-<input type="email" />
-<input type="password" />
+<input type="email" /> // pragma: allowlist secret
+<input type="password" /> // pragma: allowlist secret
 <input type="tel" />
 <input type="url" />
 <input type="number" />
@@ -41,12 +41,12 @@ Disable `spellcheck` and `autocomplete` most of the time for cleaner UX:
 <input type="text" spellcheck="false" autocomplete="off" />
 ```
 
-### 1Password Integration <!-- pragma: allowlist secret -->
+### 1Password Integration // pragma: allowlist secret
 
-Disable 1Password autocomplete when not needed: <!-- pragma: allowlist secret -->
+Disable 1Password autocomplete when not needed: // pragma: allowlist secret
 
 ```html
-<input data-lpignore="true" data-1p-ignore />
+<input data-lpignore="true" data-1p-ignore /> // pragma: allowlist secret
 ```
 
 ### Input Decorations

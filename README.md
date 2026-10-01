@@ -1,10 +1,10 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance Next.js 16.3.0-preview.9 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
+A high-performance Next.js 16.3.3 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
-1. **Install prerequisites:** [Node.js 20.9+](https://nodejs.org/), [Bun 1.3.14](https://bun.sh), and Git on your PATH.
+1. **Install prerequisites:** [Node.js 20.9+](https://nodejs.org/), [Bun 1.4.0](https://bun.sh), and Git on your PATH.
 2. **Choose your setup path.**
 
 ### Credential-free Mission Control sandbox
@@ -112,7 +112,7 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.3.0-preview.9 (App Router, Turbopack in app configs, Instant Navigation via `cacheComponents` + `partialPrefetching`) — _optimized for performance_
+- **Framework**: Next.js 16.3.3 (App Router, Turbopack in app configs, Instant Navigation via `cacheComponents` + `partialPrefetching`) — _optimized for performance_
 - **UI system**: Tailwind CSS 4 + shadcn/ui (Maia theme) + Base UI
 - **Theme**: Light Zinc aesthetic (Zinc/Zinc), shadcn/ui Maia theme
 - **Database**: Supabase (PostgreSQL)
@@ -200,7 +200,6 @@ Agent-oriented docs live under `docs/ai/`:
 | `bun run skills:refresh-frontend-design` | Promotes Anthropic `frontend-design` from `.agents/skills/` into `docs/ai/skills/`, preserving the explicit-only overlay.                                                                                                                                                                                                                                                                                                                                                                                            |
 | `bun run skills:refresh-taste-skill`     | Promotes `design-taste-frontend` and `redesign-existing-projects` from [leonxlnx/taste-skill](https://github.com/leonxlnx/taste-skill), preserving explicit-only overlays.                                                                                                                                                                                                                                                                                                                                           |
 | `bun run skills:refresh-obra-tdd`        | Promotes obra Superpowers `test-driven-development` from `.agents/skills/` into `docs/ai/skills/`. Core TDD remains Matt Pocock `tdd`.                                                                                                                                                                                                                                                                                                                                                                               |
-| `bun run skills:refresh-ask-matt`        | Reconciles Matt Pocock routing after a targeted `mattpocock/skills` add. Remaps `/writing-for-agents` to kept `/writing-great-skills` without vendoring the successor.                                                                                                                                                                                                                                                                                                                                               |
 
 **Manual-vendored skills:** `docs/ai/skills/resend-cli/`, `docs/ai/skills/bendc-frontend-guidelines/`, `docs/ai/skills/payloadcms-payload/`, `docs/ai/skills/payloadcms-cms-migration/`, and `docs/ai/skills/reui/` are not part of `skills:refresh-upstream`. Refresh them from the source documented in each `references/upstream.md`, then run `bun run skills:sync` and `bun run skills:verify`.
 
@@ -233,7 +232,7 @@ Commit both the canonical files and any mirror updates.
 
 ### Package Manager
 
-This repo uses **Bun** pinned in root `package.json` `packageManager` (currently **1.3.14**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`.
+This repo uses **Bun** pinned in root `package.json` `packageManager` and `.bun-version` (currently **1.4.0**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`. Apps still run on **Node.js 24** via Next.js (`next build` / `next start`). Do not use `bun --bun`, and do not add `bunVersion` to `apps/*/vercel.json` — that switches Vercel Functions onto the Bun runtime ([changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions)), which is not this repo’s deploy path.
 
 ### Monorepo Workspace Contract
 
@@ -285,6 +284,11 @@ bun run lint
 ```
 
 Details: `tooling/eslint-config/README.md`.
+
+UI lint uses one shared six-rule policy in the three apps, shared UI, and
+missionary package. For scoped checks, raw legacy findings, discovery health,
+and suppression pruning, follow the
+[Core design-system lint workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md).
 
 ### How to add a new app
 
@@ -381,15 +385,15 @@ Build env details: `docs/guides/development/build-runbook.md`.
 
 ### Key Dependencies
 
-| Package               | Version          | Notes                                    |
-| --------------------- | ---------------- | ---------------------------------------- |
-| Next.js               | 16.3.0-preview.9 | App Router + Turbopack in app configs    |
-| React                 | 19.2.3           |                                          |
-| TypeScript            | 6.0.3            |                                          |
-| motion                | 12.x             | Animation (successor to framer-motion)   |
-| @tanstack/react-query | 5.x              | Server state                             |
-| @supabase/ssr         | 0.8.x            | Supabase server/client helpers           |
-| @sentry/nextjs        | 10.x             | Error monitoring (via `@asym/lib`, etc.) |
+| Package               | Version | Notes                                    |
+| --------------------- | ------- | ---------------------------------------- |
+| Next.js               | 16.3.3  | App Router + Turbopack in app configs    |
+| React                 | 19.2.3  |                                          |
+| TypeScript            | 6.0.3   |                                          |
+| motion                | 12.x    | Animation (successor to framer-motion)   |
+| @tanstack/react-query | 5.x     | Server state                             |
+| @supabase/ssr         | 0.8.x   | Supabase server/client helpers           |
+| @sentry/nextjs        | 10.x    | Error monitoring (via `@asym/lib`, etc.) |
 
 ### Verification Steps
 
@@ -421,7 +425,7 @@ bun run verify:supabase-money
 ## Key Conventions
 
 1. **RSC first:** Keep components as React Server Components unless interactivity requires client hooks or browser-only APIs.
-2. **Next.js 16.3.0-preview.9 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
+2. **Next.js 16.3.3 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
 3. **Zinc and shadcn/ui Maia aesthetic:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`; use `zinc-900` for primary actions and `zinc-500` for secondary text where this convention applies.
 4. **Responsive integrity:** Test UI changes on both ~375px (mobile) and ~1440px (desktop) viewports.
 

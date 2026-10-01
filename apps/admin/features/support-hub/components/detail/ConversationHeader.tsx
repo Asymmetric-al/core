@@ -75,7 +75,7 @@ export function ConversationHeader({
                 status: "resolved",
               })
             }
-            className="h-8 gap-1.5 rounded-lg border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
+            className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
           >
             <Check className="size-3.5" />
             {isResolved ? "Resolved" : "Resolve"}

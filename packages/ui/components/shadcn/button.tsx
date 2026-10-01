@@ -1,14 +1,14 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@asym/ui/lib/utils";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 const buttonVariants = cva(
   // Base: press-feedback (subtle scale on :active) plus a transition
   // list that already covers color/border/box-shadow. Don't add
   // `transition-colors` or `transition-all` here — they would compete
   // with `press-feedback` for the cascade. See docs/ai/skills/anim/SKILL.md.
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap press-feedback outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap press-feedback outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-disabled:cursor-default data-disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 cursor-pointer",
   {
     variants: {
       variant: {
@@ -50,6 +50,9 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  disabled,
+  focusableWhenDisabled,
+  type,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
@@ -57,10 +60,21 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={mergeBaseUIClassName(
+        buttonVariants({ variant, size }),
+        className,
+      )}
       {...props}
+      type={type}
+      disabled={disabled}
+      focusableWhenDisabled={
+        type === "submit" && disabled ? false : focusableWhenDisabled
+      }
     />
   );
 }
 
+// shadcn registry component: the cva variants are exported alongside the
+// component per the registry convention, and consumers import them from here.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export { Button, buttonVariants };

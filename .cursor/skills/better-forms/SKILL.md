@@ -67,12 +67,12 @@ A collection of specific UX patterns, accessibility standards, and implementatio
 </Label>
 ```
 
-### Show/Hide Password <!-- pragma: allowlist secret -->
+### Show/Hide Password // pragma: allowlist secret
 
-**Concept**: Masking passwords by default prevents error correction. <!-- pragma: allowlist secret -->
+**Concept**: Masking passwords by default prevents error correction. // pragma: allowlist secret
 **Implementation**: Always include a toggle button inside the input wrapper.
 
-- **A11y**: The toggle button must have `type="button"` and `aria-label="Show password"`. <!-- pragma: allowlist secret -->
+- **A11y**: The toggle button must have `type="button"` and `aria-label="Show password"`. // pragma: allowlist secret
 
 ### Field Sizing as Affordance
 
@@ -1345,14 +1345,14 @@ const meta: Meta<typeof SmartInput> = {
     docs: {
       description: {
         component:
-          "Accessible input component with built-in label, description, error handling, and password toggle.",
+          "Accessible input component with built-in label, description, error handling, and password toggle.", // pragma: allowlist secret
       },
     },
   },
   argTypes: {
     type: {
       control: "select",
-      options: ["text", "email", "password", "tel", "url"],
+      options: ["text", "email", "password", "tel", "url"], // pragma: allowlist secret
     },
     error: { control: "text" },
     description: { control: "text" },
@@ -1395,10 +1395,10 @@ export const Optional: Story = {
   },
 };
 
-export const Password: Story = {
+export const Password: Story = { // pragma: allowlist secret
   args: {
-    label: "Password",
-    type: "password",
+    label: "Password", // pragma: allowlist secret
+    type: "password", // pragma: allowlist secret
     description: "Must be at least 8 characters",
   },
 };
@@ -1438,16 +1438,16 @@ export const AccessibilityDemo: Story = {
       <SmartInput label="Full Name" autoComplete="name" />
       <SmartInput label="Email" type="email" autoComplete="email" />
       <SmartInput
-        label="Password"
-        type="password"
-        autoComplete="new-password"
+        label="Password" // pragma: allowlist secret
+        type="password" // pragma: allowlist secret
+        autoComplete="new-password" // pragma: allowlist secret
         description="Minimum 8 characters"
       />
       <SmartInput
-        label="Confirm Password"
-        type="password"
-        autoComplete="new-password"
-        error="Passwords do not match"
+        label="Confirm Password" // pragma: allowlist secret
+        type="password" // pragma: allowlist secret
+        autoComplete="new-password" // pragma: allowlist secret
+        error="Passwords do not match" // pragma: allowlist secret
       />
       <button type="submit" className="btn-primary">
         Create Account
@@ -1622,7 +1622,7 @@ export const SmartInput = ({
 - [ ] **Focus**: Is the focus ring visible? (Tailwind `focus-visible:ring`)
 - [ ] **Click Areas**: Do lists/radios have expanded hit areas? (`inset` tricks)
 - [ ] **Semantics**: Are errors linked with `aria-describedby`?
-- [ ] **Keyboard**: Can you fill the form without a mouse? (Check password toggles and custom sliders) <!-- pragma: allowlist secret -->
+- [ ] **Keyboard**: Can you fill the form without a mouse? (Check password toggles and custom sliders) // pragma: allowlist secret
 - [ ] **Reduced Motion**: Are animations disabled for `prefers-reduced-motion`?
 - [ ] **High Contrast**: Do error states work in Windows High Contrast mode? (`forced-colors:`)
 - [ ] **Live Regions**: Are success/error messages announced to screen readers?

@@ -48,15 +48,17 @@ import {
   useContributionDetail,
 } from "./contribution-detail-overlay";
 import {
-  receiptDeliveryChoiceLabel,
   ReceiptDeliveryChoiceField,
-  receiptSnapshotPdfUrl,
-  resolveInitialReceiptDeliveryValue,
-  resolveReceiptDeliveryError,
   type ContributionReceiptDeliveryContext,
   type ReceiptDeliveryProposal,
   type ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
+import {
+  receiptDeliveryChoiceLabel,
+  receiptSnapshotPdfUrl,
+  resolveInitialReceiptDeliveryValue,
+  resolveReceiptDeliveryError,
+} from "./receipt-delivery-model";
 
 // Type-only imports are erased at compile time, so pulling this one type
 // from the barrel does not evaluate its server-only modules in the client
@@ -931,11 +933,15 @@ export function ContributionOperationShell({
                   <Button
                     className="h-11"
                     disabled={detailQuery.isFetching}
+                    focusableWhenDisabled={detailQuery.isFetching}
+                    aria-labelledby={`${confirmId}-reload-label`}
                     onClick={() => void handleReloadLatestDetail()}
                   >
-                    {detailQuery.isFetching
-                      ? "Reloading latest gift…"
-                      : "Reload latest gift"}
+                    <span id={`${confirmId}-reload-label`}>
+                      {detailQuery.isFetching
+                        ? "Reloading latest gift…"
+                        : "Reload latest gift"}
+                    </span>
                   </Button>
                 ) : (
                   <Button

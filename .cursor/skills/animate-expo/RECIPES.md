@@ -117,12 +117,6 @@ function PressableScale({ onPress, children }) {
       onPress={onPress}
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
-      style={{
-        minWidth: 44,
-        minHeight: 44,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
       hitSlop={12}
       pressRetentionOffset={16}
     >
@@ -144,7 +138,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-`setState` is fine here — it fires twice per press, not per frame. The minimum layout dimensions guarantee a 44pt target; `hitSlop` adds extra touch tolerance without changing that layout; `pressRetentionOffset` stops a slight finger drift from cancelling.
+`setState` is fine here — it fires twice per press, not per frame. `hitSlop` brings a small icon up to the 44pt target without growing it; `pressRetentionOffset` stops a slight finger drift from cancelling.
 
 ---
 
@@ -168,11 +162,7 @@ const pan = useMemo(
         // downward is free; upward past the top resists
         translateY.set(next >= 0 ? next : rubberband(next, HEIGHT));
       })
-      .onEnd((e, success) => {
-        if (!success) {
-          translateY.set(withSpring(0, { duration: 300, dampingRatio: 1 }));
-          return;
-        }
+      .onEnd((e) => {
         const projected = translateY.get() + project(e.velocityY);
         if (projected > HEIGHT * 0.4) {
           translateY.set(
@@ -248,11 +238,7 @@ const pan = useMemo(
       .onUpdate((e) => {
         x.set(Math.min(0, context.get() + e.translationX));
       })
-      .onEnd((e, success) => {
-        if (!success) {
-          x.set(withSpring(0, { duration: 300, dampingRatio: 1 }));
-          return;
-        }
+      .onEnd((e) => {
         const projected = x.get() + project(e.velocityX);
         if (projected < -SWIPE_THRESHOLD) {
           x.set(
@@ -470,10 +456,6 @@ const armed = useSharedValue(false);
 useAnimatedReaction(
   () => pullDistance.get() > REFRESH_THRESHOLD,
   (isArmed, wasArmed) => {
-    if (wasArmed === null) {
-      armed.set(isArmed);
-      return;
-    }
     if (isArmed !== wasArmed) {
       armed.set(isArmed);
       scheduleOnRN(Haptics.impactAsync, Haptics.ImpactFeedbackStyle.Light);

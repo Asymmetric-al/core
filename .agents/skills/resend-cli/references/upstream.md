@@ -2,8 +2,8 @@
 source_name: resend/resend-cli (resend-cli agent skill)
 source_url: https://github.com/resend/resend-cli
 license: MIT
-last_reviewed: 2026-09-23
-skills_lock_hash: 0464e9bc383bcdbbcb87a64e09e64d7e6c48f033f8c7c2e763dbfd008cbcb7c2
+last_reviewed: 2026-09-16
+skills_lock_hash: 7ac3852492006d9439582db0a68e0ec21723aff4b89be799fe4e62361a12c47c
 ---
 
 # Upstream: Resend CLI agent skill
@@ -11,7 +11,7 @@ skills_lock_hash: 0464e9bc383bcdbbcb87a64e09e64d7e6c48f033f8c7c2e763dbfd008cbcb7
 Canonical copy in this repo: `docs/ai/skills/resend-cli/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/resend/resend-cli
-- **Latest release tag at review:** https://github.com/resend/resend-cli/releases/tag/v2.21.1
+- **Latest release tag at review:** https://github.com/resend/resend-cli/releases/tag/v2.21.0
 - **Announcement:** https://resend.com/blog/resend-cli-2
 - **Upstream path:** `skills/resend-cli/` (includes `SKILL.md` and `references/*.md`)
 - **CLI docs:** https://resend.com/docs/cli

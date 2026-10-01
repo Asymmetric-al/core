@@ -47,8 +47,9 @@ function TaskFormInner({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-[600px]">
+      <DialogContent scrollable className="sm:max-w-150">
         <form
+          className="flex flex-col gap-6"
           onSubmit={(event) => {
             event.preventDefault();
             event.stopPropagation();

@@ -870,12 +870,12 @@ export default defineConfig({
 # .env.local
 BASE_URL=http://localhost:3000
 TEST_USER_EMAIL=testuser@localhost.test
-TEST_USER_PASSWORD=localpassword123
+TEST_USER_PASSWORD=localpassword123 // pragma: allowlist secret
 
 # .env.staging
 BASE_URL=https://staging.example.com
 TEST_USER_EMAIL=e2e-bot@staging.example.com
-TEST_USER_PASSWORD=staging-secret-from-vault
+TEST_USER_PASSWORD=staging-secret-from-vault // pragma: allowlist secret
 ```
 
 ```typescript

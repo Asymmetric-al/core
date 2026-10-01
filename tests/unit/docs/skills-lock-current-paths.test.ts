@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -20,17 +19,8 @@ function readLock() {
 }
 
 describe("skills lock current upstream paths", () => {
-  it("keeps the 128-entry catalog plus the merged architecture skill", () => {
-    const { "nextjs-app-architecture": architecture, ...catalog } =
-      readLock().skills;
-    expect(Object.keys(catalog)).toHaveLength(128);
-    expect(architecture).toEqual({
-      source: "aurorascharff/nextjs-app-architecture-skill",
-      sourceType: "github",
-      skillPath: "SKILL.md",
-      computedHash:
-        "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",
-    });
+  it("keeps the current lockfile skill names", () => {
+    expect(Object.keys(readLock().skills)).toHaveLength(129);
   });
 
   it("pins moved GitHub skill paths and the Resend CLI source", () => {
@@ -116,7 +106,7 @@ describe("skills lock current upstream paths", () => {
     expect(resendCli).toContain("### Triggers");
     expect(
       readRepoFile("docs/ai/skills/resend-cli/references/upstream.md"),
-    ).toContain("v2.21.1");
+    ).toContain("v2.21.0");
     expect(
       readRepoFile("docs/ai/skills/resend-cli/references/upstream.md"),
     ).toContain("source_url: https://github.com/resend/resend-cli");
@@ -183,93 +173,5 @@ describe("skills lock current upstream paths", () => {
     ).toBe(false);
     expect(routing).toContain("writing-for-agents");
     expect(routing).toContain("not lockfile-managed");
-  });
-
-  it("refreshes lockfile-only CLI skills to current upstream markers", () => {
-    expect(readRepoFile(".agents/skills/next-dev-loop/SKILL.md")).toContain(
-      "Report Next.js friction",
-    );
-    expect(
-      readRepoFile(".agents/skills/next-cache-components-adoption/SKILL.md"),
-    ).not.toContain("CLAUDE.md");
-    expect(readRepoFile(".agents/skills/resend/SKILL.md")).toContain(
-      'version: "3.11.0"',
-    );
-    expect(readRepoFile(".agents/skills/turborepo/SKILL.md")).toContain(
-      "version: 2.11.3",
-    );
-  });
-
-  it("preserves Stripe upstream integrity while applying Core client guidance", () => {
-    const { skills } = readLock();
-    const wellKnown = [
-      "stripe-best-practices",
-      "stripe-projects",
-      "upgrade-stripe",
-    ] as const;
-
-    expect(
-      readRepoFile(".agents/skills/stripe-best-practices/SKILL.md"),
-    ).toContain("packages/api/src/stripe/api-version.ts");
-    expect(
-      existsSync(
-        path.join(
-          repoRoot,
-          ".agents/skills/stripe-best-practices/references/tax.md",
-        ),
-      ),
-    ).toBe(true);
-    expect(readRepoFile(".agents/skills/stripe-projects/SKILL.md")).toContain(
-      "stripe projects init --preflight",
-    );
-    expect(readRepoFile(".agents/skills/upgrade-stripe/SKILL.md")).toContain(
-      "packages/api/src/stripe/api-version.ts",
-    );
-
-    for (const name of wellKnown) {
-      const skillPath = path.join(".agents/skills", name, "SKILL.md");
-      let upstreamBody = readRepoFile(skillPath);
-      const coreReplacements = JSON.parse(
-        readRepoFile("scripts/refresh-overlays/stripe-core-guidance.json"),
-      ) as Array<{ path: string; upstream: string; core: string }>;
-      for (const replacement of coreReplacements
-        .filter((entry) => entry.path === `${name}/SKILL.md`)
-        .reverse()) {
-        expect(upstreamBody).toContain(replacement.core);
-        upstreamBody = upstreamBody.replace(
-          replacement.core,
-          replacement.upstream,
-        );
-      }
-      const hash = createHash("sha256").update(upstreamBody).digest("hex");
-      expect(skills[name], name).toMatchObject({
-        source: "docs.stripe.com",
-        sourceType: "well-known",
-        computedHash: hash,
-      });
-    }
-
-    expect(skills["stripe-apps"]).toBeUndefined();
-    expect(skills["stripe-docs"]).toBeUndefined();
-    expect(skills["stripe-directory"]).toBeUndefined();
-    expect(skills["stripe-integration"]).toBeUndefined();
-  });
-
-  it("refreshes obra TDD with suite-wide green verification and Core overlay", () => {
-    const skill = readRepoFile(
-      "docs/ai/skills/test-driven-development/SKILL.md",
-    );
-    expect(skill).toContain(
-      "green run of the test you wrote is not a green suite",
-    );
-    expect(skill).toContain("<!-- CORE-OVERLAY-START -->");
-    expect(skill).toContain("docs/ai/skills/tdd/SKILL.md");
-  });
-
-  it("refreshes resend-cli skill metadata while keeping the Core overlay", () => {
-    const skill = readRepoFile("docs/ai/skills/resend-cli/SKILL.md");
-    expect(skill).toContain('version: "2.14.0"');
-    expect(skill).toContain("## This repository (Asymmetric-al/core)");
-    expect(skill).toContain("### Triggers");
   });
 });

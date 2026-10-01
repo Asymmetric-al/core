@@ -1826,7 +1826,8 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     const confirmButton = within(confirm).getByRole("button", {
       name: "Saving...",
     });
-    expect((confirmButton as HTMLButtonElement).disabled).toBe(true);
+    expect((confirmButton as HTMLButtonElement).disabled).toBe(false);
+    expect(confirmButton.getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(confirmButton);
     expect(tenantDefaultMutate).not.toHaveBeenCalled();
   });

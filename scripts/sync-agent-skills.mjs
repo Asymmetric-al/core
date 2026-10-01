@@ -773,6 +773,15 @@ async function restoreGitGuardrailsFailClosedHook() {
   );
   const hookPath = path.join(skillRoot, "scripts", "block-dangerous-git.sh");
   await mkdir(path.dirname(hookPath), { recursive: true });
+  const existing = await lstat(hookPath).catch((error) => {
+    if (error && error.code === "ENOENT") return null;
+    throw error;
+  });
+  if (existing?.isSymbolicLink()) {
+    throw new Error(
+      `Refusing to overwrite symlinked git-guardrails hook at ${path.relative(repoRoot, hookPath)}`,
+    );
+  }
   await cp(overlayPath, hookPath);
   console.log(
     `restored git-guardrails hook overlay -> ${path.relative(repoRoot, hookPath)}`,

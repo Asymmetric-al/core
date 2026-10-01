@@ -58,6 +58,10 @@ export function TaskTable({
     tasks.length > 0 && selectedTaskIds.length === tasks.length;
   const someSelected =
     selectedTaskIds.length > 0 && selectedTaskIds.length < tasks.length;
+  const selectedTaskIdSet = React.useMemo(
+    () => new Set(selectedTaskIds),
+    [selectedTaskIds],
+  );
 
   const getDueDateLabel = (date?: string | null) => {
     if (!date) return { label: "No date", color: "text-muted-foreground" };
@@ -77,7 +81,7 @@ export function TaskTable({
   return (
     <div className="w-full bg-card rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
+        <table className="w-full text-left border-collapse min-w-200">
           <thead>
             <tr className="border-b border-border bg-muted/30">
               <th className="w-14 p-4">
@@ -112,7 +116,7 @@ export function TaskTable({
           <tbody className="divide-y divide-border">
             <AnimatePresence mode="popLayout">
               {tasks.map((task, idx) => {
-                const isSelected = selectedTaskIds.includes(task.id);
+                const isSelected = selectedTaskIdSet.has(task.id);
                 const isCompleted = task.status === "completed";
                 const typeConfig = TASK_TYPE_CONFIG[task.task_type];
                 const priorityConfig = PRIORITY_CONFIG[task.priority];
@@ -167,7 +171,7 @@ export function TaskTable({
                         <div className="flex flex-col min-w-0">
                           <span
                             className={cn(
-                              "text-sm font-medium text-foreground truncate max-w-[280px]",
+                              "text-sm font-medium text-foreground truncate max-w-70",
                               isCompleted &&
                                 "text-muted-foreground line-through",
                             )}
@@ -249,7 +253,7 @@ export function TaskTable({
                                 .slice(0, 2)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-xs text-foreground truncate max-w-[100px]">
+                          <span className="text-xs text-foreground truncate max-w-25">
                             {task.donor.name}
                           </span>
                         </div>
@@ -262,6 +266,7 @@ export function TaskTable({
                     <td className="p-4" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger
+                          aria-label="Open actions"
                           render={
                             <Button
                               variant="ghost"

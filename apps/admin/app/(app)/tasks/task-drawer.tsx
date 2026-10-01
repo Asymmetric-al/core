@@ -144,14 +144,11 @@ export function TaskDrawer({
 
   return (
     <Sheet open={!!task} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-xl p-0 gap-0 border-l border-border bg-background overflow-hidden flex flex-col h-full">
+      <SheetContent className="w-full sm:max-w-xl">
         <TaskDrawerContent
           task={task}
           TypeIcon={TypeIcon}
-          statusColor={statusConfig.color}
-          statusIconColor={statusConfig.iconColor}
           statusLabel={statusConfig.label}
-          priorityColor={priorityConfig.color}
           priorityLabel={priorityConfig.label}
           staffMembers={staffMembers}
           isOverdue={Boolean(isOverdue)}

@@ -12,6 +12,7 @@ import {
   adminLocationsCollection,
   fetchAdminLocationsResponse,
 } from "../collections/admin-locations";
+import { parseJsonResponse } from "../http/parse-json-response";
 import {
   getAdminSurfaceQueryKey,
   invalidateAdminSurfaceQuery,
@@ -44,24 +45,6 @@ async function invalidateAdminLocationCaches(
     invalidateAdminSurfaceQuery(queryClient, "locations"),
     invalidateAdminSurfaceQuery(queryClient, "locationLinkedEntities"),
   ]);
-}
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error || `Request failed with status ${response.status}`,
-    );
-  }
-
-  if (!payload) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return payload;
 }
 
 export function useLocations() {

@@ -101,7 +101,7 @@ Give every finding one status:
 - `Regression`: the change weakened something previously correct.
 - `Pre-existing`: present in the touched code but not caused by this change.
 
-Status by what the diff touched, not by which file it sits in: a line the change never touched is `Pre-existing` even three lines from a hunk. Confirm against the base ref when it matters:
+Status by what the change caused, not by whether the affected line changed. A finding is `Regression` when this change caused it, including an unchanged line (for example, removing a wrapping label). A finding this change did not cause is `Pre-existing`. Confirm against the base ref:
 
 ```bash
 git blame -L <line>,<line> "$BASE" -- path/to/file

@@ -25,6 +25,7 @@ import {
   HeartHandshake,
   Loader2,
 } from "lucide-react";
+import { useState } from "react";
 
 type PledgeView = ReturnType<typeof mapRecurringGiftToPledgeView>;
 
@@ -111,9 +112,11 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
 function PledgesHeader({
   onManage,
   managing,
+  isInitiator,
 }: {
   onManage: () => void;
   managing: boolean;
+  isInitiator: boolean;
 }) {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
@@ -128,9 +131,10 @@ function PledgesHeader({
       <Button
         onClick={onManage}
         disabled={managing}
+        focusableWhenDisabled={managing && isInitiator}
         className="h-12 px-6 rounded-lg font-semibold uppercase tracking-widest text-[10px]"
       >
-        {managing ? (
+        {managing && isInitiator ? (
           <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
         ) : (
           <ExternalLink className="mr-2 size-4" aria-hidden="true" />
@@ -144,13 +148,19 @@ function PledgesHeader({
 export default function DonorPledgesPage() {
   const snapshot = useDonorPortalSnapshot();
   const billingPortal = useCreateDonorBillingPortalSession();
+  const [billingPortalInitiator, setBillingPortalInitiator] = useState<
+    "header" | "empty" | null
+  >(null);
 
-  const openBillingPortal = async () => {
+  const openBillingPortal = async (initiator: "header" | "empty") => {
+    setBillingPortalInitiator(initiator);
     try {
       const { url } = await billingPortal.mutateAsync();
       window.location.assign(url);
     } catch {
       // error surfaced via billingPortal.error below
+    } finally {
+      setBillingPortalInitiator(null);
     }
   };
 
@@ -161,8 +171,9 @@ export default function DonorPledgesPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       <PledgesHeader
-        onManage={openBillingPortal}
+        onManage={() => openBillingPortal("header")}
         managing={billingPortal.isPending}
+        isInitiator={billingPortalInitiator === "header"}
       />
 
       {billingPortal.error ? (
@@ -212,8 +223,11 @@ export default function DonorPledgesPage() {
               </p>
             </div>
             <Button
+              focusableWhenDisabled={
+                billingPortal.isPending && billingPortalInitiator === "empty"
+              }
               variant="outline"
-              onClick={openBillingPortal}
+              onClick={() => openBillingPortal("empty")}
               disabled={billingPortal.isPending}
               className="mt-2"
             >

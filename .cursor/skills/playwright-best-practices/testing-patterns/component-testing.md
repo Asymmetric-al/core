@@ -269,12 +269,12 @@ test("form submission", async ({ mount }) => {
   );
 
   await component.getByLabel("Email").fill("test@example.com");
-  await component.getByLabel("Password").fill("secret123");
+  await component.getByLabel("Password").fill("secret123"); // pragma: allowlist secret
   await component.getByRole("button", { name: "Sign in" }).click();
 
   expect(submittedData).toEqual({
     email: "test@example.com",
-    password: "secret123",
+    password: "secret123", // pragma: allowlist secret
   });
 });
 ```

@@ -3,6 +3,11 @@ import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+  listScanTargets,
+  scanMotionSource,
+} from "../../scripts/check-motion-patterns.mjs";
+
 /**
  * Motion-contract guardrails (docs/ai/skills/anim/SKILL.md, docs/ai/rules/frontend.md):
  * - `transition-all` is banned; use property-scoped transitions or the shared
@@ -127,5 +132,24 @@ describe("motion contract", () => {
         `(${cls})`,
       );
     }
+  });
+
+  it("shares the CLI motion scan over a non-trivial first-party surface", () => {
+    expect(listScanTargets().length).toBeGreaterThan(100);
+  });
+
+  it("does not animate layout properties through motion/react props", () => {
+    const findings: string[] = [];
+
+    for (const rel of listScanTargets()) {
+      if (!rel.endsWith(".tsx") && !rel.endsWith(".jsx")) continue;
+      const raw = readFileSync(join(REPO_ROOT, rel), "utf8");
+      for (const violation of scanMotionSource(rel, raw)) {
+        if (violation.kind !== "motion-layout-property") continue;
+        findings.push(`${violation.file}:${violation.line}  ${violation.hint}`);
+      }
+    }
+
+    expect(findings).toEqual([]);
   });
 });

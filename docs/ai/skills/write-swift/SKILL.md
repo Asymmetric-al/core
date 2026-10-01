@@ -1,6 +1,6 @@
 ---
 name: write-swift
-description: Use only when the user explicitly requests write-swift for Swift code or a Swift-specific concurrency, memory or performance problem. Never route Core web or TypeScript work here.
+description: How to write modern Swift well — modeling with value types, Swift 6 data-race safety and approachable concurrency (@concurrent, main-actor-by-default, actors, task groups), protocols and generics (some vs any), API design, performance and ARC, Swift Testing, macros, and the modern language features agents don't know about yet. Use when writing, reviewing, or migrating Swift. Only runs when explicitly invoked; it does not trigger on its own.
 disable-model-invocation: true
 ---
 
@@ -17,7 +17,8 @@ use Swift. Reconcile this overlay after upstream refreshes before running
 ### Triggers
 
 - Explicit Swift, SwiftUI, or Apple-platform language work.
-- Do not load it for Core web/TypeScript implementation.
+- Keep `disable-model-invocation: true`. Do not load it for Core
+  web/TypeScript hangs, data races, or performance work.
 
 ### Workflow
 
@@ -31,30 +32,22 @@ use Swift. Reconcile this overlay after upstream refreshes before running
 
 <!-- CORE-OVERLAY-END -->
 
-## Initial Response
-
-Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
-
-> I'm ready to help you write modern Swift, the way the language wants to be written.
-
-For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
-
 How to write Swift the way the language wants to be written, current through Swift 6.4.
 
-**Upstream reference snapshot: Swift 6.3, with separately marked Swift 6.4 material.** Core has no Swift target. For an explicitly requested Swift task, inspect the actual project compiler and deployment targets, then verify feature availability against [official Swift releases](https://www.swift.org/install/). The snapshot and ⚠ markers are not a claim about the current stable release or a reason to upgrade the target. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.
+**Toolchain baseline: Swift 6.4** (current public release). Rows and notes marked ⚠ require Swift 6.4; keep the older form when the project toolchain is Swift 6.3 or earlier. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.
 
 The through-line: **Swift is a progressive-disclosure language. Start with the simplest, most static, most single-threaded thing that works, and buy dynamism — concurrency, reference semantics, existentials, unsafe pointers — only where you can point at the reason.** Every rule below is an application of that.
 
 Model this hierarchy of defaults. Move down a level only with a reason you can state:
 
-| Need         | Reach for               | Move down only when                                                                        |
-| ------------ | ----------------------- | ------------------------------------------------------------------------------------------ |
-| Data         | `struct` / `enum`       | you need identity, sharing, or inheritance                                                 |
-| Abstraction  | concrete type           | you have repeated code across types                                                        |
-| Polymorphism | `some P` (generic)      | you need heterogeneous storage → `any P`                                                   |
-| Execution    | main actor, synchronous | I/O latency → `async`; measured CPU work → `@concurrent`; isolated mutable state → `actor` |
-| Memory       | `Array`, `String`       | profiling shows the cost → `InlineArray`, `Span`                                           |
-| Safety       | safe API                | C interop or a measured hot path → `Unsafe*`                                               |
+| Need         | Reach for               | Move down only when                                        |
+| ------------ | ----------------------- | ---------------------------------------------------------- |
+| Data         | `struct` / `enum`       | you need identity, sharing, or inheritance                 |
+| Abstraction  | concrete type           | you have repeated code across types                        |
+| Polymorphism | `some P` (generic)      | you need heterogeneous storage → `any P`                   |
+| Execution    | main actor, synchronous | profiling shows a hang → `async` → `@concurrent` → `actor` |
+| Memory       | `Array`, `String`       | profiling shows the cost → `InlineArray`, `Span`           |
+| Safety       | safe API                | C interop or a measured hot path → `Unsafe*`               |
 
 ---
 
@@ -154,7 +147,7 @@ Actors guarantee mutual exclusion, not transactions. Between two `await`s on the
 
 `Sendable` marks a type safe to share across isolation domains. The compiler checks it at every task and actor boundary.
 
-- **Structs and enums can infer `Sendable` when their storage is sendable** if they are non-public and not `@usableFromInline`, or are `@frozen` public types. Public non-frozen types need explicit conformance so their public contract remains deliberate. See [SE-0302](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0302-concurrent-value-and-concurrent-closures.md).
+- **Value types are `Sendable` when their storage is** — inferred automatically for non-public types. **Public types never get inferred sendability**: marking a public type `Sendable` is a promise to your clients, so Swift makes you write it.
 - **Actors and `@MainActor` classes are implicitly `Sendable`**, because their state is isolated.
 - **Most model classes should be neither `@MainActor` nor `Sendable`.** Keep them non-`Sendable` on purpose — it prevents half the model being mutated on the main thread while the other half is mutated in the background. If they need to leave the main actor, make them `nonisolated`, not `Sendable`.
 - **You can still _send_ a non-`Sendable` object between domains** as long as the sender stops using it. Make all your mutations _before_ handing it off; touching it afterward is the error.
@@ -181,7 +174,7 @@ Always prefer structured tasks.
 Structured tasks (`async let`, task groups) are scoped like local variables: they can't outlive the block, they're awaited automatically, and they inherit cancellation, priority, and task-local values through the task tree. Unstructured tasks (`Task { }`, `Task.detached`) give you none of that automatically.
 
 - **`async let`** for a fixed, statically known number of concurrent children.
-- **`withTaskGroup`** when the number is dynamic. Task groups conform to `AsyncSequence` — iterate results as they land. Use **`withDiscardingTaskGroup`** for nonthrowing children that return nothing. Use **`withThrowingDiscardingTaskGroup`** when a child can throw and the first child error must cancel siblings.
+- **`withTaskGroup`** when the number is dynamic. Task groups conform to `AsyncSequence` — iterate results as they land. Use **`withDiscardingTaskGroup`** when children return nothing: it frees each child's resources immediately and cancels siblings on the first error.
 - **`Task { }`** only when the work's lifetime doesn't fit a scope — reacting to a delegate callback, a button tap, a view appearing. It inherits actor isolation and priority; you must manage cancellation yourself.
 - **`Task.detached`** almost never. It inherits nothing — not isolation, not priority, not task-locals. If you need a detached root, put a task group _inside_ it rather than detaching repeatedly.
 
@@ -191,7 +184,7 @@ Structured tasks (`async let`, task groups) are scoped like local variables: the
 
 **Task-local values** (`@TaskLocal`) propagate context — a request ID, a trace span — down the task tree without threading a parameter through every signature. Make them optional so unbound reads have a sensible default.
 
-**Bridging callbacks:** `withCheckedContinuation` / `withCheckedThrowingContinuation`. The contract is **resume exactly once on every path** — never resuming hangs the caller forever; resuming twice is a fatal error. For delegate APIs that fire later, store the continuation and nil it out when you resume. (Swift 6.4 reference material includes a `Continuation` type that checks single-resumption at compile time.)
+**Bridging callbacks:** `withCheckedContinuation` / `withCheckedThrowingContinuation`. The contract is **resume exactly once on every path** — never resuming hangs the caller forever; resuming twice is a fatal error. For delegate APIs that fire later, store the continuation and nil it out when you resume. (Swift 6.4 adds a `Continuation` type that checks single-resumption at compile time. Skip it when the toolchain is Swift 6.3 or earlier.)
 
 **`AsyncSequence`:** iterate with `for await` / `for try await`. Adapt an existing handler- or delegate-based API with `AsyncStream` / `AsyncThrowingStream` — construct the source inside the closure, `yield` from the handler, and clean up in `onTermination`.
 
@@ -275,7 +268,7 @@ Low-level Swift performance is dominated by four costs. Know which one you're pa
 - **`Span` / `RawSpan` / `OutputSpan`** (Swift 6.2) replace `withUnsafeBufferPointer` for direct access to contiguous storage. They're non-escapable, so the compiler ties their lifetime to the container — you get pointer performance with no lifetime bugs, and the retains/releases disappear.
 - **Moving stored properties out of a nested class into the parent struct** removes runtime exclusivity checks.
 - Shipped in Swift 6.3, when you've measured the need: `@inline(always)` (pair with `final` on methods) and `@specialized(where T == ...)` (SE-0460) to pre-specialize a generic for hot concrete types.
-- Swift 6.4 reference features (verify the actual toolchain — see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop.
+- Shipped in Swift 6.4 (see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop. Do not use these when the toolchain is Swift 6.3 or earlier.
 
 **Async functions** keep their state on a per-task slab allocator rather than the C stack, and split into partial functions at each suspension point. The cost profile is similar to sync functions with slightly higher call overhead — which is another reason not to make something `async` that has nothing to await.
 
@@ -340,7 +333,7 @@ Reach for a macro when you're writing code the compiler could derive — and onl
 - **"Unsafe" means the API cannot fully validate its input, so violating its preconditions is undefined behavior** — not that it crashes. Safe APIs _do_ trap deliberately; a clean fatal error is the safe outcome.
 - **Prefer `Span` over `Unsafe*Pointer`.** Since Swift 6.2 there is a safe, non-escaping, equally fast way to get at contiguous storage. Reserve raw pointers for C interop.
 - If you must use pointers: keep the unsafe region as small as possible, use **buffer** pointers (address + count) rather than bare pointers so bounds are tracked, never let a pointer escape the closure that vends it, and run the **Address Sanitizer**.
-- Enable **strict memory safety** in security-critical modules — it forces every unsafe use to be acknowledged in source, which is what makes an audit possible. Swift 6.4's `@diagnose` attribute (verify toolchain availability) lets you turn it on for individual functions.
+- Enable **strict memory safety** in security-critical modules — it forces every unsafe use to be acknowledged in source, which is what makes an audit possible. Swift 6.4's `@diagnose` attribute lets you turn it on for individual functions when the toolchain is 6.4 or newer.
 - **Interop is bidirectional and incremental.** C, Objective-C, and C++ types map into Swift directly (including C++ value semantics, containers as Swift collections, and move-only types as `~Copyable`). Swift 6.3's `@c` attribute exposes Swift functions back to C (with `@implementation` when the declaration already exists in a header). Adopt Swift one file at a time; don't rewrite.
 
 ---
@@ -349,7 +342,7 @@ Reach for a macro when you're writing code the compiler could derive — and onl
 
 Agents routinely write the older, longer form of all of these.
 
-**Rows marked ⚠ require explicit toolchain verification.** They describe Swift 6.4 material in this pinned reference snapshot. Check the project compiler, SDK, deployment targets and official feature documentation before using one; retain a compatible older form when the project targets Swift 6.3 or earlier. These markers do not assert that a release is unavailable today.
+**Rows marked ⚠ shipped in Swift 6.4.** Prefer the older form when the project toolchain is Swift 6.3 or earlier.
 
 | Instead of                                                            | Write                                                                                                    | Since |
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----- |

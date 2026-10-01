@@ -32,7 +32,7 @@ import {
   Trash2,
   Receipt,
 } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useId, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -96,6 +96,8 @@ const statusShortLabel: Record<ContributionStatus, string> = {
 
 const OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED = false;
 
+const EMPTY_NEEDS_ATTENTION_GROUPS: MissionControlNeedsAttentionGroup[] = [];
+
 function StatCard({
   label,
   value,
@@ -110,7 +112,7 @@ function StatCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...smoothTransition, delay: index * 0.06 }}
-      className="flex min-w-[140px] cursor-default items-center gap-4 rounded-lg border border-border bg-card px-6 py-5 shadow-sm"
+      className="flex min-w-35 cursor-default items-center gap-4 rounded-lg border border-border bg-card px-6 py-5 shadow-sm"
     >
       <div className="flex flex-col">
         <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">
@@ -139,6 +141,8 @@ function BulkReceiptConfirmDialog({
   rows: Contribution[];
   submitting: boolean;
 }) {
+  const pendingActionLabelId = useId();
+
   const selectedCount = rows.length;
   const eligibleCount = rows.filter((row) => row.stagedGiftId).length;
   const missingStagedGiftCount = selectedCount - eligibleCount;
@@ -211,6 +215,8 @@ function BulkReceiptConfirmDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
           <Button
+            aria-labelledby={`${pendingActionLabelId}-1`}
+            focusableWhenDisabled={submitting}
             disabled={submitting || !hasEligibleReceipts}
             onClick={() => {
               if (!submitting && hasEligibleReceipts) {
@@ -218,7 +224,7 @@ function BulkReceiptConfirmDialog({
               }
             }}
           >
-            {actionLabel}
+            <span id={`${pendingActionLabelId}-1`}>{actionLabel}</span>
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -230,7 +236,7 @@ export function ContributionsMainBody({
   data,
   isLoading,
   onSelectContribution,
-  needsAttentionGroups = [],
+  needsAttentionGroups = EMPTY_NEEDS_ATTENTION_GROUPS,
   onOpenContributionById,
   onBulkReceiptSuccess,
 }: {
@@ -640,7 +646,7 @@ export function ContributionsPageActions({
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        className="h-11 gap-2 px-4 font-semibold uppercase tracking-widest text-[10px] transition-colors"
+        className="h-11 font-semibold uppercase tracking-widest text-[10px] transition-colors"
         onClick={handleExport}
       >
         <Download className="size-4" />
@@ -649,7 +655,7 @@ export function ContributionsPageActions({
       {canShowOfflineGiftEntry ? (
         <>
           <Button
-            className="h-11 gap-2 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg"
+            className="h-11 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg"
             onClick={() => setOfflineEntryOpen(true)}
           >
             <HandCoins className="size-4" />

@@ -32,14 +32,12 @@ The structural rule is that the gap between groups is at least 2× the gap withi
 }
 ```
 
-```tsx
-import { FieldGroup } from "@asym/ui/components/shadcn/field";
-
-// Good: preserve shared form ownership and use gap for grouping.
-<FieldGroup className="gap-6">
-  <FieldGroup className="gap-2">…related fields…</FieldGroup>
-  <FieldGroup className="gap-2">…related fields…</FieldGroup>
-</FieldGroup>;
+```html
+<!-- Good: Tailwind -->
+<div class="space-y-6">
+  <div class="space-y-2">…field group…</div>
+  <div class="space-y-2">…field group…</div>
+</div>
 ```
 
 Where a separator is genuinely needed, keep it quiet: hairline width, low contrast, never combined with a large gap that already did the job.
@@ -48,17 +46,13 @@ Where a separator is genuinely needed, keep it quiet: hairline width, low contra
 
 Interactive elements need a visual signal: a background, a border, an underline, or placement in a consistent control zone such as a toolbar or footer row. A control styled identically to static text is invisible.
 
-```tsx
-import { Button } from "@asym/ui/components/shadcn/button";
+```html
+<!-- Bad: action looks exactly like the description text next to it -->
+<p class="text-zinc-600">Your trial ends soon. Upgrade now</p>
 
-// Bad: the action reads as static text.
-<p className="text-muted-foreground">Your trial ends soon. Upgrade now</p>;
-
-// Good: an existing shared action and semantic text color.
-<p className="text-muted-foreground">Your trial ends soon.</p>;
-<Button variant="link" onClick={onUpgrade}>
-  Upgrade now
-</Button>;
+<!-- Good: the action reads as an action -->
+<p class="text-zinc-600">Your trial ends soon.</p>
+<button class="font-medium text-primary">Upgrade now</button>
 ```
 
 The inverse holds too. A non-clickable badge shaped exactly like the buttons beside it collects dead clicks.

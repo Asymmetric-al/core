@@ -48,7 +48,7 @@ const GRILL_UPSTREAM_DESCRIPTION =
   "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.";
 const GRILL_CORE_DESCRIPTION =
   "description: Use only when the user explicitly invokes grill-for-unknowns or asks for a map-vs-territory unknowns pass, blindspot discovery, unknown-known prototypes, or a subagent launch packet before implementation.";
-const GRILL_REVIEWED_VERSION = "0.1.3";
+const GRILL_REVIEWED_VERSION = "0.1.1";
 const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 
 const emilKowalskiSkillNames = [
@@ -67,36 +67,13 @@ const emilKowalskiSkillNames = [
 ];
 const EMIL_EXPLICIT_ONLY_SKILLS = new Set([
   "animate",
+  "animate-expo",
   "emil-prototype",
   "mobile-native",
   "pick-ui-library",
   "review-animations",
   "write-swift",
 ]);
-const CORE_EXPLICIT_SKILL_DESCRIPTIONS = {
-  animate:
-    "Use only when the user explicitly invokes animate for web animation implementation; Core motion uses existing shared UI, tokens and the animation contract.",
-  "animate-expo":
-    "Use only when the user explicitly requests this skill for Expo or React Native animation. Never route Core Next.js web motion or TypeScript bugs here.",
-  "emil-prototype":
-    "Use only when the user explicitly invokes emil-prototype for isolated interface experiments outside Core app routes. It does not replace Matt Pocock prototype.",
-  "mobile-native":
-    "Use only when the user explicitly invokes mobile-native for mobile web viewport, touch, scrolling and safe-area work. It does not auto-route ordinary Core UI tasks.",
-  "pick-ui-library":
-    "Use only when the user explicitly asks which UI or motion library to use. Prefer installed Core shared components and preserve base-maia.",
-  "review-animations":
-    "Use only when the user explicitly invokes review-animations for a motion diff review. It does not auto-route ordinary code review.",
-  "write-swift":
-    "Use only when the user explicitly requests write-swift for Swift code or a Swift-specific concurrency, memory or performance problem. Never route Core web or TypeScript work here.",
-  "frontend-design":
-    "Use only when the user explicitly requests this frontend-design companion. Preserve Core base-maia, Base UI, shared packages/ui and semantic tokens.",
-  "design-taste-frontend":
-    "Use only when the user explicitly requests design-taste-frontend for design exploration within the existing Core design system.",
-  "redesign-existing-projects":
-    "Use only when the user explicitly invokes redesign-existing-projects. Preserve Core shared UI and accepted design intent.",
-  "test-driven-development":
-    "Use only when the user explicitly requests the obra test-driven-development companion. Core substantive work uses the canonical tdd skill and its documented exceptions.",
-};
 const ASK_SONNER_UPSTREAM_TOASTER_IMPORT =
   'import { Toaster } from "sonner"; // once, in layout';
 const ASK_SONNER_CORE_TOASTER_IMPORT =
@@ -152,7 +129,7 @@ const upstreamSources = [
       "skills",
       "supabase-postgres-best-practices",
     ),
-    preserve: ["references/upstream.md", "AGENTS.md", "CLAUDE.md"],
+    preserve: ["references/upstream.md"],
   },
   {
     sourceGroup: "animations.dev",
@@ -401,15 +378,15 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "babysit",
     relativePath: "SKILL.md",
-    search: BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK,
-    replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK,
+    search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK,
+    replace: BABYSIT_CORE_DEPENDENCY_BLOCK,
     required: true,
   },
   {
     skillName: "babysit",
     relativePath: "SKILL.md",
-    search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK,
-    replace: BABYSIT_CORE_DEPENDENCY_BLOCK,
+    search: BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK,
+    replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK,
     required: true,
   },
   {
@@ -483,24 +460,6 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "ask-matt",
     relativePath: "SKILL.md",
     search:
-      "- **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
-    replace:
-      "- **Plain-English re-explanation** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill: re-pitch what you just said with the context the user was missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
-    required: true,
-  },
-  {
-    skillName: "ask-matt",
-    relativePath: "SKILL.md",
-    search:
-      "- **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you about the subject, it interviews you about the **send** (who it's going to, what you need back) and aims the questions at the gap. What comes back is material for `/grill-with-docs` or `/to-spec`.",
-    replace:
-      "- **Questionnaire drafting** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**. Draft the questionnaire directly, aiming the questions at the gap; what comes back is material for `/grill-with-docs` or `/to-spec`.",
-    required: true,
-  },
-  {
-    skillName: "ask-matt",
-    relativePath: "SKILL.md",
-    search:
       "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
     replace:
       "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
@@ -522,6 +481,54 @@ const POST_REFRESH_REPLACEMENTS = [
       "description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.\n---",
     replace:
       "description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "interface-review",
+    relativePath: "SKILL.md",
+    search: "name: interface-review\ndescription:",
+    replace:
+      "name: interface-review\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "test-driven-development",
+    relativePath: "SKILL.md",
+    search: "name: test-driven-development\ndescription:",
+    replace:
+      "name: test-driven-development\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "test-driven-development",
+    relativePath: "SKILL.md",
+    search:
+      "description: Use when implementing any feature or bugfix, before writing implementation code",
+    replace:
+      "description: Use only when the user explicitly invokes obra test-driven-development for iron-law examples. Core TDD is docs/ai/skills/tdd/SKILL.md. Do not use this for docs-only, formatting-only, or generated-mirror changes.",
+    required: true,
+  },
+  {
+    skillName: "better-ui",
+    relativePath: "SKILL.md",
+    search: "name: better-ui\ndescription:",
+    replace: "name: better-ui\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "better-colors",
+    relativePath: "SKILL.md",
+    search: "name: better-colors\ndescription:",
+    replace:
+      "name: better-colors\ndisable-model-invocation: true\ndescription:",
+    required: true,
+  },
+  {
+    skillName: "better-layout",
+    relativePath: "SKILL.md",
+    search: "name: better-layout\ndescription:",
+    replace:
+      "name: better-layout\ndisable-model-invocation: true\ndescription:",
     required: true,
   },
   {
@@ -583,8 +590,6 @@ const POST_REFRESH_REPLACEMENTS = [
       "├── SKILL.md",
       "├── README.md",
       "├── LICENSE",
-      "├── .claude-plugin/",
-      "│   └── plugin.json",
       "├── references/",
       "│   ├── domain-modeling-add-on.md",
       "│   ├── upstream-lineage.md",
@@ -827,6 +832,32 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.",
+    replace:
+      "1. **Do not mount a Toaster.** Core layouts already mount `@asym/ui`'s `<Toaster />` once. Reuse that host. A second mounted Toaster duplicates every toast.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search: 'import { Toaster } from "sonner"; // once, near the root',
+    replace:
+      'import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts',
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      /^\| Toast never appears\s+\| No `<Toaster \/>` is mounted — add one near the app root\.\s+\|$/m,
+    replace:
+      "| Toast never appears                                                   | Core already mounts `@asym/ui`'s `<Toaster />`. Reuse that host — do not add another. If it unmounted (conditional render, per-page placement), restore the shared layout toaster. If calling from a server action: `toast()` is client-only — call it with the action's result on the client. |",
+    required: true,
+  },
+  {
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
     search: '<input data-lpignore="true" data-1p-ignore />',
@@ -949,7 +980,251 @@ const POST_REFRESH_REPLACEMENTS = [
       " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
     ].join(""),
     replace:
-      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+      "| OTP / verification code inputs | `@asym/ui` `InputOTP` (`packages/ui/components/shadcn/input-otp.tsx`). Do not add another `input-otp` package. |",
+    required: true,
+  },
+  {
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search:
+      /^\| Command menus \(⌘K palettes\)\s+\| \[cmdk\]\(https:\/\/cmdk\.paco\.me\)\s+\|$/m,
+    replace:
+      "| Command menus (⌘K palettes) | `@asym/ui` `Command` (`packages/ui/components/shadcn/command.tsx`). Do not add another `cmdk` tree. |",
+    required: true,
+  },
+  {
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search:
+      /^\| State management\s+\| \[zustand\]\(https:\/\/zustand\.docs\.pmnd\.rs\)\s+\|$/m,
+    replace:
+      "| State management                               | Local `useState` / `useReducer`; React Context for shared UI state. Do not install Zustand. |",
+    required: true,
+  },
+  {
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search:
+      "- **A `useState`-per-component web of props for shared state** → zustand.",
+    replace:
+      "- **A `useState`-per-component web of props for shared state** → lift with `useState` / `useReducer`, or React Context for shared UI state. Do not install Zustand.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+    replace:
+      "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — reuse `@asym/ui` and Base UI. Do not invoke `pick-ui-library` unless the user explicitly asked which library to use. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:",
+    replace:
+      "- **In Motion, `x`, `y`, and `scale` are supported independent transforms.** They are performant. Use a full `transform` string only when the animation must stay on the compositor while the main thread is busy:",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "<motion.div animate={{ x: 100 }} />                          // drops frames under load",
+    replace: "<motion.div animate={{ x: 100 }} />",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      '<motion.div animate={{ transform: "translateX(100px)" }} />  // hardware accelerated',
+    replace: '<motion.div animate={{ transform: "translateX(100px)" }} />',
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out` or a duration scale already exists, use it. Adding a parallel system is a defect.",
+    replace:
+      "3. **Extend the codebase's tokens, don't fork them.** If `--ease-out-soft` or a duration token already exists in `packages/ui/styles/globals.css`, use it. Adding a parallel system is a defect.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search:
+      "--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */",
+    replace: [
+      "--ease-out-soft: cubic-bezier(",
+      "  0.22,",
+      "  1,",
+      "  0.36,",
+      "  1",
+      "); /* Core token; strong ease-out for UI */",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search: "--ease-in-out: cubic-bezier(",
+    replace: "--ease-in-out-soft: cubic-bezier(",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "SKILL.md",
+    search: [
+      "| Element                  | Duration      |",
+      "| ------------------------ | ------------- |",
+      "| Button press feedback    | 100–160ms     |",
+      "| Tooltips, small popovers | 125–200ms     |",
+      "| Dropdowns, selects       | 150–250ms     |",
+      "| Modals, drawers          | 200–500ms     |",
+      "| Marketing / explanatory  | Can be longer |",
+    ].join("\n"),
+    replace: [
+      "| Element                  | Duration                           |",
+      "| ------------------------ | ---------------------------------- |",
+      "| Button press feedback    | `var(--duration-press)` (120ms)    |",
+      "| Tooltips, small popovers | `var(--duration-micro)` (150ms)    |",
+      "| Dropdowns, selects       | `var(--duration-standard)` (220ms) |",
+      "| Modals                   | `var(--duration-modal)` (220ms)    |",
+      "| Drawers                  | `var(--duration-drawer)` (320ms)   |",
+      "| Marketing / explanatory  | Can be longer                      |",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search:
+      "Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.",
+    replace:
+      "Curves are the Core tokens `--ease-out-soft`, `--ease-in-out-soft`, and `--ease-drawer` from `packages/ui/styles/globals.css`.",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: /var\(--ease-in-out\)/g,
+    replace: "var(--ease-in-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: /var\(--ease-out\)/g,
+    replace: "var(--ease-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: "transform 160ms var(--ease-out-soft)",
+    replace: "transform var(--duration-press) var(--ease-out-soft)",
+    required: true,
+  },
+  {
+    skillName: "animate",
+    relativePath: "RECIPES.md",
+    search: "transform 500ms var(--ease-drawer)",
+    replace: "transform var(--duration-drawer) var(--ease-drawer)",
+    required: true,
+  },
+  {
+    skillName: "emil-prototype",
+    relativePath: "SKILL.md",
+    search:
+      "- **In a project with a dev server** — an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent), one file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
+    replace:
+      "- **In this monorepo** — an isolated HTML file or a static harness outside `apps/*/app/**` and outside production layouts. Do not add `apps/*/app/prototypes/` pages. One file per variant plus a small harness file. Nothing imports from the prototype surface into production code.",
+    required: true,
+  },
+  {
+    skillName: "animate-expo",
+    relativePath: "SKILL.md",
+    search:
+      "description: Build animations in React Native and Expo, making the decisions in the order that determines whether they feel right — should it animate, which thread it runs on, which properties, spring or timing, how the gesture hands off, how it degrades. Writes the implementation with Reanimated, Gesture Handler, Expo Router and expo-haptics. Use when animating anything in an Expo app, adding gestures, sheets, screen transitions, press feedback or haptics, or fixing motion that stutters on device. For web animation use `animate`.\n---",
+    replace:
+      "description: Build animations for Expo and React Native only, using Reanimated, Gesture Handler, Expo Router, and expo-haptics. Use when the target runtime is an Expo or React Native app. Do not use it for Core Next.js web motion; use `animate` for web. Only runs when explicitly invoked; it does not trigger on its own.\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
+    replace:
+      "**One toaster** — Core mounts a single `@asym/ui` `<Toaster />`. Do not add a second host.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "3. **Classes on parts** — `toastOptions={{ classNames: { toast, title, description, actionButton, cancelButton, closeButton } }}`. Sonner's injected styles win the cascade, so every class needs `!important` (Tailwind: `!text-red-900`). If you're marking more than a few things important, stop — go headless.",
+    replace:
+      "3. **Shared toast chrome** — change the shared Sonner host in `packages/ui/components/shadcn/sonner.tsx` and `packages/ui/styles/globals.css`. Do not apply raw Tailwind colors such as a forced red on individual toasts. Use `toast.success` / `toast.error` on the existing host.",
+    required: true,
+  },
+  {
+    skillName: "ask-sonner",
+    relativePath: "SKILL.md",
+    search:
+      "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",
+    replace:
+      "| Toast shows up in every toaster                                       | Core has one shared toaster. Do not mount a second host.                                                                                                                                                                                                                                        |",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "**Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+    replace:
+      "**Toolchain baseline: Swift 6.4** (current public release). Rows and notes marked ⚠ require Swift 6.4; keep the older form when the project toolchain is Swift 6.3 or earlier. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "(Swift 6.4 — unreleased — adds a `Continuation` type that checks single-resumption at compile time.)",
+    replace:
+      "(Swift 6.4 adds a `Continuation` type that checks single-resumption at compile time. Skip it when the toolchain is Swift 6.3 or earlier.)",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "- Landing in Swift 6.4 (**unreleased** — see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop.",
+    replace:
+      "- Shipped in Swift 6.4 (see the note below §15): `borrow`/`mutate` accessors instead of `get`/`set` for large stored values, `UniqueArray`/`UniqueBox`, and `Ref`/`MutableRef` to hoist a repeated lookup out of a loop. Do not use these when the toolchain is Swift 6.3 or earlier.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "Swift 6.4's `@diagnose` attribute (unreleased) lets you turn it on for individual functions.",
+    replace:
+      "Swift 6.4's `@diagnose` attribute lets you turn it on for individual functions when the toolchain is 6.4 or newer.",
+    required: true,
+  },
+  {
+    skillName: "write-swift",
+    relativePath: "SKILL.md",
+    search:
+      "**Rows marked ⚠ are Swift 6.4, which has not shipped.** The current release is 6.3.x. Their proposals are accepted and implemented in main, so they are safe to plan around and unsafe to write today — check the project's toolchain before using one, and prefer the older form if it targets 6.3 or earlier.",
+    replace:
+      "**Rows marked ⚠ shipped in Swift 6.4.** Prefer the older form when the project toolchain is Swift 6.3 or earlier.",
+    required: true,
   },
   {
     skillName: "improve-animations",
@@ -1122,399 +1397,6 @@ const POST_REFRESH_REPLACEMENTS = [
     replace:
       "out = (\n  tmpl.replace('/* INJECT_CSS */', css)\n      .replace('/* INJECT_JS */', js)\n      .replace('<!-- INJECT_BODY -->', html)\n)\n\n# Swap the sentinel JSON inside the pr-diffs-json script element without\n# depending on its exact formatting (formatters may reflow the placeholder).\nout = re.sub(\n    r'(<script id=\"pr-diffs-json\"[^>]*>).*?(</script>)',\n    lambda match: match.group(1) + safe_json + match.group(2),\n    out,\n    count=1,\n    flags=re.DOTALL,\n)\n\nPath('/tmp/pr-review-{number}.html').write_text(out)",
     required: true,
-  },
-  {
-    skillName: "better-layout",
-    relativePath: "spacing-and-adaptivity.md",
-    search:
-      '```html\n<!-- Good: bordered buttons at 12px, icon buttons given room -->\n<div class="flex gap-3">\n  <button class="rounded-lg border px-4 py-2">Cancel</button>\n  <button class="rounded-lg bg-blue-600 px-4 py-2 text-white">Save</button>\n</div>\n\n<!-- Bad: three borderless icon buttons packed at 4px -->\n<div class="flex gap-1">\n  <button><TrashIcon /></button>\n  <button><ArchiveIcon /></button>\n  <button><ShareIcon /></button>\n</div>\n```',
-    replace:
-      '```tsx\nimport { Button } from "@asym/ui/components/shadcn/button";\n\n// Good: reuse the existing buttons and spacing scale.\n<div className="flex gap-3">\n  <Button variant="outline">Cancel</Button>\n  <Button>Save</Button>\n</div>;\n\n// Bad: unrelated actions are packed together without distinct hit areas.\n<div className="flex gap-1">\n  <button><TrashIcon /></button>\n  <button><ArchiveIcon /></button>\n  <button><ShareIcon /></button>\n</div>;\n```',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-layout",
-    relativePath: "grouping-and-alignment.md",
-    search:
-      '```html\n<!-- Good: Tailwind -->\n<div class="space-y-6">\n  <div class="space-y-2">…field group…</div>\n  <div class="space-y-2">…field group…</div>\n</div>\n```',
-    replace:
-      '```tsx\nimport { FieldGroup } from "@asym/ui/components/shadcn/field";\n\n// Good: preserve shared form ownership and use gap for grouping.\n<FieldGroup className="gap-6">\n  <FieldGroup className="gap-2">…related fields…</FieldGroup>\n  <FieldGroup className="gap-2">…related fields…</FieldGroup>\n</FieldGroup>;\n```',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-layout",
-    relativePath: "grouping-and-alignment.md",
-    search:
-      '```html\n<!-- Bad: action looks exactly like the description text next to it -->\n<p class="text-zinc-600">Your trial ends soon. Upgrade now</p>\n\n<!-- Good: the action reads as an action -->\n<p class="text-zinc-600">Your trial ends soon.</p>\n<button class="font-medium text-blue-600">Upgrade now</button>\n```',
-    replace:
-      '```tsx\nimport { Button } from "@asym/ui/components/shadcn/button";\n\n// Bad: the action reads as static text.\n<p className="text-muted-foreground">Your trial ends soon. Upgrade now</p>;\n\n// Good: an existing shared action and semantic text color.\n<p className="text-muted-foreground">Your trial ends soon.</p>;\n<Button variant="link" onClick={onUpgrade}>Upgrade now</Button>;\n```',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "icons.md",
-    search:
-      '```html\n<!-- Good: stroke tuned to the label weight -->\n<button class="flex items-center gap-2 font-semibold">\n  <PlusIcon stroke-width="2" class="size-4" />\n  New project\n</button>\n\n<!-- Bad: default 1.5px stroke against a bold label -->\n<button class="flex items-center gap-2 font-bold">\n  <PlusIcon stroke-width="1.5" class="size-4" />\n  New project\n</button>\n```',
-    replace:
-      '```tsx\nimport { Button } from "@asym/ui/components/shadcn/button";\n\n// The shared Button owns descendant icon sizing and spacing.\n<Button>\n  <PlusIcon strokeWidth={2} />\n  New project\n</Button>;\n```',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "icons.md",
-    search: "oklch(0.552 0.016 285.938)",
-    replace: "var(--muted-foreground)",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "icons.md",
-    search: "oklch(0.21 0.006 285.885)",
-    replace: "var(--foreground)",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "icons.md",
-    search: "oklch(0.623 0.188 259.815)",
-    replace: "var(--primary)",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "icons.md",
-    search:
-      '```html\n<!-- Tailwind -->\n<button\n  class="text-zinc-500 hover:text-zinc-900 aria-pressed:text-blue-600 disabled:opacity-40"\n>\n  <BookmarkIcon />\n</button>\n```',
-    replace:
-      '```tsx\nimport { Button } from "@asym/ui/components/shadcn/button";\n\n<Button\n  variant="ghost"\n  size="icon"\n  aria-label="Bookmark"\n  aria-pressed={saved}\n  onClick={toggleSaved}\n  className="text-muted-foreground hover:text-foreground aria-pressed:text-primary"\n>\n  <BookmarkIcon />\n</Button>;\n```',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "SKILL.md",
-    search:
-      "Keep the project's component library, tokens and density, and match its motion language except where a rule below prescribes an exact interaction.",
-    replace:
-      "Keep Core's shared component library, semantic tokens, density, and motion language for every interaction below.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "SKILL.md",
-    search:
-      "Every duration, curve, scale and blur below is a specific value, not a range to approximate. `cubic-bezier(0.2, 0, 0, 1)` is not `cubic-bezier(0.4, 0, 0.2, 1)`, and `0.96` is not `0.95`. Use what is written.",
-    replace:
-      "The upstream numbers below illustrate visual relationships. In Core, implement those relationships using `packages/ui/styles/globals.css`, the shared component's variants, and `anim` guidance. Do not replace an existing radius, color, shadow, duration, easing, or press interaction with a literal from this reference.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "SKILL.md",
-    search:
-      "Use exactly these values: scale `0.25` to `1`, opacity `0` to `1`, blur `4px` to `0px`.",
-    replace:
-      "The upstream example uses scale `0.25` to `1`, opacity `0` to `1`, and blur `4px` to `0px`; Core implementations must use the shared motion and reduced-motion contract.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "better-ui",
-    relativePath: "SKILL.md",
-    search:
-      "A `scale(0.96)` on click gives a button tactile feedback. Always `0.96`; anything below `0.95` feels exaggerated. Add a `static` prop to switch it off where motion would distract. See [recipes for CSS, Tailwind and Motion](animations.md#scale-on-press).",
-    replace:
-      "The upstream press recipe uses `scale(0.96)` for tactile feedback. In Core, retain the existing shared Button press and reduced-motion behavior; do not add another `static` prop or app-local animation wrapper. See [illustrative recipes for CSS, Tailwind and Motion](animations.md#scale-on-press).",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "emil-design-engineering",
-    relativePath: "component-design.md",
-    search:
-      "When a Base UI primitive must render as another element, use its `render` prop.\nKeep that local to the primitive — do not wrap `Button` in a slot helper.",
-    replace:
-      'When a Base UI primitive must render as another element, use its `render` prop.\nKeep that local to the primitive — do not wrap `Button` in a slot helper.\n\nWhen the shared Button itself must render a non-button, set `nativeButton={false}`:\n\n```tsx\nimport { Button } from "@asym/ui/components/shadcn/button";\n\n<Button render={<a href="/page" />} nativeButton={false}>Open page</Button>;\n```\n\nKeep one interactive element and preserve its keyboard, disabled, focus, event-handler, and ref behavior.',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate-expo",
-    relativePath: "RECIPES.md",
-    search: "      hitSlop={12}",
-    replace:
-      '      style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}\n      hitSlop={12}',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate-expo",
-    relativePath: "RECIPES.md",
-    search:
-      "`hitSlop` brings a small icon up to the 44pt target without growing it;",
-    replace:
-      "The minimum layout dimensions guarantee a 44pt target; `hitSlop` adds extra touch tolerance without changing that layout;",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate-expo",
-    relativePath: "RECIPES.md",
-    search:
-      "      .onEnd((e) => {\n        const projected = translateY.get() + project(e.velocityY);",
-    replace:
-      "      .onEnd((e, success) => {\n        if (!success) {\n          translateY.set(withSpring(0, { duration: 300, dampingRatio: 1 }));\n          return;\n        }\n        const projected = translateY.get() + project(e.velocityY);",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate-expo",
-    relativePath: "RECIPES.md",
-    search:
-      "      .onEnd((e) => {\n        const projected = x.get() + project(e.velocityX);",
-    replace:
-      "      .onEnd((e, success) => {\n        if (!success) {\n          x.set(withSpring(0, { duration: 300, dampingRatio: 1 }));\n          return;\n        }\n        const projected = x.get() + project(e.velocityX);",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate-expo",
-    relativePath: "RECIPES.md",
-    search: "    if (isArmed !== wasArmed) {",
-    replace:
-      "    if (wasArmed === null) {\n      armed.set(isArmed);\n      return;\n    }\n    if (isArmed !== wasArmed) {",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate",
-    relativePath: "RECIPES.md",
-    search: "opacity 400ms ease,\n    transform 400ms ease;",
-    replace:
-      "opacity var(--duration-standard) var(--ease-out-soft),\n    transform var(--duration-standard) var(--ease-out-soft);",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate",
-    relativePath: "RECIPES.md",
-    search:
-      "Stagger is decorative — it must never block interaction while it plays.",
-    replace:
-      "This opacity-zero stagger example is for non-interactive decoration only. Keep links and controls visible and operable while decorative siblings enter; never delay access to functional content.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate",
-    relativePath: "RECIPES.md",
-    search:
-      "const timeTaken = Date.now() - dragStartTime.current;\nconst velocity = Math.abs(swipeAmount) / timeTaken;",
-    replace:
-      "// Capture dragStartTime.current = performance.now() at drag start.\nconst timeTaken = performance.now() - dragStartTime.current;\nconst velocity = timeTaken > 0 ? Math.abs(swipeAmount) / timeTaken : 0;",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate",
-    relativePath: "SKILL.md",
-    search: "**CSS animation** (runs off the main thread)",
-    replace: "**CSS animation** (eligible compositor properties)",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate",
-    relativePath: "SKILL.md",
-    search:
-      "CSS animations beat JS under load — they run off the main thread, while `requestAnimationFrame`-based animation drops frames while the browser loads, scripts, or paints. Use CSS for predetermined motion, JS for dynamic and interruptible motion.",
-    replace:
-      "CSS and WAAPI can keep eligible transform and opacity animations on the compositor. The API alone does not guarantee acceleration: animated properties and browser support matter. Profile the actual effect under load; layout and paint work can still run on the main thread.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate",
-    relativePath: "RECIPES.md",
-    search: "Hardware-accelerated, interruptible, no bundle cost.",
-    replace:
-      "Interruptible with no added animation-library bundle. Acceleration depends on the property and browser; profile this clip-path effect instead of assuming compositor execution.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "ask-sonner",
-    relativePath: "API.md",
-    search:
-      "| `offset`          | `string \\| number \\| object` | `'32px'`          | Offset from screen edges. Object form is per-side: `{ bottom: '24px', right: '16px' }`.  |",
-    replace:
-      "| `offset` | `string \\| number \\| object` | `24px` | Edge offset, with per-side object support. Core's existing shared Toaster may override this upstream default. |",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "ask-sonner",
-    relativePath: "API.md",
-    search:
-      "| `dir`             | `string`                     | `'ltr'`           | Text directionality.                                                                     |",
-    replace:
-      '| `dir` | `"rtl" \\| "ltr" \\| "auto"` | document direction | Follows document direction, with an LTR server fallback. |',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "ask-sonner",
-    relativePath: "API.md",
-    search:
-      "| `hotkey`          | `string`                     | `⌥/alt + T`       | Keyboard shortcut that focuses the toaster area.                                         |",
-    replace:
-      '| `hotkey` | `string[]` | `["altKey", "KeyT"]` | Key combination that focuses the toaster. |',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "ask-sonner",
-    relativePath: "API.md",
-    search:
-      "| `toastOptions`    | `object`                     | –                 | Default options applied to every toast (any `toast()` option below).                     |",
-    replace:
-      "| `toastOptions` | `ToastOptions` | – | Supported defaults: `className`, `closeButton`, `descriptionClassName`, `style`, `cancelButtonStyle`, `actionButtonStyle`, `duration`, `unstyled`, `classNames`, `closeButtonAriaLabel`, `toasterId`. Pass action, cancel, and description per toast. |",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "ask-sonner",
-    relativePath: "API.md",
-    search:
-      "| `onDismiss`          | `(toast) => void`                 | –                 | Fires when the close button is clicked or the toast is swiped away.                                                               |",
-    replace:
-      "| `onDismiss` | `(toast) => void` | – | Fires for close-button, swipe, and programmatic `toast.dismiss(id)` removal of an active toast. |",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "ask-sonner",
-    relativePath: "SKILL.md",
-    search:
-      '**Close callbacks** — `onDismiss` fires on close button or swipe; `onAutoClose` fires on timeout. They are separate; there is no single "closed" callback.',
-    replace:
-      '**Close callbacks** — `onDismiss` fires on close button or swipe; `onAutoClose` fires on timeout. They are separate; there is no single "closed" callback. Programmatic `toast.dismiss(id)` removal of an active toast also invokes `onDismiss`.',
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "mobile-native",
-    relativePath: "SKILL.md",
-    search:
-      "- Connect the phone over USB, run the dev server on `0.0.0.0`, open it by the machine's LAN IP.",
-    replace:
-      "- Prefer USB debugging. If phone testing needs a LAN-bound dev server (`0.0.0.0`), use only a trusted private network and restrict reachability with the host firewall; stop the server afterward. Framework dev-origin protections do not make a public or shared network trusted.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "mobile-native",
-    relativePath: "SKILL.md",
-    search:
-      "`interactive-widget=resizes-content` makes the software keyboard shrink the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs react to it the way they do on iOS.",
-    replace:
-      "`interactive-widget=resizes-content` opts Android Chrome into shrinking both the layout and visual viewports for the software keyboard. Safari on iOS does not support this key and normally resizes only the visual viewport; test its keyboard behavior separately, using the VisualViewport API when the layout needs to respond.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search: "profiling shows a hang → `async` → `@concurrent` → `actor`",
-    replace:
-      "I/O latency → `async`; measured CPU work → `@concurrent`; isolated mutable state → `actor`",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search:
-      "- **Value types are `Sendable` when their storage is** — inferred automatically for non-public types. **Public types never get inferred sendability**: marking a public type `Sendable` is a promise to your clients, so Swift makes you write it.",
-    replace:
-      "- **Structs and enums can infer `Sendable` when their storage is sendable** if they are non-public and not `@usableFromInline`, or are `@frozen` public types. Public non-frozen types need explicit conformance so their public contract remains deliberate. See [SE-0302](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0302-concurrent-value-and-concurrent-closures.md).",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search:
-      "Use **`withDiscardingTaskGroup`** when children return nothing: it frees each child's resources immediately and cancels siblings on the first error.",
-    replace:
-      "Use **`withDiscardingTaskGroup`** for nonthrowing children that return nothing. Use **`withThrowingDiscardingTaskGroup`** when a child can throw and the first child error must cancel siblings.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search:
-      "**Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features.",
-    replace:
-      "**Upstream reference snapshot: Swift 6.3, with separately marked Swift 6.4 material.** Core has no Swift target. For an explicitly requested Swift task, inspect the actual project compiler and deployment targets, then verify feature availability against [official Swift releases](https://www.swift.org/install/). The snapshot and ⚠ markers are not a claim about the current stable release or a reason to upgrade the target.",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "animate",
-    relativePath: "SKILL.md",
-    search:
-      "- **In Motion, use the full transform string.** `x`/`y`/`scale` shorthands are not hardware-accelerated and drop frames under load:",
-    replace:
-      "- **Motion supports `x`/`y`/`scale` shorthands.** When compositor acceleration is important for a measured busy-thread case, prefer a full `transform` string and verify it in the target browser. Shorthands do not inherently mean dropped frames:",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search: "Swift 6.4 — unreleased — adds a `Continuation` type",
-    replace: "Swift 6.4 reference material includes a `Continuation` type",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search: "Landing in Swift 6.4 (**unreleased** — see the note below §15):",
-    replace:
-      "Swift 6.4 reference features (verify the actual toolchain — see the note below §15):",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search: "Swift 6.4's `@diagnose` attribute (unreleased)",
-    replace:
-      "Swift 6.4's `@diagnose` attribute (verify toolchain availability)",
-    required: true,
-    allowWhitespace: true,
-  },
-  {
-    skillName: "write-swift",
-    relativePath: "SKILL.md",
-    search:
-      "**Rows marked ⚠ are Swift 6.4, which has not shipped.** The current release is 6.3.x. Their proposals are accepted and implemented in main, so they are safe to plan around and unsafe to write today — check the project's toolchain before using one, and prefer the older form if it targets 6.3 or earlier.",
-    replace:
-      "**Rows marked ⚠ require explicit toolchain verification.** They describe Swift 6.4 material in this pinned reference snapshot. Check the project compiler, SDK, deployment targets and official feature documentation before using one; retain a compatible older form when the project targets Swift 6.3 or earlier. These markers do not assert that a release is unavailable today.",
-    required: true,
-    allowWhitespace: true,
   },
 ];
 
@@ -1724,16 +1606,18 @@ function annotateEmilDesignEngineeringFormsControls(content) {
       // that contains `type="password"` (not "second <input>" by index: when // pragma: allowlist secret
       // email+password share one line, the next line is `tel` and would get a // pragma: allowlist secret
       // spurious pragma).
-      const passwordLineIndex /* pragma: allowlist secret */ =
-        inputLineIndexes.find(
-          (idx) => lines[idx].includes('type="password"'), // pragma: allowlist secret
-        );
+      const credentialTypeLineIndex = inputLineIndexes.find(
+        (
+          idx, // pragma: allowlist secret
+        ) => lines[idx].includes('type="password"'), // pragma: allowlist secret
+      );
       if (
-        passwordLineIndex /* pragma: allowlist secret */ !== undefined &&
-        !lines[passwordLineIndex].includes("// pragma: allowlist secret") // pragma: allowlist secret
+        credentialTypeLineIndex !== undefined && // pragma: allowlist secret
+        !lines[credentialTypeLineIndex].includes("// pragma: allowlist secret")
       ) {
-        lines[passwordLineIndex] /* pragma: allowlist secret */ =
-          `${lines[passwordLineIndex]} // pragma: allowlist secret`;
+        lines[credentialTypeLineIndex] =
+          // pragma: allowlist secret
+          `${lines[credentialTypeLineIndex]} // pragma: allowlist secret`;
       }
     }
   }
@@ -1800,45 +1684,50 @@ async function annotateSecretScannerMentionsInTree(targetRoot) {
   }
 }
 
-function applyCompatibilityReplacement(
-  content,
-  search,
-  replacement,
-  { allowWhitespace = false } = {},
-) {
-  if (allowWhitespace) {
-    // These reviewed prose/code blocks differ only in indentation or Markdown
-    // table padding between raw upstream and Prettier. Require every literal
-    // token in order; changed API names or instructions still fail closed.
-    const pattern = (value) =>
-      new RegExp(
-        value
-          .split(/\s+/u)
-          .map((part) => part.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"))
-          .join("\\s+")
-          .replaceAll("\\s+>", "\\s*>"),
-        "gu",
-      );
-    const targetPattern = pattern(replacement.trim());
-    if (targetPattern.test(content))
-      return { matched: true, changed: false, content };
-    const sourcePattern = pattern(search.trim());
-    if (!sourcePattern.test(content))
-      return { matched: false, changed: false, content };
-    sourcePattern.lastIndex = 0;
-    return {
-      matched: true,
-      changed: true,
-      content: content.replace(sourcePattern, () => replacement.trim()),
-    };
+function findCompatibilitySearch(content, search, cursor) {
+  if (typeof search === "string") {
+    const index = content.indexOf(search, cursor);
+    return index === -1 ? null : { index, length: search.length };
   }
+
+  const flags = search.flags.replaceAll("g", "").replaceAll("y", "");
+  const matcher = new RegExp(search.source, `${flags}g`);
+  matcher.lastIndex = cursor;
+  const match = matcher.exec(content);
+  return match === null
+    ? null
+    : { index: match.index, length: match[0].length };
+}
+
+function whitespaceFlexiblePattern(value) {
+  return new RegExp(
+    value
+      .trim()
+      .split(/\s+/u)
+      .map((part) => part.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"))
+      .join("\\s+")
+      .replaceAll("\\s+>", "\\s*>"),
+    "u",
+  );
+}
+
+function applyCompatibilityReplacement(content, search, replacement) {
   let cursor = 0;
   let output = "";
   let matched = false;
   let changed = false;
 
+  if (
+    findCompatibilitySearch(content, search, 0) === null &&
+    typeof replacement === "string" &&
+    whitespaceFlexiblePattern(replacement).test(content)
+  ) {
+    return { content, matched: true, changed: false };
+  }
+
   while (cursor < content.length) {
-    const searchIndex = content.indexOf(search, cursor);
+    const searchMatch = findCompatibilitySearch(content, search, cursor);
+    const searchIndex = searchMatch?.index ?? -1;
     const replacementIndex = content.indexOf(replacement, cursor);
 
     if (searchIndex === -1 && replacementIndex === -1) {
@@ -1858,7 +1747,7 @@ function applyCompatibilityReplacement(
     }
 
     output += content.slice(cursor, searchIndex) + replacement;
-    cursor = searchIndex + search.length;
+    cursor = searchIndex + searchMatch.length;
     matched = true;
     changed = true;
   }
@@ -1901,141 +1790,41 @@ async function rewriteAskSonnerToasterImport(skillName, targetRoot) {
 }
 
 async function ensureEmilDisableModelInvocation(skillName, targetRoot) {
-  const description = CORE_EXPLICIT_SKILL_DESCRIPTIONS[skillName];
-  if (!description && !EMIL_EXPLICIT_ONLY_SKILLS.has(skillName)) return;
-  const skillPath = path.join(targetRoot, "SKILL.md");
-  let content = await readFile(skillPath, "utf8");
-  const frontmatter = /^---\n([\s\S]*?)\n---/u.exec(content);
-  if (!frontmatter)
-    throw new Error(`Missing discovery metadata in ${skillPath}`);
-  let metadata = frontmatter[1];
-  if (description) {
-    if (!/^description:.*$/mu.test(metadata))
-      throw new Error(`Missing description in ${skillPath}`);
-    metadata = metadata.replace(
-      /^description:.*$/mu,
-      `description: ${description}`,
-    );
+  if (!EMIL_EXPLICIT_ONLY_SKILLS.has(skillName)) {
+    return;
   }
-  if (/^disable-model-invocation:/mu.test(metadata))
-    metadata = metadata.replace(
-      /^disable-model-invocation:.*$/mu,
-      "disable-model-invocation: true",
-    );
-  else metadata += "\ndisable-model-invocation: true";
-  content = content.replace(frontmatter[0], `---\n${metadata}\n---`);
-  await writeFile(skillPath, content, "utf8");
-}
 
-async function applyCoreOperativeGuidance(skillName, targetRoot) {
-  if (!emilKowalskiSkillNames.includes(skillName)) return;
   const skillPath = path.join(targetRoot, "SKILL.md");
-  let content = await readFile(skillPath, "utf8");
-  content = content
-    .replaceAll(
-      "When this skill is first invoked without a specific question, respond only with:",
-      "Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:",
-    )
-    .replaceAll(
-      "Do not provide any other information until the user asks a question.",
-      "For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.",
-    );
-  if (skillName === "improve-animations") {
-    content = content.replace(
-      /^description:.*$/mu,
-      "description: Produce a read-only motion audit or implementation plan when the user explicitly asks for an audit, roadmap, or plan. For concrete implementation requests use Core's normal implementation and anim guidance instead.",
+  const content = (await readFile(skillPath, "utf8")).replaceAll("\r\n", "\n");
+  const lines = content.split("\n");
+  if (lines[0] !== "---") {
+    return;
+  }
+
+  const closingDelimiterIndex = lines.indexOf("---", 1);
+  if (closingDelimiterIndex === -1) {
+    throw new Error(
+      `Unterminated YAML frontmatter in ${path.relative(repoRoot, skillPath)}`,
     );
   }
-  if (skillName === "animate") {
-    content = content.replace(
-      /Built-in CSS easings are too weak\. Use these:\n\n```css\n[\s\S]*?\n```/u,
-      "Core already defines the motion tokens in `packages/ui/styles/globals.css`. Reuse them; do not create another token system:\n\n```css\ntransition-timing-function: var(--ease-out-soft);\ntransition-duration: var(--duration-standard);\n```",
-    );
-    content = content.replace(
-      "stop and invoke `pick-ui-library`.",
-      "reuse `@asym/ui` / Base UI; invoke `pick-ui-library` only when the user explicitly asks which library to use.",
-    );
+
+  const frontmatter = lines.slice(1, closingDelimiterIndex).join("\n");
+  const invocationLine = getTopLevelFrontmatterLine(
+    frontmatter,
+    "disable-model-invocation",
+  );
+  if (invocationLine === "disable-model-invocation: true") {
+    return;
   }
-  if (skillName === "emil-prototype") {
-    content = content.replace(
-      "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
-      "an isolated static prototype surface outside app routes and production layouts",
-    );
-  }
-  if (skillName === "ask-sonner") {
-    content = content
-      .replace(
-        "1. **One `<Toaster />`, mounted once**, as close to the root as possible (in Next.js: `layout.tsx` — it works inside server components). Never render it per-page or conditionally; a second mounted Toaster duplicates every toast.",
-        "1. **Reuse Core's existing layout `<Toaster />`.** Do not add a mount in an app layout or page. The shared host already exists at `@asym/ui/components/shadcn/sonner`; change that shared owner only when the requested behavior requires it.",
-      )
-      .replace(
-        "**Multiple toasters** — give each an `id` and target with `toast('…', { toasterId: 'canvas' })`. Without `toasterId`, every toaster renders the toast.",
-        "**One Core toaster** — use the existing shared host. Do not add a second host or a `toasterId` route as part of ordinary toast work.",
-      )
-      .replaceAll("toast.getActiveToasts()", "toast.getToasts()")
-      .replaceAll(
-        "Mount one at the root.",
-        "Inspect the existing shared layout host instead of mounting another.",
-      )
-      .replace(
-        "Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.",
-        "Remove the extra host; Core owns one existing shared toaster per app layout.",
-      )
-      .replaceAll("!text-red-900", "text-destructive");
-  }
-  if (skillName === "mobile-native") {
-    content = content.replace(
-      'button,\na,\n[role="button"] {\n  touch-action: manipulation;\n  user-select: none;',
-      'button,\na,\n[role="button"] {\n  touch-action: manipulation;\n}\n\nbutton,\n[role="button"] {\n  user-select: none;',
+
+  if (invocationLine !== null) {
+    throw new Error(
+      `Unexpected disable-model-invocation line in ${path.relative(repoRoot, skillPath)}: ${invocationLine}`,
     );
   }
-  if (skillName === "pick-ui-library") {
-    content = content
-      .replace(
-        /^\|.*\[cmdk\].*\|$/mu,
-        "| Command menus | Existing `@asym/ui/components/shadcn/command` |",
-      )
-      .replace(
-        /^\|.*\[input-otp\].*\|$/mu,
-        "| OTP / verification code inputs | Existing `@asym/ui/components/shadcn/input-otp` |",
-      )
-      .replace(
-        /^\|.*\[zustand\].*\|$/mu,
-        "| State management | React state/reducer/context and approved TanStack data hooks. Do not install Zustand. |",
-      )
-      .replace(
-        /^\|.*\[clsx\].*\|$/mu,
-        "| Conditional class names | Existing `cn` from `@asym/ui/lib/utils` |",
-      )
-      .replace(
-        "The styling split: clsx for ad-hoc conditional classes; cva when a component has real variants (size, intent, state) that deserve a typed API. They compose — cva uses clsx-style inputs internally.",
-        "Use Core's existing `cn` helper for conditional class names and existing shared variants for component APIs. Do not install another class-merging helper.",
-      )
-      .replace(
-        "- **A `useState`-per-component web of props for shared state** → zustand.",
-        "- **Shared client state** → use the existing React state/reducer/context boundary or approved TanStack data hooks; do not introduce Zustand.",
-      )
-      .replace(
-        "- **Template-literal className ternaries three conditions deep** → clsx (or cva if it's variant-shaped).",
-        "- **Complex class conditions** → the existing `cn` helper and shared component variants.",
-      );
-  }
-  await writeFile(skillPath, content, "utf8");
-  const companions =
-    skillName === "animate"
-      ? ["RECIPES.md"]
-      : skillName === "ask-sonner"
-        ? ["API.md"]
-        : [];
-  for (const relativePath of companions) {
-    const companionPath = path.join(targetRoot, relativePath);
-    if (!(await fileExists(companionPath))) continue;
-    const original = await readFile(companionPath, "utf8");
-    const corrected = original
-      .replaceAll("var(--ease-out)", "var(--ease-out-soft)")
-      .replaceAll("toast.getActiveToasts()", "toast.getToasts()");
-    await writeFile(companionPath, corrected, "utf8");
-  }
+
+  lines.splice(closingDelimiterIndex, 0, "disable-model-invocation: true");
+  await writeFile(skillPath, lines.join("\n"), "utf8");
 }
 
 async function ensureGitGuardrailsFailClosed(skillName, targetRoot) {
@@ -2064,6 +1853,21 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
     }
   }
 
+  if (skillName === "better-accessibility" || skillName === "better-writing") {
+    const relativePaths =
+      skillName === "better-accessibility"
+        ? ["SKILL.md", "forms.md"]
+        : ["SKILL.md"];
+    for (const relativePath of relativePaths) {
+      const targetPath = path.join(targetRoot, relativePath);
+      const original = await readFile(targetPath, "utf8");
+      const patched = annotateSecretScannerMentions(original, relativePath);
+      if (patched !== original) {
+        await writeFile(targetPath, patched, "utf8");
+      }
+    }
+  }
+
   if (skillName === "improve-animations") {
     const templatePath = path.join(targetRoot, "PLAN-TEMPLATE.md");
     const templateContent = await readFile(templatePath, "utf8");
@@ -2088,7 +1892,6 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
       content,
       replacement.search,
       replacement.replace,
-      { allowWhitespace: replacement.allowWhitespace },
     );
     if (!applied.matched) {
       if (replacement.required) {
@@ -2106,6 +1909,10 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
       await writeFile(targetPath, applied.content, "utf8");
     }
   }
+
+  await rewriteAskSonnerToasterImport(skillName, targetRoot);
+  await ensureEmilDisableModelInvocation(skillName, targetRoot);
+  await ensureGitGuardrailsFailClosed(skillName, targetRoot);
 
   if (skillName === "emil-design-engineering") {
     const targetPath = path.join(targetRoot, "forms-controls.md");
@@ -2154,11 +1961,6 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
     await writeFile(targetPath, lines.join("\n"), "utf8");
   }
-
-  await rewriteAskSonnerToasterImport(skillName, targetRoot);
-  await ensureEmilDisableModelInvocation(skillName, targetRoot);
-  await applyCoreOperativeGuidance(skillName, targetRoot);
-  await ensureGitGuardrailsFailClosed(skillName, targetRoot);
 
   await annotateSecretScannerMentionsInTree(targetRoot);
 }
@@ -2251,9 +2053,7 @@ function assertAskMattOverlayOnMainFlow(skillContent) {
     overlayEnd < stepTwoIndex &&
     skillContent.includes("/grill-for-unknowns") &&
     skillContent.includes("/writing-great-skills") &&
-    !skillContent.includes("/writing-for-agents") &&
-    !skillContent.includes("/to-questionnaire") &&
-    !skillContent.includes("/wait-what")
+    !skillContent.includes("/writing-for-agents")
   );
 }
 
@@ -2273,7 +2073,6 @@ async function assertPostRefreshCompatibility(skillName, targetRoot) {
     }
     return;
   }
-
   const frontmatter = readFrontmatter(skillContent, skillPath);
   const nameLine = getTopLevelFrontmatterLine(frontmatter, "name");
   const descriptionLine = getTopLevelFrontmatterLine(
@@ -2526,94 +2325,14 @@ async function writeSkillsLock(lockfile) {
     version: lockfile.version,
     skills: sortedSkills,
   };
-  await writeFileAtomically(
-    skillsLockPath,
-    `${JSON.stringify(sortedLockfile, null, 2)}\n`,
-  );
-}
-
-async function writeFileAtomically(targetPath, content) {
-  const staging = getTemporarySiblingPath(targetPath, "refresh-file");
-  await mkdir(path.dirname(targetPath), { recursive: true });
+  const payload = `${JSON.stringify(sortedLockfile, null, 2)}\n`;
+  const temporaryPath = `${skillsLockPath}.${process.pid}.tmp`;
+  await writeFile(temporaryPath, payload, "utf8");
   try {
-    await writeFile(staging, content, { flag: "wx" });
-    await rename(staging, targetPath);
-  } finally {
-    try {
-      await rm(staging, { force: true });
-    } catch (cleanupError) {
-      // A successful rename has already published the file. Housekeeping
-      // cannot hide that success from the transaction or mask a write error.
-      console.warn(
-        `warning: failed to remove refresh file staging ${staging}`,
-        cleanupError,
-      );
-    }
-  }
-}
-
-async function commitFileUpdates(updates) {
-  const originals = new Map();
-  const written = [];
-  let preserveBackups = false;
-  try {
-    // Persist all original bytes before replacing a companion or lockfile. An
-    // interrupted rollback must leave recoverable data after this process exits.
-    for (const { targetPath } of updates) {
-      let original;
-      try {
-        original = await readFile(targetPath);
-      } catch (error) {
-        if (getErrorCode(error) !== "ENOENT") throw error;
-        originals.set(targetPath, null);
-        continue;
-      }
-      const backup = getTemporarySiblingPath(targetPath, "refresh-backup");
-      originals.set(targetPath, backup);
-      await writeFile(backup, original, { flag: "wx" });
-    }
-    for (const { targetPath, content } of updates) {
-      await writeFileAtomically(targetPath, content);
-      written.push(targetPath);
-    }
+    await rename(temporaryPath, skillsLockPath);
   } catch (error) {
-    const rollbackErrors = [];
-    for (const targetPath of written.reverse()) {
-      const backup = originals.get(targetPath);
-      try {
-        if (backup === null) await rm(targetPath, { force: true });
-        else await writeFileAtomically(targetPath, await readFile(backup));
-      } catch (rollbackError) {
-        rollbackErrors.push(
-          new Error(
-            `Failed to restore ${targetPath}; recovery copy retained at ${backup}`,
-            { cause: rollbackError },
-          ),
-        );
-      }
-    }
-    if (rollbackErrors.length > 0) {
-      preserveBackups = true;
-      throw new AggregateError(
-        [error, ...rollbackErrors],
-        "Skill refresh rollback failed",
-      );
-    }
+    await rm(temporaryPath, { force: true });
     throw error;
-  } finally {
-    if (!preserveBackups) {
-      for (const backup of originals.values()) {
-        if (backup === null) continue;
-        try {
-          await rm(backup, { force: true });
-        } catch (cleanupError) {
-          console.warn(
-            `warning: failed to remove refresh backup ${backup}`,
-            cleanupError,
-          );
-        }
-      }
-    }
   }
 }
 
@@ -2725,6 +2444,16 @@ async function readCompanionFiles({ cloneDir, group }) {
   return companionFiles;
 }
 
+async function writeCompanionFiles(companionFiles) {
+  for (const { from, targetPath, content } of companionFiles) {
+    await mkdir(path.dirname(targetPath), { recursive: true });
+    await writeFile(targetPath, content);
+    console.log(
+      `refreshed companion ${path.relative(repoRoot, targetPath)} <= ${from}`,
+    );
+  }
+}
+
 /**
  * Stage one GitHub-vendored skill into a temporary sibling of its canonical
  * directory: copy from the clone, copy configured support files, format with
@@ -2787,7 +2516,7 @@ async function prepareGithubSkillRefresh({
       },
     };
   } catch (error) {
-    await cleanupRefreshStaging([{ staging }]);
+    await rm(staging, { recursive: true, force: true });
     throw error;
   }
 }
@@ -2903,6 +2632,7 @@ async function refreshGithubGroup(group, lockfile) {
  * without `skills-lock.json` (e.g. the script-verifier fixtures) skips GitHub
  * vendoring instead of failing the whole run.
  */
+
 async function refreshGithubGroups(groups, { focused }) {
   if (!(await fileExists(skillsLockPath))) {
     const message =
@@ -2963,15 +2693,6 @@ function getTemporarySiblingPath(targetPath, label) {
   return path.join(parentDir, `.${targetName}.${label}-${uniqueSuffix}`);
 }
 
-async function pathEntry(targetPath) {
-  try {
-    return await lstat(targetPath);
-  } catch (error) {
-    if (getErrorCode(error) === "ENOENT") return null;
-    throw error;
-  }
-}
-
 async function pathExists(targetPath) {
   return (await pathEntry(targetPath)) !== null;
 }
@@ -2996,7 +2717,9 @@ async function moveDirectory(fromPath, toPath) {
   try {
     await renameOnce(fromPath, toPath);
   } catch (error) {
-    if (getErrorCode(error) !== "EXDEV") throw error;
+    if (getErrorCode(error) !== "EXDEV") {
+      throw error;
+    }
     if (await pathExists(toPath)) {
       throw Object.assign(
         new Error(`Refusing occupied refresh destination ${toPath}`, {
@@ -3005,23 +2728,30 @@ async function moveDirectory(fromPath, toPath) {
         { code: "EEXIST" },
       );
     }
-    await cp(fromPath, toPath, {
-      recursive: true,
-      force: false,
-      errorOnExist: true,
-    });
-    await rm(fromPath, { recursive: true, force: true });
-  }
-}
 
-async function assertCanonicalDirectoryEntry(targetPath) {
-  const entry = await pathEntry(targetPath);
-  if (entry && !entry.isDirectory()) {
-    throw new Error(
-      `Refusing unexpected non-directory canonical destination ${targetPath}`,
-    );
+    await cp(fromPath, toPath, { recursive: true, force: true });
+    try {
+      if (
+        process.env.CORE_SKILLS_SIMULATE_BACKUP_REMOVE_FAILURE === "1" &&
+        path.basename(toPath).includes(".refresh-backup-")
+      ) {
+        const removeError = new Error(
+          `EIO: simulated remove failure for ${fromPath}`,
+        );
+        removeError.code = "EIO";
+        throw removeError;
+      }
+      await rm(fromPath, { recursive: true, force: true });
+    } catch (removeError) {
+      const copyError = new Error(
+        `Failed to remove ${fromPath} after copying it to ${toPath}`,
+      );
+      copyError.code = getErrorCode(removeError);
+      copyError.backupReady = true;
+      copyError.cause = removeError;
+      throw copyError;
+    }
   }
-  return entry;
 }
 
 async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
@@ -3072,26 +2802,11 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     await applyPostRefreshReplacements(skillName, staging);
     await assertPostRefreshCompatibility(skillName, staging);
   } catch (error) {
-    await cleanupRefreshStaging([{ staging }]);
+    await rm(staging, { recursive: true, force: true });
     throw error;
   }
 
   return { skillName, from, to, staging, emilCloneSkillHash };
-}
-
-async function cleanupRefreshStaging(preparedRefreshes) {
-  for (const { staging } of preparedRefreshes) {
-    try {
-      await rm(staging, { recursive: true, force: true });
-    } catch (cleanupError) {
-      // Cleanup of a temporary path must not replace an earlier recovery
-      // failure and let a broad refresh misclassify it as a harmless skip.
-      console.warn(
-        `warning: failed to remove refresh staging ${staging}`,
-        cleanupError,
-      );
-    }
-  }
 }
 
 async function prepareSkillRefreshes(sources) {
@@ -3112,8 +2827,128 @@ function isIncompleteSkillRefreshRollbackError(error) {
   return (
     error instanceof AggregateError &&
     (error.message === "Skill refresh rollback failed" ||
-      error.message.startsWith("Failed to restore "))
+      error.message.startsWith("Failed to restore ") ||
+      error.message.startsWith("Failed to remove partial refresh destination "))
   );
+}
+
+async function writeFileAtomically(targetPath, content) {
+  const staging = getTemporarySiblingPath(targetPath, "refresh-file");
+  await mkdir(path.dirname(targetPath), { recursive: true });
+  try {
+    await writeFile(staging, content, { flag: "wx" });
+    await rename(staging, targetPath);
+  } finally {
+    try {
+      await rm(staging, { force: true });
+    } catch (cleanupError) {
+      // A successful rename has already published the file. Housekeeping
+      // cannot hide that success from the transaction or mask a write error.
+      console.warn(
+        `warning: failed to remove refresh file staging ${staging}`,
+        cleanupError,
+      );
+    }
+  }
+}
+
+async function commitFileUpdates(updates) {
+  const originals = new Map();
+  const written = [];
+  let preserveBackups = false;
+  try {
+    // Persist all original bytes before replacing a companion or lockfile. An
+    // interrupted rollback must leave recoverable data after this process exits.
+    for (const { targetPath } of updates) {
+      let original;
+      try {
+        original = await readFile(targetPath);
+      } catch (error) {
+        if (getErrorCode(error) !== "ENOENT") throw error;
+        originals.set(targetPath, null);
+        continue;
+      }
+      const backup = getTemporarySiblingPath(targetPath, "refresh-backup");
+      originals.set(targetPath, backup);
+      await writeFile(backup, original, { flag: "wx" });
+    }
+    for (const { targetPath, content } of updates) {
+      await writeFileAtomically(targetPath, content);
+      written.push(targetPath);
+    }
+  } catch (error) {
+    const rollbackErrors = [];
+    for (const targetPath of written.reverse()) {
+      const backup = originals.get(targetPath);
+      try {
+        if (backup === null) await rm(targetPath, { force: true });
+        else await writeFileAtomically(targetPath, await readFile(backup));
+      } catch (rollbackError) {
+        rollbackErrors.push(
+          new Error(
+            `Failed to restore ${targetPath}; recovery copy retained at ${backup}`,
+            { cause: rollbackError },
+          ),
+        );
+      }
+    }
+    if (rollbackErrors.length > 0) {
+      preserveBackups = true;
+      throw new AggregateError(
+        [error, ...rollbackErrors],
+        "Skill refresh rollback failed",
+      );
+    }
+    throw error;
+  } finally {
+    if (!preserveBackups) {
+      for (const backup of originals.values()) {
+        if (backup === null) continue;
+        try {
+          await rm(backup, { force: true });
+        } catch (cleanupError) {
+          console.warn(
+            `warning: failed to remove refresh backup ${backup}`,
+            cleanupError,
+          );
+        }
+      }
+    }
+  }
+}
+
+async function pathEntry(targetPath) {
+  try {
+    return await lstat(targetPath);
+  } catch (error) {
+    if (getErrorCode(error) === "ENOENT") return null;
+    throw error;
+  }
+}
+
+async function assertCanonicalDirectoryEntry(targetPath) {
+  const entry = await pathEntry(targetPath);
+  if (entry && !entry.isDirectory()) {
+    throw new Error(
+      `Refusing unexpected non-directory canonical destination ${targetPath}`,
+    );
+  }
+  return entry;
+}
+
+async function cleanupRefreshStaging(preparedRefreshes) {
+  for (const { staging } of preparedRefreshes) {
+    try {
+      await rm(staging, { recursive: true, force: true });
+    } catch (cleanupError) {
+      // Cleanup of a temporary path must not replace an earlier recovery
+      // failure and let a broad refresh misclassify it as a harmless skip.
+      console.warn(
+        `warning: failed to remove refresh staging ${staging}`,
+        cleanupError,
+      );
+    }
+  }
 }
 
 async function swapPreparedRefresh(preparedRefresh) {
@@ -3124,6 +2959,12 @@ async function swapPreparedRefresh(preparedRefresh) {
   if (hasBackup) {
     // A copy leaves the canonical source intact if creating a backup fails.
     // Record the complete backup before any removal of the canonical tree.
+    if (await pathExists(backup)) {
+      throw Object.assign(
+        new Error(`EXDEV: refusing occupied refresh backup ${backup}`),
+        { code: "EXDEV" },
+      );
+    }
     try {
       await cp(to, backup, {
         recursive: true,
@@ -3133,6 +2974,12 @@ async function swapPreparedRefresh(preparedRefresh) {
     } catch (error) {
       await rm(backup, { recursive: true, force: true });
       throw error;
+    }
+
+    if (process.env.CORE_SKILLS_SIMULATE_BACKUP_REMOVE_FAILURE === "1") {
+      const removeError = new Error(`EIO: simulated remove failure for ${to}`);
+      removeError.code = "EIO";
+      throw removeError;
     }
   }
 
@@ -3228,6 +3075,7 @@ async function refreshSkillsAtomically(sources) {
   await commitPreparedRefreshes(preparedRefreshes, () =>
     updateEmilCloneSkillLockHashes(preparedRefreshes),
   );
+
   for (const { from, to } of preparedRefreshes) {
     console.log(
       `refreshed ${path.relative(repoRoot, to)} <= ${path.relative(repoRoot, from)}`,
@@ -3300,8 +3148,9 @@ async function main() {
       try {
         await refreshSkillsAtomically(sources);
       } catch (error) {
+        const rollbackIncomplete = isIncompleteSkillRefreshRollbackError(error);
         throw new Error(
-          isIncompleteSkillRefreshRollbackError(error)
+          rollbackIncomplete
             ? `Focused upstream refresh for ${onlySourceGroup} failed and skill rollback was incomplete`
             : `Focused upstream refresh for ${onlySourceGroup} failed without changing canonical skills`,
           { cause: error },
@@ -3318,7 +3167,9 @@ async function main() {
       try {
         await refreshSkillsAtomically(groupedSources);
       } catch (error) {
-        if (isIncompleteSkillRefreshRollbackError(error)) throw error;
+        if (isIncompleteSkillRefreshRollbackError(error)) {
+          throw error;
+        }
         console.warn(
           `[warn] skipping ${sourceGroup} (${groupedSources.map(({ skillName }) => skillName).join(", ")}): ${error instanceof Error ? error.message : String(error)}`,
         );

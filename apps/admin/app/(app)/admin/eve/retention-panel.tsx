@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -46,15 +47,14 @@ async function mutateRetention(body: Record<string, unknown>) {
   return response.json();
 }
 
-function timestamp(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+const TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
+  dateStyle: "medium",
+  timeStyle: "short",
+};
 
 export function EveRetentionPanel() {
   const queryClient = useQueryClient();
+  const { formatDateTime } = useLocaleFormat();
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: loadRetention,
@@ -132,6 +132,10 @@ export function EveRetentionPanel() {
             <Button
               size="sm"
               variant="outline"
+              focusableWhenDisabled={
+                mutation.isPending &&
+                mutation.variables?.action === "run_expiry"
+              }
               disabled={mutation.isPending}
               onClick={() =>
                 mutation.mutate({ action: "run_expiry", limit: 100 })
@@ -156,7 +160,8 @@ export function EveRetentionPanel() {
                 <div className="text-right">
                   <Badge variant="outline">{artifact.status}</Badge>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Expires {timestamp(artifact.expiresAt)}
+                    Expires{" "}
+                    {formatDateTime(artifact.expiresAt, TIMESTAMP_FORMAT)}
                   </p>
                 </div>
               </li>
@@ -195,6 +200,11 @@ export function EveRetentionPanel() {
                     <Button
                       size="sm"
                       variant="outline"
+                      focusableWhenDisabled={
+                        mutation.isPending &&
+                        mutation.variables?.action === "clear_hold" &&
+                        mutation.variables.holdId === hold.id
+                      }
                       disabled={mutation.isPending}
                       onClick={() =>
                         mutation.mutate({

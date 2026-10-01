@@ -61,7 +61,7 @@ The trophy shape means integration tests (component + API) should be your **larg
 
 **Best for**:
 - Critical user flows that generate revenue (checkout, signup, subscription)
-- Authentication and authorization flows (login, SSO, MFA, password reset) <!-- pragma: allowlist secret -->
+- Authentication and authorization flows (login, SSO, MFA, password reset) // pragma: allowlist secret
 - Multi-page workflows where state carries across navigation (wizards, onboarding)
 - Flows involving third-party iframes (payment widgets, embedded forms)
 - Smoke tests validating the entire stack is wired together

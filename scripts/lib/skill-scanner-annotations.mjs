@@ -214,7 +214,7 @@ function lineIsProtectedData(line, context) {
 function annotateCodeLine(line, filePath, context) {
   if (lineIsProtectedData(line, context)) return line;
   const comment = secretScannerCommentForLanguage(context.language);
-  const markup = /^(?:tsx|jsx|html|htm|svg|xml|mdx)$/u.test(context.language);
+  const markup = /^(?:tsx|jsx|mdx)$/u.test(context.language);
   if (!markup && comment !== null && line.trim() === comment) return line;
   // Removing the tool-owned trailing marker is safe outside quoted data. A
   // markup suffix can render as text; keep markup scanner-visible instead of

@@ -229,13 +229,13 @@ test("handles concurrent session limit", async ({ browser }) => {
 });
 ```
 
-### Test Password Reset Security <!-- pragma: allowlist secret -->
+### Test Password Reset Security // pragma: allowlist secret
 
 ```typescript
 test("password reset token is single-use", async ({ page, request }) => { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+  // pragma: allowlist secret
+  // pragma: allowlist secret
+  // pragma: allowlist secret
   // Request password reset // pragma: allowlist secret
   await page.goto("/forgot-password"); // pragma: allowlist secret
   await page.getByLabel("Email").fill("user@example.com");

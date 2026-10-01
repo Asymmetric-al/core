@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -45,11 +46,10 @@ async function updateChannel(input: {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ kind: "channel", ...input }),
   });
-  const body = (await response.json().catch(() => null)) as
-    | NotificationResponse
-    | { error?: string }
-    | null;
-  if (!response.ok) {
+  const { ok, body } = await readJsonBody<
+    NotificationResponse | { error?: string }
+  >(response);
+  if (!ok) {
     throw new Error(body && "error" in body ? body.error : "Update failed.");
   }
   return body as NotificationResponse;
@@ -66,11 +66,10 @@ async function updateRecipient(input: {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ kind: "recipient", ...input }),
   });
-  const body = (await response.json().catch(() => null)) as
-    | NotificationResponse
-    | { error?: string }
-    | null;
-  if (!response.ok) {
+  const { ok, body } = await readJsonBody<
+    NotificationResponse | { error?: string }
+  >(response);
+  if (!ok) {
     throw new Error(body && "error" in body ? body.error : "Update failed.");
   }
   return body as NotificationResponse;
@@ -155,6 +154,12 @@ export function EveNotificationsPanel() {
                   <Button
                     size="sm"
                     variant="outline"
+                    focusableWhenDisabled={
+                      mutation.isPending &&
+                      mutation.variables?.kind === "channel" &&
+                      mutation.variables.channel === channel.channel &&
+                      mutation.variables.enabled !== undefined
+                    }
                     disabled={mutation.isPending}
                     onClick={() =>
                       mutation.mutate({
@@ -169,6 +174,12 @@ export function EveNotificationsPanel() {
                   <Button
                     size="sm"
                     variant="outline"
+                    focusableWhenDisabled={
+                      mutation.isPending &&
+                      mutation.variables?.kind === "channel" &&
+                      mutation.variables.channel === channel.channel &&
+                      mutation.variables.paused !== undefined
+                    }
                     disabled={mutation.isPending || !channel.enabled}
                     onClick={() =>
                       mutation.mutate({
@@ -210,6 +221,11 @@ export function EveNotificationsPanel() {
                 <Button
                   size="sm"
                   variant="outline"
+                  focusableWhenDisabled={
+                    mutation.isPending &&
+                    mutation.variables?.kind === "recipient" &&
+                    mutation.variables.profileId === recipient.profileId
+                  }
                   disabled={mutation.isPending}
                   onClick={() =>
                     mutation.mutate({

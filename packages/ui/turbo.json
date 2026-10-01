@@ -1,0 +1,4 @@
+{
+  "$schema": "https://v2-10-0.turborepo.dev/schema.json",
+  "extends": ["//", "@asym/eslint-config"]
+}

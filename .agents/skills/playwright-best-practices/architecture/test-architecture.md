@@ -220,7 +220,7 @@ test.describe("ContactForm component", () => {
 **Ideal for**:
 
 - Critical user flows that generate revenue (checkout, signup)
-- Authentication flows (login, SSO, MFA, password reset) <!-- pragma: allowlist secret -->
+- Authentication flows (login, SSO, MFA, password reset) // pragma: allowlist secret
 - Multi-page workflows where state carries across navigation
 - Flows involving third-party iframes (payment widgets)
 - Smoke tests validating the entire stack

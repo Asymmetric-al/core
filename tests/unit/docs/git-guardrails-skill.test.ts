@@ -1,16 +1,17 @@
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
-const hookRelativePath =
-  ".agents/skills/git-guardrails-claude-code/scripts/block-dangerous-git.sh";
-const overlayRelativePath =
-  "scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh";
-const hookPath = path.join(repoRoot, hookRelativePath);
-const overlayPath = path.join(repoRoot, overlayRelativePath);
+const hookRelativePaths = [
+  ".agents/skills/git-guardrails-claude-code/scripts/block-dangerous-git.sh",
+  ".claude/skills/git-guardrails-claude-code/scripts/block-dangerous-git.sh",
+  ".cursor/skills/git-guardrails-claude-code/scripts/block-dangerous-git.sh",
+] as const;
+
+const hookPath = path.join(repoRoot, hookRelativePaths[0]);
 
 function runHook(payload: string) {
   return spawnSync("bash", [hookPath], {
@@ -21,59 +22,85 @@ function runHook(payload: string) {
 }
 
 describe("git-guardrails Claude hook", () => {
-  it("keeps the fail-closed parser and workspace-reset regexes", () => {
-    expect(existsSync(hookPath)).toBe(true);
-    const hook = readFileSync(hookPath, "utf8");
+  it("keeps the three runtime mirrors byte-identical", () => {
+    const [canonical, ...mirrors] = hookRelativePaths.map((relativePath) =>
+      readFileSync(path.join(repoRoot, relativePath), "utf8"),
+    );
 
-    expect(hook).toContain("failed to parse Claude hook input");
-    expect(hook).toContain("python3");
-    expect(hook).toContain(
-      "git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?\\.",
-    );
-    expect(hook).toContain(
-      "git[[:space:]]+restore[[:space:]]+(--[[:space:]]+)?\\.",
-    );
-    expect(hook).not.toMatch(/COMMAND=\$\(echo "\$INPUT" \| jq -r /);
-    expect(readFileSync(overlayPath, "utf8")).toBe(hook);
-    expect(
-      readFileSync(
-        path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
-        "utf8",
-      ),
-    ).toContain("ensureGitGuardrailsFailClosed");
+    for (const mirror of mirrors) {
+      expect(mirror).toBe(canonical);
+    }
   });
 
-  it("blocks git push, git checkout -- ., and git restore -- .", () => {
-    chmodSync(hookPath, 0o755);
-
-    const push = runHook(
-      JSON.stringify({ tool_input: { command: "git push origin develop" } }),
-    );
-    expect(push.status, push.stderr).toBe(2);
-    expect(push.stderr).toContain("BLOCKED");
-
-    const checkout = runHook(
-      JSON.stringify({ tool_input: { command: "git checkout -- ." } }),
-    );
-    expect(checkout.status, checkout.stderr).toBe(2);
-    expect(checkout.stderr).toContain("BLOCKED");
-
-    const restore = runHook(
-      JSON.stringify({ tool_input: { command: "git restore -- ." } }),
-    );
-    expect(restore.status, restore.stderr).toBe(2);
-    expect(restore.stderr).toContain("BLOCKED");
+  it("blocks push and discard-all checkout or restore", () => {
+    for (const command of [
+      "git push origin develop",
+      "git  push origin develop",
+      "git checkout -- .",
+      "git checkout -- ./",
+      "git checkout  .",
+      "git checkout ./",
+      "git restore -- .",
+      "git restore -- ./",
+      "git restore .",
+      "git restore ./",
+      'git checkout .""',
+      'git checkout "."/',
+      'git checkout ."/"',
+      "git checkout $'.'",
+      'git restore "."/',
+      'git restore ."/"',
+      "git restore $'.'",
+      "git checkout${IFS}.",
+      "git checkout$IFS.",
+      "git$IFSpush",
+      "git checkout -f .",
+      "git checkout HEAD -- .",
+      "git restore --worktree .",
+      "git restore --staged -W .",
+      "git restore --staged -SW .",
+      "git checkout -- ./.",
+      "git restore -- .///",
+      "git restore --staged . $(git restore .)",
+      "git restore --staged . $(echo $(git restore .))",
+      "/usr/bin/git checkout .",
+      "git -C . restore .",
+      "git -c core.pager=cat restore .",
+      "git --git-dir=.git --work-tree=. restore .",
+      "git restore :/",
+      "git checkout -- :(top)",
+      "git restore -sHEAD .",
+    ]) {
+      const result = runHook(JSON.stringify({ tool_input: { command } }));
+      expect(result.status, `${command}\n${result.stderr}`).toBe(2);
+      expect(result.stderr).toContain("BLOCKED");
+    }
   });
 
-  it("fails closed on invalid hook JSON and allows git status", () => {
+  it("fails closed when hook JSON cannot be parsed and allows git status", () => {
     const invalid = runHook("not-json");
     expect(invalid.status, invalid.stderr).toBe(2);
     expect(invalid.stderr).toContain("BLOCKED");
 
     const status = runHook(
-      JSON.stringify({ tool_input: { command: "git status" } }),
+      JSON.stringify({ tool_input: { command: "git status --short" } }),
     );
     expect(status.status, status.stderr).toBe(0);
     expect(status.stderr).toBe("");
+
+    for (const command of [
+      "git checkout .github/workflows/ci.yml",
+      "git restore ./src/index.ts",
+      'git checkout ".github/workflows/ci.yml"',
+      "git checkout main && find . -name '*.ts'",
+      "git restore --staged .",
+      "git -C . status --short",
+      "git -C . restore --staged .",
+      "git -C . checkout .github/workflows/ci.yml",
+      "git restore :/sub",
+    ]) {
+      const allowed = runHook(JSON.stringify({ tool_input: { command } }));
+      expect(allowed.status, `${command}\n${allowed.stderr}`).toBe(0);
+    }
   });
 });

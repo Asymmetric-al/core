@@ -2,7 +2,7 @@
 
 Ready-to-build implementations for the cases that come up most. Start from the recipe, then adapt — don't rebuild from scratch.
 
-Curves are the `--ease-out`, `--ease-in-out`, and `--ease-drawer` tokens defined in SKILL.md.
+Curves are the Core tokens `--ease-out-soft`, `--ease-in-out-soft`, and `--ease-drawer` from `packages/ui/styles/globals.css`.
 
 ---
 
@@ -12,7 +12,7 @@ Any pressable element. Instant feedback that the interface heard the user.
 
 ```css
 .button {
-  transition: transform 160ms var(--ease-out-soft);
+  transition: transform var(--duration-press) var(--ease-out-soft);
 }
 
 .button:active {
@@ -109,7 +109,7 @@ Animate the backdrop's opacity alongside it so they read as one surface.
 ```css
 .drawer {
   transform: translateY(0);
-  transition: transform 500ms var(--ease-drawer);
+  transition: transform var(--duration-drawer) var(--ease-drawer);
 }
 
 .drawer[data-closed] {
@@ -130,8 +130,8 @@ Add drag and it becomes a gesture problem — see **Drag to dismiss** below.
   opacity: 1;
   transform: translateY(0);
   transition:
-    opacity var(--duration-standard) var(--ease-out-soft),
-    transform var(--duration-standard) var(--ease-out-soft);
+    opacity 400ms ease,
+    transform 400ms ease;
 
   @starting-style {
     opacity: 0;
@@ -198,7 +198,7 @@ For a list or grid the user sees occasionally — not for a list they scroll pas
 }
 ```
 
-This opacity-zero stagger example is for non-interactive decoration only. Keep links and controls visible and operable while decorative siblings enter; never delay access to functional content.
+Stagger is decorative — it must never block interaction while it plays.
 
 ---
 
@@ -235,7 +235,7 @@ Duplicate the tab list. Style the copy as the active state — different backgro
 ```css
 .tabs-active-copy {
   clip-path: inset(0 60% 0 20%); /* driven by the active tab's position */
-  transition: clip-path 250ms var(--ease-in-out);
+  transition: clip-path 250ms var(--ease-in-out-soft);
 }
 ```
 
@@ -250,7 +250,7 @@ Marketing surfaces only. Don't do this to functional UI a user visits daily.
 ```css
 .reveal {
   clip-path: inset(0 0 100% 0);
-  transition: clip-path 600ms var(--ease-in-out);
+  transition: clip-path 600ms var(--ease-in-out-soft);
 }
 
 .reveal[data-visible] {
@@ -268,9 +268,8 @@ The gesture recipe. Springs, not durations, because the user can reverse mid-mot
 
 ```js
 // Dismiss on a flick, not just on distance
-// Capture dragStartTime.current = performance.now() at drag start.
-const timeTaken = performance.now() - dragStartTime.current;
-const velocity = timeTaken > 0 ? Math.abs(swipeAmount) / timeTaken : 0;
+const timeTaken = Date.now() - dragStartTime.current;
+const velocity = Math.abs(swipeAmount) / timeTaken;
 
 if (Math.abs(swipeAmount) >= SWIPE_THRESHOLD || velocity > 0.11) {
   dismiss();
@@ -334,4 +333,4 @@ element.animate(
 );
 ```
 
-Interruptible with no added animation-library bundle. Acceleration depends on the property and browser; profile this clip-path effect instead of assuming compositor execution.
+Hardware-accelerated, interruptible, no bundle cost.

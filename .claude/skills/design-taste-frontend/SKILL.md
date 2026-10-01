@@ -1,6 +1,6 @@
 ---
 name: design-taste-frontend
-description: Use only when the user explicitly requests design-taste-frontend for design exploration within the existing Core design system.
+description: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.
 disable-model-invocation: true
 ---
 
@@ -501,14 +501,18 @@ export function HorizontalPan({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (reduce || !wrap.current || !track.current) return;
     const ctx = gsap.context(() => {
-      const distance = track.current!.scrollWidth - window.innerWidth;
+      const getDistance = () =>
+        Math.max(
+          0,
+          (track.current?.scrollWidth ?? 0) - (wrap.current?.clientWidth ?? 0),
+        );
       gsap.to(track.current, {
-        x: -distance,
+        x: () => -getDistance(),
         ease: "none",
         scrollTrigger: {
           trigger: wrap.current,
           start: "top top", // pin starts when section top hits viewport top
-          end: () => `+=${distance}`, // scroll distance = track width minus viewport
+          end: () => `+=${getDistance()}`, // scroll distance = track width minus pinned wrapper
           pin: true,
           scrub: 1,
           invalidateOnRefresh: true,

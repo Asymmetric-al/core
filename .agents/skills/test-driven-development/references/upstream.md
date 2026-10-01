@@ -2,10 +2,10 @@
 source_name: obra/superpowers
 source_url: https://github.com/obra/superpowers
 source_path: skills/test-driven-development/
-source_commit: 5bf4e78011075bcfc0dc295f0724994cd123ee71
-upstream_skill_commit: 5bf4e78011075bcfc0dc295f0724994cd123ee71
+source_commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+upstream_skill_commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
 license: MIT
-last_reviewed: 2026-09-23
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: test-driven-development
@@ -15,7 +15,7 @@ Canonical copy in this repo: `docs/ai/skills/test-driven-development/`, mirrored
 `bun run skills:sync`.
 
 - **Repository:** https://github.com/obra/superpowers
-- **Reviewed pack commit:** `5bf4e78011075bcfc0dc295f0724994cd123ee71`
+- **Reviewed pack commit:** `b36e0829c6d0140e93cfef2ca599b1b07d4a7797`
 - **Source path:** `skills/test-driven-development/`
 - **License:** MIT; the exact upstream notice is preserved in
   [LICENSE.md](LICENSE.md).

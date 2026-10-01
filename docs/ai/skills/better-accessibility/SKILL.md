@@ -72,7 +72,7 @@ Never let extended hit areas overlap. Give decorative layers `pointer-events: no
 
 Every input gets a `<label for>` or a wrapping `<label>`. A placeholder is never a label. Label and control share one hit target, with no dead zone between a checkbox and its text.
 
-Add `autocomplete` with a meaningful `name`, plus the `type` and `inputmode` that summon the right keyboard. Never block paste; users paste passwords and one-time codes. See [forms.md](forms.md). <!-- pragma: allowlist secret -->
+Add `autocomplete` with a meaningful `name`, plus the `type` and `inputmode` that summon the right keyboard. Never block paste; users paste passwords and one-time codes. See [forms.md](forms.md). // pragma: allowlist secret
 
 ## Errors that announce
 

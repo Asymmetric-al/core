@@ -16,6 +16,7 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -80,8 +81,8 @@ const FeedFilter = ({
   const filters: FilterType[] = ["All", "Update", "Story", "Video", "Saved"];
 
   return (
-    <div className="sticky top-[0px] z-30 bg-zinc-50/90 backdrop-blur-xl border-b border-zinc-200/50 py-4 mb-8 transition-[background-color,border-color,backdrop-filter] duration-200">
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-1 max-w-2xl mx-auto">
+    <div className="sticky top-0 z-30 bg-zinc-50/90 backdrop-blur-xl border-b border-zinc-200/50 py-4 mb-8 transition-[background-color,border-color,backdrop-filter] duration-200">
+      <div className="flex items-center gap-2 overflow-x-auto px-1 max-w-2xl mx-auto">
         {filters.map((type) => (
           <button
             key={type}
@@ -167,64 +168,69 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
           }
         />
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-            Share Update
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {typeof navigator !== "undefined" &&
-            typeof navigator.share === "function" && (
-              <DropdownMenuItem onClick={handleNativeShare}>
-                <Share2 className="mr-2 size-4" /> Share via…
-              </DropdownMenuItem>
-            )}
-          <DropdownMenuItem onClick={handleCopyLink}>
-            {copied ? (
-              <Check className="mr-2 size-4 text-green-600" />
-            ) : (
-              <LinkIcon className="mr-2 size-4" />
-            )}
-            {copied ? "Copied!" : "Copy Link"}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-                "_blank",
-              )
-            }
-          >
-            <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
-                "_blank",
-              )
-            }
-          >
-            <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-                "_blank",
-              )
-            }
-          >
-            <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              window.open(
-                `mailto:?subject=${encodeURIComponent(post.title || "Update from Give Hope")}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
-              )
-            }
-          >
-            <Mail className="mr-2 size-4" /> Email
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              Share Update
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {typeof navigator !== "undefined" &&
+              typeof navigator.share === "function" && (
+                <DropdownMenuItem onClick={handleNativeShare}>
+                  <Share2 className="mr-2 size-4" /> Share via…
+                </DropdownMenuItem>
+              )}
+            <DropdownMenuItem onClick={handleCopyLink}>
+              {copied ? (
+                <Check className="mr-2 size-4 text-green-600" />
+              ) : (
+                <LinkIcon className="mr-2 size-4" />
+              )}
+              {copied ? "Copied!" : "Copy Link"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
+            >
+              <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
+            >
+              <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
+            >
+              <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  `mailto:?subject=${encodeURIComponent(post.title || "Update from Give Hope")}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
+                )
+              }
+            >
+              <Mail className="mr-2 size-4" /> Email
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -317,7 +323,7 @@ const PostCard: React.FC<{
           post.images.length > 0 &&
           post.images[0] &&
           !imageError && (
-            <div className="rounded-xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50 relative h-[300px] sm:h-[400px]">
+            <div className="rounded-xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50 relative h-75 sm:h-100">
               <Image
                 src={post.images[0]}
                 alt="Post content"

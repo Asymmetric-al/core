@@ -397,6 +397,7 @@
     "frontend-design": [
       "LICENSE.txt",
       "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "get-pr-comments": [
@@ -601,7 +602,8 @@
     ],
     "moai-library-shadcn": [
       "SKILL.md",
-      "reference-links.md"
+      "reference-links.md",
+      "references/design-system-lint.md"
     ],
     "mobile-native": [
       "SKILL.md",

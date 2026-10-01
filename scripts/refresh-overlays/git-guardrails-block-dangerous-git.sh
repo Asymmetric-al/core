@@ -71,17 +71,150 @@ DANGEROUS_PATTERNS=(
   "git clean -fd"
   "git clean -f"
   "git branch -D"
-  "git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?\."
-  "git[[:space:]]+restore[[:space:]]+(--[[:space:]]+)?\."
+  "git[[:space:]]+checkout[[:space:]]+(--[[:space:]]+)?['\"]?\.\/?['\"]*([[:space:];&|]|$)"
+  "git[[:space:]]+restore[[:space:]]+(--[[:space:]]+)?['\"]?\.\/?['\"]*([[:space:];&|]|$)"
   "push --force"
   "reset --hard"
 )
 
+NORMALIZED=$(
+  set -o pipefail
+  printf '%s' "$COMMAND" |
+    sed -E 's/\$\{IFS\}|\$IFS/ /g' |
+    tr -d "\"'" |
+    sed -E 's/\$\././g' |
+    tr -s '[:space:]' ' '
+) || {
+  echo "BLOCKED: failed to normalize the git command." >&2
+  exit 2
+}
+
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if echo "$COMMAND" | grep -qE "$pattern"; then
+  if echo "$NORMALIZED" | grep -qE "$pattern"; then
     echo "BLOCKED: '$COMMAND' matches dangerous pattern '$pattern'. The user has prevented you from doing this." >&2
     exit 2
   fi
 done
+
+pathspec_discards_worktree() {
+  case "$1" in
+    ':/'|':/*'|':.'|'::'|':(top)'|':(top)*'|':(prefix:0)'|':(prefix:0)*'|':(literal).'|':(literal)./'|':(icase).'|':(icase)./')
+      return 0
+      ;;
+  esac
+
+  printf '%s' "$1" | grep -qE '^\.$|^\.(/\.*)+$'
+}
+
+command_discards_worktree() {
+  local part="$1"
+  local -a tokens=()
+  local token=""
+  local seen_git=0
+  local skip_next=0
+  local subcommand=""
+  local staged=0
+  local worktree=0
+  local past_double_dash=0
+  local discards=0
+
+  read -r -a tokens <<< "$part"
+
+  for token in "${tokens[@]}"; do
+    while true; do
+      case "$token" in
+        *\))
+          if pathspec_discards_worktree "$token"; then
+            break
+          fi
+          token="${token%)}"
+          ;;
+        *) break ;;
+      esac
+    done
+
+    if [ "$skip_next" -eq 1 ]; then
+      skip_next=0
+      continue
+    fi
+
+    if [ "$seen_git" -eq 0 ]; then
+      case "$token" in
+        git|*/git) seen_git=1 ;;
+      esac
+      continue
+    fi
+
+    if [ -z "$subcommand" ]; then
+      case "$token" in
+        --*=*) continue ;;
+        -C|-c|--git-dir|--work-tree|--namespace|--super-prefix|--config-env|--exec-path)
+          skip_next=1
+          continue
+          ;;
+        -*) continue ;;
+        *) subcommand="$token" ;;
+      esac
+      continue
+    fi
+
+    if [ "$past_double_dash" -eq 0 ]; then
+      case "$token" in
+        --)
+          past_double_dash=1
+          continue
+          ;;
+        --staged)
+          staged=1
+          continue
+          ;;
+        --worktree)
+          worktree=1
+          continue
+          ;;
+        --source|--pathspec-from-file|--conflict)
+          skip_next=1
+          continue
+          ;;
+        --*=*) continue ;;
+        --*) continue ;;
+        -*)
+          if [ "$subcommand" = "restore" ]; then
+            case "$token" in *W*) worktree=1 ;; esac
+            case "$token" in *S*) staged=1 ;; esac
+            case "$token" in *s) skip_next=1 ;; esac
+          fi
+          continue
+          ;;
+      esac
+    fi
+
+    if pathspec_discards_worktree "$token"; then
+      discards=1
+    fi
+  done
+
+  [ "$subcommand" = "checkout" ] || [ "$subcommand" = "restore" ] || return 1
+  [ "$discards" -eq 1 ] || return 1
+  if [ "$subcommand" = "restore" ] && [ "$staged" -eq 1 ] && [ "$worktree" -eq 0 ]; then
+    return 1
+  fi
+  return 0
+}
+
+DISCARDS_WORKTREE="false"
+while IFS= read -r COMMAND_PART; do
+  if command_discards_worktree "$COMMAND_PART"; then
+    DISCARDS_WORKTREE="true"
+    break
+  fi
+done <<EOF
+$(printf '%s' "$NORMALIZED" | sed -E 's/\$\(/\n/g; s/`/\n/g' | tr ';|&' '\n')
+EOF
+
+if [ "$DISCARDS_WORKTREE" = "true" ]; then
+  echo "BLOCKED: '$COMMAND' discards the working tree." >&2
+  exit 2
+fi
 
 exit 0

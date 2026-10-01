@@ -26,24 +26,6 @@
 4. For lockfile-managed ecosystem skills, restore with `npx skills experimental_install -y` rather than guessing copies.
 5. After editing canonical skills, run `bun run skills:sync` then `bun run skills:verify` (verify is non-mutating).
 
-## Refresh and integration guarantees
-
-Refresh canonical sources first, then run `bun run skills:sync` and
-`bun run skills:verify`. The refresh transaction keeps original trees,
-companion files and lock metadata recoverable until the source group commits.
-If rollback is incomplete, stop and use the reported recovery paths; a broad
-refresh must not continue and report success.
-
-Sync also reapplies Core's ecosystem adapters: the fail-closed Git hook,
-explicit wizard invocation, shared Sonner/cn guidance, and safe eval-data
-embedding. Review an adapter drift error before accepting a changed upstream
-shape. Never repair only `.cursor` or `.claude` copies.
-
-Explicit-only skills name that boundary in both discovery descriptions and
-frontmatter. Their vendor greeting sections apply only to a bare invocation
-without a task; concrete work continues immediately. Native Swift/Expo skills
-must not match ordinary Core web or TypeScript requests.
-
 ## Checklist
 
 - [ ] Used the canonical path under `docs/ai/skills/`, not a generated mirror as the source of truth
@@ -80,8 +62,6 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **Emil Kowalski skill pack** ([`emilkowalski/skills`](https://github.com/emilkowalski/skills)): copy the upstream trees into `.agents/skills/<canonical-slug>/`, vendoring upstream `skills/prototype/` as `emil-prototype`. Do **not** blindly run `npx skills add emilkowalski/skills -y`; that installer can overwrite Matt Pocock `prototype` and Core's `find-animation-opportunities` adapter. Then run `bun run skills:refresh-emilkowalski`, `bun run skills:sync`, and `bun run skills:verify`. Lockfile-managed skills are `animate`, `animate-expo`, `animation-vocabulary`, `apple-design`, `ask-sonner`, `emil-design-eng`, `emil-prototype`, `improve-animations`, `mobile-native`, `pick-ui-library`, `review-animations`, and `write-swift`. Canonical copies, reviewed commit SHAs, source paths, and the MIT notice live under each skill's `references/`. The focused refresh preserves marked Core overlays; still review the upstream inventory for newly added or removed skills before syncing. The paid animations.dev skill is separate: **`emil-design-engineering`**.
 
-`experimental_install` does not reconstruct the `emil-prototype` alias: upstream calls it `prototype`. For a fresh Emil restore, follow the exact copy-and-rename procedure above. Emil `computedHash` records the reviewed raw `SKILL.md` bytes before Core adapters; `tests/fixtures/skills/emil-upstream-skill-hashes.json` records that pinned source evidence. Skills CLI may use a different whole-directory digest. Inspect that difference instead of treating lockfile churn as an upstream content change or reinstalling over Core's separate `prototype`.
-
 **Jakub Krehel design pack** ([`jakubkrehel/skills`](https://github.com/jakubkrehel/skills)): refresh with targeted Skills CLI adds (`npx skills add jakubkrehel/skills --skill <name> -y`), then `bun run skills:refresh-jakubkrehel`, `bun run skills:sync`, and `bun run skills:verify`. Lockfile-managed skills are `better-accessibility`, `better-colors`, `better-interface`, `better-layout`, `better-typography`, `better-ui`, `better-writing`, and `interface-review`. Do not vendor unlisted pack skills such as `break`, `variant`, or `explain-interface`. Core overlays keep Base UI / `base-maia` authoritative; do not restyle product apps from generic upstream values. `interface-review` stays explicit-only (`disable-model-invocation: true`).
 
 **Anthropic `frontend-design`** ([`anthropics/skills`](https://github.com/anthropics/skills)): `npx skills add anthropics/skills --skill frontend-design -y`, then `bun run skills:refresh-frontend-design`, `bun run skills:sync`, and `bun run skills:verify`. Explicit-only. Do not restyle Core product apps.
@@ -94,7 +74,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`grill-for-unknowns`** ([`nicobailon/grill-for-unknowns`](https://github.com/nicobailon/grill-for-unknowns)): refresh the lockfile-managed skill with `npx --yes skills@latest add nicobailon/grill-for-unknowns -y`, then run `bun run skills:refresh-grill-for-unknowns`, `bun run skills:sync`, and `bun run skills:verify`. The complete canonical plugin tree, reviewed commit, lineage, MIT notice, and Core overlay live under `docs/ai/skills/grill-for-unknowns/`. Review upstream inventory and discovery metadata before syncing; the focused refresh preserves Core's explicit-only route.
 
-**Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from [`resend/resend-cli`](https://github.com/resend/resend-cli) (`skills/resend-cli/`), currently reviewed against CLI release **v2.21.1**. Refresh with `npx skills add resend/resend-cli --skill resend-cli -y`, restore the Core overlay, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today. Do not refresh it from `resend/resend-skills`.
+**Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from [`resend/resend-cli`](https://github.com/resend/resend-cli) (`skills/resend-cli/`), currently reviewed against CLI release **v2.21.0**. Refresh with `npx skills add resend/resend-cli --skill resend-cli -y`, restore the Core overlay, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today. Do not refresh it from `resend/resend-skills`.
 
 **`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
@@ -128,21 +108,21 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
 - **Frontend design critique, polish, and live UI iteration ([pbakaus/impeccable](https://github.com/pbakaus/impeccable)):** `docs/ai/skills/impeccable/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`)
-- **UI polish details (radius, surfaces, icons, hit areas):** `docs/ai/skills/better-ui/SKILL.md`; keep `base-maia` / Zinc tokens. Do not restyle product apps.
+- **UI polish details (radius, surfaces, icons, hit areas):** `docs/ai/skills/better-ui/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Keep `base-maia` / Zinc tokens. Do not restyle product apps.
 - **Typography craft:** `docs/ai/skills/better-typography/SKILL.md`
-- **Color palettes and contrast heuristics:** `docs/ai/skills/better-colors/SKILL.md`; keep Zinc-oriented semantic tokens.
-- **Layout grouping and spacing:** `docs/ai/skills/better-layout/SKILL.md`
+- **Color palettes and contrast heuristics:** `docs/ai/skills/better-colors/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Keep Zinc-oriented semantic tokens.
+- **Layout grouping and spacing:** `docs/ai/skills/better-layout/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor.
 - **Interface copy, hierarchy, and review structure:** `docs/ai/skills/better-interface/SKILL.md`
 - **UI copy companion for interface review:** `docs/ai/skills/better-writing/SKILL.md`
 - **Explicit change-scoped interface review ([jakubkrehel/skills](https://github.com/jakubkrehel/skills) `interface-review`):** `docs/ai/skills/interface-review/SKILL.md`; keep `disable-model-invocation: true`.
 - **Explicit distinctive-design exploration ([anthropics/skills](https://github.com/anthropics/skills) `frontend-design`):** `docs/ai/skills/frontend-design/SKILL.md`; explicit-only, do not restyle Core product apps. Keep `disable-model-invocation: true`.
 - **Explicit anti-slop taste / redesign exploration ([leonxlnx/taste-skill](https://github.com/leonxlnx/taste-skill)):** `docs/ai/skills/design-taste-frontend/SKILL.md` and `docs/ai/skills/redesign-existing-projects/SKILL.md`; explicit-only. Keep `disable-model-invocation: true`.
-- **obra Superpowers TDD companion:** `docs/ai/skills/test-driven-development/SKILL.md`; Core TDD remains `docs/ai/skills/tdd/SKILL.md`.
+- **obra Superpowers TDD companion:** `docs/ai/skills/test-driven-development/SKILL.md`; explicit invocation only across every client. Preserve `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor. Core TDD remains `docs/ai/skills/tdd/SKILL.md`.
 - **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first and use `docs/ai/skills/anim/SKILL.md` for Core's operative Base UI, token, route-transition, and reduced-motion contract. That paid animations.dev skill (`emil-design-engineering`) is the default craft entrypoint.
 - **Current Emil Kowalski craft companion:** `docs/ai/skills/emil-design-eng/SKILL.md`; it is subordinate to `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim` when generic upstream examples conflict with Core.
 - **Build a web animation from scratch:** `docs/ai/skills/animate/SKILL.md` after `emil-design-engineering` and `anim`.
 - **Expo / React Native motion only:** `docs/ai/skills/animate-expo/SKILL.md`; do not use it for Core Next.js apps.
-- **Mobile web platform tells (sticky hover, tap delay, 100dvh, input zoom, safe areas):** `docs/ai/skills/mobile-native/SKILL.md`; do not use it for React Native or motion implementation.
+- **Mobile web platform tells (sticky hover, tap delay, 100dvh, input zoom, safe areas):** `docs/ai/skills/mobile-native/SKILL.md`; explicit-only. Keep `disable-model-invocation: true`. Do not use it for React Native or motion implementation.
 - **Sonner / toast work:** `docs/ai/skills/ask-sonner/SKILL.md`; reuse the existing `@asym/ui` toaster and never mount a second `<Toaster />`.
 - **Animation-effect naming / reverse lookup only:** `docs/ai/skills/animation-vocabulary/SKILL.md`; do not use it as an implementation or review standard.
 - **Apple-style physical and gesture-driven interfaces:** `docs/ai/skills/apple-design/SKILL.md` for momentum, interruptibility, rubber-banding, springs, depth, and translucent materials; Core's Base UI and motion contracts still win.

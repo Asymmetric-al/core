@@ -1,6 +1,6 @@
 ---
 name: review-animations
-description: Use only when the user explicitly invokes review-animations for a motion diff review. It does not auto-route ordinary code review.
+description: Reviews animation and motion code against a high craft bar derived from Emil Kowalski's design engineering philosophy. Default to flagging; approval is earned.
 disable-model-invocation: true
 ---
 
@@ -21,6 +21,8 @@ after upstream refreshes before running `bun run skills:sync`.
   motion-only diff review.
 - Do not use it for general code review, implementation, or a codebase-wide
   animation audit.
+- A concrete review request should be answered directly. The upstream
+  Initial Response applies only to a bare invocation with no question or task.
 
 ### Workflow
 
@@ -43,11 +45,11 @@ after upstream refreshes before running `bun run skills:sync`.
 
 ## Initial Response
 
-Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
+When this skill is first invoked without a specific question, respond only with:
 
 > I'm ready to review your animations against a high craft bar, my standards come from Emil Kowalski's animation philosophy.
 
-For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
+Do not provide any other information until the user asks a question.
 
 A specialized review skill. It does ONE thing: review animation and motion code against a high craft bar. It does not write features, fix unrelated bugs, or review non-motion code. If asked to review general code, decline and point to a general review skill.
 

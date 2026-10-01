@@ -27,6 +27,7 @@ import { Input } from "../input";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 import { Toggle } from "../toggle";
+import { Toolbar, ToolbarButton as ToolbarItem } from "../toolbar";
 import {
   Tooltip,
   TooltipContent,
@@ -93,6 +94,378 @@ export interface EditorToolbarProps {
   actions?: React.ReactNode;
 }
 
+type EditorToolbarState = typeof DEFAULT_TOOLBAR_STATE;
+type EditorToolbarSectionId =
+  | "formatting"
+  | "headings"
+  | "lists"
+  | "media"
+  | "history";
+
+function editorToolbarEnabledTools(
+  tools: ToolbarTool[] | undefined,
+  onImageUpload: ((file: File) => Promise<string>) | undefined,
+  onImageClick: (() => void) | undefined,
+): Set<ToolbarTool> {
+  return new Set(
+    tools ??
+      ALL_TOOLS.filter((tool) => {
+        if (tool !== "image") return true;
+        return Boolean(onImageUpload || onImageClick);
+      }),
+  );
+}
+
+function editorToolbarSectionIds(
+  enabledTools: Set<ToolbarTool>,
+): EditorToolbarSectionId[] {
+  const ids: EditorToolbarSectionId[] = [];
+  if (
+    enabledTools.has("bold") ||
+    enabledTools.has("italic") ||
+    enabledTools.has("underline")
+  ) {
+    ids.push("formatting");
+  }
+  if (enabledTools.has("heading") || enabledTools.has("blockquote")) {
+    ids.push("headings");
+  }
+  if (enabledTools.has("bulletList") || enabledTools.has("orderedList")) {
+    ids.push("lists");
+  }
+  if (enabledTools.has("link") || enabledTools.has("image")) {
+    ids.push("media");
+  }
+  if (enabledTools.has("undo") || enabledTools.has("redo")) {
+    ids.push("history");
+  }
+  return ids;
+}
+
+function EditorToolbarFormattingSection({
+  editor,
+  enabledTools,
+  toolbarState,
+}: {
+  editor: Editor;
+  enabledTools: Set<ToolbarTool>;
+  toolbarState: EditorToolbarState;
+}) {
+  const has = (tool: ToolbarTool) => enabledTools.has(tool);
+  if (!has("bold") && !has("italic") && !has("underline")) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {has("bold") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          active={toolbarState.isBold}
+          tooltip="Bold (Ctrl+B)"
+        >
+          <Bold className="size-3.5" />
+        </ToolbarButton>
+      )}
+      {has("italic") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          active={toolbarState.isItalic}
+          tooltip="Italic (Ctrl+I)"
+        >
+          <Italic className="size-3.5" />
+        </ToolbarButton>
+      )}
+      {has("underline") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          active={toolbarState.isUnderline}
+          tooltip="Underline (Ctrl+U)"
+        >
+          <Underline className="size-3.5" />
+        </ToolbarButton>
+      )}
+    </div>
+  );
+}
+
+function EditorToolbarHeadingsSection({
+  editor,
+  enabledTools,
+  toolbarState,
+}: {
+  editor: Editor;
+  enabledTools: Set<ToolbarTool>;
+  toolbarState: EditorToolbarState;
+}) {
+  const has = (tool: ToolbarTool) => enabledTools.has(tool);
+  if (!has("heading") && !has("blockquote")) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {has("heading") && (
+        <>
+          <ToolbarButton
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            active={toolbarState.isHeading1}
+            tooltip="Heading 1"
+          >
+            <Heading1 className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            active={toolbarState.isHeading2}
+            tooltip="Heading 2"
+          >
+            <Heading2 className="size-3.5" />
+          </ToolbarButton>
+        </>
+      )}
+      {has("blockquote") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          active={toolbarState.isBlockquote}
+          tooltip="Quote"
+        >
+          <Quote className="size-3.5" />
+        </ToolbarButton>
+      )}
+    </div>
+  );
+}
+
+function EditorToolbarListsSection({
+  editor,
+  enabledTools,
+  toolbarState,
+}: {
+  editor: Editor;
+  enabledTools: Set<ToolbarTool>;
+  toolbarState: EditorToolbarState;
+}) {
+  const has = (tool: ToolbarTool) => enabledTools.has(tool);
+  if (!has("bulletList") && !has("orderedList")) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {has("bulletList") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          active={toolbarState.isBulletList}
+          tooltip="Bullet List"
+        >
+          <List className="size-3.5" />
+        </ToolbarButton>
+      )}
+      {has("orderedList") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          active={toolbarState.isOrderedList}
+          tooltip="Numbered List"
+        >
+          <ListOrdered className="size-3.5" />
+        </ToolbarButton>
+      )}
+    </div>
+  );
+}
+
+function EditorToolbarMediaSection({
+  editor,
+  enabledTools,
+  toolbarState,
+  onImageUpload,
+  onImageClick,
+}: {
+  editor: Editor;
+  enabledTools: Set<ToolbarTool>;
+  toolbarState: EditorToolbarState;
+  onImageUpload?: (file: File) => Promise<string>;
+  onImageClick?: () => void;
+}) {
+  const has = (tool: ToolbarTool) => enabledTools.has(tool);
+  if (!has("link") && !has("image")) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {has("link") && (
+        <LinkButton
+          editor={editor}
+          existingHref={toolbarState.existingHref}
+          isActive={toolbarState.isLink}
+        />
+      )}
+      {has("image") && onImageClick && (
+        <ImageClickButton onClick={onImageClick} />
+      )}
+      {has("image") && !onImageClick && onImageUpload && (
+        <ImageButton editor={editor} onUpload={onImageUpload} />
+      )}
+    </div>
+  );
+}
+
+function EditorToolbarHistorySection({
+  editor,
+  enabledTools,
+  toolbarState,
+}: {
+  editor: Editor;
+  enabledTools: Set<ToolbarTool>;
+  toolbarState: EditorToolbarState;
+}) {
+  const has = (tool: ToolbarTool) => enabledTools.has(tool);
+  if (!has("undo") && !has("redo")) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {has("undo") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!toolbarState.canUndo}
+          tooltip="Undo (Ctrl+Z)"
+        >
+          <Undo2 className="size-3.5" />
+        </ToolbarButton>
+      )}
+      {has("redo") && (
+        <ToolbarButton
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!toolbarState.canRedo}
+          tooltip="Redo (Ctrl+Shift+Z)"
+        >
+          <Redo2 className="size-3.5" />
+        </ToolbarButton>
+      )}
+    </div>
+  );
+}
+
+function EditorToolbarSectionList({
+  editor,
+  enabledTools,
+  toolbarState,
+  onImageUpload,
+  onImageClick,
+}: {
+  editor: Editor;
+  enabledTools: Set<ToolbarTool>;
+  toolbarState: EditorToolbarState;
+  onImageUpload?: (file: File) => Promise<string>;
+  onImageClick?: () => void;
+}) {
+  const sectionIds = editorToolbarSectionIds(enabledTools);
+
+  return (
+    <div className="overflow-x-auto px-3 py-2 sm:px-4">
+      <Toolbar aria-label="Text formatting">
+        {sectionIds.map((sectionId, index) => {
+          switch (sectionId) {
+            case "formatting":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarFormattingSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
+                  />
+                </React.Fragment>
+              );
+            case "headings":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarHeadingsSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
+                  />
+                </React.Fragment>
+              );
+            case "lists":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarListsSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
+                  />
+                </React.Fragment>
+              );
+            case "media":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarMediaSection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
+                    onImageUpload={onImageUpload}
+                    onImageClick={onImageClick}
+                  />
+                </React.Fragment>
+              );
+            case "history":
+              return (
+                <React.Fragment key={sectionId}>
+                  {index > 0 && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 mx-1.5 bg-border/60"
+                    />
+                  )}
+                  <EditorToolbarHistorySection
+                    editor={editor}
+                    enabledTools={enabledTools}
+                    toolbarState={toolbarState}
+                  />
+                </React.Fragment>
+              );
+            default: {
+              const _exhaustive: never = sectionId;
+              return _exhaustive;
+            }
+          }
+        })}
+      </Toolbar>
+    </div>
+  );
+}
+
 export function EditorToolbar({
   editor: editorProp,
   tools,
@@ -129,189 +502,22 @@ export function EditorToolbar({
 
   if (!editor) return null;
 
-  const enabledTools = new Set(
-    tools ??
-      ALL_TOOLS.filter((t) => {
-        if (t !== "image") return true;
-        return Boolean(onImageUpload || onImageClick);
-      }),
+  const enabledTools = editorToolbarEnabledTools(
+    tools,
+    onImageUpload,
+    onImageClick,
   );
-
-  const has = (tool: ToolbarTool) => enabledTools.has(tool);
-
-  const formatting = has("bold") || has("italic") || has("underline");
-  const headings = has("heading") || has("blockquote");
-  const lists = has("bulletList") || has("orderedList");
-  const media = has("link") || has("image");
-  const history = has("undo") || has("redo");
-
-  const sections: React.ReactNode[] = [];
-
-  if (formatting) {
-    sections.push(
-      <div key="formatting" className="flex items-center gap-0.5">
-        {has("bold") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            active={toolbarState.isBold}
-            tooltip="Bold (Ctrl+B)"
-          >
-            <Bold className="size-3.5" />
-          </ToolbarButton>
-        )}
-        {has("italic") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            active={toolbarState.isItalic}
-            tooltip="Italic (Ctrl+I)"
-          >
-            <Italic className="size-3.5" />
-          </ToolbarButton>
-        )}
-        {has("underline") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-            active={toolbarState.isUnderline}
-            tooltip="Underline (Ctrl+U)"
-          >
-            <Underline className="size-3.5" />
-          </ToolbarButton>
-        )}
-      </div>,
-    );
-  }
-
-  if (headings) {
-    sections.push(
-      <div key="headings" className="flex items-center gap-0.5">
-        {has("heading") && (
-          <>
-            <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 1 }).run()
-              }
-              active={toolbarState.isHeading1}
-              tooltip="Heading 1"
-            >
-              <Heading1 className="size-3.5" />
-            </ToolbarButton>
-            <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 2 }).run()
-              }
-              active={toolbarState.isHeading2}
-              tooltip="Heading 2"
-            >
-              <Heading2 className="size-3.5" />
-            </ToolbarButton>
-          </>
-        )}
-        {has("blockquote") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            active={toolbarState.isBlockquote}
-            tooltip="Quote"
-          >
-            <Quote className="size-3.5" />
-          </ToolbarButton>
-        )}
-      </div>,
-    );
-  }
-
-  if (lists) {
-    sections.push(
-      <div key="lists" className="flex items-center gap-0.5">
-        {has("bulletList") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            active={toolbarState.isBulletList}
-            tooltip="Bullet List"
-          >
-            <List className="size-3.5" />
-          </ToolbarButton>
-        )}
-        {has("orderedList") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            active={toolbarState.isOrderedList}
-            tooltip="Numbered List"
-          >
-            <ListOrdered className="size-3.5" />
-          </ToolbarButton>
-        )}
-      </div>,
-    );
-  }
-
-  if (media) {
-    sections.push(
-      <div key="media" className="flex items-center gap-0.5">
-        {has("link") && (
-          <LinkButton
-            editor={editor}
-            existingHref={toolbarState.existingHref}
-            isActive={toolbarState.isLink}
-          />
-        )}
-        {has("image") && onImageClick && (
-          <ImageClickButton onClick={onImageClick} />
-        )}
-        {has("image") && !onImageClick && onImageUpload && (
-          <ImageButton editor={editor} onUpload={onImageUpload} />
-        )}
-      </div>,
-    );
-  }
-
-  if (history) {
-    sections.push(
-      <div key="history" className="flex items-center gap-0.5">
-        {has("undo") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().undo().run()}
-            active={false}
-            disabled={!toolbarState.canUndo}
-            tooltip="Undo (Ctrl+Z)"
-          >
-            <Undo2 className="size-3.5" />
-          </ToolbarButton>
-        )}
-        {has("redo") && (
-          <ToolbarButton
-            onClick={() => editor.chain().focus().redo().run()}
-            active={false}
-            disabled={!toolbarState.canRedo}
-            tooltip="Redo (Ctrl+Shift+Z)"
-          >
-            <Redo2 className="size-3.5" />
-          </ToolbarButton>
-        )}
-      </div>,
-    );
-  }
 
   return (
     <TooltipProvider delay={0}>
       <div className="sticky top-0 z-10 border-b border-border bg-muted/40 backdrop-blur-sm">
-        <div className="flex items-center gap-0.5 overflow-x-auto px-3 sm:px-4 py-2">
-          {sections.map((section, i) => {
-            const sectionKey =
-              (section as React.ReactElement<{ key?: React.Key }>).key ??
-              `section-${i}`;
-            return (
-              <React.Fragment key={sectionKey}>
-                {i > 0 && (
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 mx-1.5 bg-border/60"
-                  />
-                )}
-                {section}
-              </React.Fragment>
-            );
-          })}
-        </div>
+        <EditorToolbarSectionList
+          editor={editor}
+          enabledTools={enabledTools}
+          toolbarState={toolbarState}
+          onImageUpload={onImageUpload}
+          onImageClick={onImageClick}
+        />
 
         {actions && (
           <div className="border-t border-border px-3 sm:px-4 py-3">
@@ -332,7 +538,7 @@ function ToolbarButton({
   className,
 }: {
   onClick: () => void;
-  active: boolean;
+  active?: boolean;
   tooltip: string;
   disabled?: boolean;
   children: React.ReactNode;
@@ -342,12 +548,24 @@ function ToolbarButton({
     <Tooltip>
       <TooltipTrigger
         render={
-          <Toggle
-            aria-label={tooltip}
-            size="sm"
-            pressed={active}
-            onPressedChange={onClick}
+          <ToolbarItem
             disabled={disabled}
+            focusableWhenDisabled={false}
+            aria-label={tooltip}
+            render={
+              active === undefined ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={disabled}
+                  onClick={() => {
+                    if (!disabled) onClick();
+                  }}
+                />
+              ) : (
+                <Toggle size="sm" pressed={active} onPressedChange={onClick} />
+              )
+            }
             className={cn(
               "size-7 p-0 rounded-md transition-colors",
               active
@@ -358,7 +576,7 @@ function ToolbarButton({
             )}
           >
             {children}
-          </Toggle>
+          </ToolbarItem>
         }
       />
       <TooltipContent side="top" className="text-xs">
@@ -415,22 +633,26 @@ function LinkButton({
       <Tooltip>
         <TooltipTrigger
           render={
-            <PopoverTrigger
+            <ToolbarItem
               render={
-                <Button
-                  type="button"
-                  aria-label={isActive ? "Edit link" : "Add link"}
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "size-7 p-0 rounded-md transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <LinkIcon className="size-3.5" />
-                </Button>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      type="button"
+                      aria-label={isActive ? "Edit link" : "Add link"}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "size-7 p-0 rounded-md transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <LinkIcon className="size-3.5" />
+                    </Button>
+                  }
+                />
               }
             />
           }
@@ -492,16 +714,15 @@ function ImageClickButton({ onClick }: { onClick: () => void }) {
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button
+          <ToolbarItem
+            render={<Button variant="ghost" size="sm" />}
             aria-label="Insert image"
-            variant="ghost"
-            size="sm"
             className="size-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
             type="button"
             onClick={onClick}
           >
             <ImageIcon className="size-3.5" />
-          </Button>
+          </ToolbarItem>
         }
       />
       <TooltipContent side="top" className="text-xs">
@@ -518,6 +739,7 @@ function ImageButton({
   editor: Editor;
   onUpload: (file: File) => Promise<string>;
 }) {
+  const imageActionLabelId = React.useId();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -553,10 +775,10 @@ function ImageButton({
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button
-              aria-label={isUploading ? "Uploading image" : "Upload image"}
-              variant="ghost"
-              size="sm"
+            <ToolbarItem
+              render={<Button variant="ghost" size="sm" />}
+              aria-labelledby={imageActionLabelId}
+              focusableWhenDisabled={isUploading}
               className={cn(
                 "size-7 p-0 rounded-md transition-colors",
                 "hover:bg-muted text-muted-foreground hover:text-foreground",
@@ -566,8 +788,11 @@ function ImageButton({
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
             >
+              <span id={imageActionLabelId} className="sr-only">
+                {isUploading ? "Uploading image" : "Upload image"}
+              </span>
               <ImageIcon className="size-3.5" />
-            </Button>
+            </ToolbarItem>
           }
         />
         <TooltipContent side="top" className="text-xs">

@@ -1,6 +1,7 @@
 ---
 name: better-layout
-description: Helps with grouping, alignment, reading order, progressive disclosure and other details that make a good layout.
+disable-model-invocation: true
+description: Explicit layout reference for grouping, alignment, reading order, and progressive disclosure. Use only after Core frontend rules. Do not restyle product apps from these examples.
 ---
 
 # Layout

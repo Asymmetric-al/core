@@ -23,12 +23,16 @@ export function MissionBriefing({
   feeds,
   activeSupport,
 }: MissionBriefingProps) {
-  const briefingItems = feeds.filter((f) => activeSupport.includes(f.id));
+  const activeSupportIds = React.useMemo(
+    () => new Set(activeSupport),
+    [activeSupport],
+  );
+  const briefingItems = feeds.filter((f) => activeSupportIds.has(f.id));
 
   return (
     <Card className="bg-zinc-900 border-none shadow-xl overflow-hidden relative group rounded-xl">
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/20 to-transparent pointer-events-none" />
-      <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-white opacity-[0.02] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-75 h-75 bg-white opacity-[0.02] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
       <CardContent className="p-4 sm:p-6 md:p-8 relative z-10">
         <div className="flex items-center justify-between mb-6 sm:mb-8 pb-4 border-b border-white/5">
           <div className="flex items-center gap-2.5">

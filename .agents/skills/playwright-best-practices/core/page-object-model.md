@@ -45,9 +45,9 @@ export class LoginPage {
   }
 
   async login(email: string, password: string) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.submitButton.click();
@@ -199,9 +199,9 @@ export abstract class BasePage {
 // Return new page object on navigation
 export class LoginPage extends BasePage {
   async login(email: string, password: string): Promise<DashboardPage> { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.submitButton.click();
@@ -232,9 +232,9 @@ export function createLoginPage(page: Page) {
   return {
     goto: () => page.goto("/login"),
     login: async (email: string, password: string) => { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+      // pragma: allowlist secret
+      // pragma: allowlist secret
+      // pragma: allowlist secret
       await emailInput.fill(email);
       await passwordInput.fill(password); // pragma: allowlist secret
       await submitButton.click();

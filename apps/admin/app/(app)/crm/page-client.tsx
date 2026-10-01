@@ -304,7 +304,7 @@ export default function MissionControlCRM() {
                 <Columns className="size-4" />
               </button>
             </div>
-            <Button className="h-10 gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
+            <Button className="h-10 rounded-xl px-5 font-semibold shadow-sm">
               <Plus className="size-3.5" /> New Record
             </Button>
             <Link
@@ -330,7 +330,7 @@ export default function MissionControlCRM() {
           </div>
         }
       >
-        <div className="flex flex-col min-h-[400px]">
+        <div className="flex flex-col min-h-100">
           <ContributionFreshnessIndicator show={showFreshness} />
           <AnimatePresence mode="wait">
             {view === "table" ? (

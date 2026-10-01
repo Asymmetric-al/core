@@ -276,6 +276,7 @@ def generate_html(
     if benchmark:
         embedded["benchmark"] = benchmark
 
+    # JSON does not escape "<", so a skill eval can close the script tag.
     data_json = json.dumps(embedded).replace("<", "\\u003c")
 
     return template.replace("/*__EMBEDDED_DATA__*/", f"const EMBEDDED_DATA = {data_json};")

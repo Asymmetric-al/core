@@ -34,10 +34,7 @@ Use this doc when editing or running:
 - Canonical skills: `docs/ai/skills/*/SKILL.md`.
 - Generated mirrors: `.agents/skills/`, `.cursor/skills/`, `.claude/skills/`. Do not hand-edit mirrors.
 - Successful `skills:verify` leaves `git status` unchanged. Drift message: run `bun run skills:sync` and commit mirror updates.
-- Overlayfs can reject skill-directory `rename` with `EXDEV`. Both skill scripts permit copy/remove fallback only for `EXDEV` into an unoccupied destination, preserve complete backups before removing live trees, and retain recovery data when restoration fails. Run `bun x vitest run tests/unit/scripts/sync-agent-skills-exdev.test.ts tests/unit/scripts/skill-refresh-transaction.test.ts tests/unit/scripts/skill-scanner-syntax.test.ts tests/unit/scripts/skill-scanner-context.test.ts tests/unit/scripts/skill-publication-entry-safety.test.ts tests/unit/script-verifiers.test.ts`; the EXDEV fixtures include occupied-destination and partial-removal failures.
-
-- Canonical destinations must be real directories; reject symlinks before reading overlays or replacing entries. Preserve competing entries and propagate publication errors, including ecosystem mirrors, instead of reporting success.
-- Scanner adaptations must preserve execution, rendered JSX and literal payloads. Leave uncertain comment contexts intact and subject to scanning; do not add scanner exclusions.
+- Overlayfs can reject skill-directory `rename` with `EXDEV`. Both skill scripts fall back to copy then remove only into an unoccupied destination, keep a complete backup before removing a live tree, and retain that backup when restoration fails. Canonical destinations must be real directories. Scanner adaptations must preserve execution, rendered JSX, and literal payloads.
 
 ## Checklist
 

@@ -216,10 +216,10 @@ async function globalSetup(config: FullConfig) {
   const { baseURL } = config.projects[0].use;
 
   for (const { role, email, password } of accounts) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     const browser = await chromium.launch();
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -529,10 +529,10 @@ export class LoginPage {
     this.loginButton = page.getByRole("button", { name: "Log in" });
     this.errorMessage = page.getByRole("alert");
     this.forgotPasswordLink = page.getByRole("link", { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+      // pragma: allowlist secret
+      // pragma: allowlist secret
+      // pragma: allowlist secret
+      // pragma: allowlist secret
       name: "Forgot password", // pragma: allowlist secret
     });
   }
@@ -543,20 +543,20 @@ export class LoginPage {
   }
 
   async login(username: string, password: string) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.loginButton.click();
   }
 
   async loginAndWaitForHome(username: string, password: string) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     await this.login(username, password); // pragma: allowlist secret
     await this.page.waitForURL("/home");
   }
@@ -566,10 +566,10 @@ export class LoginPage {
   }
 
   async expectFieldError(field: "username" | "password", message: string) { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     const input =
       field === "username" ? this.usernameInput : this.passwordInput; // pragma: allowlist secret
     await expect(input).toHaveAttribute("aria-invalid", "true");
@@ -605,10 +605,10 @@ test.describe("login page", () => {
   });
 
   test("wrong password shows error", async () => { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     await loginPage.login("testuser@example.com", "wrong-password"); // pragma: allowlist secret
     await loginPage.expectError("Invalid username or password"); // pragma: allowlist secret
   });
@@ -619,10 +619,10 @@ test.describe("login page", () => {
   });
 
   test("forgot password link navigates correctly", async ({ page }) => { // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
- // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
+    // pragma: allowlist secret
     await loginPage.forgotPasswordLink.click(); // pragma: allowlist secret
     await page.waitForURL("/forgot-password"); // pragma: allowlist secret
     await expect(
@@ -701,7 +701,7 @@ export { expect } from "@playwright/test";
 
 ### Unauthenticated Tests
 
-**Use when**: Testing the login page, signup flow, password reset, public pages, or redirect behavior for unauthenticated users. <!-- pragma: allowlist secret -->
+**Use when**: Testing the login page, signup flow, password reset, public pages, or redirect behavior for unauthenticated users. // pragma: allowlist secret
 **Avoid when**: The test requires a logged-in user.
 
 When your config sets a default `storageState`, you must explicitly clear it for unauthenticated tests.

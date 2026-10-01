@@ -111,6 +111,7 @@ function NotificationRow({
   ) => void;
 }) {
   const Icon = setting.icon;
+  const notificationId = React.useId();
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 py-6 group border-b border-zinc-50 last:border-0">
       <div className="flex items-start gap-4">
@@ -129,10 +130,15 @@ function NotificationRow({
 
       <div className="flex items-center gap-6 sm:gap-10 pl-14 sm:pl-0">
         <div className="flex flex-col items-center gap-2">
-          <Label className="text-[9px] font-black uppercase tracking-widest text-zinc-300">
+          <Label
+            htmlFor={`${notificationId}-inApp`}
+            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+          >
             In-App
           </Label>
           <Switch
+            id={`${notificationId}-inApp`}
+            aria-label={`In-App: ${setting.label}`}
             checked={setting.inApp}
             onCheckedChange={(checked) =>
               onChange(setting.id, "inApp", checked)
@@ -141,10 +147,15 @@ function NotificationRow({
           />
         </div>
         <div className="flex flex-col items-center gap-2">
-          <Label className="text-[9px] font-black uppercase tracking-widest text-zinc-300">
+          <Label
+            htmlFor={`${notificationId}-email`}
+            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+          >
             Email
           </Label>
           <Switch
+            id={`${notificationId}-email`}
+            aria-label={`Email: ${setting.label}`}
             checked={setting.email}
             onCheckedChange={(checked) =>
               onChange(setting.id, "email", checked)
@@ -153,10 +164,15 @@ function NotificationRow({
           />
         </div>
         <div className="flex flex-col items-center gap-2">
-          <Label className="text-[9px] font-black uppercase tracking-widest text-zinc-300">
+          <Label
+            htmlFor={`${notificationId}-sms`}
+            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+          >
             SMS
           </Label>
           <Switch
+            id={`${notificationId}-sms`}
+            aria-label={`SMS: ${setting.label}`}
             checked={setting.sms}
             onCheckedChange={(checked) => onChange(setting.id, "sms", checked)}
             className="data-checked:bg-zinc-900"
@@ -193,7 +209,7 @@ export default function SettingsPage() {
           disabled={!hasChanges}
           onClick={() => setHasChanges(false)}
           size="sm"
-          className="h-9 px-4 text-xs font-medium disabled:opacity-50"
+          className="h-9 px-4 text-xs"
         >
           <Save className="mr-2 size-4" />
           Save Preferences
@@ -234,7 +250,7 @@ export default function SettingsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-900 hover:bg-white"
+                      className="rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-900 hover:bg-white"
                     >
                       Configure
                     </Button>
@@ -274,7 +290,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="lg:col-span-4 space-y-8">
-          <Card className="border-zinc-200 bg-white shadow-sm rounded-[2rem] overflow-hidden">
+          <Card className="border-zinc-200 bg-white shadow-sm rounded-4xl overflow-hidden">
             <CardHeader className="pt-8 px-8">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-2xl bg-zinc-50 flex items-center justify-center">
@@ -309,8 +325,8 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-[2rem] overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700">
+          <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-4xl overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-8 opacity-10 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 group-hover:rotate-12 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700">
               <Layout className="size-32" />
             </div>
             <CardHeader className="pt-8 px-8 relative z-10">
@@ -352,7 +368,7 @@ export default function SettingsPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10"
+                  className="rounded-lg text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10"
                 >
                   Link
                 </Button>
@@ -367,7 +383,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-zinc-200 bg-white shadow-sm rounded-[2rem] overflow-hidden">
+          <Card className="border-zinc-200 bg-white shadow-sm rounded-4xl overflow-hidden">
             <CardHeader className="pt-8 px-8">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-2xl bg-violet-50 flex items-center justify-center">
@@ -388,7 +404,10 @@ export default function SettingsPage() {
                     Access advanced API tools
                   </p>
                 </div>
-                <Switch className="data-checked:bg-zinc-900" />
+                <Switch
+                  aria-label="Developer Mode"
+                  className="data-checked:bg-zinc-900"
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -399,7 +418,11 @@ export default function SettingsPage() {
                     Try new dashboard widgets
                   </p>
                 </div>
-                <Switch defaultChecked className="data-checked:bg-zinc-900" />
+                <Switch
+                  aria-label="Beta Features"
+                  defaultChecked
+                  className="data-checked:bg-zinc-900"
+                />
               </div>
             </CardContent>
           </Card>
