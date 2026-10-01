@@ -1,4 +1,8 @@
+import { resolve } from "node:path";
+
 import { defineConfig, devices } from "@playwright/test";
+
+import { assertSmokeArtifactDirectories } from "./tests/e2e/development-smoke/safe-reporter";
 
 /**
  * Headless development/PR-preview smoke tests.
@@ -62,8 +66,25 @@ function surfaceProject(name: `development-${SurfaceKey}`, key: SurfaceKey) {
   };
 }
 
+const requestedReportDirectory = resolve(
+  readEnv("PLAYWRIGHT_REPORT_DIR") ?? "playwright-report/development-smoke",
+);
+const requestedOutputDirectory = resolve(
+  readEnv("PLAYWRIGHT_OUTPUT_DIR") ?? "test-results",
+);
+// Validate before Playwright can clear its output directory during startup.
+const { reportDirectory, outputDirectories } = assertSmokeArtifactDirectories(
+  requestedReportDirectory,
+  [requestedOutputDirectory],
+);
+
+// Pinned Playwright's automatic error prompt otherwise snapshots input values.
+// The suite reporter retains bounded, redacted diagnostics instead.
+process.env.PLAYWRIGHT_NO_COPY_PROMPT = "1";
+
 export default defineConfig({
   testDir: "./tests/e2e/development-smoke",
+  outputDir: outputDirectories[0],
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
@@ -71,21 +92,16 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 15_000 },
   reporter: [
-    ["list"],
     [
-      "html",
-      { outputFolder: "playwright-report/development-smoke", open: "never" },
-    ],
-    [
-      "json",
-      { outputFile: "playwright-report/development-smoke/results.json" },
+      resolve(__dirname, "tests/e2e/development-smoke/safe-reporter.ts"),
+      { outputFolder: reportDirectory },
     ],
   ],
   use: {
     headless: true,
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    trace: "off",
+    screenshot: "off",
+    video: "off",
     navigationTimeout: 60_000,
     actionTimeout: 20_000,
   },

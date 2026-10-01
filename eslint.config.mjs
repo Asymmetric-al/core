@@ -181,6 +181,9 @@ const eslintConfig = defineConfig([
     ignores: [
       ".next/**",
       "**/.next/**",
+      // SDK-generated admin service bundles; authored Eve/app code stays linted.
+      "apps/admin/.eve/vercel-services/**",
+      "apps/admin/.vercel/output/**",
       "out/**",
       "**/out/**",
       "build/**",

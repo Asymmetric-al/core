@@ -52,6 +52,9 @@ const SKIP_REPO_RELATIVE_DIRECTORIES = new Set([
   "packages/eve-runtime/.eve",
   "packages/eve-runtime/.nitro",
   "packages/eve-runtime/.output",
+  // withEve copies server/runtime dependencies into these deployment bundles.
+  "apps/admin/.eve/vercel-services",
+  "apps/admin/.vercel/output",
 ]);
 const RETIRED_TWENTY_RUNTIME_MARKERS = [
   "TWENTY_API_URL",
@@ -76,6 +79,8 @@ const IGNORED_GENERATED_RUNTIME_PREFIXES = [
   "packages/eve-runtime/.eve/",
   "packages/eve-runtime/.nitro/",
   "packages/eve-runtime/.output/",
+  "apps/admin/.eve/vercel-services/",
+  "apps/admin/.vercel/output/",
 ];
 
 function toRepoRelative(filePath) {

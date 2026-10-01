@@ -36,6 +36,15 @@ Do not copy credential values into the manifest. The panel must show **Runtime
 target: Configured** and **Release: Off**. If the governance state changes,
 produce a new manifest against the new state version.
 
+Hosted web previews compile Eve artifacts without sandbox prewarming so this
+Release-Off inspection can occur. These outputs are unqualified: a healthy web
+preview or Eve health endpoint is not proof of sandbox availability or release
+readiness. Before activation, full runtime/sandbox qualification and all evidence
+below are still required for the exact target. Use the full build described in
+the [build runbook](../development/build-runbook.md#eve-artifacts-and-qualification);
+if credentials or governance deny prewarming, report that qualification blocker.
+Never activate Eve or relax its policy merely to make a build pass.
+
 ## 2. Collect launch evidence while release is off
 
 Build one `eve-launch-manifest-v1` JSON document using the schema exported by

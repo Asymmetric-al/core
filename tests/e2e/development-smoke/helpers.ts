@@ -14,6 +14,31 @@ import {
  */
 export type AuthMarker = (page: Page) => Locator;
 
+type AuthResponse = { method: string; status: number; url: string };
+const authResponses = new WeakMap<Page, AuthResponse[]>();
+
+/** Observe only bounded request metadata, never headers, cookies or bodies. */
+export function observeAuthenticationRequests(page: Page): void {
+  if (authResponses.has(page)) return;
+  const responses: AuthResponse[] = [];
+  authResponses.set(page, responses);
+  page.on("response", (response) => {
+    const request = response.request();
+    if (!["document", "fetch", "xhr"].includes(request.resourceType())) return;
+    try {
+      const url = new URL(response.url());
+      responses.push({
+        method: request.method(),
+        status: response.status(),
+        url: `${url.origin}${url.pathname}`,
+      });
+      if (responses.length > 50) responses.shift();
+    } catch {
+      // Non-URL responses cannot contribute safe navigation evidence.
+    }
+  });
+}
+
 /**
  * Shared helpers for headless development-deployment smoke tests.
  *
@@ -274,6 +299,7 @@ export async function ensureAuthenticated(
         authenticatedMarker?: AuthMarker;
       },
 ): Promise<void> {
+  observeAuthenticationRequests(page);
   const options =
     typeof pathOrOptions === "string"
       ? { targetPath: pathOrOptions }
@@ -351,11 +377,11 @@ export async function assertNoErrorBanner(page: Page): Promise<void> {
 
 /**
  * Capture compact, non-secret evidence on failure. Attaches:
- *  - current URL
+ *  - current URL origin/path (no query or fragment)
  *  - page title
  *  - main heading text (first h1/h2/h3)
  *  - count of password inputs still in the DOM
- *  - screenshot (Playwright also retains one via `screenshot: only-on-failure`)
+ *  - last 50 document/fetch/XHR method/status/origin/path observations
  *
  * Never reads or attaches input values. Call from a `test.afterEach` block
  * when `testInfo.status !== testInfo.expectedStatus`.
@@ -368,7 +394,7 @@ export async function collectFailureEvidence(
 
   const evidence = await page
     .evaluate(() => ({
-      url: location.href,
+      url: `${location.origin}${location.pathname}`,
       title: document.title,
       heading:
         document.querySelector("h1,h2,h3")?.textContent?.trim().slice(0, 120) ??
@@ -388,7 +414,11 @@ export async function collectFailureEvidence(
     }));
 
   await testInfo.attach("evidence.json", {
-    body: JSON.stringify(evidence, null, 2),
+    body: JSON.stringify(
+      { ...evidence, network: authResponses.get(page) ?? [] },
+      null,
+      2,
+    ),
     contentType: "application/json",
   });
 }

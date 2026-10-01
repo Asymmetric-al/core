@@ -23,11 +23,46 @@ This runbook defines the canonical build workflow for the Bun + Turborepo monore
 
 Notes:
 
-- Internal packages define `build` scripts as `tsc --noEmit` (type-check only, no JavaScript emit).
+- Most shared packages define `build` as `tsc --noEmit` (type-check only). Eve
+  emits runtime artifacts; its qualification boundary is described below.
 - Example: `bunx turbo run build --filter=@asym/ui` now executes the `@asym/ui` package build task.
 - Turbo `build` caching tracks app artifacts (`.next/**`) and package/typecheck artifacts (`dist/**`, `*.tsbuildinfo`).
 - Cache output globs in `turbo.json` must never be able to match a package's own `node_modules`. Use package-relative globs (`*.tsbuildinfo`, `dist/*.tsbuildinfo`), not recursive ones (`**/*.tsbuildinfo`), and keep the `"!node_modules/**"` guard in `build.outputs` / `typecheck.outputs`. See [Turbo cache restore replaces workspace symlinks](#turbo-cache-restore-replaces-workspace-symlinks).
 - For troubleshooting, use Turbo filters directly: `bunx turbo run build --filter=@asym/<package>`.
+
+## Eve artifacts and qualification
+
+The generic web build planner sets `CORE_EVE_BUILD_MODE=artifacts` for its
+children. Eve 0.25.1 then compiles with `--skip-sandbox-prewarm`; this applies to
+both dependency and app phases without changing Turbo's dependency order.
+Admin uses `bun run build:service` through the supported `withEve` build-command
+option. This stable command selects artifact mode only when it executes on a
+hosted preview. Production services retain the full SDK build, even when web
+dependencies were compiled in artifact mode. The decision happens at service
+execution because the SDK preserves previously generated service commands when
+the same checkout builds another target.
+
+These are **unqualified Release-Off artifacts**. They can expose the deployed
+candidate for inspection, but do not prove a sandbox template exists or permit
+autonomous effects. Auth, governance, policy, audit and release admission remain
+unchanged. The bundled Vercel runtime refuses a missing sandbox template; preview
+health or web smoke success is not sandbox qualification.
+
+- `bun run --cwd packages/eve-runtime build` defaults to the full SDK build when
+  `CORE_EVE_BUILD_MODE` is unset. Unknown modes fail before the SDK starts.
+- `bun run --cwd packages/eve-runtime build:artifacts` explicitly compiles only.
+- `bun run --cwd packages/eve-runtime build:full` always selects the full SDK
+  build, including Vercel sandbox prewarming in a Vercel-targeted environment.
+
+Turbo hashes the mode and does not cache the Eve `build` task. An artifact build
+or an earlier prewarm cannot be replayed as new provider qualification. A local
+non-Vercel build remains local compilation under the SDK's own behavior.
+
+Before release, run full qualification in the correctly configured, authorized
+target environment and collect the exact target-bound evidence required by the
+[Eve launch runbook](../operations/eve-launch.md). Missing credentials, unavailable
+governance, Release Off, or a denied prewarm remain qualification blockers. Do
+not enable release to make CI pass or count artifact compilation as that proof.
 
 ## Environment profiles
 
