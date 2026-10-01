@@ -235,7 +235,7 @@ export function validateLocalVercelConfig({ project, config }) {
   requireCheck(
     checks,
     branchGate?.["*"] === false &&
-      branchGate?.develop === true &&
+      branchGate?.develop === false &&
       branchGate?.production === true &&
       branchGate?.main === false,
     `${project.key} vercel.json branch deployment gate preserved`,

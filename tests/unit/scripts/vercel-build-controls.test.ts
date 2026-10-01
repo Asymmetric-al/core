@@ -21,7 +21,7 @@ const localConfig = {
   git: {
     deploymentEnabled: {
       "*": false,
-      develop: true,
+      develop: false,
       production: true,
       main: false,
     },

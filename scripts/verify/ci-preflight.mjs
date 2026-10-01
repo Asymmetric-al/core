@@ -1,4 +1,10 @@
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
+
+import {
+  readCompilationChanges,
+  resolveCompilation,
+} from "./ci-build-policy.mjs";
 
 const CI_FALLBACK_SUPABASE_URL = "https://ci-placeholder.supabase.co";
 const CI_FALLBACK_SUPABASE_ANON_KEY = "ci-placeholder-anon-key";
@@ -118,10 +124,52 @@ function runStage(stage) {
   return true;
 }
 
-for (const stage of stages) {
-  if (!runStage(stage)) {
-    process.exit(1);
-  }
+export function getPreflightStages({
+  full = false,
+  branch,
+  changedFiles = null,
+} = {}) {
+  const apps = resolveCompilation({
+    event: "pull_request",
+    baseBranch: "develop",
+    branch,
+    changedFiles,
+    full,
+  });
+  return stages.flatMap((stage) => {
+    if (stage.id !== "build") return [stage];
+    if (apps.length === 3) return [stage];
+    return apps.map((app) => ({
+      ...stage,
+      id: `build-${app}`,
+      script: `build:${app}`,
+    }));
+  });
 }
 
-console.log("==> PASS ci:preflight");
+function main() {
+  if (process.argv.slice(2).some((arg) => arg !== "--full"))
+    throw new Error("Usage: ci:preflight [--full]");
+  const branch = execFileSync("git", ["branch", "--show-current"], {
+    encoding: "utf8",
+  }).trim();
+  const selected = getPreflightStages({
+    full: process.argv.includes("--full"),
+    branch,
+    changedFiles: readCompilationChanges({ includeWorkingTree: true }),
+  });
+  console.log(
+    `Compilation: ${
+      selected
+        .filter((stage) => stage.id.startsWith("build"))
+        .map((stage) => stage.script)
+        .join(", ") || "not requested for routine development"
+    }`,
+  );
+  for (const stage of selected) if (!runStage(stage)) return 1;
+  console.log("==> PASS ci:preflight");
+  return 0;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
+  process.exitCode = main();

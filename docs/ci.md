@@ -12,7 +12,11 @@ and on every push to `develop` and `production`:
 
 Current workflow semantics:
 
-- `ci.yml` is the always-on fast gate for all PRs, including automation-created stacked PRs.
+- `ci.yml` is the always-on correctness gate for all PRs, including automation-created stacked PRs. `compilation-plan` selects affected apps only for dependency/build-configuration changes on PRs to `develop`; ordinary source/docs changes skip compilation. Missing diff context, production PRs/pushes, other PR bases, and explicit manual CI request full compilation.
+- `develop` pushes retain correctness feedback but do not repeat full compilation or trigger Vercel deployments. Superseded PR runs are canceled; production push runs are not canceled.
+- `ci-gate` accepts `build: skipped` only after a successful plan explicitly requests no build and all correctness prerequisites pass. A failed/canceled requested build or failed plan still blocks merging.
+- `instant-nav` compiles donor only for production PRs/pushes or explicit manual integration QA. Required migration, smoke, and development smoke gates continue running.
+- Explicit `qa:smoke` previews compile on the standard GitHub runner, then use `vercel deploy --prebuilt --target=preview`; Vercel does not compile the source again. Preview serving and fixed subscription costs still apply.
 - `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
 - `Shadscan` (`.github/workflows/shadscan.yml`) runs on all PR bases; pushes remain `develop` only.
 - `test-e2e-smoke` produces `e2e-smoke-gate`; `integration-gate` summarizes
@@ -60,7 +64,7 @@ Use the local preflight command to mirror blocking GitHub checks before pushing:
 bun run ci:preflight
 ```
 
-`ci:preflight` runs the same gate order as `.github/workflows/ci.yml`:
+`ci:preflight` runs the correctness stage order below. Its build stage is conditional under the same development policy as `.github/workflows/ci.yml`; app-specific build inputs select `build:<app>`. Use `bun run ci:preflight -- --full` for a complete QA/release checkpoint. The release command and any authorized production-targeting push always select full mode:
 
 1. `format:check`
 2. `skills:verify`
@@ -76,7 +80,7 @@ bun run ci:preflight
 12. `verify:shadcn-config`
 13. `verify:shadcn-diff`
 14. `typecheck`
-15. `build` (with CI-compatible env defaults for local parity)
+15. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
 16. `test:unit`
 
 For edits to the adopted roadmap and Studio packets, also run
@@ -112,7 +116,7 @@ the production release command:
 bun run release:production
 ```
 
-The release command checks deployment discipline, local CI preflight, and that
+The release command checks deployment discipline, full local CI preflight, and that
 `HEAD` is already reachable from fetched `develop`, then summarizes deployment
 impact before pushing to `origin/production`.
 Emergency bypasses require an explicit reason:
@@ -214,7 +218,7 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `build`
 
-- _What it checks:_ Runs `bun run build` (Turborepo → `next build` for all apps). The script applies CI-equivalent env defaults (`SKIP_ENV_VALIDATION=1`, stub Supabase keys, and a stub `PAYLOAD_SECRET`) when missing.
+- _What it checks:_ Compiles apps selected by `scripts/verify/ci-build-policy.mjs`. Routine develop PR source/docs changes and develop pushes select no build; app-specific build configuration selects that app; shared dependency/build changes, missing diff context, production, and manual CI select all apps. Explicit full local preflight runs `bun run build` (Turborepo → `next build` for all apps). The script applies CI-equivalent env defaults (`SKIP_ENV_VALIDATION=1`, stub Supabase keys, and a stub `PAYLOAD_SECRET`) when missing.
 - _Why it exists:_ Catches bundle errors, missing imports, and Next.js build-time failures that type-checking alone cannot catch.
 - _Debug locally:_ Run `bun run build` for CI-equivalent behavior, or `bun run build:strict` to validate with real local env values only.
 
@@ -341,3 +345,11 @@ actual Vite resolution with Node 24 for public, private and conditional paths.
 The data-boundary scanner excludes generated `.output` and `.nitro` paths only
 inside `packages/eve-runtime`; directories with the same names elsewhere remain
 subject to the retired Twenty runtime guard.
+
+## Development deployment checkpoints (AL-1921)
+
+Automatic Git deployment is enabled only for `production` in all three app configs. Development hosts remain on their last successful deployment until an explicit checkpoint refreshes them. This is deliberate during active development; compile-time integration errors may be discovered at the next QA checkpoint. Dependency and build-configuration PRs still request compilation.
+
+The existing same-repository, non-draft, `qa:smoke` gate is retained. The preview helper pins Vercel CLI, checks the selected Core app/team, pulls preview settings from the monorepo root, builds locally, and uploads prebuilt output. It removes local `.vercel` state before each app and in a finalizer, and suppresses raw CLI output that could contain environment values. Build output and downloaded environment files must never become diagnostic artifacts.
+
+Production branch protections and source ancestry checks are unchanged. `release:production` always uses `ci:preflight -- --full`, including when its source is `develop`.

@@ -1,6 +1,7 @@
 name: CI Integration
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [develop, production]
@@ -11,6 +12,10 @@ permissions:
 env:
   BUN_VERSION: "1.4.0"
   NODE_VERSION: "24.15.0"
+
+concurrency:
+  group: ci-integration-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   migrate:
@@ -434,6 +439,10 @@ jobs:
   # rather than reusing the dev servers the other e2e jobs run. See
   # instant-nav.rig.md.
   instant-nav:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.base_ref == 'production') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/production')
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25

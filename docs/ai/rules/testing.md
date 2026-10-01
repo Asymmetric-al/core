@@ -35,7 +35,7 @@ Use this when adding tests, modifying critical flows, or verifying changes.
   `tests/e2e/instant-navigation.spec.ts`; rules:
   `docs/ai/rules/frontend.md` → Instant Navigation). Add `instant()` coverage
   when building or changing navigation-critical routes.
-- **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready to mirror blocking GitHub checks.
+- **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready; development compilation is conditional on dependency/build inputs. Use `bun run ci:preflight -- --full` for full QA/release parity.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
 - **Pre-push mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.
 
@@ -54,7 +54,7 @@ non-runtime changes. The label is the gate for
 `.github/workflows/qa-smoke-preview-deploy.yml`; Vercel itself does not filter
 Preview Deployments by GitHub label.
 
-The preview smoke workflow keeps the deployed Playwright URL handoff on these
+The preview smoke workflow compiles on the GitHub runner and uploads prebuilt preview output. Automatic develop Git deployments are disabled. It keeps the deployed Playwright URL handoff on these
 variables:
 
 - `QA_ADMIN_BASE_URL`

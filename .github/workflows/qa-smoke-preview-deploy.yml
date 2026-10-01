@@ -100,6 +100,7 @@ jobs:
         with:
           ref: ${{ steps.gate.outputs.head_sha }}
           fetch-depth: 1
+          persist-credentials: false
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         if: steps.gate.outputs.should_run == 'true'
@@ -236,6 +237,12 @@ jobs:
             exit 1
           fi
 
+      - name: Install local preview build dependencies
+        if: steps.scope.outputs.any == 'true'
+        run: |
+          bash scripts/github/install-canvas-deps.sh
+          bun ci --no-cache --backend=copyfile
+
       - name: Deploy admin preview
         if: steps.scope.outputs.admin == 'true'
         id: deploy_admin
@@ -243,34 +250,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ -z "${VERCEL_TOKEN:-}" || -z "${VERCEL_ORG_ID:-}" || -z "${VERCEL_PROJECT_ID:-}" ]]; then
-            echo "::error::Missing required Vercel secret for admin preview deployment."
-            exit 1
-          fi
-
-          stdout_file="$(mktemp)"
-          stderr_file="$(mktemp)"
-
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --archive=tgz --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
-            echo "::error::Vercel preview deployment failed for admin. Inspect Vercel dashboard build logs."
-            exit 1
-          fi
-
-          url="$(grep -hEo 'https://[^[:space:]]+\.vercel\.app|[A-Za-z0-9][A-Za-z0-9.-]+\.vercel\.app' "${stdout_file}" "${stderr_file}" | tail -n 1 || true)"
-          if [[ -z "${url}" ]]; then
-            echo "::error::Could not parse admin preview URL from Vercel CLI output."
-            exit 1
-          fi
-          if [[ "${url}" != https://* ]]; then
-            url="https://${url}"
-          fi
-
-          echo "url=${url}" >>"${GITHUB_OUTPUT}"
-          echo "Admin preview URL captured."
+        run: node scripts/qa/deploy-prebuilt-preview.mjs admin
 
       - name: Deploy donor preview
         if: steps.scope.outputs.donor == 'true'
@@ -279,34 +259,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_DONOR_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ -z "${VERCEL_TOKEN:-}" || -z "${VERCEL_ORG_ID:-}" || -z "${VERCEL_PROJECT_ID:-}" ]]; then
-            echo "::error::Missing required Vercel secret for donor preview deployment."
-            exit 1
-          fi
-
-          stdout_file="$(mktemp)"
-          stderr_file="$(mktemp)"
-
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --archive=tgz --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
-            echo "::error::Vercel preview deployment failed for donor. Inspect Vercel dashboard build logs."
-            exit 1
-          fi
-
-          url="$(grep -hEo 'https://[^[:space:]]+\.vercel\.app|[A-Za-z0-9][A-Za-z0-9.-]+\.vercel\.app' "${stdout_file}" "${stderr_file}" | tail -n 1 || true)"
-          if [[ -z "${url}" ]]; then
-            echo "::error::Could not parse donor preview URL from Vercel CLI output."
-            exit 1
-          fi
-          if [[ "${url}" != https://* ]]; then
-            url="https://${url}"
-          fi
-
-          echo "url=${url}" >>"${GITHUB_OUTPUT}"
-          echo "Donor preview URL captured."
+        run: node scripts/qa/deploy-prebuilt-preview.mjs donor
 
       - name: Deploy missionary preview
         if: steps.scope.outputs.missionary == 'true'
@@ -315,34 +268,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_MISSIONARY_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ -z "${VERCEL_TOKEN:-}" || -z "${VERCEL_ORG_ID:-}" || -z "${VERCEL_PROJECT_ID:-}" ]]; then
-            echo "::error::Missing required Vercel secret for missionary preview deployment."
-            exit 1
-          fi
-
-          stdout_file="$(mktemp)"
-          stderr_file="$(mktemp)"
-
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --archive=tgz --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
-            echo "::error::Vercel preview deployment failed for missionary. Inspect Vercel dashboard build logs."
-            exit 1
-          fi
-
-          url="$(grep -hEo 'https://[^[:space:]]+\.vercel\.app|[A-Za-z0-9][A-Za-z0-9.-]+\.vercel\.app' "${stdout_file}" "${stderr_file}" | tail -n 1 || true)"
-          if [[ -z "${url}" ]]; then
-            echo "::error::Could not parse missionary preview URL from Vercel CLI output."
-            exit 1
-          fi
-          if [[ "${url}" != https://* ]]; then
-            url="https://${url}"
-          fi
-
-          echo "url=${url}" >>"${GITHUB_OUTPUT}"
-          echo "Missionary preview URL captured."
+        run: node scripts/qa/deploy-prebuilt-preview.mjs missionary
 
       - name: Comment preview URLs
         if: steps.gate.outputs.should_run == 'true'

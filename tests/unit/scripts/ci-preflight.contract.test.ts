@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
+import { getPreflightStages } from "../../../scripts/verify/ci-preflight.mjs";
+
 const PREFLIGHT_PATH = "scripts/verify/ci-preflight.mjs";
 
 const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
@@ -43,6 +45,28 @@ function parsePreflightStages(
 describe("ci-preflight contract", () => {
   const source = readFileSync(PREFLIGHT_PATH, "utf8");
   const stages = parsePreflightStages(source);
+
+  it("omits compilation for routine development feedback while retaining correctness stages", () => {
+    const selected = getPreflightStages({
+      branch: "feature/example",
+      changedFiles: ["apps/donor/app/page.tsx"],
+    });
+    expect(selected.map((stage) => stage.script)).toEqual(
+      EXPECTED_STAGES.filter((stage) => stage.id !== "build").map(
+        (stage) => stage.script,
+      ),
+    );
+  });
+
+  it("requests full compilation for explicit QA and production", () => {
+    for (const options of [{ full: true }, { branch: "production" }]) {
+      expect(
+        getPreflightStages({ changedFiles: ["docs/ci.md"], ...options }).map(
+          (stage) => stage.script,
+        ),
+      ).toContain("build");
+    }
+  });
 
   it("mirrors blocking ci.yml stage order documented in docs/ci.md", () => {
     expect(stages).toEqual(EXPECTED_STAGES);

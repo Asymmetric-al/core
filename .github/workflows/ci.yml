@@ -14,7 +14,31 @@ env:
   BUN_VERSION: "1.4.0"
   NODE_VERSION: "24.15.0"
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  compilation-plan:
+    runs-on: ubuntu-latest
+    outputs:
+      requested: ${{ steps.plan.outputs.requested }}
+      apps: ${{ steps.plan.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Select compilation checkpoint
+        id: plan
+        env:
+          CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CI_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/verify/ci-build-policy.mjs
+
   format:
     runs-on: ubuntu-latest
     env:
@@ -139,6 +163,8 @@ jobs:
         run: bun run typecheck
 
   build:
+    needs: compilation-plan
+    if: needs.compilation-plan.outputs.requested == 'true'
     runs-on: ubuntu-latest
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -164,7 +190,10 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
-      - run: bun run build
+      - name: Compile requested apps
+        env:
+          CI_BUILD_APPS: ${{ needs.compilation-plan.outputs.apps }}
+        run: node scripts/verify/ci-build-policy.mjs --build
 
   test-unit:
     runs-on: ubuntu-latest
@@ -205,33 +234,19 @@ jobs:
 
   ci-gate:
     if: always()
-    needs: [format, integrity, lint, typecheck, build, test-unit]
+    needs:
+      [compilation-plan, format, integrity, lint, typecheck, build, test-unit]
     runs-on: ubuntu-latest
     steps:
-      - name: Fail if any prerequisite check failed
-        run: |
-          echo "format: ${{ needs.format.result }}"
-          echo "integrity: ${{ needs.integrity.result }}"
-          echo "lint: ${{ needs.lint.result }}"
-          echo "typecheck: ${{ needs.typecheck.result }}"
-          echo "build: ${{ needs.build.result }}"
-          echo "test-unit: ${{ needs['test-unit'].result }}"
-
-          failed=0
-          for result in \
-            "${{ needs.format.result }}" \
-            "${{ needs.integrity.result }}" \
-            "${{ needs.lint.result }}" \
-            "${{ needs.typecheck.result }}" \
-            "${{ needs.build.result }}" \
-            "${{ needs['test-unit'].result }}"
-          do
-            if [ "$result" != "success" ]; then
-              failed=1
-            fi
-          done
-
-          if [ "$failed" -ne 0 ]; then
-            echo "At least one CI check failed."
-            exit 1
-          fi
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Validate correctness checks and requested compilation
+        env:
+          CI_BUILD_REQUESTED: ${{ needs.compilation-plan.outputs.requested }}
+          CI_RESULTS: >-
+            {"plan":"${{ needs.compilation-plan.result }}","format":"${{ needs.format.result }}","integrity":"${{ needs.integrity.result }}","lint":"${{ needs.lint.result }}","typecheck":"${{ needs.typecheck.result }}","unit":"${{ needs.test-unit.result }}","build":"${{ needs.build.result }}"}
+        run: node scripts/verify/ci-build-policy.mjs --gate

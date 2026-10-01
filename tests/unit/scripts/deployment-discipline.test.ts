@@ -38,7 +38,7 @@ const localConfig = {
   git: {
     deploymentEnabled: {
       "*": false,
-      develop: true,
+      develop: false,
       production: true,
       main: false,
     },
@@ -130,7 +130,7 @@ describe("deployment discipline verifier", () => {
     }
   });
 
-  it("accepts local Vercel config with ignored builds and only production/develop deployments", () => {
+  it("accepts local Vercel config with ignored builds and only automatic production deployments", () => {
     const checks = validateLocalVercelConfig({ project, config: localConfig });
 
     expect(checks).toEqual(

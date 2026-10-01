@@ -31,7 +31,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 ### CI gate
 
-- Canonical PR/push readiness: `bun run ci:preflight`.
+- Canonical PR/push readiness: `bun run ci:preflight` with conditional development compilation. Use `bun run ci:preflight -- --full` for explicit QA/release checkpoints. Routine develop merges do not trigger Vercel deployments.
 - `docs/ci.md` owns the exact stage order and dated live GitHub required-context
   inventory.
 - Run focused commands while iterating. Fix formatting with `bun run format`,

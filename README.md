@@ -357,14 +357,14 @@ Common commands:
 - `bun run test:e2e`, `bun run test:e2e:strict`, `bun run test:e2e:ui`
 - `bun run verify` (optional `VERIFY_HTTP=1`, `VERIFY_SUPABASE=1`)
 - `bun run verify:e2e`
-- Canonical PR/push-readiness gate: `bun run ci:preflight`
+- Canonical PR/push-readiness gate: `bun run ci:preflight` (routine development skips full compilation; dependency/build changes compile affected apps). Full QA/release checkpoint: `bun run ci:preflight -- --full`.
 
 ### Git Hooks Setup
 
 Husky hooks:
 
 - **pre-commit:** `lint-staged`
-- **pre-push:** `bun run ci:preflight`
+- **pre-push:** `bun run ci:preflight`; production-targeting pushes always select `--full`.
 
 `lint-staged` runs `eslint --fix` on staged workspace code (`apps/`, `packages/`, `tooling/`) and `prettier --write` on **every** staged file. Keep the Prettier glob as `*`: the pre-push gate runs `prettier . --check` across the repo, so any narrower allowlist lets files (`tests/`, `scripts/`, repo-root paths) commit unformatted and fail at push time. Exclusions belong in `.prettierignore`, not in the glob. `tests/unit/format-gate.contract.test.ts` enforces this.
 
@@ -533,3 +533,7 @@ Linux/WSL with Playwright Chromium installed. The check proves compilation and
 browser font loading without external network access, plus missing-file failure.
 See [shared font provenance and maintenance](packages/ui/fonts/README.md) for details. Normal preflight,
 all-app builds and relevant E2E still apply.
+
+### Development build checkpoints
+
+Core does not automatically deploy merges into `develop`. Use an explicit `qa:smoke` preview when a feature is ready to review; the preview compiles on GitHub and uploads prebuilt output to Vercel. Routine PRs keep correctness checks without compiling all three apps. Full compilation remains required for production releases. Existing development URLs serve the last successful deployment until explicitly refreshed. See [CI policy](docs/ci.md#development-deployment-checkpoints-al-1921).
