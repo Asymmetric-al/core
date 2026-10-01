@@ -172,15 +172,11 @@ command_discards_worktree() {
         --*=*) continue ;;
         --*) continue ;;
         -*)
-          case "$token" in
-            *W*) worktree=1 ;;
-          esac
-          case "$token" in
-            *S*) staged=1 ;;
-          esac
-          case "$token" in
-            *s*) skip_next=1 ;;
-          esac
+          if [ "$subcommand" = "restore" ]; then
+            case "$token" in *W*) worktree=1 ;; esac
+            case "$token" in *S*) staged=1 ;; esac
+            case "$token" in *s) skip_next=1 ;; esac
+          fi
           continue
           ;;
       esac

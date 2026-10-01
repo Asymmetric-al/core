@@ -68,6 +68,7 @@ describe("git-guardrails Claude hook", () => {
       "git --git-dir=.git --work-tree=. restore .",
       "git restore :/",
       "git checkout -- :(top)",
+      "git restore -sHEAD .",
     ]) {
       const result = runHook(JSON.stringify({ tool_input: { command } }));
       expect(result.status, `${command}\n${result.stderr}`).toBe(2);
