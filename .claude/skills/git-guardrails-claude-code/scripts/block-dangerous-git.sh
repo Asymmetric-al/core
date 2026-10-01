@@ -98,19 +98,29 @@ done
 
 DISCARDS_WORKTREE="false"
 while IFS= read -r COMMAND_PART; do
-  if echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])git[[:space:]]+checkout[[:space:]].*(^|[[:space:]])(\./?)([[:space:]]|$)'; then
-    DISCARDS_WORKTREE="true"
-    break
+  if ! echo "$COMMAND_PART" | grep -qE '(^|[[:space:]/])git[[:space:]]+(checkout|restore)([[:space:]]|$)'; then
+    continue
   fi
 
-  if echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])git[[:space:]]+restore[[:space:]].*(^|[[:space:]])(\./?)([[:space:]]|$)' &&
-    { ! echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])--staged([[:space:]]|$)' ||
-      echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])--worktree([[:space:]]|$)'; }; then
-    DISCARDS_WORKTREE="true"
+  if echo "$COMMAND_PART" | grep -qE '(^|[[:space:]/])git[[:space:]]+restore([[:space:]]|$)' &&
+    echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])(--staged|-S)([[:space:]]|$)' &&
+    ! echo "$COMMAND_PART" | grep -qE '(^|[[:space:]])(--worktree|-W)([[:space:]]|$)'; then
+    continue
+  fi
+
+  for TOKEN in $COMMAND_PART; do
+    TOKEN=$(printf '%s' "$TOKEN" | tr -d '()')
+    if echo "$TOKEN" | grep -qE '^\.$|^\.(/\.*)+$'; then
+      DISCARDS_WORKTREE="true"
+      break
+    fi
+  done
+
+  if [ "$DISCARDS_WORKTREE" = "true" ]; then
     break
   fi
 done <<EOF
-$(printf '%s' "$NORMALIZED" | tr ';&|' '\n')
+$(printf '%s' "$NORMALIZED" | sed -E 's/\$\(/\n/g; s/`/\n/g' | tr ';|&' '\n')
 EOF
 
 if [ "$DISCARDS_WORKTREE" = "true" ]; then
