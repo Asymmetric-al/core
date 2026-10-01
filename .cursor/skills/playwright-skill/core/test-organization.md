@@ -175,8 +175,8 @@ test.describe('Shopping Cart', () => {
 
 | Element | Convention | Example |
 |---|---|---|
-| File name | `kebab-case.spec.ts` | `password-reset.spec.ts` | // pragma: allowlist secret
-| `test.describe()` | Title Case, feature name | `'Password Reset'` | // pragma: allowlist secret
+| File name | `kebab-case.spec.ts` | `password-reset.spec.ts` <!-- pragma: allowlist secret --> |
+| `test.describe()` | Title Case, feature name | `'Password Reset'` <!-- pragma: allowlist secret --> |
 | `test()` | Sentence starting with `should` or `user can` | `'should send reset email'` |
 | Page objects | `PascalCase.page.ts` | `login.page.ts` / `LoginPage` |
 | Fixtures | `kebab-case.fixture.ts` | `auth.fixture.ts` |

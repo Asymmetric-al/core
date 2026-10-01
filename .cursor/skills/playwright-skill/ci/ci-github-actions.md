@@ -226,7 +226,7 @@ on:
     secrets:
       BASE_URL:
         required: false
-      TEST_PASSWORD: // pragma: allowlist secret
+      TEST_PASSWORD: # pragma: allowlist secret
         required: false
 
 jobs:
@@ -296,7 +296,7 @@ jobs:
       shard-total: 4
     secrets:
       BASE_URL: ${{ secrets.STAGING_URL }}
-      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} // pragma: allowlist secret
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} # pragma: allowlist secret
 ```
 
 ### Pattern 4: Running in a Container
@@ -365,7 +365,7 @@ jobs:
     env:
       CI: true
       BASE_URL: ${{ vars.STAGING_URL }}
-      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} // pragma: allowlist secret
+      TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }} # pragma: allowlist secret
       API_KEY: ${{ secrets.API_KEY }}
 
     steps:

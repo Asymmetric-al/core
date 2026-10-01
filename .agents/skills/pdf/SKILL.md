@@ -212,8 +212,8 @@ qpdf input.pdf --pages . 6-10 -- pages6-10.pdf
 # Rotate pages
 qpdf input.pdf output.pdf --rotate=+90:1  # Rotate page 1 by 90 degrees
 
-# Remove password // pragma: allowlist secret
-qpdf --password=mypassword --decrypt encrypted.pdf decrypted.pdf // pragma: allowlist secret
+# Remove password # pragma: allowlist secret
+qpdf --password=mypassword --decrypt encrypted.pdf decrypted.pdf # pragma: allowlist secret
 ```
 
 ### pdftk (if available)
@@ -276,7 +276,7 @@ pdfimages -j input.pdf output_prefix
 # This extracts all images as output_prefix-000.jpg, output_prefix-001.jpg, etc.
 ```
 
-### Password Protection // pragma: allowlist secret
+### Password Protection <!-- pragma: allowlist secret -->
 ```python
 from pypdf import PdfReader, PdfWriter
 
@@ -286,8 +286,8 @@ writer = PdfWriter()
 for page in reader.pages:
     writer.add_page(page)
 
-# Add password // pragma: allowlist secret
-writer.encrypt("userpassword", "ownerpassword") // pragma: allowlist secret
+# Add password # pragma: allowlist secret
+writer.encrypt("userpassword", "ownerpassword") # pragma: allowlist secret
 
 with open("encrypted.pdf", "wb") as output:
     writer.write(output)

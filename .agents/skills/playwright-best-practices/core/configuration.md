@@ -274,17 +274,17 @@ export default async function globalTeardown(config: FullConfig) {
 ```bash
 # .env.example (commit this)
 BASE_URL=http://localhost:4000
-TEST_PASSWORD= // pragma: allowlist secret
+TEST_PASSWORD= # pragma: allowlist secret
 API_KEY=
 
 # .env.local (gitignored)
 BASE_URL=http://localhost:4000
-TEST_PASSWORD=secret123 // pragma: allowlist secret
+TEST_PASSWORD=secret123 # pragma: allowlist secret
 API_KEY=dev-key-abc
 
 # .env.staging (gitignored)
 BASE_URL=https://staging.myapp.com
-TEST_PASSWORD=staging-pass // pragma: allowlist secret
+TEST_PASSWORD=staging-pass # pragma: allowlist secret
 API_KEY=staging-key-xyz
 ```
 

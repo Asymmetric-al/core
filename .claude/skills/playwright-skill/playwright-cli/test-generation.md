@@ -12,8 +12,8 @@ playwright-cli snapshot
 playwright-cli fill e1 "user@example.com"
 # Output: await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
 
-playwright-cli fill e2 "password123" // pragma: allowlist secret
-# Output: await page.getByRole('textbox', { name: 'Password' }).fill('password123'); // pragma: allowlist secret
+playwright-cli fill e2 "password123" # pragma: allowlist secret
+# Output: await page.getByRole('textbox', { name: 'Password' }).fill('password123'); # pragma: allowlist secret
 
 playwright-cli click e3
 # Output: await page.getByRole('button', { name: 'Sign In' }).click();
@@ -42,17 +42,17 @@ playwright-cli open https://example.com/login
 playwright-cli snapshot
 # Output:
 # e1 [textbox "Email"]
-# e2 [textbox "Password"] // pragma: allowlist secret
+# e2 [textbox "Password"] # pragma: allowlist secret
 # e3 [button "Sign In"]
-# e4 [link "Forgot password?"] // pragma: allowlist secret
+# e4 [link "Forgot password?"] # pragma: allowlist secret
 
 playwright-cli fill e1 "user@example.com"
 # Ran Playwright code:
 # await page.getByRole('textbox', { name: 'Email' }).fill('user@example.com');
 
-playwright-cli fill e2 "password123" // pragma: allowlist secret
+playwright-cli fill e2 "password123" # pragma: allowlist secret
 # Ran Playwright code:
-# await page.getByRole('textbox', { name: 'Password' }).fill('password123'); // pragma: allowlist secret
+# await page.getByRole('textbox', { name: 'Password' }).fill('password123'); # pragma: allowlist secret
 
 playwright-cli click e3
 # Ran Playwright code:
