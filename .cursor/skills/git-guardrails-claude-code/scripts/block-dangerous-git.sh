@@ -78,12 +78,16 @@ DANGEROUS_PATTERNS=(
 )
 
 NORMALIZED=$(
+  set -o pipefail
   printf '%s' "$COMMAND" |
     sed -E 's/\$\{IFS\}|\$IFS/ /g' |
     tr -d "\"'" |
     sed -E 's/\$\././g' |
     tr -s '[:space:]' ' '
-)
+) || {
+  echo "BLOCKED: failed to normalize the git command." >&2
+  exit 2
+}
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   if echo "$NORMALIZED" | grep -qE "$pattern"; then
