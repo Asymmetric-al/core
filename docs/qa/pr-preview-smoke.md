@@ -197,3 +197,5 @@ development and production deployments remain available.
 - [ ] No production deployment was requested
 - [ ] No secrets, credentials, tokens, cookies, reports, or bypass URLs were
       posted
+
+Configure both Preview credential secrets together. A partial Preview pair fails validation; the legacy QA pair is used only when both Preview secrets are absent.

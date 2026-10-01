@@ -60,14 +60,19 @@ describe("qa smoke preview deployment workflow", () => {
   it("prefers isolated preview credentials while keeping existing QA credentials as fallback", () => {
     expect(
       workflow.match(
-        /QA_TEST_EMAIL: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL \|\| secrets\.QA_TEST_EMAIL \}\}/g,
+        /QA_TEST_EMAIL: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL && secrets\.QA_PREVIEW_TEST_PASSWORD && secrets\.QA_PREVIEW_TEST_EMAIL \|\| secrets\.QA_TEST_EMAIL \}\}/g,
       ),
     ).toHaveLength(3);
     expect(
       workflow.match(
-        /QA_TEST_PASSWORD: \$\{\{ secrets\.QA_PREVIEW_TEST_PASSWORD \|\| secrets\.QA_TEST_PASSWORD \}\}/g,
+        /QA_TEST_PASSWORD: \$\{\{ secrets\.QA_PREVIEW_TEST_EMAIL && secrets\.QA_PREVIEW_TEST_PASSWORD && secrets\.QA_PREVIEW_TEST_PASSWORD \|\| secrets\.QA_TEST_PASSWORD \}\}/g,
       ),
     ).toHaveLength(3);
+    expect(workflow).toContain("QA_PREVIEW_CREDENTIALS_PARTIAL:");
+    expect(workflow).toContain('"${QA_PREVIEW_CREDENTIALS_PARTIAL}" == "true"');
+    expect(workflow).toContain(
+      "Both QA_PREVIEW_TEST_EMAIL and QA_PREVIEW_TEST_PASSWORD must be configured together.",
+    );
   });
 
   it("uses the required Vercel deployment and Playwright smoke secrets", () => {
