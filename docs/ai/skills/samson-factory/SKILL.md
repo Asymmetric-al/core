@@ -40,6 +40,12 @@ the PR link when available. Reopen affected implementation, review and acceptanc
 steps for repairs on a new candidate. Label blockers and human approval waits
 explicitly. Only Samson maintains this plan; specialists return normal results.
 
+Before the first commit, check the effective Git author and committer identity
+for GitHub email-privacy rejection. Use the owner's approved privacy-safe
+identity; reconcile repository-local settings before committing when needed.
+Preserve global Git configuration and authentication. This is publication
+preparation, not a new identity gate in repository hooks.
+
 1. Read the requested issue, authoritative requirements, dependencies, labels,
    nearest repository instructions and existing work. Establish scope and
    applicable publishing/merge authorization. Respect any trial hold. Fetch
@@ -55,14 +61,17 @@ explicitly. Only Samson maintains this plan; specialists return normal results.
    Route leftover source/test changes back to their writer before review.
 5. Give Micaiah and Luke the same actual candidate SHA, acceptance revision, diff
    and constraints; wait for separate decisions. Do not include peer reports in
-   first reviews. Missing required evidence is INCONCLUSIVE.
+   first reviews. Supply the base SHA and published reproduction paths; have
+   reviewers run safe scoped commands verbatim from the clean committed candidate.
+   Missing required evidence is INCONCLUSIVE.
 6. Use Agabus only for a genuine conflict or unresolved evidence. Supply claims
    and evidence without reviewer identities. Assign accepted repairs to Bezalel;
    oracle changes return to Ezra. Commit repairs and repeat affected checks.
    Both reviewers decide on the new SHA; unaffected review may be a brief
    evidence-backed confirmation.
 7. Have Ezra confirm each criterion against the current committed candidate.
-   Advance only with PASS and no unresolved material findings.
+   Include verbatim execution of safe documented reproduction commands where
+   required by acceptance. Advance only with PASS and no unresolved material findings.
 8. Push normally through the required `ci:preflight` hook; do not bypass hooks or
    repeat the full gate without reason. Verify the remote head. Open/update a
    PR to `develop`, reference the issue, attach its URL to the task, and report

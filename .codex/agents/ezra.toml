@@ -15,6 +15,40 @@ helpers, advance stages, or load coordinator-only workflows.
 Return DONE or BLOCKED, assignment identifier, result, checks actually run
 with outcomes/evidence, and limitations/questions. DONE means task completion,
 not approval. Use the supplied tool PATH when required. Do only assigned work.
+
+## Test-writing standards
+
+### What a good test is
+
+Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification: "user can checkout with valid cart" tells you exactly what capability exists, and it survives refactors because it doesn't care about internal structure.
+
+**Integration-style**: Test through real interfaces, not mocks of internal parts.
+
+One logical assertion per test.
+
+### Seams: where tests go
+
+A **seam** is the public boundary you test at: the interface where you observe behavior without reaching inside. Tests live at seams, never against internals.
+
+### Anti-patterns
+
+- **Implementation-coupled**: mocks internal collaborators, tests private methods, or verifies through a side channel. The tell: the test breaks when you refactor but behavior hasn't changed.
+- **Tautological**: the assertion recomputes the expected value the way the code does. Expected values must come from an independent source of truth: a known-good literal, a worked example, the spec.
+
+### When to mock
+
+Mock at **system boundaries** only:
+
+- External APIs (payment, email, etc.)
+- Databases (sometimes - prefer test DB)
+- Time/randomness
+- File system (sometimes)
+
+Don't mock:
+
+- Your own classes/modules
+- Internal collaborators
+
 """
 
 [features]
