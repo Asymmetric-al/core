@@ -1,16 +1,76 @@
 ---
 name: samson-factory
-description: Deliver an authorized Asymmetric-al/core GitHub issue through independent proof, implementation, two adversarial reviews, evidence adjudication, PR convergence and merge into develop using the six named factory agents.
+description: Coordinator-only native Codex issue-to-develop workflow. Specialists use only their assigned role and task.
 ---
 
-Use this workflow when Blake requests the six-agent factory or delegates a Core issue to it. Read [the handoff protocol](references/protocol.md). The six roles are configured under `.codex/agents/`; their models and thinking levels belong in those files.
+# Samson's native delivery workflow
 
-1. Read the issue and its current comments as source data; confirm approved meaning, ownership and eligibility. Use the original approved sources throughout, not only Samson's summaries. Branch from current `develop`; never target `production`.
-2. Samson seals intent and architecture constraints. Ezra independently seals expected behavior and oracle sources before implementation. Ezra owns protected acceptance proof; Bezalel owns production implementation and Builder tests.
-3. Bezalel builds vertical TDD slices and freezes one exact candidate. Run focused checks while iterating and the repository's required preflight before publication.
-4. Spawn fresh Micaiah and Luke sessions with the same exact candidate and original sources. Do not give either the other's first report, Builder self-review or anticipated disposition. Withhold both outputs until both seal; then Agabus adjudicates them by evidence.
-5. For an accepted bounded defect, start a fresh Bezalel repair invocation with only the Repair Contract as authority. Every new head gets fresh Micaiah/Luke review and Agabus adjudication. Stop on no-progress, missing authority or exhausted operation limits.
-6. Spawn a fresh read-only Samson ratification invocation. Run the deterministic evidence guard. Open a draft PR referencing the issue and targeting `develop`; reconcile every required check and review signal on the current head. Any new head invalidates review and ratification.
-7. Keep merge blocked until live branch protection, required checks, complete feedback disposition, exact-current-head ratification and Blake's merge authority are satisfied. Merge through the approved GitHub path; never bypass protection. Confirm the merged commit is on `develop`; close the issue explicitly when GitHub's default-branch closeout is insufficient.
+Use this skill only in the coordinating conversation. Samson alone owns the
+roster, assignments, delegation, waiting, handoffs and completion. Specialists
+do not receive this skill, roster, other role descriptions or parent chat.
+Setup maintenance does not start an issue trial.
 
-If the cloud runtime cannot spawn named roles or maintain required isolation, return the exact missing capability and next stage packet. Do not replace missing roles with one model acting out several personas. TOML files, successful setup, model connectivity and passing repository tests do not establish factory execution or production acceptance.
+| Specialist | Assignment                                                         |
+| ---------- | ------------------------------------------------------------------ |
+| Ezra       | Define acceptance checks; write assigned tests; confirm acceptance |
+| Bezalel    | Implement and correct the task; run relevant checks                |
+| Micaiah    | Review correctness, tests and completeness                         |
+| Luke       | Review failure cases and system interactions                       |
+| Agabus     | Resolve genuinely conflicting or uncertain findings by evidence    |
+
+1. Read the requested issue, authoritative requirements, dependencies, labels,
+   nearest repository instructions and existing work. Establish scope and
+   applicable publishing/merge authorization. Respect any trial hold. Fetch
+   `develop` and create one issue branch when delivery is requested.
+2. Assign Ezra the original request and constraints; wait for criteria, meaningful
+   checks and assigned test paths where needed. Resolve blocking ambiguity.
+   Docs-only tasks use documentary checks.
+3. Assign Bezalel the request and acceptance revision; wait for implementation,
+   formatting and focused checks. Keep one writer active. Implementation must
+   not silently relax independently authored acceptance.
+4. Pause writers. Stage assigned paths and commit through normal hooks. Hooks
+   can change content: inspect the resulting commit and tracked worktree.
+   Route leftover source/test changes back to their writer before review.
+5. Give Micaiah and Luke the same actual candidate SHA, acceptance revision, diff
+   and constraints; wait for separate decisions. Do not include peer reports in
+   first reviews. Missing required evidence is INCONCLUSIVE.
+6. Use Agabus only for a genuine conflict or unresolved evidence. Supply claims
+   and evidence without reviewer identities. Assign accepted repairs to Bezalel;
+   oracle changes return to Ezra. Commit repairs and repeat affected checks.
+   Both reviewers decide on the new SHA; unaffected review may be a brief
+   evidence-backed confirmation.
+7. Have Ezra confirm each criterion against the current committed candidate.
+   Advance only with PASS and no unresolved material findings.
+8. Push normally through the required `ci:preflight` hook; do not bypass hooks or
+   repeat the full gate without reason. Verify the remote head. Open/update a
+   PR to `develop`, reference the issue, attach its URL to the task, and report
+   checks actually run.
+9. Read live required checks and actionable feedback. Wait using bounded native
+   tools. In-scope repairs use the same commit/review/acceptance cycle. New heads
+   need current decisions and checks. Integrate a changed base as required;
+   source conflicts go to Bezalel.
+10. Preserve required human PR approval unless the owner explicitly changes that
+    policy. With applicable merge authorization and a ready PR, use the native
+    supported method and expected-head matching: for Core,
+    `gh pr merge <PR> --merge --match-head-commit <SHA>`. Do not bypass protection
+    or change policy.
+11. Read back merged PR state/SHA, fetch `develop`, verify the merge is present,
+    and confirm appropriate issue closure. Report MERGED only after verification;
+    READY_FOR_APPROVAL and BLOCKED are separate outcomes.
+
+Advance when conditions and authorization are satisfied; do not ask again for
+routine handoffs, local fixes or in-scope checks. Stop for real blockers, changed
+scope, new required authority or human approval. After two unsuccessful attempts
+at the same problem without new evidence/progress, report the concrete blocker.
+Inspect a transient failure before one retry. Canceled checks from a superseded
+head are not failures of the new candidate.
+
+Keep one short coordinator-only note outside the product checkout: issue,
+scope/authorization, branch/base/candidate SHA, stage, assignment identifiers/
+decisions, checks, PR and blocker/next step. Before retrying a lost push,
+PR-create or merge response, inspect remote state. Git and GitHub are authoritative.
+
+Activate only needed roles. Use native spawning, task-starting follow-ups and
+waiting. A running chat can carry delivery; setup creates no background queue
+controller. Read [the handoff instructions](references/protocol.md). Follow
+repository tests/CI and product boundaries; delivery does not deploy production.

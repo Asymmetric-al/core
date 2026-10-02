@@ -1,19 +1,19 @@
-## 1. Configuration and handoffs
+## 1. Instructions and native handoffs
 
-- [x] 1.1 Define the six roles, source-writing boundary and isolated review stages
-- [x] 1.2 Add the scoped workflow and exact handoff protocol
-- [x] 1.3 Add source/artifact binding and protected-proof validation
+- [x] 1.1 Replace team-aware roles with role-only prompts and result conventions
+- [x] 1.2 Make Samson the sole coordinator and add issue-to-develop delivery
+- [x] 1.3 Replace sealed-report qualification with native commit/check/merge gates
+- [x] 1.4 Keep human approval and the first product trial paused
 
-## 2. Verification and cloud setup
+## 2. Setup and verification
 
-- [x] 2.1 Prove rejection of stale/incorrect/incomplete evidence and run focused tests
-- [x] 2.2 Verify agent TOML, skills, OpenSpec, formatting and repository readiness
-- [x] 2.3 Create the private Cloud environment and verify dependency setup
-- [ ] 2.4 Demonstrate actual named-role loading, configured models and isolation
-- [ ] 2.5 Publish the prepared environment with honest capability limits
+- [x] 2.1 Install native settings safely and prove preservation/idempotence/drift checks
+- [x] 2.2 Validate roles, rendered prompts, mirrors, OpenSpec and workspace readiness
+- [x] 2.3 Prepare self-contained startup material and verify it locally
+- [ ] 2.4 Save the startup setting and verify an actual fresh cloud rebuild
 
-## 3. Delivery
+## 3. Delivery boundaries
 
-- [ ] 3.1 Open the setup PR against develop and converge CI/review
-- [ ] 3.2 Obtain owner merge authority and verify the merge result
-- [ ] 3.3 Demonstrate a real issue run; do not count setup as a Core production closure
+- [ ] 3.1 Publish the updated setup commit and obtain fresh required checks
+- [ ] 3.2 Obtain applicable human approval and verify setup merge
+- [ ] 3.3 Start the first issue trial only after the user releases its hold

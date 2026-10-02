@@ -16,31 +16,33 @@ args = [
 [mcp_servers.reui]
 url = "https://mcp.reui.io"
 
-# Named factory roles are used only by the samson-factory workflow.
+# BEGIN Samson native role configuration
 [agents]
 enabled = true
-max_concurrent_threads_per_session = 2
+max_concurrent_threads_per_session = 6
+max_depth = 1
 
 [agents.samson]
-description = "Coordinate the six-agent issue-to-develop workflow, compile authorized intent, and ratify the final exact artifact in a fresh read-only session."
+description = "Coordinate assignments, waiting, Git delivery and verified completion."
 config_file = "agents/samson.toml"
 
 [agents.ezra]
-description = "Independently design acceptance proof and protected tests before implementation; never write production code."
+description = "Define acceptance checks, write assigned tests and verify acceptance."
 config_file = "agents/ezra.toml"
 
 [agents.bezalel]
-description = "Implement accepted Core issues with vertical TDD and perform only Agabus-authorized bounded repairs."
+description = "Implement assigned changes and run relevant checks."
 config_file = "agents/bezalel.toml"
 
 [agents.micaiah]
-description = "Independently review a frozen candidate for contract fidelity, test validity, architecture, quality and product completeness."
+description = "Review correctness and completeness."
 config_file = "agents/micaiah.toml"
 
 [agents.luke]
-description = "Independently review the frozen candidate for authority, state, concurrency, failure, recovery and operational composition."
+description = "Review system interactions and failure cases."
 config_file = "agents/luke.toml"
 
 [agents.agabus]
-description = "Read-only evidence referee: adjudicate sealed Micaiah and Luke reports and issue accepted bounded Repair Contracts."
+description = "Resolve supplied conflicting or uncertain findings by evidence."
 config_file = "agents/agabus.toml"
+# END Samson native role configuration

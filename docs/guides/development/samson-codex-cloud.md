@@ -1,77 +1,78 @@
-# Samson six-agent Codex Cloud workflow
+# Samson native Codex Cloud workflow
 
-Use the private personal-subscription Codex Cloud environment for
-`Asymmetric-al/core`. Start one issue run with `$samson-factory` and the exact
-GitHub issue URL. All normal PRs target `develop`.
+Samson coordinates native assignments and waiting. Each specialist receives only
+its own role/task and returns a normal response. The coordinator-only
+[skill](../../ai/skills/samson-factory/SKILL.md) describes delivery through
+`develop`; its [protocol](../../ai/skills/samson-factory/references/protocol.md)
+covers fresh prompts and short results.
 
-## Setup
+## Install and verify
 
-The tested source lives in the AL-1923 setup branch until its PR is accepted.
-Configure the cloud environment from that reviewed source. Use the Bun pin in
-`package.json`, then run:
+Use the reviewed AL-1923 branch until it merges. Ensure the exact Bun pin from
+`package.json` is available, then run:
 
 ```sh
 node scripts/factory/setup-cloud.mjs
 ```
 
-The install script uses the frozen lockfile and installs no model API key or
-production credentials. Cloud setup may use the existing documented
-credential-free Mission Control sandbox to prove app readiness. Its placeholders
-and demo-auth bypass are development-only and do not establish live Supabase,
-tenant, migration or money correctness. Those claims need separately authorized
-production-shaped disposable evidence.
+Default setup uses frozen dependency installation, installs native configuration
+and personal coordinator guidance, and runs Bun, skill and workspace checks.
+`--install-only` installs instructions without dependencies; `--verify-only`
+checks existing installation and repository readiness without repairing drift.
+Unrelated global configuration/instructions are preserved. Conflicting unmanaged
+agent settings require reconciliation instead of being overwritten.
 
-Publish a private evaluation template when a fresh workspace is needed for
-capability testing. Keep product issue processing on hold until the setup report
-and required capability verification are complete. A cloud environment is a
-reusable filesystem/tool template; each task
-starts an isolated workspace. It is not a permanently running queue controller.
-All six roles consume the same personal account's usage allowance.
+No model API key or production credentials are installed. Optional Mission
+Control sandbox setup uses documented development placeholders and is separate
+from factory installation; it proves no live database or money correctness.
 
-## Agents
+## Roles and delivery
 
-| Role    | Model         | Reasoning | Default source access                                |
-| ------- | ------------- | --------- | ---------------------------------------------------- |
-| Samson  | `gpt-6.1-sol` | high      | read-only; coordination and fresh final ratification |
-| Ezra    | `gpt-6.1-sol` | high      | write approved acceptance tests only                 |
-| Bezalel | `gpt-6.1-sol` | medium    | sole production/Builder-test writer                  |
-| Micaiah | `gpt-6.1-sol` | high      | read-only contract/quality review                    |
-| Luke    | `gpt-6.1-sol` | high      | read-only systems/failure review                     |
-| Agabus  | `gpt-6.1-sol` | high      | read-only evidence adjudication                      |
+| Role    | Model         | Reasoning | Assigned access                                              |
+| ------- | ------------- | --------- | ------------------------------------------------------------ |
+| Samson  | `gpt-6.1-sol` | high      | Git/PR coordination and run note; explicit setup maintenance |
+| Ezra    | `gpt-6.1-sol` | high      | Assigned acceptance tests; acceptance verification           |
+| Bezalel | `gpt-6.1-sol` | medium    | Assigned implementation and corrections                      |
+| Micaiah | `gpt-6.1-sol` | high      | Read-only correctness/completeness review                    |
+| Luke    | `gpt-6.1-sol` | high      | Read-only systems/failure review                             |
+| Agabus  | `gpt-6.1-sol` | high      | Read-only assessment of supplied disputed findings           |
 
-Definitions are under `.codex/agents/`; the existing MCP configuration remains
-in `.codex/config.toml`. Official OpenAI documentation establishes custom agent
-configuration for local clients. Do not assume a cloud runtime honors its model,
-permissions or named-agent settings until it demonstrates them. If it cannot,
-return the missing capability and use separately isolated cloud stage tasks only
-with the required verified handoffs; never silently act out six personas in one
-conversation. No credentials should be copied from a local Codex installation.
+Use one writer, commit through normal hooks, pause edits and review that exact
+commit. Hooks may format content, so review follows committing. Each new candidate
+gets current review and acceptance decisions; repeat affected checks. Adjudication
+is needed only for actual conflicting or uncertain evidence.
 
-## Issue through merge
+Samson pushes normally through `ci:preflight`, opens a PR to `develop`, handles
+CI/review feedback, preserves required human approval and matches the accepted
+head when merging. Read back the merge and issue closeout. Configuration grants
+no merge/deployment authority. No production release is part of delivery.
 
-Samson selects one eligible issue and seals approved intent. Ezra establishes
-independent oracles and protected proof. Bezalel builds with vertical TDD.
-Micaiah and Luke independently review the same frozen SHA. Agabus accepts,
-rejects or routes every material claim and authorizes bounded repairs. A repair
-creates a new head and repeats both reviews. A fresh read-only Samson ratifies
-the final artifact. The detailed [protocol](../../ai/skills/samson-factory/references/protocol.md)
-defines exact artifact digests and the guard.
+## Startup persistence
 
-Open a draft PR referencing the issue, complete `bun run ci:preflight`, converge
-live GitHub checks and feedback, and obtain Blake's merge authority. Preserve
-branch protection and its current required check sources. Verify the exact
-merged commit on `develop` and close only the delivered issue. This workflow
-does not publish to `production` or deploy an application.
+Current workspace installation is not proof of rebuild persistence. Save the
+reviewed bootstrap in the cloud environment's startup/install setting, ensure it
+runs in a fresh workspace, then verify installed bytes, native configuration,
+rendered role prompts and tool execution in a later shell. A startup-script
+export alone does not make PATH persistent; initialize login shells and Husky
+or give each command the verified tools directory on PATH.
 
-Samson's contract authorship reduces final-judge independence; protected or
-contested tickets require a separate Samuel or human ratifier. Shell read-only
-sandboxing does not, by itself, restrict every connector effect or hide shared
-files. Effective permissions and disclosure must be verified in the chosen
-runtime.
+The repository installer provides the reproducible instruction source. A
+self-contained cloud bootstrap may stage those same reviewed files outside the
+product checkout until the setup branch merges. It must not require a surviving
+old `/workspace/samson-factory` directory or leave product sources modified.
 
-## Official sources
+The available cloud status connector cannot read/edit the saved startup script
+or create a fresh rebuild. Those UI steps remain a separate verification. Do not
+claim persistence from an environment revision, successful setup, or a local fixture.
 
-- [Codex Cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environments)
-- [Custom agents and subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
-- [Subscription versus API authentication](https://learn.chatgpt.com/docs/auth)
-- [GPT-6.1 Sol model specification](https://developers.openai.com/api/docs/models/gpt-6.1-sol)
+## Runtime boundaries
+
+Canonical roles live in `.codex/agents`; generated skill mirrors come from
+`docs/ai/skills/samson-factory`. Installed personal copies are verified snapshots.
+CLI profiles disable specialist multi-agent and native configuration limits depth
+to one. If a runtime does not load role TOMLs, Samson explicitly passes the own-role
+prompt and supported model/effort settings. Shared files are not isolated, and
+prompt restrictions are not tool removal. Existing demo contexts are not reused.
+
+The first product trial remains paused until the user requests it. A cloud
+template restores files/tools; it does not create a persistent queue controller.

@@ -1,37 +1,63 @@
 ## ADDED Requirements
 
-### Requirement: Six-Agent Factory Preserves Independent Assurance Stages
+### Requirement: Native Delivery Keeps Specialist Roles Separate
 
-The optional Core factory SHALL preserve Ezra as independent proof author,
-Bezalel as source writer, Micaiah and Luke as distinct first adversaries, Agabus
-as read-only evidence adjudicator, and a fresh read-only Samson final ratifier.
-Its normal delivery target SHALL be `develop`.
+The optional workflow SHALL place roster, assignments, delegation, waiting,
+handoffs and completion solely with Samson. Specialists SHALL receive fresh
+role-only context and report through their normal response without peer contact,
+roster discovery, delegation or workflow advancement. The coordinator skill
+SHALL NOT be given to specialists.
 
-#### Scenario: An authorized issue enters the factory
+#### Scenario: An issue is admitted
 
-- WHEN Blake requests a six-agent factory run for an eligible GitHub issue
-- THEN Samson traces approved original meaning into a bounded intent contract
-- AND Ezra seals expected behavior and oracle authority before implementation
-- AND Bezalel builds the accepted behavior through vertical TDD
+- WHEN the user requests delivery of an eligible issue
+- THEN Samson checks scope, authoritative requirements, dependencies and authority
+- AND independent acceptance criteria precede implementation
+- AND only one writer is active
 
-#### Scenario: A candidate is reviewed and repaired
+#### Scenario: A committed candidate is reviewed
 
-- WHEN one exact candidate freezes
-- THEN Micaiah and Luke produce separate first reports without peer conclusions
-- AND Agabus receives both complete reports before adjudication
-- AND accepted bounded repair returns to a fresh Bezalel invocation
-- AND the new candidate requires current independent review and ratification
+- WHEN normal commit hooks finish and writers pause
+- THEN two reviewers inspect the same committed candidate without peer conclusions
+- AND their outputs distinguish CLEAR, FINDINGS and INCONCLUSIVE
+- AND genuine conflicts or missing evidence may receive read-only adjudication
+- AND repairs receive current-commit decisions and affected rechecks
+- AND final acceptance maps each criterion to evidence for the candidate
 
-#### Scenario: Evidence or capabilities are insufficient
+#### Scenario: Delivery reaches GitHub
 
-- WHEN source, artifact digest, protected tests, principal identity or required
-  runtime isolation is stale, missing or unverified
-- THEN the factory blocks positive closure and returns the missing requirement
-- AND configuration, prompts and passing setup tests do not establish activation
+- WHEN local acceptance and review conditions are satisfied
+- THEN Samson publishes through normal repository hooks and targets `develop`
+- AND it converges live required checks and actionable feedback for the current head
+- AND it preserves required human approval and applicable merge authority
+- AND native protection and expected-head matching govern the merge
+- AND completion requires readback of the merge on `develop` and issue closeout
 
-#### Scenario: A PR reaches merge readiness
+#### Scenario: Evidence or execution cannot advance
 
-- WHEN the exact-current PR head has complete evidence and final ratification
-- THEN the factory reconciles live GitHub checks, feedback and branch policy
-- AND it requires the owner's merge authority before merging into `develop`
-- AND it verifies the merge result without deploying to production
+- WHEN required evidence, capability or authorization is missing
+- THEN Samson reports a concrete blocker instead of inferring success
+- AND repeated attempts without progress stop at a bounded decision point
+- AND resume and remote retries inspect actual Git/GitHub state
+
+### Requirement: Native Setup Is Reproducible and Honest
+
+Setup SHALL install repository-owned native role files and coordinator guidance
+without discarding unrelated personal configuration. Repeated installation SHALL
+be idempotent. Verification SHALL detect missing or changed owned content without
+mutating sources or installed files. Dependencies SHALL use the pinned Bun and
+frozen lockfile. Setup SHALL neither start a trial nor establish merge authority.
+
+#### Scenario: A fresh startup installs the package
+
+- WHEN setup runs from reviewed source in a fresh environment
+- THEN role files, coordinator guidance and executable tool initialization are restored
+- AND unrelated configuration is preserved or a conflict fails with useful guidance
+- AND credentials are not copied from another Codex installation
+
+#### Scenario: Runtime or persistence is unverified
+
+- WHEN only configuration or local fixture checks have passed
+- THEN the report distinguishes those checks from actual role loading and model access
+- AND shared-workspace prompt boundaries are not called filesystem isolation
+- AND rebuild persistence is claimed only after a real fresh-start readback

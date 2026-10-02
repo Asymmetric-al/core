@@ -21,9 +21,12 @@ commit metadata does not. CODEOWNERS routes reviews but does not grant access.
 
 ## Development workflow (short)
 
-The optional [Samson Codex Cloud factory](docs/guides/development/samson-codex-cloud.md)
-keeps independent proof, two adversarial reviewers and evidence adjudication
-before the normal human-authorized merge into `develop`.
+The optional [Samson Codex Cloud workflow](docs/guides/development/samson-codex-cloud.md)
+uses native role-only assignments, independent acceptance, two reviews and
+adjudication when needed before human-authorized merge into `develop`.
+Prepare its dependencies and personal native instructions with
+`node scripts/factory/setup-cloud.mjs`; use `--verify-only` to detect drift
+without repairing it. Setup does not start an issue trial.
 
 - **Base branch:** branch from and open normal pull requests to `develop`.
   `production` is updated only through the intentional release workflow, and
