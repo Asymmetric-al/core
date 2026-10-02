@@ -1,6 +1,13 @@
 # Eve Autonomous Operations Platform Implementation Plan
 
-Status: child issues published on 2026-06-29.
+Publication snapshot: child issues published on 2026-06-29.
+
+Foundation status (2026-10-02): the #417 spec and ADR foundation is integrated
+in `develop`; the live issue remains open with its three acceptance boxes
+unchecked. This trial reconciles that existing foundation for human review.
+Later implementation slices exist, but this trial does not qualify their runtime,
+deployment, or activation. See the
+[foundation trial verification record](./04-foundation-trial-verification.md).
 
 Parent PRD:
 [PRD 1: Eve Autonomous Operations Platform](./01-eve-autonomous-operations-platform.md)
@@ -49,13 +56,16 @@ Parent issue: https://github.com/Asymmetric-al/core/issues/416
 ### 1. Spec and ADR Foundation
 
 - Type: HITL
+- Foundation reconciliation:
+  [acceptance, provenance, and approval boundary](./04-foundation-trial-verification.md)
 - Blocked by: None
 - Architecture decision:
   [ADR-0018: Govern Eve autonomy behind one disabled-by-default release
   gate](../../adr/0018-governed-eve-autonomy.md)
 - User stories covered: 15, 16, 17, 70, 71, 72, 76
 - What it proves: Eve autonomy is defined in OpenSpec and one initial ADR
-  before runtime code exists.
+  before runtime code exists (the original foundation sequencing claim, not a
+  claim that runtime code is absent today).
 - Acceptance focus:
   - OpenSpec change captures Eve as an autonomous operations platform.
   - ADR records the autonomy model, auto-merge policy, production-write policy,
