@@ -8,8 +8,9 @@ covers fresh prompts and short results.
 
 ## Install and verify
 
-Use the reviewed AL-1923 branch until it merges. Ensure the exact Bun pin from
-`package.json` is available, then run:
+Use the reviewed AL-1923 branch until it merges. Ensure Node.js, Python 3.11 or
+later available as `python3` on PATH, and the exact Bun pin from `package.json`
+are available, then run:
 
 ```sh
 node scripts/factory/setup-cloud.mjs

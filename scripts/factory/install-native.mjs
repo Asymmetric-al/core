@@ -1,6 +1,18 @@
 #!/usr/bin/env node
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import {
+  chmodSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -129,6 +141,75 @@ for asset in json.load(sys.stdin):
   );
 }
 
+// Resolve the existing portion without creating missing directories.
+function canonicalDirectory(directory) {
+  let ancestor = path.resolve(directory);
+  const suffix = [];
+  for (;;) {
+    try {
+      lstatSync(ancestor);
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      suffix.unshift(path.basename(ancestor));
+      ancestor = path.dirname(ancestor);
+      continue;
+    }
+    let resolved;
+    try {
+      resolved = realpathSync(ancestor);
+    } catch (error) {
+      if (error.code !== "ENOENT" && error.code !== "ELOOP") throw error;
+      throw new Error(
+        `Invalid or dangling destination directory alias: ${ancestor}. Files were left unchanged.`,
+      );
+    }
+    if (!statSync(resolved).isDirectory()) {
+      throw new Error(
+        `Destination parent must be a directory: ${ancestor}. Files were left unchanged.`,
+      );
+    }
+    return path.join(resolved, ...suffix);
+  }
+}
+
+function rejectDestinationSymlinks(file) {
+  try {
+    if (lstatSync(file).isSymbolicLink()) {
+      throw new Error(
+        `Destination symlink is unsupported: ${file}. Files were left unchanged.`,
+      );
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+}
+
+function replaceAtomically(file, bytes, atomicIO) {
+  rejectDestinationSymlinks(file);
+  const existingMode = (() => {
+    try {
+      return statSync(file).mode & 0o7777;
+    } catch (error) {
+      if (error.code === "ENOENT") return null;
+      throw error;
+    }
+  })();
+  const directory = path.dirname(file);
+  mkdirSync(directory, { recursive: true });
+  const staging = mkdtempSync(
+    path.join(directory, `.${path.basename(file)}.install-`),
+  );
+  try {
+    const candidate = path.join(staging, "replacement");
+    atomicIO.writeFileSync(candidate, bytes);
+    if (existingMode !== null) chmodSync(candidate, existingMode);
+    rejectDestinationSymlinks(file);
+    atomicIO.renameSync(candidate, file);
+  } finally {
+    rmSync(staging, { recursive: true, force: true });
+  }
+}
+
 /** Install owned native configuration, global policy and personal skill; verify is read-only. */
 export function installNative({
   sourceRoot = repositoryRoot,
@@ -136,6 +217,7 @@ export function installNative({
   codexHome = process.env.CODEX_HOME,
   verify = false,
   planOnly = false,
+  atomicIO = { writeFileSync, renameSync },
 } = {}) {
   if (verify && planOnly) throw new Error("Choose either verify or planOnly.");
   const configSource = path.join(sourceRoot, ".codex/config.toml");
@@ -192,8 +274,8 @@ export function installNative({
   ]);
   const destinations = [
     ...new Set([
-      path.resolve(home, ".codex"),
-      ...(codexHome ? [path.resolve(codexHome)] : []),
+      canonicalDirectory(path.join(home, ".codex")),
+      ...(codexHome ? [canonicalDirectory(codexHome)] : []),
     ]),
   ];
   const plan = [];
@@ -228,6 +310,7 @@ export function installNative({
     plan.push([file, bytes, readOptional(file)]);
   }
   // Complete all source and destination validation before the first write.
+  for (const [file] of plan) rejectDestinationSymlinks(file);
   validateToml(tomlFiles);
   const changed = plan.filter(
     ([, bytes, existing]) => !existing?.equals(bytes),
@@ -237,10 +320,8 @@ export function installNative({
       `Native installation drift: ${changed.map(([file]) => file).join(", ")}`,
     );
   if (!verify && !planOnly)
-    for (const [file, bytes] of changed) {
-      mkdirSync(path.dirname(file), { recursive: true });
-      writeFileSync(file, bytes);
-    }
+    for (const [file, bytes] of changed)
+      replaceAtomically(file, bytes, atomicIO);
   return { destinations, changedFiles: changed.map(([file]) => file) };
 }
 

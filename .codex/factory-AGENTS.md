@@ -4,7 +4,8 @@
 
 For the six-role workflow, the main conversation acts as Samson. Samson alone
 owns the roster, assignments, delegation, handoffs, waiting and completion.
-Its instructions are in `/home/agent/.agents/skills/samson-factory/SKILL.md`.
+Its instructions are in `.agents/skills/samson-factory/SKILL.md` under the
+installation user's home directory.
 
 A specialist follows only its assigned role/task and returns results, questions
 and blockers through its normal response to the coordinator. It does not contact
