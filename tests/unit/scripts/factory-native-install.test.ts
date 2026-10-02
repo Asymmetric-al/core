@@ -180,7 +180,12 @@ it("verifies read-only and rejects drift in owned config, role, policy and skill
         .toString()
         .replace(
           /max_threads = 3|Generic policy|Generic skill|# role/,
-          "changed",
+          (match) =>
+            match === "max_threads = 3"
+              ? "max_threads = 4"
+              : match === "# role"
+                ? "# changed"
+                : "changed",
         ),
     );
     const before = snapshot(f.home);
@@ -263,4 +268,50 @@ it("provides a direct installer entry point with read-only verification and stri
     /Unsupported/,
   );
   expect(snapshot(f.home)).toEqual(before);
+});
+
+it("rejects syntactically malformed source, role and destination TOML before any writes", () => {
+  for (const location of ["source", "role", "home", "alternate"]) {
+    const f = fixture();
+    const file =
+      location === "source"
+        ? path.join(f.sourceRoot, ".codex/config.toml")
+        : location === "role"
+          ? path.join(f.sourceRoot, ".codex/agents/builder.toml")
+          : path.join(
+              location === "home" ? path.join(f.home, ".codex") : f.codexHome,
+              "config.toml",
+            );
+    mkdirSync(path.dirname(file), { recursive: true });
+    if (location === "source")
+      writeFileSync(file, readFileSync(file, "utf8") + 'model = "unterminated');
+    else writeFileSync(file, 'model = "unterminated');
+    const before = snapshot(path.dirname(f.sourceRoot));
+    expect(() => installNative(f)).toThrow(/Invalid TOML/);
+    expect(snapshot(path.dirname(f.sourceRoot))).toEqual(before);
+  }
+});
+
+it("plans a missing installation without writes and validates merged TOML before installation", async () => {
+  const { runNativeCli } =
+    await import("../../../scripts/factory/install-native.mjs");
+  const f = fixture();
+  const before = snapshot(path.dirname(f.sourceRoot));
+  const planned = installNative({ ...f, planOnly: true });
+  expect(planned.destinations).toEqual([
+    path.join(f.home, ".codex"),
+    f.codexHome,
+  ]);
+  expect(planned.changedFiles).toContain(path.join(f.codexHome, "config.toml"));
+  expect(snapshot(path.dirname(f.sourceRoot))).toEqual(before);
+  expect(runNativeCli({ ...f, args: ["--plan-only"] })).toEqual(planned);
+  expect(snapshot(path.dirname(f.sourceRoot))).toEqual(before);
+  mkdirSync(f.codexHome, { recursive: true });
+  writeFileSync(
+    path.join(f.codexHome, "config.toml"),
+    '# BEGIN Samson native role configuration\n[features]\nenabled = true\n# END Samson native role configuration\nconfig_file = "personal.toml"\n',
+  );
+  const invalid = snapshot(path.dirname(f.sourceRoot));
+  expect(() => installNative({ ...f, planOnly: true })).toThrow(/Invalid TOML/);
+  expect(snapshot(path.dirname(f.sourceRoot))).toEqual(invalid);
 });

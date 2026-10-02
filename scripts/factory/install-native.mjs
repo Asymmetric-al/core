@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -88,16 +89,60 @@ function treeFiles(directory, prefix = "") {
   });
 }
 
+function validateToml(files) {
+  const parser = spawnSync(
+    "python3",
+    [
+      "-B",
+      "-c",
+      `
+import base64, json, sys, tomllib
+for asset in json.load(sys.stdin):
+    try:
+        tomllib.loads(base64.b64decode(asset["bytes"]).decode("utf-8"))
+    except (tomllib.TOMLDecodeError, UnicodeDecodeError) as error:
+        reason = str(error) if isinstance(error, tomllib.TOMLDecodeError) else "Invalid UTF-8 encoding"
+        print(json.dumps({"path": asset["path"], "reason": reason}))
+        sys.exit(1)
+`,
+    ],
+    {
+      input: JSON.stringify(
+        files.map(([file, bytes]) => ({
+          path: file,
+          bytes: bytes.toString("base64"),
+        })),
+      ),
+      encoding: "utf8",
+      shell: false,
+    },
+  );
+  if (parser.status === 0) return;
+  if (parser.status === 1 && parser.stdout.trim()) {
+    const failure = JSON.parse(parser.stdout);
+    throw new Error(
+      `Invalid TOML in ${failure.path}: ${failure.reason}. Files were left unchanged.`,
+    );
+  }
+  throw new Error(
+    "TOML validation requires Python 3.11 or later with tomllib. Files were left unchanged.",
+  );
+}
+
 /** Install owned native configuration, global policy and personal skill; verify is read-only. */
 export function installNative({
   sourceRoot = repositoryRoot,
   home = os.homedir(),
   codexHome = process.env.CODEX_HOME,
   verify = false,
+  planOnly = false,
 } = {}) {
+  if (verify && planOnly) throw new Error("Choose either verify or planOnly.");
   const configSource = path.join(sourceRoot, ".codex/config.toml");
+  const configBytes = readFileSync(configSource);
+  const tomlFiles = [[configSource, configBytes]];
   const config = ownedBlock(
-    readFileSync(configSource, "utf8"),
+    configBytes.toString("utf8"),
     configMarkers,
     configSource,
     true,
@@ -118,6 +163,8 @@ export function installNative({
     file,
     readFileSync(path.join(agentsSource, file)),
   ]);
+  for (const [file, bytes] of roles)
+    tomlFiles.push([path.join(agentsSource, file), bytes]);
   const references = [
     ...config.matchAll(
       /^\s*config_file\s*=\s*("(?:[^"\\]|\\.)*")\s*(?:#.*)?$/gm,
@@ -162,13 +209,14 @@ export function installNative({
     ]) {
       const file = path.join(destination, name);
       const existing = readOptional(file);
-      plan.push([
-        file,
-        Buffer.from(
-          mergeBlock(existing?.toString("utf8") ?? "", block, markers, file),
-        ),
-        existing,
-      ]);
+      const merged = Buffer.from(
+        mergeBlock(existing?.toString("utf8") ?? "", block, markers, file),
+      );
+      plan.push([file, merged, existing]);
+      if (name === "config.toml") {
+        if (existing) tomlFiles.push([file, existing]);
+        tomlFiles.push([`${file} (merged)`, merged]);
+      }
     }
     for (const [relative, bytes] of roles) {
       const file = path.join(destination, "agents", relative);
@@ -180,6 +228,7 @@ export function installNative({
     plan.push([file, bytes, readOptional(file)]);
   }
   // Complete all source and destination validation before the first write.
+  validateToml(tomlFiles);
   const changed = plan.filter(
     ([, bytes, existing]) => !existing?.equals(bytes),
   );
@@ -187,7 +236,7 @@ export function installNative({
     throw new Error(
       `Native installation drift: ${changed.map(([file]) => file).join(", ")}`,
     );
-  if (!verify)
+  if (!verify && !planOnly)
     for (const [file, bytes] of changed) {
       mkdirSync(path.dirname(file), { recursive: true });
       writeFileSync(file, bytes);
@@ -196,12 +245,19 @@ export function installNative({
 }
 
 export function runNativeCli({ args = [], ...options } = {}) {
-  if (args.length > 1 || args.some((arg) => arg !== "--verify-only")) {
+  if (
+    args.length > 1 ||
+    args.some((arg) => !["--verify-only", "--plan-only"].includes(arg))
+  ) {
     throw new Error(
-      "Unsupported installer flags; use --verify-only or no flags.",
+      "Unsupported installer flags; use --verify-only, --plan-only, or no flags.",
     );
   }
-  return installNative({ ...options, verify: args[0] === "--verify-only" });
+  return installNative({
+    ...options,
+    verify: args[0] === "--verify-only",
+    planOnly: args[0] === "--plan-only",
+  });
 }
 
 if (
@@ -210,7 +266,11 @@ if (
 ) {
   try {
     runNativeCli({ args: process.argv.slice(2) });
-    console.log("Native factory instructions verified.");
+    console.log(
+      process.argv[2] === "--plan-only"
+        ? "Native factory installation plan validated; no files were changed."
+        : "Native factory instructions verified.",
+    );
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
