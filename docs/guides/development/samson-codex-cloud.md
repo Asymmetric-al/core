@@ -43,6 +43,10 @@ commit. Hooks may format content, so review follows committing. Each new candida
 gets current review and acceptance decisions; repeat affected checks. Adjudication
 is needed only for actual conflicting or uncertain evidence.
 
+Samson maintains the native Steps plan with role/stage labels, current handoffs,
+review results, repairs, blockers and approval waits. Concurrent reviewers share
+one active step. Progress updates identify the branch, candidate SHA and PR.
+
 Samson pushes normally through `ci:preflight`, opens a PR to `develop`, handles
 CI/review feedback, preserves required human approval and matches the accepted
 head when merging. Read back the merge and issue closeout. Configuration grants

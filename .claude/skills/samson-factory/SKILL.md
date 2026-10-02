@@ -32,6 +32,14 @@ is missing or initialization fails. Specialists do not run this initialization.
 | Luke       | Review failure cases and system interactions                       |
 | Agabus     | Resolve genuinely conflicting or uncertain findings by evidence    |
 
+During issue delivery, keep the native Steps UI synchronized using `update_plan`.
+Name the responsible role and stage; update before handoffs and after results.
+Keep one step active, combining concurrent reviews and showing each reviewer's
+status. Include the current branch and candidate SHA in progress updates, and
+the PR link when available. Reopen affected implementation, review and acceptance
+steps for repairs on a new candidate. Label blockers and human approval waits
+explicitly. Only Samson maintains this plan; specialists return normal results.
+
 1. Read the requested issue, authoritative requirements, dependencies, labels,
    nearest repository instructions and existing work. Establish scope and
    applicable publishing/merge authorization. Respect any trial hold. Fetch
