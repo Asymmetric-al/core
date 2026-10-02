@@ -64,7 +64,8 @@ Observed for this documentation trial:
   implementation-plan update; the historical archive is untouched.
 
 Reproduce the spec, ancestry, formatting, and diff checks from the repository
-root:
+root of a committed trial checkout. The diff commands compare the trial's
+committed `HEAD` against the baseline:
 
 ```bash
 export PATH=/workspace/.onboarding-tools/node_modules/.bin:$PATH
@@ -78,13 +79,14 @@ done
 bunx --no-install prettier --check \
   docs/prds/eve-autonomous-operations/02-implementation-plan.md \
   docs/prds/eve-autonomous-operations/04-foundation-trial-verification.md
-git diff --check
-git diff -- docs/prds/eve-autonomous-operations/02-implementation-plan.md
-git diff --no-index -- /dev/null docs/prds/eve-autonomous-operations/04-foundation-trial-verification.md
+git diff --check b13dc8af189f909a095bad78bd04340cb1d87e5b...HEAD
+git diff --name-only b13dc8af189f909a095bad78bd04340cb1d87e5b...HEAD
+git diff b13dc8af189f909a095bad78bd04340cb1d87e5b...HEAD -- \
+  docs/prds/eve-autonomous-operations/02-implementation-plan.md \
+  docs/prds/eve-autonomous-operations/04-foundation-trial-verification.md
 ```
 
-The last command displays the new file before staging and returns 1 when a diff
-exists. These checks establish document integrity and foundation provenance,
+These checks establish document integrity and foundation provenance,
 not runtime safety or release readiness. This record does not claim this
 trial's independent reviews, normal push-hook `bun run ci:preflight`, remote CI,
 or branch-protection checks have passed. Those remain delivery gates for the
