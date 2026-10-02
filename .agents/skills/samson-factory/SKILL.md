@@ -10,6 +10,20 @@ roster, assignments, delegation, waiting, handoffs and completion. Specialists
 do not receive this skill, roster, other role descriptions or parent chat.
 Setup maintenance does not start an issue trial.
 
+In the managed Core cloud factory, initialize the active runtime home once per
+coordinating chat, before verification or delegation, unless initialization has
+already completed in this chat:
+
+```sh
+node /workspace/samson-factory/startup-source/scripts/factory/install-native.mjs
+```
+
+The retained source and personal home survive the image; active `CODEX_HOME`
+under `/run` is recreated. This existing idempotent installer restores only owned
+native configuration, policy and roles while preserving unrelated settings.
+It is routine coordinator startup, not issue work. Stop if the retained installer
+is missing or initialization fails. Specialists do not run this initialization.
+
 | Specialist | Assignment                                                         |
 | ---------- | ------------------------------------------------------------------ |
 | Ezra       | Define acceptance checks; write assigned tests; confirm acceptance |

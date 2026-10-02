@@ -62,6 +62,12 @@ self-contained cloud bootstrap may stage those same reviewed files outside the
 product checkout until the setup branch merges. It must not require a surviving
 old `/workspace/samson-factory` directory or leave product sources modified.
 
+Build-time files under the active `CODEX_HOME` in `/run` can be absent in a new
+runtime even when the personal home and staged source survive. The coordinator
+skill therefore makes Samson run the retained installer once per chat before
+verification or delegation. Keep this instruction in the installed skill;
+an environment's Start skill field alone is not proof that a custom task ran it.
+
 The available cloud status connector cannot read/edit the saved startup script
 or create a fresh rebuild. Those UI steps remain a separate verification. Do not
 claim persistence from an environment revision, successful setup, or a local fixture.
