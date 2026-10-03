@@ -118,6 +118,24 @@ test("map marker keyboard activation opens a named modal with semantic giving li
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: "River Ministry" });
   await expect(dialog).toBeVisible();
+  // Base UI wraps focus through sibling guards on the next animation frame.
+  // The final focused element must be inside the popup, not on a guard.
+  const expectDialogFocus = () =>
+    expect
+      .poll(
+        () =>
+          dialog.evaluate((element) =>
+            element.contains(document.activeElement),
+          ),
+        {
+          timeout: 1000,
+          intervals: [16, 50, 100],
+          message:
+            "Map dialog must contain focus after Base UI focus scheduling",
+        },
+      )
+      .toBe(true);
+  await expectDialogFocus();
   // The marker keeps its 44px hit target; the decorative pulse belongs only to
   // the 8px visual and cannot steal neighboring marker pointer events.
   const modalBackgroundMarker = page.getByRole("button", {
@@ -147,11 +165,7 @@ test("map marker keyboard activation opens a named modal with semantic giving li
   ).toHaveCount(0);
   for (let i = 0; i < 6; i++) {
     await page.keyboard.press("Tab");
-    expect(
-      await dialog.evaluate((element) =>
-        element.contains(document.activeElement),
-      ),
-    ).toBe(true);
+    await expectDialogFocus();
   }
   expect(
     (
