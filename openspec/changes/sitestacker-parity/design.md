@@ -275,3 +275,40 @@ is the current route for the discovered conflicts and explicit owner rulings:
 Qualification cannot supply a missing policy decision. Independent source work
 may proceed under its settled contract, but an agent must not silently choose
 C-01's approval rule or declare unqualified implementation complete.
+
+## Phase 3 foundation governance — AL-490
+
+The [Phase 3 PRD](../../../docs/prds/sitestacker-parity/phase-03-minimum-permission-role-scoped-projection-foundation.md),
+including its dated amendments, owns this documentation packet. The existing
+single-context authorization requirement is retained; added identity/access and
+outbound-communication requirements cover role/row/field floors, consent,
+widening and export. Future runtime tasks remain unchecked.
+
+The intended shared enforcement belongs in `packages/api`; donor and missionary
+apps consume projections rather than independently selecting sensitive fields.
+Asym Postgres owns static field policy and pending policy-change records; code
+owns capability/surface registries. Legal Entity is subtract-only inside Tenant,
+not a new policy dimension. Classification, census review, golden promotion
+parity, RLS/boundary checks and current context revalidation qualify later wiring.
+The retired CRM shadow-sync stack supplies no runtime dependency.
+
+Canonical accepted decisions record intent, not implementation:
+
+- [ADR-A / 0209](../../../docs/adr/0209-static-field-policies-and-subtract-only-projection.md): field-only policies and one subtract-only resolver.
+- [ADR-B / 0210](../../../docs/adr/0210-code-authoritative-capability-foundation.md): typed code registry and read-only foundation; future-additive tables remain deferred.
+- [ADR-C / 0211](../../../docs/adr/0211-distinct-human-approval-for-projection-widening.md): immediate narrowing, mandatory distinct-human maker-checker widening.
+- [ADR-D / 0212](../../../docs/adr/0212-one-export-policy-and-shared-csv-safe-cell.md): exportable authority and one shared CSV cell serializer.
+
+Communications consume Phase 17 preparation and Phase 6 intent/dispatch; official
+documents consume Phase 7 facts and Phase 18 admitted artifacts. Recipient consent
+is checked at delivery/send, while staff synthetic authoring/preview and current
+self-service access retain their own authorization. No new provider, direct-send,
+text-receipt or historical notification-queue worker is authorized. Owner-dependent
+outputs stay unavailable until qualified; unrelated foundation work can qualify
+independently. Later families remain blind until classified by their source owner.
+
+Future rollback is an audited inverse policy edit, subject to the same widening
+classifier and approval; narrowing remains immediate. This documentation-only
+change has no migration, provider effect or activation to roll back. Full
+permission CRUD, capability tables, tenant overrides, rules engines and new
+transport/provider work remain deferred.
