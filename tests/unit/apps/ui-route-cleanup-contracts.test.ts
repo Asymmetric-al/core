@@ -111,13 +111,17 @@ describe("UI route cleanup contracts", () => {
     }
   });
 
-  it("keeps donor feed icon actions named and image filter motion targeted", () => {
+  it("keeps implemented donor feed actions named and image filter motion targeted", () => {
     const source = readRepoFile(
       "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
     );
 
-    expect(source).toMatch(/aria-label="Open post actions"/);
-    expect(source).toMatch(/aria-label="Share post"/);
+    expect(source).toContain(
+      'title={post.saved ? "Remove from bookmarks" : "Save this post"}',
+    );
+    expect(source).toContain("<ReactionBar");
+    expect(source).not.toMatch(/aria-label="Open post actions"/);
+    expect(source).not.toMatch(/aria-label="Share post"/);
     expect(source).toMatch(/transition-\[filter\]/);
   });
 
