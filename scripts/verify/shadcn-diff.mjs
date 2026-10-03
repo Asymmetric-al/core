@@ -295,13 +295,64 @@ function compare(actual, expected, label) {
   );
 }
 
-function reviewedEntry(root, entry) {
+function reviewedEntry(entry) {
   requireCondition(
     typeof entry.reason === "string" && entry.reason.trim().length > 20,
     `Missing customization review for ${entry.path}`,
   );
   uniqueSorted(entry.proofs, `${entry.path} review proofs`);
-  for (const proof of entry.proofs) readSource(root, proof);
+}
+
+function verifyReviewProofs(root, baseline) {
+  const entries = [
+    ...baseline.files,
+    ...baseline.localOnly,
+    ...baseline.protectedSources,
+    ...baseline.excludedDirectories,
+  ];
+  const requiredPaths = [
+    ...new Set(
+      entries.flatMap((entry) =>
+        uniqueSorted(entry.proofs, `${entry.path} review proofs`),
+      ),
+    ),
+  ].sort();
+  for (const proof of requiredPaths) {
+    safeRelativePath(proof);
+    requireCondition(
+      path.posix.normalize(proof) !== SHADCN_REVIEW_BASELINE,
+      "Review baseline cannot hash itself",
+    );
+    requireCondition(
+      path.posix.normalize(proof) === proof,
+      "Noncanonical review proof coverage",
+    );
+  }
+  const paths = uniqueSorted(
+    baseline.proofSources?.map((entry) => entry.path),
+    "review proof",
+  );
+  compare(paths, requiredPaths, "Review proof coverage");
+  // Require the recorded inventory to have one stable ordering as well as the
+  // complete referenced path set. An unrelated hashed file cannot replace proof.
+  compare(
+    baseline.proofSources.map((entry) => entry.path),
+    paths,
+    "Review proof order",
+  );
+  for (const entry of baseline.proofSources) {
+    requireCondition(
+      /^[a-f0-9]{64}$/.test(entry.sha256 ?? ""),
+      `Invalid review proof hash for ${entry.path}`,
+    );
+    let source;
+    try {
+      source = readSource(root, entry.path);
+    } catch {
+      throw new Error(`Missing review proof ${entry.path}`);
+    }
+    compare(sourceHash(source), entry.sha256, `Review proof ${entry.path}`);
+  }
 }
 
 export async function runUpstreamReview({
@@ -310,7 +361,7 @@ export async function runUpstreamReview({
   runCli = createCliRunner({ cwd: path.join(root, UI_DIRECTORY) }),
 }) {
   requireCondition(
-    baseline?.schemaVersion === 1 && baseline.cliVersion === SHADCN_CLI_VERSION,
+    baseline?.schemaVersion === 2 && baseline.cliVersion === SHADCN_CLI_VERSION,
     "Unsupported shadcn version or baseline coverage",
   );
   const version = normalizePreview(await runCli(["--version"])).trim();
@@ -379,13 +430,12 @@ export async function runUpstreamReview({
     "Owned toolkit directory coverage",
   );
   for (const entry of [...baseline.files, ...baseline.localOnly])
-    reviewedEntry(root, entry);
+    reviewedEntry(entry);
   for (const entry of baseline.excludedDirectories) {
     requireCondition(
       entry.reason?.length > 20 && entry.proofs?.length > 0,
       `Missing scope review for ${entry.path}`,
     );
-    for (const proof of entry.proofs) readSource(root, proof);
   }
   compare(
     uniqueSorted(
@@ -395,8 +445,9 @@ export async function runUpstreamReview({
     SHADCN_REQUIRED_SUPPORTING_SOURCES,
     "Supporting source coverage",
   );
+  verifyReviewProofs(root, baseline);
   for (const entry of baseline.protectedSources) {
-    reviewedEntry(root, entry);
+    reviewedEntry(entry);
     compare(
       sourceHash(readSource(root, entry.path)),
       entry.localSha256,

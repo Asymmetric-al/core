@@ -18,6 +18,7 @@ import {
   parseFileDiff,
   runUpstreamReview,
   SHADCN_CLI_VERSION,
+  SHADCN_REVIEW_BASELINE,
   SHADCN_REQUIRED_SUPPORTING_SOURCES,
   sourceHash,
 } from "../../../scripts/verify/shadcn-diff.mjs";
@@ -87,6 +88,8 @@ function fixture() {
     "packages/ui/lib/base-ui.ts": "export const callbackClassName = 'owned';\n",
     "docs/ui-contract.md":
       "Reviewed native form, styling and portal contracts.\n",
+    "docs/keyboard-contract.md":
+      "Reviewed keyboard activation and focus contracts.\n",
   };
   for (const file of SHADCN_REQUIRED_SUPPORTING_SOURCES) {
     sources[file] ??= "export const reviewedSupport = 'owned';\n";
@@ -106,10 +109,10 @@ function fixture() {
   const diffs = { button: diff("button"), dialog: diff("dialog") };
   const review = {
     reason: "Preserve the reviewed Core interaction and visual contract.",
-    proofs: ["docs/ui-contract.md"],
+    proofs: ["docs/ui-contract.md", "docs/keyboard-contract.md"],
   };
   const baseline = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     cliVersion: SHADCN_CLI_VERSION,
     config,
     components: ["button", "dialog"].map((name) =>
@@ -144,6 +147,10 @@ function fixture() {
       path: file,
       localSha256: sourceHash(sources[file]),
       ...review,
+    })),
+    proofSources: [...review.proofs].sort().map((file) => ({
+      path: file,
+      sha256: sourceHash(sources[file]),
     })),
   };
   const runCli = vi.fn(async (args: string[]) => {
@@ -341,6 +348,93 @@ describe("shadcn upstream review gate", () => {
     await expect(runUpstreamReview(input)).rejects.toThrow(
       "CLI transport failure",
     );
+  });
+
+  it("rejects changed review proof content even when runtime sources and CLI previews are unchanged", async () => {
+    const input = fixture();
+    writeFileSync(
+      path.join(input.root, "docs/ui-contract.md"),
+      "The prior native submit, label and portal validation is withdrawn.\n",
+    );
+    await expect(runUpstreamReview(input)).rejects.toThrow(
+      /Review proof.*changed/,
+    );
+  });
+
+  it.each(["empty", "partial", "omitted"])(
+    "rejects %s review proof inventory",
+    async (omission) => {
+      const input = fixture();
+      if (omission === "empty") input.baseline.proofSources = [];
+      else if (omission === "partial") input.baseline.proofSources.pop();
+      else Reflect.deleteProperty(input.baseline, "proofSources");
+      await expect(runUpstreamReview(input)).rejects.toThrow(
+        /proof.*coverage/i,
+      );
+    },
+  );
+
+  it("rejects substituting an unrelated proof with a valid content hash", async () => {
+    const input = fixture();
+    const unrelated = "This file did not substantiate the recorded review.\n";
+    writeFileSync(path.join(input.root, "docs/unrelated.md"), unrelated);
+    input.baseline.proofSources = [
+      { path: "docs/unrelated.md", sha256: sourceHash(unrelated) },
+    ];
+    await expect(runUpstreamReview(input)).rejects.toThrow(/proof.*coverage/i);
+  });
+
+  it("rejects a missing cited proof file", async () => {
+    const input = fixture();
+    rmSync(path.join(input.root, "docs/ui-contract.md"));
+    await expect(runUpstreamReview(input)).rejects.toThrow(
+      /Missing review proof/,
+    );
+  });
+
+  it.each(["duplicate", "reordered", "invalid hash"])(
+    "rejects a %s review proof inventory",
+    async (change) => {
+      const input = fixture();
+      if (change === "duplicate")
+        input.baseline.proofSources.push(input.baseline.proofSources[0]);
+      else if (change === "reordered") input.baseline.proofSources.reverse();
+      else input.baseline.proofSources[0].sha256 = "unreviewed";
+      await expect(runUpstreamReview(input)).rejects.toThrow(/review proof/i);
+    },
+  );
+
+  it("accepts a source file cited as its own proof without recursive hashing", async () => {
+    const input = fixture();
+    const sourcePath = "packages/ui/components/shadcn/button.tsx";
+    input.baseline.files[0].proofs.push(sourcePath);
+    input.baseline.proofSources.push({
+      path: sourcePath,
+      sha256: input.baseline.files[0].localSha256,
+    });
+    await expect(runUpstreamReview(input)).resolves.toMatchObject({
+      components: 2,
+      files: 2,
+    });
+  });
+
+  it("rejects hashing the baseline as its own review proof", async () => {
+    const input = fixture();
+    const baselineFile = path.join(input.root, SHADCN_REVIEW_BASELINE);
+    mkdirSync(path.dirname(baselineFile), { recursive: true });
+    writeFileSync(baselineFile, "{}\n");
+    for (const entry of [
+      ...input.baseline.files,
+      ...input.baseline.localOnly,
+      ...input.baseline.protectedSources,
+      ...input.baseline.excludedDirectories,
+    ]) {
+      entry.proofs = [SHADCN_REVIEW_BASELINE];
+    }
+    input.baseline.proofSources = [
+      { path: SHADCN_REVIEW_BASELINE, sha256: sourceHash("{}\n") },
+    ];
+    await expect(runUpstreamReview(input)).rejects.toThrow(/baseline.*itself/i);
   });
 
   it.each(["empty", "partial"])(
