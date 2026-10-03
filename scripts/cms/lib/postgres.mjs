@@ -43,6 +43,11 @@ function getPsqlConnection(databaseUrl) {
   if (!["postgres:", "postgresql:"].includes(connection.protocol)) {
     throw new Error("CMS database connection must use Postgres.");
   }
+  if (connection.searchParams.has("service")) {
+    throw new Error(
+      "CMS psql does not allow service routing; supply an explicit database URL.",
+    );
+  }
 
   // Match libpq precedence: only explicit URI values replace ambient defaults.
   const env = { ...process.env };

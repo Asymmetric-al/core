@@ -110,6 +110,18 @@ describe("CMS PostgreSQL command connection", () => {
     );
   });
 
+  it("rejects explicit service routing before starting psql", () => {
+    const routedUrl = `${databaseUrl}&service=another-database`;
+    const priorCalls = spawnSync.mock.calls.length;
+    expect(() => runPsql("SELECT 1;", { databaseUrl: routedUrl })).toThrow(
+      "service",
+    );
+    expect(() =>
+      runPsqlFile("reviewed-migration.sql", { databaseUrl: routedUrl }),
+    ).toThrow("service");
+    expect(spawnSync.mock.calls).toHaveLength(priorCalls);
+  });
+
   it("preserves spaces in libpq URI options", () => {
     spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
     runPsql("SELECT 1;", {
