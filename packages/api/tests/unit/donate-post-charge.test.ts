@@ -12,6 +12,7 @@ import {
   toGiftProcessingFeeStripeMetadata,
 } from "../../src/donate/fee-policy";
 import { processDonationSagaOutboxEvent } from "../../src/donate/saga";
+import { resolveTenantSettlementCurrency } from "../../src/money/settlement";
 import { resolveTenantStripe } from "../../src/stripe/tenant-client";
 
 vi.mock("@asym/database/supabase/admin", () => ({
@@ -63,6 +64,10 @@ vi.mock("../../src/stripe/tenant-client", () => ({
 
 vi.mock("../../src/donate/saga", () => ({
   processDonationSagaOutboxEvent: vi.fn(),
+}));
+
+vi.mock("../../src/money/settlement", () => ({
+  resolveTenantSettlementCurrency: vi.fn(),
 }));
 
 const mockedGetAdminClient = vi.mocked(getAdminClient);
@@ -166,6 +171,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storedDonationAmount = null;
+    vi.mocked(resolveTenantSettlementCurrency).mockResolvedValue("USD");
     mockedCreateAuditLogger.mockReturnValue({
       log: vi.fn(),
       logDonation: vi.fn(),
@@ -194,6 +200,40 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       clientSecret: "cs_test",
     });
     rpcMock.mockResolvedValue({ data: beginRpcResult, error: null });
+  });
+
+  it.each([1.001, 0.299, "1.00000000000000001"])(
+    "rejects excessive precision %s before gift/provider effects",
+    async (amount) => {
+      const response = await POST(
+        createDonateRequest({ amount, currency: "usd" }),
+      );
+      expect(response.status).toBe(400);
+      expect(rpcMock).not.toHaveBeenCalled();
+      expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
+    },
+  );
+
+  it("fails closed before gift/provider effects when settlement context is unavailable", async () => {
+    vi.mocked(resolveTenantSettlementCurrency).mockResolvedValue(null);
+    const response = await POST(
+      createDonateRequest({ amount: 25, currency: "usd" }),
+    );
+    expect(response.status).toBe(503);
+    expect(rpcMock).not.toHaveBeenCalled();
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects a mismatched resolved currency before gift/provider effects", async () => {
+    vi.mocked(resolveTenantSettlementCurrency).mockResolvedValue(
+      "EUR" as "USD",
+    );
+    const response = await POST(
+      createDonateRequest({ amount: 25, currency: "usd" }),
+    );
+    expect(response.status).toBe(400);
+    expect(rpcMock).not.toHaveBeenCalled();
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
   });
 
   it("passes Gift intake charged cents as begin_donation_saga p_amount", async () => {
