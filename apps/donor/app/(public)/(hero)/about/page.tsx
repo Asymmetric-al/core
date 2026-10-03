@@ -13,9 +13,7 @@ export const metadata: Metadata = pageMetadata.about;
 
 export default function AboutPage() {
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
+    <div
       className="bg-background text-foreground min-h-screen selection:bg-accent"
       data-testid="about-route-shell"
     >
@@ -30,6 +28,6 @@ export default function AboutPage() {
       <AboutValues />
       <AboutLeadership />
       <AboutCTA />
-    </main>
+    </div>
   );
 }

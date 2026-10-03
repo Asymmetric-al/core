@@ -225,16 +225,17 @@ function StudioNavRailRecentDocs({
       </div>
       <div className="flex flex-col gap-1">
         {recentDocs.map((doc) => (
-          <Button
+          <Link
             key={`${doc.id}-${doc.href}`}
-            variant="ghost"
-            size="sm"
-            className="justify-start overflow-hidden text-left text-xs"
-            nativeButton={false}
-            render={<Link href={doc.href} title={doc.title} />}
+            href={doc.href}
+            title={doc.title}
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "justify-start overflow-hidden text-left text-xs",
+            )}
           >
             <span className="truncate">{doc.title}</span>
-          </Button>
+          </Link>
         ))}
       </div>
     </div>

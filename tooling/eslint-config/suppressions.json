@@ -1790,13 +1790,13 @@
   },
   "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 15
+      "count": 9
     },
     "shadcn/no-raw-colors": {
-      "count": 61
+      "count": 47
     },
     "shadcn/no-restyle": {
-      "count": 56
+      "count": 31
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx": {
@@ -2629,14 +2629,6 @@
   "packages/ui/components/ministry-update/reaction-bar.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 6
-    }
-  },
-  "packages/ui/components/page-header.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 2
-    },
-    "shadcn/no-unknown-classes": {
-      "count": 1
     }
   },
   "packages/ui/components/primitives/chart-wrappers.tsx": {

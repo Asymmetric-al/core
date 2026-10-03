@@ -856,7 +856,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
-          "sha256": "ba77eb142db9910205c3729563e22f4e8a663da89f3ca08635a2ca69e8660013"
+          "sha256": "3d718bfb6a7da106f37776436ea2bd2ec513cedb7b74fe8b1e34a5fabe945d30"
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
@@ -1114,16 +1114,17 @@
       "project": "apps/missionary",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "Flagged action Button is rendered by a labeled DropdownMenuTrigger. The actual keyboard-hidden task action issue was separately repaired with group-focus-within visibility outside Button ownership; completed delete is explicitly named. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
+      "rationale": "Flagged action Button is rendered by a labeled DropdownMenuTrigger. The actual keyboard-hidden task action issue was separately repaired with group-focus-within visibility outside Button ownership; completed delete is explicitly named. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action. Current actual DonorTasks DOM tests also verify the active action trigger and completed delete names, confirmation focus, cancellation and deferred duplicate prevention.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
-        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx"
+        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
+        "tests/unit/apps/missionary/donor-task-delete-confirmation.test.tsx"
       ],
       "evidenceFingerprint": "6aa0a8f54769c98ae1efce2040166a4159947ae1f0e3be9487bf7c4cb122a80a",
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "4f2bdf75035570eec46f6fbb6587d516a4256f517bb32d75b455f0217b31fa63"
+          "sha256": "4d17c21fb567b054feb5e1d7b6f6dd1c6683a0d0d4565c554726cda7d3eb432d"
         },
         {
           "path": "packages/ui/components/shadcn/button.tsx",
@@ -1140,6 +1141,10 @@
         {
           "path": "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
           "sha256": "bce90ed32231f6c566edba5481edf2d1862c2bfabe5a8c97b7e99fd717a3519b"
+        },
+        {
+          "path": "tests/unit/apps/missionary/donor-task-delete-confirmation.test.tsx",
+          "sha256": "66faf63e620c5e933ace53a8949a8b8fb067792dd6795ab29e9ca39d291fd027"
         }
       ]
     },

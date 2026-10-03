@@ -40,6 +40,12 @@ await build({
       enforce: "pre",
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
+        if (
+          source === "@asym/env" &&
+          importer?.replaceAll("\\", "/").endsWith("/view-transitions/flags.ts")
+        ) {
+          return resolve(fixtureDirectory, "view-transition-env-stub.ts");
+        }
         // Next Image's framework module is outside this standalone Vite
         // fixture. Only the legacy search block's static demo imagery uses
         // native img here; its actual Dialog and trigger remain unchanged.

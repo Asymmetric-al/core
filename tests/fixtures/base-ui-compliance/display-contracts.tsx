@@ -1,5 +1,6 @@
 import React from "react";
 
+import { PageHeader } from "../../../packages/ui/components/page-header";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -52,6 +53,14 @@ export function DisplayContracts() {
   return (
     <section aria-label="Display primitives">
       <h2>Display primitives</h2>
+      <div data-testid="page-header-contract" className="bg-background">
+        <PageHeader
+          title="Shared page heading"
+          description={"Shared page description includes enough detail to explain the next step. ".repeat(
+            8,
+          )}
+        />
+      </div>
       <TooltipProvider>
         <EmailStudioProviderStatus variant="badge" />
       </TooltipProvider>

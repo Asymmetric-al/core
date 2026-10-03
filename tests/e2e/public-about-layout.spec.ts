@@ -174,9 +174,33 @@ for (const reducedMotion of ["reduce", "no-preference"] as const) {
         body: JSON.stringify(geometry, null, 2),
         contentType: "application/json",
       });
+      const footer = page.getByRole("contentinfo");
+      await expect(footer.locator('a[href="#"]')).toHaveCount(0);
+      await expect(
+        footer.getByRole("link", { name: "Mission Control" }),
+      ).toHaveCount(0);
+      await expect(
+        footer.getByRole("link", { name: "Missionary Dashboard" }),
+      ).toHaveCount(0);
+      const donorPortalLinks = footer.getByRole("link", {
+        name: "Donor Portal",
+      });
+      await expect(donorPortalLinks).toHaveCount(2);
+      for (const link of await donorPortalLinks.all())
+        await expect(link).toHaveAttribute("href", "/donor-dashboard");
+      await expect(footer.getByRole("heading", { level: 2 })).toHaveText([
+        "Organization",
+        "Giving",
+        "Platform",
+      ]);
+      await expect(
+        footer.getByRole("heading", { name: "Connect", exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        footer.getByRole("link", { name: "Privacy Policy" }),
+      ).toHaveAttribute("href", "/privacy");
       expect.soft(clipping).toEqual([]);
-      // The unchanged Footer has a separately recorded 34px social-row
-      // overflow at 1024px. Keep it rendered, but own About's geometry here.
+      expect(geometry.scrollWidth).toBeLessThanOrEqual(viewport.width);
       const aboutBounds = await route.evaluate((node) => ({
         left: node.getBoundingClientRect().left,
         right: node.getBoundingClientRect().right,

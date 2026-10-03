@@ -35,11 +35,11 @@ export function PageHeader({
       )}
     >
       <div className="space-y-0.5 sm:space-y-1 min-w-0">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-zinc-900 truncate">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-foreground truncate">
           {titleNode}
         </h1>
         {description && (
-          <p className="text-xs sm:text-sm text-zinc-500 truncate-2 sm:truncate-none">
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">
             {description}
           </p>
         )}
