@@ -582,6 +582,15 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 ### 14. Multi-site, language & currency
 
+- **Foundation:** [Phase 2 — Site/Locale/Currency Foundation](./phase-02-site-locale-currency-foundation.md)
+  establishes one Default Site plus optional additional public Sites per Tenant,
+  with Site, locale, currency-aware money, and independent Site / Entry Method /
+  Source Code / Designation attribution primitives. SiteStacker's site channel
+  maps approximately to Asym Site for future import; no second Site/channel
+  hierarchy or generic gift channel is introduced. The explicit Phase 24
+  amendments govern domain authority, exact-locale publication, branding, and
+  qualified donor presentment. This foundation reference establishes intended
+  scope, not Built, Live, Confirmed, or runtime qualification.
 - **Benchmark:** SiteStacker multi-site/language/currency. (s)
 - **Current state:** the inspected runtime at `7abd2c11` does not establish
   the qualified Phase 24 domain, locale, currency and brand contracts.
