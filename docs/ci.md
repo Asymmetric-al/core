@@ -207,7 +207,7 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `lint`
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (pinned modern CLI review guard over all installed official components and explicit file previews; checks reviewed customizations rather than stock byte parity).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
 - _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
 
@@ -283,6 +283,24 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
      The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
+- _Artifacts:_ Auth preflight, production gate, and CMS invocations use distinct
+  `PLAYWRIGHT_REPORT_DIR` paths under `playwright-report/`. The default reporter
+  streams each test's progress and writes an atomic, bounded
+  `<stage>-run-status.json` beside each HTML-owned stage directory. The default
+  local path is `playwright-report-run-status.json`. Initialization invalidates
+  the preceding verdict before global setup; `phase: "setup"` and
+  `totalTests: null` mean inventory is not yet known. After tests,
+  `phase: "reporting"` stays `status: "running"` until HTML/JSON `onEnd`
+  callbacks finish; the reporter's `onExit` then finalizes the SDK result.
+  A hard kill during setup, tests, or report generation retains running status
+  with no `finishedAt`, including when HTML recreates its owned folder. This
+  is incomplete evidence. Missing status or configuration failure before
+  reporter initialization is also incomplete evidence; reconcile the current
+  invocation and timestamps before using an earlier finalized report.
+  Failure uploads retain `playwright-report/` and `test-results/` for status,
+  screenshots and traces, with a separate raw-artifact directory per named
+  stage. Status counts describe attempts, including retries. The report stage's
+  basename must be unique when preserving multiple invocations in one checkout.
 - _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `production`, `e2e-gate` requires both this job and the deterministic `instant-nav` job (`--retries=0`) to succeed.
 - _Donor-only default projects:_ When a local or CI caller sets
   `PLAYWRIGHT_INCLUDE_ADMIN=0`, `playwright.config.ts` omits the admin web

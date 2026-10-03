@@ -123,6 +123,25 @@ describe("ci-integration workflow contract", () => {
     expect(e2eGate).not.toContain("develop");
   });
 
+  it("keeps auth, production, and CMS run artifacts distinct with retry diagnostics", () => {
+    const testE2e = jobBlock(workflow, "test-e2e");
+    expect(testE2e).toContain(
+      'PLAYWRIGHT_REPORT_DIR: "playwright-report/auth-preflight"',
+    );
+    expect(testE2e).toContain(
+      'PLAYWRIGHT_REPORT_DIR: "playwright-report/production-gate"',
+    );
+    expect(testE2e).toContain('PLAYWRIGHT_REPORT_DIR: "playwright-report/cms"');
+    const upload = testE2e.slice(
+      testE2e.indexOf("name: Upload artifact on failure"),
+    );
+    // The report parent includes each stage's sibling run-status file.
+    expect(upload).toContain("playwright-report/");
+    expect(upload).toContain("test-results/");
+    expect(upload).toContain("if: failure()");
+    expect(testE2e).toContain("timeout-minutes: 10");
+  });
+
   it("keeps instant navigation deterministic and production-gated", () => {
     const instantNav = jobBlock(workflow, "instant-nav");
     const e2eGate = jobBlock(workflow, "e2e-gate");

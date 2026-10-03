@@ -377,11 +377,13 @@ jobs:
           done
       - name: Demo auth preflight
         env:
+          PLAYWRIGHT_REPORT_DIR: "playwright-report/auth-preflight"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:auth-preflight
       - name: Run Playwright production gate
         timeout-minutes: 10
         env:
+          PLAYWRIGHT_REPORT_DIR: "playwright-report/production-gate"
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
         run: bun run test:e2e:production-gate
@@ -407,6 +409,7 @@ jobs:
       - name: Run Playwright CMS E2E
         timeout-minutes: 10
         env:
+          PLAYWRIGHT_REPORT_DIR: "playwright-report/cms"
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
           PLAYWRIGHT_INCLUDE_ADMIN: "1"
@@ -416,7 +419,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 7
 
   e2e-smoke-gate:
