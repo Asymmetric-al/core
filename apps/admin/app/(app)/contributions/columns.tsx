@@ -6,6 +6,7 @@ import {
   SHARED_RECEIPT_STATUS_LABELS,
   type SharedContributionReceiptStatus,
 } from "@asym/api/admin/contribution-shared";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { getInitials } from "@asym/lib/utils";
 import {
   Avatar,
@@ -137,6 +138,19 @@ const sourceLabels: Record<ContributionSource, string> = {
   Import: "Import",
 };
 
+function ContributionDateCell({ value }: { value: string }) {
+  const { formatDate } = useLocaleFormat();
+  return (
+    <span className="text-sm text-muted-foreground whitespace-nowrap">
+      {formatDate(value, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })}
+    </span>
+  );
+}
+
 export function getContributionColumns({
   onViewContribution,
 }: {
@@ -214,18 +228,7 @@ export function getContributionColumns({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Date" />
       ),
-      cell: ({ row }) => {
-        const date = new Date(row.original.date);
-        return (
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
-            {date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
-        );
-      },
+      cell: ({ row }) => <ContributionDateCell value={row.original.date} />,
       enableSorting: true,
       meta: {
         label: "Date",
