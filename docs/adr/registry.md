@@ -84,3 +84,13 @@ with complete posted financial-row immutability and joined projections. The
 canonical directory ended at 0205 before this addition, and the pending
 collision register contained no 0206 record. This accepted addition does not renumber earlier ADRs
 or claim implementation; C-01's correction-approval question is independent.
+
+## Accepted Phase 2 foundation records — AL-481
+
+- [0207-site-before-ledger-with-locale-and-currency-facets.md](0207-site-before-ledger-with-locale-and-currency-facets.md) records the settled Site presentation/attribution foundation and its explicit owner amendments.
+- [0208-currency-aware-minor-units.md](0208-currency-aware-minor-units.md) records the settled checked minor-unit and metadata-authority contract.
+
+The canonical directory ended at 0206 before these additions; neither 0207 nor
+0208 appeared in the pending-collision register. These platform records preserve
+existing identities and record accepted target intent, not implementation or
+activation evidence. Source issue: [AL-481](https://github.com/Asymmetric-al/core/issues/481).
