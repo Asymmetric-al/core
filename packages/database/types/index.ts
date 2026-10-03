@@ -130,3 +130,9 @@ export type {
   Fund,
   Follow,
 } from "./database";
+
+export type {
+  CurrencyFoundationTables,
+  CurrencyMetadataRow,
+  CurrencyRateSnapshotRow,
+} from "./currency-foundation.generated";

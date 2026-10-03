@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./money": "./src/money/index.ts",
     "./posts": "./src/posts/index.ts",
     "./posts/post": "./src/posts/post.ts",
     "./posts/comments": "./src/posts/comments.ts",

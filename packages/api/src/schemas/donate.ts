@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { parseMoneyToMinorUnits } from "../money";
+
 const optionalIdentifier = z.preprocess((value) => {
   if (typeof value !== "string") return value;
   const trimmed = value.trim();
@@ -7,8 +9,14 @@ const optionalIdentifier = z.preprocess((value) => {
 }, z.string().min(1).optional());
 
 export const donatePostSchema = z.object({
-  // Donor-entered gift in dollars. Gift intake recomputes charged cents.
-  amount: z.coerce.number().finite().positive("Amount must be greater than 0"),
+  // Preserve decimal strings until the canonical parser validates exact units.
+  amount: z.union([z.number().finite(), z.string()]).refine((value) => {
+    try {
+      return parseMoneyToMinorUnits(value, "USD") > 0;
+    } catch {
+      return false;
+    }
+  }, "Amount must be positive, safe, and exact in currency minor units"),
   currency: z.preprocess((value) => {
     if (typeof value !== "string") return value;
     const normalized = value.trim().toLowerCase();
