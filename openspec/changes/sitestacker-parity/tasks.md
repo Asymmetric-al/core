@@ -239,3 +239,55 @@ qualification has completed. Details and current safe boundaries are in the
 - [ ] Implement and qualify C-02 across actual schema/migrations, grants/RLS,
       writers/readers, atomic receipts/outbox and adversarial immutable-row,
       replay/concurrency and consolidated-request tests before activation.
+
+## 5. Phase 3 foundation — AL-490 governance and future implementation
+
+[AL-490](https://github.com/Asymmetric-al/core/issues/490) delivers documentation
+only. The unchecked tasks below describe future implementation and qualification;
+this packet does not complete runtime work or unrelated tasks.
+
+- [x] 5.1 Author and validate the Phase 3 glossary, five foundation requirements,
+      ADR-A–D (canonical 0209–0212), registry and parity foundation row; record
+      documentation checks separately from runtime proof. AL-490 validation:
+      strict change valid; all current specs/changes 80 passed; archive audit
+      32 passed; delta compatibility 76 checked; changed-doc Prettier and
+      git diff --check passed; 30 introduced relative links/anchors resolved.
+- [ ] 5.2 Implement and review the authoritative field census/static field policies,
+      six sensitivity categories, whole-column classification and hard-locked
+      processor identifiers; prove missing/unknown fields and surfaces fail closed.
+- [ ] 5.3 Implement the single subtract-only read/write projection boundary;
+      qualify donor/missionary promotion with golden field-set parity and tamper,
+      wrong-Tenant, exact Legal Entity, relationship, split-line and anonymity
+      negative cases. Preserve known Party/legal donors for online guests and
+      distinguish explicit unknown_offline source intent. Do not restore shadow sync.
+- [ ] 5.4 Generalize the typed code capability registry and read-only foundation
+      inspection; prove one validated authorization context, unrelated-hat
+      noninterference, explicit switching and deferred context revalidation.
+      Keep capability tables, configurable grants and tenant overrides dormant.
+- [ ] 5.5 Integrate canonical consent across existing delivery/contact-list egress;
+      prove send-time opt-out/suppression denial, identifiers-only audit, synthetic
+      staff preview independence and self-service access distinct from contact.
+      Preserve Phase 17/6 and Phase 7/18 ownership and exact qualification gates;
+      add no direct sender, prototype receipt renderer, queue worker or transport.
+- [ ] 5.6 Implement governed CSV/JSON export from one resolved exportable field set;
+      converge existing CSV consumers on the one shared csvSafeCell and prove
+      trigger neutralization, quoting, CRLF/BOM, category/payment exclusions,
+      derived-column classification and accurate PII-free audit counts.
+- [ ] 5.7 Implement immediate narrowing and pending widening by reusing correction
+      maker-checker with mandatory distinct-human approval; exhaustively qualify
+      category/flag/surface transitions, ambiguous and incomparable inputs,
+      base-fingerprint conflict, concurrent decision, allowlist, baseline guard
+      and inverse-edit rollback. Do not inherit unresolved financial approval mode.
+- [ ] 5.8 Qualify identifiers-only audit and read-only audit inspection for edits,
+      exports, consent denial, sensitive access and propose/approve/reject/publish/
+      rollback; prove care/security read audit and system-actor attribution.
+- [ ] 5.9 Run future implementation TDD at stable policy seams, actual database/RLS
+      and boundary checks, promotion golden snapshots, and applicable repository
+      gates; record exact commands, scope, outcomes, recovery/rollback evidence and
+      remaining exclusions in the owner phase-evidence record before claiming built.
+
+Deferred: full permission-management product, capability tables, tenant override
+activation, runtime rules engines/value provenance, generalized approvals,
+new transports/providers and later record families. Later owners register and
+classify those families under the same floor when built; no whole Phase 12
+backward delivery gate is introduced.
