@@ -9,13 +9,25 @@ import {
 import os from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createStagedSnapshot,
   scannerEnvironment,
   validateInstalledVersion,
 } from "../../../scripts/verify/shadscan.mjs";
+
+beforeEach(() => {
+  // Git hooks export their invoking checkout/index selection. Both fixture
+  // commands and createStagedSnapshot must operate on this test's own repo.
+  for (const name of Object.keys(process.env)) {
+    if (name.startsWith("GIT_")) vi.stubEnv(name, undefined);
+  }
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("Shadscan staged commit input", () => {
   it("keeps reporting tokens and Node injection options out of the scanner process", () => {
@@ -36,6 +48,10 @@ describe("Shadscan staged commit input", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "core-shadscan-staged-"));
     let snapshot: string | undefined;
     try {
+      // Fail before any Git mutation if this file's environment isolation regresses.
+      expect(
+        Object.keys(process.env).filter((name) => name.startsWith("GIT_")),
+      ).toEqual([]);
       execFileSync("git", ["init", "--quiet"], { cwd: root });
       mkdirSync(path.join(root, "tooling/shadscan"), { recursive: true });
       writeFileSync(
