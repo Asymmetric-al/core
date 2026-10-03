@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "engineVersion": "0.17.0",
+  "rulesetVersion": "2026.08.46",
+  "reportSchemaVersion": 9,
+  "applicationFloors": {
+    "apps/admin": 43,
+    "apps/donor": 59,
+    "apps/missionary": 47
+  },
+  "libraryProjects": [
+    ".",
+    "packages/auth",
+    "packages/database",
+    "packages/lib",
+    "packages/missionary",
+    "packages/ui"
+  ]
+}

@@ -32,6 +32,41 @@ describe("Eve governance admin view", () => {
 
   afterEach(cleanup);
 
+  it("announces loading governance state", () => {
+    const view = render(<EveGovernanceView isError={false} isLoading />);
+    expect(view.getByRole("status").textContent).toContain(
+      "Loading Eve governance state…",
+    );
+  });
+
+  it("announces an in-flight kill-switch change while every control is disabled", () => {
+    const view = render(
+      <EveGovernanceView
+        data={{
+          system: {
+            source: "persisted",
+            releaseEnabled: false,
+            emergencyOff: false,
+            killSwitchState: createClearedEveKillSwitchState(),
+            policyStatus: "not_configured",
+            stateVersion: 1,
+            updatedAt: "2026-07-17T00:00:00.000Z",
+          },
+          auditHistory: [],
+          recentRuns: [],
+        }}
+        isError={false}
+        isLoading={false}
+        mutationPendingKey="all_automation"
+      />,
+    );
+    expect(view.getByRole("status").textContent).toContain(
+      "Updating All automation…",
+    );
+    for (const control of view.getAllByRole("button"))
+      expect(control).toHaveProperty("disabled", true);
+  });
+
   it("makes disabled, emergency, and policy status visible", () => {
     const view = render(
       <EveGovernanceView

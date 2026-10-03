@@ -10,6 +10,8 @@ import {
 } from "next/navigation";
 import React from "react";
 
+import { StudioFlowLoading } from "../cms-ui/web-studio/flows/studio-flow-loading";
+
 import type { RouterAdapterContextValue } from "@payloadcms/ui";
 import type { LinkAdapterProps } from "payload";
 
@@ -40,7 +42,7 @@ export const NextRouterAdapter: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   return (
-    <React.Suspense fallback={null}>
+    <React.Suspense fallback={<StudioFlowLoading />}>
       <NextRouterAdapterProvider>{children}</NextRouterAdapterProvider>
     </React.Suspense>
   );

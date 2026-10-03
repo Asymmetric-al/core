@@ -332,7 +332,7 @@
   },
   "apps/admin/app/(app)/feed/content-moderation-page-client.tsx": {
     "shadcn/no-restyle": {
-      "count": 7
+      "count": 5
     }
   },
   "apps/admin/app/(app)/feed/content-moderation-sections.tsx": {
@@ -390,10 +390,10 @@
       "count": 11
     },
     "shadcn/no-raw-colors": {
-      "count": 76
+      "count": 74
     },
     "shadcn/no-restyle": {
-      "count": 204
+      "count": 203
     },
     "shadcn/require-static-classes": {
       "count": 2
@@ -573,13 +573,13 @@
   },
   "apps/admin/app/mc-shell.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 10
+      "count": 9
     },
     "shadcn/no-raw-colors": {
       "count": 34
     },
     "shadcn/no-restyle": {
-      "count": 63
+      "count": 55
     }
   },
   "apps/admin/app/web-studio/web-studio-sections.tsx": {
@@ -1972,16 +1972,13 @@
   },
   "apps/donor/app/(public)/(solid)/where-we-work/map-wrapper.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 8
     },
     "shadcn/no-raw-colors": {
       "count": 5
     },
     "shadcn/no-restyle": {
-      "count": 72
-    },
-    "shadcn/require-static-classes": {
-      "count": 6
+      "count": 52
     }
   },
   "apps/donor/app/(public)/(solid)/where-we-work/where-we-work-client.tsx": {
@@ -2149,13 +2146,13 @@
   },
   "apps/missionary/app/donors/donor-tasks.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 3
     },
     "shadcn/no-raw-colors": {
-      "count": 35
+      "count": 31
     },
     "shadcn/no-restyle": {
-      "count": 37
+      "count": 9
     }
   },
   "apps/missionary/app/donors/donors-model.tsx": {
@@ -2349,10 +2346,10 @@
       "count": 3
     },
     "shadcn/no-raw-colors": {
-      "count": 29
+      "count": 27
     },
     "shadcn/no-restyle": {
-      "count": 39
+      "count": 33
     }
   },
   "apps/missionary/app/register/loading.tsx": {
@@ -2497,16 +2494,13 @@
   },
   "packages/missionary/components/task-kanban-board.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 8
+      "count": 6
     },
     "shadcn/no-raw-colors": {
-      "count": 31
+      "count": 22
     },
     "shadcn/no-restyle": {
-      "count": 49
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
+      "count": 18
     }
   },
   "packages/missionary/components/task-partner-select.tsx": {
@@ -2630,9 +2624,6 @@
   "packages/ui/components/ministry-update/comments-dialog.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 4
     }
   },
   "packages/ui/components/ministry-update/reaction-bar.tsx": {
@@ -2742,10 +2733,10 @@
   },
   "packages/ui/components/public/navbar-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-raw-colors": {
-      "count": 17
+      "count": 15
     }
   },
   "packages/ui/components/public/navbar.tsx": {

@@ -131,7 +131,7 @@ test("sliders and choice controls retain state, names, values and indicator geom
   expect(radioAlignment.y).toBeLessThanOrEqual(1);
 });
 
-test("TanStack fields preserve relationships, numeric semantics and pending submit focus", async ({
+test("TanStack fields preserve relationships, numeric semantics and native pending submit guards", async ({
   page,
 }, testInfo) => {
   const scope = page.locator("#controls-contracts");
@@ -196,9 +196,18 @@ test("TanStack fields preserve relationships, numeric semantics and pending subm
     name: "Saving contract",
     exact: true,
   });
-  await expect(pending).toBeFocused();
-  await expect(pending).toHaveAttribute("aria-disabled", "true");
-  await expect(pending).not.toHaveAttribute("disabled");
+  // AL-1894 deliberately pins native disabled submit controls: aria-disabled
+  // alone allows implicit Enter submission from another field.
+  await expect(pending).toBeDisabled();
+  await expect(pending).not.toHaveAttribute("aria-disabled", "true");
+  const count = scope.getByRole("status", {
+    name: "Contract submission count",
+  });
+  await expect(count).toHaveText("1");
+  await name.focus();
+  await name.press("Enter");
+  await pending.evaluate((button) => (button as HTMLButtonElement).click());
+  await expect(count).toHaveText("1");
   await scope.getByRole("button", { name: "Complete fixture save" }).click();
   await expect(
     scope.getByRole("status", { name: "Saved contract" }),

@@ -62,7 +62,11 @@ describe("Base UI application stacking setup", () => {
 
       // The body itself cannot separate page z-indexes from portaled siblings.
       expect(layout).toMatch(
-        /<body[^>]*>\s*<div className="app-root">\s*<ThemeProvider[\s\S]*?\{children\}[\s\S]*?<\/ThemeProvider>\s*<\/div>\s*<Toaster \/>/,
+        /<body[^>]*>\s*<div className="app-root">\s*<ThemeProvider[\s\S]*?\{children\}[\s\S]*?<Toaster \/>\s*<\/ThemeProvider>\s*<\/div>/,
+      );
+      // The toaster keeps provider context while its real DOM escapes isolation.
+      expect(read("packages/ui/components/shadcn/sonner.tsx")).toMatch(
+        /createPortal\([\s\S]*document\.body/,
       );
     },
   );

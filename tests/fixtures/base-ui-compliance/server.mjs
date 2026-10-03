@@ -40,6 +40,27 @@ await build({
       enforce: "pre",
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
+        // Next Image's framework module is outside this standalone Vite
+        // fixture. Only the legacy search block's static demo imagery uses
+        // native img here; its actual Dialog and trigger remain unchanged.
+        if (
+          source === "next/image" &&
+          importer
+            ?.replaceAll("\\", "/")
+            .endsWith("/shadcn-studio/blocks/dialog-search.tsx")
+        ) {
+          return resolve(fixtureDirectory, "search-demo-image-stub.tsx");
+        }
+        if (
+          importer
+            ?.replaceAll("\\", "/")
+            .endsWith("/where-we-work/map-wrapper.tsx")
+        ) {
+          if (source === "@asym/database/hooks")
+            return resolve(fixtureDirectory, "shadscan-locations-stub.ts");
+          if (source === "@asym/ui/components/primitives/map")
+            return resolve(fixtureDirectory, "shadscan-map-stub.tsx");
+        }
         if (
           source === "@asym/lib/view-transitions" &&
           importer?.replaceAll("\\", "/").endsWith("/primitives/page-shell.tsx")

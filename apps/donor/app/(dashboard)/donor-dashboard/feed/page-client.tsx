@@ -465,14 +465,18 @@ export default function DonorFeedPage() {
       {/* Feed Stream */}
       <div className="space-y-6">
         {feedQuery.isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <div
+            role="status"
+            aria-atomic="true"
+            className="flex flex-col items-center justify-center py-32 gap-4"
+          >
             <Loader2 className="size-8 text-muted-foreground animate-spin" />
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
               Loading updates…
             </p>
           </div>
         ) : feedQuery.error ? (
-          <div className="py-32 text-center">
+          <div role="alert" className="py-32 text-center">
             <div className="inline-flex items-center justify-center size-20 rounded-full bg-destructive/10 text-destructive mb-6">
               <Globe className="size-10" />
             </div>

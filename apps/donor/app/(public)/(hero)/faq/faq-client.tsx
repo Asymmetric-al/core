@@ -285,6 +285,7 @@ export function FAQPageClient() {
               <div className="relative bg-white rounded-full shadow-xl shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100">
                 <Search className="ml-4 size-5 text-zinc-400" />
                 <Input
+                  aria-label="Search frequently asked questions"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="border-none shadow-none focus-visible:ring-0 h-12"

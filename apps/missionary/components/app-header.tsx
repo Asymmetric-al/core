@@ -25,8 +25,8 @@ export function AppHeader({ title }: AppHeaderProps) {
   const [isSigningOut, startSigningOut] = useTransition();
 
   const handleSignOut = () => {
-    startSigningOut(() => {
-      void signOutClientSession();
+    startSigningOut(async () => {
+      await signOutClientSession();
     });
   };
 

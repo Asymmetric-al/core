@@ -71,7 +71,11 @@ export function EveEngineeringMonitorsPanel() {
           </Alert>
         ) : null}
         {query.isLoading ? (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div
+            role="status"
+            className="grid gap-3 md:grid-cols-2 lg:grid-cols-3"
+          >
+            <span className="sr-only">Loading engineering monitors…</span>
             {Array.from({ length: 6 }, (_, index) => (
               <Skeleton key={index} className="h-24" />
             ))}

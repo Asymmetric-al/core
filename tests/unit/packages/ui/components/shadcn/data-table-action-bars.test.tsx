@@ -94,4 +94,18 @@ describe("data table action bars", () => {
     fireEvent.click(screen.getByRole("button", { name: "Export CSV" }));
     expect(onExport).toHaveBeenCalledWith(selectedRows);
   });
+
+  it("keeps floating actions named when responsive text is hidden", () => {
+    render(
+      <DataTableFloatingBar
+        table={createTable([{ id: "row-1" }])}
+        actions={[{ label: "Archive selected", onClick: vi.fn() }]}
+      />,
+    );
+    const label = screen.getByText("Archive selected");
+    label.style.display = "none";
+    expect(
+      screen.getByRole("button", { name: "Archive selected" }),
+    ).toBeTruthy();
+  });
 });

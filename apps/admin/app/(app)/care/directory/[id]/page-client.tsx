@@ -77,6 +77,7 @@ export default function CareProfilePage() {
           <Button
             variant="outline"
             size="icon"
+            aria-label="More profile actions"
             className="size-8 border-zinc-200"
           >
             <MoreVertical className="size-4 text-zinc-400" />

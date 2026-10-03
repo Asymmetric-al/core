@@ -28,9 +28,10 @@ interface MetricTileProps {
   isLoading?: boolean;
 }
 
-function MetricTileSkeleton() {
+function MetricTileSkeleton({ title }: { title: string }) {
   return (
-    <Card>
+    <Card role="status" aria-atomic="true">
+      <span className="sr-only">Loading {title}</span>
       <CardContent className="p-0 flex flex-row items-stretch h-18 md:h-20">
         <div className="flex flex-col justify-between p-2.5 pr-0 flex-shrink-0 min-w-25 sm:min-w-30 max-w-3/5">
           <div className="flex flex-col gap-1.5">
@@ -61,7 +62,7 @@ function MetricTile({
   const gradientId = React.useId();
 
   if (isLoading) {
-    return <MetricTileSkeleton />;
+    return <MetricTileSkeleton title={title} />;
   }
 
   const chartData = data.length > 0 ? data : [{ date: "1", value: 0 }];
@@ -148,7 +149,7 @@ export function MetricTiles({ missionaryId }: MetricTilesProps) {
   if (error) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
-        <Card>Unable to load donation metrics</Card>
+        <Card role="alert">Unable to load donation metrics</Card>
       </div>
     );
   }

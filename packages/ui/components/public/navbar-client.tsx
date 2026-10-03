@@ -1,11 +1,19 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
 import { cn } from "../../lib/utils";
 import { buttonVariants } from "../shadcn/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../shadcn/sheet";
 
 interface NavLink {
   label: string;
@@ -63,165 +71,155 @@ export function NavbarClient({
   }, [isHeroPage]);
 
   useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
+    const desktop = window.matchMedia("(min-width: 768px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setIsMobileMenuOpen(false);
     };
-  }, [isMobileMenuOpen]);
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   const displayName = siteName.toUpperCase();
   const showScrolledStyles = !isHeroPage || isScrolled;
 
   return (
-    <header>
-      {/* The target is a <main id="main-content"> in every live Navbar
+    <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+      <header>
+        {/* The target is a <main id="main-content"> in every live Navbar
           consumer: public (hero)/(solid) layouts and the donor dashboard. */}
-      {/* react-doctor-disable-next-line react-doctor/anchor-target-exists */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-white focus:text-zinc-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
-      >
-        Skip to main content
-      </a>
-      <nav
-        className={cn(
-          "fixed top-0 z-50 w-full transition-[background-color,backdrop-filter,padding,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
-          showScrolledStyles
-            ? "bg-white/95 backdrop-blur-md border-b border-zinc-200 py-2 sm:py-3"
-            : "bg-transparent py-4 sm:py-6",
-        )}
-        aria-label="Main navigation"
-      >
-        <div className="container-responsive flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2 group relative z-50"
-          >
-            <div
-              className={cn(
-                // Logo: gate hover-scale for hover devices only.
-                "size-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm transition-[transform,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
-                showScrolledStyles
-                  ? "bg-zinc-900 text-white"
-                  : "bg-white text-zinc-900",
-              )}
+        {/* react-doctor-disable-next-line react-doctor/anchor-target-exists */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-white focus:text-zinc-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+        >
+          Skip to main content
+        </a>
+        <nav
+          className={cn(
+            "fixed top-0 z-50 w-full transition-[background-color,backdrop-filter,padding,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
+            showScrolledStyles
+              ? "bg-white/95 backdrop-blur-md border-b border-zinc-200 py-2 sm:py-3"
+              : "bg-transparent py-4 sm:py-6",
+          )}
+          aria-label="Main navigation"
+        >
+          <div className="container-responsive flex items-center justify-between">
+            <Link
+              href="/"
+              className="flex items-center gap-2 group relative z-50"
             >
-              {shortName}
-            </div>
-            <span
-              className={cn(
-                "font-bold text-lg tracking-tight transition-colors",
-                showScrolledStyles || isMobileMenuOpen
-                  ? "text-zinc-900"
-                  : "text-white",
-              )}
-            >
-              {displayName.slice(0, 4)}
-              <span className="font-light opacity-60">
-                {displayName.slice(4)}
-              </span>
-            </span>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-6 lg:gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
+              <div
                 className={cn(
-                  "text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center",
+                  // Logo: gate hover-scale for hover devices only.
+                  "size-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm transition-[transform,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
                   showScrolledStyles
-                    ? "text-zinc-600 hover:text-zinc-900"
-                    : "text-white/90",
+                    ? "bg-zinc-900 text-white"
+                    : "bg-white text-zinc-900",
                 )}
               >
-                {link.label}
-              </Link>
-            ))}
-            <Link
-              href={ctaHref}
-              className={cn(
-                buttonVariants({ variant: "ghost" }),
-                "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
-                showScrolledStyles
-                  ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                  : "bg-white text-zinc-900 hover:bg-zinc-100",
-              )}
-            >
-              {ctaLabel}
+                {shortName}
+              </div>
+              <span
+                className={cn(
+                  "font-bold text-lg tracking-tight transition-colors",
+                  showScrolledStyles || isMobileMenuOpen
+                    ? "text-zinc-900"
+                    : "text-white",
+                )}
+              >
+                {displayName.slice(0, 4)}
+                <span className="font-light opacity-60">
+                  {displayName.slice(4)}
+                </span>
+              </span>
             </Link>
-          </div>
 
-          <button
-            type="button"
-            className={cn(
-              "md:hidden p-2 touch-target flex items-center justify-center relative z-50 -mr-2",
-              showScrolledStyles || isMobileMenuOpen
-                ? "text-zinc-900"
-                : "text-white",
-            )}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="size-6" />
-            ) : (
-              <Menu className="size-6" />
-            )}
-          </button>
-        </div>
-
-        <div
-          id="mobile-menu"
-          className={cn(
-            "md:hidden fixed inset-0 bg-white z-40 transition-[opacity,transform] duration-[var(--duration-drawer)] ease-[var(--ease-out-soft)]",
-            isMobileMenuOpen
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 -translate-y-full pointer-events-none",
-          )}
-          aria-hidden={!isMobileMenuOpen}
-        >
-          <div className="container-responsive pt-20 pb-8 flex flex-col h-full">
-            <div className="flex flex-col gap-2 flex-1">
-              {navLinks.map((link, index) => (
+            <div className="hidden md:flex items-center gap-6 lg:gap-8">
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "text-xl font-bold text-zinc-900 py-4 border-b border-zinc-100 touch-target flex items-center",
-                    "transition-[opacity,transform] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
-                    isMobileMenuOpen
-                      ? "opacity-100 translate-x-0"
-                      : "opacity-0 -translate-x-4",
-                    index === 0 && "nav-delay-1",
-                    index === 1 && "nav-delay-2",
-                    index === 2 && "nav-delay-3",
-                    index === 3 && "nav-delay-4",
+                    "text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center",
+                    showScrolledStyles
+                      ? "text-zinc-600 hover:text-zinc-900"
+                      : "text-white/90",
                   )}
                 >
                   {link.label}
                 </Link>
               ))}
-            </div>
-
-            <div className="pt-6 safe-area-bottom">
               <Link
                 href={ctaHref}
-                onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
                   buttonVariants({ variant: "ghost" }),
-                  "w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-zinc-800",
+                  "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
+                  showScrolledStyles
+                    ? "bg-zinc-900 text-white hover:bg-zinc-800"
+                    : "bg-white text-zinc-900 hover:bg-zinc-100",
                 )}
               >
                 {ctaLabel}
               </Link>
             </div>
+
+            <SheetTrigger
+              render={
+                <button type="button">
+                  <Menu className="size-6" />
+                </button>
+              }
+              className={cn(
+                "md:hidden p-2 touch-target flex items-center justify-center relative z-50 -mr-2",
+                showScrolledStyles || isMobileMenuOpen
+                  ? "text-zinc-900"
+                  : "text-white",
+              )}
+              aria-label="Open menu"
+            />
           </div>
-        </div>
-      </nav>
-    </header>
+
+          <SheetContent
+            id="mobile-menu"
+            side="left"
+            className="w-full sm:max-w-none"
+          >
+            <SheetHeader className="sr-only">
+              <SheetTitle>Main navigation</SheetTitle>
+              <SheetDescription>
+                Browse {siteName} and find ways to give.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="container-responsive pt-20 pb-8 flex flex-col h-full">
+              <div className="flex flex-col gap-2 flex-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-xl font-bold text-foreground py-4 border-b border-border touch-target flex items-center focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="pt-6 safe-area-bottom">
+                <Link
+                  href={ctaHref}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    buttonVariants({ variant: "ghost" }),
+                    "w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-zinc-800",
+                  )}
+                >
+                  {ctaLabel}
+                </Link>
+              </div>
+            </div>
+          </SheetContent>
+        </nav>
+      </header>
+    </Sheet>
   );
 }

@@ -19,6 +19,7 @@ import {
 } from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { Link, useRouter, useSearchParams } from "../routing";
+import { StudioFlowLoading } from "./studio-flow-loading";
 import { StudioLayout } from "../shell/studio-layout";
 
 type ProfileDoc = {
@@ -36,7 +37,7 @@ const formSchema = z.object({
 
 export function MinistryUpdateCreateView() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<StudioFlowLoading />}>
       <MinistryUpdateCreateViewContent />
     </Suspense>
   );

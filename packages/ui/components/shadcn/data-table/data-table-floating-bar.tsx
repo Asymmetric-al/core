@@ -116,6 +116,7 @@ function DataTableFloatingBarImpl<TData extends RowData>({
                 {visibleActions.map((action) => (
                   <Button
                     key={action.label}
+                    aria-label={action.label}
                     variant="ghost"
                     size="sm"
                     onClick={() => action.onClick(selectedOriginalRows)}
@@ -129,7 +130,12 @@ function DataTableFloatingBarImpl<TData extends RowData>({
                     {action.icon && (
                       <action.icon className="size-4" aria-hidden="true" />
                     )}
-                    <span className="hidden sm:inline text-sm">
+                    <span
+                      className={cn(
+                        "text-sm",
+                        action.icon && "hidden sm:inline",
+                      )}
+                    >
                       {action.label}
                     </span>
                   </Button>

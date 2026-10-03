@@ -1220,6 +1220,7 @@ function EventsAttendeesTab() {
             <div className="relative w-full md:w-96">
               <Search className="absolute left-3 top-2.5 size-4 text-zinc-400" />
               <Input
+                aria-label="Search attendees"
                 placeholder="Search attendees..."
                 className="pl-9 bg-white"
               />

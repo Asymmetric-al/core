@@ -59,7 +59,11 @@ const ActivityDialog = ({ defaultOpen = false, trigger }: Props) => {
                   to say on this topic!
                 </p>
                 <div className="relative">
-                  <Input placeholder="Reply" className="peer bg-card pr-9" />
+                  <Input
+                    aria-label="Reply to Joe Lincoln"
+                    placeholder="Reply"
+                    className="peer bg-card pr-9"
+                  />
                   <div className="text-muted-foreground pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center pr-3 peer-disabled:opacity-50">
                     <ImageIcon className="size-4" />
                     <span className="sr-only">Email</span>

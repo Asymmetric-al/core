@@ -146,11 +146,12 @@ export function FullLoginCard({
             {error ? (
               <motion.p
                 key="login-error"
+                role="alert"
                 initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
                 transition={{ duration: 0.16 }}
-                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-foreground"
               >
                 {error}
               </motion.p>

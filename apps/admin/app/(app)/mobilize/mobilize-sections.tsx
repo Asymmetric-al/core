@@ -14,6 +14,7 @@ import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import {
   Sheet,
@@ -361,6 +362,7 @@ export function MobilizePipelineTable({
           <div className="relative flex-1 lg:w-60">
             <Search className="absolute left-2.5 top-2 size-3.5 text-zinc-400" />
             <Input
+              aria-label="Search candidates"
               placeholder="Search candidates..."
               className="pl-8 bg-white h-8 text-xs rounded-lg"
               value={searchTerm}
@@ -408,10 +410,11 @@ export function MobilizeAddCandidateSheet({
   open,
   onOpenChange,
 }: MobilizeAddCandidateSheetProps) {
+  const fieldId = React.useId();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl p-0 gap-0 bg-zinc-50 flex flex-col h-full">
-        <SheetHeader className="px-6 py-5 bg-white border-b border-zinc-100">
+      <SheetContent className="w-full sm:max-w-xl p-0 gap-0 flex flex-col h-full">
+        <SheetHeader className="px-6 py-5 bg-card border-b border-border">
           <SheetTitle className="text-xl font-semibold flex items-center gap-2">
             <Plus className="size-5 text-zinc-600" /> New Candidate Profile
           </SheetTitle>
@@ -420,24 +423,40 @@ export function MobilizeAddCandidateSheet({
         <div className="p-6 flex flex-col gap-4 text-left">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <span className="text-sm font-medium">First Name</span>
-              <Input placeholder="Jane" />
+              <Label htmlFor={`${fieldId}-first-name`}>First Name</Label>
+              <Input
+                id={`${fieldId}-first-name`}
+                autoComplete="given-name"
+                placeholder="Jane"
+              />
             </div>
             <div className="space-y-2">
-              <span className="text-sm font-medium">Last Name</span>
-              <Input placeholder="Doe" />
+              <Label htmlFor={`${fieldId}-last-name`}>Last Name</Label>
+              <Input
+                id={`${fieldId}-last-name`}
+                autoComplete="family-name"
+                placeholder="Doe"
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <span className="text-sm font-medium">Email Address</span>
-            <Input placeholder="jane@example.com" />
+            <Label htmlFor={`${fieldId}-email`}>Email Address</Label>
+            <Input
+              id={`${fieldId}-email`}
+              autoComplete="email"
+              type="email"
+              placeholder="jane@example.com"
+            />
           </div>
           <div className="space-y-2">
-            <span className="text-sm font-medium">Interest Role</span>
-            <Input placeholder="e.g. Medical Officer" />
+            <Label htmlFor={`${fieldId}-interest-role`}>Interest Role</Label>
+            <Input
+              id={`${fieldId}-interest-role`}
+              placeholder="e.g. Medical Officer"
+            />
           </div>
         </div>
-        <SheetFooter className="p-6 border-t bg-white mt-auto">
+        <SheetFooter className="p-6 border-t bg-card mt-auto">
           <Button
             variant="outline"
             className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px]"

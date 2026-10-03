@@ -356,6 +356,7 @@ function HistoryFiltersToolbar({
         <Search className="absolute left-3 top-3 size-4 text-zinc-400" />
         <Input
           placeholder="Search recipient or transaction ID..."
+          aria-label="Search giving history"
           className="pl-10 bg-white border-zinc-200 h-10 shadow-sm focus:ring-2 focus:ring-zinc-100 rounded-lg text-xs font-semibold uppercase tracking-tight"
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
@@ -496,7 +497,11 @@ function HistoryTransactionsCard({
           },
         }}
         emptyState={
-          <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div
+            role="status"
+            aria-atomic="true"
+            className="flex flex-col items-center justify-center py-12 text-center"
+          >
             <p className="font-semibold text-zinc-900 uppercase tracking-tighter">
               No transactions found
             </p>

@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 
+import { AdminShadscanContracts } from "./admin-shadscan-contracts";
 import { CompositionContracts } from "./composition-contracts";
 import { ControlsContracts } from "./controls-contracts";
 import { DisplayContracts } from "./display-contracts";
 import { DrawerContracts } from "./drawer-contracts";
 import { InputContracts } from "./input-contracts";
+import { SearchDelegationContracts } from "./search-delegation-contracts";
+import { ShadscanContracts } from "./shadscan-contracts";
 import { ToolbarContracts } from "./toolbar-contracts";
 import {
   Accordion,
@@ -70,7 +73,7 @@ import "virtual:base-ui-styles";
 function App() {
   const [count, setCount] = useState(1);
   return (
-    <main className="app-root" style={{ padding: 24 }}>
+    <main id="main-content" className="app-root" style={{ padding: 24 }}>
       <div
         data-testid="high-z-app-child"
         style={{ position: "fixed", zIndex: 999999, inset: 0, display: "none" }}
@@ -178,6 +181,9 @@ function App() {
       <ControlsContracts />
       <ToolbarContracts />
       <CompositionContracts />
+      <AdminShadscanContracts />
+      <ShadscanContracts />
+      <SearchDelegationContracts />
     </main>
   );
 }

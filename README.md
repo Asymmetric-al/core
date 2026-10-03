@@ -357,13 +357,14 @@ Common commands:
 - `bun run test:e2e`, `bun run test:e2e:strict`, `bun run test:e2e:ui`
 - `bun run verify` (optional `VERIFY_HTTP=1`, `VERIFY_SUPABASE=1`)
 - `bun run verify:e2e`
+- `bun run verify:shadscan` (locked workspace audit, independent app floors and reviewed evidence; [guide](docs/guides/development/shadscan.md))
 - Canonical PR/push-readiness gate: `bun run ci:preflight` (routine development skips full compilation; dependency/build changes compile affected apps). Full QA/release checkpoint: `bun run ci:preflight -- --full`.
 
 ### Git Hooks Setup
 
 Husky hooks:
 
-- **pre-commit:** `lint-staged`
+- **pre-commit:** `lint-staged`, then the locked Shadscan gate against the staged snapshot
 - **pre-push:** `bun run ci:preflight`; production-targeting pushes always select `--full`.
 
 `lint-staged` runs `eslint --fix` on staged workspace code (`apps/`, `packages/`, `tooling/`) and `prettier --write` on **every** staged file. Keep the Prettier glob as `*`: the pre-push gate runs `prettier . --check` across the repo, so any narrower allowlist lets files (`tests/`, `scripts/`, repo-root paths) commit unformatted and fail at push time. Exclusions belong in `.prettierignore`, not in the glob. `tests/unit/format-gate.contract.test.ts` enforces this.

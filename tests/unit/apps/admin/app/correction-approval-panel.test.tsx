@@ -244,6 +244,14 @@ describe("CorrectionApprovalPanel", () => {
     const view = renderPanel();
     fireEvent.click(view.getByRole("button", { name: "Reject" }));
 
+    const reason = view.getByRole("textbox", { name: "Decision reason" });
+    expect(reason.getAttribute("aria-invalid")).toBe("true");
+    const errorId = reason.getAttribute("aria-describedby");
+    expect(errorId).toBeTruthy();
+    expect(document.getElementById(errorId!)?.textContent).toMatch(
+      /a reason is required to reject this correction request/i,
+    );
+
     expect(
       view.getByText(/a reason is required to reject this correction request/i),
     ).toBeTruthy();

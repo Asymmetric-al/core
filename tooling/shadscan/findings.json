@@ -1,0 +1,2586 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "project": ".",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-hotkey-present finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": ".",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-present finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": ".",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "5f8d5000db969213c57122bbf8291a4efbcde84b8032cb212abc2e5ebae294f2",
+      "classification": "library-applicability",
+      "rationale": "This exact error-boundary-present finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": ".",
+      "rule": "metadata-configured",
+      "evidenceFingerprint": "c93ce3efab64125c8edad8b53ba390571e755dbcd2a11ac29a46b7e4e745f121",
+      "classification": "library-applicability",
+      "rationale": "This exact metadata-configured finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": ".",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "library-applicability",
+      "rationale": "This exact shadcn-config-present finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": ".",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-hotkey-present finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": ".",
+      "rule": "theme-provider-configured",
+      "evidenceFingerprint": "4f725685a5f4f5015c50d262b57db6f21bdf2af97012c4e0558e370990bd133e",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-provider-configured finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": ".",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "301f84c12eff5fb99a9e491f08eb74ffee8a79cae7464c29c9cfd40c9ff47c57",
+      "classification": "library-applicability",
+      "rationale": "This exact toast-provider-present finding asks . for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "package.json",
+          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "async-action-pending-state",
+      "evidenceFingerprint": "d60c53edf1123b21364b2d1e72d9f6dfa18fab8acac8a092d309664fbae48c4f",
+      "classification": "scanner-limitation",
+      "rationale": "The scanner follows the pending prop into the read-only LaunchReadinessStatusGrid and treats that display component as a trigger. Actual mutation controls stay disabled, reject duplicate activation and expose a visible, unblocked status announcement. The deferred-mutation test proves pending feedback and duplicate prevention on the real rendered action.",
+      "verificationTests": [
+        "tests/unit/apps/admin/app/eve-launch-readiness-panel.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/admin/eve/launch-readiness-panel.tsx",
+          "sha256": "419171911037236ce6cd44f8bbefcb1b2e5f425355dbabc339707b6c9ec3b5f2"
+        },
+        {
+          "path": "tests/unit/apps/admin/app/eve-launch-readiness-panel.test.tsx",
+          "sha256": "f9c7259ee8f45ca5c5f6749aa98951128a0521c7ef136c2363ad94b62e6385bc"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "command-menu-hotkey-present",
+      "classification": "scanner-limitation",
+      "rationale": "Actual window Cmd/Ctrl+K listener guards handled events, composition, repeats, modifiers, editable targets and other popups. Window bubbling preserves Support/Care shortcut ownership; non-editing own popup toggles closed.",
+      "verificationTests": [
+        "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts"
+      ],
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "proof": [
+        {
+          "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
+          "sha256": "8af46b359499083854983b6cccc3e6ab83f2255b02ed29615da7e4f650fd7996"
+        },
+        {
+          "path": "apps/admin/features/support-hub/components/command/use-inbox-shortcuts.ts",
+          "sha256": "8fab08c84663a9e9a8fde3522db337ca75229fca9ba7add9dd128f22056d2725"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
+          "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
+        },
+        {
+          "path": "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
+          "sha256": "65e5bd930b9a2d4e1913abfb06312ec43f0dbd500ba22cfc863a9a193417d5a9"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "command-menu-present",
+      "classification": "scanner-limitation",
+      "rationale": "Mission Control mounts app-owned search backed by existing role-filtered navigation and real router.push commands. Scanner cannot follow the feature component and its dynamic mapped CommandItems.",
+      "verificationTests": [
+        "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts"
+      ],
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "proof": [
+        {
+          "path": "apps/admin/app/mc-shell.tsx",
+          "sha256": "456cf69f3e2670def57e31da67554ee456a7e8f63270a4706f864c296a3856ed"
+        },
+        {
+          "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
+          "sha256": "8af46b359499083854983b6cccc3e6ab83f2255b02ed29615da7e4f650fd7996"
+        },
+        {
+          "path": "packages/config/navigation.ts",
+          "sha256": "3a7e566f0190f81eb5ad4d5b1563e3b4d48be17abbf1628742015591385a8d5e"
+        },
+        {
+          "path": "packages/ui/components/shadcn/command.tsx",
+          "sha256": "38e02be690ddef3e43d4fcf85bbc9c3354219e68e19e3d709907ab26cd265f41"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
+          "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
+        },
+        {
+          "path": "tests/unit/apps/admin/mission-control-navigation-search.test.tsx",
+          "sha256": "65e5bd930b9a2d4e1913abfb06312ec43f0dbd500ba22cfc863a9a193417d5a9"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "custom-controls-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "Both actual memory category controls use SelectControlLabel, the Base UI Select.Label wrapper, which associates with their trigger.",
+      "verificationTests": [
+        "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx"
+      ],
+      "evidenceFingerprint": "93cc170d616d7e2463e351911dd1c47064375fb94f98d2d4f9365b9c909babdd",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
+          "sha256": "339f640ecba65227106cda81eafaa3029ed6aa06e25c3776f197a57a32a51fb4"
+        },
+        {
+          "path": "packages/ui/components/shadcn/select.tsx",
+          "sha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c"
+        },
+        {
+          "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
+          "sha256": "e05c7836d6b2a273a773c8f2bb420b412d37c772cd7f8b534a9f626a950390e4"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "dialogs-have-accessible-names",
+      "classification": "scanner-limitation",
+      "rationale": "Offline gift DialogContent renders child form containing DialogTitle. Actual composed dialog is named Enter offline gift while open.",
+      "verificationTests": [
+        "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx"
+      ],
+      "evidenceFingerprint": "4b431a7578e552a8fed2e6c31f206877158a59ccc0d9b42bac9f6560947b86db",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
+          "sha256": "25d7a16c3e94e8548dbeaa513fd7583477562f8ed1df4e89499899e50601d52e"
+        },
+        {
+          "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
+          "sha256": "5ccc3db97af4d86e7a4cb6eac12e950f6a011e153ff1a54c9f35f7ec1d6d3208"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "empty-state-present",
+      "classification": "scanner-limitation",
+      "rationale": "Memory panel explicitly renders genuine empty or filtered result as a polite No matching private memory status. Scanner fails to follow derived entries.",
+      "verificationTests": [
+        "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx"
+      ],
+      "evidenceFingerprint": "e0b901d1adf6566e4fbc18171c3f85af885de80fee6e16a685ad0bec61b09184",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
+          "sha256": "339f640ecba65227106cda81eafaa3029ed6aa06e25c3776f197a57a32a51fb4"
+        },
+        {
+          "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
+          "sha256": "e05c7836d6b2a273a773c8f2bb420b412d37c772cd7f8b534a9f626a950390e4"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "cff9f2d99adb5a65b13193dab26f15ae8933b0b7c03de857be1a37e0475a1de8",
+      "classification": "scanner-limitation",
+      "rationale": "This application has the supported Next.js global-error.tsx convention with complete document markup and a named reset action. The scanner requires the ordinary error.tsx filename and overlooks the verified global boundary.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+        "tests/unit/apps/global-boundary-contracts.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "apps/admin/app/global-error.tsx",
+          "sha256": "82026709464391d8f0c14f791cbf4829a646f68f42ab58bb5c8c76eca59d9d29"
+        },
+        {
+          "path": "tests/unit/apps/global-boundary-contracts.test.ts",
+          "sha256": "23905746171ad4809d4d44f2f9965da024294eb015a2d2a1430ad9011f97ad6e"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "field-errors-rendered",
+      "classification": "scanner-limitation",
+      "rationale": "Resend renders FieldError through getRenderableErrors; credential field now exposes aria-invalid and references its error ID. Shared AppFields also own visible field errors.",
+      "verificationTests": [
+        "tests/unit/apps/admin/resend-field-accessibility.test.tsx",
+        "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx"
+      ],
+      "evidenceFingerprint": "cdf6c8e1332289bf7e8ce805088b5e4504ab9ac7bb7bbd1c11db279cb923e17f",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
+          "sha256": "7dda62c4dfc6a7dac72810ca0e421ede3b72b8004cea8acae1387d7d5090874f"
+        },
+        {
+          "path": "apps/admin/app/(app)/settings/integrations/resend/use-resend-forms.ts",
+          "sha256": "6e332bad0d06224890019e373850907b5ca5cd73f4b0dde80b9226694d570647"
+        },
+        {
+          "path": "packages/ui/components/primitives/tanstack-form.tsx",
+          "sha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad"
+        },
+        {
+          "path": "tests/unit/apps/admin/resend-field-accessibility.test.tsx",
+          "sha256": "6073e695655a45b75aa5339147ade7cc18eb9041ec8e0380663a18283b54bbe1"
+        },
+        {
+          "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
+          "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "icon-buttons-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "Exact moderation action icon button receives Open actions from its Base UI DropdownMenuTrigger render composition.",
+      "verificationTests": [
+        "tests/unit/apps/admin/shadscan-moderation-composition.test.tsx"
+      ],
+      "evidenceFingerprint": "9a80ff468cfe86b72a0c4c4413e505d1468b3d466f9afc61789ea560fc073712",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
+          "sha256": "efd424e6e2f8a82c932e18a02ced2b04285eaec24bf289ca56d7035f5aec68b9"
+        },
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "tests/unit/apps/admin/shadscan-moderation-composition.test.tsx",
+          "sha256": "6cac1439cd342bb90205cd5c47d40ad61e9d2792abd94ad08770eecadd8a3b6b"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "links-have-accessible-names",
+      "classification": "scanner-limitation",
+      "rationale": "SidebarMenuSubButton render Link receives the parent sub.title text through Base UI composition. Actual rendered submenu links are named Moderation and Org Updates.",
+      "verificationTests": [
+        "tests/unit/apps/admin/mc-shell-navigation-names.test.tsx"
+      ],
+      "evidenceFingerprint": "0809ea8b161f1f95d6f59d3744a485f1701f03bf78e6f55d7d130d825ebde130",
+      "proof": [
+        {
+          "path": "apps/admin/app/mc-shell.tsx",
+          "sha256": "456cf69f3e2670def57e31da67554ee456a7e8f63270a4706f864c296a3856ed"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sidebar.tsx",
+          "sha256": "d79354ed18ed16839ccac6ad55a2cfe24354734336e7f85a043e7a9dfb9984fc"
+        },
+        {
+          "path": "tests/unit/apps/admin/mc-shell-navigation-names.test.tsx",
+          "sha256": "8297e9ae9b07859496388cc9cdc768961af5b5177a7ef4e9d99b60778e7cb200"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "mobile-nav-present",
+      "classification": "scanner-limitation",
+      "rationale": "Exact flagged Eve operations navigation is an always-visible responsive grid, rather than hidden site navigation that needs a mobile panel.",
+      "verificationTests": [
+        "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts"
+      ],
+      "evidenceFingerprint": "d64462b38941247999206bce02851d6acdc74eefac1e90e4a2fed5e1ead67524",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/admin/eve/workspace-shell.tsx",
+          "sha256": "703497ba1b3ac6979d22a7d8748a02b7aea321619b2073e9e285846cda0461eb"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
+          "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "not-found-recovery-present",
+      "classification": "scanner-limitation",
+      "rationale": "Exact route delegates to locked Payload NotFoundPage; installed NotFoundClient renders configured backToDashboard link. Modern app global-not-found also has Return home recovery.",
+      "verificationTests": [
+        "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts"
+      ],
+      "evidenceFingerprint": "11c2bd82ab7956a6eeb429351824c6ce643aa25ab2b1e847079230921653fb5b",
+      "proof": [
+        {
+          "path": "apps/admin/app/(payload)/web-studio/[[...segments]]/not-found.tsx",
+          "sha256": "46ad0a1c9977a8453593ea47dfb1062881b2e9f62fa2249ded784f9488e9f564"
+        },
+        {
+          "path": "apps/admin/app/global-not-found.tsx",
+          "sha256": "df86630a4c91ad52cdd90c218f1c67c66e490aa4f832c3cff12edbfd11078c4c"
+        },
+        {
+          "path": "apps/admin/package.json",
+          "sha256": "7750d3bd85eef062eb93fb78bdad8f28e6469e5b6fb7ba348b4393ee83f27311"
+        },
+        {
+          "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
+          "sha256": "d4b8e1e396be8411c0f581be9495077e08e77b934fc469dbb6ecc363134bb6f6"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "personal-data-autocomplete-present",
+      "classification": "scanner-limitation",
+      "rationale": "Exact flagged Template name is document metadata, not a personal email address. Rendering proves labelled text input with Newsletter value and no email-purpose token.",
+      "verificationTests": [
+        "tests/unit/apps/admin/email/email-studio-header.test.tsx"
+      ],
+      "evidenceFingerprint": "3230935c8250924f3488022b38892df54c0c27cf4bb12bfe7cb35c2a051d13f1",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/email/email-studio-header.tsx",
+          "sha256": "eae3128d73afbc8eb21967b00c4985be156986b288d2bc2f99e2b188db5874c2"
+        },
+        {
+          "path": "tests/unit/apps/admin/email/email-studio-header.test.tsx",
+          "sha256": "77599df003386e57934f9007a5d9fc05e41cf346800ebb6f8df63da5717869e0"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "route-loading-boundary-present",
+      "classification": "product-decision",
+      "rationale": "Exact draft preview intentionally blocks authentication, redirect/notFound and current record resolution before response flush. Adding Suspense here would change intended HTTP/auth behavior.",
+      "verificationTests": [
+        "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts"
+      ],
+      "evidenceFingerprint": "915c2d9a55eb1417f3b05736b34b1ee798e1b1f616d03fe30896387fc94e01f1",
+      "proof": [
+        {
+          "path": "apps/admin/app/(payload)/layout.tsx",
+          "sha256": "d96f2c1ba8a7c5e138024603c5fb776d1b75763874431f7efd98ca817280324d"
+        },
+        {
+          "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
+          "sha256": "b9f14aef6236293ad69f322bd85ecc1bd79df73168f290746648de6451d08b6c"
+        },
+        {
+          "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
+          "sha256": "d4b8e1e396be8411c0f581be9495077e08e77b934fc469dbb6ecc363134bb6f6"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "scanner-limitation",
+      "rationale": "Core explicitly requires one shared base-maia components.json in packages/ui and rejects app-local copies. The scanner checks only the application-local file and misses that enforced monorepo ownership.",
+      "verificationTests": [
+        "tests/unit/scripts/shadcn-config-guardrails.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/components.json",
+          "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+        },
+        {
+          "path": "scripts/verify/shadcn-config-guardrails.mjs",
+          "sha256": "5eb07fa2bdc834e686f33b47d0ae59dbbffc3ead681cc996ce6405c00ad20787"
+        },
+        {
+          "path": "tests/unit/scripts/shadcn-config-guardrails.test.ts",
+          "sha256": "5ff8b7e6b22c65dcaee68427e1b1f326d02918b6943518d2042ddd995d5b4c39"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "social-preview-present",
+      "evidenceFingerprint": "9e5ef4ee0856567eabcbc17271b5112419108b820506dba1aa5778d9b5e5745a",
+      "classification": "product-decision",
+      "rationale": "This private application retains its existing noindex publication policy. A public social preview is not a required private-workspace feature, so no public image/card is introduced solely for the scanner score.",
+      "proof": [
+        {
+          "path": "apps/admin/app/layout.tsx",
+          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "status-messages-announced",
+      "classification": "scanner-limitation",
+      "rationale": "Exact pending kill-switch label has a corresponding visible polite status in owning EveGovernanceView, naming that switch. Controls are disabled throughout. Scanner restricts detection to the local KillSwitchControl function and misses owning status.",
+      "verificationTests": [
+        "tests/unit/apps/admin/app/eve-governance-page.test.tsx",
+        "tests/unit/apps/admin/app/eve-governance-confirmation-stability.test.tsx"
+      ],
+      "evidenceFingerprint": "29f505aeb3c6e77984495bb0970d39010a5764f133536311b1186c7bb348a61e",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/admin/eve/page-client.tsx",
+          "sha256": "0e97272319830b85b5dd0fab19faf4eebf6be44d8eb1388bf1765576b18e32e7"
+        },
+        {
+          "path": "tests/unit/apps/admin/app/eve-governance-confirmation-stability.test.tsx",
+          "sha256": "f02e8d3b8b24c575555886d42e65c90e2830ad0cd018875623113dc4587dbf04"
+        },
+        {
+          "path": "tests/unit/apps/admin/app/eve-governance-page.test.tsx",
+          "sha256": "8c7b7c9f451af84cbdd04ea832992ca34fadf81532fb5a4bdce4d8ab00b2aa56"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "product-decision",
+      "rationale": "The application deliberately forces the light theme. A global dark-mode shortcut would contradict the mounted provider contract, so it is intentionally omitted.",
+      "proof": [
+        {
+          "path": "apps/admin/app/layout.tsx",
+          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "toast-provider-mounted",
+      "evidenceFingerprint": "afae2c311bcc8146bffa8731890d35678ef82187c66010331421020792110b7a",
+      "classification": "scanner-limitation",
+      "rationale": "The root layout mounts the shared @asym/ui Toaster, whose actual implementation imports Sonner and renders its polite live announcement channel. The scanner cannot trace runtime provenance through the workspace package export.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/admin/app/layout.tsx",
+          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sonner.tsx",
+          "sha256": "ded1af6aa83bc47da81a3da56452ea8231b7f2cdea997efce6da0b85e299639c"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "301f84c12eff5fb99a9e491f08eb74ffee8a79cae7464c29c9cfd40c9ff47c57",
+      "classification": "scanner-limitation",
+      "rationale": "The root layout mounts the shared @asym/ui Toaster, whose actual implementation imports Sonner and renders its polite live announcement channel. The scanner cannot trace runtime provenance through the workspace package export.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/admin/app/layout.tsx",
+          "sha256": "c866984f598991030dec11c70ea3f359b93175bcf09292bbce647cc2077178a2"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sonner.tsx",
+          "sha256": "ded1af6aa83bc47da81a3da56452ea8231b7f2cdea997efce6da0b85e299639c"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/admin",
+      "rule": "validation-wired-to-form",
+      "classification": "scanner-limitation",
+      "rationale": "Support NewTicketForm uses native required controls and trimmed submit validation. Incomplete submissions render an alert before any request; scanner cannot follow the external handler/native wrappers.",
+      "verificationTests": [
+        "tests/unit/apps/admin/support-ticket-validation.test.tsx"
+      ],
+      "evidenceFingerprint": "d470075f9e766e95f8457c139a5601a9951abc4b9938101a7dfabcab20c4e2dd",
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx",
+          "sha256": "9b0dd5173e7eb929ceacf01893701562da92162d4731ab06308a576878f240c0"
+        },
+        {
+          "path": "tests/unit/apps/admin/support-ticket-validation.test.tsx",
+          "sha256": "9e289efca6383651db0aa93336242551eb648669dd86fa6f9c0c6090b27ecb22"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "product-decision",
+      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "proof": [
+        {
+          "path": "apps/donor/app/layout.tsx",
+          "sha256": "a194fc7668652d5d0ad8f29b5058a08364a9e4a4a87cd227e9f64f6e8f847224"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "product-decision",
+      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "proof": [
+        {
+          "path": "apps/donor/app/layout.tsx",
+          "sha256": "a194fc7668652d5d0ad8f29b5058a08364a9e4a4a87cd227e9f64f6e8f847224"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "cff9f2d99adb5a65b13193dab26f15ae8933b0b7c03de857be1a37e0475a1de8",
+      "classification": "scanner-limitation",
+      "rationale": "This application has the supported Next.js global-error.tsx convention with complete document markup and a named reset action. The scanner requires the ordinary error.tsx filename and overlooks the verified global boundary.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+        "tests/unit/apps/global-boundary-contracts.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "apps/donor/app/global-error.tsx",
+          "sha256": "5fd6b2693eab98c022cf7bfa133e7c75d54d548ed6a5f276ec49107a2b46608e"
+        },
+        {
+          "path": "tests/unit/apps/global-boundary-contracts.test.ts",
+          "sha256": "23905746171ad4809d4d44f2f9965da024294eb015a2d2a1430ad9011f97ad6e"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "focus-visible-not-suppressed",
+      "classification": "scanner-limitation",
+      "rationale": "Custom amount input focus sets isInputFocused, which adds a border-zinc-900 and ring-4 replacement on its surrounding control. The scanner examines only the input className. Existing actual GivingWidget tests exercise native labeled input and real preset arrow navigation; computed CSS replacement is source-reviewed, not yet separately browser asserted. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": ["tests/unit/apps/donor/giving-widget.test.tsx"],
+      "evidenceFingerprint": "efd24fe5a19cb912ef5117a61ae8a1e3927a944efdac7e88e593952cdddd671e",
+      "proof": [
+        {
+          "path": "apps/donor/app/(public)/(solid)/workers/[id]/giving-widget.tsx",
+          "sha256": "1c12af755755aaa7744135a05cb7567ac6f60768dc717aa9cc30dd5b80b20af3"
+        },
+        {
+          "path": "tests/unit/apps/donor/giving-widget.test.tsx",
+          "sha256": "71e12d826ddd45c840fb5ef41326e412c49c881e894430756bb4adb3d17c1339"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "icon-buttons-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "DropdownMenuTrigger supplies aria-label=\"Open actions\" to its render Button; Base UI render propagation owns the resulting native button. Do not duplicate labels on nested primitives merely for the scanner. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx"
+      ],
+      "evidenceFingerprint": "0673235a11beb135d9f94a9e785af9bb5bd36a34a172b2e8f9b0099953c1f973",
+      "proof": [
+        {
+          "path": "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx",
+          "sha256": "10e0beda6c3269dc081587ccc725b3fd9c7bc48877d9b09104b3560a2f3487d9"
+        },
+        {
+          "path": "packages/ui/components/shadcn/button.tsx",
+          "sha256": "9c6b180fafd69f4dc1361dd141a2b6378bb7ff2a71ba7d7a9ce8a93ab1e48034"
+        },
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+          "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
+          "sha256": "bce90ed32231f6c566edba5481edf2d1862c2bfabe5a8c97b7e99fd717a3519b"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "mobile-nav-present",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged nav is checkout step progress, whose steps remain rendered at narrow widths. The actual public Navbar now uses shared controlled Sheet; real keyboard focus trapping, Escape, closed-link removal and restoration passed at mobile light/dark widths. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+        "tests/unit/packages/ui/shadscan-navbar.test.tsx"
+      ],
+      "evidenceFingerprint": "308dffd278fe6e335be47d6175658857677144cb0066f29acf96a8a2596bcca1",
+      "proof": [
+        {
+          "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
+          "sha256": "9cef190c24011b8a9ff5db7adb29092ac9c332abb01c31f5e9abfd2c53b58471"
+        },
+        {
+          "path": "packages/ui/components/public/navbar-client.tsx",
+          "sha256": "41a6802bd490817e6beffdbff7b412262e0c3926c587e7bfa1879db65c0b4319"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-navbar.test.tsx",
+          "sha256": "a7b43e6652d6ebe7278d50e5ad8e1ff439a1363734dd47ac525e54c1573abf9a"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "not-found-route-present",
+      "evidenceFingerprint": "a76fbdfb8935235629aa524221135fd76f13d655895bac9ac9c25c169331bb67",
+      "classification": "scanner-limitation",
+      "rationale": "Next.js globalNotFound is enabled and global-not-found.tsx renders complete markup with usable navigation recovery. The scanner checks the ordinary not-found.tsx filename and misses this supported global convention.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+        "tests/unit/apps/global-boundary-contracts.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "apps/donor/app/global-not-found.tsx",
+          "sha256": "b00011d6e63e44f90351be2764476b4d6997126413cdaa5cbfac6f2fb8b82e27"
+        },
+        {
+          "path": "apps/donor/next.config.ts",
+          "sha256": "163196344412450592c6fdb313548dec089e2797bb3e7610ba745e2e78367c65"
+        },
+        {
+          "path": "tests/unit/apps/global-boundary-contracts.test.ts",
+          "sha256": "23905746171ad4809d4d44f2f9965da024294eb015a2d2a1430ad9011f97ad6e"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "scanner-limitation",
+      "rationale": "Core explicitly requires one shared base-maia components.json in packages/ui and rejects app-local copies. The scanner checks only the application-local file and misses that enforced monorepo ownership.",
+      "verificationTests": [
+        "tests/unit/scripts/shadcn-config-guardrails.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/components.json",
+          "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+        },
+        {
+          "path": "scripts/verify/shadcn-config-guardrails.mjs",
+          "sha256": "5eb07fa2bdc834e686f33b47d0ae59dbbffc3ead681cc996ce6405c00ad20787"
+        },
+        {
+          "path": "tests/unit/scripts/shadcn-config-guardrails.test.ts",
+          "sha256": "5ff8b7e6b22c65dcaee68427e1b1f326d02918b6943518d2042ddd995d5b4c39"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "status-messages-announced",
+      "classification": "scanner-limitation",
+      "rationale": "The initial real Feed status defect is repaired. Current first-failure evidence is the Settings component parameter list. Final audit also repaired actual Saving/Saved announcement with a stable atomic status region; error already renders alert. Deferred actual Settings render verifies saving/completion and disabled duplicate-click suppression. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx"
+      ],
+      "evidenceFingerprint": "6a308d4e03a164636ef51561da776bc75d00f6c92d0a5f5c440354d1bf867460",
+      "proof": [
+        {
+          "path": "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
+          "sha256": "ba77eb142db9910205c3729563e22f4e8a663da89f3ca08635a2ca69e8660013"
+        },
+        {
+          "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
+          "sha256": "c7829ca7cb086cb1862140f276bb735a9c6880432ec61e88ccb273f276a69dfa"
+        },
+        {
+          "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",
+          "sha256": "46d714e852cd6eb84a2106cfef39734cac3f5c8daccdd3ef94bc8735d7dcb305"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "suspense-fallback-useful",
+      "classification": "product-decision",
+      "rationale": "The current flagged null fallback surrounds only the redirect-only sibling RoleRedirectGate. Real dashboard children remain outside it, preserving the public/static shell and per-route loading. Do not add a blocking full-page placeholder to this gate. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/apps/donor/static-shell-contract.test.ts"
+      ],
+      "evidenceFingerprint": "1436abbfa54d053c6146b950b34ac88126e0ba310eda8fb6acada39d3eb3b3d7",
+      "proof": [
+        {
+          "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
+          "sha256": "6fa44309ba1a076af2547a27169556e0e0b90ba908f286b479311cc1b69d5347"
+        },
+        {
+          "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
+          "sha256": "e9bf513ec8e836ff08c27607262c566c0b358dc2c5cec3f6ce028a074056c2ba"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "product-decision",
+      "rationale": "The application deliberately forces the light theme. A global dark-mode shortcut would contradict the mounted provider contract, so it is intentionally omitted.",
+      "proof": [
+        {
+          "path": "apps/donor/app/layout.tsx",
+          "sha256": "a194fc7668652d5d0ad8f29b5058a08364a9e4a4a87cd227e9f64f6e8f847224"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "toast-provider-mounted",
+      "evidenceFingerprint": "f4dff7d6ad78e68fb4e376ca0a2cd308f8ad46786c162b284e88e237e8ea567a",
+      "classification": "scanner-limitation",
+      "rationale": "The root layout mounts the shared @asym/ui Toaster, whose actual implementation imports Sonner and renders its polite live announcement channel. The scanner cannot trace runtime provenance through the workspace package export.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/donor/app/layout.tsx",
+          "sha256": "a194fc7668652d5d0ad8f29b5058a08364a9e4a4a87cd227e9f64f6e8f847224"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sonner.tsx",
+          "sha256": "ded1af6aa83bc47da81a3da56452ea8231b7f2cdea997efce6da0b85e299639c"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/donor",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "688e0b88b9af65c7a2ea9df8b0f7602112a00a9dc709475d43de49b196278bb9",
+      "classification": "scanner-limitation",
+      "rationale": "The root layout mounts the shared @asym/ui Toaster, whose actual implementation imports Sonner and renders its polite live announcement channel. The scanner cannot trace runtime provenance through the workspace package export.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/donor/app/layout.tsx",
+          "sha256": "a194fc7668652d5d0ad8f29b5058a08364a9e4a4a87cd227e9f64f6e8f847224"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sonner.tsx",
+          "sha256": "ded1af6aa83bc47da81a3da56452ea8231b7f2cdea997efce6da0b85e299639c"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "async-action-pending-state",
+      "classification": "scanner-limitation",
+      "rationale": "The original prematurely completed React transition was repaired by awaiting signOutClientSession in the async transition callback. Actual deferred signout verifies disabled signing-out feedback until completion. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/apps/missionary/shadscan-header-pending.test.tsx"
+      ],
+      "evidenceFingerprint": "e5b4bdcbf814cd54ee9d0a8a407206830e51a9b1023c7a1ce76e19ddd4eaa5c6",
+      "proof": [
+        {
+          "path": "apps/missionary/components/app-header.tsx",
+          "sha256": "2b802aaadce394ed2bd3904042012f7f5073c4b64e4fed5bfe507c7d0f6473c3"
+        },
+        {
+          "path": "tests/unit/apps/missionary/shadscan-header-pending.test.tsx",
+          "sha256": "aa643973db0ab93c58194e6cb469aac6b025aed6952ed31aaee2045362fddfab"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "product-decision",
+      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "proof": [
+        {
+          "path": "apps/missionary/app/layout.tsx",
+          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "product-decision",
+      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "proof": [
+        {
+          "path": "apps/missionary/app/layout.tsx",
+          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "cff9f2d99adb5a65b13193dab26f15ae8933b0b7c03de857be1a37e0475a1de8",
+      "classification": "scanner-limitation",
+      "rationale": "This application has the supported Next.js global-error.tsx convention with complete document markup and a named reset action. The scanner requires the ordinary error.tsx filename and overlooks the verified global boundary.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+        "tests/unit/apps/global-boundary-contracts.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "apps/missionary/app/global-error.tsx",
+          "sha256": "5e7172045874ed891fc2008992728457abd448bbed1e0dd880d96770b0bac8e5"
+        },
+        {
+          "path": "tests/unit/apps/global-boundary-contracts.test.ts",
+          "sha256": "23905746171ad4809d4d44f2f9965da024294eb015a2d2a1430ad9011f97ad6e"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "field-errors-rendered",
+      "classification": "scanner-limitation",
+      "rationale": "use-profile-page-view owns error state, while ProfileFormColumn passes errors into FormField/LabeledField. The shared Base UI Field wrapper renders FieldError with stable control IDs, aria-invalid, aria-describedby and aria-errormessage. Actual missionary wrapper tests verify control/error association. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
+      ],
+      "evidenceFingerprint": "a67ec3da0137c04fea29b1f154b52b073ff398cb976062f78a8d43241da49b66",
+      "proof": [
+        {
+          "path": "apps/missionary/app/profile/profile-form-column.tsx",
+          "sha256": "066f5b55d5ca59bd342e1c7c7195310a929accff4d1838f9c73e0f2efc12aa37"
+        },
+        {
+          "path": "apps/missionary/app/profile/profile-primitives.tsx",
+          "sha256": "bd23868a27ae51767cdd82611499aff177073419dacb8120501df6700a7f4cbc"
+        },
+        {
+          "path": "apps/missionary/app/profile/use-profile-page-view.ts",
+          "sha256": "a2f956d94656e5369ce276233bcc9d52a1b2694e0e01f1851488218e3baabc55"
+        },
+        {
+          "path": "packages/ui/components/primitives/labeled-field.tsx",
+          "sha256": "952863090766916c6b9f2e388f4454ccd95671023b37418270b32e49a55b5d10"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
+        },
+        {
+          "path": "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
+          "sha256": "40552e53226e31a0b2a331a2e6195de2d79228f88cae5f6f4b5ea5487a1d3184"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "forms-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "All five current raw call sites are immediate children of FormField, which delegates to shared LabeledField and Base UI Field.Control. Actual Input and native Textarea tests prove rendered names and relationship IDs, including browser accessible name behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
+      ],
+      "evidenceFingerprint": "87adc12f24fb765a1d54aa48b05ce0cb154af46014d7fe8f3eb312f76772896c",
+      "proof": [
+        {
+          "path": "apps/missionary/app/profile/profile-form-column.tsx",
+          "sha256": "066f5b55d5ca59bd342e1c7c7195310a929accff4d1838f9c73e0f2efc12aa37"
+        },
+        {
+          "path": "apps/missionary/app/profile/profile-primitives.tsx",
+          "sha256": "bd23868a27ae51767cdd82611499aff177073419dacb8120501df6700a7f4cbc"
+        },
+        {
+          "path": "packages/ui/components/primitives/labeled-field.tsx",
+          "sha256": "952863090766916c6b9f2e388f4454ccd95671023b37418270b32e49a55b5d10"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
+        },
+        {
+          "path": "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
+          "sha256": "40552e53226e31a0b2a331a2e6195de2d79228f88cae5f6f4b5ea5487a1d3184"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "icon-buttons-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "Flagged action Button is rendered by a labeled DropdownMenuTrigger. The actual keyboard-hidden task action issue was separately repaired with group-focus-within visibility outside Button ownership; completed delete is explicitly named. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx"
+      ],
+      "evidenceFingerprint": "6aa0a8f54769c98ae1efce2040166a4159947ae1f0e3be9487bf7c4cb122a80a",
+      "proof": [
+        {
+          "path": "apps/missionary/app/donors/donor-tasks.tsx",
+          "sha256": "4f2bdf75035570eec46f6fbb6587d516a4256f517bb32d75b455f0217b31fa63"
+        },
+        {
+          "path": "packages/ui/components/shadcn/button.tsx",
+          "sha256": "9c6b180fafd69f4dc1361dd141a2b6378bb7ff2a71ba7d7a9ce8a93ab1e48034"
+        },
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+          "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
+          "sha256": "bce90ed32231f6c566edba5481edf2d1862c2bfabe5a8c97b7e99fd717a3519b"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "links-have-accessible-names",
+      "classification": "scanner-limitation",
+      "rationale": "DropdownMenuItem render={<Link .../>} receives visible About children through Base UI render propagation. The scanner sees the empty JSX render element without evaluating forwarded children. Actual shared ProfileDropdown test demonstrates this same rendered anchor contract. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx"
+      ],
+      "evidenceFingerprint": "ceecf8c3f59c3fd7e2bdc2af83563ec25d7cc0c42485803fdb702986bfdc8f01",
+      "proof": [
+        {
+          "path": "apps/missionary/components/app-header.tsx",
+          "sha256": "2b802aaadce394ed2bd3904042012f7f5073c4b64e4fed5bfe507c7d0f6473c3"
+        },
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+          "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "mobile-nav-present",
+      "classification": "scanner-limitation",
+      "rationale": "AppShell composes SidebarProvider, AppSidebar and AppHeader SidebarTrigger. Shared Sidebar switches to controlled Sheet on mobile. The scanner stops at the extracted AppSidebar navigation rather than following the app shell/shared primitive. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx"
+      ],
+      "evidenceFingerprint": "483e713fe75b41890e2a3be95199a4a64c44fee59d0154fd407400c92a3c7a1a",
+      "proof": [
+        {
+          "path": "apps/missionary/components/app-header.tsx",
+          "sha256": "2b802aaadce394ed2bd3904042012f7f5073c4b64e4fed5bfe507c7d0f6473c3"
+        },
+        {
+          "path": "apps/missionary/components/app-shell.tsx",
+          "sha256": "3ab4aefce18b7081ac34b14562ea8e21ab777fe7a5522e5616a6457f07b0ee67"
+        },
+        {
+          "path": "apps/missionary/components/app-sidebar.tsx",
+          "sha256": "664cc837018b3cf110ce405f96ab0e20c8fda1c4b48019dd0790c6e1dcec7b61"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sidebar.tsx",
+          "sha256": "d79354ed18ed16839ccac6ad55a2cfe24354734336e7f85a043e7a9dfb9984fc"
+        },
+        {
+          "path": "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx",
+          "sha256": "8579aef9b250e1a6937f713b0a5c2900f37ea241928c2b68524588cd18d38ed3"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "not-found-route-present",
+      "evidenceFingerprint": "a76fbdfb8935235629aa524221135fd76f13d655895bac9ac9c25c169331bb67",
+      "classification": "scanner-limitation",
+      "rationale": "Next.js globalNotFound is enabled and global-not-found.tsx renders complete markup with usable navigation recovery. The scanner checks the ordinary not-found.tsx filename and misses this supported global convention.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+        "tests/unit/apps/global-boundary-contracts.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "apps/missionary/app/global-not-found.tsx",
+          "sha256": "517bcdfe041a0b7dc8a219e0eaed2af02191ab5426ccf08e7f96a13bc6ac6505"
+        },
+        {
+          "path": "apps/missionary/next.config.ts",
+          "sha256": "9ae62cebc9f2457134762c387e3278ad84dae76841b6a70efa1134d3fd2ff017"
+        },
+        {
+          "path": "tests/unit/apps/global-boundary-contracts.test.ts",
+          "sha256": "23905746171ad4809d4d44f2f9965da024294eb015a2d2a1430ad9011f97ad6e"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "scanner-limitation",
+      "rationale": "Core explicitly requires one shared base-maia components.json in packages/ui and rejects app-local copies. The scanner checks only the application-local file and misses that enforced monorepo ownership.",
+      "verificationTests": [
+        "tests/unit/scripts/shadcn-config-guardrails.test.ts"
+      ],
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/components.json",
+          "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+        },
+        {
+          "path": "scripts/verify/shadcn-config-guardrails.mjs",
+          "sha256": "5eb07fa2bdc834e686f33b47d0ae59dbbffc3ead681cc996ce6405c00ad20787"
+        },
+        {
+          "path": "tests/unit/scripts/shadcn-config-guardrails.test.ts",
+          "sha256": "5ff8b7e6b22c65dcaee68427e1b1f326d02918b6943518d2042ddd995d5b4c39"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "social-preview-present",
+      "evidenceFingerprint": "9e5ef4ee0856567eabcbc17271b5112419108b820506dba1aa5778d9b5e5745a",
+      "classification": "product-decision",
+      "rationale": "This private application retains its existing noindex publication policy. A public social preview is not a required private-workspace feature, so no public image/card is introduced solely for the scanner score.",
+      "proof": [
+        {
+          "path": "apps/missionary/app/layout.tsx",
+          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "status-messages-announced",
+      "classification": "scanner-limitation",
+      "rationale": "Analytics delegates loading/error/empty state to shared ChartCard, now emitting named loading status, alert and empty status. Actual ChartCard unit and real CSS browser fixture assert repaired status semantics. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
+      ],
+      "evidenceFingerprint": "390d7b8c6ed3e4d09752fa5fb38bf4bb9302fd7e5a0ef32804ac73ce8ca6626f",
+      "proof": [
+        {
+          "path": "apps/missionary/app/analytics/page-client.tsx",
+          "sha256": "37092782d2bec4762ed2be6340f83528b6edb8599065570b286654258b9a05f3"
+        },
+        {
+          "path": "packages/ui/components/primitives/chart-wrappers.tsx",
+          "sha256": "83e61aea206674ce738762de8f2adf2c5dfd4792f4d1c91b5a281e775d209945"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+          "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "suspense-fallback-useful",
+      "classification": "product-decision",
+      "rationale": "The actual Boneyard task fixture null preview now has named status and skeleton rows. Remaining raw evidence surrounds only the redirect-only sibling RoleRedirectGate; keep its null fallback and rendered children semantics. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/apps/global-boundary-contracts.test.ts"
+      ],
+      "evidenceFingerprint": "2e935cd912c85f9fcc2a4babda102e0825b82cd2279944566702476f0f58f485",
+      "proof": [
+        {
+          "path": "apps/missionary/app/boneyard/tasks/page-client.tsx",
+          "sha256": "9355ba8231bd85f420b145a9f7838e8e9bce301efdc2dce36075339c48aa34bb"
+        },
+        {
+          "path": "apps/missionary/app/layout.tsx",
+          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+        },
+        {
+          "path": "tests/unit/apps/global-boundary-contracts.test.ts",
+          "sha256": "23905746171ad4809d4d44f2f9965da024294eb015a2d2a1430ad9011f97ad6e"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "product-decision",
+      "rationale": "The application deliberately forces the light theme. A global dark-mode shortcut would contradict the mounted provider contract, so it is intentionally omitted.",
+      "proof": [
+        {
+          "path": "apps/missionary/app/layout.tsx",
+          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+        },
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "toast-provider-mounted",
+      "evidenceFingerprint": "423759374d172235e28a555980d9d256f5e7dcc2880d6f97a1f43bca616319a8",
+      "classification": "scanner-limitation",
+      "rationale": "The root layout mounts the shared @asym/ui Toaster, whose actual implementation imports Sonner and renders its polite live announcement channel. The scanner cannot trace runtime provenance through the workspace package export.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/missionary/app/layout.tsx",
+          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sonner.tsx",
+          "sha256": "ded1af6aa83bc47da81a3da56452ea8231b7f2cdea997efce6da0b85e299639c"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "apps/missionary",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "301f84c12eff5fb99a9e491f08eb74ffee8a79cae7464c29c9cfd40c9ff47c57",
+      "classification": "scanner-limitation",
+      "rationale": "The root layout mounts the shared @asym/ui Toaster, whose actual implementation imports Sonner and renders its polite live announcement channel. The scanner cannot trace runtime provenance through the workspace package export.",
+      "verificationTests": [
+        "tests/unit/apps/shadscan-framework-contracts.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/missionary/app/layout.tsx",
+          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sonner.tsx",
+          "sha256": "ded1af6aa83bc47da81a3da56452ea8231b7f2cdea997efce6da0b85e299639c"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        },
+        {
+          "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
+          "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-hotkey-present finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-present finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "5f8d5000db969213c57122bbf8291a4efbcde84b8032cb212abc2e5ebae294f2",
+      "classification": "library-applicability",
+      "rationale": "This exact error-boundary-present finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "favicon-present",
+      "evidenceFingerprint": "1ef6b030ce147138550f39aaca6fb6ec60a32ffbcc6d9dccff4f03a02a68316d",
+      "classification": "library-applicability",
+      "rationale": "This exact favicon-present finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "metadata-configured",
+      "evidenceFingerprint": "c93ce3efab64125c8edad8b53ba390571e755dbcd2a11ac29a46b7e4e745f121",
+      "classification": "library-applicability",
+      "rationale": "This exact metadata-configured finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "library-applicability",
+      "rationale": "This exact shadcn-config-present finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-hotkey-present finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "theme-provider-configured",
+      "evidenceFingerprint": "4f725685a5f4f5015c50d262b57db6f21bdf2af97012c4e0558e370990bd133e",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-provider-configured finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/auth",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "688e0b88b9af65c7a2ea9df8b0f7602112a00a9dc709475d43de49b196278bb9",
+      "classification": "library-applicability",
+      "rationale": "This exact toast-provider-present finding asks packages/auth for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/auth/package.json",
+          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "async-action-pending-state",
+      "evidenceFingerprint": "3df498ebcddab433bd7d5eb064862e2b2953e80c77bfa7c958c089fcf1bfb3a2",
+      "classification": "scanner-limitation",
+      "rationale": "This file exports TanStack Query mutation hooks, not rendered triggers. The actual hook exposes isPending for the whole deferred request and invalidates app caches on success; the CRM drawer passes that state to its note composer. The scanner asks the hook-only library file for UI feedback owned by its consumer.",
+      "verificationTests": [
+        "tests/unit/packages/database/shadscan-mutation-contract.test.tsx"
+      ],
+      "proof": [
+        {
+          "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
+          "sha256": "9898e9dff27d86165deddc471ec808a6fbac14f8c73f7fafa8504b0466313de5"
+        },
+        {
+          "path": "packages/database/hooks/admin-crm-detail.ts",
+          "sha256": "e32fd95570f0db70f7c5d777e1627c2a262859c56b9737530ccae33f6d09d2ec"
+        },
+        {
+          "path": "tests/unit/packages/database/shadscan-mutation-contract.test.tsx",
+          "sha256": "d3d0b3763da30199557bac445a6816e28497c3ba375f39e8062eac969e8caa9e"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-hotkey-present finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-present finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "5f8d5000db969213c57122bbf8291a4efbcde84b8032cb212abc2e5ebae294f2",
+      "classification": "library-applicability",
+      "rationale": "This exact error-boundary-present finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "favicon-present",
+      "evidenceFingerprint": "1ef6b030ce147138550f39aaca6fb6ec60a32ffbcc6d9dccff4f03a02a68316d",
+      "classification": "library-applicability",
+      "rationale": "This exact favicon-present finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "metadata-configured",
+      "evidenceFingerprint": "c93ce3efab64125c8edad8b53ba390571e755dbcd2a11ac29a46b7e4e745f121",
+      "classification": "library-applicability",
+      "rationale": "This exact metadata-configured finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "library-applicability",
+      "rationale": "This exact shadcn-config-present finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-hotkey-present finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "theme-provider-configured",
+      "evidenceFingerprint": "4f725685a5f4f5015c50d262b57db6f21bdf2af97012c4e0558e370990bd133e",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-provider-configured finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/database",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "688e0b88b9af65c7a2ea9df8b0f7602112a00a9dc709475d43de49b196278bb9",
+      "classification": "library-applicability",
+      "rationale": "This exact toast-provider-present finding asks packages/database for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/database/package.json",
+          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-hotkey-present finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-present finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "5f8d5000db969213c57122bbf8291a4efbcde84b8032cb212abc2e5ebae294f2",
+      "classification": "library-applicability",
+      "rationale": "This exact error-boundary-present finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "favicon-present",
+      "evidenceFingerprint": "1ef6b030ce147138550f39aaca6fb6ec60a32ffbcc6d9dccff4f03a02a68316d",
+      "classification": "library-applicability",
+      "rationale": "This exact favicon-present finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "metadata-configured",
+      "evidenceFingerprint": "c93ce3efab64125c8edad8b53ba390571e755dbcd2a11ac29a46b7e4e745f121",
+      "classification": "library-applicability",
+      "rationale": "This exact metadata-configured finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "library-applicability",
+      "rationale": "This exact shadcn-config-present finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-hotkey-present finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "theme-provider-configured",
+      "evidenceFingerprint": "4f725685a5f4f5015c50d262b57db6f21bdf2af97012c4e0558e370990bd133e",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-provider-configured finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/lib",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "301f84c12eff5fb99a9e491f08eb74ffee8a79cae7464c29c9cfd40c9ff47c57",
+      "classification": "library-applicability",
+      "rationale": "This exact toast-provider-present finding asks packages/lib for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/lib/package.json",
+          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-hotkey-present finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-present finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "custom-controls-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "TaskDialog Priority label uses SelectControlLabel, which associates through Base UI Field context. The actual TaskDialog is rendered in the focused task-control test and getByRole combobox name Priority passes. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/missionary/shadscan-task-controls.test.tsx"
+      ],
+      "evidenceFingerprint": "c6d12f587a22b0bb135733e6541c36e9b4632dbd79eba8b38ae93136d324e669",
+      "proof": [
+        {
+          "path": "packages/missionary/components/task-dialog.tsx",
+          "sha256": "365ffa1089ac48ccd41f4f91ccab2a30efc6546dec13e3c88c9bf08e967eab13"
+        },
+        {
+          "path": "packages/ui/components/shadcn/select.tsx",
+          "sha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c"
+        },
+        {
+          "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "dialogs-have-accessible-names",
+      "classification": "scanner-limitation",
+      "rationale": "TaskDetailsSheet delegates header to an extracted helper containing SheetTitle. Rendering the actual Sheet with a task verifies dialog accessible name Follow up. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/missionary/shadscan-task-controls.test.tsx"
+      ],
+      "evidenceFingerprint": "58f280198c4420fa86e58de84fd94c59498c19dc3001d9df449f1010f97dfd1d",
+      "proof": [
+        {
+          "path": "packages/missionary/components/tasks/task-details-sheet.tsx",
+          "sha256": "007172e5df6eebd3cac802ac50ab33731785972405eca2b0c42304bb9cc52c2d"
+        },
+        {
+          "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "5f8d5000db969213c57122bbf8291a4efbcde84b8032cb212abc2e5ebae294f2",
+      "classification": "library-applicability",
+      "rationale": "This exact error-boundary-present finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "favicon-present",
+      "evidenceFingerprint": "1ef6b030ce147138550f39aaca6fb6ec60a32ffbcc6d9dccff4f03a02a68316d",
+      "classification": "library-applicability",
+      "rationale": "This exact favicon-present finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "icon-buttons-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "TaskRowMenu trigger has aria-label=\"Open actions\" propagated to render Button by Base UI. Initial real Kanban add/edit/drag names are repaired and independently verified in actual TaskKanbanBoard test. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
+      "verificationTests": [
+        "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx"
+      ],
+      "evidenceFingerprint": "c076e225ee0e33bb3da8affd9bf7804d5aebdb6e0d2f2288924a3a88d9bb3453",
+      "proof": [
+        {
+          "path": "packages/missionary/components/task-kanban-board.tsx",
+          "sha256": "2d4d7e6df70ff0d2522e55a8b630b8e9282658163e309b48a9fd43e90694a554"
+        },
+        {
+          "path": "packages/missionary/components/task-row.tsx",
+          "sha256": "bb7722acb6740e69d94a03f17ac404b9362a17e330a47c839c515dab45e5bacf"
+        },
+        {
+          "path": "packages/ui/components/shadcn/button.tsx",
+          "sha256": "9c6b180fafd69f4dc1361dd141a2b6378bb7ff2a71ba7d7a9ce8a93ab1e48034"
+        },
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+          "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
+          "sha256": "bce90ed32231f6c566edba5481edf2d1862c2bfabe5a8c97b7e99fd717a3519b"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "links-have-accessible-names",
+      "classification": "scanner-limitation",
+      "rationale": "TaskRowMenu DropdownMenuItem render Link receives visible View Partner children from Base UI. Same rendered anchor bridge is runtime proven in shared ProfileDropdown test; source-reviewed current TaskRow link has a meaningful visible name. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx"
+      ],
+      "evidenceFingerprint": "7959662de8b3b11c8b758591f8bd533f867e020930dd9bf08b01ca3319a381ad",
+      "proof": [
+        {
+          "path": "packages/missionary/components/task-row.tsx",
+          "sha256": "bb7722acb6740e69d94a03f17ac404b9362a17e330a47c839c515dab45e5bacf"
+        },
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+          "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "metadata-configured",
+      "evidenceFingerprint": "c93ce3efab64125c8edad8b53ba390571e755dbcd2a11ac29a46b7e4e745f121",
+      "classification": "library-applicability",
+      "rationale": "This exact metadata-configured finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "mobile-nav-present",
+      "classification": "scanner-limitation",
+      "rationale": "TaskViewTabs is an always-exposed task filter strip with overflow scrolling, not hidden site navigation. Actual unit selects Due Today and verifies its filter callback without any collapsible navigation panel. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/missionary/shadscan-task-controls.test.tsx"
+      ],
+      "evidenceFingerprint": "e56cc8213bcec6d1655c59513f3c581d844aa6ffa03db21a00fbc8a817593b3a",
+      "proof": [
+        {
+          "path": "packages/missionary/components/tasks/task-view-tabs.tsx",
+          "sha256": "03160415da6d5f8248d9092eb4cbec1de84c43488ce37e21b1b79830498ddd1e"
+        },
+        {
+          "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "shadcn-config-present",
+      "evidenceFingerprint": "20b5895df5771261f5e94f3e9dde8471b85f06df48e7c0c05be16de4eeb0635d",
+      "classification": "library-applicability",
+      "rationale": "This exact shadcn-config-present finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-hotkey-present finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "theme-provider-configured",
+      "evidenceFingerprint": "4f725685a5f4f5015c50d262b57db6f21bdf2af97012c4e0558e370990bd133e",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-provider-configured finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/missionary",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "301f84c12eff5fb99a9e491f08eb74ffee8a79cae7464c29c9cfd40c9ff47c57",
+      "classification": "library-applicability",
+      "rationale": "This exact toast-provider-present finding asks packages/missionary for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/missionary/package.json",
+          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "async-action-pending-state",
+      "classification": "scanner-limitation",
+      "rationale": "Scanner explicitly stops at AuthButton. FullLoginCard passes isSubmitting to AuthButton loading; AuthButton renders Spinner and disables the actual Base UI button. Actual deferred auth-screen tests and loading-button tests verify real pending and native disabled behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/auth-screen-pending.test.tsx",
+        "tests/unit/packages/ui/base-ui-loading-button.test.tsx"
+      ],
+      "evidenceFingerprint": "fd340f323b85ed2b1e8e6c72fd32a00293e02c08d26e18ce31add77195a4c61f",
+      "proof": [
+        {
+          "path": "packages/ui/components/auth/FullLoginCard.tsx",
+          "sha256": "510f3f8c0f492d9f0663b16de1ac73e9786a9982754120d723abe0786a7aa46d"
+        },
+        {
+          "path": "packages/ui/components/auth/auth-primitives.tsx",
+          "sha256": "213998a1e82e45d640a188520395d79e3e60520e4f23c80a56c72a3b28d9cff1"
+        },
+        {
+          "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
+          "sha256": "788a88de74109d0460e99ac22e7c8e5c0d8d743df5f374a4de2e69ddca880e8f"
+        },
+        {
+          "path": "tests/unit/packages/ui/base-ui-loading-button.test.tsx",
+          "sha256": "e2afa17416abbf5c99e7c3827180db0203817510a327d97a77c8e31e20cca112"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "command-menu-hotkey-present",
+      "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-hotkey-present finding asks packages/ui for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "command-menu-present",
+      "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
+      "classification": "library-applicability",
+      "rationale": "This exact command-menu-present finding asks packages/ui for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "custom-controls-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "Actual Zoom/Rotation slider thumbs carry the accessible names; Base UI Slider Root is a container, not the focusable slider. Real CSS browser test locates actual role slider by both names and ArrowRight changes aria-valuenow. Preserve correct thumb labeling. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
+      ],
+      "evidenceFingerprint": "184f08ee58ed567e50395d97cbc87f886d321c5401b2f80ce5eb5870f93565e6",
+      "proof": [
+        {
+          "path": "packages/ui/components/primitives/image-cropper.tsx",
+          "sha256": "e70ed5b2fef8f9d297e917236b8f6e59cb321408ad51c0d6df5162b3faa61859"
+        },
+        {
+          "path": "packages/ui/components/shadcn/slider.tsx",
+          "sha256": "3a6bd23530ad17b9291d32c8217737272a471fd90e4580b3e0dc897f77c22c9a"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "empty-state-present",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged LoginScreen useQuery resolves demo availability boolean and existing user/session state, not a displayed collection. Their false/null result correctly renders sign-in UI, rather than an empty collection panel. Actual deferred auth-screen tests verify the flow. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/auth-screen-pending.test.tsx"
+      ],
+      "evidenceFingerprint": "6fba871b3664543bc78afb2b48992617b53b7c59e29a3d6b17ce0ea467c1fec4",
+      "proof": [
+        {
+          "path": "packages/ui/components/auth/LoginScreen.tsx",
+          "sha256": "9ecbfc5b9ce93c58cdb16ed9849507d3a4f90223da1876844dd4c389babf755b"
+        },
+        {
+          "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
+          "sha256": "788a88de74109d0460e99ac22e7c8e5c0d8d743df5f374a4de2e69ddca880e8f"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "error-boundary-present",
+      "evidenceFingerprint": "5f8d5000db969213c57122bbf8291a4efbcde84b8032cb212abc2e5ebae294f2",
+      "classification": "library-applicability",
+      "rationale": "This exact error-boundary-present finding asks packages/ui for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "favicon-present",
+      "evidenceFingerprint": "1ef6b030ce147138550f39aaca6fb6ec60a32ffbcc6d9dccff4f03a02a68316d",
+      "classification": "library-applicability",
+      "rationale": "This exact favicon-present finding asks packages/ui for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "field-errors-rendered",
+      "classification": "scanner-limitation",
+      "rationale": "The flagged validation hook flattens TanStack errors for FieldShell/FieldError. Existing actual TanStack form accessibility tests verify the rendered associated errors rather than demanding JSX in the helper function. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx"
+      ],
+      "evidenceFingerprint": "deeed071325705da789307952681e9d4f77142405e552e938b7a1e0ac7682e93",
+      "proof": [
+        {
+          "path": "packages/ui/components/primitives/tanstack-form.tsx",
+          "sha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad"
+        },
+        {
+          "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
+          "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "focus-visible-not-suppressed",
+      "classification": "scanner-limitation",
+      "rationale": "MenubarSubTrigger replaces the removed outline with focus:bg-accent and focus:text-accent-foreground, plus popup-open equivalents. Keyboard menu behavior belongs to the shared Base UI Menu SubmenuTrigger. Actual submenu-specific computed focus contrast has source proof; broad fixture tests cover Base UI menu keyboard behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/fixtures/base-ui-compliance/specs/overlays.spec.ts"
+      ],
+      "evidenceFingerprint": "9834bb220dcaa71db81c2a9f49578ab80c09118bc2b893525be4aa8b82804d63",
+      "proof": [
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "packages/ui/components/shadcn/menubar.tsx",
+          "sha256": "a9b55204c50c7afe1c745fa271b5e3809fc89908924091ff2d572e237074312f"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/overlays.spec.ts",
+          "sha256": "9b8a09ab77333bca2cbe88cee7f09b65885543c7acc5e7479d5a20260d0b26bc"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "forms-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "AuthInput is a caller-labeled primitive; actual auth screens name Email/Password. TanStack inputs/textareas receive FieldShell context and labels. TextCell editors now receive derived Edit column label via commonProps spread; actual numeric/text/multiline editor tests verify names. Scanner sees the spread but cannot resolve it. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/auth-screen-pending.test.tsx",
+        "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
+        "tests/unit/packages/ui/shadscan-editable-cells.test.tsx"
+      ],
+      "evidenceFingerprint": "6a51c0fc253775bc4af40bdbf2431c70abc33260029c555693a7748704070f1d",
+      "proof": [
+        {
+          "path": "packages/ui/components/auth/auth-primitives.tsx",
+          "sha256": "213998a1e82e45d640a188520395d79e3e60520e4f23c80a56c72a3b28d9cff1"
+        },
+        {
+          "path": "packages/ui/components/primitives/tanstack-form.tsx",
+          "sha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad"
+        },
+        {
+          "path": "packages/ui/components/shadcn/data-table/cell-variants/accessible-name.ts",
+          "sha256": "5b5f07f336cc9c6549e2268f011dfbe9dd2d807198169858d6c9adc78d5397d2"
+        },
+        {
+          "path": "packages/ui/components/shadcn/data-table/cell-variants/text-cell.tsx",
+          "sha256": "e2fb659b9d636a178f5d5d90747db722bc16cb46ba19842c9e3a9ce89294f20b"
+        },
+        {
+          "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
+          "sha256": "788a88de74109d0460e99ac22e7c8e5c0d8d743df5f374a4de2e69ddca880e8f"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-editable-cells.test.tsx",
+          "sha256": "f030238396c16a140fe164c059f673c3f26f14d685d7c36c68bb73f10b6e78a0"
+        },
+        {
+          "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
+          "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "icon-buttons-have-labels",
+      "classification": "scanner-limitation",
+      "rationale": "The exact Navbar native icon button receives Open menu from its shared Base UI SheetTrigger render parent. The scanner inspects the child button JSX without propagating that accessible name. Actual Navbar unit and mobile browser tests find the named trigger, open the named Main navigation dialog, dismiss with Escape and restore focus. This finding concerns SheetTrigger; DropdownMenu trigger proof is not used.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-navbar.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
+      ],
+      "evidenceFingerprint": "0090e724b61cf197d926887d01239f37fffc5e3d451f794c0c9e2b01d9a4d845",
+      "proof": [
+        {
+          "path": "packages/ui/components/public/navbar-client.tsx",
+          "sha256": "41a6802bd490817e6beffdbff7b412262e0c3926c587e7bfa1879db65c0b4319"
+        },
+        {
+          "path": "packages/ui/components/shadcn/sheet.tsx",
+          "sha256": "5fe3af037d91fed4d33ef54ca328670d0d29f310a516ff3f804e28f1b8b7be4c"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-navbar.test.tsx",
+          "sha256": "a7b43e6652d6ebe7278d50e5ad8e1ff439a1363734dd47ac525e54c1573abf9a"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "interactive-elements-are-semantic",
+      "classification": "scanner-limitation",
+      "rationale": "The exact legacy SearchDialog wrapper is presentation-only and delegates clicks from its caller's native button. It adds no competing tab stop or keyboard role. The real component unit and browser tests prove native trigger click, Enter/Space default activation, command focus and Escape recovery; replacement Mission Control tests are not used as proof for this legacy wrapper.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-search-delegation.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/search-delegation.spec.ts"
+      ],
+      "evidenceFingerprint": "3f96a34b372f5b5ea57c2d5092442856eec93f75379aac7036c0f05117251e85",
+      "proof": [
+        {
+          "path": "packages/ui/components/shadcn-studio/blocks/dialog-search.tsx",
+          "sha256": "21d2b53fca2396749f743ec847a7cffe4e62db4bcd502a92f9be36be88d12979"
+        },
+        {
+          "path": "packages/ui/components/shadcn/command.tsx",
+          "sha256": "38e02be690ddef3e43d4fcf85bbc9c3354219e68e19e3d709907ab26cd265f41"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/search-delegation.spec.ts",
+          "sha256": "9d4aaa133df2c3436b703384f514747b3de701d606ddb0511bd4b87731f751d8"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-search-delegation.test.tsx",
+          "sha256": "15bcff72533dc9c70d307a1fc56465a86a15667d4c34be3a76446630fff55a5e"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "links-have-accessible-names",
+      "classification": "scanner-limitation",
+      "rationale": "The exact dynamic ProfileDropdown menu item supplies item.label to its rendered Link through Base UI composition. The real open ProfileDropdown test proves the My Profile menuitem is an anchor with the expected href and accessible name; the scanner overlooks the parent's dynamic text propagation.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx"
+      ],
+      "evidenceFingerprint": "c4d55d6011704ac970ef416f29b54d57d60d235c1fb7a3857e355fef4f680c3b",
+      "proof": [
+        {
+          "path": "packages/ui/components/shadcn-studio/blocks/dropdown-profile.tsx",
+          "sha256": "9c1ca6f094aafd4077b9c6f475fd759ed8c3f5a284531f7b0bb7a85ce9da9342"
+        },
+        {
+          "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+          "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "metadata-configured",
+      "evidenceFingerprint": "c93ce3efab64125c8edad8b53ba390571e755dbcd2a11ac29a46b7e4e745f121",
+      "classification": "library-applicability",
+      "rationale": "This exact metadata-configured finding asks packages/ui for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "status-messages-announced",
+      "classification": "scanner-limitation",
+      "rationale": "The exact evidence sits inside the DataTableResponsiveProps interface, where isLoading is a configuration type. The module also exports four inert empty configuration constants, but no components, effects or rendered messages. The scanner mistakes a typed configuration flag for visible status UI. Executable export and TypeScript statement checks establish this narrow limitation; actual shared feedback renderers have separate live-region tests.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-config-type-proof.test.ts"
+      ],
+      "evidenceFingerprint": "7ece8b3be2b4fbe2066979ec061cdd706f24f6891fc602a2c3967644cd77a7bd",
+      "proof": [
+        {
+          "path": "packages/ui/components/primitives/chart-wrappers.tsx",
+          "sha256": "83e61aea206674ce738762de8f2adf2c5dfd4792f4d1c91b5a281e775d209945"
+        },
+        {
+          "path": "packages/ui/components/shadcn/data-table/data-table-body.tsx",
+          "sha256": "f1ad27cafe150d9501f1c76ee979bfd794a27484967228be1a8d23336a582037"
+        },
+        {
+          "path": "packages/ui/components/shadcn/data-table/data-table-responsive-types.ts",
+          "sha256": "27314bfed96fb70369afa182533bc0b08089a15ed4033a648ed362a2b75c5f29"
+        },
+        {
+          "path": "packages/ui/components/shadcn/data-table/data-table-skeleton.tsx",
+          "sha256": "585b4e87562de6d959413ec4d3e2cb7b131ed97beba76c73d497f16f9738bb51"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-config-type-proof.test.ts",
+          "sha256": "a55fdc9db5f3f5e53156d46b5c30fec00d6f21320e42af33f937c87d71d79a49"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "theme-hotkey-present",
+      "evidenceFingerprint": "2a9aacf42c07f6037015a97b794d51a8ddec8365f093f2451c3a3c041758e25f",
+      "classification": "library-applicability",
+      "rationale": "This exact theme-hotkey-present finding asks packages/ui for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "toast-provider-present",
+      "evidenceFingerprint": "301f84c12eff5fb99a9e491f08eb74ffee8a79cae7464c29c9cfd40c9ff47c57",
+      "classification": "library-applicability",
+      "rationale": "This exact toast-provider-present finding asks packages/ui for application-owned configuration or shell behavior. Its manifest identifies a workspace library/tooling root; Core mounts theme, notifications, recovery and navigation in the three applications. Adding app features to this library would duplicate ownership.",
+      "proof": [
+        {
+          "path": "docs/guides/development/shadscan.md",
+          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+        },
+        {
+          "path": "packages/ui/package.json",
+          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+        }
+      ]
+    },
+    {
+      "project": "packages/ui",
+      "rule": "validation-wired-to-form",
+      "classification": "scanner-limitation",
+      "rationale": "CommentsDialog renders a native required Input and trims/comment-empty guards before mutation. Pending guard suppresses duplicate submissions. Scanner does not follow shared Input native required. Actual deferred comments test checks required/pending/duplicates; browser verifies submitted pending and completion. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "verificationTests": [
+        "tests/unit/packages/ui/shadscan-comments-feedback.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
+      ],
+      "evidenceFingerprint": "de04733052d5a3a895fcf1f1ced8106953fabdc6178f5dcd43794ed3e72bee86",
+      "proof": [
+        {
+          "path": "packages/ui/components/ministry-update/comments-dialog.tsx",
+          "sha256": "b9247379a07998d560237cadda53880ece30c35b70d91665617e93fe6bd2e48a"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
+        },
+        {
+          "path": "tests/unit/packages/ui/shadscan-comments-feedback.test.tsx",
+          "sha256": "c2d29c271728527b330a033ea0db0a74c7346bddbf2f78d8ceb041149705db37"
+        }
+      ]
+    }
+  ]
+}

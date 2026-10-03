@@ -319,6 +319,7 @@ export function WebStudioEditorPanel({
   projects,
   onBasicInfoChange,
 }: WebStudioEditorPanelProps) {
+  const fieldId = useId();
   return (
     <ScrollArea className="flex-1 bg-white border-r border-zinc-200">
       <div className="p-8 max-w-3xl mx-auto space-y-10">
@@ -329,10 +330,14 @@ export function WebStudioEditorPanel({
             </h3>
             <div className="grid grid-cols-2 gap-6 text-left">
               <div className="space-y-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                <Label
+                  htmlFor={`${fieldId}-display-name`}
+                  className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+                >
                   Public Display Name
                 </Label>
                 <Input
+                  id={`${fieldId}-display-name`}
                   value={basicInfo.displayName}
                   onChange={(event) =>
                     onBasicInfoChange((current) => ({
@@ -344,10 +349,14 @@ export function WebStudioEditorPanel({
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                <Label
+                  htmlFor={`${fieldId}-location`}
+                  className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+                >
                   Location Base
                 </Label>
                 <Input
+                  id={`${fieldId}-location`}
                   value={basicInfo.location}
                   onChange={(event) =>
                     onBasicInfoChange((current) => ({
@@ -361,7 +370,10 @@ export function WebStudioEditorPanel({
             </div>
             <div className="space-y-2 text-left">
               <div className="flex justify-between items-center mb-1">
-                <Label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                <Label
+                  htmlFor={`${fieldId}-bio`}
+                  className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+                >
                   Public Bio
                 </Label>
                 <Button
@@ -373,6 +385,7 @@ export function WebStudioEditorPanel({
                 </Button>
               </div>
               <Textarea
+                id={`${fieldId}-bio`}
                 value={basicInfo.bio}
                 onChange={(event) =>
                   onBasicInfoChange((current) => ({
@@ -414,8 +427,9 @@ export function WebStudioEditorPanel({
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                     <Button
+                      aria-label={`View project ${project.title}`}
                       variant="ghost"
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900"
@@ -423,6 +437,7 @@ export function WebStudioEditorPanel({
                       <ExternalLink className="size-4" />
                     </Button>
                     <Button
+                      aria-label={`Edit project ${project.title}`}
                       variant="ghost"
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900"
