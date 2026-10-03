@@ -99,4 +99,18 @@ describe("CMS migration target", () => {
       }),
     ).toThrow("encrypted");
   });
+
+  it("rejects duplicate TLS modes before the driver can choose another value", () => {
+    for (const modes of [
+      "require&sslmode=disable",
+      "require&sslmode=require",
+    ]) {
+      expect(() =>
+        assertCmsMigrationTarget({
+          ...hosted,
+          databaseUrl: hosted.databaseUrl.replace("no-verify", modes),
+        }),
+      ).toThrow("encrypted");
+    }
+  });
 });

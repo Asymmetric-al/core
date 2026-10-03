@@ -4,7 +4,10 @@ import nextEnv from "@next/env";
 
 import { LOCAL_DATABASE_URL, LOCAL_PAYLOAD_SECRET } from "./lib/local-data.mjs";
 import { assertCmsMigrationTarget } from "./lib/migration-target.mjs";
-import { assertPayloadRuntimeRequirements } from "./lib/payload-runtime.mjs";
+import {
+  assertPayloadRuntimeRequirements,
+  getPayloadCliCommand,
+} from "./lib/payload-runtime.mjs";
 import { queryJson } from "./lib/postgres.mjs";
 import { adminAppDir, repoRoot } from "./lib/paths.mjs";
 
@@ -20,8 +23,10 @@ if (args.length === 0) {
   process.exit(1);
 }
 
+let command;
 try {
   assertPayloadRuntimeRequirements();
+  command = getPayloadCliCommand(args);
 } catch (cause) {
   console.error(cause instanceof Error ? cause.message : cause);
   process.exit(1);
@@ -81,7 +86,7 @@ if (
     "migrate:reset",
     "migrate:fresh",
     "migrate:refresh",
-  ].includes(args[0])
+  ].includes(command)
 ) {
   try {
     assertCmsMigrationTarget({
@@ -90,7 +95,7 @@ if (
       approvedProjectRef: env.CMS_HOSTED_MIGRATION_REF,
       environment: env,
     });
-    if (args[0] === "migrate") assertNoPayloadDevMigrationMarker();
+    if (command === "migrate") assertNoPayloadDevMigrationMarker();
   } catch (cause) {
     console.error(
       cause instanceof Error

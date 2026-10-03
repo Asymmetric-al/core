@@ -46,6 +46,9 @@ function getPsqlConnection(databaseUrl) {
 
   // Match libpq precedence: only explicit URI values replace ambient defaults.
   const env = { ...process.env };
+  // A libpq service is expanded before environment defaults. Do not let an
+  // ambient service replace the target supplied by the explicit database URL.
+  delete env.PGSERVICE;
   for (const [key, value] of Object.entries(fields)) {
     if (value) env[key] = value;
   }
@@ -73,7 +76,10 @@ function getPsqlConnection(databaseUrl) {
   // Leave options without PG* equivalents (e.g. TCP keepalives) to libpq.
   // The URI contains no host, database, user, password, or mapped options.
   const args = remaining.size
-    ? ["--dbname", `postgresql:///?${remaining.toString()}`]
+    ? [
+        "--dbname",
+        `postgresql:///?${remaining.toString().replace(/\+/g, "%20")}`,
+      ]
     : [];
   return { env, args };
 }

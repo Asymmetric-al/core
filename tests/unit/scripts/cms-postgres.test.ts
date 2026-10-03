@@ -91,4 +91,34 @@ describe("CMS PostgreSQL command connection", () => {
       }),
     ).toThrow("CMS database connection must be a valid Postgres URL.");
   });
+
+  it("does not let an ambient service replace an explicit database target", () => {
+    vi.stubEnv("PGSERVICE", "another-database");
+    vi.stubEnv("PGSERVICEFILE", "custom-services.conf");
+    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+
+    runPsql("SELECT 1;", { databaseUrl });
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGSERVICE).toBeUndefined();
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGHOST).toBe(
+      "pooler.example.com",
+    );
+
+    runPsqlFile("reviewed-migration.sql", { databaseUrl });
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGSERVICE).toBeUndefined();
+    expect(spawnSync.mock.calls.at(-1)![2].env.PGHOST).toBe(
+      "pooler.example.com",
+    );
+  });
+
+  it("preserves spaces in libpq URI options", () => {
+    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1;", {
+      databaseUrl: `${databaseUrl}&fallback_application_name=core%20local`,
+    });
+    const args = spawnSync.mock.calls.at(-1)![1];
+    const forwarded = new URL(args[args.indexOf("--dbname") + 1]);
+    const value = forwarded.search.slice(1).split("=")[1];
+    // libpq percent-decodes URI values; it does not use form '+' decoding.
+    expect(decodeURIComponent(value)).toBe("core local");
+  });
 });

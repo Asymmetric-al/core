@@ -58,7 +58,13 @@ export function assertCmsMigrationTarget({
     );
   }
 
-  const sslmode = database.searchParams.get("sslmode") ?? environment.PGSSLMODE;
+  const sslmodes = database.searchParams.getAll("sslmode");
+  if (sslmodes.length > 1) {
+    throw new Error(
+      "Hosted CMS migrations require an explicit encrypted database connection.",
+    );
+  }
+  const sslmode = sslmodes[0] ?? environment.PGSSLMODE;
   if (!["require", "verify-ca", "verify-full", "no-verify"].includes(sslmode)) {
     throw new Error(
       "Hosted CMS migrations require an explicit encrypted database connection.",
