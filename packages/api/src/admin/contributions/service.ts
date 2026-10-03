@@ -517,6 +517,8 @@ export async function listAdminContributions(
 
     return buildContributionGridRow({
       donation,
+      // Effective amounts drive display; refund truth uses the provider charge.
+      refundBasis: { originalAmountCents: donationRow.amount },
       donor,
       profile: donorProfile,
       fund,

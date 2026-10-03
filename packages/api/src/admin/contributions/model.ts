@@ -2,6 +2,7 @@ import {
   buildSharedContributionRowFields,
   canonicalizeSharedPaymentStatusInput,
   normalizeSharedPaymentStatus,
+  type BuildSharedContributionRowFieldsInput,
   type SharedContributionCorrectionInput,
   type SharedContributionCrmPostStatus,
   type SharedContributionPaymentStatus,
@@ -304,6 +305,7 @@ export function buildContributionGridRow({
   stagedGift,
   corrections,
   designationSet,
+  refundBasis,
 }: {
   donation: RawDonation;
   donor: RawDonor;
@@ -313,6 +315,7 @@ export function buildContributionGridRow({
   stagedGift?: RawStagedGift;
   corrections?: SharedContributionCorrectionInput[];
   designationSet?: ContributionDesignationSet;
+  refundBasis?: BuildSharedContributionRowFieldsInput["refundBasis"];
 }): ContributionGridRow {
   const shared = buildSharedContributionRowFields({
     donation,
@@ -323,6 +326,7 @@ export function buildContributionGridRow({
     stagedGift: stagedGift ?? null,
     corrections,
     designationSet,
+    refundBasis,
   });
   const donorEmail = donor?.email?.trim() || profile?.email?.trim() || "";
   const receiptStatus = shared.receiptStatus;
