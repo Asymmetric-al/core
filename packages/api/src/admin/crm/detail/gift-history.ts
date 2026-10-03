@@ -32,7 +32,7 @@ export interface BuildCrmGiftHistoryRowInput {
     stripeChargeId: string | null;
   };
   /**
-   * Refund availability basis (#265). The refundable basis is the ORIGINAL
+   * Refund classification and availability basis (#265). The refundable basis is the ORIGINAL
    * donation amount (what the provider charged) — never the adjusted
    * effective amount — matching the contribution detail read model and the
    * refund adapter. Callers that feed effective-adjusted values into
@@ -82,6 +82,7 @@ export function buildCrmGiftHistoryRow(
       : null,
     corrections: input.corrections,
     designationSet: input.designationSet,
+    refundBasis: input.refundBasis,
   });
 
   // Inline operations reuse the exact availability derivation contribution

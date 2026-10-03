@@ -583,6 +583,7 @@ export function buildContributionDetail(
 
   const shared = buildSharedContributionRowFields({
     designationSet: designations,
+    refundBasis: { originalAmountCents: donation.amount },
     donation: {
       id: donation.id,
       donor_id: donation.donorId,
@@ -697,7 +698,7 @@ export function buildContributionDetail(
     },
     refund: {
       status: refundStatus({
-        amountCents: effective.amountCents,
+        amountCents: donation.amount,
         refundedAmountCents: donation.refundAmount,
       }),
       amount: donation.refundAmount,
@@ -764,7 +765,7 @@ export function buildContributionDetail(
       status: donorVisibleStatus(
         effective.paymentStatus,
         donation.refundAmount,
-        effective.amountCents,
+        donation.amount,
       ),
       historyUpdatedImmediately: true,
       amount: effective.amountCents,
