@@ -17,6 +17,7 @@ const SHARED_INPUTS = new Set([
   ".nvmrc",
   ".npmrc",
   ".vercelignore",
+  "scripts/load-workspace-env.mjs",
 ]);
 
 export function resolveCompilation({
