@@ -1085,9 +1085,6 @@
   "apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 6
-    },
-    "shadcn/no-raw-colors": {
-      "count": 13
     }
   },
   "apps/admin/features/support-hub/components/detail/conversation-crm-links.tsx": {

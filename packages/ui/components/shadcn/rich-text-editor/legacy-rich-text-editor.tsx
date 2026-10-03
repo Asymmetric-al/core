@@ -10,6 +10,7 @@ import { EditorContent, EditorRoot } from "./rich-text-editor";
 import { EditorToolbar } from "./toolbar";
 
 export interface LegacyRichTextEditorProps {
+  "aria-label"?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -27,6 +28,7 @@ export interface LegacyRichTextEditorProps {
  * compound TipTap editor (JSON storage).
  */
 export function LegacyRichTextEditor({
+  "aria-label": ariaLabel,
   value,
   onChange,
   placeholder,
@@ -70,6 +72,7 @@ export function LegacyRichTextEditor({
       )}
     >
       <EditorRoot
+        aria-label={ariaLabel}
         value={value}
         onChange={onChange}
         disabled={disabled}

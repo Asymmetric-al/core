@@ -27,6 +27,8 @@ interface SuggestionListProps {
   heading?: string;
   /** Empty-state copy when `items` is empty. */
   emptyHint?: string;
+  /** The renderer connects this popup to the editor that retains DOM focus. */
+  onActiveOptionChange?: (listboxId: string, optionId: string | null) => void;
 }
 
 /**
@@ -38,7 +40,7 @@ export const SuggestionList = React.forwardRef<
   SuggestionListHandle,
   SuggestionListProps
 >(function SuggestionList(
-  { items, command, heading, emptyHint = "No matches." },
+  { items, command, heading, emptyHint = "No matches.", onActiveOptionChange },
   ref,
 ) {
   // The highlight is stored together with the list it belongs to, so a new
@@ -61,8 +63,27 @@ export const SuggestionList = React.forwardRef<
     [items],
   );
 
-  const optionId = (id: string) => `suggestion-option-${id}`;
+  const listboxId = React.useId();
+  const optionId = (index: number) => `${listboxId}-option-${index}`;
   const activeItem = items[activeIndex];
+  const activeOptionId = activeItem ? optionId(activeIndex) : null;
+  const viewportRef = React.useRef<HTMLUListElement>(null);
+  const activeOptionRef = React.useRef<HTMLButtonElement>(null);
+  React.useEffect(() => {
+    onActiveOptionChange?.(listboxId, activeOptionId);
+  }, [listboxId, activeOptionId, onActiveOptionChange]);
+  React.useEffect(() => {
+    const viewport = viewportRef.current;
+    const option = activeOptionRef.current;
+    if (!viewport || !option) return;
+    // Scroll only the popup, so keyboard navigation never moves the editor/page.
+    const top = option.offsetTop - viewport.offsetTop;
+    const bottom = top + option.offsetHeight;
+    if (top < viewport.scrollTop) viewport.scrollTop = top;
+    else if (bottom > viewport.scrollTop + viewport.clientHeight) {
+      viewport.scrollTop = bottom - viewport.clientHeight;
+    }
+  }, [activeIndex, items]);
 
   const select = (index: number) => {
     const item = items[index];
@@ -92,36 +113,42 @@ export const SuggestionList = React.forwardRef<
 
   return (
     <div
+      id={listboxId}
       role="listbox"
-      aria-activedescendant={activeItem ? optionId(activeItem.id) : undefined}
+      aria-label={heading ?? "Suggestions"}
       className={cn(
-        "z-50 min-w-55 max-w-sm overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-lg",
+        "z-50 min-w-55 max-w-sm overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg",
       )}
     >
       {heading ? (
-        <p className="border-b border-zinc-100 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+        <p className="border-b border-border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
           {heading}
         </p>
       ) : null}
       {items.length === 0 ? (
-        <p className="p-3 text-[12px] text-zinc-400">{emptyHint}</p>
+        <p className="p-3 text-[12px] text-muted-foreground">{emptyHint}</p>
       ) : (
-        <ul role="presentation" className="max-h-64 overflow-y-auto py-1">
+        <ul
+          ref={viewportRef}
+          role="presentation"
+          className="max-h-64 overflow-y-auto py-1"
+        >
           {items.map((item, index) => {
             const isActive = index === activeIndex;
             return (
               <li key={item.id} role="presentation">
                 <button
+                  ref={isActive ? activeOptionRef : undefined}
                   type="button"
-                  id={optionId(item.id)}
+                  id={optionId(index)}
                   role="option"
                   aria-selected={isActive}
                   tabIndex={-1}
                   className={cn(
                     "flex w-full items-start gap-2 px-3 py-1.5 text-left",
                     isActive
-                      ? "bg-zinc-100 text-zinc-900"
-                      : "text-zinc-700 hover:bg-zinc-50",
+                      ? "bg-accent text-accent-foreground"
+                      : "text-popover-foreground hover:bg-accent",
                   )}
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => select(index)}
@@ -131,13 +158,13 @@ export const SuggestionList = React.forwardRef<
                       {item.label}
                     </span>
                     {item.description ? (
-                      <span className="truncate text-[11px] text-zinc-500">
+                      <span className="truncate text-[11px] text-popover-foreground">
                         {item.description}
                       </span>
                     ) : null}
                   </div>
                   {item.hint ? (
-                    <span className="ml-2 inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500">
+                    <span className="ml-2 inline-flex items-center rounded-md border border-border bg-popover px-1.5 py-0.5 font-mono text-[10px] text-popover-foreground">
                       {item.hint}
                     </span>
                   ) : null}

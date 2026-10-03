@@ -15,6 +15,8 @@ import "./tiptap.css";
 import type { Extensions } from "@tiptap/react";
 
 export interface RichTextEditorProps {
+  /** Accessible name forwarded to Tiptap's editable textbox, not its wrapper. */
+  "aria-label"?: string;
   /** Stored value — JSON string or legacy plain text / HTML. */
   value: string;
   /** Called with a JSON string whenever the content changes. */
@@ -40,6 +42,7 @@ export interface RichTextEditorProps {
 export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
   function EditorRoot(
     {
+      "aria-label": ariaLabel,
       value,
       onChange,
       disabled,
@@ -75,6 +78,9 @@ export const EditorRoot = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       },
       editorProps: {
         attributes: {
+          role: "textbox",
+          "aria-multiline": "true",
+          ...(ariaLabel ? { "aria-label": ariaLabel } : {}),
           class: cn(
             "tiptap prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-37.5 p-4",
             proseInvert && "dark:prose-invert",

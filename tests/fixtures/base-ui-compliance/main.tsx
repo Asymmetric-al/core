@@ -9,6 +9,7 @@ import { DrawerContracts } from "./drawer-contracts";
 import { InputContracts } from "./input-contracts";
 import { SearchDelegationContracts } from "./search-delegation-contracts";
 import { ShadscanContracts } from "./shadscan-contracts";
+import { SupportSuggestionContracts } from "./support-suggestion-contracts";
 import { ToolbarContracts } from "./toolbar-contracts";
 import {
   Accordion,
@@ -79,6 +80,7 @@ function App() {
         style={{ position: "fixed", zIndex: 999999, inset: 0, display: "none" }}
       />
       <DisplayContracts />
+      <SupportSuggestionContracts />
       <DrawerContracts />
       <h1>Base UI contracts</h1>
       <Button onClick={() => setCount(count === 1 ? 30 : 1)}>

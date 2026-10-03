@@ -392,6 +392,7 @@ function CareThreadTabContent({
 
           <div className="rounded-xl border border-zinc-200 p-4">
             <LegacyRichTextEditor
+              aria-label="Care thread update"
               value={draft}
               onChange={setDraft}
               placeholder="Post an update to the care thread..."
@@ -662,6 +663,7 @@ function SecureNotesTabContent({
 
           <div className="rounded-xl border border-amber-200/60 bg-white p-4">
             <LegacyRichTextEditor
+              aria-label="Private care note"
               value={draft}
               onChange={setDraft}
               placeholder="Add a secure note..."
