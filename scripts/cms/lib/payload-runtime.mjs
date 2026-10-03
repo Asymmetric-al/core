@@ -1,9 +1,20 @@
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 
 import { adminAppDir } from "./paths.mjs";
 
 export const PAYLOAD_V4_MIN_NODE_VERSION = "24.15.0";
+
+export function getPayloadCliCommand(args) {
+  // Use the installed CLI's parser and casing rules so preflight checks the
+  // command Payload will actually execute, including options before it.
+  const adminRequire = createRequire(path.join(adminAppDir, "package.json"));
+  const payloadRequire = createRequire(adminRequire.resolve("payload"));
+  const parseArguments = payloadRequire("minimist");
+  const command = parseArguments(args)._[0];
+  return typeof command === "string" ? command.toLowerCase() : "";
+}
 
 export function parseNodeVersion(version) {
   const normalized = String(version ?? "")

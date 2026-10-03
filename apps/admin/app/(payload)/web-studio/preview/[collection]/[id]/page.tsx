@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createLocalReq } from "payload";
 
 import type { ReactNode } from "react";
@@ -30,6 +31,7 @@ export const instant = false;
 export default async function WebStudioAuthenticatedPreviewPage({
   params,
 }: PageProps) {
+  await connection();
   const { collection, id } = await params;
 
   if (!isWebStudioPreviewCollection(collection)) {

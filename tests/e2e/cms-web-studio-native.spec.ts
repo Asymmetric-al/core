@@ -54,6 +54,135 @@ test.describe("@cms Web Studio native shell", () => {
     ).toBeVisible();
   });
 
+  test("native shell renders without prerender-time clock errors", async ({
+    page,
+  }) => {
+    const renderErrors: string[] = [];
+    const recordRenderError = (message: string) => {
+      if (
+        /blocking-prerender-current-time|unstable value.*Date\.now\(\)/s.test(
+          message,
+        )
+      ) {
+        renderErrors.push(message);
+      }
+    };
+
+    page.on("console", (message) => {
+      if (message.type() === "error") recordRenderError(message.text());
+    });
+    page.on("pageerror", (error) => recordRenderError(error.message));
+
+    try {
+      await signInAsAdmin(page);
+      await page.goto(`${adminBaseURL}/web-studio/collections/navigation`);
+      await expect(page.getByTestId("web-studio-native-shell")).toBeVisible();
+      expect(renderErrors).toEqual([]);
+    } finally {
+      await page.request.post(`${adminBaseURL}/api/auth/signout`);
+    }
+  });
+
+  test("staff can save a draft from a populated native collection", async ({
+    page,
+  }) => {
+    test.setTimeout(150_000);
+    const browserErrors: string[] = [];
+    page.on("pageerror", (error) => browserErrors.push(error.message));
+    let documentId: string | number | undefined;
+    let testBodyFailed = false;
+
+    try {
+      await signInAsAdmin(page);
+      const slug = `native-draft-check-${Date.now()}`;
+      const created = await page.request.post(
+        `${adminBaseURL}/api/pages?draft=true`,
+        {
+          data: {
+            title: "Native draft check",
+            slug,
+            pageType: "standard",
+            _status: "draft",
+            content: {
+              root: {
+                type: "root",
+                children: [],
+                direction: null,
+                format: "",
+                indent: 0,
+                version: 1,
+              },
+            },
+          },
+        },
+      );
+      expect(created.status()).toBe(201);
+      documentId = (await created.json()).doc.id;
+
+      await page.reload();
+      await expect(
+        page.getByText("Native draft check", { exact: true }).first(),
+      ).toBeVisible();
+      await page.goto(
+        `${adminBaseURL}/web-studio/collections/pages/${documentId}`,
+      );
+      const title = page.getByRole("textbox", { name: /^Title/ }).first();
+      await expect(title).toHaveValue("Native draft check");
+      await title.fill("Native draft check saved");
+      await page.getByRole("button", { name: /^Save Draft$/i }).click();
+      await expect
+        .poll(
+          async () => {
+            const response = await page.request.get(
+              `${adminBaseURL}/api/pages/${documentId}?draft=true&depth=0`,
+            );
+            const doc = response.ok() ? await response.json() : null;
+            return (
+              doc?.title === "Native draft check saved" &&
+              doc?._status === "draft"
+            );
+          },
+          { timeout: 60_000 },
+        )
+        .toBe(true);
+      await page.reload();
+      await expect(title).toHaveValue("Native draft check saved");
+      expect(browserErrors).toEqual([]);
+    } catch (error) {
+      testBodyFailed = true;
+      throw error;
+    } finally {
+      const cleanupErrors: unknown[] = [];
+      try {
+        if (documentId !== undefined) {
+          const deleted = await page.request.delete(
+            `${adminBaseURL}/api/pages/${documentId}`,
+          );
+          expect(deleted.ok()).toBe(true);
+        }
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+      try {
+        const signedOut = await page.request.post(
+          `${adminBaseURL}/api/auth/signout`,
+        );
+        expect(signedOut.ok()).toBe(true);
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+      if (cleanupErrors.length) {
+        test.info().annotations.push({
+          type: "cleanup",
+          description: `${cleanupErrors.length} draft cleanup action(s) failed`,
+        });
+        if (!testBodyFailed) {
+          throw new AggregateError(cleanupErrors, "Draft cleanup failed");
+        }
+      }
+    }
+  });
+
   test("editorial collection routes use the native shell", async ({ page }) => {
     await signInAsAdmin(page);
 

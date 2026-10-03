@@ -87,6 +87,22 @@ describe("tenant-access", () => {
     expect(result).toBe(false);
   });
 
+  it("rejects numeric relationship IDs for another tenant", async () => {
+    const req = {
+      user: { id: "cms_user_1", role: "staff", tenantId: "17" },
+    };
+
+    expect(
+      tenantScopedCreateAccess("tenant")({ data: { tenant: 18 }, req }),
+    ).toBe(false);
+    expect(
+      tenantScopedCreateAccess("tenant")({ data: { tenant: { id: 18 } }, req }),
+    ).toBe(false);
+    expect(
+      tenantScopedCreateAccess("tenant")({ data: { tenant: 17 }, req }),
+    ).toBe(true);
+  });
+
   it("scopes update and delete to tenant filters", async () => {
     const args = {
       req: {
@@ -129,5 +145,35 @@ describe("tenant-access", () => {
       tenant: "17",
       title: "About",
     });
+  });
+
+  it("writes a numeric tenant relationship for a numeric database adapter", async () => {
+    const result = await applyTenantFromContext("tenant")({
+      data: { tenant: 18, title: "About" },
+      req: {
+        user: { id: "cms_user_1", role: "staff", tenantId: "17" },
+        payload: {
+          db: { defaultIDType: "number" },
+          collections: { tenants: {} },
+        },
+      },
+    });
+
+    expect(result).toEqual({ tenant: 17, title: "About" });
+  });
+
+  it("preserves a tenant collection's custom text ID type", async () => {
+    const result = await applyTenantFromContext("tenant")({
+      data: { title: "About" },
+      req: {
+        user: { id: "cms_user_1", role: "staff", tenantId: "17" },
+        payload: {
+          db: { defaultIDType: "number" },
+          collections: { tenants: { customIDType: "text" } },
+        },
+      },
+    });
+
+    expect(result).toEqual({ tenant: "17", title: "About" });
   });
 });
