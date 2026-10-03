@@ -8,14 +8,26 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
-  return (
+const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme = "system", forcedTheme } = useTheme();
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+  if (!isMounted) return null;
+
+  return createPortal(
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={(forcedTheme ?? theme) as ToasterProps["theme"]}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
@@ -33,7 +45,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
         } as React.CSSProperties
       }
       {...props}
-    />
+    />,
+    document.body,
   );
 };
 

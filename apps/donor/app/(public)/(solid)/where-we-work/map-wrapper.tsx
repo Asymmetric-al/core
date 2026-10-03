@@ -15,7 +15,7 @@ import {
   MapLegend,
 } from "@asym/ui/components/primitives/map";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Command,
   CommandEmpty,
@@ -31,6 +31,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@asym/ui/components/shadcn/dialog";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
@@ -429,11 +436,7 @@ function MarkerDot({
     MARKER_COLORS.custom;
 
   return (
-    <MapMarker
-      longitude={location.lng}
-      latitude={location.lat}
-      onClick={onSelect}
-    >
+    <MapMarker longitude={location.lng} latitude={location.lat}>
       <MarkerContent>
         <div
           className="relative"
@@ -445,34 +448,49 @@ function MarkerDot({
             visible={isHovered && !isSelected}
           />
 
-          <div
+          <button
+            type="button"
+            aria-label={`View ${location.title}`}
+            onClick={onSelect}
             className={cn(
-              // Grow via transform (GPU, no layout) instead of width/height:
-              // the wrapper scales so the dot and its pulse halo grow together.
-              "relative cursor-pointer origin-center transition-transform duration-200 ease-out",
-              isSelected
-                ? "z-50 scale-[1.75]"
-                : "z-10 hover:z-40 [@media(hover:hover)_and_(pointer:fine)]:hover:scale-125",
+              "group relative cursor-pointer touch-target flex items-center justify-center rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+              isSelected ? "z-50" : "z-10 hover:z-40",
             )}
           >
-            <div
+            <span
+              data-slot="location-marker-visual"
+              aria-hidden="true"
               className={cn(
-                "size-2 rounded-full border-[1.5px] border-white/90 dark:border-zinc-900/90 shadow-md transition-shadow duration-200 ease-out",
-                colors.bg,
-                isSelected && "ring-2 shadow-lg",
-                isSelected && colors.ring,
+                "relative block size-2 origin-center transition-transform duration-200 ease-out",
+                isSelected
+                  ? "scale-[1.75]"
+                  : "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-125",
               )}
-            />
-
-            {isSelected && (
-              <motion.div
-                initial={{ scale: 1, opacity: 0.4 }}
-                animate={{ scale: 2.5, opacity: 0 }}
-                transition={{ duration: 1.2, repeat: Infinity }}
-                className={cn("absolute inset-0 rounded-full", colors.bg)}
+            >
+              <div
+                className={cn(
+                  "size-2 rounded-full border-[1.5px] border-white/90 dark:border-zinc-900/90 shadow-md transition-shadow duration-200 ease-out",
+                  colors.bg,
+                  isSelected && "ring-2 shadow-lg",
+                  isSelected && colors.ring,
+                )}
               />
-            )}
-          </div>
+
+              {isSelected && (
+                <motion.div
+                  data-slot="location-marker-pulse"
+                  aria-hidden="true"
+                  initial={{ scale: 1, opacity: 0.4 }}
+                  animate={{ scale: 2.5, opacity: 0 }}
+                  transition={{ duration: 1.2, repeat: Infinity }}
+                  className={cn(
+                    "absolute inset-0 rounded-full pointer-events-none",
+                    colors.bg,
+                  )}
+                />
+              )}
+            </span>
+          </button>
         </div>
       </MarkerContent>
     </MapMarker>
@@ -547,18 +565,7 @@ function DetailDialog({
 
         <div className="p-6">
           <div className="flex items-center gap-2 mb-3">
-            <Badge
-              variant="secondary"
-              className={cn(
-                "text-[10px] font-semibold uppercase tracking-wider",
-                colors.bgLight,
-                colors.text,
-                "border",
-                colors.borderLight,
-              )}
-            >
-              {colors.label}
-            </Badge>
+            <Badge variant="secondary">{colors.label}</Badge>
           </div>
 
           <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -588,25 +595,25 @@ function DetailDialog({
                   // pulls that worker's prerendered page. One dialog is open at a
                   // time, so this costs a single prefetch.
                   prefetch={true}
-                  className="flex-1"
+                  className={cn(
+                    buttonVariants(),
+                    "flex-1 h-11 rounded-xl font-semibold",
+                  )}
                 >
-                  <Button className="w-full h-11 rounded-xl font-semibold">
-                    <ExternalLinkIcon className="size-4" />
-                    View Profile
-                  </Button>
+                  <ExternalLinkIcon className="size-4" />
+                  View Profile
                 </Link>
                 <Link
                   href={buildCheckoutHref({
                     missionaryId: location.linked_id,
                   })}
+                  aria-label={`Give to ${location.title}`}
+                  className={cn(
+                    buttonVariants({ variant: "secondary", size: "icon" }),
+                    "size-11 rounded-xl shrink-0",
+                  )}
                 >
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="size-11 rounded-xl shrink-0"
-                  >
-                    <HeartIcon className="size-4" />
-                  </Button>
+                  <HeartIcon className="size-4" />
                 </Link>
               </>
             ) : (
@@ -626,9 +633,11 @@ function DetailDialog({
 
 function MobileDetailSheet({
   location,
+  open,
   onClose,
 }: {
   location: Location;
+  open: boolean;
   onClose: () => void;
 }) {
   const colors =
@@ -640,20 +649,16 @@ function MobileDetailSheet({
     : null;
 
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="fixed inset-x-0 bottom-0 z-[60] bg-card rounded-t-3xl shadow-2xl lg:hidden max-h-[85vh] overflow-hidden"
+    <Sheet
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+    >
+      <SheetContent
+        side="bottom"
+        showCloseButton={false}
+        className="gap-0 bg-card rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"
       >
         <div className="sticky top-0 bg-card p-3 flex justify-center">
           <div className="w-12 h-1 bg-muted-foreground/20 rounded-full" />
@@ -672,27 +677,18 @@ function MobileDetailSheet({
         )}
 
         <div className="px-6 pb-8 pt-2">
-          <Badge
-            variant="secondary"
-            className={cn(
-              "text-[10px] font-semibold uppercase tracking-wider mb-3",
-              colors.bgLight,
-              colors.text,
-              "border",
-              colors.borderLight,
-            )}
-          >
+          <Badge variant="secondary" className="mb-3">
             {colors.label}
           </Badge>
 
-          <h3 className="text-xl font-semibold text-foreground mb-2">
+          <SheetTitle className="text-xl font-semibold text-foreground mb-2">
             {location.title}
-          </h3>
+          </SheetTitle>
 
           {location.summary && (
-            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+            <SheetDescription className="text-muted-foreground text-sm leading-relaxed mb-6">
               {location.summary}
-            </p>
+            </SheetDescription>
           )}
 
           <div className="flex gap-3">
@@ -702,25 +698,25 @@ function MobileDetailSheet({
                   href={`/workers/${location.linked_id}`}
                   // See the desktop dialog above: one sheet is open at a time.
                   prefetch={true}
-                  className="flex-1"
+                  className={cn(
+                    buttonVariants(),
+                    "flex-1 h-12 rounded-xl font-semibold",
+                  )}
                 >
-                  <Button className="w-full h-12 rounded-xl font-semibold">
-                    <ExternalLinkIcon className="size-4" />
-                    View Profile
-                  </Button>
+                  <ExternalLinkIcon className="size-4" />
+                  View Profile
                 </Link>
                 <Link
                   href={buildCheckoutHref({
                     missionaryId: location.linked_id,
                   })}
+                  aria-label={`Give to ${location.title}`}
+                  className={cn(
+                    buttonVariants({ variant: "secondary", size: "icon" }),
+                    "size-12 rounded-xl shrink-0",
+                  )}
                 >
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="size-12 rounded-xl shrink-0"
-                  >
-                    <HeartIcon className="size-4" />
-                  </Button>
+                  <HeartIcon className="size-4" />
                 </Link>
               </>
             ) : (
@@ -731,18 +727,22 @@ function MobileDetailSheet({
                 Learn More
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onClose}
-              className="size-12 rounded-xl shrink-0"
+            <SheetClose
+              render={
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-12 rounded-xl shrink-0"
+                />
+              }
+              aria-label="Close"
             >
               <XIcon className="size-5" />
-            </Button>
+            </SheetClose>
           </div>
         </div>
-      </motion.div>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -758,15 +758,16 @@ function MapHeaderControls({
   return (
     <>
       <div className="absolute top-4 left-4 z-30 flex items-center gap-3">
-        <Link href="/">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-10 rounded-xl bg-card/95 backdrop-blur-md border-border/50 shadow-lg hover:bg-card gap-2"
-          >
-            <ArrowLeftIcon className="size-4" />
-            <span className="font-medium hidden sm:inline">Back</span>
-          </Button>
+        <Link
+          href="/"
+          aria-label="Back"
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "h-10 rounded-xl bg-card/95 backdrop-blur-md border-border/50 shadow-lg hover:bg-card gap-2",
+          )}
+        >
+          <ArrowLeftIcon className="size-4" />
+          <span className="font-medium hidden sm:inline">Back</span>
         </Link>
       </div>
 
@@ -1104,14 +1105,13 @@ export function WhereWeWorkMap() {
         }
       />
 
-      <AnimatePresence>
-        {uiState.showMobileSheet && selectedLocation && (
-          <MobileDetailSheet
-            location={selectedLocation}
-            onClose={handleCloseDetail}
-          />
-        )}
-      </AnimatePresence>
+      {selectedLocation && (
+        <MobileDetailSheet
+          location={selectedLocation}
+          open={uiState.showMobileSheet}
+          onClose={handleCloseDetail}
+        />
+      )}
     </div>
   );
 }

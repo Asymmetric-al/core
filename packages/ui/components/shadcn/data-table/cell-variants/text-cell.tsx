@@ -4,6 +4,7 @@ import { useState, useRef, useLayoutEffect, useCallback } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { cellEditorAccessibleName } from "./accessible-name";
 import { Input } from "../../input";
 import { Textarea } from "../../textarea";
 
@@ -11,6 +12,7 @@ import type { RowData } from "../tanstack";
 import type { TextCellProps } from "./types";
 
 function TextCellEditor<TData extends RowData>({
+  cell,
   value,
   onValueChange,
   onEditComplete,
@@ -56,6 +58,7 @@ function TextCellEditor<TData extends RowData>({
   }, [localValue, onValueChange, onEditComplete]);
 
   const commonProps = {
+    "aria-label": cellEditorAccessibleName(cell),
     value: localValue,
     onChange: handleChange,
     onKeyDown: handleKeyDown,
@@ -90,6 +93,8 @@ function TextCellEditor<TData extends RowData>({
 }
 
 export function TextCell<TData extends RowData>({
+  cell,
+  row,
   value,
   isEditing = false,
   onValueChange,
@@ -114,8 +119,8 @@ export function TextCell<TData extends RowData>({
         maxLength={maxLength}
         multiline={multiline}
         isEditing={true}
-        row={undefined as never}
-        cell={undefined as never}
+        row={row}
+        cell={cell}
       />
     );
   }

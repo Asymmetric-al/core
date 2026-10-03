@@ -44,6 +44,14 @@ function Header(props: ComponentProps<typeof EmailStudioHeader>) {
 }
 
 describe("Email Studio header pending focus", () => {
+  it("names the document template metadata without treating it as personal email", () => {
+    render(<Header {...headerProps()} />);
+    const title = screen.getByRole("textbox", { name: "Template name" });
+    expect(title).toHaveProperty("value", "Newsletter");
+    expect(title.getAttribute("type")).not.toBe("email");
+    expect(title.getAttribute("autocomplete")).not.toBe("email");
+  });
+
   it("enables Save when the editor is ready and idle", () => {
     const props = headerProps();
     render(<Header {...props} />);

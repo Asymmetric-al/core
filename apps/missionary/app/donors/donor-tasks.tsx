@@ -123,7 +123,7 @@ export function DonorTasks({
           }}
           onSuccess={handleTaskSuccess}
           trigger={
-            <Button size="sm" className="rounded-xl text-xs hover-scale-subtle">
+            <Button size="sm">
               <Plus className="mr-1.5 size-3.5" /> Add Task
             </Button>
           }
@@ -179,7 +179,6 @@ export function DonorTasks({
                         aria-label={`Complete ${task.title}`}
                         checked={false}
                         onCheckedChange={() => handleComplete(task)}
-                        className="size-5 rounded-md"
                       />
                     </motion.div>
                     <div
@@ -197,9 +196,7 @@ export function DonorTasks({
                           {task.title}
                         </p>
                         {task.priority === "high" ? (
-                          <Badge className="h-4 border-0 bg-rose-50 px-1.5 text-[9px] font-semibold uppercase tracking-widest text-rose-600">
-                            High
-                          </Badge>
+                          <Badge variant="destructive">High</Badge>
                         ) : null}
                       </div>
                       {task.description ? (
@@ -227,44 +224,42 @@ export function DonorTasks({
                         </div>
                       ) : null}
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        aria-label="Open actions"
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
+                    <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          aria-label="Open actions"
+                          render={
+                            <Button variant="ghost" size="icon-sm">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          }
+                        />
+                        <DropdownMenuContent align="end" className="rounded-xl">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingTask(task);
+                              setTaskDialogOpen(true);
+                            }}
+                            className="text-xs font-medium"
                           >
-                            <MoreHorizontal className="size-4" />
-                          </Button>
-                        }
-                      />
-                      <DropdownMenuContent align="end" className="rounded-xl">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditingTask(task);
-                            setTaskDialogOpen(true);
-                          }}
-                          className="text-xs font-medium"
-                        >
-                          <Pencil className="mr-2 size-3.5" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleComplete(task)}
-                          className="text-xs font-medium"
-                        >
-                          <CheckCircle2 className="mr-2 size-3.5" /> Complete
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => deleteTask(task.id)}
-                          className="text-xs font-medium text-destructive focus:text-destructive"
-                        >
-                          <X className="mr-2 size-3.5" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                            <Pencil className="mr-2 size-3.5" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleComplete(task)}
+                            className="text-xs font-medium"
+                          >
+                            <CheckCircle2 className="mr-2 size-3.5" /> Complete
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => deleteTask(task.id)}
+                            className="text-xs font-medium text-destructive focus:text-destructive"
+                          >
+                            <X className="mr-2 size-3.5" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -298,7 +293,6 @@ export function DonorTasks({
                         aria-label={`Complete ${task.title}`}
                         checked={true}
                         onCheckedChange={() => handleComplete(task)}
-                        className="size-5 rounded-md data-checked:border-emerald-500 data-checked:bg-emerald-500"
                       />
                     </motion.div>
                     <div
@@ -326,14 +320,16 @@ export function DonorTasks({
                         </p>
                       ) : null}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
-                      onClick={() => deleteTask(task.id)}
-                    >
-                      <X className="size-4 text-zinc-400" />
-                    </Button>
+                    <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`Delete ${task.title}`}
+                        onClick={() => deleteTask(task.id)}
+                      >
+                        <X className="size-4 text-zinc-400" />
+                      </Button>
+                    </div>
                   </motion.div>
                 );
               })}

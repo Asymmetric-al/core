@@ -3,12 +3,13 @@
 import React from "react";
 import {
   cleanup,
+  act,
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useAsymForm } from "@asym/ui/components/shadcn/tanstack-form";
 
@@ -62,9 +63,60 @@ function FormExample() {
   );
 }
 
+function PendingFormExample({ onSubmit }: { onSubmit: () => Promise<void> }) {
+  const form = useAsymForm({ defaultValues: { name: "Conrad" }, onSubmit });
+  return (
+    <form.AppForm>
+      <form
+        aria-label="Pending contract"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}
+      >
+        <form.AppField name="name">
+          {(field) => <field.TextField label="Name" />}
+        </form.AppField>
+        <form.SubmitButton pendingChildren="Saving changes">
+          Save changes
+        </form.SubmitButton>
+      </form>
+    </form.AppForm>
+  );
+}
+
 afterEach(cleanup);
 
 describe("shared form accessible relationships", () => {
+  it("natively disables pending submit controls and suppresses repeat clicks and form submissions", async () => {
+    let complete!: () => void;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          complete = resolve;
+        }),
+    );
+    render(<PendingFormExample onSubmit={onSubmit} />);
+    const button = screen.getByRole("button", { name: "Save changes" });
+    button.focus();
+    fireEvent.click(button);
+    const pending = await screen.findByRole("button", {
+      name: "Saving changes",
+    });
+    expect(pending.getAttribute("aria-disabled")).not.toBe("true");
+    expect(pending.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(pending);
+    fireEvent.submit(screen.getByRole("form", { name: "Pending contract" }));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      complete();
+    });
+    expect(
+      screen
+        .getByRole("button", { name: "Save changes" })
+        .hasAttribute("disabled"),
+    ).toBe(false);
+  });
   it.each([
     ["textbox", "Full name"],
     ["textbox", "Amount"],

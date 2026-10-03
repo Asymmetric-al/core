@@ -113,6 +113,7 @@ function DataGridToolbar({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder="Search..."
+              aria-label="Search grid"
               value={globalFilter}
               onChange={(e) => onGlobalFilterChange(e.target.value)}
               className="h-9 w-64 pl-10 rounded-xl"

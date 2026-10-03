@@ -368,7 +368,12 @@ function PolicyLifecycleRow({
 }
 
 function EveModelPolicyLoading() {
-  return <Skeleton className="h-52 w-full" aria-label="Loading model policy" />;
+  return (
+    <div role="status">
+      <span className="sr-only">Loading model policy…</span>
+      <Skeleton className="h-52 w-full" />
+    </div>
+  );
 }
 
 function EveModelPolicyLoadError({ message }: { message?: string }) {

@@ -191,6 +191,7 @@ export function DeleteNamedViewDialog({
         </DialogDescription>
         {view.isDefault ? (
           <RadioGroup
+            aria-label="Replacement default view"
             className="space-y-2"
             value={nextDefaultChoice}
             onValueChange={onNextDefaultChoiceChange}

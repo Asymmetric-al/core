@@ -117,7 +117,8 @@ export function EveNotificationsPanel() {
           </Alert>
         ) : null}
         {query.isLoading ? (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div role="status" className="grid gap-3 md:grid-cols-2">
+            <span className="sr-only">Loading notification controls…</span>
             <Skeleton className="h-32" />
             <Skeleton className="h-32" />
           </div>

@@ -23,6 +23,7 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "verify-eslint", script: "verify:eslint" },
   { id: "verify-shadcn-config", script: "verify:shadcn-config" },
   { id: "verify-shadcn-diff", script: "verify:shadcn-diff" },
+  { id: "verify-shadscan", script: "verify:shadscan" },
   { id: "typecheck", script: "typecheck" },
   { id: "build", script: "build" },
   { id: "test-unit", script: "test:unit" },

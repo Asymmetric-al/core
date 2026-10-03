@@ -12,6 +12,7 @@ import { Suspense, useMemo, useState } from "react";
 import { buildTenantsQuery, isSuperAdminUser } from "./tenant-options";
 import { TENANT_REQUIRED_MESSAGE, TenantSelectField } from "./tenant-picker";
 import { Link, useRouter, useSearchParams } from "../routing";
+import { StudioFlowLoading } from "./studio-flow-loading";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 
@@ -22,7 +23,7 @@ type FundRow = {
 
 export function ProjectPageCreateView() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<StudioFlowLoading />}>
       <ProjectPageCreateViewContent />
     </Suspense>
   );

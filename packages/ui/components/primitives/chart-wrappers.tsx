@@ -69,7 +69,8 @@ export function ChartCard({
       </CardHeader>
       <CardContent className="min-h-50 flex flex-col justify-center">
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-2" role="status" aria-atomic="true">
+            <span className="sr-only">Loading {title}</span>
             <Skeleton className="h-50 w-full rounded-lg" />
             <div className="flex justify-between">
               <Skeleton className="h-4 w-12" />
@@ -78,7 +79,10 @@ export function ChartCard({
             </div>
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in-95 duration-300">
+          <div
+            role="alert"
+            className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in-95 duration-300"
+          >
             <div className="bg-destructive/10 p-3 rounded-full mb-3">
               <AlertCircle className="size-6 text-destructive" />
             </div>
@@ -90,7 +94,11 @@ export function ChartCard({
             </p>
           </div>
         ) : isEmpty ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in-95 duration-300">
+          <div
+            role="status"
+            aria-atomic="true"
+            className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in-95 duration-300"
+          >
             <div className="bg-muted p-3 rounded-full mb-3">
               <Inbox className="size-6 text-muted-foreground" />
             </div>

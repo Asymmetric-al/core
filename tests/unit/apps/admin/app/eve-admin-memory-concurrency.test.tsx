@@ -182,6 +182,27 @@ afterEach(() => {
 });
 
 describe("Eve admin-memory concurrency intents", () => {
+  it("announces a pending read and the genuine empty result", async () => {
+    let finishRead: (value: ReturnType<typeof response>) => void = () => {};
+    vi.stubGlobal(
+      "fetch",
+      () =>
+        new Promise<ReturnType<typeof response>>((resolve) => {
+          finishRead = resolve;
+        }),
+    );
+    renderPanel();
+    expect(screen.getByRole("status").textContent).toContain(
+      "Loading private memory…",
+    );
+    expect(screen.getByRole("status").closest('[aria-busy="true"]')).toBeNull();
+    await act(async () =>
+      finishRead(response({ ...createView(1), entries: [] })),
+    );
+    const empty = await screen.findByText("No matching private memory.");
+    expect(empty.getAttribute("role")).toBe("status");
+  });
+
   it("keeps an edit version immutable across refetches and recaptures after cancel", async () => {
     let currentView = createView(1);
     const fetchMock = vi.fn(

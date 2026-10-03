@@ -87,6 +87,8 @@ export function DataTableLoadingOverlay({
 
   return (
     <div
+      role="status"
+      aria-atomic="true"
       className={cn(
         "absolute inset-0 z-10 flex items-center justify-center",
         "bg-background/60 backdrop-blur-sm",

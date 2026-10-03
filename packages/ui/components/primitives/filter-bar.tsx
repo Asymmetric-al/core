@@ -14,6 +14,7 @@ interface FilterBarProps {
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
+    label?: string;
   };
   filters?: React.ReactNode;
   activeFilters?: {
@@ -43,6 +44,7 @@ export function FilterBar({
             <div className="relative w-full md:w-80">
               <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
               <Input
+                aria-label={search.label ?? "Search"}
                 placeholder={search.placeholder || "Search..."}
                 value={search.value}
                 onChange={(e) => search.onChange(e.target.value)}

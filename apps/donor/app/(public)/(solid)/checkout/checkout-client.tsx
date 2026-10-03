@@ -948,7 +948,12 @@ function PaymentStep({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <Label htmlFor="country">Country</Label>
-                    <Input id="country" defaultValue="United States" disabled />
+                    <Input
+                      id="country"
+                      autoComplete="country-name"
+                      defaultValue="United States"
+                      disabled
+                    />
                   </div>
                   <div className="space-y-3">
                     <Label htmlFor="postal-code">Postal Code</Label>

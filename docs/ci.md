@@ -18,7 +18,7 @@ Current workflow semantics:
 - `instant-nav` compiles donor only for production PRs/pushes or explicit manual integration QA. Required migration, smoke, and development smoke gates continue running.
 - Explicit `qa:smoke` previews compile on the standard GitHub runner, then use `vercel deploy --prebuilt --target=preview`; Vercel does not compile the source again. Preview serving and fixed subscription costs still apply.
 - `ci-integration.yml` runs on all PR bases. Pushes still run only on `develop` and `production`.
-- `Shadscan` (`.github/workflows/shadscan.yml`) runs on all PR bases; pushes remain `develop` only.
+- `integrity` runs the locked workspace Shadscan audit on every CI event. The reusable `.github/workflows/shadscan.yml` publishes its retained report; audit failures block `ci-gate`. See [Shadscan](guides/development/shadscan.md) for discovery, per-app floors and evidence review.
 - `test-e2e-smoke` produces `e2e-smoke-gate`; `integration-gate` summarizes
   `migrate`, `smoke`, and that gate. See § Branch protection for the dated live
   required-context inventory.
@@ -79,9 +79,10 @@ bun run ci:preflight
 11. `verify:eslint`
 12. `verify:shadcn-config`
 13. `verify:shadcn-diff`
-14. `typecheck`
-15. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
-16. `test:unit`
+14. `verify:shadscan`
+15. `typecheck`
+16. Conditional `build` / `build:<app>` (full in `--full` or production mode; CI-compatible env defaults)
+17. `test:unit`
 
 For edits to the adopted roadmap and Studio packets, also run
 `bun run verify:program-roadmap` in the canonical WSL/Linux workspace before

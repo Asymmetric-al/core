@@ -29,6 +29,7 @@ export function ControlsContracts() {
   const [tenant, setTenant] = useState<string | null>("tenant-20");
   const [range, setRange] = useState([10, 80]);
   const [saved, setSaved] = useState("");
+  const [submissionCount, setSubmissionCount] = useState(0);
   const form = useAsymForm({
     defaultValues: {
       name: "",
@@ -40,6 +41,7 @@ export function ControlsContracts() {
       locked: "Read only",
     },
     onSubmit: async ({ value }) => {
+      setSubmissionCount((count) => count + 1);
       await new Promise<void>((resolve) => {
         finishSave.current = resolve;
       });
@@ -197,6 +199,7 @@ export function ControlsContracts() {
       <output className="break-all" aria-label="Saved contract">
         {saved || "Not saved"}
       </output>
+      <output aria-label="Contract submission count">{submissionCount}</output>
       <Button onClick={() => finishSave.current?.()}>
         Complete fixture save
       </Button>

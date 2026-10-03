@@ -86,7 +86,13 @@ export function CommentsDialog({
   const queryClient = useQueryClient();
   const queryKey = commentsQueryKey(updateId);
 
-  const { data: comments = [], isLoading } = useQuery({
+  const {
+    data: comments = [],
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey,
     queryFn: ({ signal }) => transport.listComments(updateId, signal),
     enabled: open,
@@ -134,6 +140,7 @@ export function CommentsDialog({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (addComment.isPending) return;
     const trimmed = content.trim();
     if (trimmed) {
       addComment.mutate(trimmed);
@@ -142,67 +149,92 @@ export function CommentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[80vh] flex-col sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Comments</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-md">
+        <div className="flex max-h-[70vh] flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>Comments</DialogTitle>
+          </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Spinner className="size-6" />
-            </div>
-          ) : comments.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              No comments yet. Be the first to comment!
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  <Avatar className="size-8">
-                    {comment.user.avatar_url && (
-                      <AvatarImage src={comment.user.avatar_url} />
-                    )}
-                    <AvatarFallback>{commentInitials(comment)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      <span className="font-semibold">
-                        {commentAuthorName(comment)}
-                      </span>{" "}
-                      {comment.content}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(comment.created_at), {
-                        addSuffix: true,
-                      })}
-                    </p>
+          <ScrollArea className="flex-1 pr-4">
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <Spinner />
+              </div>
+            ) : isError ? (
+              <div className="flex flex-col items-center gap-3 py-8 text-center">
+                <p role="alert" className="text-sm text-foreground">
+                  Couldn't load comments. Please try again.
+                </p>
+                <Button
+                  variant="outline"
+                  disabled={isFetching}
+                  onClick={() => void refetch()}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : comments.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No comments yet. Be the first to comment!
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-3">
+                    <Avatar className="size-8">
+                      {comment.user.avatar_url && (
+                        <AvatarImage src={comment.user.avatar_url} />
+                      )}
+                      <AvatarFallback>
+                        {commentInitials(comment)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="text-sm">
+                        <span className="font-semibold">
+                          {commentAuthorName(comment)}
+                        </span>{" "}
+                        {comment.content}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(comment.created_at), {
+                          addSuffix: true,
+                        })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
 
-        <form onSubmit={handleSubmit} className="flex gap-2 border-t pt-4">
-          <Input
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            placeholder="Add a comment..."
-            disabled={addComment.isPending}
-            aria-label="Comment text"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!content.trim() || addComment.isPending}
-            focusableWhenDisabled={addComment.isPending}
-            aria-label="Send comment"
-          >
-            <Send className="size-4" />
-          </Button>
-        </form>
+          <form onSubmit={handleSubmit} className="flex gap-2 border-t pt-4">
+            <Input
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              placeholder="Add a comment..."
+              required
+              disabled={addComment.isPending}
+              aria-label="Comment text"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={!content.trim() || addComment.isPending}
+              focusableWhenDisabled={addComment.isPending}
+              aria-label="Send comment"
+            >
+              {addComment.isPending ? (
+                <Spinner aria-hidden="true" />
+              ) : (
+                <Send className="size-4" />
+              )}
+            </Button>
+          </form>
+          <p role="status" aria-atomic="true" className="sr-only">
+            {addComment.isPending ? "Sending comment…" : ""}
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

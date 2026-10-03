@@ -33,7 +33,6 @@ import {
   SidebarTrigger,
 } from "@asym/ui/components/shadcn/sidebar";
 import ActivityDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-activity";
-import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search";
 import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
 import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
 import ProfileDropdown, {
@@ -60,13 +59,12 @@ import {
   Mail,
   PenTool,
   Rocket,
-  Search,
   Shield,
   Sparkles,
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { EveGlobalPanel } from "./eve/global-panel";
 
@@ -74,6 +72,7 @@ import type { MCBootstrapState } from "@asym/lib/mission-control/bootstrap";
 import type { ReactNode } from "react";
 
 import { ClientOnly } from "@/features/mission-control/components/client-only";
+import { MissionControlNavigationSearch } from "@/features/mission-control/components/navigation-search";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation data                                                    */
@@ -335,7 +334,8 @@ function AppSidebar() {
 /* ------------------------------------------------------------------ */
 
 function AppHeader() {
-  const { user, signOut } = useMC();
+  const { user, signOut, role } = useMC();
+  const router = useRouter();
   const handleSignOut = () => {
     void signOut();
   };
@@ -346,33 +346,9 @@ function AppHeader() {
         <div className="flex items-center gap-3">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="h-4 hidden sm:block" />
-          <SearchDialog
-            trigger={
-              <>
-                <Button
-                  variant="ghost"
-                  className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex"
-                  aria-label="Open Mission Control search"
-                >
-                  <Search className="size-4" />
-                  <span className="text-sm text-muted-foreground/60">
-                    Search…
-                  </span>
-                  <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                    <span className="text-xs">⌘</span>K
-                  </kbd>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 sm:hidden"
-                  aria-label="Open Mission Control search"
-                >
-                  <Search className="size-4" />
-                  <span className="sr-only">Search</span>
-                </Button>
-              </>
-            }
+          <MissionControlNavigationSearch
+            role={role}
+            onNavigate={router.push}
           />
         </div>
         <div className="flex items-center gap-1">

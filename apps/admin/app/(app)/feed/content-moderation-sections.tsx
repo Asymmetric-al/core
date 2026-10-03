@@ -249,10 +249,14 @@ function ModerationQueueDialogs({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <Label
+              htmlFor="moderation-action-reason"
+              className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+            >
               Reason (optional)
             </Label>
             <Input
+              id="moderation-action-reason"
               value={actionReason}
               onChange={(e) => onActionReasonChange(e.target.value)}
               placeholder="Add a reason for this action…"
@@ -1183,6 +1187,7 @@ export function ContentModerationTabsSection({
               <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
+                  aria-label="Search posts"
                   placeholder="Search posts…"
                   value={searchQuery}
                   onChange={(e) =>
@@ -1195,6 +1200,8 @@ export function ContentModerationTabsSection({
                 />
                 {searchQuery && (
                   <motion.button
+                    type="button"
+                    aria-label="Clear search"
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
@@ -1213,6 +1220,7 @@ export function ContentModerationTabsSection({
                   whileTap={{ scale: 0.98 }}
                 >
                   <DropdownMenuTrigger
+                    aria-label="Filter posts"
                     render={
                       <Button
                         variant="outline"

@@ -84,13 +84,6 @@ const COLUMNS: {
   },
 ];
 
-const PRIORITY_COLOR: Record<Task["priority"], string> = {
-  high: "text-rose-600 bg-rose-50 border-rose-100",
-  medium: "text-amber-600 bg-amber-50 border-amber-100",
-  low: "text-sky-600 bg-sky-50 border-sky-100",
-  none: "text-zinc-500 bg-zinc-100 border-zinc-200",
-};
-
 interface TaskKanbanBoardProps {
   tasks: Task[];
   onMoveTask: (
@@ -302,8 +295,8 @@ function KanbanColumn({
         </div>
         <Button
           variant="ghost"
-          size="icon"
-          className="size-8 rounded-lg hover:bg-white"
+          size="icon-sm"
+          aria-label={`Add task to ${title}`}
           onClick={() => onCreateTask?.(id)}
         >
           <Plus className="size-4 text-zinc-400" />
@@ -359,8 +352,6 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
     transition,
   };
 
-  const priorityColor = PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.none;
-
   if (isDragging) {
     return (
       <div
@@ -382,13 +373,15 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <div
+          <button
+            type="button"
             {...attributes}
             {...listeners}
+            aria-label={`Move ${task.title}`}
             className="mt-1 cursor-grab active:cursor-grabbing hover:text-zinc-900 text-zinc-300"
           >
             <GripVertical className="size-4" />
-          </div>
+          </button>
           <div className="flex-1">
             <h4
               className={cn(
@@ -399,14 +392,16 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
               {task.title}
             </h4>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => onEdit(task)}
-          >
-            <MoreHorizontal className="size-4 text-zinc-400" />
-          </Button>
+          <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`Edit ${task.title}`}
+              onClick={() => onEdit(task)}
+            >
+              <MoreHorizontal className="size-4 text-zinc-400" />
+            </Button>
+          </div>
         </div>
 
         {task.description && (
@@ -418,11 +413,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
         <div className="flex flex-wrap gap-2 pt-1">
           {task.priority !== "none" && (
             <Badge
-              variant="outline"
-              className={cn(
-                "text-[8px] h-5 font-semibold uppercase tracking-widest px-2 border",
-                priorityColor,
-              )}
+              variant={task.priority === "high" ? "destructive" : "secondary"}
             >
               {task.priority}
             </Badge>
@@ -453,14 +444,8 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
           </div>
 
           <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-7 px-2 rounded-lg text-[8px] font-semibold uppercase tracking-widest",
-              task.status === "completed"
-                ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50",
-            )}
+            variant={task.status === "completed" ? "secondary" : "ghost"}
+            size="xs"
             onClick={() => onComplete(task)}
           >
             {task.status === "completed" ? "Done" : "Mark Done"}

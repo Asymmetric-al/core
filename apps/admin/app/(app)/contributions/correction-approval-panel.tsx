@@ -294,11 +294,15 @@ function CorrectionApprovalRequestCard({
         <Textarea
           id={decisionReasonId}
           aria-invalid={Boolean(decisionReasonError)}
+          aria-describedby={
+            decisionReasonError ? `${decisionReasonId}-error` : undefined
+          }
           value={decisionReason}
           onChange={(event) => setDecisionReason(event.target.value)}
           placeholder="Required to reject; optional when approving."
         />
         <FieldError
+          id={`${decisionReasonId}-error`}
           errors={decisionReasonError ? [{ message: decisionReasonError }] : []}
         />
       </Field>

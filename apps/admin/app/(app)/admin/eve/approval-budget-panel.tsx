@@ -262,7 +262,12 @@ export function EveApprovalBudgetPanel() {
           </CardHeader>
           <CardContent>
             {query.isLoading ? (
-              <Skeleton className="h-28 w-full" />
+              <div role="status">
+                <span className="sr-only">
+                  Loading approval and budget policy…
+                </span>
+                <Skeleton className="h-28 w-full" />
+              </div>
             ) : (
               <ul className="space-y-3">
                 {query.data?.policies.map((policy) => (

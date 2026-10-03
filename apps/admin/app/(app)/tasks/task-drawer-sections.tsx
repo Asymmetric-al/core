@@ -451,6 +451,7 @@ function TaskCommentsSection({
         </Avatar>
         <div className="flex-1 flex flex-col gap-2">
           <Textarea
+            aria-label="Add a task comment"
             placeholder="Add a comment..."
             value={newComment}
             onChange={(event) => onCommentChange(event.target.value)}

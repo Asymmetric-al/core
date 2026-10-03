@@ -2,6 +2,7 @@
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Suspense } from "react";
 
 import { MissionaryTasksListBoneyardFixture } from "../../tasks/boneyard-fixture";
@@ -27,7 +28,15 @@ export default function BoneyardTasksCapturePage() {
        * deferred while the page frame above stays static. The header is what
        * Boneyard captures anyway.
        */}
-      <Suspense fallback={null}>
+      <Suspense
+        fallback={
+          <div role="status" aria-atomic="true" className="grid gap-3">
+            <span className="sr-only">Loading task preview</span>
+            <Skeleton className="h-24 rounded-xl" />
+            <Skeleton className="h-24 rounded-xl" />
+          </div>
+        }
+      >
         <BoneyardSkeleton
           name="missionary-tasks-list"
           loading={false}
