@@ -1528,6 +1528,9 @@ Existing staff/system-initiated outbound contact and governed contact-list egres
 MUST consume one fail-closed canonical Party/contact-point consent boundary.
 `do_not_contact` MUST remain the absolute contact floor; email MUST additionally
 honor `do_not_email`, `email_suppressions` and known blocking provider evidence.
+Transactional receipt email MUST NOT be exempt from these recipient contact
+checks. Self-service download of one's own admitted receipt artifact is not
+contact and MUST retain current access checks without applying recipient opt-out.
 Missing authority MUST block rather than assume consent. New channel preference
 centers, transports and providers MUST remain deferred; an unavailable channel
 MUST NOT become executable through this contract.
@@ -1558,6 +1561,13 @@ until its exact owner qualifies, without blocking unrelated foundation delivery.
 - **THEN** the applicable contact is blocked fail-closed and audited with identifiers only
 - **AND** another serializer or channel path cannot bypass the canonical decision
 
+#### Scenario: Receipt email has no transactional opt-out exemption
+
+- **GIVEN** a donor has do_not_email and an otherwise qualified receipt artifact
+- **WHEN** staff/system request transactional receipt email through Phase 17/6
+- **THEN** recipient consent blocks the email and records an identifiers-only audit
+- **AND** the donor may still download their own admitted artifact under current access checks
+
 #### Scenario: Staff preview and donor record access are not contact
 
 - **GIVEN** a recipient has opted out of contact
@@ -1582,7 +1592,9 @@ omit payment identifiers. Derived report columns MUST be classified and serializ
 MUST consume the resolved field set rather than competing hardcoded allowlists.
 CSV consumers MUST share one `csvSafeCell`, including the fast-track security
 patch's helper, neutralizing leading formula/control triggers (`=`, `+`, `-`,
-`@`, TAB, CR, LF), applying RFC 4180 quoting and emitting CRLF with UTF-8 BOM.
+`@`, TAB, CR, LF) and applying RFC 4180 cell quoting. CSV serializers MUST join
+records with CRLF and emit the file's UTF-8 BOM, consuming the helper's quoted
+cells without duplicating escaping.
 JSON MUST enforce the same authorized field set without adopting CSV encoding.
 Export audit MUST record identifiers, field/category metadata and actual emitted
 row count, never rendered PII. Contact-list export MUST also pass the applicable
@@ -1599,8 +1611,9 @@ consent gate; serializers MUST NOT decide consent independently.
 
 - **GIVEN** an otherwise admitted donor name begins with a formula trigger
 - **WHEN** any existing CSV consumer serializes it
-- **THEN** the shared helper neutralizes the trigger and applies the common quoting and encoding
-- **AND** consumers cannot select a second escaping implementation
+- **THEN** the shared helper neutralizes the trigger and applies RFC 4180 cell quoting
+- **AND** the serializer joins records with CRLF and emits the file's UTF-8 BOM
+- **AND** consumers cannot duplicate escaping or select a second escaping implementation
 
 #### Scenario: Serializer selection cannot widen external export
 

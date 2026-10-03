@@ -20,10 +20,11 @@ from bulk export. CSV and JSON share authorization, row scope and identifiers-on
 audit of actual emitted rows; JSON retains its own typed representation.
 
 All existing CSV consumers use one shared `csvSafeCell`, consuming the same helper
-as the fast-track patch. It neutralizes leading `=`, `+`, `-`, `@`, TAB, CR and LF,
-applies RFC 4180 quoting, and emits CRLF with UTF-8 BOM. No second escaping
-implementation is permitted. Canonical consent gates contact-list egress and
-recipient delivery; staff synthetic preparation and admitted self-service access
+as the fast-track patch. It neutralizes leading `=`, `+`, `-`, `@`, TAB, CR and LF
+and applies RFC 4180 cell quoting. CSV serializers join records with CRLF and
+emit the file's UTF-8 BOM; they consume the quoted cells without duplicating
+escaping. No second escaping implementation is permitted. Canonical consent gates
+contact-list egress and recipient delivery; staff synthetic preparation and admitted self-service access
 are not contact. Phase 17/6 own communication preparation/dispatch and Phase 7/18
 own official facts/artifacts. No parallel direct sender or text receipt is created;
 exact owner qualification gates dependent output. Mailchimp remains a later
