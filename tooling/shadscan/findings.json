@@ -779,7 +779,7 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
-          "sha256": "0b1efb66c1391219088ceee4264e80f70bde1a33e0c7b56fc95b327f521f248d"
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-navbar.test.tsx",
@@ -1069,7 +1069,7 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
-          "sha256": "0b1efb66c1391219088ceee4264e80f70bde1a33e0c7b56fc95b327f521f248d"
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
@@ -1102,7 +1102,7 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
-          "sha256": "0b1efb66c1391219088ceee4264e80f70bde1a33e0c7b56fc95b327f521f248d"
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
@@ -1294,7 +1294,7 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
-          "sha256": "0b1efb66c1391219088ceee4264e80f70bde1a33e0c7b56fc95b327f521f248d"
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -2248,7 +2248,7 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
-          "sha256": "0b1efb66c1391219088ceee4264e80f70bde1a33e0c7b56fc95b327f521f248d"
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
         }
       ]
     },
@@ -2413,7 +2413,7 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
-          "sha256": "0b1efb66c1391219088ceee4264e80f70bde1a33e0c7b56fc95b327f521f248d"
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-navbar.test.tsx",
@@ -2574,7 +2574,7 @@
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
-          "sha256": "0b1efb66c1391219088ceee4264e80f70bde1a33e0c7b56fc95b327f521f248d"
+          "sha256": "a0a2b26fcbd387a159f0947e30f12bc308c9747061abccf28b68ddfcfba96d02"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-comments-feedback.test.tsx",

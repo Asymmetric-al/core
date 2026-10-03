@@ -192,3 +192,53 @@ test("modal mutation toast escapes the app isolation layer and stays above the b
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
 });
+
+test("map mobile Sheet releases its backdrop and focus trap on desktop resize and can reopen on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Show map" }).click();
+  const marker = page.getByRole("button", { name: "View River Ministry" });
+  await marker.focus();
+  await marker.press("Enter");
+  const sheet = page.locator('[data-slot="sheet-content"]');
+  await expect(sheet).toBeVisible();
+  await page.setViewportSize({ width: 1023, height: 844 });
+  await expect(sheet).toBeVisible();
+  await page.setViewportSize({ width: 1024, height: 844 });
+  await expect(sheet).toHaveCount(0);
+  await expect(page.locator('[data-slot="sheet-overlay"]')).toHaveCount(0);
+  await expect(marker).toBeFocused();
+  expect(
+    await marker.evaluate((element) =>
+      element.closest('[inert], [aria-hidden="true"]'),
+    ),
+  ).toBeNull();
+  expect(
+    await marker.evaluate((element) => getComputedStyle(element).minWidth),
+  ).toBe("44px");
+  const selectedLocation = page.getByRole("button", {
+    name: "River Ministry",
+    exact: true,
+  });
+  await expect(selectedLocation).toBeVisible();
+  await marker.press("Enter");
+  const desktopDialog = page.getByRole("dialog", { name: "River Ministry" });
+  await expect(desktopDialog).toHaveAttribute("data-slot", "dialog-content");
+  await expect(
+    desktopDialog.getByRole("link", { name: "Give to River Ministry" }),
+  ).toHaveAttribute("href", /missionary_id=worker-1/);
+  await page.keyboard.press("Escape");
+  await expect(desktopDialog).toHaveCount(0);
+  await expect(marker).toBeFocused();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await marker.focus();
+  await marker.press("Enter");
+  await expect(sheet).toBeVisible();
+  await expect(
+    sheet.getByRole("link", { name: "Give to River Ministry" }),
+  ).toHaveAttribute("href", /missionary_id=worker-1/);
+  await page.keyboard.press("Escape");
+  await expect(sheet).toHaveCount(0);
+  await expect(marker).toBeFocused();
+});

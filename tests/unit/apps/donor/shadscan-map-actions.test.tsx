@@ -5,6 +5,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -71,3 +72,42 @@ it.each([390, 1280])(
     ).toBeGreaterThan(0);
   },
 );
+
+it("closes the mobile Sheet at the desktop breakpoint while retaining the selected location", async () => {
+  vi.stubGlobal("innerWidth", 390);
+  render(<WhereWeWorkMap />);
+  const marker = screen.getByRole("button", { name: "View River Ministry" });
+  marker.focus();
+  fireEvent.click(marker);
+  await screen.findByRole("dialog", { name: "River Ministry" });
+  vi.stubGlobal("innerWidth", 1023);
+  fireEvent(window, new Event("resize"));
+  expect(screen.getByRole("dialog", { name: "River Ministry" })).toBeTruthy();
+  vi.stubGlobal("innerWidth", 1024);
+  fireEvent(window, new Event("resize"));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  expect(document.querySelector('[data-slot="sheet-overlay"]')).toBeNull();
+  const selectedLocation = screen.getByRole("button", {
+    name: "River Ministry",
+    exact: true,
+  });
+  fireEvent.click(selectedLocation);
+  const desktopDialog = await screen.findByRole("dialog", {
+    name: "River Ministry",
+  });
+  expect(desktopDialog.getAttribute("data-slot")).toBe("dialog-content");
+  expect(
+    within(desktopDialog)
+      .getByRole("link", { name: "Give to River Ministry" })
+      .getAttribute("href"),
+  ).toContain("missionary_id=worker-1");
+  fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  vi.stubGlobal("innerWidth", 390);
+  fireEvent(window, new Event("resize"));
+  fireEvent.click(marker);
+  const reopened = await screen.findByRole("dialog", {
+    name: "River Ministry",
+  });
+  expect(reopened.getAttribute("data-slot")).toBe("sheet-content");
+});

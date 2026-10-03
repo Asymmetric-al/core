@@ -915,7 +915,15 @@ export function WhereWeWorkMap() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setUiState((prev) =>
+          prev.showMobileSheet ? { ...prev, showMobileSheet: false } : prev,
+        );
+      }
+    };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
