@@ -7,10 +7,14 @@ const CONNECTION_ENV_KEYS = {
   channel_binding: "PGCHANNELBINDING",
   client_encoding: "PGCLIENTENCODING",
   connect_timeout: "PGCONNECT_TIMEOUT",
+  dbname: "PGDATABASE",
   gssencmode: "PGGSSENCMODE",
+  host: "PGHOST",
   hostaddr: "PGHOSTADDR",
   options: "PGOPTIONS",
   passfile: "PGPASSFILE",
+  password: "PGPASSWORD",
+  port: "PGPORT",
   sslcert: "PGSSLCERT",
   sslcrl: "PGSSLCRL",
   sslcrldir: "PGSSLCRLDIR",
@@ -18,12 +22,21 @@ const CONNECTION_ENV_KEYS = {
   sslmode: "PGSSLMODE",
   sslrootcert: "PGSSLROOTCERT",
   target_session_attrs: "PGTARGETSESSIONATTRS",
+  user: "PGUSER",
 };
 
-function getPsqlEnvironment(databaseUrl) {
+function getPsqlConnection(databaseUrl) {
   let connection;
+  let fields;
   try {
     connection = new URL(databaseUrl);
+    fields = {
+      PGHOST: decodeURIComponent(connection.hostname).replace(/^\[|\]$/g, ""),
+      PGPORT: connection.port,
+      PGDATABASE: decodeURIComponent(connection.pathname.slice(1)),
+      PGUSER: decodeURIComponent(connection.username),
+      PGPASSWORD: decodeURIComponent(connection.password),
+    };
   } catch {
     throw new Error("CMS database connection must be a valid Postgres URL.");
   }
@@ -31,26 +44,38 @@ function getPsqlEnvironment(databaseUrl) {
     throw new Error("CMS database connection must use Postgres.");
   }
 
-  const env = {
-    ...process.env,
-    PGHOST: connection.hostname.replace(/^\[|\]$/g, ""),
-    PGPORT: connection.port || "5432",
-    PGDATABASE: decodeURIComponent(connection.pathname.slice(1)),
-    PGUSER: decodeURIComponent(connection.username),
-    PGPASSWORD: decodeURIComponent(connection.password),
-  };
+  // Match libpq precedence: only explicit URI values replace ambient defaults.
+  const env = { ...process.env };
+  for (const [key, value] of Object.entries(fields)) {
+    if (value) env[key] = value;
+  }
+
+  const remaining = new URLSearchParams();
 
   for (const [key, value] of connection.searchParams) {
-    const envKey = CONNECTION_ENV_KEYS[key];
+    const envKey = Object.hasOwn(CONNECTION_ENV_KEYS, key)
+      ? CONNECTION_ENV_KEYS[key]
+      : null;
     if (!envKey) {
-      throw new Error(`Unsupported CMS psql connection parameter: ${key}`);
+      if (/password|secret|token/i.test(key)) {
+        throw new Error(
+          "CMS psql cannot pass this credential parameter securely through the environment.",
+        );
+      }
+      remaining.append(key, value);
+      continue;
     }
     // Node pg's encrypted, non-verifying mode is named `require` in libpq.
     env[envKey] =
       key === "sslmode" && value === "no-verify" ? "require" : value;
   }
 
-  return env;
+  // Leave options without PG* equivalents (e.g. TCP keepalives) to libpq.
+  // The URI contains no host, database, user, password, or mapped options.
+  const args = remaining.size
+    ? ["--dbname", `postgresql:///?${remaining.toString()}`]
+    : [];
+  return { env, args };
 }
 
 export function getLocalDatabaseUrl() {
@@ -63,8 +88,10 @@ export function getLocalDatabaseUrl() {
 
 export function runPsql(sql, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
+  const connection = getPsqlConnection(databaseUrl);
   const args = [
     "--no-psqlrc",
+    ...connection.args,
     "-v",
     "ON_ERROR_STOP=1",
     "-P",
@@ -80,7 +107,7 @@ export function runPsql(sql, options = {}) {
   const result = spawnSync(process.env.PSQL_BIN || "psql", args, {
     cwd: options.cwd,
     encoding: "utf8",
-    env: getPsqlEnvironment(databaseUrl),
+    env: connection.env,
     shell: false,
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -115,7 +142,15 @@ export function executeSql(sql, options = {}) {
 
 export function runPsqlFile(filePath, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
-  const args = ["--no-psqlrc", "-v", "ON_ERROR_STOP=1", "-P", "pager=off"];
+  const connection = getPsqlConnection(databaseUrl);
+  const args = [
+    "--no-psqlrc",
+    ...connection.args,
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-P",
+    "pager=off",
+  ];
 
   if (options.singleTransaction) {
     args.push("--single-transaction");
@@ -126,7 +161,7 @@ export function runPsqlFile(filePath, options = {}) {
   const result = spawnSync(process.env.PSQL_BIN || "psql", args, {
     cwd: options.cwd,
     encoding: "utf8",
-    env: getPsqlEnvironment(databaseUrl),
+    env: connection.env,
     shell: false,
     stdio: options.stdio ?? "inherit",
   });

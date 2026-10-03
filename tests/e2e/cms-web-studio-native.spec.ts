@@ -90,6 +90,7 @@ test.describe("@cms Web Studio native shell", () => {
     const browserErrors: string[] = [];
     page.on("pageerror", (error) => browserErrors.push(error.message));
     let documentId: string | number | undefined;
+    let testBodyFailed = false;
 
     try {
       await signInAsAdmin(page);
@@ -147,15 +148,38 @@ test.describe("@cms Web Studio native shell", () => {
       await page.reload();
       await expect(title).toHaveValue("Native draft check saved");
       expect(browserErrors).toEqual([]);
+    } catch (error) {
+      testBodyFailed = true;
+      throw error;
     } finally {
-      if (documentId !== undefined) {
-        await page.goto(`${adminBaseURL}/web-studio/collections/pages`);
-        const deleted = await page.request.delete(
-          `${adminBaseURL}/api/pages/${documentId}`,
-        );
-        expect(deleted.ok()).toBe(true);
+      const cleanupErrors: unknown[] = [];
+      try {
+        if (documentId !== undefined) {
+          const deleted = await page.request.delete(
+            `${adminBaseURL}/api/pages/${documentId}`,
+          );
+          expect(deleted.ok()).toBe(true);
+        }
+      } catch (error) {
+        cleanupErrors.push(error);
       }
-      await page.request.post(`${adminBaseURL}/api/auth/signout`);
+      try {
+        const signedOut = await page.request.post(
+          `${adminBaseURL}/api/auth/signout`,
+        );
+        expect(signedOut.ok()).toBe(true);
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+      if (cleanupErrors.length) {
+        test.info().annotations.push({
+          type: "cleanup",
+          description: `${cleanupErrors.length} draft cleanup action(s) failed`,
+        });
+        if (!testBodyFailed) {
+          throw new AggregateError(cleanupErrors, "Draft cleanup failed");
+        }
+      }
     }
   });
 

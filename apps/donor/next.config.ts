@@ -1,8 +1,8 @@
-import { loadEnvConfig } from "@next/env";
 import { withSentryConfig } from "@sentry/nextjs";
 
 import { buildPublicCmsImageRemotePatterns } from "../../scripts/cms/public-media-remote-pattern.mjs";
 import { copyMaplibreWorkerAssetsForApp } from "../../scripts/copy-maplibre-worker-assets.mjs";
+import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -10,7 +10,7 @@ import type { NextConfig } from "next";
 
 /** Load the repo-root `.env.local`; app-local files should be symlinks only when needed by external tooling. */
 const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
-loadEnvConfig(WORKSPACE_ROOT);
+loadWorkspaceEnvironment(WORKSPACE_ROOT);
 copyMaplibreWorkerAssetsForApp({
   workspaceRoot: WORKSPACE_ROOT,
   fromConfigUrl: import.meta.url,

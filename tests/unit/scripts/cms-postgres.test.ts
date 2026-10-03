@@ -54,4 +54,41 @@ describe("CMS PostgreSQL command connection", () => {
 
     expect(spawnSync.mock.calls.at(-1)![2].env.PGSSLMODE).toBe("verify-full");
   });
+
+  it("preserves libpq defaults when the URL omits connection fields", () => {
+    vi.stubEnv("PGPORT", "6543");
+    vi.stubEnv("PGSSLMODE", "verify-full");
+    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1;", { databaseUrl: "postgresql://db.example/postgres" });
+
+    expect(spawnSync.mock.calls.at(-1)![2].env).toMatchObject({
+      PGHOST: "db.example",
+      PGPORT: "6543",
+      PGSSLMODE: "verify-full",
+    });
+  });
+
+  it("preserves libpq URI options without exposing URL credentials", () => {
+    spawnSync.mockReturnValue({ status: 0, stdout: "1", stderr: "" });
+    runPsql("SELECT 1;", {
+      databaseUrl: `${databaseUrl}&keepalives_idle=30&ssl=true`,
+    });
+    const [, args, options] = spawnSync.mock.calls.at(-1)!;
+    const connection = new URL(args[args.indexOf("--dbname") + 1]);
+
+    expect(connection.searchParams.get("keepalives_idle")).toBe("30");
+    expect(connection.searchParams.get("ssl")).toBe("true");
+    expect(connection.username).toBe("");
+    expect(connection.password).toBe("");
+    expect(JSON.stringify(args)).not.toContain("password");
+    expect(options.env.PGPASSWORD).toBe("fake:password");
+  });
+
+  it("reports malformed credential encoding without leaking the URL", () => {
+    expect(() =>
+      runPsql("SELECT 1;", {
+        databaseUrl: "postgresql://fake-user:%zz@db.example/postgres",
+      }),
+    ).toThrow("CMS database connection must be a valid Postgres URL.");
+  });
 });

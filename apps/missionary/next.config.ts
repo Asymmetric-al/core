@@ -1,13 +1,13 @@
-import { loadEnvConfig } from "@next/env";
 import { withSentryConfig } from "@sentry/nextjs";
 
+import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
 import type { NextConfig } from "next";
 
 const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
-loadEnvConfig(WORKSPACE_ROOT);
+loadWorkspaceEnvironment(WORKSPACE_ROOT);
 
 /**
  * The two flags Instant Navigation needs are pinned in the type, not just set

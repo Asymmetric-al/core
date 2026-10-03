@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import nextEnv from "@next/env";
 
 import { LOCAL_DATABASE_URL, LOCAL_PAYLOAD_SECRET } from "./lib/local-data.mjs";
+import { assertCmsMigrationTarget } from "./lib/migration-target.mjs";
 import { assertPayloadRuntimeRequirements } from "./lib/payload-runtime.mjs";
 import { queryJson } from "./lib/postgres.mjs";
 import { adminAppDir, repoRoot } from "./lib/paths.mjs";
@@ -73,8 +74,31 @@ function assertNoPayloadDevMigrationMarker() {
   }
 }
 
-if (args[0] === "migrate") {
-  assertNoPayloadDevMigrationMarker();
+if (
+  [
+    "migrate",
+    "migrate:down",
+    "migrate:reset",
+    "migrate:fresh",
+    "migrate:refresh",
+  ].includes(args[0])
+) {
+  try {
+    assertCmsMigrationTarget({
+      databaseUrl: env.PAYLOAD_DATABASE_URI,
+      supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL,
+      approvedProjectRef: env.CMS_HOSTED_MIGRATION_REF,
+      environment: env,
+    });
+    if (args[0] === "migrate") assertNoPayloadDevMigrationMarker();
+  } catch (cause) {
+    console.error(
+      cause instanceof Error
+        ? cause.message
+        : "CMS migration preflight failed.",
+    );
+    process.exit(1);
+  }
 }
 
 const result = spawnSync(
