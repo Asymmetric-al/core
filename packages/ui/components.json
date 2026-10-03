@@ -19,25 +19,31 @@
     "hooks": "@/hooks"
   },
   "registries": {
+    "@shadcnblocks": {
+      "url": "https://www.shadcnblocks.com/r/{style}/{name}",
+      "headers": {
+        "Authorization": "Bearer ${SHADCNBLOCKS_API_KEY}"
+      }
+    },
     "@ss-components": {
-      "url": "https://shadcnstudio.com/r/components/{name}.json",
+      "url": "https://shadcnstudio.com/r/components/{style}/{name}.json",
       "params": {
-        "email": "${EMAIL}",
-        "license_key": "${LICENSE_KEY}"
+        "email": "${SHADCN_STUDIO_EMAIL}",
+        "license_key": "${SHADCN_STUDIO_LICENSE_KEY}"
       }
     },
     "@ss-themes": {
       "url": "https://shadcnstudio.com/r/themes/{name}.json",
       "params": {
-        "email": "${EMAIL}",
-        "license_key": "${LICENSE_KEY}"
+        "email": "${SHADCN_STUDIO_EMAIL}",
+        "license_key": "${SHADCN_STUDIO_LICENSE_KEY}"
       }
     },
     "@ss-blocks": {
-      "url": "https://shadcnstudio.com/r/blocks/{name}.json",
+      "url": "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
       "params": {
-        "email": "${EMAIL}",
-        "license_key": "${LICENSE_KEY}"
+        "email": "${SHADCN_STUDIO_EMAIL}",
+        "license_key": "${SHADCN_STUDIO_LICENSE_KEY}"
       }
     },
     "@efferd": {
@@ -61,9 +67,14 @@
     "@shadcnuikit": {
       "url": "https://shadcnuikit.com/r/{name}.json",
       "headers": {
-        "Authorization": "Bearer ${REGISTRY_TOKEN}"
+        "Authorization": "Bearer ${SHADCNUIKIT_API_KEY}"
       }
     },
-    "@reui": "https://reui.io/r/{style}/{name}.json"
+    "@reui": {
+      "url": "https://reui.io/r/{style}/{name}.json",
+      "headers": {
+        "Authorization": "Bearer ${REUI_LICENSE_KEY}"
+      }
+    }
   }
 }

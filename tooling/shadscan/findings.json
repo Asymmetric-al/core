@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "940dfcd27e2c9afe42677484e10b216043c0c60c06438477e5e2303d0c07dec6"
+          "sha256": "ad103880f647fdcede87b6ab1109016de57e9868a0b365f29b48f1b3626fcbab"
         }
       ]
     },
@@ -433,7 +433,7 @@
         },
         {
           "path": "apps/admin/package.json",
-          "sha256": "7750d3bd85eef062eb93fb78bdad8f28e6469e5b6fb7ba348b4393ee83f27311"
+          "sha256": "9c944e1dd7da92065959e8cc2cadc1fa147ba5e9cc6fdb513af9fd31ddd1db09"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -501,7 +501,7 @@
         },
         {
           "path": "packages/ui/components.json",
-          "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+          "sha256": "b81a5f8dea6679be6141d7679863082d2400d0c5bf5b7240520e1a090a5416f0"
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
@@ -832,7 +832,7 @@
         },
         {
           "path": "packages/ui/components.json",
-          "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+          "sha256": "b81a5f8dea6679be6141d7679863082d2400d0c5bf5b7240520e1a090a5416f0"
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
@@ -1244,7 +1244,7 @@
         },
         {
           "path": "packages/ui/components.json",
-          "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+          "sha256": "b81a5f8dea6679be6141d7679863082d2400d0c5bf5b7240520e1a090a5416f0"
         },
         {
           "path": "scripts/verify/shadcn-config-guardrails.mjs",
