@@ -94,3 +94,16 @@ The canonical directory ended at 0206 before these additions; neither 0207 nor
 0208 appeared in the pending-collision register. These platform records preserve
 existing identities and record accepted target intent, not implementation or
 activation evidence. Source issue: [AL-481](https://github.com/Asymmetric-al/core/issues/481).
+
+## Accepted Phase 3 foundation records — AL-490
+
+- [0209-static-field-policies-and-subtract-only-projection.md](0209-static-field-policies-and-subtract-only-projection.md) is Phase 3 ADR-A: static field-only policy and subtract-only conditional/row resolution.
+- [0210-code-authoritative-capability-foundation.md](0210-code-authoritative-capability-foundation.md) is Phase 3 ADR-B: code authority, read-only inspection and future-additive deferred tables.
+- [0211-distinct-human-approval-for-projection-widening.md](0211-distinct-human-approval-for-projection-widening.md) is Phase 3 ADR-C: mandatory distinct-human widening approval and immediate narrowing, independent of financial approval mode.
+- [0212-one-export-policy-and-shared-csv-safe-cell.md](0212-one-export-policy-and-shared-csv-safe-cell.md) is Phase 3 ADR-D: exportable authority and one shared csvSafeCell.
+
+The canonical directory ended at 0208 before these additions; numbers 0209–0212
+were absent from both the directory and pending-collision register. Existing
+identities are preserved. These records document accepted planning intent, not
+runtime implementation. Source: [AL-490](https://github.com/Asymmetric-al/core/issues/490)
+and the [amended Phase 3 PRD](../prds/sitestacker-parity/phase-03-minimum-permission-role-scoped-projection-foundation.md).
