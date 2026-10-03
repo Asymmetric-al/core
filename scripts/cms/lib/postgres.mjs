@@ -2,6 +2,57 @@ import { spawnSync } from "node:child_process";
 
 import { LOCAL_DATABASE_URL } from "./local-data.mjs";
 
+const CONNECTION_ENV_KEYS = {
+  application_name: "PGAPPNAME",
+  channel_binding: "PGCHANNELBINDING",
+  client_encoding: "PGCLIENTENCODING",
+  connect_timeout: "PGCONNECT_TIMEOUT",
+  gssencmode: "PGGSSENCMODE",
+  hostaddr: "PGHOSTADDR",
+  options: "PGOPTIONS",
+  passfile: "PGPASSFILE",
+  sslcert: "PGSSLCERT",
+  sslcrl: "PGSSLCRL",
+  sslcrldir: "PGSSLCRLDIR",
+  sslkey: "PGSSLKEY",
+  sslmode: "PGSSLMODE",
+  sslrootcert: "PGSSLROOTCERT",
+  target_session_attrs: "PGTARGETSESSIONATTRS",
+};
+
+function getPsqlEnvironment(databaseUrl) {
+  let connection;
+  try {
+    connection = new URL(databaseUrl);
+  } catch {
+    throw new Error("CMS database connection must be a valid Postgres URL.");
+  }
+  if (!["postgres:", "postgresql:"].includes(connection.protocol)) {
+    throw new Error("CMS database connection must use Postgres.");
+  }
+
+  const env = {
+    ...process.env,
+    PGHOST: connection.hostname.replace(/^\[|\]$/g, ""),
+    PGPORT: connection.port || "5432",
+    PGDATABASE: decodeURIComponent(connection.pathname.slice(1)),
+    PGUSER: decodeURIComponent(connection.username),
+    PGPASSWORD: decodeURIComponent(connection.password),
+  };
+
+  for (const [key, value] of connection.searchParams) {
+    const envKey = CONNECTION_ENV_KEYS[key];
+    if (!envKey) {
+      throw new Error(`Unsupported CMS psql connection parameter: ${key}`);
+    }
+    // Node pg's encrypted, non-verifying mode is named `require` in libpq.
+    env[envKey] =
+      key === "sslmode" && value === "no-verify" ? "require" : value;
+  }
+
+  return env;
+}
+
 export function getLocalDatabaseUrl() {
   return (
     process.env.PAYLOAD_DATABASE_URI ||
@@ -13,7 +64,7 @@ export function getLocalDatabaseUrl() {
 export function runPsql(sql, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
   const args = [
-    databaseUrl,
+    "--no-psqlrc",
     "-v",
     "ON_ERROR_STOP=1",
     "-P",
@@ -23,14 +74,14 @@ export function runPsql(sql, options = {}) {
   ];
 
   if (options.tuplesOnly !== false) {
-    args.splice(1, 0, "-t", "-A");
+    args.push("-t", "-A");
   }
 
   const result = spawnSync(process.env.PSQL_BIN || "psql", args, {
     cwd: options.cwd,
     encoding: "utf8",
-    env: process.env,
-    shell: process.platform === "win32",
+    env: getPsqlEnvironment(databaseUrl),
+    shell: false,
     stdio: ["ignore", "pipe", "pipe"],
   });
 
@@ -64,7 +115,7 @@ export function executeSql(sql, options = {}) {
 
 export function runPsqlFile(filePath, options = {}) {
   const databaseUrl = options.databaseUrl ?? getLocalDatabaseUrl();
-  const args = [databaseUrl, "-v", "ON_ERROR_STOP=1", "-P", "pager=off"];
+  const args = ["--no-psqlrc", "-v", "ON_ERROR_STOP=1", "-P", "pager=off"];
 
   if (options.singleTransaction) {
     args.push("--single-transaction");
@@ -75,8 +126,8 @@ export function runPsqlFile(filePath, options = {}) {
   const result = spawnSync(process.env.PSQL_BIN || "psql", args, {
     cwd: options.cwd,
     encoding: "utf8",
-    env: process.env,
-    shell: process.platform === "win32",
+    env: getPsqlEnvironment(databaseUrl),
+    shell: false,
     stdio: options.stdio ?? "inherit",
   });
 

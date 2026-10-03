@@ -7,6 +7,7 @@ import { getClientConfig } from "@payloadcms/ui/utilities/getClientConfig";
 import { getRequestHighContrast } from "@payloadcms/ui/utilities/getRequestHighContrast";
 import { headers as nextHeaders } from "next/headers";
 import Link from "next/link";
+import { connection } from "next/server";
 import {
   createLocalReq,
   executeAuthStrategies,
@@ -81,7 +82,9 @@ export const instant = false;
 /** The shell can never hold segment data here, so don't spend a prefetch on it. */
 export const prefetch = "force-disabled";
 
-export default function PayloadLayout({ children }: Props) {
+export default async function PayloadLayout({ children }: Props) {
+  // Web Studio has no static shell; reach request time before rendering Payload.
+  await connection();
   return <PayloadEmbeddedLayout>{children}</PayloadEmbeddedLayout>;
 }
 

@@ -12,9 +12,18 @@ export const applyTenantFromContext = (
       return data;
     }
 
+    const tenantIDType =
+      req.payload?.collections?.tenants?.customIDType ??
+      req.payload?.db?.defaultIDType;
+    const numericTenantID = Number(context.tenantId);
+    const tenantID =
+      tenantIDType === "number" && Number.isSafeInteger(numericTenantID)
+        ? numericTenantID
+        : context.tenantId;
+
     return {
       ...data,
-      [tenantField]: context.tenantId,
+      [tenantField]: tenantID,
     };
   };
 };

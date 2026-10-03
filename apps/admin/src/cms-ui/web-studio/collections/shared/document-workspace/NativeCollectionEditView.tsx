@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import { buildNativeDocumentStateItems } from "./editor-state";
 import { NativeDocumentWorkspaceSettingsDialog } from "./NativeDocumentWorkspaceSettingsDialog";
@@ -694,26 +695,18 @@ export function NativeCollectionEditView({
     collectionSlug,
     data,
     docPermissions,
-    documentIsLocked,
-    hasPublishedDoc,
     hasPublishPermission,
     hasSavePermission,
-    isInitializing: documentIsInitializing,
-    isTrashed,
-    mostRecentVersionIsAutosaved,
     unpublishedVersionCount,
-    uploadStatus,
     versionCount,
   } = useDocumentInfo();
   const { isLivePreviewEnabled, previewURL, setPreviewURL } =
     useLivePreviewContext();
   const { getPreference, setPreference } = usePreferences();
-  const form = useForm();
-  const backgroundProcessing = useFormBackgroundProcessing();
-  const formInitializing = useFormInitializing();
-  const modified = useFormModified();
-  const processing = useFormProcessing();
-  const submitted = useFormSubmitted();
+  const [controlsTarget, setControlsTarget] = useState<HTMLDivElement | null>(
+    null,
+  );
+  const [stateTarget, setStateTarget] = useState<HTMLDivElement | null>(null);
   const documentId = documentIdFromData(data);
   const previewSupported = studioConfig.previewMode !== "none";
   const model = resolveNativeCollectionEditModel({
@@ -749,56 +742,16 @@ export function NativeCollectionEditView({
     }
   }, [model.authenticatedPreviewURL, previewURL, setPreviewURL]);
 
-  const stateItems = buildNativeDocumentStateItems({
-    backgroundProcessing,
-    documentId,
-    documentIsLocked: Boolean(documentIsLocked),
-    hasDrafts: studioConfig.hasDrafts,
-    hasPublishedDoc: Boolean(hasPublishedDoc),
-    isTrashed: Boolean(isTrashed),
-    isValid: form.isValid,
-    modified,
-    mostRecentVersionIsAutosaved: Boolean(mostRecentVersionIsAutosaved),
-    previewSupported,
-    previewURL: model.authenticatedPreviewURL,
-    processing: processing || documentIsInitializing || formInitializing,
-    status: data?._status,
-    submitted,
-    unpublishedVersionCount,
-    uploadStatus,
-  });
-  const primaryState = stateItems[0];
-
   return (
     <div data-web-studio-native-document="true">
       <StudioLayout
         sectionLabel={studioConfig.sectionLabel}
         currentLabel={model.heading}
       >
-        <div className="border-border border-b bg-card/40 px-4 py-4 sm:px-6">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <NativeCollectionEditHeader
-              heading={model.heading}
-              primaryState={primaryState}
-              readOnly={model.readOnly}
-              showSlugChip={workspace.showSlugChip}
-              slugOrIdentifier={model.slugOrIdentifier}
-              statusLabel={model.statusLabel}
-              studioConfig={studioConfig}
-            />
-            <NativeCollectionEditActions
-              actionMode={model.actionMode}
-              apiHref={model.apiHref}
-              collectionSlug={collectionSlug}
-              hasPublishPermission={hasPublishPermission}
-              hasSavePermission={hasSavePermission}
-              livePreviewHref={model.livePreviewHref}
-              onOpenSettings={() => setSettingsOpen(true)}
-              previewSupported={previewSupported}
-              versionsHref={model.versionsHref}
-            />
-          </div>
-        </div>
+        <div
+          className="border-border border-b bg-card/40 px-4 py-4 sm:px-6"
+          ref={setControlsTarget}
+        />
 
         <NativeDocumentWorkspaceSettingsDialog
           open={settingsOpen}
@@ -815,10 +768,20 @@ export function NativeCollectionEditView({
           )}
         >
           <div className="payload-native-edit min-w-0 rounded-lg border border-border bg-card shadow-sm">
-            <NativeDocumentStateStrip items={stateItems} />
+            <div ref={setStateTarget} />
             <DefaultEditView
               {...props}
-              BeforeDocumentControls={undefined}
+              BeforeDocumentControls={
+                <NativeDocumentFormControls
+                  controlsTarget={controlsTarget}
+                  model={model}
+                  onOpenSettings={() => setSettingsOpen(true)}
+                  previewSupported={previewSupported}
+                  showSlugChip={workspace.showSlugChip}
+                  stateTarget={stateTarget}
+                  studioConfig={studioConfig}
+                />
+              }
               PreviewButton={null}
               PublishButton={null}
               SaveButton={null}
@@ -843,6 +806,101 @@ export function NativeCollectionEditView({
         </div>
       </StudioLayout>
     </div>
+  );
+}
+
+function NativeDocumentFormControls({
+  controlsTarget,
+  model,
+  onOpenSettings,
+  previewSupported,
+  showSlugChip,
+  stateTarget,
+  studioConfig,
+}: {
+  controlsTarget: HTMLDivElement | null;
+  model: ReturnType<typeof resolveNativeCollectionEditModel>;
+  onOpenSettings: () => void;
+  previewSupported: boolean;
+  showSlugChip: boolean;
+  stateTarget: HTMLDivElement | null;
+  studioConfig: WebStudioCollectionConfig;
+}) {
+  const {
+    collectionSlug,
+    data,
+    documentIsLocked,
+    hasPublishedDoc,
+    hasPublishPermission,
+    hasSavePermission,
+    isInitializing: documentIsInitializing,
+    isTrashed,
+    mostRecentVersionIsAutosaved,
+    unpublishedVersionCount,
+    uploadStatus,
+  } = useDocumentInfo();
+  const form = useForm();
+  const backgroundProcessing = useFormBackgroundProcessing();
+  const formInitializing = useFormInitializing();
+  const modified = useFormModified();
+  const processing = useFormProcessing();
+  const submitted = useFormSubmitted();
+  const stateItems = buildNativeDocumentStateItems({
+    backgroundProcessing,
+    documentId: documentIdFromData(data),
+    documentIsLocked: Boolean(documentIsLocked),
+    hasDrafts: studioConfig.hasDrafts,
+    hasPublishedDoc: Boolean(hasPublishedDoc),
+    isTrashed: Boolean(isTrashed),
+    isValid: form.isValid,
+    modified,
+    mostRecentVersionIsAutosaved: Boolean(mostRecentVersionIsAutosaved),
+    previewSupported,
+    previewURL: model.authenticatedPreviewURL,
+    processing: processing || documentIsInitializing || formInitializing,
+    status: data?._status,
+    submitted,
+    unpublishedVersionCount,
+    uploadStatus,
+  });
+
+  // Portals preserve the native layout while controls consume Payload's form context.
+  return (
+    <>
+      {controlsTarget
+        ? createPortal(
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <NativeCollectionEditHeader
+                heading={model.heading}
+                primaryState={stateItems[0]}
+                readOnly={model.readOnly}
+                showSlugChip={showSlugChip}
+                slugOrIdentifier={model.slugOrIdentifier}
+                statusLabel={model.statusLabel}
+                studioConfig={studioConfig}
+              />
+              <NativeCollectionEditActions
+                actionMode={model.actionMode}
+                apiHref={model.apiHref}
+                collectionSlug={collectionSlug}
+                hasPublishPermission={hasPublishPermission}
+                hasSavePermission={hasSavePermission}
+                livePreviewHref={model.livePreviewHref}
+                onOpenSettings={onOpenSettings}
+                previewSupported={previewSupported}
+                versionsHref={model.versionsHref}
+              />
+            </div>,
+            controlsTarget,
+          )
+        : null}
+      {stateTarget
+        ? createPortal(
+            <NativeDocumentStateStrip items={stateItems} />,
+            stateTarget,
+          )
+        : null}
+    </>
   );
 }
 
