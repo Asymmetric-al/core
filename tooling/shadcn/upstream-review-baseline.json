@@ -1,0 +1,1763 @@
+{
+  "schemaVersion": 1,
+  "cliVersion": "4.21.1",
+  "meaning": "Complete reviewed official previews and local customizations are unchanged. This is not stock byte parity, a scanner score exemption, or authorization to overwrite shared components.",
+  "normalization": "Source and preview hashes normalize CRLF to LF; previews remove ANSI and replace checkout root paths. Source/trailing whitespace and every explicit diff hunk remain significant.",
+  "config": {
+    "style": "base-maia",
+    "rsc": false,
+    "tsx": true,
+    "iconLibrary": "lucide",
+    "tailwind": {
+      "config": "",
+      "css": "styles/globals.css",
+      "baseColor": "zinc",
+      "cssVariables": true,
+      "prefix": ""
+    },
+    "aliases": {
+      "components": "@/components",
+      "utils": "@/lib/utils",
+      "ui": "@/components/shadcn",
+      "lib": "@/lib",
+      "hooks": "@/hooks"
+    }
+  },
+  "components": [
+    {
+      "name": "accordion",
+      "previewSha256": "731697b221baf726274183e52e27250f40b36e953bd7b2cbc3a30ea9db502b33",
+      "files": [
+        {
+          "path": "components/shadcn/accordion.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "alert",
+      "previewSha256": "7a26b4f9364c9fea710a4506132494272705b0c9cbaf70eab8d93827435d101c",
+      "files": [
+        {
+          "path": "components/shadcn/alert.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "alert-dialog",
+      "previewSha256": "0aab727df1fcf535ce2fcca9e86a7f4fb09b414b4bcd060a3a14eab1a26d6247",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/alert-dialog.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "aspect-ratio",
+      "previewSha256": "a64d4e38946bf75e6b899c33be6760e2e0a8fbc9ab754e1dc1c49260c7c86a41",
+      "files": [
+        {
+          "path": "components/shadcn/aspect-ratio.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "avatar",
+      "previewSha256": "172ceb8e0069f1946dc3973acc793341f50c45acfa0da944e69e08babf48b175",
+      "files": [
+        {
+          "path": "components/shadcn/avatar.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "previewSha256": "16bbeaa9765c0a42dca4223393b79c677f5dfd92f4c3ce3938fe154865e9b6ab",
+      "files": [
+        {
+          "path": "components/shadcn/badge.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "breadcrumb",
+      "previewSha256": "df0962dbb2f4d7b5e8281fa1fc268fde0aac19bdf14180e8069b868a365b749a",
+      "files": [
+        {
+          "path": "components/shadcn/breadcrumb.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "previewSha256": "8cc9e7480028d66ac94f5b078aebb3699b70238b6501c4b568ec6d22c7d155e6",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "button-group",
+      "previewSha256": "2e308da4e7f0aaa340ff0f87718e7f85c0c39935fa0311fc3cbf2589403309ae",
+      "files": [
+        {
+          "path": "components/shadcn/separator.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/button-group.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "calendar",
+      "previewSha256": "af3b86d6b16a24545a767d25f2204cd1451c0b140226dd550419188fa435658c",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/calendar.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "previewSha256": "4440a6ef9f7c552adc5f7f439b336577b414cba612827654c884379e3917963b",
+      "files": [
+        {
+          "path": "components/shadcn/card.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "carousel",
+      "previewSha256": "97746fe472d321cb7e19a71aae7b92b4d37e02f393123fd7bb0f8cda4c200290",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/carousel.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "chart",
+      "previewSha256": "52fee2714f2251d0cd6ec781564c2c1450bc9b71aa548737cbd242cda56bed72",
+      "files": [
+        {
+          "path": "components/shadcn/card.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/chart.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "checkbox",
+      "previewSha256": "3e6561f07d6a85fb73e8bdb242eece27de264c46cb93035beebac4194ae6aa9f",
+      "files": [
+        {
+          "path": "components/shadcn/checkbox.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "collapsible",
+      "previewSha256": "65a20db028360e95235f73e258b2934f29418a95982aa8493adab04a3589699b",
+      "files": [
+        {
+          "path": "components/shadcn/collapsible.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "combobox",
+      "previewSha256": "0335e7242583f360d819884b9b64f6a75fbc15a39a2d064fe24db8f089a28876",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/input.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/textarea.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/input-group.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/combobox.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "command",
+      "previewSha256": "6a6827895833ac091408fdf16c83d47a4db7a48196d6253f85a28cc4a63701d0",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/input.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/textarea.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/dialog.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/input-group.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/command.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "context-menu",
+      "previewSha256": "d4bfe1a071022a5e7ae92340cfcf7e4e731fe5d70804778df1d79eb893bc89f2",
+      "files": [
+        {
+          "path": "components/shadcn/context-menu.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "previewSha256": "d21af3dfe01a69a6050470d2e961fb24624f0e5419b38b5d6fad7f916c73f69b",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/dialog.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "drawer",
+      "previewSha256": "75110a564177c2aab02e5c298812d59af07007f54640d19f1792a8627a40588b",
+      "files": [
+        {
+          "path": "components/shadcn/drawer.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "previewSha256": "078be13013f845987e52ec2478b975122634af07dfa2204a52db0664c55ed0a8",
+      "files": [
+        {
+          "path": "components/shadcn/dropdown-menu.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "previewSha256": "363e07899f723f2de92c3f952530f63a94782acfc4ba50ea44c41ba27d9878a7",
+      "files": [
+        {
+          "path": "components/shadcn/empty.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "field",
+      "previewSha256": "cd783bdb60ee118f40022242cfbe8a28434a20169c276173ac64007c5659e9de",
+      "files": [
+        {
+          "path": "components/shadcn/label.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/separator.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/field.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "hover-card",
+      "previewSha256": "7aecfbcae4bfb4a12936c5488ece75861e685dbbc336597c437179f59589a6d4",
+      "files": [
+        {
+          "path": "components/shadcn/hover-card.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "previewSha256": "b78f27a42769c433a0d99619027cb6d58aaf99e6205845b1617435dfb437a4c9",
+      "files": [
+        {
+          "path": "components/shadcn/input.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "input-group",
+      "previewSha256": "e56549919f84184b6c0a2071ca8f492103c0bb1d0238dd281539a3bb422c10c9",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/input.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/textarea.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/input-group.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "input-otp",
+      "previewSha256": "353a31e936fc13e9d2e897d0822a009251aaabda948a79cdd9792328e2990e93",
+      "files": [
+        {
+          "path": "components/shadcn/input-otp.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "item",
+      "previewSha256": "eabd49f7d1f14eb32766df513d18f2517d396271aef94d3b488b014bf443b654",
+      "files": [
+        {
+          "path": "components/shadcn/separator.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/item.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "kbd",
+      "previewSha256": "4dcf0ed2989ee5e8121f773dfecb79770c925313fb2a1ee627d2f41a821ce3ab",
+      "files": [
+        {
+          "path": "components/shadcn/kbd.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "label",
+      "previewSha256": "84acfdd2ba3ff2c91dafba2ee97597fd00e072dfae45eea75b048d4853e6f6a9",
+      "files": [
+        {
+          "path": "components/shadcn/label.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "menubar",
+      "previewSha256": "bc933905fdb062b2279cfb280bef1bf909674caa21b45b81fe7710171740f1c1",
+      "files": [
+        {
+          "path": "components/shadcn/dropdown-menu.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/menubar.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "navigation-menu",
+      "previewSha256": "b96130891ff0edea97e18143cff2800a0bba18346fbe6f30e5360c1eb7b1ad69",
+      "files": [
+        {
+          "path": "components/shadcn/navigation-menu.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "pagination",
+      "previewSha256": "36be8e023d2ed7b2b473fbe012c23e79677e3d0042938f54c62ecd93222da3d4",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/pagination.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "popover",
+      "previewSha256": "e99ac1ee46c03115c10c5c1e2e99d13fed749e2c9cb3c4e023eba8d16be11ca6",
+      "files": [
+        {
+          "path": "components/shadcn/popover.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "progress",
+      "previewSha256": "7403a711149289003bce4fa7114b52f246e18b607b5eae803bb3089eeacda788",
+      "files": [
+        {
+          "path": "components/shadcn/progress.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "radio-group",
+      "previewSha256": "3fe95e6fd778390aa92bb25496e3e78eb27c92cea7a72bc19c978e026869fa50",
+      "files": [
+        {
+          "path": "components/shadcn/radio-group.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "resizable",
+      "previewSha256": "82cd22c517ba4bdb35476292b301c78eff3cc5e6a876fd082acc776689aa6367",
+      "files": [
+        {
+          "path": "components/shadcn/resizable.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "scroll-area",
+      "previewSha256": "54ba9ecaf1942f1150fa3b7d91916e5099a8dce20573adadc9be35c87e0e400f",
+      "files": [
+        {
+          "path": "components/shadcn/scroll-area.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "select",
+      "previewSha256": "30ee6cfe94961795092c3bfb75b51d4f281935596a2c1353fa525a1af972e871",
+      "files": [
+        {
+          "path": "components/shadcn/select.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "separator",
+      "previewSha256": "1a9b6859181b9b9d6bb030b86bef716482b57cfacdd52eda7d152a0eae5d3ad7",
+      "files": [
+        {
+          "path": "components/shadcn/separator.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "sheet",
+      "previewSha256": "b3b70d6fdd4e199a933c99307efc7b2b3ebc9e530f6f844363bd7b2dbad61f1d",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/sheet.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "sidebar",
+      "previewSha256": "ef73d3ecac0697bb6167202a35e49f33ce51e6f4d40c4c6afa42551dc30f9a88",
+      "files": [
+        {
+          "path": "components/shadcn/button.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/input.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/separator.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/skeleton.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/tooltip.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "hooks/use-mobile.ts",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/sheet.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/sidebar.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "skeleton",
+      "previewSha256": "be19bc4211d29791f0f54b8caa437af19f9b42bf791bf507d62aa1a714def74e",
+      "files": [
+        {
+          "path": "components/shadcn/skeleton.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "slider",
+      "previewSha256": "fdf407966bf77497967936df8e567f0219b88716c72dcab58192d42336309e01",
+      "files": [
+        {
+          "path": "components/shadcn/slider.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "sonner",
+      "previewSha256": "c8a4892e2d0e5c0b47c689051767fad5c5e0819b7117a0c1b9773003611d0b0d",
+      "files": [
+        {
+          "path": "components/shadcn/sonner.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "spinner",
+      "previewSha256": "b7df40c59bbe370aa32ce85064b619ef3df3b310ad146f6804f29e842a8fa8a2",
+      "files": [
+        {
+          "path": "components/shadcn/spinner.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "switch",
+      "previewSha256": "24418bd454435a90959df57049e0cecba2b0b9e127f501608268b1b2e1e4f1bb",
+      "files": [
+        {
+          "path": "components/shadcn/switch.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "previewSha256": "8aa881fc95f251bd9a81ee740db56ee40be7252cdb9d5cf02461588ded9ccf25",
+      "files": [
+        {
+          "path": "components/shadcn/table.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "previewSha256": "8b679ecb554e1f7a456f5566611d972ce4c049af4383c8a66a6491db64ea8f32",
+      "files": [
+        {
+          "path": "components/shadcn/tabs.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "textarea",
+      "previewSha256": "a89d445633458698544eeee64bc3b7476cbf7ee431363b545bebc80f6e6a8eef",
+      "files": [
+        {
+          "path": "components/shadcn/textarea.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "toggle",
+      "previewSha256": "e609a2eabeef554adabbe46b6abd8f9233b257f5016c5babcd448fb0bfb34aa8",
+      "files": [
+        {
+          "path": "components/shadcn/toggle.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "toggle-group",
+      "previewSha256": "436ad88ad7e34a783a0a3d47d81aecc9188c62eccf05ac16639d3ab5629ede2a",
+      "files": [
+        {
+          "path": "components/shadcn/toggle.tsx",
+          "status": "overwrite"
+        },
+        {
+          "path": "components/shadcn/toggle-group.tsx",
+          "status": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "tooltip",
+      "previewSha256": "4e31cf49aa0bdd86a722c21c490a020896a9c36749d3e9ba909dcbe9e1efa9aa",
+      "files": [
+        {
+          "path": "components/shadcn/tooltip.tsx",
+          "status": "overwrite"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "components/shadcn/accordion.tsx",
+      "diffComponent": "accordion",
+      "owners": ["accordion"],
+      "localSha256": "de9be9e0110085d263430bb4dee52dfc3ae2a6c6a75cc205c9806042b3098178",
+      "diffSha256": "376a480439d8b3f531b5956af85ac3e28ec956d4bd35875bb9b1a5851b415768",
+      "reason": "Preserve renderable AccordionContentLayout and Core panel spacing/icon motion; upstream removes that public seam and changes trigger geometry. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/accordion.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/alert-dialog.tsx",
+      "diffComponent": "alert-dialog",
+      "owners": ["alert-dialog"],
+      "localSha256": "7bb6b193bc67dfd3204b542fe15b78c297a17df2824c2ed83344e0a6f94637c5",
+      "diffSha256": "c1137001c7876b72ebd814f72c1d8fc331eef940c6a034b438584eb02c8f42fa",
+      "reason": "Preserve Core viewport-owned modal backdrop, close/action composition and duration tokens; upstream changes modal geometry and action wrappers. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/alert-dialog.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/alert.tsx",
+      "diffComponent": "alert",
+      "owners": ["alert"],
+      "localSha256": "bb088d5d466ed96a23f60f9a0536f917e722f2c52dd5f1c6b5a7e9e7c1b81f42",
+      "diffSha256": "1fe72673625bed37e26521155b6f773ce11be6160db771ea1da2fbc6da6e4d50",
+      "reason": "Preserve the current shared alert variants and content layout; upstream adds optional AlertAction and changes styling, requiring a separate visual/API adoption review.",
+      "proofs": [
+        "packages/ui/components/shadcn/alert.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/aspect-ratio.tsx",
+      "diffComponent": "aspect-ratio",
+      "owners": ["aspect-ratio"],
+      "localSha256": "e25aa45373a9cd30c9a3aa97a591100adb0cc92f780dfd1f0b5e2e2333e52192",
+      "diffSha256": "41a308d0af92de034c93491ea0ee124a37e7b2200d563365c00cd8b3760a4c63",
+      "reason": "Preserve the existing shared AspectRatio wrapper/import seam; upstream presentation/import differences do not justify changing its public behavior.",
+      "proofs": [
+        "packages/ui/components/shadcn/aspect-ratio.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/avatar.tsx",
+      "diffComponent": "avatar",
+      "owners": ["avatar"],
+      "localSha256": "1a3b6073dc4f0731e651927ef1897b91cf9c251cbf1ab4aca55e064b2622bc13",
+      "diffSha256": "3d70ce52bfe0335ec8061a6e7738a5a9b4277550bd8b695ba9ea893a17def20c",
+      "reason": "Preserve shared avatar size/group/fallback presentation and state callbacks; upstream changes geometry and size selectors. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/avatar.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/badge.tsx",
+      "diffComponent": "badge",
+      "owners": ["badge"],
+      "localSha256": "324da5db9b030d9f2d997a7f47e7f28718c7dac33ec39655db29890464ee8787",
+      "diffSha256": "3727e93eb21a9742827dab0bade4230457172c36d0596ba84aa01e29223b4e31",
+      "reason": "Preserve shared badge variants, sizes and exported cva API; upstream changes rounded geometry, variants and icon spacing.",
+      "proofs": [
+        "packages/ui/components/shadcn/badge.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/breadcrumb.tsx",
+      "diffComponent": "breadcrumb",
+      "owners": ["breadcrumb"],
+      "localSha256": "cfbc7f08f36c3ff2c509446f6fe678fd114600429079468ef6a100bc27ef76c8",
+      "diffSha256": "576712ab114ef937073c14de5b657d449596140ea09da6321b1a435d0bd1e7c3",
+      "reason": "Preserve native breadcrumb navigation/current-page semantics and shared layout; upstream changes import/icon and presentation details.",
+      "proofs": [
+        "packages/ui/components/shadcn/breadcrumb.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/button-group.tsx",
+      "diffComponent": "button-group",
+      "owners": ["button-group"],
+      "localSha256": "5f34ab46c08fb035390811a3fc4f123a6366d91ace19c2410d6af29d1e9e9ea4",
+      "diffSha256": "31cec8dff6f09455b0ed961c54ecae0633daaeced39f57fe93ca9c2cde700b9c",
+      "reason": "Preserve Core group border/radius and separator ownership; upstream changes the same compound-control presentation. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/button-group.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/button.tsx",
+      "diffComponent": "button",
+      "owners": [
+        "alert-dialog",
+        "button",
+        "calendar",
+        "carousel",
+        "combobox",
+        "command",
+        "dialog",
+        "input-group",
+        "pagination",
+        "sheet",
+        "sidebar"
+      ],
+      "localSha256": "9c6b180fafd69f4dc1361dd141a2b6378bb7ff2a71ba7d7a9ce8a93ab1e48034",
+      "diffSha256": "c92c12297330b89b3c1c4808100f79ac6172fdf76c8f9fb1db0472b443ee2f92",
+      "reason": "Preserve native disabled-submit locking, Base UI state callbacks, data-size/data-variant, maia variants and press-feedback motion; stock overwrite removes tested contracts. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/button.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-loading-button.test.tsx",
+        "tests/unit/packages/ui/base-ui-class-name.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/calendar.tsx",
+      "diffComponent": "calendar",
+      "owners": ["calendar"],
+      "localSha256": "7f5913e74f556ce3e21d64afac9e3cd349b6f0b556d2a562ec52210c5a9cce2e",
+      "diffSha256": "56b733036f87dbca43417778a881a9adeb1b1a638ed8484e2298c92653fc82e2",
+      "reason": "Preserve current react-day-picker selection/navigation and locale public seam; upstream adds/changes locale and control presentation requiring targeted calendar adoption.",
+      "proofs": [
+        "packages/ui/components/shadcn/calendar.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/card.tsx",
+      "diffComponent": "card",
+      "owners": ["card", "chart"],
+      "localSha256": "c9a85543fa334081523da77393b252553cff4c64cadb1b2c189d84833d83d120",
+      "diffSha256": "3b4d7edf3e96882d5a4f2550cab4c714aa4e2042e4af652c06f67347d49674f5",
+      "reason": "Preserve current shared card sizing and compound layout; upstream adds size options and changes surface geometry rather than repairing a verified defect.",
+      "proofs": [
+        "packages/ui/components/shadcn/card.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/carousel.tsx",
+      "diffComponent": "carousel",
+      "owners": ["carousel"],
+      "localSha256": "5ef06864f5fcf0db0eb870d24317a687b6d3c5be605d20a136a0c4d2ce4361eb",
+      "diffSha256": "42fdff5c2e70f76ee871dbf4a94a9f4eb68d231d2055fc603bc96e2fe0713046",
+      "reason": "Preserve existing Embla context/navigation semantics and accessible previous/next actions; upstream changes icon, controls and presentation. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/carousel.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/chart.tsx",
+      "diffComponent": "chart",
+      "owners": ["chart"],
+      "localSha256": "12556059fb2882d4c4b52f88d82956c15fae101bd7cd41bc36acc7f43bb90f68",
+      "diffSha256": "ddf1944e4136b563ab2b81cd04bc48e1ddaca5fd57b5c82b4befd013ef070604",
+      "reason": "Preserve Core ChartConfig and tooltip public types/formatting with current Recharts; upstream rewrites tooltip/config types and presentation, requiring typed consumer review.",
+      "proofs": [
+        "packages/ui/components/shadcn/chart.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/checkbox.tsx",
+      "diffComponent": "checkbox",
+      "owners": ["checkbox"],
+      "localSha256": "52d9a0745ea5fd6ac55e048b5775aa691e7784d72677f7f68be3e2876dd91494",
+      "diffSha256": "aa1998c9912a939459da1f7e0bd29836d2cbaaf23afdc3b5c2858ab6694ca31f",
+      "reason": "Preserve controlled Base UI checkbox state and Core indicator presentation; upstream changes sizes, border and icon styling. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/checkbox.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/collapsible.tsx",
+      "diffComponent": "collapsible",
+      "owners": ["collapsible"],
+      "localSha256": "cf6333da05adc3d96abf7ce0928c0c9a3fe3c6df46f7771551220a9205c41975",
+      "diffSha256": "78aa05d0a8d0339c71b693c9c4c9fd0b3413262ad9da950b5b7d6b1a87f73ebc",
+      "reason": "Preserve the current Base UI root/trigger/panel adapter; inspected diff is module directive/import-format drift without a required consumer migration.",
+      "proofs": [
+        "packages/ui/components/shadcn/collapsible.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/combobox.tsx",
+      "diffComponent": "combobox",
+      "owners": ["combobox"],
+      "localSha256": "29f1499838dc618083cce135fb9026174257e86cdc0fa2901cc391aacd995de9",
+      "diffSha256": "5fb24e674aa5541c76d7cb286136cd958848c266dc01a261967b3ad1ade69882",
+      "reason": "Preserve current public Combobox parts, inputStyles, accessible label precedence and state callbacks; upstream moves to InputGroup composition and changes input/trigger APIs. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/combobox.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/command.tsx",
+      "diffComponent": "command",
+      "owners": ["command"],
+      "localSha256": "38e02be690ddef3e43d4fcf85bbc9c3354219e68e19e3d709907ab26cd265f41",
+      "diffSha256": "6a87fe6687389c409595a72897adf6903e5b3eb0bdf3abba0c4dbf10cb793fd6",
+      "reason": "Preserve automatic inner Command, commandLabel naming, existing CommandInput props and instant modal motion; upstream changes the composition API and defaults.",
+      "proofs": [
+        "packages/ui/components/shadcn/command.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts"
+      ]
+    },
+    {
+      "path": "components/shadcn/context-menu.tsx",
+      "diffComponent": "context-menu",
+      "owners": ["context-menu"],
+      "localSha256": "497f731377fb0898bdb0c95be5e994d3b2e8905d6ca98f540b91f415a5febf9b",
+      "diffSha256": "f3000f21860a7a897f9179109483141b983b44306acbe5f0574b2487dc961003",
+      "reason": "Preserve Core menu label context, item callback and submenu/positioner contracts; upstream changes compound-menu composition and visual treatment. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/context-menu.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/dialog.tsx",
+      "diffComponent": "dialog",
+      "owners": ["command", "dialog"],
+      "localSha256": "2460269fe21268df94d0f1e9c1b2dca8ff72ad2834fe02f62be8072a78d44e6a",
+      "diffSha256": "39b93aedf2d430c7a13aed3644453031cee0aac18b74c1eb7906c10c4e9285b0",
+      "reason": "Preserve scrollable public prop, viewport scroll ownership, state callbacks and duration-modal tokens; stock overwrite changes popup/backdrop behavior. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/dialog.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-overlay-contracts.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/overlays.spec.ts"
+      ]
+    },
+    {
+      "path": "components/shadcn/drawer.tsx",
+      "diffComponent": "drawer",
+      "owners": ["drawer"],
+      "localSha256": "c97aecb1bfc13be7acf14540ba74f2715dec9c15bb78859c711a639da58e2eef",
+      "diffSha256": "f5ff9bcbbdcd3836ff8539532514aa427ddd4216a85ba632f61126fa06bd8e3e",
+      "reason": "Preserve legacy direction-to-Base UI swipe adapter, viewport ownership and duration-drawer motion; upstream introduces a different root/context and swipe-handle API. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/drawer.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/drawer-swipe-direction.test.ts",
+        "tests/unit/packages/ui/base-ui-overlay-contracts.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/dropdown-menu.tsx",
+      "diffComponent": "dropdown-menu",
+      "owners": ["dropdown-menu", "menubar"],
+      "localSha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac",
+      "diffSha256": "792b013f319b28c83dd2e10ff1c99210a3d936520c58c6be46afbe50e2574f53",
+      "reason": "Preserve Core menu label context, shared item callback ownership and submenu APIs; upstream changes compound-menu presentation/composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/dropdown-menu.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/empty.tsx",
+      "diffComponent": "empty",
+      "owners": ["empty"],
+      "localSha256": "cadc76423ecab8a462b4283722ba457c4314b5793ccbef6877feb99ee74e9983",
+      "diffSha256": "c5058c6ea8db991b33ebdd299090de79cb260c1ed47992be6fa4fe235bd13253",
+      "reason": "Preserve current shared empty-state compound parts and geometry; upstream presentation updates are optional visual work, not a proven correctness repair.",
+      "proofs": [
+        "packages/ui/components/shadcn/empty.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/field.tsx",
+      "diffComponent": "field",
+      "owners": ["field"],
+      "localSha256": "3432cb219a5566dd00013c99ba7f2a41ef8d6ac14cf9a1c217b0d2f089866fce",
+      "diffSha256": "32255e31d60ca72db762808e2e4ccaa895a939ee7d56ce6d315791dd3a1906ec",
+      "reason": "Preserve exported FieldPrimitive, input/error semantics and contrast-repaired error styling; stock overwrite removes the primitive export and restores unsafe error color treatment.",
+      "proofs": [
+        "packages/ui/components/shadcn/field.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/hover-card.tsx",
+      "diffComponent": "hover-card",
+      "owners": ["hover-card"],
+      "localSha256": "478bb5e58ac9d53443f102cbe9910541b379918fd660eb019533835b1494e29d",
+      "diffSha256": "f0cbf87b0ad4ef29446b0c66b15e4d9ac71c6de195207a7b9ec9306d825b2298",
+      "reason": "Preserve Base UI hover-card state callbacks and Core popup motion/placement; upstream changes visual geometry/imports. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/hover-card.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/input-group.tsx",
+      "diffComponent": "input-group",
+      "owners": ["combobox", "command", "input-group"],
+      "localSha256": "da29a691092c1b973a468eade0b3ae1826ff4661938c5e6a454c61efbddf144f",
+      "diffSha256": "95487e0805b8b046c4b1b0ec94f8e228f5794832f55366382cdcf7a29682e4c9",
+      "reason": "Preserve typed Base UI input composition, shared inputStyles and button wrappers; upstream changes group/addon/action presentation and composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/input-group.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/input-otp.tsx",
+      "diffComponent": "input-otp",
+      "owners": ["input-otp"],
+      "localSha256": "4a1b7d484a17342691d2720dc209fdfbfb3975fc2563a7faadb3da7490cbb85a",
+      "diffSha256": "37ec52ccc98c9f5658ae8424d5c4e89c1d26a32abbef30702f562e2bdc159bc6",
+      "reason": "Preserve Base UI OTPField real input slots and normalized form serialization; upstream replaces these with the separate input-otp package and incompatible slot API. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/input-otp.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-otp.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/input.tsx",
+      "diffComponent": "input",
+      "owners": ["combobox", "command", "input", "input-group", "sidebar"],
+      "localSha256": "20b1a367e411d2729bb180bd0440f30454fe365bc785c82209a693faba69d106",
+      "diffSha256": "e08e546daa32898919d88e67fd80f2d58d2b144747da377a315b900660a18522",
+      "reason": "Preserve InputPrimitive typed props, shared inputStyles and Base UI state callbacks; upstream types the wrapper as native input and changes styling. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/input.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-input.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/item.tsx",
+      "diffComponent": "item",
+      "owners": ["item"],
+      "localSha256": "59c89c79fcb119038b16c729e82d6c52482b5c6bdfb09f2ad423363a1396f0e6",
+      "diffSha256": "d63f95a35ab1f9e982b1b9120a3a40c2737dd8c04039a502c3df9936e45f7e11",
+      "reason": "Preserve shared Item compound layout and separator ownership; upstream changes sizes, radii and import/presentation details. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/item.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/kbd.tsx",
+      "diffComponent": "kbd",
+      "owners": ["kbd"],
+      "localSha256": "18a41f27e84f79bba58bdace8dc820d6d2165a3690dfcc8d60517d23cf515b15",
+      "diffSha256": "a6cc66eaec743292c34bd87df31ea54e35a3bb70b47d81dff1b96a3eaa1d1c0c",
+      "reason": "Preserve shared keyboard hint typography/geometry and helper import seam; upstream changes visual presentation.",
+      "proofs": [
+        "packages/ui/components/shadcn/kbd.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/label.tsx",
+      "diffComponent": "label",
+      "owners": ["field", "label"],
+      "localSha256": "82e654877ffff9fee069f91a5c327551d2cf901835b19e0ca7e4bdb84bd58a27",
+      "diffSha256": "1954fdf1b9f2608f4e1b71f762d4c1a8380c9d94355491795de26304c7a94bd6",
+      "reason": "Preserve native label association and shared label typography; upstream helper/presentation differences do not require a behavior change.",
+      "proofs": [
+        "packages/ui/components/shadcn/label.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/menubar.tsx",
+      "diffComponent": "menubar",
+      "owners": ["menubar"],
+      "localSha256": "a9b55204c50c7afe1c745fa271b5e3809fc89908924091ff2d572e237074312f",
+      "diffSha256": "1d3614b337d29b95044ae33804f92b9d9e716c89ca12f6651d0c9aa15a42bd19",
+      "reason": "Preserve Core Base UI menu label/radio/submenu callbacks and presentation; upstream restructures compound-menu declarations and visuals. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/menubar.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/navigation-menu.tsx",
+      "diffComponent": "navigation-menu",
+      "owners": ["navigation-menu"],
+      "localSha256": "1287448cdb7f13fd64b7b2587d0468a07de0ac445dce89e1945829355626faa5",
+      "diffSha256": "ac2eb34ce5a2478d809cdb882d40b1886fc51aff681ad9ebe3c97eb74b483e94",
+      "reason": "Preserve the exported NavigationMenuViewport wrapper, keyboard link behavior and callback class ownership; upstream retains Positioner but removes the Viewport wrapper/export and changes popup geometry. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/navigation-menu.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/components/shadcn/navigation-menu.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/pagination.tsx",
+      "diffComponent": "pagination",
+      "owners": ["pagination"],
+      "localSha256": "b6e6e5e15b5047b4a8eeeccedfe242d92984461c04281d92d2f7852101e8b9e2",
+      "diffSha256": "c6546bf42ea4877ddd54499ccc426d28e162cd0d1f2b84b49994052979e4fc0a",
+      "reason": "Preserve native anchor navigation with buttonVariants, current-page semantics and accessible previous/next labels; stock Base UI Button render would reintroduce button roles on links.",
+      "proofs": [
+        "packages/ui/components/shadcn/pagination.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-navigation.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/popover.tsx",
+      "diffComponent": "popover",
+      "owners": ["popover"],
+      "localSha256": "8aaa7c7faf3500a7e1921078bf16736ab23d2f95023f2234acfb3dc4dfc9a8cd",
+      "diffSha256": "3725bb0083afc7ea96de0d0741fd871662eef0104eaa1612b166bb2f41622c51",
+      "reason": "Preserve Base UI positioner/portal state callbacks and Core motion/popup parts; upstream changes styling rather than a verified behavior defect. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/popover.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/progress.tsx",
+      "diffComponent": "progress",
+      "owners": ["progress"],
+      "localSha256": "9334f183fe0f826bd5287f0f73e06ec8c19e0c2cc7cd50682e50c3709d8602dc",
+      "diffSha256": "d32da74396001094efdf3f3f7061040e7639c8d151f6137338afd4952cb0e321",
+      "reason": "Preserve current value/indicator compound behavior and state callbacks; upstream exposes new track/label/value composition requiring consumer API review. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/progress.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/radio-group.tsx",
+      "diffComponent": "radio-group",
+      "owners": ["radio-group"],
+      "localSha256": "2be4b22801739d0faa3745f9e60ad6a41174edbb1948c1f8f6d23ffd987cac91",
+      "diffSha256": "509f8df028fa2b567ef8ab6f1881c4c3e49cca7d961a0f6ff361ea59878903cf",
+      "reason": "Preserve Base UI radio value serialization, keyboard behavior and Core indicator styling; upstream changes indicator/size presentation. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/radio-group.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/resizable.tsx",
+      "diffComponent": "resizable",
+      "owners": ["resizable"],
+      "localSha256": "398389d2ce5b7838d1803995c26a0d86b54e7e61c2283a4f0b684c547519c31c",
+      "diffSha256": "b5c389ca92cb16870935cf085a0853d7ab2f6b6c5fa6f561cee4862bec85b2ff",
+      "reason": "Preserve current react-resizable-panels public group/panel/handle adapter; upstream changes handles/imports and presentation requiring a library-version-aware adoption.",
+      "proofs": [
+        "packages/ui/components/shadcn/resizable.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/scroll-area.tsx",
+      "diffComponent": "scroll-area",
+      "owners": ["scroll-area"],
+      "localSha256": "1c6592bf42e9250c0dd6314f9e5d220ea123876c1408a72da25bfc6a927ed440",
+      "diffSha256": "396d222a5221b51220f4e23bf5d5cf47200e84660ae0e208b8b274ca58860904",
+      "reason": "Preserve state callbacks and current orientation scrollbar ownership; upstream changes orientation attributes, imports and visuals. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/scroll-area.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/select.tsx",
+      "diffComponent": "select",
+      "owners": ["select"],
+      "localSha256": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c",
+      "diffSha256": "865698fc6803376ab29128ac16c0bdb90bb9bbd6faab1515f1c59fb803500e79",
+      "reason": "Preserve typed nullable Select root, SelectControlLabel and below-trigger positioning default; upstream removes those seams and enables overlapping alignItemWithTrigger. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/select.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-select-nullability.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/separator.tsx",
+      "diffComponent": "separator",
+      "owners": ["button-group", "field", "item", "separator", "sidebar"],
+      "localSha256": "0be376bfe749780ea2be4a60a8044d8f0a535773d8b77ea14206afbe1f927dcd",
+      "diffSha256": "419eeec7f506f990f8f639409abb74ac5cd16fe0dc0219813a802600aa725168",
+      "reason": "Preserve Core separator orientation styling and callback class ownership; upstream changes selector/presentation details. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/separator.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/sheet.tsx",
+      "diffComponent": "sheet",
+      "owners": ["sheet", "sidebar"],
+      "localSha256": "5fe3af037d91fed4d33ef54ca328670d0d29f310a516ff3f804e28f1b8b7be4c",
+      "diffSha256": "88698e13490acdaa28362d746d36c4a0577ab96d115de9e8dc84a11374a01c42",
+      "reason": "Preserve native modal Sheet ownership, callback classes and duration-drawer motion; upstream changes side geometry, backdrop and close composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/sheet.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-overlay-contracts.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/sidebar.tsx",
+      "diffComponent": "sidebar",
+      "owners": ["sidebar"],
+      "localSha256": "d79354ed18ed16839ccac6ad55a2cfe24354734336e7f85a043e7a9dfb9984fc",
+      "diffSha256": "cceaaf3fd7d5afb17c52d82d02bf5a49c968fa3609a8ce499ebcfba5758c5884",
+      "reason": "Preserve shared responsive hook/rail/button/link semantics and Core drawer ownership; upstream changes helper ownership and Sidebar presentation/composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/sidebar.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/base-ui-navigation.test.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/skeleton.tsx",
+      "diffComponent": "skeleton",
+      "owners": ["sidebar", "skeleton"],
+      "localSha256": "24aaab61439bbfd327ecc917562ffe7c7fee11bc24dc12fdfb2c81ce6ac9b121",
+      "diffSha256": "11dfb3eba33b612beea2eb43be2bc7c9d24e9f7947d5235fe91325e7e4edebe9",
+      "reason": "Preserve current shared skeleton helper and placeholder presentation; upstream helper/class formatting is not a behavior repair.",
+      "proofs": [
+        "packages/ui/components/shadcn/skeleton.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/slider.tsx",
+      "diffComponent": "slider",
+      "owners": ["slider"],
+      "localSha256": "3a6bd23530ad17b9291d32c8217737272a471fd90e4580b3e0dc897f77c22c9a",
+      "diffSha256": "ef59db2a839d30b1de7875cd2ab80680f61df79ec782c807bde3218fee5bcdf3",
+      "reason": "Preserve typed Base UI value/thumb/orientation behavior and state callbacks; upstream changes track/thumb visual composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/slider.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/sonner.tsx",
+      "diffComponent": "sonner",
+      "owners": ["sonner"],
+      "localSha256": "ded1af6aa83bc47da81a3da56452ea8231b7f2cdea997efce6da0b85e299639c",
+      "diffSha256": "4ec4631fb5fba054bf8f55d31f94f752c319e794d47cdd6b807d0ee5e3e05f92",
+      "reason": "Preserve SSR-safe mounted boundary, forcedTheme preference and body portal above isolated app-root modals; stock overwrite removes all three verified contracts.",
+      "proofs": [
+        "packages/ui/components/shadcn/sonner.tsx",
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/shadscan-toaster-portal.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
+      ]
+    },
+    {
+      "path": "components/shadcn/spinner.tsx",
+      "diffComponent": "spinner",
+      "owners": ["spinner"],
+      "localSha256": "b92bf7aa8d5b94047cfa0e9509bab37bba2de61ff6f24d89b16ee7b7730672ce",
+      "diffSha256": "b6c62cde058e46ed9b43a68680d1893bf5e06f8c4bff46982c8fe01fc06a9099",
+      "reason": "Preserve named live loading status and current shared spinner geometry; upstream helper/class formatting is not a pending-state repair.",
+      "proofs": [
+        "packages/ui/components/shadcn/spinner.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/switch.tsx",
+      "diffComponent": "switch",
+      "owners": ["switch"],
+      "localSha256": "5e918ada03ed42ee1b0b006f3ef76f15213025c415c0ad45b6a5aed3de6a6522",
+      "diffSha256": "64504a1b8c7ad8877a9d8ffce5ffcab7e574b2955740787b9312eee10edd201b",
+      "reason": "Preserve Base UI checked serialization, size variants and state callbacks; upstream changes track/thumb presentation. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/switch.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/table.tsx",
+      "diffComponent": "table",
+      "owners": ["table"],
+      "localSha256": "be5c0e747efb21aa219b4c6f18c78b75503b07d97c83493e8421d0d0dadf9ec7",
+      "diffSha256": "213c585f7c6b1f675565f3351c1747b7e75a737d1d7716e36247e982a5ed9782",
+      "reason": "Preserve existing shared table cell density and checkbox alignment contract; upstream increases row/cell spacing and changes checkbox selectors.",
+      "proofs": [
+        "packages/ui/components/shadcn/table.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/tabs.tsx",
+      "diffComponent": "tabs",
+      "owners": ["tabs"],
+      "localSha256": "1e36513957f5091a6747fb78561492bf13527d61be50015f20b4ce6b52e52b70",
+      "diffSha256": "0dfcb67ce768ab2563336bb901573f62e47a3b5fff09e45c8388d588795c5138",
+      "reason": "Preserve Base UI orientation and current compound tabs API/state callbacks; upstream changes root/orientation handling and tab presentation. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/tabs.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/textarea.tsx",
+      "diffComponent": "textarea",
+      "owners": ["combobox", "command", "input-group", "textarea"],
+      "localSha256": "42a4a880e24326c97d1d2795d11ffb51ca934f368a01a5b4297f03612a8ad100",
+      "diffSha256": "821cab10d97bfee6077a5065a52342c46cf39544f34f879b452b0474d0de329a",
+      "reason": "Preserve current native textarea labeling/form API and shared styling; upstream changes helper ownership and presentation.",
+      "proofs": [
+        "packages/ui/components/shadcn/textarea.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/toggle-group.tsx",
+      "diffComponent": "toggle-group",
+      "owners": ["toggle-group"],
+      "localSha256": "4e016edcb7b35a329e75fadf986698dfe772cd8d20bdb4f9fe8c01d9c1b2232d",
+      "diffSha256": "2fbf7547e5db490a7faec31cffd365318415cb5d11829bed44a88030021af424",
+      "reason": "Preserve current shared ToggleGroup context/value/orientation contract; upstream introduces new orientation defaults and presentation requiring consumer review. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/toggle-group.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/toggle.tsx",
+      "diffComponent": "toggle",
+      "owners": ["toggle", "toggle-group"],
+      "localSha256": "b8f4f4e24da69c0fb152556075553a50aa29df34df99341594264b61201a35dd",
+      "diffSha256": "19a12e496cd6467958e77e548dab1104f7f1972232714fccf811239319b7633e",
+      "reason": "Preserve Base UI toggle controlled state, exported variants and callback classes; upstream changes shared size/variant geometry. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/toggle.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/tooltip.tsx",
+      "diffComponent": "tooltip",
+      "owners": ["sidebar", "tooltip"],
+      "localSha256": "9302151a7a547235a6b864ad21e99bc97f50084b1b5cdd65c304fa674c2077f7",
+      "diffSha256": "b19d61cc9c539f804096e59e9190db2886607719bd39e42a8abb274e82e0e442",
+      "reason": "Preserve Core 300ms hover delay, positioner callbacks and popup motion; upstream switches default delay to zero and changes popup styling. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "proofs": [
+        "packages/ui/components/shadcn/tooltip.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "hooks/use-mobile.ts",
+      "diffComponent": "sidebar",
+      "owners": ["sidebar"],
+      "localSha256": "0aa90e87120c1be7d6e2bd97e194f3b89249a5234c6bd50b60b0231b59d1cc32",
+      "diffSha256": "7bd63e2895c29d3f4e00d95f6453dc5c0ad722f9c451e154e86ecec5191750ab",
+      "reason": "Preserve the shared @asym/lib responsive-hook facade and exported ResponsiveState instead of creating a duplicate UI-local window hook.",
+      "proofs": ["packages/ui/hooks/use-mobile.ts", "docs/ai/rules/frontend.md"]
+    }
+  ],
+  "localOnly": [
+    {
+      "path": "components/shadcn/RichTextEditor.tsx",
+      "localSha256": "30414943d5474f937e562209a84fa7a429c5d9a5e093805af2f1ed05dc39170e",
+      "reason": "Core-owned public re-export adapter for RichTextEditor.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/RichTextEditor.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/RichTextEditor.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/chart-wrappers.tsx",
+      "localSha256": "e8a0012ca93446eb4d65c66335f2f860fcdcd3a5de0419d47f7720529d579050",
+      "reason": "Core-owned public re-export adapter for chart-wrappers.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/chart-wrappers.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/chart-wrappers.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/filter-bar.tsx",
+      "localSha256": "a29a3fcff8572e80d7747d953a716e8f654e71d5388ab54a90dce8365aad2968",
+      "reason": "Core-owned public re-export adapter for filter-bar.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/filter-bar.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/filter-bar.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/image-cropper-helpers.ts",
+      "localSha256": "1c34ba2db59b1cee8a86742a45da1acef3152409528a3c3b7a19e54973089796",
+      "reason": "Core-owned public re-export adapter for image-cropper-helpers.ts; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/image-cropper-helpers.ts",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/image-cropper-helpers.ts"
+      ]
+    },
+    {
+      "path": "components/shadcn/image-cropper.tsx",
+      "localSha256": "42331c32efee9368e6f0b92c3e56ffdad785c3455efe7ce044a71ea4c1091876",
+      "reason": "Core-owned public re-export adapter for image-cropper.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/image-cropper.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/image-cropper.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/image-upload-helpers.ts",
+      "localSha256": "895f72ab4c0860151568eccfa23cdfbad9bf7d9a2e1774d39ad77ce6cb9895ed",
+      "reason": "Core-owned public re-export adapter for image-upload-helpers.ts; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/image-upload-helpers.ts",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/image-upload-helpers.ts"
+      ]
+    },
+    {
+      "path": "components/shadcn/image-upload.tsx",
+      "localSha256": "cdaa0669699e878fdf197f91bc7ded020919814e08caa8f26ec0d206734ef918",
+      "reason": "Core-owned public re-export adapter for image-upload.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/image-upload.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/image-upload.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/index.ts",
+      "localSha256": "affc0293c418e58a0985e4282aaf0871d23e7e3c8afb4d22a48b8a65e6c1fa59",
+      "reason": "Core public component export barrel; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
+      "proofs": [
+        "packages/ui/components/shadcn/index.ts",
+        "packages/ui/AGENTS.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/map.tsx",
+      "localSha256": "a5cf0442c16cbbeeb4949194f1b92358d098546313c327f1cfd90cdbbc4ab236",
+      "reason": "Core-owned public re-export adapter for map.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/map.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/map.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/meter.tsx",
+      "localSha256": "de5ba112fb844340a1eedca7a74e218a148b4ced3a64e814a7c4cefbc4601d5a",
+      "reason": "Base UI Meter controlled-value wrapper with state callback classes; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
+      "proofs": [
+        "packages/ui/components/shadcn/meter.tsx",
+        "packages/ui/AGENTS.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/motion-preset.tsx",
+      "localSha256": "e7cf7bf100f644c6a2af1a0ba9a6864b168e907b6728fbced086562949291d62",
+      "reason": "Core-owned public re-export adapter for motion-preset.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/motion-preset.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/motion-preset.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/number-field.tsx",
+      "localSha256": "8aa2aa60494dd67bba859cfbc967757cf8e2620e91195b2940f8de70c1af8e4c",
+      "reason": "Base UI NumberField typed form/decimal/stepper wrapper with named controls; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
+      "proofs": [
+        "packages/ui/components/shadcn/number-field.tsx",
+        "packages/ui/AGENTS.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/page-shell.tsx",
+      "localSha256": "47666abcf33cada6bcb7e4f4242362bdeb8a1e24bae088b7f1566fa4b2420f37",
+      "reason": "Core-owned public re-export adapter for page-shell.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/page-shell.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/page-shell.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/responsive-container.tsx",
+      "localSha256": "f3ec9554993ec283780baa09cab0835379f2d54c81c9f933af7161bfd19494c0",
+      "reason": "Core-owned public re-export adapter for responsive-container.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/responsive-container.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/responsive-container.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/ripple-button.tsx",
+      "localSha256": "611bfecfe88534695755c5f4d3a0bfeecb4b444a3fda8025983a2ebf9dcbd585",
+      "reason": "Core-owned public re-export adapter for ripple-button.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/ripple-button.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/ripple-button.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/searchable-select.tsx",
+      "localSha256": "8998cde4bd8ab7e90d66e79a9f0dea848eb399a5117372fa40c02361b7f03cc1",
+      "reason": "Core SearchableSelect options API and Base UI Combobox accessible composition; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
+      "proofs": [
+        "packages/ui/components/shadcn/searchable-select.tsx",
+        "packages/ui/AGENTS.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/tanstack-form.tsx",
+      "localSha256": "a9b5d05aa9e85b5af4ac012667230041a2266fed653f3cbe917619e0063b3fb4",
+      "reason": "Core-owned public re-export adapter for tanstack-form.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/tanstack-form.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/tanstack-form.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/theme-toggle.tsx",
+      "localSha256": "5d9587ac03d93dc634f7e9c062b32633b16c3725bc79b36d13cbf443206a583f",
+      "reason": "Core-owned public re-export adapter for theme-toggle.tsx; it is not an installed official registry component and its implementation remains under shared primitive ownership.",
+      "proofs": [
+        "packages/ui/components/shadcn/theme-toggle.tsx",
+        "packages/ui/AGENTS.md",
+        "packages/ui/components/primitives/theme-toggle.tsx"
+      ]
+    },
+    {
+      "path": "components/shadcn/toolbar.tsx",
+      "localSha256": "3d8b1a712ab339e11f83e3efcc3e1ef2249f1e65574393c7a3e58086c41b1dd5",
+      "reason": "Base UI Toolbar group/button/separator compound wrapper; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
+      "proofs": [
+        "packages/ui/components/shadcn/toolbar.tsx",
+        "packages/ui/AGENTS.md"
+      ]
+    },
+    {
+      "path": "components/shadcn/visually-hidden.tsx",
+      "localSha256": "25b3ee4479e5a98b6a2501f1cc07419673d57221ed85e551651e45a8fc3237a8",
+      "reason": "Core VisuallyHidden native span with screen-reader-only styling; not present in the official installed-component inventory. Preserve its shared public seam and assess changes through Core tests.",
+      "proofs": [
+        "packages/ui/components/shadcn/visually-hidden.tsx",
+        "packages/ui/AGENTS.md"
+      ]
+    }
+  ],
+  "excludedDirectories": [
+    {
+      "path": "data-grid",
+      "reason": "Core TanStack grid toolkit and keyboard/filter state are owned product composition, outside official stock component replacement.",
+      "proofs": [
+        "packages/ui/components/shadcn/data-grid/index.ts",
+        "tests/unit/packages/ui/data-grid-search-filtering.test.tsx"
+      ]
+    },
+    {
+      "path": "data-table",
+      "reason": "Core TanStack table toolkit, URL state and action bars are owned product composition, outside official stock component replacement.",
+      "proofs": [
+        "packages/ui/components/shadcn/data-table/index.ts",
+        "tests/unit/packages/ui/components/shadcn/data-table-behavior.test.tsx"
+      ]
+    },
+    {
+      "path": "icons",
+      "reason": "Core application icon mapping is owned composition, outside the official component registry and its stock update coverage.",
+      "proofs": [
+        "packages/ui/components/shadcn/icons/index.tsx",
+        "packages/ui/AGENTS.md"
+      ]
+    },
+    {
+      "path": "rich-text-editor",
+      "reason": "Core Tiptap editor toolkit, media and link controls are owned product composition, outside official stock component replacement.",
+      "proofs": [
+        "packages/ui/components/shadcn/rich-text-editor/index.ts",
+        "tests/unit/packages/ui/components/shadcn/rich-text-editor/rich-text-editor.test.tsx"
+      ]
+    }
+  ],
+  "protectedSources": [
+    {
+      "path": "packages/lib/hooks/use-mobile.ts",
+      "localSha256": "b0757554f854339c79029f283cdb3c6efd6ad482bbc63a220cd837be313bb75e",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/lib/hooks/use-mobile.ts",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/RichTextEditor.tsx",
+      "localSha256": "9d87326d0a0a609898861a4236944690bcb403aabb3d7018ed51cc49749ff6ec",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/RichTextEditor.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/chart-wrappers.tsx",
+      "localSha256": "83e61aea206674ce738762de8f2adf2c5dfd4792f4d1c91b5a281e775d209945",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/chart-wrappers.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/filter-bar.tsx",
+      "localSha256": "7af11b6c578c6f3da9b6c5969693e295f651773929b0d5971e1c738048bcea97",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/filter-bar.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/image-cropper-helpers.ts",
+      "localSha256": "37f0691a02501ef8fa32cbf9e45c8362769b41b73ec951099c6cbe5ff592074c",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/image-cropper-helpers.ts",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/image-cropper.tsx",
+      "localSha256": "e70ed5b2fef8f9d297e917236b8f6e59cb321408ad51c0d6df5162b3faa61859",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/image-cropper.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/image-upload-helpers.ts",
+      "localSha256": "089d051ea2a5f48842e25ac3df71f8ccaca5acfb5e1132a8957bed720c0ac9bc",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/image-upload-helpers.ts",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/image-upload.tsx",
+      "localSha256": "8d9d5e6f0ee50afc830eba91ba6cbdfc0f1ec44356be4bde6ec403f7027c2cde",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/image-upload.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/map.tsx",
+      "localSha256": "571fd472f177b98b388eca4de6b1867c35f138fc43561bb81c30fc9f501f700f",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/map.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/motion-preset.tsx",
+      "localSha256": "4d76cb1efb99c24730cacd3ef3b1841768a0226aa5cda4707f91eb0cfb065f56",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/motion-preset.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/page-shell.tsx",
+      "localSha256": "1421733ae9fffc75eae76d92a1d03d018b2362db85183eefedbe79f26c0b86ae",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/page-shell.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/responsive-container.tsx",
+      "localSha256": "2717ca78fd76458f011b4dc5820a36e5879aa58c83d3b7b906178cb9e47440f2",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/responsive-container.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/ripple-button.tsx",
+      "localSha256": "47bd7d9431543f8b663c854b7b8ed56d35f0fcfeb4613144163295d180742bd3",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/ripple-button.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/tanstack-form.tsx",
+      "localSha256": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/tanstack-form.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/components/primitives/theme-toggle.tsx",
+      "localSha256": "34fc5a35b6473b492b47ff7e92f4c7d8b8cbaf122b8c8045015e6e25b04ab01c",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/components/primitives/theme-toggle.tsx",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/lib/base-ui.ts",
+      "localSha256": "68b33342c62b74e72389cc1638234d78432801f5c250fa204937fbf4f8e6619a",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": ["packages/ui/lib/base-ui.ts", "docs/ai/rules/frontend.md"]
+    },
+    {
+      "path": "packages/ui/lib/drawer-swipe-direction.ts",
+      "localSha256": "c24ce44d4ac60417169319ab982ff2a379b023b7dcb3c1aab45315de034d6130",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": [
+        "packages/ui/lib/drawer-swipe-direction.ts",
+        "docs/ai/rules/frontend.md"
+      ]
+    },
+    {
+      "path": "packages/ui/lib/input-styles.ts",
+      "localSha256": "7a9f0df79960e91871beab93dfb68fa55569fc1b66f7b1214377e09fb401a86c",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": ["packages/ui/lib/input-styles.ts", "docs/ai/rules/frontend.md"]
+    },
+    {
+      "path": "packages/ui/lib/utils.ts",
+      "localSha256": "28406771d3bb6d5a7a60cd037f119ab17ba00d70ee5e73ce791742f130d108b6",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": ["packages/ui/lib/utils.ts", "docs/ai/rules/frontend.md"]
+    },
+    {
+      "path": "packages/ui/styles/globals.css",
+      "localSha256": "5381075d0e3b48961922a0e1694294ca1b09542209d120393b8d0f381a3ee07b",
+      "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
+      "proofs": ["packages/ui/styles/globals.css", "docs/ai/rules/frontend.md"]
+    }
+  ]
+}
