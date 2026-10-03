@@ -286,9 +286,11 @@ widening and export. Future runtime tasks remain unchecked.
 
 The intended shared enforcement belongs in `packages/api`; donor and missionary
 apps consume projections rather than independently selecting sensitive fields.
-Asym Postgres owns static field policy and pending policy-change records; code
-owns capability/surface registries. Legal Entity is subtract-only inside Tenant,
-not a new policy dimension. Classification, census review, golden promotion
+Asym Postgres owns static field policy and pending policy-change records.
+Capabilities remain code-authoritative. The surface registry is extensible text
+data rather than an enum; new surfaces are data inserts, born blind until their
+fields are classified. Legal Entity is subtract-only inside Tenant, not a new
+policy dimension. Classification, census review, golden promotion
 parity, RLS/boundary checks and current context revalidation qualify later wiring.
 The retired CRM shadow-sync stack supplies no runtime dependency.
 
