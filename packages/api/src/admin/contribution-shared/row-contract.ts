@@ -89,6 +89,8 @@ export interface BuildSharedContributionRowFieldsInput {
   missionary: { id: string; display_name: string | null } | null;
   stagedGift: SharedContributionStagedGiftInput | null;
   corrections?: SharedContributionCorrectionInput[];
+  /** Original provider charge when donation.amount contains corrected values. */
+  refundBasis?: { originalAmountCents: number };
   /**
    * Full designation set when the caller has loaded allocation lines. When
    * provided, the designation summary derives from the set (ADR-CD-008);
@@ -352,7 +354,10 @@ export function buildSharedContributionRowFields(
   input: BuildSharedContributionRowFieldsInput,
 ): SharedContributionRowFields {
   const { donation, donor, profile, fund, missionary, stagedGift } = input;
-  const refundState = deriveSharedRefundState(donation);
+  const refundState = deriveSharedRefundState({
+    amount: input.refundBasis?.originalAmountCents ?? donation.amount,
+    refund_amount: donation.refund_amount,
+  });
 
   return {
     donationId: donation.id,

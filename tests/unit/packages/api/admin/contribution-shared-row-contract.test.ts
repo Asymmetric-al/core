@@ -188,6 +188,30 @@ describe("admin/contribution-shared/row-contract", () => {
     expect(fullyRefundedStaleStatus.paymentStatus).toBe("refunded");
   });
 
+  it.each([
+    [7_500, 7_500, "partial_refund", "completed"],
+    [7_500, 8_000, "partial_refund", "completed"],
+    [15_000, 10_000, "refunded", "refunded"],
+    [7_500, 0, "none", "completed"],
+  ] as const)(
+    "uses the original charge for refund truth with corrected %i and refunded %i",
+    (amount, refunded, refundState, paymentStatus) => {
+      const row = buildSharedContributionRowFields({
+        donation: makeDonation({ amount, refund_amount: refunded }),
+        donor: null,
+        profile: null,
+        fund: null,
+        missionary: null,
+        stagedGift: null,
+        refundBasis: { originalAmountCents: 10_000 },
+      });
+      expect(row.refundState).toBe(refundState);
+      expect(row.paymentStatus).toBe(paymentStatus);
+      expect(row.amountCents).toBe(amount);
+      expect(row.refundedAmountCents).toBe(refunded);
+    },
+  );
+
   it("derives correction state from correction record statuses", () => {
     const base = {
       donation: makeDonation(),
