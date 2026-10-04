@@ -70,7 +70,7 @@ bun run ci:preflight
 2. `skills:verify`
 3. `verify:phase25-spec`
 4. `openspec:validate`
-5. `verify:openspec-deltas`
+5. `verify:openspec-deltas` (includes `verify:phase24-authority`)
 6. `lint`
 7. `verify:data-boundary`
 8. `verify:cms-public-sole-entry`
@@ -197,7 +197,7 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 - _What it checks:_ Runs `bun run skills:verify` (skill mirrors),
   `bun run verify:phase25-spec`, `bun run openspec:validate`, and
-  `bun run verify:openspec-deltas`.
+  `bun run verify:openspec-deltas` (including the read-only Phase 24 authority validator).
 - _Why it exists:_ Prevents mirror and specification drift under its own check
   name. `ci-gate` requires it alongside format, lint, typecheck, build, and unit
   tests.
