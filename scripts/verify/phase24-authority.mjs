@@ -428,8 +428,12 @@ export function validatePhase24(root) {
   }
   const logHeadings = [...logText.matchAll(/^## (D\d+) [—-]/gm)];
   const logIds = logHeadings.map((match) => match[1]);
-  // The scope-reset checkpoint preserves D19-D55 as cross-phase research
-  // between the original D18 chain and resumed D57 launch decisions.
+  // The scope-reset checkpoint preserves one declaration per D19-D55 ID as
+  // cross-phase research, not launch authority. Bound archive identity and
+  // location without freezing the historical prose or interpreting its intent.
+  const historicalIds = new Set(
+    Array.from({ length: 37 }, (_, index) => `D${index + 19}`),
+  );
   const historyStart =
     logHeadings.find((match) => match[1] === "D18")?.index ?? -1;
   const historyEnd =
@@ -438,12 +442,10 @@ export function validatePhase24(root) {
     logText.includes("D19–D38 remain preserved") &&
     logText.includes("D39–D55 remain preserved");
   for (const match of logHeadings) {
-    const number = Number(match[1].slice(1));
     const historical =
       preservedHistory &&
-      number >= 19 &&
-      number <= 55 &&
-      match[1] === `D${number}` &&
+      historicalIds.has(match[1]) &&
+      logIds.filter((id) => id === match[1]).length === 1 &&
       match.index > historyStart &&
       match.index < historyEnd;
     if (!decisions.includes(match[1]) && !historical)

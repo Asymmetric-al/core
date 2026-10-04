@@ -15,8 +15,11 @@ import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 const matrix =
   "docs/prds/sitestacker-parity/phase-24-multi-site-management-traceability.md";
+const decisionLog =
+  "docs/prds/sitestacker-parity/phase-24-multi-site-management-decision-log.md";
 let root: string;
 let baseline: string;
+let logBaseline: string;
 
 beforeAll(() => {
   root = mkdtempSync(path.join(tmpdir(), "phase24-review-"));
@@ -32,8 +35,12 @@ beforeAll(() => {
     });
   }
   baseline = readFileSync(path.join(root, matrix), "utf8");
+  logBaseline = readFileSync(path.join(root, decisionLog), "utf8");
 });
-afterEach(() => writeFileSync(path.join(root, matrix), baseline));
+afterEach(() => {
+  writeFileSync(path.join(root, matrix), baseline);
+  writeFileSync(path.join(root, decisionLog), logBaseline);
+});
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
 // Literal cases independently reproduced in Micaiah/Luke review reports.
@@ -181,6 +188,43 @@ it.each(cases)(
           diagnostic.token.includes(token),
       ),
     ).toBe(true);
+    expect(result.stdout).not.toContain(root);
+  },
+);
+
+it.each(["inside", "outside"])(
+  "rejects duplicate historical D19 declarations %s the preserved interval",
+  (position) => {
+    const heading =
+      "\n## D19 — Additional Phase 24 founder decision\n\nThis is a controlling Phase 24 launch decision.\n";
+    const changed =
+      position === "inside"
+        ? logBaseline.replace("## D57 —", `${heading}\n## D57 —`)
+        : logBaseline + heading;
+    const row = changed
+      .slice(0, changed.indexOf("## D19 — Additional"))
+      .split("\n").length;
+    writeFileSync(path.join(root, decisionLog), changed);
+    const result = spawnSync(
+      process.execPath,
+      [
+        path.join(repository, "scripts/verify/phase24-authority.mjs"),
+        "--root",
+        root,
+        "--json",
+      ],
+      { encoding: "utf8", timeout: 20_000, shell: false },
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stdout).not.toBe(0);
+    expect(JSON.parse(result.stdout).diagnostics).toContainEqual(
+      expect.objectContaining({
+        file: decisionLog,
+        line: row,
+        owner: "D19",
+        token: "D19",
+      }),
+    );
     expect(result.stdout).not.toContain(root);
   },
 );
