@@ -1,10 +1,13 @@
 import { spawnSync } from "node:child_process";
 import {
+  chmodSync,
   cpSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -172,5 +175,74 @@ it.each(cases)(
     expect(result.stdout).not.toContain(root);
     expect(readFileSync(path.join(root, ".git/index"))).toEqual(indexBefore);
     expect(readFileSync(filename)).toEqual(bytesBefore);
+  },
+);
+
+it.skipIf(process.platform === "win32")(
+  "uses Git from the supplied PATH while excluding caller Git overrides and credentials",
+  () => {
+    const { root, sha } = checkout();
+    const actualGit = (process.env.PATH ?? "")
+      .split(path.delimiter)
+      .map((directory) => path.join(directory, "git"))
+      .find((filename) => existsSync(filename));
+    if (!actualGit)
+      throw new Error("The test requires the installed Git executable.");
+    const bin = mkdtempSync(path.join(tmpdir(), "phase24-git-transport-"));
+    roots.push(bin);
+    const marker = path.join(bin, "calls.jsonl");
+    const executable = path.join(bin, "git");
+    writeFileSync(
+      executable,
+      `#!${process.execPath}
+const {appendFileSync}=require("node:fs");
+const {spawnSync}=require("node:child_process");
+appendFileSync(${JSON.stringify(marker)},JSON.stringify({path:process.env.PATH,isolated:!process.env.GIT_DIR && !process.env.GIT_WORK_TREE && !process.env.STRIPE_SECRET_KEY})+"\\n");
+const result=spawnSync(${JSON.stringify(realpathSync(actualGit))},process.argv.slice(2),{env:process.env,stdio:"inherit",shell:false});
+process.exit(result.status ?? 1);
+`,
+    );
+    chmodSync(executable, 0o755);
+    const result = spawnSync(
+      process.execPath,
+      [
+        path.join(root, runner),
+        "--phase24-contract-check",
+        "--candidate-sha",
+        sha,
+      ],
+      {
+        cwd: root,
+        env: {
+          ...env,
+          PATH: bin,
+          GIT_DIR: path.join(bin, "unused-caller-git-dir"),
+          GIT_WORK_TREE: bin,
+          STRIPE_SECRET_KEY: "synthetic-transport-only-canary",
+        },
+        encoding: "utf8",
+        shell: false,
+        timeout: 20_000,
+        maxBuffer: 4 * 1024 * 1024,
+      },
+    );
+    expect(result.status, result.stderr || result.stdout).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      candidateSha: sha,
+      outcome: "passed",
+    });
+    expect(
+      existsSync(marker),
+      "The proof must use the Git executable selected by PATH.",
+    ).toBe(true);
+    const calls = readFileSync(marker, "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as { path: string; isolated: boolean });
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.every((call) => call.path === bin && call.isolated)).toBe(
+      true,
+    );
+    expect(result.stdout).not.toContain("synthetic-transport-only-canary");
   },
 );

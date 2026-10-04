@@ -426,7 +426,35 @@ export function validatePhase24(root) {
           );
     }
   }
-  const logIds = [...logText.matchAll(/^## (D\d+) [—-]/gm)].map((m) => m[1]);
+  const logHeadings = [...logText.matchAll(/^## (D\d+) [—-]/gm)];
+  const logIds = logHeadings.map((match) => match[1]);
+  // The scope-reset checkpoint preserves D19-D55 as cross-phase research
+  // between the original D18 chain and resumed D57 launch decisions.
+  const historyStart =
+    logHeadings.find((match) => match[1] === "D18")?.index ?? -1;
+  const historyEnd =
+    logHeadings.find((match) => match[1] === "D57")?.index ?? -1;
+  const preservedHistory =
+    logText.includes("D19–D38 remain preserved") &&
+    logText.includes("D39–D55 remain preserved");
+  for (const match of logHeadings) {
+    const number = Number(match[1].slice(1));
+    const historical =
+      preservedHistory &&
+      number >= 19 &&
+      number <= 55 &&
+      match[1] === `D${number}` &&
+      match.index > historyStart &&
+      match.index < historyEnd;
+    if (!decisions.includes(match[1]) && !historical)
+      add(
+        log,
+        logText.slice(0, match.index).split("\n").length,
+        match[1],
+        match[1],
+        "decision-log-out-of-scope",
+      );
+  }
   for (const id of decisions)
     if (logIds.filter((x) => x === id).length !== 1)
       add(log, 1, id, id, "decision-log-completeness");

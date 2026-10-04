@@ -9,9 +9,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, expect, it } from "vitest";
 
 const roots: string[] = [];
+const repository = fileURLToPath(new URL("../../../", import.meta.url));
+const cli = path.join(repository, "scripts/verify/phase24-authority.mjs");
 const catalog = "docs/prds/sitestacker-parity/phase-24-authority-contract.json";
 afterEach(() => {
   for (const root of roots.splice(0))
@@ -27,22 +30,36 @@ it("rejects duplicate JSON keys even when JSON.parse would preserve the approved
     "openspec/changes/add-multi-site-management",
   ]) {
     mkdirSync(path.dirname(path.join(root, relative)), { recursive: true });
-    cpSync(relative, path.join(root, relative), { recursive: true });
+    cpSync(path.join(repository, relative), path.join(root, relative), {
+      recursive: true,
+    });
   }
   const source = readFileSync(path.join(root, catalog), "utf8");
-  writeFileSync(
-    path.join(root, catalog),
-    source.replace(
-      '"schemaVersion": 1,',
-      '"schemaVersion": 1, "schemaVersion": 1,',
-    ),
+  const duplicated = source.replace(
+    '"schemaVersion": 1,',
+    '"schemaVersion": 1, "schemaVersion": 1,',
   );
-  const result = spawnSync(
-    process.execPath,
-    ["scripts/verify/phase24-authority.mjs", "--root", root, "--json"],
-    { encoding: "utf8" },
-  );
+  expect(duplicated).not.toBe(source);
+  expect(JSON.parse(duplicated)).toEqual(JSON.parse(source));
+  writeFileSync(path.join(root, catalog), duplicated);
+  const result = spawnSync(process.execPath, [cli, "--root", root, "--json"], {
+    cwd: root,
+    encoding: "utf8",
+    timeout: 20_000,
+    shell: false,
+  });
+  expect(result.error).toBeUndefined();
+  expect(result.signal).toBeNull();
   expect(result.status).not.toBe(0);
-  expect(result.stdout).toContain("schemaVersion");
-  expect(result.stdout).toContain(catalog);
+  const report = JSON.parse(result.stdout);
+  expect(report.outcome).toBe("invalid");
+  expect(report.diagnostics).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        code: "duplicate-json-key",
+        file: catalog,
+        token: "schemaVersion",
+      }),
+    ]),
+  );
 });

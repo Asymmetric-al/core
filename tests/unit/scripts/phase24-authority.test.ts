@@ -9,11 +9,8 @@ import {
   readFileSync,
   readdirSync,
   readlinkSync,
-  renameSync,
   rmSync,
-  statSync,
   symlinkSync,
-  utimesSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -27,6 +24,7 @@ const cli = path.join(repository, "scripts/verify/phase24-authority.mjs");
 const contracts = "docs/prds/sitestacker-parity";
 const matrix = `${contracts}/phase-24-multi-site-management-traceability.md`;
 const prd = `${contracts}/phase-24-multi-site-management.md`;
+const decisionLog = `${contracts}/phase-24-multi-site-management-decision-log.md`;
 const catalogPath = `${contracts}/phase-24-authority-contract.json`;
 const change = "openspec/changes/add-multi-site-management";
 const scratchDirectories: string[] = [];
@@ -317,6 +315,46 @@ describe("Phase 24 authority through the public read-only CLI", () => {
       token: "D56",
     });
     expectFailure(root, "D56", matrix, "D56");
+  });
+
+  it.each(["D56", "D85"])(
+    "rejects an additional normative %s decision-log heading with the matrix unchanged",
+    (decision) => {
+      const root = checkout();
+      edit(
+        root,
+        decisionLog,
+        (text) =>
+          `${text}\n## ${decision} — Additional Phase 24 founder decision\n\nThis is a controlling Phase 24 launch decision.\n`,
+      );
+      const result = expectFailure(root, decision, decisionLog, decision);
+      const report = JSON.parse(result.stdout) as {
+        diagnostics: Diagnostic[];
+      };
+      expect(report.diagnostics).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            file: decisionLog,
+            owner: decision,
+            token: decision,
+          }),
+        ]),
+      );
+    },
+  );
+
+  it("permits historical D56 prose without promoting it to decision authority", () => {
+    const root = checkout();
+    edit(
+      root,
+      decisionLog,
+      (text) =>
+        `${text}\nThe former D56 draft remains deferred cross-phase research, not a controlling Phase 24 decision.\n`,
+    );
+    const result = run(root);
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stdout || result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout).diagnostics).toEqual([]);
   });
 
   it("rejects an uncovered newly added OpenSpec requirement and scenario", () => {
@@ -697,49 +735,76 @@ describe("Phase 24 approved catalog and source snapshot obligations", () => {
     expectFailure(root, "implementation tickets", matrix, ticket);
   });
 
-  it("rejects input bytes replaced after an observed contract read", async () => {
+  it("rejects input bytes replaced after a real contract read and permits a clean retry", () => {
     const root = checkout();
     const filename = path.join(root, matrix);
     const original = readFileSync(filename, "utf8");
-    // Atime is an OS-observable read seam, not an implementation hook. Reset
-    // it after fixture construction so only the child validator can advance it.
-    utimesSync(filename, new Date(0), new Date(statSync(filename).mtimeMs));
-    let replaced = false;
     const replacement = `${filename}.fixture-replacement`;
+    const changed = `${original}\n<!-- concurrent fixture revision -->\n`;
+    const marker = path.join(root, "fixture-read-observed");
+    const preload = path.join(root, "fixture-filesystem-boundary.mjs");
+    writeFileSync(replacement, changed);
+    // Instrument only Node's public filesystem boundary in an isolated child.
+    // Real opens/reads still occur; the first completed target read atomically
+    // replaces real fixture bytes before returning its captured bytes. No
+    // validator import, private helper, fake result, timing or atime is used.
     writeFileSync(
-      replacement,
-      `${original}\n<!-- concurrent fixture revision -->\n`,
+      preload,
+      `import fs from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
+const open = fs.openSync;
+const read = fs.readFileSync;
+const close = fs.closeSync;
+const target = process.env.PHASE24_FIXTURE_TARGET;
+const descriptors = new Set();
+let replaced = false;
+fs.openSync = function (filename, ...args) {
+  const fd = open.call(this, filename, ...args);
+  if (String(filename) === target) descriptors.add(fd);
+  return fd;
+};
+fs.readFileSync = function (source, ...args) {
+  const bytes = read.call(this, source, ...args);
+  if (!replaced && (String(source) === target || descriptors.has(source))) {
+    replaced = true;
+    fs.renameSync(process.env.PHASE24_FIXTURE_REPLACEMENT, target);
+    fs.writeFileSync(process.env.PHASE24_FIXTURE_MARKER, "read-then-replaced");
+  }
+  return bytes;
+};
+fs.closeSync = function (fd) {
+  descriptors.delete(fd);
+  return close.call(this, fd);
+};
+syncBuiltinESMExports();
+`,
     );
-    const child = spawn(process.execPath, [cli, "--root", root, "--json"], {
-      cwd: root,
-      env: environment(),
-      stdio: ["ignore", "pipe", "pipe"],
-      shell: false,
-    });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk) => {
-      stdout += String(chunk);
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += String(chunk);
-    });
-    const timer = setInterval(() => {
-      if (!replaced && statSync(filename).atimeMs > 0) {
-        renameSync(replacement, filename);
-        replaced = true;
-      }
-    }, 1);
-    const status = await new Promise<number | null>((resolve, reject) => {
-      child.once("error", reject);
-      child.once("close", resolve);
-    }).finally(() => clearInterval(timer));
-    expect(
-      replaced,
-      "filesystem must expose the observed read before process exit",
-    ).toBe(true);
-    expect(status, stdout || stderr).not.toBe(0);
-    const report = JSON.parse(stdout) as { diagnostics: Diagnostic[] };
+    const result = spawnSync(
+      process.execPath,
+      ["--import", preload, cli, "--root", root, "--json"],
+      {
+        cwd: root,
+        env: environment({
+          PHASE24_FIXTURE_TARGET: filename,
+          PHASE24_FIXTURE_REPLACEMENT: replacement,
+          PHASE24_FIXTURE_MARKER: marker,
+        }),
+        encoding: "utf8",
+        timeout: 20_000,
+        maxBuffer: 4 * 1024 * 1024,
+        shell: false,
+      },
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.signal).toBeNull();
+    expect(readFileSync(marker, "utf8")).toBe("read-then-replaced");
+    expect(readFileSync(filename, "utf8")).toBe(changed);
+    expect(existsSync(replacement)).toBe(false);
+    expect(result.status, result.stdout || result.stderr).not.toBe(0);
+    const report = JSON.parse(result.stdout) as {
+      inputIdentity: string;
+      diagnostics: Diagnostic[];
+    };
     expect(report.diagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -750,6 +815,12 @@ describe("Phase 24 approved catalog and source snapshot obligations", () => {
       ]),
     );
     const retry = run(root);
+    expect(retry.error).toBeUndefined();
     expect(retry.status, retry.stdout || retry.stderr).toBe(0);
+    const recovery = JSON.parse(retry.stdout);
+    expect(recovery.diagnostics).toEqual([]);
+    expect(recovery.inputIdentity).not.toBe(report.inputIdentity);
+    expect(readFileSync(filename, "utf8")).toBe(changed);
+    expect(run(root).stdout).toBe(retry.stdout);
   });
 });

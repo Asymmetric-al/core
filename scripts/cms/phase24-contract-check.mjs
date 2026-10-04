@@ -51,6 +51,11 @@ function git(args, { bytes = false } = {}) {
       shell: false,
       // Git identity must not be redirected by caller Git configuration or credentials.
       env: {
+        // Preserve executable/OS transport only; Git overrides and credentials stay excluded.
+        ...(process.env.PATH === undefined ? {} : { PATH: process.env.PATH }),
+        ...(process.platform === "win32" && process.env.SystemRoot !== undefined
+          ? { SystemRoot: process.env.SystemRoot }
+          : {}),
         GIT_CONFIG_NOSYSTEM: "1",
         GIT_CONFIG_GLOBAL: process.platform === "win32" ? "NUL" : "/dev/null",
       },
