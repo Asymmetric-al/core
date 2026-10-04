@@ -85,6 +85,26 @@ jobs:
       - run: bun run verify:phase25-spec
       - run: bun run openspec:validate
       - run: bun run verify:openspec-deltas
+      - name: Check out the Phase 24 proof candidate
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: phase24-proof-head
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Capture Phase 24 repository proof
+        env:
+          PHASE24_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node phase24-proof-head/scripts/cms/run-local-e2e.mjs --phase24-contract-check --candidate-sha "$PHASE24_CANDIDATE_SHA" > "$RUNNER_TEMP/phase24-authority-manifest.json"
+      - name: Upload passing Phase 24 repository proof
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase24-authority-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase24-authority-manifest.json
+          if-no-files-found: error
+          retention-days: 14
 
   lint:
     runs-on: ubuntu-latest
