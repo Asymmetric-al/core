@@ -341,8 +341,16 @@ export function validateReport(report, policy) {
   }
   validateAssessments(report, projects);
   for (const project of APPLICATIONS) {
-    const categories = categoryScores(
-      report.findings.filter((finding) => finding.packageDir === project),
+    const findings = report.findings.filter(
+      (finding) => finding.packageDir === project,
+    );
+    const categories = categoryScores(findings);
+    requireCondition(
+      policy.applicationFloors[project] !== 100 ||
+        !findings.some(
+          (finding) => finding.status === "advisory" && finding.maxScore > 0,
+        ),
+      `${project} has an unresolved scored advisory at a 100 overall floor`,
     );
     requireCondition(
       policy.applicationFloors[project] !== 100 ||

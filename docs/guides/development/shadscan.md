@@ -31,7 +31,11 @@ all six category floors for each app. Categories are recomputed from the unchang
 raw assessments; a higher pooled or application score cannot compensate for a
 regressing category. Missing or unassessed categories fail even at a zero floor.
 A 100-point application or category floor requires every applicable scored point,
-not a percentage rounded to 100. Current floors capture the verified baseline;
+not a percentage rounded to 100. Activating an application's overall floor at
+100 also rejects unresolved advisories on rules with positive point values in
+any of its categories. An unassessed behavior cannot disappear from that final
+perfect-application claim. Existing raw category floors and zero-point advisories
+keep their current behavior. Current floors capture the verified baseline;
 they do not claim the 100/100 target has been reached.
 
 Library findings remain visible and reviewed;

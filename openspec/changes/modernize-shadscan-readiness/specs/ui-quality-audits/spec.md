@@ -33,6 +33,10 @@ using verified raw assessment percentages. An aggregate or application-level
 improvement SHALL NOT hide a category regression. Missing or unassessed categories
 SHALL fail even when their configured floor is zero. A 100-point application or
 category floor SHALL require every applicable scored point, not rounded totals.
+Activating an application's overall floor at 100 SHALL also reject unresolved
+advisory assessments for rules with positive point values in any of its
+categories. Existing raw category floors SHALL retain their current protection.
+Zero-point advisory results SHALL remain visible for separate verification.
 
 #### Scenario: A category regresses while the pooled score stays high
 
@@ -45,6 +49,13 @@ category floor SHALL require every applicable scored point, not rounded totals.
 - WHEN a protected application or category rounds to 100 without earning all points
 - THEN a 100-point floor fails
 - AND the unchanged assessment remains available for review
+
+#### Scenario: An unresolved behavior is excluded from a perfect score
+
+- WHEN an application's overall floor is activated at 100 and a score-bearing rule is advisory in any of its categories
+- THEN the perfect-score gate fails even if the remaining assessed rules earn 100
+- AND the unchanged advisory remains available for verification
+- AND current lower floors and zero-point advisories keep their existing behavior
 
 ### Requirement: Audit Classifications Preserve Evidence
 
