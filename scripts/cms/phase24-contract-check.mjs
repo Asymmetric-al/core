@@ -32,12 +32,21 @@ const scope = [
 ];
 const adverseScenario = "An unresolved P24-01 contract-check fixture scenario";
 
-function git(args) {
+function git(args, { bytes = false } = {}) {
   return execFileSync(
     "git",
-    ["--no-optional-locks", "-c", "core.fsmonitor=false", "-C", root, ...args],
+    [
+      "--no-optional-locks",
+      "--no-replace-objects",
+      "-c",
+      "core.fsmonitor=false",
+      "-C",
+      root,
+      ...args,
+    ],
     {
-      encoding: "utf8",
+      encoding: bytes ? null : "utf8",
+      maxBuffer: 4 * 1024 * 1024,
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
       // Git identity must not be redirected by caller Git configuration or credentials.
@@ -64,11 +73,18 @@ function ownedPath(relative) {
   return current;
 }
 
-function ownedFile(relative) {
-  return readFileSync(ownedPath(relative), {
-    encoding: "utf8",
+function ownedBytes(relative) {
+  const filename = ownedPath(relative);
+  const stat = lstatSync(filename);
+  if (!stat.isFile() || stat.size > 4 * 1024 * 1024)
+    throw new Error("proof-input-type-or-size");
+  return readFileSync(filename, {
     flag: constants.O_RDONLY | constants.O_NOFOLLOW,
   });
+}
+
+function ownedFile(relative) {
+  return ownedBytes(relative).toString("utf8");
 }
 
 export async function runPhase24ContractCheck(args, executedRunnerUrl) {
@@ -173,6 +189,94 @@ export async function runPhase24ContractCheck(args, executedRunnerUrl) {
       } catch {
         // Actual malformed contract diagnostics come from favorable validation.
       }
+      // Compare working bytes directly with immutable objects, not the index's
+      // stat cache. Both assume-unchanged and skip-worktree can conceal a diff.
+      const entries = new Map();
+      const tree = git([
+        "ls-tree",
+        "-r",
+        "-z",
+        sha,
+        "--",
+        ...executedCode,
+        base,
+        "docs/ai/document-authority.md",
+        change,
+        ...authorityPaths,
+      ]);
+      for (const entry of tree.split("\0").filter(Boolean)) {
+        const separator = entry.indexOf("\t"),
+          file = entry.slice(separator + 1);
+        if (
+          file.startsWith(`${base}/`) &&
+          !(
+            new RegExp(`^${base}/phase-24-.*\\.md$`).test(file) ||
+            file === `${base}/phase-24-authority-contract.json`
+          )
+        )
+          continue;
+        const [mode, type, object] = entry.slice(0, separator).split(" ");
+        entries.set(file, { mode, type, object });
+      }
+      const required = new Set([
+        ...executedCode,
+        `${base}/phase-24-authority-contract.json`,
+        "docs/ai/document-authority.md",
+        ...authorityPaths,
+        ...["proposal", "design", "tasks"].map(
+          (name) => `${change}/${name}.md`,
+        ),
+      ]);
+      for (const name of readdirSync(ownedPath(base)).sort())
+        if (/^phase-24-.*\.md$/.test(name)) required.add(`${base}/${name}`);
+      for (const capability of readdirSync(ownedPath(`${change}/specs`)).sort())
+        required.add(`${change}/specs/${capability}/spec.md`);
+      for (const file of [
+        ...new Set([...required, ...entries.keys()]),
+      ].sort()) {
+        const entry = entries.get(file);
+        if (!entry) {
+          fail(
+            file,
+            file,
+            "proof-input-not-committed",
+            "Commit this scoped proof input/code before capturing evidence for HEAD.",
+          );
+          continue;
+        }
+        if (
+          entry.type !== "blob" ||
+          !["100644", "100755"].includes(entry.mode)
+        ) {
+          fail(
+            file,
+            file,
+            "proof-input-object-type",
+            "Restore a repository-owned regular proof file in the tested commit.",
+          );
+          continue;
+        }
+        try {
+          const committed = git(["cat-file", "blob", entry.object], {
+            bytes: true,
+          });
+          if (!ownedBytes(file).equals(committed))
+            fail(
+              file,
+              file,
+              "proof-bytes-differ-from-head",
+              "Commit or restore the actual bytes of this proof input/code to match the asserted HEAD; index suppression flags do not establish provenance.",
+            );
+        } catch {
+          fail(
+            file,
+            file,
+            "proof-input-unavailable",
+            "Restore a readable scoped proof file and its immutable HEAD object before capturing evidence.",
+          );
+        }
+      }
+      // Retain staged/mode-change diagnostics; this diff is never the byte oracle.
       const dirty = git([
         "diff",
         "--no-ext-diff",
@@ -225,7 +329,7 @@ export async function runPhase24ContractCheck(args, executedRunnerUrl) {
         for (const name of readdirSync(ownedPath(base)).sort())
           if (/^phase-24-.*\.md$/.test(name)) files.add(`${base}/${name}`);
         for (const capability of readdirSync(
-          path.join(root, `${change}/specs`),
+          ownedPath(`${change}/specs`),
         ).sort())
           files.add(`${change}/specs/${capability}/spec.md`);
         const temporaryBase = realpathSync(tmpdir());
