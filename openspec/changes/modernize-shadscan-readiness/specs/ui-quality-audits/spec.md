@@ -67,6 +67,21 @@ material async feedback and validation errors SHALL expose usable relationships
 and announcements. Generic scanner feature preferences SHALL NOT override
 accepted theme, authorization, navigation or publication policy.
 
+#### Scenario: A signed-in donor or missionary searches workspace navigation
+
+- WHEN the workspace search control or guarded Cmd/Ctrl+K shortcut is activated
+- THEN one shared Base UI/base-maia palette searches existing permitted routes
+- AND selection navigates through the app router and dismissal restores focus
+- AND editing targets and other popup owners retain their shortcuts
+- AND public giving, checkout and login flows retain their navigation contracts
+
+#### Scenario: A donor signs out from a narrow viewport
+
+- WHEN the existing session helper is pending
+- THEN the named control remains disabled and exposes busy/status feedback
+- AND repeated activation starts no additional session operation
+- AND navigation controls retain their names and supported touch targets
+
 #### Scenario: A confirmed interaction defect is repaired
 
 - WHEN controls, forms, overlays or async states change

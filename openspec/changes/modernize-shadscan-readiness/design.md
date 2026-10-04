@@ -31,7 +31,14 @@ Support's command shortcut is local to its focused workspace. Mission Control's
 existing advertised global navigation search should navigate current permitted
 routes and have a guarded Cmd/Ctrl+K handler without taking over Support's local
 shortcut. Public donor and missionary flows do not receive a new global command
-menu purely for audit points. Private surfaces remain noindex; their missing
+menu purely for audit points. The owner's 2026-10-04 amendment adds useful
+palettes only to signed-in donor and missionary workspaces. Each shell mounts
+one shared navigation widget with its existing app-owned destinations; both
+platform shortcuts preserve editing and other popup ownership. Donor controls
+retain mobile names, supported Maia sizes and pending sign-out feedback until
+the existing session helper settles. Unsupported missionary notification and
+theme actions are hidden under the retained forced-light policy.
+Private surfaces remain noindex; their missing
 social-card findings are product-policy differences. Donor's declared sharing
 asset must actually resolve.
 

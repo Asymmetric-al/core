@@ -21,6 +21,8 @@ components, Base UI composition, and modern Next.js boundaries.
   keyboard/focus behavior, interactive composition, and missing public assets.
 - Restore meaningful Mission Control navigation search using existing permitted
   routes, preserving Support's focus-scoped shortcut.
+- Add owner-approved navigation palettes to signed-in donor and missionary
+  workspaces using shared Base UI/base-maia and existing app-owned routes.
 - Preserve forced-light themes, Base UI/base-maia, shared component ownership,
   global Next recovery, and authorization-blocked preview behavior.
 
