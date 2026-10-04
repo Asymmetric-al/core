@@ -1,0 +1,888 @@
+{
+  "schemaVersion": 1,
+  "contract": "phase24-authority-v1",
+  "proofs": [
+    {
+      "id": "A24-COPY",
+      "owners": ["D71", "US24-090", "US24-091"],
+      "validationKinds": ["deterministic", "manual"]
+    },
+    {
+      "id": "A24-DONOR",
+      "owners": ["D58"],
+      "validationKinds": ["deterministic", "manual"]
+    },
+    {
+      "id": "A24-PUBLIC",
+      "owners": ["D59", "US24-053", "US24-054", "US24-055", "US24-056"],
+      "validationKinds": ["deterministic", "manual"]
+    },
+    {
+      "id": "A24-STAFF",
+      "owners": [
+        "D3",
+        "D11",
+        "D17",
+        "D18",
+        "D60",
+        "D68",
+        "D78",
+        "D84",
+        "US24-002",
+        "US24-003",
+        "US24-044",
+        "US24-045",
+        "US24-046",
+        "US24-059",
+        "US24-060",
+        "US24-083",
+        "US24-084",
+        "US24-092",
+        "US24-093",
+        "US24-120"
+      ],
+      "validationKinds": ["deterministic", "manual"]
+    },
+    {
+      "id": "A24-UX",
+      "owners": ["US24-105", "US24-106", "US24-107", "US24-108"],
+      "validationKinds": ["deterministic", "manual"]
+    },
+    {
+      "id": "C24-AMOUNTS",
+      "owners": ["D64", "US24-071", "US24-073", "US24-074", "US24-075"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-BOUNDARY",
+      "owners": ["US24-116"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-BRAND",
+      "owners": [
+        "D58",
+        "D59",
+        "US24-053",
+        "US24-054",
+        "US24-055",
+        "US24-056",
+        "US24-057",
+        "US24-058"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-COPY",
+      "owners": ["D5", "D69", "US24-006", "US24-085", "US24-086", "US24-087"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-COPYQUAL",
+      "owners": ["D70", "US24-088", "US24-089"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-DESCENDANT",
+      "owners": ["D83", "US24-100", "US24-101"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-DIGEST",
+      "owners": ["D79", "US24-094", "US24-095"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-DISPOSITION",
+      "owners": ["D71", "US24-090", "US24-091"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-DNS",
+      "owners": ["D75", "US24-027", "US24-028", "US24-029", "US24-030"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-DOMAIN",
+      "owners": [
+        "D72",
+        "D73",
+        "D74",
+        "US24-017",
+        "US24-018",
+        "US24-019",
+        "US24-020",
+        "US24-021",
+        "US24-022",
+        "US24-023",
+        "US24-024",
+        "US24-025",
+        "US24-026"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-DOMAINMOVE",
+      "owners": ["D76", "US24-031", "US24-032", "US24-033"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-GEN",
+      "owners": ["D6", "US24-007", "US24-008", "US24-114"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-GIVEADDR",
+      "owners": ["D10", "D11", "D12", "D14"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-HANDOFF",
+      "owners": ["D80", "D81", "US24-096", "US24-097", "US24-098"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-LOCALE",
+      "owners": ["D14", "US24-038"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-LOCALEPUB",
+      "owners": [
+        "D66",
+        "US24-036",
+        "US24-048",
+        "US24-049",
+        "US24-050",
+        "US24-051",
+        "US24-052"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-MANIFEST",
+      "owners": [
+        "D70",
+        "D77",
+        "US24-034",
+        "US24-035",
+        "US24-036",
+        "US24-037",
+        "US24-088",
+        "US24-089"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-MESSAGE",
+      "owners": ["D60", "US24-059", "US24-060"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-MONEY",
+      "owners": ["D2", "D61", "US24-061", "US24-062", "US24-063", "US24-115"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-ORDER",
+      "owners": ["D84", "US24-102", "US24-103"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-PAGE",
+      "owners": ["D78", "D79", "US24-092", "US24-093", "US24-094", "US24-095"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-PATHCLAIM",
+      "owners": ["D82", "US24-099"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-PLACEMENT",
+      "owners": ["D13"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-PLAN",
+      "owners": ["D17", "D18", "US24-044", "US24-045", "US24-046", "US24-047"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-PORTAL",
+      "owners": ["D57", "US24-057", "US24-058"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-PROVIDER",
+      "owners": ["US24-112"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-QUAL",
+      "owners": ["D62", "US24-064", "US24-065", "US24-066", "US24-067"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-ROOT",
+      "owners": ["D16", "US24-041", "US24-042", "US24-043"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-ROUTE",
+      "owners": [
+        "D9",
+        "D15",
+        "D77",
+        "US24-016",
+        "US24-034",
+        "US24-035",
+        "US24-037",
+        "US24-039",
+        "US24-040"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-SCHEDULE",
+      "owners": ["D65", "US24-076", "US24-077"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-SITE",
+      "owners": [
+        "D1",
+        "D3",
+        "D4",
+        "D7",
+        "D8",
+        "US24-001",
+        "US24-002",
+        "US24-003",
+        "US24-004",
+        "US24-005",
+        "US24-009",
+        "US24-010",
+        "US24-011",
+        "US24-012",
+        "US24-013",
+        "US24-014",
+        "US24-015"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-SOURCES",
+      "owners": ["D68", "US24-083", "US24-084"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-TRANS",
+      "owners": [
+        "D67",
+        "US24-052",
+        "US24-079",
+        "US24-080",
+        "US24-081",
+        "US24-082"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "C24-TRANSITION",
+      "owners": [
+        "D63",
+        "D65",
+        "US24-068",
+        "US24-069",
+        "US24-070",
+        "US24-071",
+        "US24-072",
+        "US24-078"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-CAS",
+      "owners": [
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "D11",
+        "D12",
+        "D13",
+        "D17",
+        "D63",
+        "D66",
+        "D67",
+        "D68",
+        "D69",
+        "D70",
+        "D73",
+        "D74",
+        "D76",
+        "D77",
+        "D78",
+        "D80",
+        "D83",
+        "D84",
+        "US24-009",
+        "US24-010",
+        "US24-011",
+        "US24-012",
+        "US24-078",
+        "US24-102",
+        "US24-103",
+        "US24-109",
+        "US24-110",
+        "US24-111"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-CLAIM",
+      "owners": [
+        "D10",
+        "D15",
+        "D72",
+        "D75",
+        "D82",
+        "US24-027",
+        "US24-028",
+        "US24-029",
+        "US24-030",
+        "US24-099"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-FAILPOINT",
+      "owners": ["D81", "US24-098"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-MONEY",
+      "owners": [
+        "D2",
+        "D61",
+        "D64",
+        "US24-073",
+        "US24-074",
+        "US24-075",
+        "US24-115"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-RETENTION",
+      "owners": ["D8", "US24-013", "US24-014", "US24-015"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-RLS",
+      "owners": ["US24-104", "US24-109", "US24-110", "US24-111"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-SCHEMA",
+      "owners": ["D18", "US24-047"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "DB24-SCOPE",
+      "owners": ["D1", "D9", "D60", "US24-109", "US24-110", "US24-111"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "L24-COPY",
+      "owners": ["D71"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "L24-PAGE",
+      "owners": ["D83", "US24-100", "US24-101"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "L24-PUBLIC",
+      "owners": ["US24-114"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "L24-ROOT",
+      "owners": ["D16"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "L24-SITE",
+      "owners": ["D7"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "M24-MIXED",
+      "owners": ["US24-117", "US24-118"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "M24-ROLLBACK",
+      "owners": ["US24-117", "US24-118"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "O24-AUDIT",
+      "owners": ["US24-113"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "O24-RECEIPT",
+      "owners": ["US24-120"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "O24-RECOVERY",
+      "owners": ["US24-113"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "P24-STRIPE",
+      "owners": [
+        "D2",
+        "D62",
+        "US24-064",
+        "US24-065",
+        "US24-066",
+        "US24-067",
+        "US24-112"
+      ],
+      "validationKinds": ["deterministic", "provider"]
+    },
+    {
+      "id": "P24-VERCEL",
+      "owners": [
+        "D57",
+        "D74",
+        "D75",
+        "US24-024",
+        "US24-025",
+        "US24-026",
+        "US24-112"
+      ],
+      "validationKinds": ["deterministic", "provider"]
+    },
+    {
+      "id": "S24-PRIVACY",
+      "owners": ["US24-104"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "T24-TRACE",
+      "owners": ["US24-119"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-AUTH",
+      "owners": ["D57", "D58", "US24-057", "US24-058"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-COPY",
+      "owners": ["D69", "US24-085", "US24-086", "US24-087"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-DOMAIN",
+      "owners": ["D76", "US24-031", "US24-032", "US24-033"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-DONOR",
+      "owners": [
+        "D61",
+        "D63",
+        "D64",
+        "D65",
+        "US24-061",
+        "US24-062",
+        "US24-063",
+        "US24-068",
+        "US24-069",
+        "US24-070",
+        "US24-072",
+        "US24-076",
+        "US24-077"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-GIVING",
+      "owners": ["D10", "D12", "D13"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-HOST",
+      "owners": ["D4", "US24-004", "US24-005"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-HTTP",
+      "owners": [
+        "D9",
+        "D15",
+        "D16",
+        "D72",
+        "D73",
+        "US24-016",
+        "US24-017",
+        "US24-018",
+        "US24-019",
+        "US24-020",
+        "US24-021",
+        "US24-022",
+        "US24-023",
+        "US24-039",
+        "US24-040",
+        "US24-041",
+        "US24-042",
+        "US24-043",
+        "US24-114"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-LOCALE",
+      "owners": [
+        "D14",
+        "D66",
+        "D67",
+        "US24-038",
+        "US24-048",
+        "US24-049",
+        "US24-050",
+        "US24-051",
+        "US24-079",
+        "US24-080",
+        "US24-081",
+        "US24-082"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-PAGE",
+      "owners": ["D79", "D80", "D81", "D82", "US24-096", "US24-097"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-RECOVERY",
+      "owners": ["US24-105", "US24-106", "US24-107", "US24-108"],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-SITE",
+      "owners": [
+        "D1",
+        "D5",
+        "D6",
+        "D7",
+        "D8",
+        "D59",
+        "US24-001",
+        "US24-006",
+        "US24-007",
+        "US24-008",
+        "US24-009",
+        "US24-010",
+        "US24-011",
+        "US24-012",
+        "US24-013",
+        "US24-014",
+        "US24-015"
+      ],
+      "validationKinds": ["deterministic"]
+    },
+    {
+      "id": "V24-STAFF",
+      "owners": ["D62"],
+      "validationKinds": ["deterministic"]
+    }
+  ],
+  "releases": [
+    {
+      "id": "EV24-ACCOUNT",
+      "owners": ["D57", "D58", "US24-057", "US24-058"]
+    },
+    {
+      "id": "EV24-ARCH",
+      "owners": ["US24-116"]
+    },
+    {
+      "id": "EV24-BRAND",
+      "owners": ["D59", "US24-053", "US24-054", "US24-055", "US24-056"]
+    },
+    {
+      "id": "EV24-COPY",
+      "owners": [
+        "D67",
+        "D68",
+        "D69",
+        "D70",
+        "D71",
+        "US24-052",
+        "US24-079",
+        "US24-080",
+        "US24-081",
+        "US24-082",
+        "US24-083",
+        "US24-084",
+        "US24-085",
+        "US24-086",
+        "US24-087",
+        "US24-088",
+        "US24-089",
+        "US24-090",
+        "US24-091"
+      ]
+    },
+    {
+      "id": "EV24-DBAUTH",
+      "owners": ["US24-104", "US24-109", "US24-110", "US24-111"]
+    },
+    {
+      "id": "EV24-DOMAIN",
+      "owners": [
+        "D72",
+        "D73",
+        "D74",
+        "D75",
+        "D76",
+        "D77",
+        "US24-017",
+        "US24-018",
+        "US24-019",
+        "US24-020",
+        "US24-021",
+        "US24-022",
+        "US24-023",
+        "US24-024",
+        "US24-025",
+        "US24-026",
+        "US24-027",
+        "US24-028",
+        "US24-029",
+        "US24-030",
+        "US24-031",
+        "US24-032",
+        "US24-033",
+        "US24-034",
+        "US24-035",
+        "US24-036",
+        "US24-037"
+      ]
+    },
+    {
+      "id": "EV24-GIVING",
+      "owners": ["D10", "D11", "D12", "D13"]
+    },
+    {
+      "id": "EV24-LOCALE",
+      "owners": [
+        "D14",
+        "D15",
+        "D16",
+        "D17",
+        "D18",
+        "D66",
+        "US24-036",
+        "US24-038",
+        "US24-039",
+        "US24-040",
+        "US24-041",
+        "US24-042",
+        "US24-043",
+        "US24-044",
+        "US24-045",
+        "US24-046",
+        "US24-047",
+        "US24-048",
+        "US24-049",
+        "US24-050",
+        "US24-051",
+        "US24-052"
+      ]
+    },
+    {
+      "id": "EV24-MESSAGES",
+      "owners": ["D60", "US24-059", "US24-060"]
+    },
+    {
+      "id": "EV24-OPS",
+      "owners": ["US24-113", "US24-120"]
+    },
+    {
+      "id": "EV24-PAGE",
+      "owners": [
+        "D78",
+        "D79",
+        "D80",
+        "D81",
+        "D82",
+        "D83",
+        "D84",
+        "US24-092",
+        "US24-093",
+        "US24-094",
+        "US24-095",
+        "US24-096",
+        "US24-097",
+        "US24-098",
+        "US24-099",
+        "US24-100",
+        "US24-101",
+        "US24-102",
+        "US24-103"
+      ]
+    },
+    {
+      "id": "EV24-PAYMENTS",
+      "owners": [
+        "D2",
+        "D61",
+        "D62",
+        "D63",
+        "D64",
+        "D65",
+        "US24-061",
+        "US24-062",
+        "US24-063",
+        "US24-064",
+        "US24-065",
+        "US24-066",
+        "US24-067",
+        "US24-068",
+        "US24-069",
+        "US24-070",
+        "US24-071",
+        "US24-072",
+        "US24-073",
+        "US24-074",
+        "US24-075",
+        "US24-076",
+        "US24-077",
+        "US24-078",
+        "US24-115"
+      ]
+    },
+    {
+      "id": "EV24-PROVIDERS",
+      "owners": ["US24-112"]
+    },
+    {
+      "id": "EV24-ROLLOUT",
+      "owners": ["US24-117", "US24-118"]
+    },
+    {
+      "id": "EV24-ROUTING",
+      "owners": ["D9", "US24-016", "US24-114"]
+    },
+    {
+      "id": "EV24-SITE",
+      "owners": [
+        "D1",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "D8",
+        "US24-001",
+        "US24-002",
+        "US24-003",
+        "US24-004",
+        "US24-005",
+        "US24-006",
+        "US24-007",
+        "US24-008",
+        "US24-009",
+        "US24-010",
+        "US24-011",
+        "US24-012",
+        "US24-013",
+        "US24-014",
+        "US24-015"
+      ]
+    },
+    {
+      "id": "EV24-TRACE",
+      "owners": ["US24-119"]
+    },
+    {
+      "id": "EV24-UX",
+      "owners": ["US24-105", "US24-106", "US24-107", "US24-108"]
+    }
+  ],
+  "authorities": {
+    "ADR-0013": "docs/adr/0013-explicit-recurring-groups-and-compatible-billing-cohorts.md",
+    "ADR-0017": "docs/adr/0017-donor-anchored-civil-date-recurring-schedules.md",
+    "ADR-0061": "docs/adr/0061-local-currency-first-proof-gated-multicurrency.md",
+    "ADR-0185": "docs/adr/0185-tenant-owned-donor-portal-host.md",
+    "ADR-0186": "docs/adr/0186-complete-bounded-site-brand-versions.md",
+    "ADR-0187": "docs/adr/0187-proof-gated-independent-site-locale-publication.md",
+    "ADR-0188": "docs/adr/0188-retain-reviewed-translations-across-source-drift.md",
+    "ADR-0189": "docs/adr/0189-site-suggested-translation-sources-are-authoring-only.md",
+    "ADR-0190": "docs/adr/0190-two-head-copy-sources-and-immutable-draft-checkpoints.md",
+    "ADR-0191": "docs/adr/0191-revision-bound-copy-qualification-with-non-gating-source-findings.md",
+    "ADR-0192": "docs/adr/0192-qualified-copy-choices-with-visible-unavailable-source-list.md",
+    "ADR-0193": "docs/adr/0193-one-primary-site-domain-with-redirect-site-domains.md",
+    "ADR-0194": "docs/adr/0194-explicit-former-primary-website-disposition.md",
+    "ADR-0195": "docs/adr/0195-owner-cleared-tenant-domain-disconnection.md",
+    "ADR-0196": "docs/adr/0196-fresh-proof-clean-start-site-domain-claims.md",
+    "ADR-0197": "docs/adr/0197-prepared-same-tenant-site-domain-cutover.md",
+    "ADR-0198": "docs/adr/0198-critical-path-gated-exception-led-domain-move-route-review.md",
+    "ADR-0199": "docs/adr/0199-owner-qualified-exact-ordinary-page-succession.md",
+    "ADR-0200": "docs/adr/0200-stable-page-identity-with-purpose-continuity-versions.md",
+    "ADR-0201": "docs/adr/0201-material-purpose-changes-create-independent-pages.md",
+    "ADR-0202": "docs/adr/0202-atomic-material-page-handoffs-append-clean-source-revisions.md",
+    "ADR-0203": "docs/adr/0203-atomic-adoption-of-exact-draft-only-page-path-claims.md",
+    "ADR-0204": "docs/adr/0204-atomic-source-tree-draft-path-rederivation.md",
+    "ADR-0205": "docs/adr/0205-reviewed-sibling-placement-with-append-last-default.md",
+    "ADR-0030": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md"
+  },
+  "predecessors": [
+    {
+      "issue": 479,
+      "excludedClauses": [
+        "host and locale arrays on public.sites",
+        "cms.sites shared UUID authority",
+        "default-site fallback and provisioning authority"
+      ]
+    },
+    {
+      "issue": 480,
+      "allowedClauses": ["currency-aware integer minor-unit Money semantics"]
+    },
+    {
+      "issue": 482,
+      "excludedClauses": [
+        "public.sites primary_domain and alias_domains resolver authority"
+      ],
+      "allowedClauses": [
+        "unknown production host fails closed",
+        "no Payload import in Giving"
+      ]
+    },
+    {
+      "issue": 485,
+      "excludedClauses": ["mutable CMS Site FK and per-site slug ownership"]
+    },
+    {
+      "issue": 486,
+      "excludedClauses": ["mutable CMS edit-to-live branding authority"]
+    },
+    {
+      "issue": 487,
+      "excludedClauses": [
+        "read-only domain locale currency and gated Site management direction"
+      ]
+    }
+  ]
+}

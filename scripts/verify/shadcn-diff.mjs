@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { stripVTControlCharacters } from "node:util";
@@ -188,11 +188,61 @@ export function parseFileDiff(output, component, requestedPath, root) {
   return sourceHash(body);
 }
 
+function installedCliEntry(root) {
+  let manifest;
+  let packageDirectory;
+  let installed;
+  try {
+    manifest = JSON.parse(
+      readFileSync(path.join(root, "package.json"), "utf8"),
+    );
+    packageDirectory = realpathSync(path.join(root, "node_modules/shadcn"));
+    installed = JSON.parse(
+      readFileSync(path.join(packageDirectory, "package.json"), "utf8"),
+    );
+  } catch {
+    throw new Error("Missing declared project-installed shadcn CLI");
+  }
+  requireCondition(
+    manifest.devDependencies?.shadcn === SHADCN_CLI_VERSION,
+    "Project must declare the exact pinned shadcn CLI version",
+  );
+  requireCondition(
+    installed.name === "shadcn" && installed.version === SHADCN_CLI_VERSION,
+    "Project-installed shadcn CLI version mismatch",
+  );
+  const bin =
+    typeof installed.bin === "string" ? installed.bin : installed.bin?.shadcn;
+  requireCondition(
+    typeof bin === "string" && bin.length > 0 && !path.isAbsolute(bin),
+    "Invalid project-installed shadcn CLI entry",
+  );
+  let entry;
+  try {
+    entry = realpathSync(path.join(packageDirectory, bin));
+    const relative = path.relative(packageDirectory, entry);
+    requireCondition(
+      relative !== ".." &&
+        !relative.startsWith(`..${path.sep}`) &&
+        !path.isAbsolute(relative) &&
+        statSync(entry).isFile(),
+      "Invalid project-installed shadcn CLI entry",
+    );
+  } catch {
+    throw new Error("Invalid project-installed shadcn CLI entry");
+  }
+  return entry;
+}
+
 export function createCliRunner({
   cwd,
+  root = fileURLToPath(new URL("../..", import.meta.url)),
   command = "bun",
-  prefix = ["x", "--bun", `shadcn@${SHADCN_CLI_VERSION}`],
+  prefix,
 }) {
+  // Execute the frozen project dependency; parallel registry reads must not
+  // race a package installer or depend on an undeclared global/cache CLI.
+  const cliPrefix = prefix ?? [installedCliEntry(root)];
   const environment = Object.fromEntries(
     [
       "PATH",
@@ -217,7 +267,7 @@ export function createCliRunner({
   environment.COLUMNS = "80";
   return (args) =>
     new Promise((resolve, reject) => {
-      const child = spawn(command, [...prefix, ...args], {
+      const child = spawn(command, [...cliPrefix, ...args], {
         cwd,
         env: environment,
         shell: false,
@@ -358,7 +408,7 @@ function verifyReviewProofs(root, baseline) {
 export async function runUpstreamReview({
   root,
   baseline,
-  runCli = createCliRunner({ cwd: path.join(root, UI_DIRECTORY) }),
+  runCli = createCliRunner({ root, cwd: path.join(root, UI_DIRECTORY) }),
 }) {
   requireCondition(
     baseline?.schemaVersion === 2 && baseline.cliVersion === SHADCN_CLI_VERSION,

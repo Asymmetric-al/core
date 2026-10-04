@@ -164,7 +164,8 @@
     "prepare": "husky",
     "postinstall": "node scripts/dedupe-tanstack-db.mjs && node scripts/repair-workspace-links.mjs",
     "verify:phase25-spec": "bun docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs",
-    "verify:openspec-deltas": "node scripts/verify/openspec-delta-compatibility.mjs",
+    "verify:phase24-authority": "node scripts/verify/phase24-authority.mjs",
+    "verify:openspec-deltas": "node scripts/verify/openspec-delta-compatibility.mjs && bun run verify:phase24-authority",
     "verify:program-roadmap": "python3 docs/prds/program-roadmap/tools/render-phases.py --check && python3 docs/prds/program-roadmap/tools/verify.py && python3 docs/prds/program-roadmap/tools/verify-extensions.py && python3 docs/prds/workflow-studio/tools/render.py --check && python3 docs/prds/workflow-studio/tools/verify.py && node docs/prds/web-studio-hybrid/tools/verify-package.mjs"
   },
   "dependencies": {
@@ -226,6 +227,7 @@
     "playwright-core": "1.59.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "shadcn": "4.21.1",
     "sonner": "^2.0.7",
     "tailwindcss": "^4",
     "turbo": "2.10.0",
