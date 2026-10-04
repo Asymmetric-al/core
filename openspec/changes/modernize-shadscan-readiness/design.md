@@ -16,6 +16,14 @@ classification is rejected or becomes unreviewed. A whole rule cannot be exempte
 because its first reported example is a false positive; rescans after repairs and
 targeted behavior tests cover the next visible examples.
 
+Policy schema 2 requires all six category floors for each app. The gate derives
+app categories from the validated raw assessments, preserving official weights
+and rounding for baseline floors. Missing or wholly unassessed app categories
+fail even at a zero floor. A 100-point category or overall app floor requires
+all applicable scored points; an integer rounded to 100 is insufficient. The
+schema migration preserves the current 43/59/47 overall floors and all verified
+category percentages. It does not upgrade the engine or assert a perfect audit.
+
 ## Product decisions
 
 All three apps intentionally force light. Do not add theme-toggle shortcuts.

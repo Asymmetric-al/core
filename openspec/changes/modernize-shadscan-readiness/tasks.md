@@ -50,3 +50,19 @@ checks that have not run when the commit is prepared.
 - [x] 4.14 Validate the complete cited modern CLI review-proof content inventory, including changed and omitted proof rejection.
 
 Task 4.9 records the final publication and exact-head CI/preview readback on the PR. Local full builds and retained browser suites qualify the implementation; they do not substitute for that future provider evidence.
+
+## 5. Genuine 100/100 execution
+
+- [x] 5.1 Add mandatory per-app category floors with RED/GREEN coverage for incomplete protection, hidden category regressions, unassessed areas and rounded perfect scores; preserve raw reports and current floors.
+- [ ] 5.2 Independently review the category gate, reconcile affected proofs, validate OpenSpec and run the full applicable local/provider gates.
+- [ ] 5.3 Add useful navigation command palettes only to signed-in donor/missionary workspaces with Base UI/base-maia and existing permitted navigation.
+- [ ] 5.4 Prove and repair donor mobile control names and actual sign-out pending feedback without changing authentication effects.
+- [ ] 5.5 Prepare secret-free positive/negative upstream fixtures for detector gaps and the retained forced-light/private/preview/redirect contracts.
+- [ ] 5.6 Complete concrete route/state/role/environment coverage and repair confirmed advisory, token and diagnostic defects in bounded batches.
+- [ ] 5.7 Adopt a compatible official released scanner, reconcile its complete findings and require genuine 100 in every app/category before raising every floor to 100.
+- [ ] 5.8 Verify exact-head CI, previews, review closure and approved production revision before declaring the complete goal achieved.
+
+The owner approved official scanner scores, forced light and useful signed-in
+donor/missionary palettes on 2026-10-04. Palette implementation supersedes the
+earlier omission only for these authenticated workspaces. Private metadata,
+blocked CMS preview, public giving and authorization contracts remain intact.

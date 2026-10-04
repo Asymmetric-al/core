@@ -1,0 +1,112 @@
+import { RULE_CATALOG } from "@shadscan/cli";
+import { describe, expect, it, vi } from "vitest";
+
+import { validateReport } from "../../../scripts/verify/shadscan-policy.mjs";
+
+// Exercise the SDK boundary with a larger catalog: one missing point can round
+// back to 100. The gate must remain exact if an official catalog grows.
+vi.mock("@shadscan/cli", () => ({
+  RULE_CATALOG: [
+    { id: "foundation-major", category: "foundation", maxScore: 1000 },
+    { id: "foundation-minor", category: "foundation", maxScore: 1 },
+    ...[
+      "interaction",
+      "states",
+      "accessibility",
+      "forms",
+      "production-polish",
+    ].map((category) => ({ id: category, category, maxScore: 1 })),
+  ].map((rule) => ({ ...rule, adapters: ["core"] })),
+}));
+
+function roundedReportFixture() {
+  const applications = ["apps/admin", "apps/donor", "apps/missionary"];
+  const categories = [
+    "foundation",
+    "interaction",
+    "states",
+    "accessibility",
+    "forms",
+    "production-polish",
+  ];
+  const report = {
+    engineVersion: "0.17.0",
+    rulesetVersion: "2026.08.46",
+    schemaVersion: 9,
+    score: 100,
+    coverage: { source: "complete" },
+    scope: { categories },
+    categories: categories.map((id) => {
+      const weight = ["forms", "production-polish"].includes(id) ? 10 : 20;
+      return {
+        id,
+        applicable: true,
+        weight,
+        maxScore: weight,
+        percentage: 100,
+        score: id === "foundation" ? (3002 / 3003) * 20 : weight,
+      };
+    }),
+    findings: applications.flatMap((packageDir) =>
+      RULE_CATALOG.map((rule) => {
+        const failed =
+          packageDir === "apps/admin" && rule.id === "foundation-minor";
+        return {
+          id: rule.id,
+          category: rule.category,
+          packageDir,
+          status: failed ? "fail" : "pass",
+          maxScore: rule.maxScore,
+          score: failed ? 0 : rule.maxScore,
+          impactsScore: true,
+          evidence: [],
+        };
+      }),
+    ),
+    workspace: {
+      applicationCount: 3,
+      truncated: 0,
+      skipped: [],
+      projects: applications.map((packageDir) => ({
+        packageDir,
+        kind: "application",
+        poolsIntoScore: true,
+        score: 100,
+      })),
+    },
+  };
+  const policy = {
+    schemaVersion: 2,
+    engineVersion: "0.17.0",
+    rulesetVersion: "2026.08.46",
+    reportSchemaVersion: 9,
+    applicationFloors: Object.fromEntries(applications.map((app) => [app, 0])),
+    applicationCategoryFloors: Object.fromEntries(
+      applications.map((app) => [
+        app,
+        Object.fromEntries(categories.map((id) => [id, 0])),
+      ]),
+    ),
+  };
+  return { report, policy };
+}
+
+describe("Shadscan genuine perfect-score gate", () => {
+  it("rejects a scored failure even when every reported percentage rounds to 100", () => {
+    const { report, policy } = roundedReportFixture();
+    expect(validateReport(report, policy)).toBe(report);
+    policy.applicationCategoryFloors["apps/admin"]!.foundation = 100;
+    expect(() => validateReport(report, policy)).toThrow(
+      /apps\/admin.*foundation.*every scored point/,
+    );
+  });
+
+  it("requires every scored point when an application's overall floor is 100", () => {
+    const { report, policy } = roundedReportFixture();
+    expect(validateReport(report, policy)).toBe(report);
+    policy.applicationFloors["apps/admin"] = 100;
+    expect(() => validateReport(report, policy)).toThrow(
+      /apps\/admin.*every scored point/,
+    );
+  });
+});
