@@ -83,7 +83,7 @@ test.describe("@cms Web Studio native shell", () => {
     }
   });
 
-  test("staff can save a draft from a populated native collection", async ({
+  test("staff edits persist as a private draft through native autosave", async ({
     page,
   }) => {
     test.setTimeout(150_000);
@@ -128,8 +128,19 @@ test.describe("@cms Web Studio native shell", () => {
       );
       const title = page.getByRole("textbox", { name: /^Title/ }).first();
       await expect(title).toHaveValue("Native draft check");
+      const saveDraft = page.getByRole("button", { name: /^Save Draft$/i });
+      await expect(saveDraft).toBeVisible();
       await title.fill("Native draft check saved");
-      await page.getByRole("button", { name: /^Save Draft$/i }).click();
+      const documentState = page.getByRole("region", {
+        name: "Document state",
+      });
+      await expect(
+        documentState.getByText("Autosaved draft", { exact: true }),
+      ).toBeVisible();
+      await expect(saveDraft).toBeDisabled();
+      await expect(
+        documentState.getByText("Private draft", { exact: true }),
+      ).toBeVisible();
       await expect
         .poll(
           async () => {
