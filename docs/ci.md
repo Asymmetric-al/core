@@ -201,6 +201,20 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 - _Why it exists:_ Prevents mirror and specification drift under its own check
   name. `ci-gate` requires it alongside format, lint, typecheck, build, and unit
   tests.
+- _Phase 24 proof:_ Preserve the normal merge-ref integrity checks, then check
+  out the exact PR head (or push/workflow SHA) separately at `phase24-proof-head`
+  with persisted credentials disabled. Node runs
+  `scripts/cms/run-local-e2e.mjs --phase24-contract-check --candidate-sha <actual SHA>`
+  from that checkout without installing dependencies there. The mode selects
+  repository-only proof before runtime/environment imports and binds actual Git
+  HEAD plus contract input identity; dirty tracked proof/code or a mismatched SHA
+  fails the job. Capture stdout in the runner temporary directory outside both
+  checkouts and upload the manifest only after success. Its favorable, adverse,
+  retry and recovery evidence proves P24-01 repository graph closure with
+  `runtimeProof: false`, under acceptance revision `p24-01-v2`; the broader strict
+  HTTP runner retains its separate role. Local capture requires committed clean
+  proof sources, and the SHA option asserts the executed checkout rather than
+  assigning a caller-provided label.
 - _Debug locally:_ Run the failing integrity command directly. Intentional
   skill changes use `bun run skills:sync` before `bun run skills:verify`.
 
