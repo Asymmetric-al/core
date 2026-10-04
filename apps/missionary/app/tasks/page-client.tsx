@@ -266,6 +266,8 @@ function TasksPageActions({
     <div className="flex items-center gap-3">
       <div className="flex bg-zinc-100 p-1 rounded-xl border border-zinc-200 mr-2">
         <Button
+          aria-label="Board view"
+          aria-pressed={viewMode === "board"}
           variant={viewMode === "board" ? "secondary" : "ghost"}
           size="icon"
           className={cn(
@@ -277,6 +279,8 @@ function TasksPageActions({
           <LayoutGrid className="size-4" />
         </Button>
         <Button
+          aria-label="List view"
+          aria-pressed={viewMode === "list"}
           variant={viewMode === "list" ? "secondary" : "ghost"}
           size="icon"
           className={cn(
@@ -291,6 +295,7 @@ function TasksPageActions({
       <Button
         variant="outline"
         size="sm"
+        aria-label="Refresh tasks"
         onClick={refresh}
         className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-colors duration-200"
       >
