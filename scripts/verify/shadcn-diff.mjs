@@ -190,8 +190,8 @@ export function parseFileDiff(output, component, requestedPath, root) {
 
 export function createCliRunner({
   cwd,
-  command = "bun",
-  prefix = ["x", "--bun", `shadcn@${SHADCN_CLI_VERSION}`],
+  command = process.execPath,
+  prefix = [fileURLToPath(import.meta.resolve("shadcn"))],
 }) {
   const environment = Object.fromEntries(
     [
