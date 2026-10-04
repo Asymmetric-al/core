@@ -19,6 +19,109 @@ const log = `${base}phase-24-multi-site-management-decision-log.md`;
 const catalogPath = `${base}phase-24-authority-contract.json`;
 const change = "openspec/changes/add-multi-site-management/";
 // Approved semantic catalog identity: intentional contract amendments update both files.
+// Founder-approved authority members, preserved from the ratified decision matrix.
+// Compatible predecessor clauses may supplement these members, never replace them.
+const approvedDecisionAuthorities = {
+  D1: ["decision log D1"],
+  D2: ["decision log D2"],
+  D3: ["decision log D3"],
+  D4: ["decision log D4"],
+  D5: ["decision log D5"],
+  D6: ["decision log D6"],
+  D7: ["phase-24-d7-site-serving-and-giving-admission-adversarial-review.md"],
+  D8: ["phase-24-d8-site-retirement-adversarial-review.md"],
+  D9: ["phase-24-d9-retired-address-disposition-adversarial-review.md"],
+  D10: ["phase-24-d10-issued-giving-address-reservation-adversarial-review.md"],
+  D11: ["phase-24-d11-human-readable-giving-slug-adversarial-review.md"],
+  D12: ["phase-24-d12-direct-giving-address-continuity-adversarial-review.md"],
+  D13: [
+    "phase-24-d13-authorized-giving-placement-convergence-adversarial-review.md",
+  ],
+  D14: ["phase-24-d14-independent-locale-giving-address-adversarial-review.md"],
+  D15: ["phase-24-d15-explicit-site-locale-public-base-adversarial-review.md"],
+  D16: ["phase-24-d16-locale-neutral-site-root-adversarial-review.md"],
+  D17: ["phase-24-d17-private-default-site-locale-plan-adversarial-review.md"],
+  D18: ["phase-24-d18-undated-default-site-locale-plan-adversarial-review.md"],
+  D57: ["ADR-0185", "decision log D57"],
+  D58: ["ADR-0185", "decision log D58"],
+  D59: ["ADR-0186", "decision log D59"],
+  D60: ["ADR-0030", "decision log D60"],
+  D61: ["ADR-0061", "decision log D61"],
+  D62: ["ADR-0061", "decision log D62"],
+  D63: ["ADR-0061", "decision log D63"],
+  D64: ["ADR-0061", "decision log D64"],
+  D65: ["ADR-0013", "ADR-0017", "decision log D65"],
+  D66: ["ADR-0187", "decision log D66"],
+  D67: [
+    "ADR-0188",
+    "phase-24-d67-two-lane-source-governed-disposition-adversarial-review.md",
+  ],
+  D68: [
+    "ADR-0189",
+    "phase-24-d68-suggested-translation-sources-adversarial-review.md",
+  ],
+  D69: ["ADR-0190", "phase-24-d69-two-head-copy-sources-adversarial-review.md"],
+  D70: [
+    "ADR-0191",
+    "phase-24-d70-revision-bound-copy-qualification-adversarial-review.md",
+  ],
+  D71: [
+    "ADR-0192",
+    "phase-24-d71-qualified-choices-visible-unavailable-list-adversarial-review.md",
+  ],
+  D72: [
+    "ADR-0193",
+    "phase-24-d72-primary-and-redirect-site-domains-adversarial-review.md",
+  ],
+  D73: [
+    "ADR-0194",
+    "phase-24-d73-explicit-former-primary-disposition-adversarial-review.md",
+  ],
+  D74: [
+    "ADR-0195",
+    "phase-24-d74-owner-cleared-domain-disconnection-adversarial-review.md",
+  ],
+  D75: [
+    "ADR-0196",
+    "phase-24-d75-fresh-proof-clean-start-domain-claim-adversarial-review.md",
+  ],
+  D76: [
+    "ADR-0197",
+    "phase-24-d76-prepared-same-tenant-site-domain-cutover-adversarial-review.md",
+  ],
+  D77: [
+    "ADR-0198",
+    "phase-24-d77-critical-path-exception-led-domain-move-route-adversarial-review.md",
+  ],
+  D78: [
+    "ADR-0199",
+    "phase-24-d78-owner-qualified-ordinary-page-successor-adversarial-review.md",
+  ],
+  D79: [
+    "ADR-0200",
+    "phase-24-d79-stable-page-purpose-continuity-adversarial-review.md",
+  ],
+  D80: [
+    "ADR-0201",
+    "phase-24-d80-material-purpose-new-page-adversarial-review.md",
+  ],
+  D81: [
+    "ADR-0202",
+    "phase-24-d81-atomic-material-page-handoff-adversarial-review.md",
+  ],
+  D82: [
+    "ADR-0203",
+    "phase-24-d82-atomic-draft-path-adoption-adversarial-review.md",
+  ],
+  D83: [
+    "ADR-0204",
+    "phase-24-d83-source-tree-draft-path-rederivation-adversarial-review.md",
+  ],
+  D84: [
+    "ADR-0205",
+    "phase-24-d84-reviewed-sibling-placement-adversarial-review.md",
+  ],
+};
 const approvedPredecessors = [
   {
     issue: 479,
@@ -446,7 +549,8 @@ export function validatePhase24(root) {
       if (!c) fail(owner, "missing-cell", String(i));
     });
     if (owner.startsWith("US24-")) {
-      if (cells[1] !== "cross-cutting")
+      const expandedMembers = new Set();
+      if (cells[1] !== "cross-cutting") {
         for (const token of members(
           cells[1],
           /,\s*/,
@@ -455,34 +559,83 @@ export function validatePhase24(root) {
           owner,
           "decisions",
         )) {
-          const range = token.match(/^(D\d+)[–-](?:D)?(\d+)$/);
-          const expanded = range
-            ? Array.from(
-                {
-                  length:
-                    Number(range[2]) <= 84
-                      ? Math.max(
-                          0,
-                          Number(range[2]) - Number(range[1].slice(1)) + 1,
-                        )
-                      : 0,
-                },
-                (_, i) => `D${Number(range[1].slice(1)) + i}`,
-              )
-            : [token];
-          if (!expanded.length || expanded.some((d) => !decisions.includes(d)))
+          const range = token.match(/^(D[1-9]\d*)[–-](D?[1-9]\d*)$/);
+          let expanded = [token];
+          if (range) {
+            const first = range[1],
+              last = range[2].startsWith("D") ? range[2] : `D${range[2]}`;
+            if (
+              !decisions.includes(first) ||
+              !decisions.includes(last) ||
+              Number(last.slice(1)) < Number(first.slice(1))
+            )
+              expanded = [];
+            else
+              expanded = Array.from(
+                { length: Number(last.slice(1)) - Number(first.slice(1)) + 1 },
+                (_, i) => `D${Number(first.slice(1)) + i}`,
+              );
+          }
+          if (
+            !expanded.length ||
+            expanded.some((id) => !decisions.includes(id))
+          )
             fail(token, "decision-reference");
+          for (const id of expanded) {
+            if (expandedMembers.has(id))
+              fail(token, "decision-member-duplicate", "decisions");
+            expandedMembers.add(id);
+          }
         }
+      }
       if (cells[2] !== `User Stories #${Number(owner.slice(5))}`)
         fail(cells[2], "prd-locus");
     } else {
-      for (const m of cells[1].matchAll(
-        /(?:ADR-(\d{4})((?:\/\d{4})*)|decision log (D\d+)|([a-z0-9-]+\.md))/g,
+      if (
+        cells[2] !==
+          "Decision traceability and applicable implementation section" ||
+        !/^### Decision traceability$/m.test(prdText) ||
+        !/^## Implementation Decisions$/m.test(prdText)
+      )
+        fail(cells[2], "prd-locus");
+      const expected = approvedDecisionAuthorities[owner] ?? [];
+      const declared = new Set();
+      let predecessor;
+      for (const clause of members(
+        cells[1],
+        /;\s*|\s+and\s+/,
+        matrix,
+        loc,
+        owner,
+        "authorities",
       )) {
-        if (m[1])
-          for (const id of [m[1], ...m[2].split("/").filter(Boolean)]) {
+        const issue = clause.match(/^#(\d+)\s+(.+)$/);
+        if (issue) {
+          predecessor = Number(issue[1]);
+          const allowed =
+            approvedPredecessors.find((p) => p.issue === predecessor)
+              ?.allowedClauses ?? [];
+          if (!allowed.includes(issue[2]))
+            fail(`#${issue[1]}`, "predecessor-excluded");
+          continue;
+        }
+        if (
+          predecessor &&
+          approvedPredecessors
+            .find((p) => p.issue === predecessor)
+            ?.allowedClauses?.includes(clause)
+        )
+          continue;
+        predecessor = undefined;
+        const adr = clause.match(/^ADR-(\d{4})((?:\/\d{4})*)$/);
+        const logRef = clause.match(/^decision log (D\d+)$/);
+        if (adr) {
+          for (const id of [adr[1], ...adr[2].split("/").filter(Boolean)]) {
             const key = `ADR-${id}`,
               target = catalog.authorities?.[key];
+            if (declared.has(key)) fail(key, "authority-duplicate");
+            declared.add(key);
+            if (!expected.includes(key)) fail(key, "authority-owner");
             if (!target) fail(key, "authority-unknown");
             else {
               const authority = read(target, owner, key, matrix, loc);
@@ -505,35 +658,23 @@ export function validatePhase24(root) {
                 fail(key, "message-authority-content");
             }
           }
-        if (
-          m[3] &&
-          (!decisions.includes(m[3]) ||
-            m[3] !== owner ||
-            !new RegExp(`^## ${m[3]} [—-]`, "m").test(logText))
-        )
-          fail(m[3], "decision-authority");
-        if (m[4]) read(base + m[4], owner, m[4], matrix, loc);
+        } else if (logRef) {
+          declared.add(clause);
+          if (
+            !expected.includes(clause) ||
+            logRef[1] !== owner ||
+            !decisions.includes(logRef[1]) ||
+            !new RegExp(`^## ${logRef[1]} [—-]`, "m").test(logText)
+          )
+            fail(logRef[1], "decision-authority");
+        } else if (/^[a-z0-9-]+\.md$/.test(clause)) {
+          declared.add(clause);
+          if (!expected.includes(clause)) fail(clause, "authority-owner");
+          else read(base + clause, owner, clause, matrix, loc);
+        } else fail(clause, "authority-unknown");
       }
-      if (
-        !/ADR-|decision log|\.md/.test(cells[1]) &&
-        !/#480|#482.*(?:fail.closed|no Payload)/i.test(cells[1])
-      )
-        fail(cells[1], "authority-unknown");
-    }
-    // Compatibility applies to each exact declared clause, never the entire cell.
-    for (const m of cells[1].matchAll(/#(479|480|482|485|486|487)\b([^#]*)/g)) {
-      const allowed =
-        approvedPredecessors.find((p) => p.issue === Number(m[1]))
-          ?.allowedClauses ?? [];
-      const clauses = m[2]
-        .split(";")
-        .map((c) => c.trim())
-        .filter(Boolean);
-      if (
-        !clauses.length ||
-        clauses.some((clause) => !allowed.includes(clause))
-      )
-        fail(`#${m[1]}`, "predecessor-excluded");
+      for (const required of expected)
+        if (!declared.has(required)) fail(required, "authority-required");
     }
     const caps = members(cells[3], ";", matrix, loc, owner, "capabilities"),
       reqs = members(cells[4], ";", matrix, loc, owner, "requirements");
@@ -582,9 +723,13 @@ export function validatePhase24(root) {
     for (const proof of proofs.values())
       if (proof.owners.includes(owner) && !ids.includes(proof.id))
         fail(proof.id, "proof-obligation-missing");
-    for (const id of members(cells[9], ";", matrix, loc, owner, "releases"))
+    const releaseIds = members(cells[9], ";", matrix, loc, owner, "releases");
+    for (const id of releaseIds)
       if (!releases.get(id)?.owners.includes(owner))
         fail(id, "release-unknown-or-remapped");
+    for (const release of releases.values())
+      if (release.owners.includes(owner) && !releaseIds.includes(release.id))
+        fail(release.id, "release-obligation-missing");
   });
   for (const owner of [...decisions, ...stories])
     if (!seen.has(owner)) add(matrix, 1, owner, owner, "missing-owner");
