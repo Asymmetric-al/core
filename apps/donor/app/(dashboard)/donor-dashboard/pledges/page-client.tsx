@@ -231,7 +231,11 @@ export default function DonorPledgesPage() {
               disabled={billingPortal.isPending}
               className="mt-2"
             >
-              <ExternalLink className="mr-2 size-4" aria-hidden="true" />
+              <ExternalLink
+                className="mr-2 size-4"
+                aria-hidden="true"
+                data-icon="inline-start"
+              />
               Open billing portal
             </Button>
           </CardContent>

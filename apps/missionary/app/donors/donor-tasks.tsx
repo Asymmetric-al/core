@@ -168,7 +168,8 @@ export function DonorTasks({
           onSuccess={handleTaskSuccess}
           trigger={
             <Button ref={addTaskRef} size="sm">
-              <Plus className="mr-1.5 size-3.5" /> Add Task
+              <Plus className="mr-1.5 size-3.5" data-icon="inline-start" /> Add
+              Task
             </Button>
           }
         />

@@ -1282,7 +1282,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "4d17c21fb567b054feb5e1d7b6f6dd1c6683a0d0d4565c554726cda7d3eb432d"
+          "sha256": "a2a538e114e5104dce807a8086a96c241b7e49f5d384b1883a9afbf2ebfe80a9"
         },
         {
           "path": "packages/ui/components/shadcn/button.tsx",
