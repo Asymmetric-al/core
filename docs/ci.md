@@ -70,7 +70,7 @@ bun run ci:preflight
 2. `skills:verify`
 3. `verify:phase25-spec`
 4. `openspec:validate`
-5. `verify:openspec-deltas`
+5. `verify:openspec-deltas` (includes `verify:phase24-authority`)
 6. `lint`
 7. `verify:data-boundary`
 8. `verify:cms-public-sole-entry`
@@ -198,10 +198,24 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 - _What it checks:_ Runs `bun run skills:verify` (skill mirrors),
   `bun run verify:phase25-spec`, `bun run openspec:validate`, and
-  `bun run verify:openspec-deltas`.
+  `bun run verify:openspec-deltas` (including the read-only Phase 24 authority validator).
 - _Why it exists:_ Prevents mirror and specification drift under its own check
   name. `ci-gate` requires it alongside format, lint, typecheck, build, and unit
   tests.
+- _Phase 24 proof:_ Preserve the normal merge-ref integrity checks, then check
+  out the exact PR head (or push/workflow SHA) separately at `phase24-proof-head`
+  with persisted credentials disabled. Node runs
+  `scripts/cms/run-local-e2e.mjs --phase24-contract-check --candidate-sha <actual SHA>`
+  from that checkout without installing dependencies there. The mode selects
+  repository-only proof before runtime/environment imports and binds actual Git
+  HEAD plus contract input identity; dirty tracked proof/code or a mismatched SHA
+  fails the job. Capture stdout in the runner temporary directory outside both
+  checkouts and upload the manifest only after success. Its favorable, adverse,
+  retry and recovery evidence proves P24-01 repository graph closure with
+  `runtimeProof: false`, under acceptance revision `p24-01-v2`; the broader strict
+  HTTP runner retains its separate role. Local capture requires committed clean
+  proof sources, and the SHA option asserts the executed checkout rather than
+  assigning a caller-provided label.
 - _Debug locally:_ Run the failing integrity command directly. Intentional
   skill changes use `bun run skills:sync` before `bun run skills:verify`.
 
@@ -257,6 +271,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 ### `migrate`
 
 - _What it does:_ Spins up a fresh `postgres:15-alpine` container, runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
+- The SQL verifier requires the reviewed field-policy census after all forward migrations and before reporting success. Policy-flag drift, uncensused columns and census execution failures block the job. Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. Migration and unit-test jobs fetch full Git history so the census can verify its recorded source revision.
 - _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `bun run db:migrate:local` (applies migrations without seed) or `bun run seed:demo:local` (migrate + seed via helper script).
 

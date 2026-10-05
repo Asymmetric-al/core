@@ -15,6 +15,36 @@
 - The planned CI validator must reject a provider proof or implementation ticket that does not match its exact grammar, as well as any token that could make the namespaces overlap.
 - The planned CI validator must reject duplicate IDs, gaps, invalid paths/names/tasks, or normative rows without a test and release-evidence target.
 
+## Executable Authority Contract
+
+`phase-24-authority-contract.json` version 1 freezes the 73 exact proof IDs,
+18 release IDs, their decision/story owners, validation kinds, exact ADR paths,
+and clause-specific predecessor exclusions. ADR-0030 resolves to the canonical
+message document authority, never the two other ADRs with the same number.
+A24 proofs combine deterministic tracer checks and manual review. Provider proofs
+combine deterministic contracts and provider qualification. No manual-only proof
+can establish a story as Built. These declarations are obligations, not completed
+evidence. Catalog amendments require a deliberate catalog and validator identity
+update; unchanged IDs cannot silently acquire another owner or validation kind.
+
+Predecessor #479's Site host/locale arrays, shared-UUID CMS authority and default
+fallback clauses, #482's `public.sites` host-array resolver authority, #485's
+mutable CMS Site/slug authority, #486's mutable edit-to-live branding and #487's
+read-only/gated Site management direction are non-authoritative for Phase 24.
+#480's currency-aware integer minor-unit Money semantics and #482's fail-closed
+unknown-host and no-Payload Giving boundary remain compatible precedents. Mere
+historical mentions do not make an excluded clause a forward authority.
+
+Run `bun run verify:phase24-authority`, or use `--root <checkout> --json` for a
+complete disposable contract checkout. The validator reads scoped repository
+contracts only, rejects symlink inputs and paths outside the checkout, writes no
+files and uses no environment, provider or application data. JSON schema version
+1 includes the contract, input byte identity, outcome and diagnostics sorted by
+relative path, line, column, code and token. It rechecks captured file bytes and
+directory membership before returning; changed sources fail closed and can be
+retried without persistent state. A green result proves documentation closure
+only; the Release Closure Rule still governs Built, Live and Confirmed claims.
+
 ## Proof ID Catalog
 
 <!-- prettier-ignore -->
@@ -205,7 +235,7 @@ Release evidence IDs are `EV24-SITE`, `EV24-ROUTING`, `EV24-GIVING`, `EV24-LOCAL
 | US24-113 | cross-cutting | User Stories #113 | multi-site-management | Rollout And Operations Fail Closed | An old application writes after the schema transition; A post-public rollback is requested | Migration And Rollout | 12.6 | O24-AUDIT; O24-RECOVERY | EV24-OPS |
 | US24-114 | cross-cutting | User Stories #114 | multi-site-management | Public Reads Use Complete Immutable Generations | A cache entry belongs to another generation; Compact edge admission is exhausted | Public Read And Cache Design | 11.1, 11.2 | C24-GEN; V24-HTTP; L24-PUBLIC | EV24-ROUTING |
 | US24-115 | cross-cutting | User Stories #115 | multi-site-management; donation-lifecycle | Presentment Currency Is Qualified And Donor-Controlled; Presentment Currency Is Qualified Before Donor Choice And Payment | CAD is qualified only for one-time gifts; A donor's location is ambiguous; Qualification drifts after setup; Exact amount or payment method becomes ineligible; A donor overrides a local suggestion; Checkout proof no longer matches setup proof; A later amount or method is ineligible | Currency And Donor Gift-Intent UX | 9.1, 9.8 | C24-MONEY; DB24-MONEY | EV24-PAYMENTS |
-| US24-116 | cross-cutting | User Stories #116 | platform-boundaries | Site Context Never Owns Money Authorization Or Provider Truth | A Site changes its domain locale or brand; A provider reports success | Staff Information Architecture | 1.2, 2.1 | C24-BOUNDARY; C24-BOUNDARY | EV24-ARCH |
+| US24-116 | cross-cutting | User Stories #116 | platform-boundaries | Site Context Never Owns Money Authorization Or Provider Truth | A Site changes its domain locale or brand; A provider reports success | Staff Information Architecture | 1.2, 2.1 | C24-BOUNDARY | EV24-ARCH |
 | US24-117 | cross-cutting | User Stories #117 | multi-site-management | Rollout And Operations Fail Closed | An old application writes after the schema transition; A post-public rollback is requested | Migration And Rollout | 12.1, 12.2, 12.4 | M24-MIXED; M24-ROLLBACK | EV24-ROLLOUT |
 | US24-118 | cross-cutting | User Stories #118 | multi-site-management | Rollout And Operations Fail Closed | An old application writes after the schema transition; A post-public rollback is requested | Migration And Rollout | 12.1, 12.2, 12.4 | M24-MIXED; M24-ROLLBACK | EV24-ROLLOUT |
 | US24-119 | cross-cutting | User Stories #119 | multi-site-management | Rollout And Operations Fail Closed | An old application writes after the schema transition; A post-public rollback is requested | Migration And Rollout | 1.3, 12.7 | T24-TRACE | EV24-TRACE |
