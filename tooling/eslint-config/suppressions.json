@@ -1866,16 +1866,16 @@
   },
   "apps/donor/app/(public)/(hero)/faq/faq-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 3
     },
     "shadcn/no-inline-styles": {
       "count": 2
     },
     "shadcn/no-raw-colors": {
-      "count": 51
+      "count": 35
     },
     "shadcn/no-restyle": {
-      "count": 16
+      "count": 5
     }
   },
   "apps/donor/app/(public)/(hero)/financials/financials-client.tsx": {

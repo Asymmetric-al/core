@@ -155,6 +155,7 @@ await build({
         support: resolve(fixtureDirectory, "support.html"),
         workspace: resolve(fixtureDirectory, "workspace.html"),
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
+        faq: resolve(fixtureDirectory, "faq.html"),
       },
       onwarn(warning, warn) {
         // Every imported component runs in this client-only fixture. Rollup can
