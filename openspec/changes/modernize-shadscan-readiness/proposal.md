@@ -13,7 +13,8 @@ components, Base UI composition, and modern Next.js boundaries.
 
 - Use one exactly locked published scanner and shared gate for local and CI runs.
 - Require complete discovery of admin, donor, and missionary applications;
-  independently protect their raw score floors and retain raw library findings.
+  independently protect their raw score and six category floors and retain raw
+  library findings. A 100-point floor requires every applicable scored point.
 - Record narrowly verified scanner limitations and product-policy differences
   with executable evidence; do not rewrite raw statuses or scores.
 - Repair confirmed names, relationships, announcements, loading/pending feedback,

@@ -1,10 +1,13 @@
+import { AUDIT_CATEGORIES, RULE_CATALOG } from "@shadscan/cli";
 import { describe, expect, it } from "vitest";
-import { RULE_CATALOG } from "@shadscan/cli";
 
-import { validateReport } from "../../../scripts/verify/shadscan-policy.mjs";
+import {
+  validatePolicy,
+  validateReport,
+} from "../../../scripts/verify/shadscan-policy.mjs";
 
 const policy = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   engineVersion: "0.17.0",
   rulesetVersion: "2026.08.46",
   reportSchemaVersion: 9,
@@ -13,6 +16,12 @@ const policy = {
     "apps/donor": 41,
     "apps/missionary": 47,
   },
+  applicationCategoryFloors: Object.fromEntries(
+    ["apps/admin", "apps/donor", "apps/missionary"].map((project) => [
+      project,
+      Object.fromEntries(AUDIT_CATEGORIES.map((category) => [category, 0])),
+    ]),
+  ),
 };
 
 function completeReport() {
@@ -107,9 +116,103 @@ function completeReport() {
 }
 
 describe("Shadscan complete workspace gate", () => {
-  it("preserves the report and excludes low library scores from app floors", () => {
+  it("accepts a complete category policy without changing the raw report", () => {
     const report = completeReport();
     expect(validateReport(report, policy)).toBe(report);
+  });
+
+  it("accepts an actual perfect report at 100 in every app and category", () => {
+    const perfectPolicy = structuredClone(policy);
+    for (const project of Object.keys(perfectPolicy.applicationFloors)) {
+      Object.assign(perfectPolicy.applicationFloors, { [project]: 100 });
+      for (const category of AUDIT_CATEGORIES) {
+        perfectPolicy.applicationCategoryFloors[project]![category] = 100;
+      }
+    }
+    const report = completeReport();
+    expect(validateReport(report, perfectPolicy)).toBe(report);
+  });
+
+  it.each([-1, 1.5, Number.NaN, undefined, null, "100"])(
+    "rejects a category floor that is not an integer score: %s",
+    (foundation) => {
+      const invalidPolicy = {
+        ...policy,
+        applicationCategoryFloors: {
+          ...policy.applicationCategoryFloors,
+          "apps/admin": {
+            ...policy.applicationCategoryFloors["apps/admin"],
+            foundation,
+          },
+        },
+      };
+      expect(() => validatePolicy(invalidPolicy)).toThrow(
+        /apps\/admin.*invalid category floor.*foundation/,
+      );
+    },
+  );
+
+  it("requires category protection for every application", () => {
+    const incompletePolicy = structuredClone(policy);
+    delete incompletePolicy.applicationCategoryFloors["apps/missionary"];
+    expect(() => validatePolicy(incompletePolicy)).toThrow(
+      /category.*all three applications/,
+    );
+  });
+
+  it.each(["missing", "extra", "invalid"])(
+    "rejects %s category floors in a protected application",
+    (mutation) => {
+      const incompletePolicy = structuredClone(policy);
+      const floors = incompletePolicy.applicationCategoryFloors["apps/admin"]!;
+      if (mutation === "missing") delete floors.foundation;
+      if (mutation === "extra") floors.invented = 50;
+      if (mutation === "invalid") floors.foundation = 101;
+      expect(() => validatePolicy(incompletePolicy)).toThrow(
+        /apps\/admin.*category/,
+      );
+    },
+  );
+
+  it("rejects one category's regression despite a rounded pooled 100", () => {
+    const report = completeReport();
+    const favicon = report.findings.find(
+      (finding) =>
+        finding.packageDir === "apps/admin" && finding.id === "favicon-present",
+    )!;
+    expect(favicon.maxScore).toBe(2);
+    favicon.status = "fail";
+    favicon.score = 0;
+    // Foundation earns 25 of 27 points in admin, 79 of 81 across all apps.
+    // Its weighted scores still round to admin 99 and pooled 100.
+    report.workspace.projects[0]!.score = 99;
+    report.categories[0]!.percentage = 98;
+    report.categories[0]!.score = (79 / 81) * 20;
+    expect(validateReport(report, policy)).toBe(report);
+
+    const protectedPolicy = structuredClone(policy);
+    protectedPolicy.applicationCategoryFloors["apps/admin"]!.foundation = 95;
+    expect(() => validateReport(report, protectedPolicy)).toThrow(
+      /apps\/admin.*foundation.*93.*95/,
+    );
+  });
+
+  it("rejects an unassessed application category even with a zero floor", () => {
+    const report = completeReport();
+    for (const finding of report.findings) {
+      if (
+        finding.packageDir === "apps/admin" &&
+        finding.category === "foundation"
+      ) {
+        finding.status = "not-applicable";
+        finding.maxScore = 0;
+        finding.score = 0;
+        finding.impactsScore = false;
+      }
+    }
+    expect(() => validateReport(report, policy)).toThrow(
+      /apps\/admin.*foundation.*unassessed/,
+    );
   });
 
   it.each(["missing", "duplicate", "extra"])(

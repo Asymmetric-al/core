@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "engineVersion": "0.17.0",
   "rulesetVersion": "2026.08.46",
   "reportSchemaVersion": 9,
@@ -7,6 +7,32 @@
     "apps/admin": 43,
     "apps/donor": 59,
     "apps/missionary": 47
+  },
+  "applicationCategoryFloors": {
+    "apps/admin": {
+      "foundation": 72,
+      "interaction": 26,
+      "states": 25,
+      "accessibility": 40,
+      "forms": 33,
+      "production-polish": 71
+    },
+    "apps/donor": {
+      "foundation": 60,
+      "interaction": 13,
+      "states": 57,
+      "accessibility": 64,
+      "forms": 100,
+      "production-polish": 100
+    },
+    "apps/missionary": {
+      "foundation": 60,
+      "interaction": 26,
+      "states": 38,
+      "accessibility": 43,
+      "forms": 63,
+      "production-polish": 71
+    }
   },
   "libraryProjects": [
     ".",

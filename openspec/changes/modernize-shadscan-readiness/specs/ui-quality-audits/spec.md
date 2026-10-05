@@ -26,6 +26,26 @@ without explicit owner acceptance of that regression.
 - THEN the shared gate fails even if the pooled score passes
 - AND the report identifies the application, observed score and required floor
 
+### Requirement: Each Application Category Has An Independent Score Floor
+
+Core SHALL protect all six categories of each deployed application independently
+using verified raw assessment percentages. An aggregate or application-level
+improvement SHALL NOT hide a category regression. Missing or unassessed categories
+SHALL fail even when their configured floor is zero. A 100-point application or
+category floor SHALL require every applicable scored point, not rounded totals.
+
+#### Scenario: A category regresses while the pooled score stays high
+
+- WHEN an application's category percentage falls below its recorded floor
+- THEN the shared gate fails and identifies the application, category and floor
+- AND raw scores and findings remain unchanged
+
+#### Scenario: A rounded perfect score still contains a scored failure
+
+- WHEN a protected application or category rounds to 100 without earning all points
+- THEN a 100-point floor fails
+- AND the unchanged assessment remains available for review
+
 ### Requirement: Audit Classifications Preserve Evidence
 
 Core SHALL retain unmodified scanner statuses and scores. Scanner limitations

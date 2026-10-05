@@ -26,8 +26,15 @@ truncated discovery, incomplete source coverage, incompatible report versions
 and unassessed scores fail the gate.
 
 `tooling/shadscan/policy.json` binds the engine, ruleset and report schema and
-protects each application's raw score independently. A higher pooled score cannot
-compensate for a regressing app. Library findings remain visible and reviewed;
+protects each application's raw score independently. Policy schema 2 also requires
+all six category floors for each app. Categories are recomputed from the unchanged
+raw assessments; a higher pooled or application score cannot compensate for a
+regressing category. Missing or unassessed categories fail even at a zero floor.
+A 100-point application or category floor requires every applicable scored point,
+not a percentage rounded to 100. Current floors capture the verified baseline;
+they do not claim the 100/100 target has been reached.
+
+Library findings remain visible and reviewed;
 their scores do not contribute to the scanner's pooled application score. Core
 does not calculate an adjusted score or present exceptions as passing raw rules.
 

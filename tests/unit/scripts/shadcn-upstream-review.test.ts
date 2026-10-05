@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -215,6 +216,39 @@ function installedCliFixture() {
 }
 
 describe("shadcn upstream review gate", () => {
+  it("starts the locked public CLI concurrently without installing dependencies", async () => {
+    const runCli = createCliRunner({
+      cwd: path.join(process.cwd(), "packages/ui"),
+    });
+    const versions = await Promise.all([
+      runCli(["--version"]),
+      runCli(["--version"]),
+    ]);
+    expect(versions.map((version) => version.trim())).toEqual([
+      "4.21.1",
+      "4.21.1",
+    ]);
+  });
+
+  it("uses the current Node executable for concurrent read-only CLI processes", async () => {
+    const directory = mkdtempSync(path.join(tmpdir(), "core-shadcn-runtime-"));
+    temporaryDirectories.push(directory);
+    const executable = path.join(directory, "cli.mjs");
+    writeFileSync(
+      executable,
+      'console.log(JSON.stringify({runtime:process.versions.bun?"bun":"node",args:process.argv.slice(2)}));\n',
+    );
+    const runCli = createCliRunner({ cwd: directory, prefix: [executable] });
+    const outputs = await Promise.all([
+      runCli(["--version"]),
+      runCli(["info", "--json"]),
+    ]);
+    expect(outputs.map((output) => JSON.parse(output))).toEqual([
+      { runtime: "node", args: ["--version"] },
+      { runtime: "node", args: ["info", "--json"] },
+    ]);
+  });
+
   it("runs concurrent public previews using the declared installed CLI without package installation", async () => {
     const input = installedCliFixture();
     const runCli = createCliRunner(input);
@@ -287,27 +321,45 @@ describe("shadcn upstream review gate", () => {
   });
 
   it("rejects the deprecated CLI's false no-updates result at the real entry point", () => {
-    const directory = mkdtempSync(path.join(tmpdir(), "core-shadcn-cli-"));
-    temporaryDirectories.push(directory);
-    const executable = path.join(directory, "bunx");
+    const { root, baseline } = fixture();
+    const scripts = path.join(root, "scripts/verify");
+    const cli = path.join(root, "node_modules/shadcn");
     writeFileSync(
-      executable,
-      '#!/usr/bin/env node\nconsole.log("No updates found.");\n',
+      path.join(root, "package.json"),
+      JSON.stringify({ devDependencies: { shadcn: SHADCN_CLI_VERSION } }),
     );
-    chmodSync(executable, 0o755);
+    mkdirSync(scripts, { recursive: true });
+    mkdirSync(cli, { recursive: true });
+    mkdirSync(path.join(root, "tooling/shadcn"), { recursive: true });
     writeFileSync(
-      path.join(directory, "bun"),
-      '#!/usr/bin/env node\nconsole.log("No updates found.");\n',
+      path.join(scripts, "shadcn-diff.mjs"),
+      readFileSync("scripts/verify/shadcn-diff.mjs"),
     );
-    chmodSync(path.join(directory, "bun"), 0o755);
+    writeFileSync(
+      path.join(cli, "package.json"),
+      JSON.stringify({
+        name: "shadcn",
+        version: SHADCN_CLI_VERSION,
+        type: "module",
+        bin: { shadcn: "index.mjs" },
+      }),
+    );
+    writeFileSync(
+      path.join(cli, "index.mjs"),
+      'console.log("No updates found.");\n',
+    );
+    writeFileSync(
+      path.join(root, SHADCN_REVIEW_BASELINE),
+      JSON.stringify(baseline),
+    );
     const result = spawnSync(
       process.execPath,
-      ["scripts/verify/shadcn-diff.mjs"],
+      [path.join(scripts, "shadcn-diff.mjs")],
       {
-        cwd: process.cwd(),
+        cwd: root,
         encoding: "utf8",
         env: {
-          PATH: `${directory}${path.delimiter}${process.env.PATH ?? ""}`,
+          PATH: process.env.PATH,
           HOME: process.env.HOME,
         },
       },
