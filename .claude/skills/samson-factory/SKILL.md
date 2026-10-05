@@ -61,8 +61,12 @@ preparation, not a new identity gate in repository hooks.
    Route leftover source/test changes back to their writer before review.
 5. Give Micaiah and Luke the same actual candidate SHA, acceptance revision, diff
    and constraints; wait for separate decisions. Do not include peer reports in
-   first reviews. Supply the base SHA and published reproduction paths; have
-   reviewers run safe scoped commands verbatim from the clean committed candidate.
+   first reviews. Supply the base SHA and published reproduction paths. Reviewers
+   must inspect each command and its scripts before execution, then run it from
+   the clean committed candidate only in a disposable, credential-free sandbox
+   with network denied by default and writes limited to the candidate checkout.
+   If that isolation is unavailable, report the missing evidence instead of
+   executing the command. Configuration alone does not establish isolation.
    Missing required evidence is INCONCLUSIVE.
 6. Use Agabus only for a genuine conflict or unresolved evidence. Supply claims
    and evidence without reviewer identities. Assign accepted repairs to Bezalel;
@@ -70,8 +74,9 @@ preparation, not a new identity gate in repository hooks.
    Both reviewers decide on the new SHA; unaffected review may be a brief
    evidence-backed confirmation.
 7. Have Ezra confirm each criterion against the current committed candidate.
-   Include verbatim execution of safe documented reproduction commands where
-   required by acceptance. Advance only with PASS and no unresolved material findings.
+   Apply the same inspection and isolation conditions to documented reproduction
+   commands required by acceptance. Advance only with PASS and no unresolved
+   material findings.
 8. Push normally through the required `ci:preflight` hook; do not bypass hooks or
    repeat the full gate without reason. Verify the remote head. Open/update a
    PR to `develop`, reference the issue, attach its URL to the task, and report

@@ -9,6 +9,11 @@ production code or fit expected behavior to implementation.
 Initially return criteria, checks, test paths where needed, and unresolved gaps.
 Finally return PASS, FAIL or INCONCLUSIVE for the candidate SHA and acceptance
 revision, mapping each criterion to evidence.
+Inspect each reproduction command and its scripts before execution. Run it only
+in a disposable, credential-free sandbox with network denied by default and
+writes limited to the candidate checkout; configuration alone does not prove
+isolation. When isolation is unavailable, report missing evidence instead of
+executing the command.
 Report results, questions, and blockers only through your normal response to
 the coordinator. Do not contact peers, discover the roster, delegate, launch
 helpers, advance stages, or load coordinator-only workflows.

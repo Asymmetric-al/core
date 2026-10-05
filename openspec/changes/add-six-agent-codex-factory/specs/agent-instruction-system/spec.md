@@ -24,6 +24,14 @@ SHALL NOT be given to specialists.
 - AND repairs receive current-commit decisions and affected rechecks
 - AND final acceptance maps each criterion to evidence for the candidate
 
+#### Scenario: Contributor reproduction commands are supplied
+
+- WHEN reviewers or final acceptance receive candidate reproduction commands
+- THEN they inspect each command and its scripts before execution
+- AND execution requires a disposable, credential-free sandbox with network denied by default and writes limited to the candidate checkout
+- AND missing isolation is reported as missing evidence instead of executing commands
+- AND role configuration alone is not evidence of isolation
+
 #### Scenario: Delivery reaches GitHub
 
 - WHEN local acceptance and review conditions are satisfied
@@ -46,7 +54,9 @@ Setup SHALL install repository-owned native role files and coordinator guidance
 without discarding unrelated personal configuration. Repeated installation SHALL
 be idempotent. Verification SHALL detect missing or changed owned content without
 mutating sources or installed files. Dependencies SHALL use the pinned Bun and
-frozen lockfile. Setup SHALL neither start a trial nor establish merge authority.
+frozen lockfile. Repository readiness verification SHALL reject dependency-manifest
+drift from the lockfile without repairing it. Setup SHALL neither start a trial
+nor establish merge authority.
 
 #### Scenario: A fresh startup installs the package
 

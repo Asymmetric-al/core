@@ -65,6 +65,7 @@ export function runSetupCloud({
   }
   for (const command of [
     "verify:bun-version",
+    "verify:bun-lock-drift",
     "skills:verify",
     "verify:workspace-contract",
   ])

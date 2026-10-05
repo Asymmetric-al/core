@@ -19,6 +19,8 @@ import { afterEach, expect, it } from "vitest";
 
 import { installNative } from "../../../scripts/factory/install-native.mjs";
 
+const itPosix = process.platform === "win32" ? it.skip : it;
+
 const roots: string[] = [];
 function fixture() {
   const root = realpathSync(
@@ -218,6 +220,7 @@ it("enforces setup mode boundaries and the manifest-pinned frozen Bun installati
   expect(commands).toEqual([
     ["bun", "--version"],
     ["bun", "run", "verify:bun-version"],
+    ["bun", "run", "verify:bun-lock-drift"],
     ["bun", "run", "skills:verify"],
     ["bun", "run", "verify:workspace-contract"],
   ]);
@@ -228,6 +231,7 @@ it("enforces setup mode boundaries and the manifest-pinned frozen Bun installati
     ["bun", "--version"],
     ["bun", "ci", "--backend=copyfile"],
     ["bun", "run", "verify:bun-version"],
+    ["bun", "run", "verify:bun-lock-drift"],
     ["bun", "run", "skills:verify"],
     ["bun", "run", "verify:workspace-contract"],
   ]);
@@ -256,6 +260,45 @@ it("enforces setup mode boundaries and the manifest-pinned frozen Bun installati
     runSetupCloud({ ...f, args: ["--verify-only"], execute }),
   ).toThrow(/drift/);
   expect(snapshot(f.home)).toEqual(drift);
+});
+
+it("refuses read-only readiness when repository manifests have lock drift", async () => {
+  const { runSetupCloud } =
+    await import("../../../scripts/factory/setup-cloud.mjs");
+  const { findBunLockDrift } =
+    await import("../../../scripts/verify/bun-lock-drift.mjs");
+  const f = fixture();
+  f.put(
+    "package.json",
+    JSON.stringify({
+      packageManager: "bun@1.2.3",
+      dependencies: { example: "^2.0.0" },
+    }),
+  );
+  f.put(
+    "bun.lock",
+    JSON.stringify({
+      lockfileVersion: 1,
+      workspaces: { "": { dependencies: { example: "^1.0.0" } } },
+    }),
+  );
+  installNative(f);
+  const before = snapshot(path.dirname(f.sourceRoot));
+  const violations = await findBunLockDrift(f.sourceRoot);
+  expect(violations).toEqual([
+    'package.json: dependencies "example" specifier drift: manifest has "^2.0.0", bun.lock workspaces[""] has "^1.0.0"',
+  ]);
+  expect(() =>
+    runSetupCloud({
+      ...f,
+      args: ["--verify-only"],
+      execute: (_command: string, args: string[]) => ({
+        status: args.join(" ") === "run verify:bun-lock-drift" ? 1 : 0,
+        stdout: "1.2.3\n",
+      }),
+    }),
+  ).toThrow(/verify:bun-lock-drift/);
+  expect(snapshot(path.dirname(f.sourceRoot))).toEqual(before);
 });
 
 it("provides a direct installer entry point with read-only verification and strict flags", async () => {
@@ -352,7 +395,8 @@ it("keeps original bytes and cleans staging files when atomic writes or renames 
     };
     expect(() => installNative({ ...f, atomicIO })).toThrow(/Injected/);
     expect(snapshot(f.home)).toEqual(before);
-    expect(statSync(destination).mode & 0o777).toBe(0o640);
+    if (process.platform !== "win32")
+      expect(statSync(destination).mode & 0o777).toBe(0o640);
     expect(readdirSync(path.dirname(destination)).sort()).toEqual([
       "AGENTS.md",
       "agents",
@@ -361,7 +405,7 @@ it("keeps original bytes and cleans staging files when atomic writes or renames 
   }
 });
 
-it("preserves existing permissions when replacing changed files", () => {
+itPosix("preserves existing permissions when replacing changed files", () => {
   const f = fixture();
   installNative(f);
   const config = path.join(f.home, ".codex/config.toml");
@@ -383,92 +427,113 @@ it("preserves existing permissions when replacing changed files", () => {
   expect(statSync(skill).mode & 0o777).toBe(0o600);
 });
 
-it("rejects destination symlinks before writing either home and keeps the binding", () => {
-  const f = fixture();
-  mkdirSync(f.codexHome, { recursive: true });
-  const target = path.join(path.dirname(f.sourceRoot), "personal-config.toml");
-  writeFileSync(target, 'model = "personal"\n');
-  const destination = path.join(f.codexHome, "config.toml");
-  symlinkSync(target, destination);
-  const before = snapshot(path.dirname(f.sourceRoot));
-  expect(() => installNative(f)).toThrow(/symlink/i);
-  expect(snapshot(path.dirname(f.sourceRoot))).toEqual(before);
-  expect(lstatSync(destination).isSymbolicLink()).toBe(true);
-});
-
-it("preserves parent directory symlinks while atomically installing their files", () => {
-  const f = fixture();
-  const target = path.join(path.dirname(f.sourceRoot), "personal-codex");
-  mkdirSync(target, { recursive: true });
-  writeFileSync(path.join(target, "config.toml"), 'model = "personal"\n');
-  chmodSync(path.join(target, "config.toml"), 0o640);
-  symlinkSync(target, f.codexHome, "dir");
-  installNative(f);
-  expect(lstatSync(f.codexHome).isSymbolicLink()).toBe(true);
-  expect(readFileSync(path.join(target, "config.toml"), "utf8")).toMatch(
-    /^model = "personal"\n/,
-  );
-  expect(readFileSync(path.join(target, "config.toml"), "utf8")).toContain(
-    "max_threads = 3",
-  );
-  expect(statSync(path.join(target, "config.toml")).mode & 0o777).toBe(0o640);
-  expect(readdirSync(target).sort()).toEqual([
-    "AGENTS.md",
-    "agents",
-    "config.toml",
-  ]);
-  expect(installNative(f).changedFiles).toEqual([]);
-});
-
-it("deduplicates directory aliases so install, verify and repeat install agree without rewriting", () => {
-  const f = fixture();
-  const target = path.join(f.home, ".codex");
-  mkdirSync(target, { recursive: true });
-  symlinkSync(target, f.codexHome, "dir");
-  const installed = installNative(f);
-  expect(installed.destinations).toEqual([target]);
-  expect(readFileSync(path.join(f.codexHome, "config.toml"))).toEqual(
-    readFileSync(path.join(target, "config.toml")),
-  );
-  expect(readFileSync(path.join(target, "config.toml"), "utf8")).toContain(
-    `config_file = ${JSON.stringify(path.join(target, "agents/builder.toml"))}`,
-  );
-  const before = snapshot(f.home);
-  expect(installNative({ ...f, verify: true }).changedFiles).toEqual([]);
-  expect(installNative(f).changedFiles).toEqual([]);
-  expect(snapshot(f.home)).toEqual(before);
-  expect(lstatSync(f.codexHome).isSymbolicLink()).toBe(true);
-});
-
-it("rejects dangling directory aliases before writes in install, plan and verify modes", () => {
-  const f = fixture();
-  const missingTarget = path.join(path.dirname(f.sourceRoot), "missing-target");
-  symlinkSync(missingTarget, f.codexHome, "dir");
-  const before = snapshot(f.sourceRoot);
-  for (const mode of [{}, { planOnly: true }, { verify: true }]) {
-    expect(() => installNative({ ...f, ...mode })).toThrow(
-      /dangling|directory alias/i,
+itPosix(
+  "rejects destination symlinks before writing either home and keeps the binding",
+  () => {
+    const f = fixture();
+    mkdirSync(f.codexHome, { recursive: true });
+    const target = path.join(
+      path.dirname(f.sourceRoot),
+      "personal-config.toml",
     );
-    expect(snapshot(f.sourceRoot)).toEqual(before);
-    expect(() => statSync(f.home)).toThrow();
-    expect(() => statSync(missingTarget)).toThrow();
-    expect(lstatSync(f.codexHome).isSymbolicLink()).toBe(true);
-  }
-});
+    writeFileSync(target, 'model = "personal"\n');
+    const destination = path.join(f.codexHome, "config.toml");
+    symlinkSync(target, destination);
+    const before = snapshot(path.dirname(f.sourceRoot));
+    expect(() => installNative(f)).toThrow(/symlink/i);
+    expect(snapshot(path.dirname(f.sourceRoot))).toEqual(before);
+    expect(lstatSync(destination).isSymbolicLink()).toBe(true);
+  },
+);
 
-it("resolves aliases through existing parents without creating a missing destination during plan or verify", () => {
-  const f = fixture();
-  mkdirSync(f.home, { recursive: true });
-  const alias = path.join(path.dirname(f.sourceRoot), "alias-home");
-  symlinkSync(f.home, alias, "dir");
-  f.codexHome = path.join(alias, ".codex");
-  const planned = installNative({ ...f, planOnly: true });
-  expect(planned.destinations).toEqual([path.join(f.home, ".codex")]);
-  expect(snapshot(f.home)).toEqual({});
-  expect(readdirSync(f.home)).toEqual([]);
-  expect(() => installNative({ ...f, verify: true })).toThrow(/drift/);
-  expect(readdirSync(f.home)).toEqual([]);
-  expect(installNative(f).destinations).toEqual(planned.destinations);
-  expect(installNative({ ...f, verify: true }).changedFiles).toEqual([]);
-  expect(lstatSync(alias).isSymbolicLink()).toBe(true);
-});
+itPosix(
+  "preserves parent directory symlinks while atomically installing their files",
+  () => {
+    const f = fixture();
+    const target = path.join(path.dirname(f.sourceRoot), "personal-codex");
+    mkdirSync(target, { recursive: true });
+    writeFileSync(path.join(target, "config.toml"), 'model = "personal"\n');
+    chmodSync(path.join(target, "config.toml"), 0o640);
+    symlinkSync(target, f.codexHome, "dir");
+    installNative(f);
+    expect(lstatSync(f.codexHome).isSymbolicLink()).toBe(true);
+    expect(readFileSync(path.join(target, "config.toml"), "utf8")).toMatch(
+      /^model = "personal"\n/,
+    );
+    expect(readFileSync(path.join(target, "config.toml"), "utf8")).toContain(
+      "max_threads = 3",
+    );
+    expect(statSync(path.join(target, "config.toml")).mode & 0o777).toBe(0o640);
+    expect(readdirSync(target).sort()).toEqual([
+      "AGENTS.md",
+      "agents",
+      "config.toml",
+    ]);
+    expect(installNative(f).changedFiles).toEqual([]);
+  },
+);
+
+itPosix(
+  "deduplicates directory aliases so install, verify and repeat install agree without rewriting",
+  () => {
+    const f = fixture();
+    const target = path.join(f.home, ".codex");
+    mkdirSync(target, { recursive: true });
+    symlinkSync(target, f.codexHome, "dir");
+    const installed = installNative(f);
+    expect(installed.destinations).toEqual([target]);
+    expect(readFileSync(path.join(f.codexHome, "config.toml"))).toEqual(
+      readFileSync(path.join(target, "config.toml")),
+    );
+    expect(readFileSync(path.join(target, "config.toml"), "utf8")).toContain(
+      `config_file = ${JSON.stringify(path.join(target, "agents/builder.toml"))}`,
+    );
+    const before = snapshot(f.home);
+    expect(installNative({ ...f, verify: true }).changedFiles).toEqual([]);
+    expect(installNative(f).changedFiles).toEqual([]);
+    expect(snapshot(f.home)).toEqual(before);
+    expect(lstatSync(f.codexHome).isSymbolicLink()).toBe(true);
+  },
+);
+
+itPosix(
+  "rejects dangling directory aliases before writes in install, plan and verify modes",
+  () => {
+    const f = fixture();
+    const missingTarget = path.join(
+      path.dirname(f.sourceRoot),
+      "missing-target",
+    );
+    symlinkSync(missingTarget, f.codexHome, "dir");
+    const before = snapshot(f.sourceRoot);
+    for (const mode of [{}, { planOnly: true }, { verify: true }]) {
+      expect(() => installNative({ ...f, ...mode })).toThrow(
+        /dangling|directory alias/i,
+      );
+      expect(snapshot(f.sourceRoot)).toEqual(before);
+      expect(() => statSync(f.home)).toThrow();
+      expect(() => statSync(missingTarget)).toThrow();
+      expect(lstatSync(f.codexHome).isSymbolicLink()).toBe(true);
+    }
+  },
+);
+
+itPosix(
+  "resolves aliases through existing parents without creating a missing destination during plan or verify",
+  () => {
+    const f = fixture();
+    mkdirSync(f.home, { recursive: true });
+    const alias = path.join(path.dirname(f.sourceRoot), "alias-home");
+    symlinkSync(f.home, alias, "dir");
+    f.codexHome = path.join(alias, ".codex");
+    const planned = installNative({ ...f, planOnly: true });
+    expect(planned.destinations).toEqual([path.join(f.home, ".codex")]);
+    expect(snapshot(f.home)).toEqual({});
+    expect(readdirSync(f.home)).toEqual([]);
+    expect(() => installNative({ ...f, verify: true })).toThrow(/drift/);
+    expect(readdirSync(f.home)).toEqual([]);
+    expect(installNative(f).destinations).toEqual(planned.destinations);
+    expect(installNative({ ...f, verify: true }).changedFiles).toEqual([]);
+    expect(lstatSync(alias).isSymbolicLink()).toBe(true);
+  },
+);

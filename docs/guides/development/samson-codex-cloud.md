@@ -17,7 +17,8 @@ node scripts/factory/setup-cloud.mjs
 ```
 
 Default setup uses frozen dependency installation, installs native configuration
-and personal coordinator guidance, and runs Bun, skill and workspace checks.
+and personal coordinator guidance, and runs Bun version, lockfile drift, skill
+and workspace checks.
 `--install-only` installs instructions without dependencies; `--verify-only`
 checks existing installation and repository readiness without repairing drift.
 Unrelated global configuration/instructions are preserved. Conflicting unmanaged
@@ -84,6 +85,12 @@ CLI profiles disable specialist multi-agent and native configuration limits dept
 to one. If a runtime does not load role TOMLs, Samson explicitly passes the own-role
 prompt and supported model/effort settings. Shared files are not isolated, and
 prompt restrictions are not tool removal. Existing demo contexts are not reused.
+
+Reviewers and final acceptance inspect contributor-supplied reproduction commands
+and their scripts before execution. They run them only in a disposable,
+credential-free sandbox with network denied by default and writes limited to
+the candidate checkout. Without that isolation, they report missing evidence;
+the shared workspace and role configuration do not establish the boundary.
 
 The first product trial remains paused until the user requests it. A cloud
 template restores files/tools; it does not create a persistent queue controller.
