@@ -16,11 +16,12 @@ import type { ReactNode } from "react";
 const tasks = vi.hoisted(() => ({
   deleteTask: vi.fn(),
   data: [] as unknown[],
+  loading: false,
 }));
 vi.mock("@asym/lib/hooks", () => ({
   useTasks: () => ({
     filteredTasks: tasks.data,
-    loading: false,
+    loading: tasks.loading,
     completeTask: vi.fn(),
     reopenTask: vi.fn(),
     deleteTask: tasks.deleteTask,
@@ -36,6 +37,7 @@ const { DonorTasks } =
   await import("../../../../apps/missionary/app/donors/donor-tasks");
 
 beforeEach(() => {
+  tasks.loading = false;
   tasks.deleteTask.mockReset().mockResolvedValue(true);
   tasks.data = [
     {
@@ -48,6 +50,86 @@ beforeEach(() => {
   ];
 });
 afterEach(cleanup);
+
+it("keeps Add Task disabled until the initial list finishes loading", () => {
+  tasks.loading = true;
+  const view = render(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  const add = screen.getByRole("button", { name: "Add Task" });
+  expect(add.getAttribute("aria-disabled")).toBe("true");
+  tasks.loading = false;
+  view.rerender(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  expect(add.getAttribute("aria-disabled")).not.toBe("true");
+});
+
+it("keeps confirmation and keyboard focus through a task refresh", async () => {
+  const view = render(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  fireEvent.click(screen.getByRole("button", { name: "Delete Call Anna" }));
+  const dialog = await screen.findByRole("alertdialog", {
+    name: "Delete Call Anna?",
+  });
+  const cancel = within(dialog).getByRole("button", { name: "Cancel" });
+  await waitFor(() => expect(document.activeElement).toBe(cancel));
+
+  tasks.loading = true;
+  view.rerender(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  expect(screen.getByRole("alertdialog")).toBe(dialog);
+  expect(document.activeElement).toBe(cancel);
+  expect(tasks.deleteTask).not.toHaveBeenCalled();
+  fireEvent.click(cancel);
+  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Add Task" }),
+    ),
+  );
+});
+
+it("retains pending deletion, error and retry through task refreshes", async () => {
+  let finish = (_success: boolean) => {};
+  tasks.deleteTask.mockImplementationOnce(
+    () =>
+      new Promise<boolean>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const view = render(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  fireEvent.click(screen.getByRole("button", { name: "Delete Call Anna" }));
+  const dialog = await screen.findByRole("alertdialog", {
+    name: "Delete Call Anna?",
+  });
+  const confirm = within(dialog).getByRole("button", { name: "Delete task" });
+  confirm.focus();
+  fireEvent.click(confirm);
+
+  tasks.loading = true;
+  view.rerender(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  expect(screen.getByRole("alertdialog")).toBe(dialog);
+  expect(document.activeElement).toBe(confirm);
+  expect(within(dialog).getByRole("status").textContent).toContain(
+    "Deleting Call Anna",
+  );
+  fireEvent.click(confirm);
+  fireEvent.keyDown(dialog, { key: "Escape", code: "Escape" });
+  expect(tasks.deleteTask).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("alertdialog")).toBe(dialog);
+
+  await act(async () => finish(false));
+  expect(within(dialog).getByRole("alert").textContent).toContain(
+    "Could not delete this task",
+  );
+  tasks.loading = false;
+  view.rerender(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  expect(screen.getByRole("alertdialog")).toBe(dialog);
+  expect(document.activeElement).toBe(confirm);
+  expect(within(dialog).getByRole("alert").textContent).toContain(
+    "Could not delete this task",
+  );
+  tasks.deleteTask.mockResolvedValue(true);
+  fireEvent.click(within(dialog).getByRole("button", { name: "Delete task" }));
+  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+  expect(tasks.deleteTask).toHaveBeenCalledTimes(2);
+  expect(tasks.deleteTask.mock.calls).toEqual([["task-anna"], ["task-anna"]]);
+});
 
 it("requires confirmation for the exact task and Cancel preserves it", async () => {
   render(<DonorTasks donorId="donor-anna" donorName="Anna" />);

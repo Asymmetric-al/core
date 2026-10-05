@@ -205,7 +205,14 @@ for (const theme of ["light", "dark"]) {
       });
       await size.focus();
       await page.keyboard.press("Enter");
+      await expect(page.getByRole("listbox")).toBeVisible();
+      await expect(
+        page.getByRole("option", { name: "2", exact: true }),
+      ).toBeFocused();
       await page.keyboard.press("End");
+      await expect(
+        page.getByRole("option", { name: "6", exact: true }),
+      ).toBeFocused();
       await page.keyboard.press("Enter");
       await expect(size.locator("[data-slot=select-value]")).toHaveText("6");
       await expect(size).toBeFocused();

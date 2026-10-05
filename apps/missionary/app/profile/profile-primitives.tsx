@@ -539,7 +539,7 @@ export function ProfileHeaderActions({
               onClick={handleDiscard}
               className="h-9 text-xs text-zinc-500 hover:text-zinc-900"
             >
-              <RotateCcw className="mr-1.5 size-4" />
+              <RotateCcw className="mr-1.5 size-4" data-icon="inline-start" />
               Discard
             </Button>
           </motion.div>

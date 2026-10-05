@@ -1,9 +1,8 @@
 /** @vitest-environment jsdom */
+import { MotionProvider } from "@asym/lib/motion-provider";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-
-import { MotionProvider } from "@asym/lib/motion-provider";
 
 import { DashboardHome } from "../../../packages/missionary/components/dashboard-home";
 

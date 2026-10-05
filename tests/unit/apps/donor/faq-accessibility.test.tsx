@@ -1,4 +1,5 @@
 /** @vitest-environment jsdom */
+import { MotionProvider } from "@asym/lib/motion-provider";
 import {
   cleanup,
   fireEvent,
@@ -17,8 +18,7 @@ import {
   vi,
 } from "vitest";
 
-import { MotionProvider } from "@asym/lib/motion-provider";
-
+// eslint-disable-next-line no-restricted-imports -- AL-1931 This integration test mounts the real page; no app imports another app.
 import { FAQPageClient } from "../../../../apps/donor/app/(public)/(hero)/faq/faq-client";
 
 beforeAll(() => {

@@ -240,7 +240,10 @@ export function ProfileFormColumn({
                   size="sm"
                   className="text-xs"
                 >
-                  <Upload className="mr-1.5 size-3.5" />
+                  <Upload
+                    className="mr-1.5 size-3.5"
+                    data-icon="inline-start"
+                  />
                   Upload Photo
                 </Button>
               </ImageUpload>

@@ -19,6 +19,7 @@ export type FixtureDeleteMode = "success" | "false" | "throw" | "deferred";
 
 let snapshot = {
   tasks: [task],
+  loading: false,
   deleteMode: "success" as FixtureDeleteMode,
   deletePending: false,
 };
@@ -49,6 +50,10 @@ export function useTaskDeleteFixtureState() {
 export function setTaskDeleteFixtureMode(mode: FixtureDeleteMode) {
   if (pendingDelete) return;
   publish({ ...snapshot, deleteMode: mode });
+}
+
+export function setTaskLoadingFixture(loading: boolean) {
+  publish({ ...snapshot, loading });
 }
 
 export function settleTaskDeleteFixture(success: boolean) {
@@ -85,7 +90,7 @@ export function useAuth() {
 export function useTasks() {
   const current = useTaskDeleteFixtureState();
   return {
-    loading: false,
+    loading: current.loading,
     error: null,
     filteredTasks: current.tasks,
     stats: {

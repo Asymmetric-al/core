@@ -1,9 +1,10 @@
 import { writeFile } from "node:fs/promises";
 
 import AxeBuilder from "@axe-core/playwright";
-import type { Page } from "@playwright/test";
 
 import { expect, test } from "./test";
+
+import type { Page } from "@playwright/test";
 
 interface FAQPanelObservation {
   id: string;

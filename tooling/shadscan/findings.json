@@ -1211,11 +1211,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "066f5b55d5ca59bd342e1c7c7195310a929accff4d1838f9c73e0f2efc12aa37"
+          "sha256": "dd7dae958001168306327bb697ae0c7154acf3af53fa3d9bd3992504dc1aa554"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "bd23868a27ae51767cdd82611499aff177073419dacb8120501df6700a7f4cbc"
+          "sha256": "cdf73383346573ea14cb2e580bc3075e7ab6547e03784cea670fc9ee20c83c4d"
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
@@ -1248,11 +1248,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "066f5b55d5ca59bd342e1c7c7195310a929accff4d1838f9c73e0f2efc12aa37"
+          "sha256": "dd7dae958001168306327bb697ae0c7154acf3af53fa3d9bd3992504dc1aa554"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "bd23868a27ae51767cdd82611499aff177073419dacb8120501df6700a7f4cbc"
+          "sha256": "cdf73383346573ea14cb2e580bc3075e7ab6547e03784cea670fc9ee20c83c4d"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
@@ -1282,7 +1282,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "4d17c21fb567b054feb5e1d7b6f6dd1c6683a0d0d4565c554726cda7d3eb432d"
+          "sha256": "ae3642c7a74cb20de572ee0a5c81dc9a8d5044a28fb4607c6c5ebd4eb4c307ff"
         },
         {
           "path": "packages/ui/components/shadcn/button.tsx",
@@ -1302,7 +1302,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/donor-task-delete-confirmation.test.tsx",
-          "sha256": "66faf63e620c5e933ace53a8949a8b8fb067792dd6795ab29e9ca39d291fd027"
+          "sha256": "46328bd79b4269e67d72fd4a7ba600d32bc160c5802cb7cd0180b98406414953"
         }
       ]
     },
