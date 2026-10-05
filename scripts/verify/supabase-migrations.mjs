@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
 const databaseUrl = process.env.DATABASE_URL?.trim();
 const psqlBin = process.env.PSQL_BIN?.trim() || "psql";
-const localHosts = new Set(["127.0.0.1", "localhost", "::1"]);
+const localHosts = new Set(["127.0.0.1", "localhost", "[::1]"]);
 const foundationMigration = "20260214090000_foundation_1_schema.sql";
 
 if (!databaseUrl) {
@@ -25,12 +25,9 @@ try {
   process.exit(1);
 }
 
-if (
-  !localHosts.has(parsedDatabaseUrl.hostname) &&
-  process.env.ALLOW_NONLOCAL_MIGRATION_VERIFY !== "1"
-) {
+if (!localHosts.has(parsedDatabaseUrl.hostname)) {
   console.error(
-    "error: Refusing to run migration verification against a non-local host. Set ALLOW_NONLOCAL_MIGRATION_VERIFY=1 only for an explicit disposable target.",
+    "error: Refusing to run migration verification against a non-local host. Use a disposable localhost database; the required field-policy census has the same local-only contract.",
   );
   process.exit(1);
 }

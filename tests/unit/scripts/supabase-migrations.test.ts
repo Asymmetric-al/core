@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import {
   chmodSync,
+  existsSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -20,7 +21,11 @@ afterEach(() => {
     rmSync(directory, { recursive: true, force: true });
 });
 
-function runVerifier(mode: string) {
+function runVerifier(
+  mode: string,
+  databaseUrl = "postgresql://postgres@127.0.0.1:5432/disposable_test",
+  allowNonlocal = false,
+) {
   const temporary = mkdtempSync(path.join(os.tmpdir(), "migration-census-"));
   roots.push(temporary);
   const census = JSON.parse(
@@ -99,17 +104,20 @@ if (sql.includes("public.field_policies")) {
       encoding: "utf8",
       env: {
         ...process.env,
-        DATABASE_URL: "postgresql://postgres@127.0.0.1:5432/disposable_test",
+        DATABASE_URL: databaseUrl,
+        ALLOW_NONLOCAL_MIGRATION_VERIFY: allowNonlocal ? "1" : "",
         PSQL_BIN: psql,
       },
     },
   );
   return {
     ...result,
-    calls: readFileSync(calls, "utf8")
-      .trim()
-      .split("\n")
-      .map((line) => JSON.parse(line)),
+    calls: existsSync(calls)
+      ? readFileSync(calls, "utf8")
+          .trim()
+          .split("\n")
+          .map((line) => JSON.parse(line))
+      : [],
   };
 }
 
@@ -151,3 +159,26 @@ itPosix.each(["policy-drift", "column-drift", "query-failure"])(
       expect(result.stderr).toContain("Injected census query failure");
   },
 );
+
+itPosix(
+  "refuses unsupported nonlocal targets before any SQL even with the old override",
+  () => {
+    const result = runVerifier(
+      "clean",
+      "postgresql://postgres@disposable.invalid/test",
+      true,
+    );
+    expect(result.status).not.toBe(0);
+    expect(result.calls).toEqual([]);
+    expect(result.stdout).not.toContain("bootstrap Supabase");
+  },
+);
+
+itPosix("accepts IPv6 loopback under the same census locality contract", () => {
+  const result = runVerifier(
+    "clean",
+    "postgresql://postgres@[::1]:5432/disposable_test",
+  );
+  expect(result.status).toBe(0);
+  expect(result.stdout).toContain("all 860 database seed rows exactly equal");
+});
