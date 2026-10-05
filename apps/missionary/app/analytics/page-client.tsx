@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
         description="Detailed insights into your support network and trends."
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiTile
           label="Monthly Support"
           value="Unavailable"
