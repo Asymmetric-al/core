@@ -711,7 +711,7 @@
       "project": "apps/donor",
       "rule": "focus-visible-not-suppressed",
       "classification": "scanner-limitation",
-      "rationale": "Custom amount input focus sets isInputFocused, which adds a border-zinc-900 and ring-4 replacement on its surrounding control. The scanner examines only the input className. Existing actual GivingWidget tests exercise native labeled input and real preset arrow navigation; computed CSS replacement is source-reviewed, not yet separately browser asserted. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "Custom amount input focus sets isInputFocused, which adds a border-zinc-900 and ring-4 replacement on its surrounding control. The scanner examines only the input className. Existing actual GivingWidget tests exercise native labeled input and real preset arrow navigation; computed CSS replacement is source-reviewed, not yet separately browser asserted. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": ["tests/unit/apps/donor/giving-widget.test.tsx"],
       "evidenceFingerprint": "efd24fe5a19cb912ef5117a61ae8a1e3927a944efdac7e88e593952cdddd671e",
       "proof": [
@@ -729,7 +729,7 @@
       "project": "apps/donor",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "DropdownMenuTrigger supplies aria-label=\"Open actions\" to its render Button; Base UI render propagation owns the resulting native button. Do not duplicate labels on nested primitives merely for the scanner. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
+      "rationale": "DropdownMenuTrigger supplies aria-label=\"Open actions\" to its render Button; Base UI render propagation owns the resulting native button. Do not duplicate labels on nested primitives merely for the scanner. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
         "tests/unit/packages/ui/shadscan-trigger-name.test.tsx"
@@ -762,7 +762,7 @@
       "project": "apps/donor",
       "rule": "mobile-nav-present",
       "classification": "scanner-limitation",
-      "rationale": "The flagged nav is checkout step progress, whose steps remain rendered at narrow widths. The actual public Navbar now uses shared controlled Sheet; real keyboard focus trapping, Escape, closed-link removal and restoration passed at mobile light/dark widths. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The flagged nav is checkout step progress, whose steps remain rendered at narrow widths. The actual public Navbar now uses shared controlled Sheet; real keyboard focus trapping, Escape, closed-link removal and restoration passed at mobile light/dark widths. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
         "tests/unit/packages/ui/shadscan-navbar.test.tsx"
@@ -848,7 +848,7 @@
       "project": "apps/donor",
       "rule": "status-messages-announced",
       "classification": "scanner-limitation",
-      "rationale": "The initial real Feed status defect is repaired. Current first-failure evidence is the Settings component parameter list. Final audit also repaired actual Saving/Saved announcement with a stable atomic status region; error already renders alert. Deferred actual Settings render verifies saving/completion and disabled duplicate-click suppression. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The initial real Feed status defect is repaired. Current first-failure evidence is the Settings component parameter list. Final audit also repaired actual Saving/Saved announcement with a stable atomic status region; error already renders alert. Deferred actual Settings render verifies saving/completion and disabled duplicate-click suppression. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx"
       ],
@@ -872,7 +872,7 @@
       "project": "apps/donor",
       "rule": "suspense-fallback-useful",
       "classification": "product-decision",
-      "rationale": "The current flagged null fallback surrounds only the redirect-only sibling RoleRedirectGate. Real dashboard children remain outside it, preserving the public/static shell and per-route loading. Do not add a blocking full-page placeholder to this gate. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The current flagged null fallback surrounds only the redirect-only sibling RoleRedirectGate. Real dashboard children remain outside it, preserving the public/static shell and per-route loading. Do not add a blocking full-page placeholder to this gate. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/apps/donor/static-shell-contract.test.ts"
       ],
@@ -965,7 +965,7 @@
       "project": "apps/missionary",
       "rule": "async-action-pending-state",
       "classification": "scanner-limitation",
-      "rationale": "The original prematurely completed React transition was repaired by awaiting signOutClientSession in the async transition callback. Actual deferred signout verifies disabled signing-out feedback until completion. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The original prematurely completed React transition was repaired by awaiting signOutClientSession in the async transition callback. Actual deferred signout verifies disabled signing-out feedback until completion. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/apps/missionary/shadscan-header-pending.test.tsx"
       ],
@@ -1044,7 +1044,7 @@
       "project": "apps/missionary",
       "rule": "field-errors-rendered",
       "classification": "scanner-limitation",
-      "rationale": "use-profile-page-view owns error state, while ProfileFormColumn passes errors into FormField/LabeledField. The shared Base UI Field wrapper renders FieldError with stable control IDs, aria-invalid, aria-describedby and aria-errormessage. Actual missionary wrapper tests verify control/error association. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "use-profile-page-view owns error state, while ProfileFormColumn passes errors into FormField/LabeledField. The shared Base UI Field wrapper renders FieldError with stable control IDs, aria-invalid, aria-describedby and aria-errormessage. Actual missionary wrapper tests verify control/error association. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
         "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
@@ -1081,7 +1081,7 @@
       "project": "apps/missionary",
       "rule": "forms-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "All five current raw call sites are immediate children of FormField, which delegates to shared LabeledField and Base UI Field.Control. Actual Input and native Textarea tests prove rendered names and relationship IDs, including browser accessible name behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "All five current raw call sites are immediate children of FormField, which delegates to shared LabeledField and Base UI Field.Control. Actual Input and native Textarea tests prove rendered names and relationship IDs, including browser accessible name behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
         "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
@@ -1114,7 +1114,7 @@
       "project": "apps/missionary",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "Flagged action Button is rendered by a labeled DropdownMenuTrigger. The actual keyboard-hidden task action issue was separately repaired with group-focus-within visibility outside Button ownership; completed delete is explicitly named. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action. Current actual DonorTasks DOM tests also verify the active action trigger and completed delete names, confirmation focus, cancellation and deferred duplicate prevention.",
+      "rationale": "Flagged action Button is rendered by a labeled DropdownMenuTrigger. The actual keyboard-hidden task action issue was separately repaired with group-focus-within visibility outside Button ownership; completed delete is explicitly named. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action. Current actual DonorTasks DOM tests also verify the active action trigger and completed delete names, confirmation focus, cancellation and deferred duplicate prevention.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
         "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
@@ -1152,7 +1152,7 @@
       "project": "apps/missionary",
       "rule": "links-have-accessible-names",
       "classification": "scanner-limitation",
-      "rationale": "DropdownMenuItem render={<Link .../>} receives visible About children through Base UI render propagation. The scanner sees the empty JSX render element without evaluating forwarded children. Actual shared ProfileDropdown test demonstrates this same rendered anchor contract. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "DropdownMenuItem render={<Link .../>} receives visible About children through Base UI render propagation. The scanner sees the empty JSX render element without evaluating forwarded children. Actual shared ProfileDropdown test demonstrates this same rendered anchor contract. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx"
       ],
@@ -1176,7 +1176,7 @@
       "project": "apps/missionary",
       "rule": "mobile-nav-present",
       "classification": "scanner-limitation",
-      "rationale": "AppShell composes SidebarProvider, AppSidebar and AppHeader SidebarTrigger. Shared Sidebar switches to controlled Sheet on mobile. The scanner stops at the extracted AppSidebar navigation rather than following the app shell/shared primitive. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "AppShell composes SidebarProvider, AppSidebar and AppHeader SidebarTrigger. Shared Sidebar switches to controlled Sheet on mobile. The scanner stops at the extracted AppSidebar navigation rather than following the app shell/shared primitive. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx"
       ],
@@ -1282,7 +1282,7 @@
       "project": "apps/missionary",
       "rule": "status-messages-announced",
       "classification": "scanner-limitation",
-      "rationale": "Analytics delegates loading/error/empty state to shared ChartCard, now emitting named loading status, alert and empty status. Actual ChartCard unit and real CSS browser fixture assert repaired status semantics. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "Analytics delegates loading/error/empty state to shared ChartCard, now emitting named loading status, alert and empty status. Actual ChartCard unit and real CSS browser fixture assert repaired status semantics. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
         "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
@@ -1311,7 +1311,7 @@
       "project": "apps/missionary",
       "rule": "suspense-fallback-useful",
       "classification": "product-decision",
-      "rationale": "The actual Boneyard task fixture null preview now has named status and skeleton rows. Remaining raw evidence surrounds only the redirect-only sibling RoleRedirectGate; keep its null fallback and rendered children semantics. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The actual Boneyard task fixture null preview now has named status and skeleton rows. Remaining raw evidence surrounds only the redirect-only sibling RoleRedirectGate; keep its null fallback and rendered children semantics. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/apps/global-boundary-contracts.test.ts"
       ],
@@ -1925,7 +1925,7 @@
       "project": "packages/missionary",
       "rule": "custom-controls-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "TaskDialog Priority label uses SelectControlLabel, which associates through Base UI Field context. The actual TaskDialog is rendered in the focused task-control test and getByRole combobox name Priority passes. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "TaskDialog Priority label uses SelectControlLabel, which associates through Base UI Field context. The actual TaskDialog is rendered in the focused task-control test and getByRole combobox name Priority passes. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/missionary/shadscan-task-controls.test.tsx"
       ],
@@ -1949,7 +1949,7 @@
       "project": "packages/missionary",
       "rule": "dialogs-have-accessible-names",
       "classification": "scanner-limitation",
-      "rationale": "TaskDetailsSheet delegates header to an extracted helper containing SheetTitle. Rendering the actual Sheet with a task verifies dialog accessible name Follow up. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "TaskDetailsSheet delegates header to an extracted helper containing SheetTitle. Rendering the actual Sheet with a task verifies dialog accessible name Follow up. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/missionary/shadscan-task-controls.test.tsx"
       ],
@@ -2003,7 +2003,7 @@
       "project": "packages/missionary",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "TaskRowMenu trigger has aria-label=\"Open actions\" propagated to render Button by Base UI. Initial real Kanban add/edit/drag names are repaired and independently verified in actual TaskKanbanBoard test. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
+      "rationale": "TaskRowMenu trigger has aria-label=\"Open actions\" propagated to render Button by Base UI. Initial real Kanban add/edit/drag names are repaired and independently verified in actual TaskKanbanBoard test. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action.",
       "verificationTests": [
         "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -2045,7 +2045,7 @@
       "project": "packages/missionary",
       "rule": "links-have-accessible-names",
       "classification": "scanner-limitation",
-      "rationale": "TaskRowMenu DropdownMenuItem render Link receives visible View Partner children from Base UI. Same rendered anchor bridge is runtime proven in shared ProfileDropdown test; source-reviewed current TaskRow link has a meaningful visible name. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "TaskRowMenu DropdownMenuItem render Link receives visible View Partner children from Base UI. Same rendered anchor bridge is runtime proven in shared ProfileDropdown test; source-reviewed current TaskRow link has a meaningful visible name. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx"
       ],
@@ -2086,7 +2086,7 @@
       "project": "packages/missionary",
       "rule": "mobile-nav-present",
       "classification": "scanner-limitation",
-      "rationale": "TaskViewTabs is an always-exposed task filter strip with overflow scrolling, not hidden site navigation. Actual unit selects Due Today and verifies its filter callback without any collapsible navigation panel. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "TaskViewTabs is an always-exposed task filter strip with overflow scrolling, not hidden site navigation. Actual unit selects Due Today and verifies its filter callback without any collapsible navigation panel. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/missionary/shadscan-task-controls.test.tsx"
       ],
@@ -2174,7 +2174,7 @@
       "project": "packages/ui",
       "rule": "async-action-pending-state",
       "classification": "scanner-limitation",
-      "rationale": "Scanner explicitly stops at AuthButton. FullLoginCard passes isSubmitting to AuthButton loading; AuthButton renders Spinner and disables the actual Base UI button. Actual deferred auth-screen tests and loading-button tests verify real pending and native disabled behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "Scanner explicitly stops at AuthButton. FullLoginCard passes isSubmitting to AuthButton loading; AuthButton renders Spinner and disables the actual Base UI button. Actual deferred auth-screen tests and loading-button tests verify real pending and native disabled behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/auth-screen-pending.test.tsx",
         "tests/unit/packages/ui/base-ui-loading-button.test.tsx"
@@ -2237,7 +2237,7 @@
       "project": "packages/ui",
       "rule": "custom-controls-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "Actual Zoom/Rotation slider thumbs carry the accessible names; Base UI Slider Root is a container, not the focusable slider. Real CSS browser test locates actual role slider by both names and ArrowRight changes aria-valuenow. Preserve correct thumb labeling. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "Actual Zoom/Rotation slider thumbs carry the accessible names; Base UI Slider Root is a container, not the focusable slider. Real CSS browser test locates actual role slider by both names and ArrowRight changes aria-valuenow. Preserve correct thumb labeling. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"
       ],
@@ -2261,7 +2261,7 @@
       "project": "packages/ui",
       "rule": "empty-state-present",
       "classification": "scanner-limitation",
-      "rationale": "The flagged LoginScreen useQuery resolves demo availability boolean and existing user/session state, not a displayed collection. Their false/null result correctly renders sign-in UI, rather than an empty collection panel. Actual deferred auth-screen tests verify the flow. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The flagged LoginScreen useQuery resolves demo availability boolean and existing user/session state, not a displayed collection. Their false/null result correctly renders sign-in UI, rather than an empty collection panel. Actual deferred auth-screen tests verify the flow. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/auth-screen-pending.test.tsx"
       ],
@@ -2315,7 +2315,7 @@
       "project": "packages/ui",
       "rule": "field-errors-rendered",
       "classification": "scanner-limitation",
-      "rationale": "The flagged validation hook flattens TanStack errors for FieldShell/FieldError. Existing actual TanStack form accessibility tests verify the rendered associated errors rather than demanding JSX in the helper function. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The flagged validation hook flattens TanStack errors for FieldShell/FieldError. Existing actual TanStack form accessibility tests verify the rendered associated errors rather than demanding JSX in the helper function. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx"
       ],
@@ -2335,7 +2335,7 @@
       "project": "packages/ui",
       "rule": "focus-visible-not-suppressed",
       "classification": "scanner-limitation",
-      "rationale": "MenubarSubTrigger replaces the removed outline with focus:bg-accent and focus:text-accent-foreground, plus popup-open equivalents. Keyboard menu behavior belongs to the shared Base UI Menu SubmenuTrigger. Actual submenu-specific computed focus contrast has source proof; broad fixture tests cover Base UI menu keyboard behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "MenubarSubTrigger replaces the removed outline with focus:bg-accent and focus:text-accent-foreground, plus popup-open equivalents. Keyboard menu behavior belongs to the shared Base UI Menu SubmenuTrigger. Actual submenu-specific computed focus contrast has source proof; broad fixture tests cover Base UI menu keyboard behavior. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/fixtures/base-ui-compliance/specs/overlays.spec.ts"
       ],
@@ -2359,7 +2359,7 @@
       "project": "packages/ui",
       "rule": "forms-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "AuthInput is a caller-labeled primitive; actual auth screens name Email/Password. TanStack inputs/textareas receive FieldShell context and labels. TextCell editors now receive derived Edit column label via commonProps spread; actual numeric/text/multiline editor tests verify names. Scanner sees the spread but cannot resolve it. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "AuthInput is a caller-labeled primitive; actual auth screens name Email/Password. TanStack inputs/textareas receive FieldShell context and labels. TextCell editors now receive derived Edit column label via commonProps spread; actual numeric/text/multiline editor tests verify names. Scanner sees the spread but cannot resolve it. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/auth-screen-pending.test.tsx",
         "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
@@ -2566,7 +2566,7 @@
       "project": "packages/ui",
       "rule": "validation-wired-to-form",
       "classification": "scanner-limitation",
-      "rationale": "CommentsDialog renders a native required Input and trims/comment-empty guards before mutation. Pending guard suppresses duplicate submissions. Scanner does not follow shared Input native required. Actual deferred comments test checks required/pending/duplicates; browser verifies submitted pending and completion. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "CommentsDialog renders a native required Input and trims/comment-empty guards before mutation. Pending guard suppresses duplicate submissions. Scanner does not follow shared Input native required. Actual deferred comments test checks required/pending/duplicates; browser verifies submitted pending and completion. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-comments-feedback.test.tsx",
         "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts"

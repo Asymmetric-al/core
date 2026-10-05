@@ -291,6 +291,24 @@ describe("Phase 24 authority through the public read-only CLI", () => {
     expectFailure(root, "US24-119", matrix, "US24-119");
   });
 
+  it.each([
+    ["US24-001", "Release Closure Rule"],
+    ["D1", "Release Closure Rule"],
+    ["US24-001", "Founder Decision Matrix"],
+    ["D1", "User Story Matrix"],
+  ])("rejects %s moved outside its owning matrix into %s", (owner, section) => {
+    const root = checkout();
+    edit(root, matrix, (text) => {
+      const row = text.match(
+        new RegExp(`^\\|\\s*${owner}\\s*\\|.*\\n`, "m"),
+      )![0];
+      return text
+        .replace(row, "")
+        .replace(`## ${section}\n`, `## ${section}\n\n${row}`);
+    });
+    expectFailure(root, owner, matrix, owner);
+  });
+
   it("rejects a missing independent PRD numbered story", () => {
     const root = checkout();
     edit(root, prd, (text) =>
