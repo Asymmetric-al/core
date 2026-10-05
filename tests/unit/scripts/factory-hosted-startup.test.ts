@@ -245,10 +245,14 @@ async function invoke(f: Fixture, overrides: Record<string, unknown> = {}) {
         error: new Error("ENOENT"),
       };
     if (
-      command === "python3" &&
-      args.includes("-B") &&
-      args.includes("-c") &&
-      args.some((arg) => arg.includes("tomllib"))
+      (command === "python3" &&
+        args.includes("-B") &&
+        args.includes("-c") &&
+        args.some((arg) => arg.includes("tomllib"))) ||
+      (command === "bun" &&
+        args.length === 2 &&
+        args[0] === "-e" &&
+        args[1].includes("Bun.YAML.parse"))
     ) {
       return actualProcess.spawnSync(command, args, {
         ...options,
@@ -366,6 +370,36 @@ it.each([
     relative: skillRelative,
     bytes:
       "---\nname: samson-factory\ndescription: Coordinator guidance.\n---\nValidate retained assets read-only.\n",
+  },
+  {
+    defect: "syntactically malformed skill YAML",
+    relative: skillRelative,
+    bytes:
+      "---\nname: samson-factory\ndescription: [unterminated\n---\n# Samson\nValidate retained assets read-only.\n",
+  },
+  {
+    defect: "missing required skill description",
+    relative: skillRelative,
+    bytes:
+      "---\nname: samson-factory\n---\n# Samson\nValidate retained assets read-only.\n",
+  },
+  {
+    defect: "empty required skill description",
+    relative: skillRelative,
+    bytes:
+      '---\nname: samson-factory\ndescription: ""\n---\n# Samson\nValidate retained assets read-only.\n',
+  },
+  {
+    defect: "whitespace-only required skill description",
+    relative: skillRelative,
+    bytes:
+      '---\nname: samson-factory\ndescription: "   "\n---\n# Samson\nValidate retained assets read-only.\n',
+  },
+  {
+    defect: "non-string required skill description",
+    relative: skillRelative,
+    bytes:
+      "---\nname: samson-factory\ndescription: [Coordinator guidance]\n---\n# Samson\nValidate retained assets read-only.\n",
   },
   {
     defect: "missing protocol heading",

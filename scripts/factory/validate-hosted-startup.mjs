@@ -102,11 +102,7 @@ export function validateHostedStartup({
     "coordinator skill",
   );
   const frontmatter = skill.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-  if (
-    !frontmatter ||
-    !/^name:\s*samson-factory\s*$/m.test(frontmatter[1]) ||
-    !/^#\s+\S/m.test(skill.slice(frontmatter[0].length))
-  )
+  if (!frontmatter || !/^#\s+\S/m.test(skill.slice(frontmatter[0].length)))
     blocked(
       "Malformed coordinator skill: expected samson-factory frontmatter and heading",
     );
@@ -180,6 +176,37 @@ export function validateHostedStartup({
   if (versions.bun !== expectedBunVersion)
     blocked(
       `bun version mismatch: expected ${expectedBunVersion}, observed ${versions.bun}`,
+    );
+
+  // The pinned runtime supplies YAML parsing without dependencies or installation.
+  // Pass retained metadata through stdin, never interpolate it into executable code.
+  let metadata;
+  try {
+    metadata = JSON.parse(
+      run(
+        "bun",
+        [
+          "-e",
+          "process.stdout.write(JSON.stringify(Bun.YAML.parse(await Bun.stdin.text())))",
+        ],
+        frontmatter[1],
+      ),
+    );
+  } catch (error) {
+    blocked(`Malformed coordinator skill frontmatter: ${error.message}`);
+  }
+  if (
+    metadata === null ||
+    typeof metadata !== "object" ||
+    Array.isArray(metadata) ||
+    !Object.hasOwn(metadata, "name") ||
+    metadata.name !== "samson-factory" ||
+    !Object.hasOwn(metadata, "description") ||
+    typeof metadata.description !== "string" ||
+    !metadata.description.trim()
+  )
+    blocked(
+      "Malformed coordinator skill frontmatter: expected name samson-factory and nonempty string description",
     );
 
   const parsed = run(
