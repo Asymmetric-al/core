@@ -88,8 +88,12 @@ for a score. The public donor site's declared social image must resolve.
 
 Mission Control navigation search uses the user's permitted navigation and guards
 Cmd/Ctrl+K against text editing and other active dialogs. Support inbox shortcuts
-retain their local scope. Donor and missionary products do not gain command
-palettes solely to satisfy an audit rule.
+retain their local scope. The owner approved useful donor and missionary
+navigation palettes on 2026-10-04. They mount once in each signed-in workspace,
+compose the shared Base UI/base-maia command widget, and use the existing
+permitted destinations. Public giving, checkout and login flows retain their
+existing navigation. The published scanner still misses this shared-package
+composition; executable caller and keyboard/focus tests support that finding.
 
 Authenticated CMS preview retains its blocking dynamic boundary. Redirect-only
 Suspense siblings retain invisible fallbacks. Global Next.js recovery boundaries

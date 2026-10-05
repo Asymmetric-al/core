@@ -1,7 +1,8 @@
 "use client";
 
 import { signOutClientSession } from "@asym/auth/client-session";
-import { cn } from "@asym/ui/lib/utils";
+import { NavigationCommandPalette } from "@asym/ui/components/primitives/navigation-command-palette";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   LayoutDashboard,
   History,
@@ -12,8 +13,8 @@ import {
   LogOut,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useId, useRef, useTransition } from "react";
 
 const navItems = [
   { label: "Overview", href: "/donor-dashboard", icon: LayoutDashboard },
@@ -34,18 +35,34 @@ const navItems = [
 
 export function DonorSubNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const signOutLabelId = useId();
+  const signOutInFlight = useRef(false);
   const [isSigningOut, startSigningOut] = useTransition();
 
   const handleSignOut = () => {
-    startSigningOut(() => {
-      void signOutClientSession();
+    if (signOutInFlight.current) return;
+    signOutInFlight.current = true;
+    startSigningOut(async () => {
+      await signOutClientSession().finally(() => {
+        signOutInFlight.current = false;
+      });
     });
   };
 
   return (
-    <nav className="border-b border-zinc-200 bg-white sticky top-16 z-40">
+    <nav
+      aria-label="Donor workspace"
+      className="border-b border-border bg-background sticky top-16 z-40"
+    >
       <div className="container-responsive">
         <div className="flex items-center gap-1 overflow-x-auto py-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <NavigationCommandPalette
+            title="Donor navigation"
+            triggerLabel="Search donor pages"
+            items={navItems}
+            onNavigate={(href) => router.push(href)}
+          />
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
@@ -57,30 +74,38 @@ export function DonorSubNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors rounded-lg",
-                  isActive
-                    ? "bg-zinc-900 text-white"
-                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900",
-                )}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
+                className={buttonVariants({
+                  variant: isActive ? "secondary" : "ghost",
+                  size: "lg",
+                })}
               >
-                <Icon className="size-3.5" />
+                <Icon aria-hidden data-icon="inline-start" />
                 <span className="hidden sm:inline">{item.label}</span>
               </Link>
             );
           })}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             type="button"
             data-testid="auth-signout"
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="ml-auto flex items-center gap-2 rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-zinc-500 transition-[color,background-color,opacity] hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-60"
+            focusableWhenDisabled={isSigningOut}
+            aria-busy={isSigningOut}
+            aria-labelledby={signOutLabelId}
+            className="ml-auto"
           >
-            <LogOut className="size-3.5" />
-            <span className="hidden sm:inline">
+            <LogOut aria-hidden data-icon="inline-start" />
+            <span id={signOutLabelId}>
               {isSigningOut ? "Signing out…" : "Sign out"}
             </span>
-          </button>
+          </Button>
+          <span role="status" className="sr-only">
+            {isSigningOut ? "Signing out…" : ""}
+          </span>
         </div>
       </div>
     </nav>
