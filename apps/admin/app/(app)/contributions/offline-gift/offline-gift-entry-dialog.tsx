@@ -711,9 +711,9 @@ function OfflineGiftEntrySuccess({
         <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
           <CircleCheck className="size-6" />
         </span>
-        <h2 className="text-base font-semibold text-foreground">
+        <DialogTitle className="text-base font-semibold">
           Gift recorded
-        </h2>
+        </DialogTitle>
         <p className="mt-1 text-sm text-muted-foreground">
           Contribution{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-xs">
