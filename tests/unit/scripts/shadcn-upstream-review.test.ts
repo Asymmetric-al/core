@@ -937,6 +937,17 @@ lz88C25ucKA=
       expect(readFileSync(input.certificate, "utf8")).toBe(certificateBytes);
     });
 
+    it("starts the child with approved proxy routing when optional CA is an empty setting", async () => {
+      clearTransport();
+      vi.stubEnv("HTTPS_PROXY", proxy);
+      vi.stubEnv("NODE_EXTRA_CA_CERTS", "");
+      const runCli = observeEnvironment(["HTTPS_PROXY", "NODE_EXTRA_CA_CERTS"]);
+      expect(JSON.parse(await runCli([]))).toEqual({
+        HTTPS_PROXY: true,
+        NODE_EXTRA_CA_CERTS: false,
+      });
+    });
+
     it.each(["valid", "absent file"])(
       "ignores optional CA configuration without a proxy: %s",
       async (kind) => {

@@ -345,7 +345,8 @@ function approvedProxyEnvironment() {
   }
   if (
     Object.keys(proxies).length > 0 &&
-    process.env.NODE_EXTRA_CA_CERTS !== undefined
+    process.env.NODE_EXTRA_CA_CERTS !== undefined &&
+    process.env.NODE_EXTRA_CA_CERTS !== ""
   ) {
     proxies.NODE_EXTRA_CA_CERTS = validatePublicCa(
       process.env.NODE_EXTRA_CA_CERTS,
