@@ -51,6 +51,16 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
+it("keeps Add Task disabled until the initial list finishes loading", () => {
+  tasks.loading = true;
+  const view = render(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  const add = screen.getByRole("button", { name: "Add Task" });
+  expect(add.getAttribute("aria-disabled")).toBe("true");
+  tasks.loading = false;
+  view.rerender(<DonorTasks donorId="donor-anna" donorName="Anna" />);
+  expect(add.getAttribute("aria-disabled")).not.toBe("true");
+});
+
 it("keeps confirmation and keyboard focus through a task refresh", async () => {
   const view = render(<DonorTasks donorId="donor-anna" donorName="Anna" />);
   fireEvent.click(screen.getByRole("button", { name: "Delete Call Anna" }));

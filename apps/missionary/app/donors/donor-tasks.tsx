@@ -140,6 +140,7 @@ export function DonorTasks({
           defaultDonorId={donorId}
           open={taskDialogOpen}
           onOpenChange={(open) => {
+            if (open && loading) return;
             setTaskDialogOpen(open);
             if (!open) {
               setEditingTask(null);
@@ -147,7 +148,12 @@ export function DonorTasks({
           }}
           onSuccess={handleTaskSuccess}
           trigger={
-            <Button ref={addTaskRef} size="sm">
+            <Button
+              ref={addTaskRef}
+              size="sm"
+              disabled={loading}
+              focusableWhenDisabled={loading}
+            >
               <Plus className="mr-1.5 size-3.5" /> Add Task
             </Button>
           }

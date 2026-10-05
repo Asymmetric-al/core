@@ -1282,7 +1282,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "9669eafe7afeb383067141bd53fd057c9c099adcf2c61be4666b0298165c82c8"
+          "sha256": "ae3642c7a74cb20de572ee0a5c81dc9a8d5044a28fb4607c6c5ebd4eb4c307ff"
         },
         {
           "path": "packages/ui/components/shadcn/button.tsx",
@@ -1302,7 +1302,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/donor-task-delete-confirmation.test.tsx",
-          "sha256": "3da83e8d92965bee7b7af2f9ab6b75941e9f5479525b14555256150153ca11b7"
+          "sha256": "46328bd79b4269e67d72fd4a7ba600d32bc160c5802cb7cd0180b98406414953"
         }
       ]
     },

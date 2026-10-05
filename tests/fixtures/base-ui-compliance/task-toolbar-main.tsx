@@ -105,6 +105,10 @@ function TaskToolbarContracts() {
   );
 }
 
+setTaskLoadingFixture(
+  new URLSearchParams(location.search).get("loading") === "true",
+);
+
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider
     attribute="class"

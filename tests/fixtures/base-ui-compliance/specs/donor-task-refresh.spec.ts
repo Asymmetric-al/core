@@ -17,7 +17,25 @@ for (const width of [320, 1440]) {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto("/task-toolbar.html?surface=donor");
+    await page.goto("/task-toolbar.html?surface=donor&loading=true");
+    const add = page.getByRole("button", { name: "Add Task", exact: true });
+    await expect(add).toHaveAttribute("aria-disabled", "true");
+    await add.press("Enter");
+    await add.press("Space");
+    await expect(
+      page.getByRole("dialog", { name: "Create Task", exact: true }),
+    ).toHaveCount(0);
+    await control(page, { command: "loading", loading: false });
+    await expect(add).not.toHaveAttribute("aria-disabled", "true");
+    await add.press("Enter");
+    const creation = page.getByRole("dialog", {
+      name: "Create Task",
+      exact: true,
+    });
+    await expect(creation).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(creation).toHaveCount(0);
+    await expect(add).toBeFocused();
     const actions = page.getByRole("button", {
       name: "Open actions",
       exact: true,
