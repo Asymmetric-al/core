@@ -95,6 +95,26 @@ jobs:
           path: ${{ runner.temp }}/shadscan/
           if-no-files-found: warn
           retention-days: 14
+      - name: Check out the Phase 24 proof candidate
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: phase24-proof-head
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Capture Phase 24 repository proof
+        env:
+          PHASE24_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node phase24-proof-head/scripts/cms/run-local-e2e.mjs --phase24-contract-check --candidate-sha "$PHASE24_CANDIDATE_SHA" > "$RUNNER_TEMP/phase24-authority-manifest.json"
+      - name: Upload passing Phase 24 repository proof
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase24-authority-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/phase24-authority-manifest.json
+          if-no-files-found: error
+          retention-days: 14
 
   shadscan-report:
     needs: [integrity]
@@ -225,6 +245,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
