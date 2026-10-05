@@ -10,19 +10,42 @@ roster, assignments, delegation, waiting, handoffs and completion. Specialists
 do not receive this skill, roster, other role descriptions or parent chat.
 Setup maintenance does not start an issue trial.
 
-In the managed Core cloud factory, initialize the active runtime home once per
-coordinating chat, before verification or delegation, unless initialization has
-already completed in this chat:
+In the managed Core hosted factory, start each coordinating chat with read-only
+validation of retained source and the personal coordinator guidance at
+`~/.agents/skills/samson-factory/SKILL.md`, its referenced handoff protocol,
+`/workspace/AGENTS.md`, and all six retained role sources at
+`/workspace/samson-factory/startup-source/.codex/agents/<role>.toml`.
+Confirm personal guidance/protocol and role copies match the reviewed retained
+source, the workspace coordination policy matches, and all six TOMLs parse with
+nonempty own-role instructions, requested model and reasoning effort. Confirm
+shell/Git/GitHub, Python 3.11+ and the reviewed Node/Bun pins on PATH, and native
+spawn, task-starting follow-up, waiting and `update_plan` tools are available.
+Missing, malformed, mismatched or unavailable required assets/tools are BLOCKED;
+do not install, synthesize fallback assets or repair permissions.
 
-```sh
-node /workspace/samson-factory/startup-source/scripts/factory/install-native.mjs
-```
+Hosted startup does not require installation into active `CODEX_HOME`, local
+CLI configuration/prompt verification or launching local app-server state.
+The active home may be absent or read-only. Use fresh native own-role handoffs
+after the read-only checks pass. `scripts/factory/validate-hosted-startup.mjs`
+provides the read-only check with explicit retained/personal/workspace roots,
+reviewed Node/Bun pins and the coordinator's observed native-tool inventory.
+It reports asset hashes and requested settings; it cannot establish effective
+runtime settings, isolation, publication or product readiness.
 
-The retained source and personal home survive the image; active `CODEX_HOME`
-under `/run` is recreated. This existing idempotent installer restores only owned
-native configuration, policy and roles while preserving unrelated settings.
-It is routine coordinator startup, not issue work. Stop if the retained installer
-is missing or initialization fails. Specialists do not run this initialization.
+Explicit local CLI installation remains `scripts/factory/setup-cloud.mjs` and
+`scripts/factory/install-native.mjs`, with their existing flags and preservation
+semantics. Run them only for an explicitly authorized installation or local CLI
+diagnostic task, never as a routine hosted startup prerequisite. Do not silently
+repair personal or active homes. Give commands the verified tools directory on
+PATH (`/workspace/.onboarding-tools/node_modules/.bin` in this environment).
+
+For the owner-authorized startup repair #1955 only, read-only diagnosis and
+retained asset/tool validation may establish independent acceptance and permit
+the bounded repository repair without running the failing active-home installer.
+This exception repairs startup; it is not general permission to skip startup or
+another gate. #1954 remains paused in its existing assignment until actual fresh
+hosted qualification passes. Do not change environment publication, credentials,
+permissions, mount/security settings, trust, model policy or branch protections.
 
 | Specialist | Assignment                                                         |
 | ---------- | ------------------------------------------------------------------ |
@@ -85,14 +108,21 @@ preparation, not a new identity gate in repository hooks.
    tools. In-scope repairs use the same commit/review/acceptance cycle. New heads
    need current decisions and checks. Integrate a changed base as required;
    source conflicts go to Bezalel.
-10. Preserve required human PR approval unless the owner explicitly changes that
-    policy. With applicable merge authorization and a ready PR, use the native
-    supported method and expected-head matching: for Core,
-    `gh pr merge <PR> --merge --match-head-commit <SHA>`. Do not bypass protection
-    or change policy.
-11. Read back merged PR state/SHA, fetch `develop`, verify the merge is present,
-    and confirm appropriate issue closure. Report MERGED only after verification;
-    READY_FOR_APPROVAL and BLOCKED are separate outcomes.
+10. Return DELIVERY_READY to David, the root coordinator, with issue/PR URL,
+    exact head SHA, `develop` base, acceptance revision, both independent review
+    decisions, Ezra's final PASS and required-check evidence for that head.
+    Missing evidence is BLOCKED; pending checks keep delivery in progress.
+    STOP BEFORE MERGE. A changed head invalidates prior acceptance/check evidence
+    and returns to the normal implementation, review and acceptance gates.
+11. David alone refreshes the live head/base/checks, required GitHub reviews and
+    protections, then performs the authorized protected expected-head merge.
+    Preserve required human approval; never bypass protection or reroute a denied
+    action. David independently verifies merged state/SHA and presence on
+    `develop`, then sends actual merge evidence to the same worker for bounded
+    closeout of only that issue/PR. No Done status, completion claim or next issue
+    precedes verified merge plus successful same-worker closeout. For #1955,
+    repository delivery/closeout remains separate from postmerge hosted
+    qualification; do not auto-close the issue before H1–H2 pass.
 
 Advance when conditions and authorization are satisfied; do not ask again for
 routine handoffs, local fixes or in-scope checks. Stop for real blockers, changed

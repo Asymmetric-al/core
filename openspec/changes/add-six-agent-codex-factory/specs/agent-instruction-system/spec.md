@@ -38,8 +38,10 @@ SHALL NOT be given to specialists.
 - THEN Samson publishes through normal repository hooks and targets `develop`
 - AND it converges live required checks and actionable feedback for the current head
 - AND it preserves required human approval and applicable merge authority
-- AND native protection and expected-head matching govern the merge
-- AND completion requires readback of the merge on `develop` and issue closeout
+- AND the worker returns exact-head DELIVERY_READY and stops before merge
+- AND David, the root coordinator, alone performs the authorized protected expected-head merge after refreshed checks/reviews/protection
+- AND completion requires independent merge readback on `develop` and successful same-worker closeout
+- AND #1955 remains open until separate postmerge hosted qualification passes
 
 #### Scenario: Evidence or execution cannot advance
 
@@ -50,7 +52,7 @@ SHALL NOT be given to specialists.
 
 ### Requirement: Native Setup Is Reproducible and Honest
 
-Setup SHALL install repository-owned native role files and coordinator guidance
+Explicit local CLI setup SHALL install repository-owned native role files and coordinator guidance
 without discarding unrelated personal configuration. Repeated installation SHALL
 be idempotent. Verification SHALL detect missing or changed owned content without
 mutating sources or installed files. Dependencies SHALL use the pinned Bun and
@@ -58,9 +60,9 @@ frozen lockfile. Repository readiness verification SHALL reject dependency-manif
 drift from the lockfile without repairing it. Setup SHALL neither start a trial
 nor establish merge authority.
 
-#### Scenario: A fresh startup installs the package
+#### Scenario: Explicit local installation prepares the package
 
-- WHEN setup runs from reviewed source in a fresh environment
+- WHEN explicitly authorized local setup runs from reviewed source
 - THEN role files, coordinator guidance and executable tool initialization are restored
 - AND unrelated configuration is preserved or a conflict fails with useful guidance
 - AND credentials are not copied from another Codex installation
@@ -71,3 +73,44 @@ nor establish merge authority.
 - THEN the report distinguishes those checks from actual role loading and model access
 - AND shared-workspace prompt boundaries are not called filesystem isolation
 - AND rebuild persistence is claimed only after a real fresh-start readback
+
+### Requirement: Hosted Startup Validates Retained Assets Read-Only
+
+Hosted startup SHALL validate retained/personal coordinator guidance, handoff
+protocol, workspace coordination policy, all six own-role TOML sources/copies and
+available native tools read-only. It SHALL NOT require installation into active
+CODEX_HOME or local CLI verification/app-server launch. Active-home absence or a
+read-only mount SHALL NOT request repair. Explicit local installer/setup flags
+and preservation semantics SHALL remain unchanged.
+
+#### Scenario: Hosted coordinating chat starts
+
+- WHEN reviewed retained assets and required observed native/tools are available
+- THEN matching coordinator/protocol and six role copies are validated with parsed own-role instructions and requested settings
+- AND reviewed Node/Bun pins and shell/Git/GitHub/Python availability are checked
+- AND fresh native own-role handoffs may follow without active-home writes, installer invocation or local CLI launch
+- AND configuration, hashes and supplied tool inventory do not prove runtime enforcement, isolation or hosted qualification
+
+#### Scenario: Required hosted assets or tools are unavailable
+
+- WHEN a required coordinator/role/policy asset is missing, malformed or mismatched, or a required tool is unavailable
+- THEN startup is BLOCKED before specialist/product work with the precise missing evidence
+- AND no installer, fallback synthesis, home repair or permissions change occurs
+
+#### Scenario: The bounded startup regression is repaired
+
+- WHEN owner-authorized #1955 diagnoses the mandatory-installer regression
+- THEN read-only retained asset/tool validation may establish independent acceptance and permit the bounded repository startup repair without running the failing installer
+- AND this exception does not waive another gate or authorize product implementation
+- AND #1954 remains paused in its existing assignment until actual fresh hosted qualification passes
+
+#### Scenario: Repository repair and hosted publication are distinguished
+
+- WHEN repository R1–R5 passes on the actual committed candidate
+- THEN it may support the root's normal protected merge with H1–H2 explicitly pending
+- AND root separately verifies actual fresh named Samson Core Factory execution, all six native own-role handoffs/normal returns, unchanged watched assets and clean product checkout without active-home writes
+- AND consumed coordinator/role hashes, source revision and actual configuration/admission version identify what ran
+- AND stale saved/personal/embedded startup copies require precise supported reconciliation/publication evidence and a new fresh-session verification
+- AND merge, configuration parsing, mocked handoffs, catalog revisions or unpublished Start artifacts do not establish publication/consumption or product readiness
+- AND missing review/acceptance execution isolation remains missing required evidence and INCONCLUSIVE
+- AND #1955 is not auto-closed before H1–H2 passes
