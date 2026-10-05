@@ -56,6 +56,9 @@ const ResponsiveContainer = loadRechartsComponent("ResponsiveContainer");
 export default function AnalyticsPage() {
   // Route VT owns the entrance when active; only animate on plain mounts.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
+  const [givingTrendPeriod, setGivingTrendPeriod] = React.useState<
+    "6m" | "12m"
+  >("6m");
 
   // Real giving trend: the shared donation-metrics hook aggregates the existing
   // /api/missionaries/[id]/metrics endpoint into per-month recurring/one-time
@@ -68,8 +71,9 @@ export default function AnalyticsPage() {
   } = useDonationMetrics(profile?.id ?? "");
 
   const givingTrend = React.useMemo(
-    () => selectGivingTrend(monthlyBreakdown),
-    [monthlyBreakdown],
+    () =>
+      selectGivingTrend(monthlyBreakdown, givingTrendPeriod === "12m" ? 12 : 6),
+    [monthlyBreakdown, givingTrendPeriod],
   );
   const givingTrendState = resolveGivingTrendState({
     isLoading: authLoading || metricsLoading,
@@ -131,9 +135,13 @@ export default function AnalyticsPage() {
               items={[
                 { value: "6m", label: "Last 6m" },
                 { value: "12m", label: "Last 12m" },
-                { value: "all", label: "All Time" },
               ]}
-              defaultValue="6m"
+              value={givingTrendPeriod}
+              onValueChange={(value) => {
+                if (value === "6m" || value === "12m") {
+                  setGivingTrendPeriod(value);
+                }
+              }}
             >
               <SelectTrigger
                 aria-label="Giving trend period"
@@ -144,7 +152,6 @@ export default function AnalyticsPage() {
               <SelectContent className="rounded-lg border-zinc-100">
                 <SelectItem value="6m">Last 6m</SelectItem>
                 <SelectItem value="12m">Last 12m</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
               </SelectContent>
             </Select>
           }
