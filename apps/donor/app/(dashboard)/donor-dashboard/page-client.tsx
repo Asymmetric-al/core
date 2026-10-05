@@ -33,7 +33,7 @@ export default function DonorDashboardPage() {
           className="mt-6 h-9 rounded-lg font-bold uppercase tracking-widest text-[10px]"
           onClick={() => void bootstrap.refetch()}
         >
-          <RefreshCw className="mr-2 size-3.5" />
+          <RefreshCw className="mr-2 size-3.5" data-icon="inline-start" />
           Retry
         </Button>
       </div>

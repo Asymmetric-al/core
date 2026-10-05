@@ -183,7 +183,10 @@ export function TasksFilterSection({
             <DropdownMenuTrigger
               render={
                 <Button variant="outline">
-                  <ListFilter className="size-4 text-muted-foreground" />
+                  <ListFilter
+                    className="size-4 text-muted-foreground"
+                    data-icon="inline-start"
+                  />
                   Display
                 </Button>
               }
