@@ -1,0 +1,60 @@
+{
+  "format_version": 1,
+  "disposition": "repository-source/local-catalog supplement; absent from immutable live capture",
+  "source_path": "supabase/migrations/20260702090000_donation_stripe_refund_ids.sql",
+  "source_sha256": "2fd5fe0c396d9662e5595b1f24879c4b3dc5404b9ab24b7c0ff60c144d1b9bda",
+  "repository_base_sha": "ffa812656b0ff920b3fe014a31d2d57ee8679288",
+  "local_catalog": {
+    "database": "al491_replay",
+    "postgres_version": "15.19",
+    "query": "select jsonb_build_object('schema',table_schema,'record_type',table_name,'field_key',column_name,'ordinal',ordinal_position,'data_type',data_type,'udt_name',udt_name,'nullable',is_nullable='YES','default',column_default) from information_schema.columns where table_schema='public' and table_name='donations' and column_name='stripe_refund_ids';",
+    "result": {
+      "schema": "public",
+      "default": "'{}'::text[]",
+      "ordinal": 29,
+      "nullable": false,
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "field_key": "stripe_refund_ids",
+      "record_type": "donations"
+    }
+  },
+  "column": {
+    "recordType": "donations",
+    "name": "stripe_refund_ids",
+    "ordinal": 29,
+    "type": "text[]",
+    "nullable": false,
+    "default": "'{}'::text[]",
+    "semantic_category": "financial",
+    "category": "financial",
+    "processor_identifier": true,
+    "policies": {
+      "mission_control": {
+        "visible": true,
+        "editable": false,
+        "exportable": false
+      },
+      "donor": {
+        "visible": false,
+        "editable": false,
+        "exportable": false
+      },
+      "missionary": {
+        "visible": false,
+        "editable": false,
+        "exportable": false
+      },
+      "public": {
+        "visible": false,
+        "editable": false,
+        "exportable": false
+      },
+      "export": {
+        "visible": false,
+        "editable": false,
+        "exportable": false
+      }
+    }
+  }
+}

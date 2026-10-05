@@ -1,0 +1,6268 @@
+{
+  "issue": "AL-491",
+  "format_version": 1,
+  "provenance": {
+    "project": "pnmlrbgjiqzzsthsoikm",
+    "repository_base_sha": "ffa812656b0ff920b3fe014a31d2d57ee8679288",
+    "captured_at": "2026-10-05 04:51:45.072671+00",
+    "postgres_version": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit",
+    "latest_live_migration": "20261001061717",
+    "live_capture_sha256": "0ab1165501bf059ba12c71898cb9597725282be458ab0c71e6280c1064e4736a",
+    "relation_capture_sha256": "88e2ab1cf42935f89b8dd456db67cca08301287645e6bcc47dc58b541ffb3486",
+    "query": "select current_timestamp as captured_at, version() as postgres_version, (select max(version) from supabase_migrations.schema_migrations) as latest_migration, jsonb_agg(jsonb_build_object('schema', n.nspname, 'relation', c.relname, 'kind', c.relkind, 'columns', (select jsonb_agg(jsonb_build_object('name', a.attname, 'ordinal', a.attnum, 'type', pg_catalog.format_type(a.atttypid,a.atttypmod), 'nullable', not a.attnotnull) order by a.attnum) from pg_attribute a where a.attrelid=c.oid and a.attnum>0 and not a.attisdropped)) order by c.relname) as inventory from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p','v','m','f') and (c.relname in ('donors','donations','donor_pledges','missionaries','profiles','receipts','gift_receipt_records','contribution_receipt_snapshots') or c.relname like '%care%');",
+    "candidate_migration": "20261005050728_field_policy_foundation.sql",
+    "candidate_repository_revision": "The commit containing this immutable artifact (coordinator records final SHA in acceptance evidence)."
+  },
+  "surfaces": ["mission_control", "donor", "missionary", "public", "export"],
+  "column_count": 171,
+  "baseline_row_count": 860,
+  "relations": [
+    {
+      "record_type": "donations",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "donor_id",
+          "type": "uuid",
+          "ordinal": 3,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "missionary_id",
+          "type": "uuid",
+          "ordinal": 4,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "fund_id",
+          "type": "uuid",
+          "ordinal": 5,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "type": "bigint",
+          "ordinal": 6,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "currency",
+          "type": "text",
+          "ordinal": 7,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "ordinal": 8,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "donation_type",
+          "type": "text",
+          "ordinal": 9,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "payment_method",
+          "type": "text",
+          "ordinal": 10,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "is_recurring",
+          "type": "boolean",
+          "ordinal": 11,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "recurring_interval",
+          "type": "text",
+          "ordinal": 12,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "ordinal": 13,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "stripe_payment_intent_id",
+          "type": "text",
+          "ordinal": 14,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": true,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 15,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 16,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "gift_date",
+          "type": "date",
+          "ordinal": 17,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "campaign_id",
+          "type": "uuid",
+          "ordinal": 18,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "pledge_id",
+          "type": "uuid",
+          "ordinal": 19,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "processed_at",
+          "type": "timestamp with time zone",
+          "ordinal": 20,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "ordinal": 21,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "failed_at",
+          "type": "timestamp with time zone",
+          "ordinal": 22,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "error_code",
+          "type": "text",
+          "ordinal": 23,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "error_message",
+          "type": "text",
+          "ordinal": 24,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "stripe_charge_id",
+          "type": "text",
+          "ordinal": 25,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": true,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "refunded_at",
+          "type": "timestamp with time zone",
+          "ordinal": 26,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "refund_amount",
+          "type": "bigint",
+          "ordinal": 27,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "ordinal": 28,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "donor_pledges",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "donor_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "type": "bigint",
+          "ordinal": 3,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "frequency",
+          "type": "text",
+          "ordinal": 4,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "ordinal": 5,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "ordinal": 6,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "ordinal": 7,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "next_payment_date",
+          "type": "date",
+          "ordinal": 8,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "total_paid",
+          "type": "bigint",
+          "ordinal": 9,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "total_expected",
+          "type": "bigint",
+          "ordinal": 10,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "payments_completed",
+          "type": "integer",
+          "ordinal": 11,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "payments_remaining",
+          "type": "integer",
+          "ordinal": 12,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "payment_method",
+          "type": "text",
+          "ordinal": 13,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 14,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 15,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 16,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "missionary_id",
+          "type": "uuid",
+          "ordinal": 17,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "fund_id",
+          "type": "uuid",
+          "ordinal": 18,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "currency",
+          "type": "text",
+          "ordinal": 19,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "stripe_subscription_id",
+          "type": "text",
+          "ordinal": 20,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": true,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "retry_count",
+          "type": "integer",
+          "ordinal": 21,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "last_charge_at",
+          "type": "timestamp with time zone",
+          "ordinal": 22,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "next_charge_at",
+          "type": "timestamp with time zone",
+          "ordinal": 23,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "billing_day_of_month",
+          "type": "integer",
+          "ordinal": 24,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "billing_timezone",
+          "type": "text",
+          "ordinal": 25,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "stripe_payment_method_id",
+          "type": "text",
+          "ordinal": 26,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": true,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "last_charge_attempt",
+          "type": "timestamp with time zone",
+          "ordinal": 27,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "failed_charge_count",
+          "type": "integer",
+          "ordinal": 28,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "pause_reason",
+          "type": "text",
+          "ordinal": 29,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "paused_at",
+          "type": "timestamp with time zone",
+          "ordinal": 30,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "donors",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "profile_id",
+          "type": "uuid",
+          "ordinal": 3,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "missionary_id",
+          "type": "uuid",
+          "ordinal": 4,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "ordinal": 5,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "ordinal": 6,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "ordinal": 7,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "mobile",
+          "type": "text",
+          "ordinal": 8,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "work_phone",
+          "type": "text",
+          "ordinal": 9,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "preferred_contact",
+          "type": "text",
+          "ordinal": 10,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "avatar_url",
+          "type": "text",
+          "ordinal": 11,
+          "nullable": true,
+          "semantic_category": "public",
+          "category": "public",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "public": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "export": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            }
+          }
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "ordinal": 12,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "ordinal": 13,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "ordinal": 14,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "giving_preferences",
+          "type": "jsonb",
+          "ordinal": 15,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "total_given",
+          "type": "bigint",
+          "ordinal": 16,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "last_gift_date",
+          "type": "timestamp with time zone",
+          "ordinal": 17,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "last_gift_amount",
+          "type": "bigint",
+          "ordinal": 18,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "frequency",
+          "type": "text",
+          "ordinal": 19,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "joined_date",
+          "type": "date",
+          "ordinal": 20,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tags",
+          "type": "text[]",
+          "ordinal": 21,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "score",
+          "type": "numeric",
+          "ordinal": 22,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "address",
+          "type": "jsonb",
+          "ordinal": 23,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "work_address",
+          "type": "jsonb",
+          "ordinal": 24,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "website",
+          "type": "text",
+          "ordinal": 25,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "organization",
+          "type": "text",
+          "ordinal": 26,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "ordinal": 27,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "birthday",
+          "type": "date",
+          "ordinal": 28,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "anniversary",
+          "type": "date",
+          "ordinal": 29,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "spouse",
+          "type": "text",
+          "ordinal": 30,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "ordinal": 31,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "has_active_pledge",
+          "type": "boolean",
+          "ordinal": 32,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "stripe_customer_id",
+          "type": "text",
+          "ordinal": 33,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": true,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 34,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 35,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "first_gift_date",
+          "type": "date",
+          "ordinal": 36,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "gift_count",
+          "type": "integer",
+          "ordinal": 37,
+          "nullable": false,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "do_not_contact",
+          "type": "boolean",
+          "ordinal": 38,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "do_not_email",
+          "type": "boolean",
+          "ordinal": 39,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "receipt_email_frequency",
+          "type": "text",
+          "ordinal": 40,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "default_update_frequency",
+          "type": "text",
+          "ordinal": 41,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "preferred_language",
+          "type": "text",
+          "ordinal": 42,
+          "nullable": false,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "member_care_activities",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "missionary_id",
+          "type": "uuid",
+          "ordinal": 3,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "author_user_id",
+          "type": "uuid",
+          "ordinal": 4,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "author_name_snapshot",
+          "type": "text",
+          "ordinal": 5,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "ordinal": 6,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "ordinal": 7,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "ordinal": 8,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "occurred_at",
+          "type": "timestamp with time zone",
+          "ordinal": 9,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 10,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 11,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "member_care_goals",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "missionary_id",
+          "type": "uuid",
+          "ordinal": 3,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "ordinal": 4,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "ordinal": 5,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "target_date",
+          "type": "date",
+          "ordinal": 6,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_by",
+          "type": "uuid",
+          "ordinal": 7,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 8,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 9,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "member_care_private_notes",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "missionary_id",
+          "type": "uuid",
+          "ordinal": 3,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "author_user_id",
+          "type": "uuid",
+          "ordinal": 4,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "author_name_snapshot",
+          "type": "text",
+          "ordinal": 5,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "ordinal": 6,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 7,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 8,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "member_care_requirements",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "missionary_id",
+          "type": "uuid",
+          "ordinal": 3,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "activity_type",
+          "type": "text",
+          "ordinal": 4,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "interval_days",
+          "type": "integer",
+          "ordinal": 5,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "ordinal": 6,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_by",
+          "type": "uuid",
+          "ordinal": 7,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 8,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 9,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "missionaries",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "profile_id",
+          "type": "uuid",
+          "ordinal": 3,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "bio",
+          "type": "text",
+          "ordinal": 4,
+          "nullable": true,
+          "semantic_category": "public",
+          "category": "public",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "public": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "export": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            }
+          }
+        },
+        {
+          "name": "mission_field",
+          "type": "text",
+          "ordinal": 5,
+          "nullable": true,
+          "semantic_category": "public",
+          "category": "public",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "public": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "export": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            }
+          }
+        },
+        {
+          "name": "funding_goal",
+          "type": "bigint",
+          "ordinal": 6,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "current_funding",
+          "type": "bigint",
+          "ordinal": 7,
+          "nullable": true,
+          "semantic_category": "financial",
+          "category": "financial",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tagline",
+          "type": "text",
+          "ordinal": 8,
+          "nullable": true,
+          "semantic_category": "public",
+          "category": "public",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "public": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "export": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            }
+          }
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "ordinal": 9,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "ordinal": 10,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "cover_url",
+          "type": "text",
+          "ordinal": 11,
+          "nullable": true,
+          "semantic_category": "public",
+          "category": "public",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "public": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "export": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            }
+          }
+        },
+        {
+          "name": "social_links",
+          "type": "jsonb",
+          "ordinal": 12,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 13,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 14,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "timezone",
+          "type": "text",
+          "ordinal": 15,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "region",
+          "type": "text",
+          "ordinal": 16,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "health_status",
+          "type": "text",
+          "ordinal": 17,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "last_check_in",
+          "type": "timestamp with time zone",
+          "ordinal": 18,
+          "nullable": true,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "manual_attention",
+          "type": "boolean",
+          "ordinal": 19,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "health_signals",
+          "type": "jsonb",
+          "ordinal": 20,
+          "nullable": false,
+          "semantic_category": "care",
+          "category": "care",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "birth_date",
+          "type": "date",
+          "ordinal": 21,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "profiles",
+      "schema": "public",
+      "kind": "r",
+      "disposition": "present",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "ordinal": 1,
+          "nullable": false,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "ordinal": 2,
+          "nullable": true,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "ordinal": 3,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "first_name",
+          "type": "text",
+          "ordinal": 4,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "last_name",
+          "type": "text",
+          "ordinal": 5,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "full_name",
+          "type": "text",
+          "ordinal": 6,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "display_name",
+          "type": "text",
+          "ordinal": 7,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "ordinal": 8,
+          "nullable": true,
+          "semantic_category": "contact",
+          "category": "contact",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "avatar_url",
+          "type": "text",
+          "ordinal": 9,
+          "nullable": true,
+          "semantic_category": "public",
+          "category": "public",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": true
+            },
+            "donor": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "missionary": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "public": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            },
+            "export": {
+              "visible": true,
+              "editable": false,
+              "exportable": true
+            }
+          }
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "ordinal": 10,
+          "nullable": false,
+          "semantic_category": "security",
+          "category": "security",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "tenant_id",
+          "type": "uuid",
+          "ordinal": 11,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "ordinal": 12,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "ordinal": 13,
+          "nullable": true,
+          "semantic_category": "internal",
+          "category": "internal",
+          "processor_identifier": false,
+          "policies": {
+            "mission_control": {
+              "visible": true,
+              "editable": true,
+              "exportable": false
+            },
+            "donor": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "missionary": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "public": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            },
+            "export": {
+              "visible": false,
+              "editable": false,
+              "exportable": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "record_type": "receipts",
+      "disposition": "absent/reserved",
+      "columns": [],
+      "positive_seed_rows": 0,
+      "denied_on_every_surface": true,
+      "prototype_sources": [
+        "gift_receipt_records",
+        "contribution_receipt_snapshots"
+      ],
+      "evidence": "live-schema-response.json + live-tables-response.json"
+    }
+  ],
+  "candidate_column_count": 172,
+  "repository_supplements": [
+    {
+      "artifact": "repository-supplement-v1.json",
+      "sha256": "ca922ac896858c16597826e3f81e30f1c74f6903e466b5e053c891fd4b8b3296"
+    }
+  ]
+}
