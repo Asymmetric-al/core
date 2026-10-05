@@ -1,3 +1,5 @@
+import { MoneyError, parseMoneyToMinorUnits } from "../money";
+
 /**
  * Gift processing-fee policy for Guest Giving.
  *
@@ -193,20 +195,32 @@ export function quoteGiftProcessingFee(input: {
 }
 
 export function resolveGiftIntakeCharge(input: {
-  amount: number;
+  amount: string | number;
   coverFees: boolean;
   paymentMethod: GiftPaymentMethod;
   currency?: string;
 }): GiftProcessingFeeQuote {
-  if (!Number.isFinite(input.amount)) {
+  if (typeof input.amount === "number" && !Number.isFinite(input.amount)) {
     throw new GiftProcessingFeePolicyError(
       "Gift amount must be a finite number.",
     );
   }
   assertUsdGiftCurrency(input.currency);
 
+  let giftAmountCents: number;
+  try {
+    giftAmountCents = parseMoneyToMinorUnits(
+      input.amount,
+      normalizeGiftCurrency(input.currency),
+    );
+  } catch (error) {
+    if (error instanceof MoneyError)
+      throw new GiftProcessingFeePolicyError(error.message);
+    throw error;
+  }
+
   return quoteGiftProcessingFee({
-    giftAmountCents: Math.round(input.amount * 100),
+    giftAmountCents,
     coverFees: input.coverFees,
     paymentMethod: input.paymentMethod,
   });

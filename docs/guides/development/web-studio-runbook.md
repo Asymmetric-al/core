@@ -50,6 +50,16 @@ CMS_WEB_STUDIO_NATIVE_NAVIGATION=false
 
 Order for a clean local machine: SQL migrations (or `supabase db reset`) → Payload migrate → seed if needed.
 
+For an existing hosted database, explicitly select the intended Supabase project
+with `CMS_HOSTED_MIGRATION_REF=<project-ref> bun run cms:migrate`. The CLI checks
+that the database host and user match `NEXT_PUBLIC_SUPABASE_URL`, requires an
+encrypted connection, and rejects routing overrides before any migration. Status
+checks do not require this opt-in. The CMS psql helper translates
+Node pg's `sslmode=no-verify` to libpq's encrypted `require` mode without changing
+the environment file, and passes connection credentials through the child
+process environment rather than command arguments. Keep schema push disabled;
+do not use a local reset or demo seed to initialize a hosted database.
+
 For the one-command local path, use:
 
 ```bash

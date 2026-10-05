@@ -2244,11 +2244,12 @@ and floor.
 _Avoid_: public request requires fake membership, client-selected tenant,
 hostname alone grants access, second public authorization path
 
-**Capability** (Phase 12):
-A single, enforced permission — a verb on a resource (e.g. "view a gift record",
-"run refunds", "manage permissions"). Capabilities are the _only_ thing the system
-checks to make an access decision; roles, groups, and named grants are bundles that
-resolve _into_ capabilities. A role or group _name_ is never checked to authorize.
+**Capability** (Phase 3 foundation; Phase 12 configuration):
+A named permission to perform an action on a resource, such as viewing a gift or
+running a refund. Roles, groups and grants supply capability bundles within one
+validated Tenant Authorization Context; a role name alone is not authority.
+A capability remains subject to Tenant, Legal Entity, record, field and purpose
+restrictions; it does not by itself grant visibility or export rights.
 _Avoid_: authorizing on a role/subrole name string; treating a group as the security rule
 
 **Staff Access group vs record-scoped named grant** (Phase 12):
@@ -7191,3 +7192,45 @@ resolved owner or applicable inherited-IRA beneficiary, with a separate
 custodian and evidenced intention. Intent, organization-side source/document
 admission and final personal tax treatment are distinct.
 _Avoid_: DAF soft credit, certified personal deduction
+
+## Phase 3 permission and projection language
+
+These glossary definitions describe the accepted foundation vocabulary; they do
+not establish implementation or activation.
+
+**Permission**:
+Authority to perform an action or access data within a defined scope. Capability,
+field and record restrictions together bound that authority.
+
+**Role-scoped field projection** (also **surface projection**):
+The subset of a record's fields and rows appropriate to the currently authorized
+actor, purpose and surface. This is distinct from the retired CRM→surface
+shadow-sync projection, which described synchronized copies rather than access.
+
+**Field policy**:
+A field's declared visibility, editability, exportability and sensitivity for a
+surface. It describes field exposure, not conditional record access.
+
+**Sensitivity category**:
+A field's data-handling classification: `public`, `contact`, `financial`,
+`internal`, `care` or `security`.
+
+**Surface**:
+A consumption context with its own exposure boundary, such as Mission Control,
+the donor portal, missionary workspace or public website. A surface is not a
+Site, role or access grant.
+
+**Donor-safe / missionary-safe / public-safe**:
+Data appropriate to the authorized donor's own context, the missionary's admitted
+support context, or anonymous public presentation respectively. These labels
+express distinct audiences; suitability for one does not imply suitability for
+another.
+
+**Fail-closed default**:
+Missing, unknown, ambiguous or unclassified authority leaves data unavailable
+rather than granting access. Unclassified fields are treated as internal and
+omitted from narrow surfaces and export.
+
+**Legal Entity scope** (Phase 3 floor):
+A subtract-only financial-record scope inside the Tenant boundary. Entity
+visibility cannot confer Tenant access or widen a field projection.

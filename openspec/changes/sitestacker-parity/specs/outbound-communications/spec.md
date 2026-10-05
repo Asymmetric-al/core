@@ -1521,3 +1521,103 @@ without storing message bodies, secrets, or donor PII in telemetry.
   accepted/submitted, and rejected-retry counts without recipient noise or
   hidden replay
 - AND accepted or indeterminate work is never bulk replayed
+
+### Requirement: Phase 3 Cross-channel Consent Gates Recipient Delivery
+
+Existing staff/system-initiated outbound contact and governed contact-list egress
+MUST consume one fail-closed canonical Party/contact-point consent boundary.
+`do_not_contact` MUST remain the absolute contact floor; email MUST additionally
+honor `do_not_email`, `email_suppressions` and known blocking provider evidence.
+Transactional receipt email MUST NOT be exempt from these recipient contact
+checks. Self-service download of one's own admitted receipt artifact is not
+contact and MUST retain current access checks without applying recipient opt-out.
+Missing authority MUST block rather than assume consent. New channel preference
+centers, transports and providers MUST remain deferred; an unavailable channel
+MUST NOT become executable through this contract.
+
+Recipient consent/contactability MUST apply at delivery resolution and send-time,
+not to authorized staff authoring, synthetic preview/review, publication or
+catalog administration. Those staff operations MUST still enforce capability and
+projection. Self-service access to one's own admitted records/artifacts MUST
+remain distinct from contact and retain current access checks. Phase 17 owns
+content, typed variable preparation and resolution; Phase 6 alone owns recipient
+intent, dispatch and delivery evidence. Phase 7 owns official facts and Phase 18
+owns admitted document artifacts. Recipient outputs MUST consume exact
+surface/purpose-projected facts, never arbitrary record bags, direct-send or
+prototype text-receipt paths. Dependent official output MUST remain unavailable
+until its exact owner qualifies, without blocking unrelated foundation delivery.
+
+#### Scenario: Permitted existing email delivery proceeds through its owner
+
+- **GIVEN** current recipient/contact-point authority and applicable email consent pass
+- **WHEN** a qualified existing email delivery resolves and reaches the send seam
+- **THEN** the current gate permits only the intended recipient's admitted facts
+- **AND** Phase 17 preparation and Phase 6 dispatch retain their separate ownership
+
+#### Scenario: Opt-out blocks contact across existing egress doors
+
+- **GIVEN** a recipient has do_not_contact or email-specific suppression
+- **WHEN** staff/system request an affected delivery or governed contact-list export
+- **THEN** the applicable contact is blocked fail-closed and audited with identifiers only
+- **AND** another serializer or channel path cannot bypass the canonical decision
+
+#### Scenario: Receipt email has no transactional opt-out exemption
+
+- **GIVEN** a donor has do_not_email and an otherwise qualified receipt artifact
+- **WHEN** staff/system request transactional receipt email through Phase 17/6
+- **THEN** recipient consent blocks the email and records an identifiers-only audit
+- **AND** the donor may still download their own admitted artifact under current access checks
+
+#### Scenario: Staff preview and donor record access are not contact
+
+- **GIVEN** a recipient has opted out of contact
+- **WHEN** authorized staff preview synthetic content or the donor accesses their own admitted receipt artifact
+- **THEN** recipient opt-out does not block those operations
+- **AND** staff capability/projection and donor current artifact access still apply
+
+#### Scenario: Later output has no qualified owner artifact
+
+- **GIVEN** a requested official receipt or statement lacks qualified Phase 7/18 output
+- **WHEN** a consumer requests delivery or download
+- **THEN** that official output remains unavailable
+- **AND** neither a live-text receipt, direct sender nor a new transport is created as a substitute
+
+### Requirement: Phase 3 Governed Export Uses Authoritative Field Policy
+
+Governed CSV/JSON export MUST consume one projection/export policy source.
+A field MUST be emitted only when `exportable` is true and its category is
+permitted for the destination; on-screen visibility MUST NOT imply exportability.
+External egress MUST omit internal, care and security fields; bulk export MUST
+omit payment identifiers. Derived report columns MUST be classified and serializers
+MUST consume the resolved field set rather than competing hardcoded allowlists.
+CSV consumers MUST share one `csvSafeCell`, including the fast-track security
+patch's helper, neutralizing leading formula/control triggers (`=`, `+`, `-`,
+`@`, TAB, CR, LF) and applying RFC 4180 cell quoting. CSV serializers MUST join
+records with CRLF and emit the file's UTF-8 BOM, consuming the helper's quoted
+cells without duplicating escaping.
+JSON MUST enforce the same authorized field set without adopting CSV encoding.
+Export audit MUST record identifiers, field/category metadata and actual emitted
+row count, never rendered PII. Contact-list export MUST also pass the applicable
+consent gate; serializers MUST NOT decide consent independently.
+
+#### Scenario: Exportability determines emitted columns
+
+- **GIVEN** an authorized report includes a visible field whose exportable flag is false
+- **WHEN** staff export CSV or JSON
+- **THEN** both formats omit that field and emit only the resolved exportable projection
+- **AND** the audit count equals the rows actually emitted
+
+#### Scenario: Authorized CSV remains safe for spreadsheets
+
+- **GIVEN** an otherwise admitted donor name begins with a formula trigger
+- **WHEN** any existing CSV consumer serializes it
+- **THEN** the shared helper neutralizes the trigger and applies RFC 4180 cell quoting
+- **AND** the serializer joins records with CRLF and emits the file's UTF-8 BOM
+- **AND** consumers cannot duplicate escaping or select a second escaping implementation
+
+#### Scenario: Serializer selection cannot widen external export
+
+- **GIVEN** internal notes, care/security fields or payment identifiers are visible to authorized staff
+- **WHEN** another export format or derived report column is selected
+- **THEN** external and bulk-export restrictions remain effective
+- **AND** denied fields and out-of-scope rows cannot reappear through the serializer

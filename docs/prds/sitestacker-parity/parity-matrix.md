@@ -53,6 +53,32 @@ Status values also include **`out-of-scope`** (we chose not to pursue).
 | 25  | Spark-style contribution triggers                                             | ? (v)        | unconf | No         | Mission Control                                          |
 | —   | Child sponsorship                                                             | out-of-scope | —      | —          | —                                                        |
 
+## Program foundation — Phase 3 (separate from parity-area numbering)
+
+| Program phase                                                    | Foundation outcome                                                                   | Built?                        | Live?  | Confirmed? |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------- | ------ | ---------- |
+| Phase 3 — Minimum Permission & Role-Scoped Projection Foundation | One fail-closed role/field/row and consent floor, reviewed widening, governed export | ? (implementation unverified) | unconf | No         |
+
+- **PRD:** [amended Phase 3 foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md).
+- **Outcome:** admitted donor self-service and missionary relationship/split-line
+  views exclude unauthorized fields/rows; consent blocks recipient contact;
+  narrowing is immediate, widening waits for a distinct human, and CSV/JSON obey
+  exportability with shared spreadsheet safety.
+- **Dependencies:** native Phase 1 CRM ownership and Phase 2 presentation facets;
+  one validated authorization context and exact Legal Entity floor. Phase 12 owns
+  later configurable grants, Phase 17/6 own communication preparation/dispatch,
+  and Phase 7/18 own official facts/artifacts. Their affected outputs require exact
+  qualification; foundation work does not wait for the whole Phase 12 product.
+- **Planning evidence:** [AL-490](https://github.com/Asymmetric-al/core/issues/490),
+  [active change/tasks](../../../openspec/changes/sitestacker-parity/tasks.md#5-phase-3-foundation--al-490-governance-and-future-implementation)
+  and [ADRs A–D](../../adr/registry.md#accepted-phase-3-foundation-records--al-490)
+  document accepted target intent only. No new runtime or live-completion evidence
+  is asserted; implementation and qualification tasks remain unchecked.
+- **Numbering:** this program-phase row supports parity areas 4, 15–19 and 23;
+  it does not add or renumber the 25 parity areas below. Historical May
+  **phase-03 payments/giving-pipeline** evidence refers to an earlier delivery
+  sequence and does not prove this permission/projection foundation.
+
 ## Per-area detail
 
 Each block: **SiteStacker capability (benchmark)** · **Current Asym state** ·
@@ -582,6 +608,15 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 ### 14. Multi-site, language & currency
 
+- **Foundation:** [Phase 2 — Site/Locale/Currency Foundation](./phase-02-site-locale-currency-foundation.md)
+  establishes one Default Site plus optional additional public Sites per Tenant,
+  with Site, locale, currency-aware money, and independent Site / Entry Method /
+  Source Code / Designation attribution primitives. SiteStacker's site channel
+  maps approximately to Asym Site for future import; no second Site/channel
+  hierarchy or generic gift channel is introduced. The explicit Phase 24
+  amendments govern domain authority, exact-locale publication, branding, and
+  qualified donor presentment. This foundation reference establishes intended
+  scope, not Built, Live, Confirmed, or runtime qualification.
 - **Benchmark:** SiteStacker multi-site/language/currency. (s)
 - **Current state:** the inspected runtime at `7abd2c11` does not establish
   the qualified Phase 24 domain, locale, currency and brand contracts.

@@ -56,15 +56,16 @@ export const tenantScopedCreateAccess = (
       return false;
     }
 
+    const tenantValue = data?.[tenantField];
     const tenantFromRequest =
-      typeof data?.[tenantField] === "string"
-        ? data[tenantField]
-        : data?.[tenantField]?.id;
+      typeof tenantValue === "string" || typeof tenantValue === "number"
+        ? tenantValue
+        : tenantValue?.id;
 
-    if (!tenantFromRequest) {
+    if (tenantFromRequest === undefined || tenantFromRequest === null) {
       return true;
     }
 
-    return tenantFromRequest === context.tenantId;
+    return String(tenantFromRequest) === context.tenantId;
   };
 };

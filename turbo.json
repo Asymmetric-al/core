@@ -46,7 +46,14 @@
         "ALLOW_DEMO_ACCOUNTS",
         "DEMO_ONLY_LOGIN"
       ],
-      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env",
+        ".env.*",
+        "$TURBO_ROOT$/scripts/load-workspace-env.mjs",
+        "$TURBO_ROOT$/.env",
+        "$TURBO_ROOT$/.env.*"
+      ]
     },
     "lint": {
       "outputs": [],

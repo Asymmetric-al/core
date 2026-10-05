@@ -1018,25 +1018,84 @@ describe("contribution operations detail read model", () => {
     ]);
   });
 
-  it("labels refunds against the effective corrected amount", () => {
+  it.each([
+    {
+      scenario: "a refund equal to a downward correction leaves charge balance",
+      correctedAmountCents: 7_500,
+      refundedAmountCents: 7_500,
+      refundStatus: "partial_refund",
+      sharedPaymentStatus: "completed",
+      donorVisibleStatus: "Partially Refunded",
+      refundAvailable: true,
+    },
+    {
+      scenario:
+        "a refund exceeding a downward correction leaves charge balance",
+      correctedAmountCents: 7_500,
+      refundedAmountCents: 8_000,
+      refundStatus: "partial_refund",
+      sharedPaymentStatus: "completed",
+      donorVisibleStatus: "Partially Refunded",
+      refundAvailable: true,
+    },
+    {
+      scenario:
+        "an upward correction does not create balance on a refunded charge",
+      correctedAmountCents: 15_000,
+      refundedAmountCents: 10_000,
+      refundStatus: "refunded",
+      sharedPaymentStatus: "refunded",
+      donorVisibleStatus: "Refunded",
+      refundAvailable: false,
+    },
+    {
+      scenario: "a corrected gift without refunds remains refundable",
+      correctedAmountCents: 7_500,
+      refundedAmountCents: 0,
+      refundStatus: "none",
+      sharedPaymentStatus: "completed",
+      donorVisibleStatus: "Succeeded",
+      refundAvailable: true,
+    },
+  ])("uses the original charge for refund truth: $scenario", (testCase) => {
     const detail = buildContributionDetail({
       donation: donationInput({
         amount: 10_000,
-        refundAmount: 7_500,
-        refundedAt: "2026-05-22T00:00:00.000Z",
+        refundAmount: testCase.refundedAmountCents,
+        refundedAt:
+          testCase.refundedAmountCents > 0 ? "2026-05-22T00:00:00.000Z" : null,
       }),
       adjustments: [
         adjustmentInput({
           id: "adj_amount",
-          effectiveValues: { amountCents: 7_500 },
+          effectiveValues: { amountCents: testCase.correctedAmountCents },
         }),
       ],
     });
 
-    expect(detail.effective.amountCents).toBe(7_500);
-    expect(detail.refund.status).toBe("refunded");
-    expect(detail.donorVisible.status).toBe("Refunded");
-    expect(detail.donorVisible.amount).toBe(7_500);
+    expect(detail.original.amountCents).toBe(10_000);
+    expect(detail.effective.amountCents).toBe(testCase.correctedAmountCents);
+    expect(detail.amount.value).toBe(testCase.correctedAmountCents);
+    expect(detail.shared.amountCents).toBe(testCase.correctedAmountCents);
+    expect(detail.donorVisible.amount).toBe(testCase.correctedAmountCents);
+    expect(detail.designations.totalAmountCents).toBe(
+      testCase.correctedAmountCents,
+    );
+    expect(detail.designations.reconcilesToGiftAmount).toBe(true);
+    expect(detail.refund.amount).toBe(testCase.refundedAmountCents);
+    expect(detail.shared.refundedAmountCents).toBe(
+      testCase.refundedAmountCents,
+    );
+    expect(availabilityFor(detail, "refund")).toMatchObject({
+      available: testCase.refundAvailable,
+      blockedReason: testCase.refundAvailable
+        ? null
+        : "This gift is already fully refunded.",
+    });
+    expect(detail.refund.status).toBe(testCase.refundStatus);
+    expect(detail.shared.refundState).toBe(testCase.refundStatus);
+    expect(detail.shared.paymentStatus).toBe(testCase.sharedPaymentStatus);
+    expect(detail.donorVisible.status).toBe(testCase.donorVisibleStatus);
   });
 
   it("gates actions and donor-visible status from effective payment status", () => {

@@ -15,6 +15,7 @@ import { cn } from "@asym/ui/lib/utils";
 import {
   ListControls,
   PageControls,
+  RelationshipProvider,
   SelectionProvider,
   Table,
   TableColumnsProvider,
@@ -255,7 +256,9 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
                 columnState={columnState}
               >
                 <SelectionProvider docs={docs} totalDocs={totalDocs}>
-                  <NativeCollectionTableBridge InitialTable={InitialTable} />
+                  <RelationshipProvider>
+                    <NativeCollectionTableBridge InitialTable={InitialTable} />
+                  </RelationshipProvider>
                   <div className="mt-6 border-border border-t pt-4">
                     <PageControls collectionConfig={collectionConfig} />
                   </div>

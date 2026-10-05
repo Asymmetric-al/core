@@ -36,6 +36,15 @@ describe("development compilation policy", () => {
     ).toEqual(["admin", "donor", "missionary"]);
   });
 
+  it("compiles all apps when their shared environment loader changes", () => {
+    expect(
+      resolveCompilation({
+        ...development,
+        changedFiles: ["scripts/load-workspace-env.mjs"],
+      }),
+    ).toEqual(["admin", "donor", "missionary"]);
+  });
+
   it.each(["base.json", "nextjs.json", "react.json"])(
     "compiles all apps for shared TypeScript configuration: %s",
     (file) => {

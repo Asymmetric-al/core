@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { assertTransactable, MoneyError } from "../money";
 import { beginGiftIntake } from "./begin-gift-intake";
 import {
   GiftProcessingFeePolicyError,
@@ -18,6 +19,7 @@ import {
 } from "./fee-policy";
 import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
+import { resolveTenantSettlementCurrency } from "../money/settlement";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import {
   ApiHttpError,
@@ -59,6 +61,23 @@ export const POST = withOperation(
     }
     if (!tenantStripe.publishableKey) {
       return stripeConfigurationError();
+    }
+
+    const settlementCurrency = await resolveTenantSettlementCurrency(
+      supabaseAdmin,
+      ctx.tenantId,
+    );
+    if (!settlementCurrency)
+      throw new ApiHttpError(
+        503,
+        "Settlement currency context is unavailable.",
+      );
+    try {
+      assertTransactable(currency, settlementCurrency);
+    } catch (error) {
+      if (error instanceof MoneyError)
+        throw new ApiHttpError(400, error.message);
+      throw error;
     }
 
     const { stripe, publishableKey } = tenantStripe;

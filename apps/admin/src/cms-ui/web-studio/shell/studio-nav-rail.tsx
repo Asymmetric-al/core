@@ -230,6 +230,7 @@ function StudioNavRailRecentDocs({
             variant="ghost"
             size="sm"
             className="justify-start overflow-hidden text-left text-xs"
+            nativeButton={false}
             render={<Link href={doc.href} title={doc.title} />}
           >
             <span className="truncate">{doc.title}</span>

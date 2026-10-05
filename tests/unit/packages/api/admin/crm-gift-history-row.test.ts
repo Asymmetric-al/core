@@ -446,6 +446,37 @@ describe("admin/crm/detail/gift-history", () => {
     ).toBeUndefined();
   });
 
+  it.each([
+    [7_500, 7_500, "partial_refund", "completed", true],
+    [7_500, 8_000, "partial_refund", "completed", true],
+    [15_000, 10_000, "refunded", "refunded", false],
+    [7_500, 0, "none", "completed", true],
+  ] as const)(
+    "classifies CRM refunds on the original charge with corrected %i and refunded %i",
+    (amount, refunded, refundState, paymentStatus, available) => {
+      const row = buildCrmGiftHistoryRow({
+        donation: { ...donation, amount, refund_amount: refunded },
+        donor,
+        fund,
+        missionary,
+        stagedGift,
+        provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
+        refundBasis: { originalAmountCents: 10_000 },
+        viewerCapabilities: FULL_CAPABILITIES,
+      });
+      expect(row.refundState).toBe(refundState);
+      expect(row.shared.refundState).toBe(refundState);
+      expect(row.paymentStatus).toBe(paymentStatus);
+      expect(row.amountCents).toBe(amount);
+      expect(row.shared.amountCents).toBe(amount);
+      expect(
+        row.inlineActions.entries.find(
+          (entry) => entry.actionType === "refund",
+        ),
+      ).toMatchObject({ available });
+    },
+  );
+
   it("keeps inline refunds available on the original basis when an adjustment lowered the effective amount (#265)", () => {
     // $50.00 charge, $20.00 refunded, amount correction lowered the
     // effective amount to $10.00. The CRM detail service feeds EFFECTIVE

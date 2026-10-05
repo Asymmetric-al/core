@@ -1,3 +1,5 @@
+import type { CurrencyFoundationTables } from "./currency-foundation.generated";
+
 /**
  * MULTI-TENANCY APPROACH
  *
@@ -732,6 +734,7 @@ export interface ContributionOperationBatchItem {
 }
 
 export interface Campaign {
+  currency: CurrencyFoundationTables["campaigns"]["Row"]["currency"];
   id: string;
   tenant_id: string;
   title: string;

@@ -178,3 +178,18 @@ AL-1892 preserves phases 0–40 and adds 41–44, adopts complete Studio package
 and updates the existing phase-architecture requirement. Phase 34 CORE and
 Phase 42 visual delivery have independent qualification checkpoints. No
 product implementation or predecessor issue dispatch is implied.
+
+## Phase 3 foundation documentation — AL-490
+
+Record the accepted minimum permission and role-scoped projection foundation from
+the [amended Phase 3 PRD](../../../docs/prds/sitestacker-parity/phase-03-minimum-permission-role-scoped-projection-foundation.md)
+for [AL-490](https://github.com/Asymmetric-al/core/issues/490). Add glossary language,
+identity/access and outbound-communication deltas, future tasks, four canonical
+ADRs and an honest planning row in the existing parity matrix. Preserve existing
+single-context authorization and all valid prior scenarios.
+
+This is documentation only: no runtime completion, migration, issue dispatch,
+provider qualification or activation. Full permissions management, capability
+tables, tenant overrides, rules engines, new providers and transports remain
+outside scope. The design records future enforcement and rollback boundaries;
+reverting this packet changes documentation only.
