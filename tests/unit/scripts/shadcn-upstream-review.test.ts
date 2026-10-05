@@ -322,10 +322,6 @@ describe("shadcn upstream review gate", () => {
 
   it("rejects the deprecated CLI's false no-updates result at the real entry point", () => {
     const { root, baseline } = fixture();
-    writeFileSync(
-      path.join(root, "package.json"),
-      JSON.stringify({ devDependencies: { shadcn: SHADCN_CLI_VERSION } }),
-    );
     const scripts = path.join(root, "scripts/verify");
     const cli = path.join(root, "node_modules/shadcn");
     writeFileSync(
