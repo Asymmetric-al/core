@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { X509Certificate } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -28,6 +29,7 @@ import {
 const temporaryDirectories: string[] = [];
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
   for (const directory of temporaryDirectories.splice(0)) {
     rmSync(directory, { recursive: true, force: true });
@@ -692,5 +694,495 @@ describe("shadcn upstream review gate", () => {
       ],
     });
     await expect(runCli([])).resolves.toBe("false\n");
+  });
+
+  describe("approved credential-free checker transport", () => {
+    const proxy = "http://approved-cloud-proxy.invalid:3128";
+    // Public Node.js test CA, not copied from host trust or credential files:
+    // https://github.com/nodejs/node/blob/v24.15.0/test/fixtures/keys/ca1-cert.pem
+    const publicTestCertificate = `-----BEGIN CERTIFICATE-----
+MIIDlDCCAnygAwIBAgIUSrFsjf1qfQ0t/KvfnEsOksatAikwDQYJKoZIhvcNAQEL
+BQAwejELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMQswCQYDVQQHDAJTRjEPMA0G
+A1UECgwGSm95ZW50MRAwDgYDVQQLDAdOb2RlLmpzMQwwCgYDVQQDDANjYTExIDAe
+BgkqhkiG9w0BCQEWEXJ5QHRpbnljbG91ZHMub3JnMCAXDTIyMDkwMzIxNDAzN1oY
+DzIyOTYwNjE3MjE0MDM3WjB6MQswCQYDVQQGEwJVUzELMAkGA1UECAwCQ0ExCzAJ
+BgNVBAcMAlNGMQ8wDQYDVQQKDAZKb3llbnQxEDAOBgNVBAsMB05vZGUuanMxDDAK
+BgNVBAMMA2NhMTEgMB4GCSqGSIb3DQEJARYRcnlAdGlueWNsb3Vkcy5vcmcwggEi
+MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDNvf4OGGep+ak+4DNjbuNgy0S/
+AZPxahEFp4gpbcvsi9YLOPZ31qpilQeQf7d27scIZ02Qx1YBAzljxELB8H/ZxuYS
+cQK0s+DNP22xhmgwMWznO7TezkHP5ujN2UkbfbUpfUxGFgncXeZf9wR7yFWppeHi
+RWNBOgsvY7sTrS12kXjWGjqntF7xcEDHc7h+KyF6ZjVJZJCnP6pJEQ+rUjd51eCZ
+Xt4WjowLnQiCS1VKzXiP83a++Ma1BKKkUitTR112/Uwd5eGoiByhmLzb/BhxnHJN
+07GXjhlMItZRm/jfbZsx1mwnNOO3tx4r08l+DaqkinIadvazs+1ugCaKQn8xAgMB
+AAGjEDAOMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAFqG0RXURDam
+56x5accdg9sY5zEGP5VQhkK3ZDc2NyNNa25rwvrjCpO+e0OSwKAmm4aX6iIf2woY
+wF2f9swWYzxn9CG4fDlUA8itwlnHxupeL4fGMTYb72vf31plUXyBySRsTwHwBloc
+F7KvAZpYYKN9EMH1S/267By6H2I33BT/Ethv//n8dSfmuCurR1kYRaiOC4PVeyFk
+B3sj8TtolrN0y/nToWUhmKiaVFnDx3odQ00yhmxR3t21iB7yDkko6D8Vf2dVC4j/
+YYBVprXGlTP/hiYRLDoP20xKOYznx5cvHPJ9p+lVcOZUJsJj/Iy750+2n5UiBmXt
+lz88C25ucKA=
+-----END CERTIFICATE-----
+`;
+    // Public leaf fixture from the same pinned Node release; no private key:
+    // https://github.com/nodejs/node/blob/v24.15.0/test/fixtures/keys/agent1-cert.pem
+    const publicLeafCertificate = `-----BEGIN CERTIFICATE-----
+MIID6DCCAtCgAwIBAgIUFH02wcL3Qgben6tfIibXitsApCYwDQYJKoZIhvcNAQEL
+BQAwejELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMQswCQYDVQQHDAJTRjEPMA0G
+A1UECgwGSm95ZW50MRAwDgYDVQQLDAdOb2RlLmpzMQwwCgYDVQQDDANjYTExIDAe
+BgkqhkiG9w0BCQEWEXJ5QHRpbnljbG91ZHMub3JnMCAXDTIyMDkwMzIxNDAzN1oY
+DzIyOTYwNjE3MjE0MDM3WjB9MQswCQYDVQQGEwJVUzELMAkGA1UECAwCQ0ExCzAJ
+BgNVBAcMAlNGMQ8wDQYDVQQKDAZKb3llbnQxEDAOBgNVBAsMB05vZGUuanMxDzAN
+BgNVBAMMBmFnZW50MTEgMB4GCSqGSIb3DQEJARYRcnlAdGlueWNsb3Vkcy5vcmcw
+ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDUVjIK+yDTgnCT3CxChO0E
+37q9VuHdrlKeKLeQzUJW2yczSfNzX/0zfHpjY+zKWie39z3HCJqWxtiG2wxiOI8c
+3WqWOvzVmdWADlh6EfkIlg+E7VC6JaKDA+zabmhPvnuu3JzogBMnsWl68lCXzuPx
+deQAmEwNtqjrh74DtM+Ud0ulb//Ixjxo1q3rYKu+aaexSramuee6qJta2rjrB4l8
+B/bU+j1mDf9XQQfSjo9jRnp4hiTFdBl2k+lZzqE2L/rhu6EMjA2IhAq/7xA2MbLo
+9cObVUin6lfoo5+JKRgT9Fp2xEgDOit+2EA/S6oUfPNeLSVUqmXOSWlXlwlb9Nxr
+AgMBAAGjYTBfMF0GCCsGAQUFBwEBBFEwTzAjBggrBgEFBQcwAYYXaHR0cDovL29j
+c3Aubm9kZWpzLm9yZy8wKAYIKwYBBQUHMAKGHGh0dHA6Ly9jYS5ub2RlanMub3Jn
+L2NhLmNlcnQwDQYJKoZIhvcNAQELBQADggEBAMM0mBBjLMt9pYXePtUeNO0VTw9y
+FWCM8nAcAO2kRNwkJwcsispNpkcsHZ5o8Xf5mpCotdvziEWG1hyxwU6nAWyNOLcN
+G0a0KUfbMO3B6ZYe1GwPDjXaQnv75SkAdxgX5zOzca3xnhITcjUUGjQ0fbDfwFV5
+ix8mnzvfXjDONdEznVa7PFcN6QliFUMwR/h8pCRHtE5+a10OSPeJSrGG+FtrGnRW
+G1IJUv6oiGF/MvWCr84REVgc1j78xomGANJIu2hN7bnD1nEMON6em8IfnDOUtynV
+9wfWTqiQYD5Zifj6WcGa0aAHMuetyFG4lIfMAHmd3gaKpks7j9l26LwRPvI=
+-----END CERTIFICATE-----
+`;
+    const transportKeys = [
+      "HTTP_PROXY",
+      "HTTPS_PROXY",
+      "ALL_PROXY",
+      "NO_PROXY",
+      "http_proxy",
+      "https_proxy",
+      "all_proxy",
+      "no_proxy",
+      "NODE_USE_ENV_PROXY",
+      "NODE_EXTRA_CA_CERTS",
+      "SSL_CERT_FILE",
+    ];
+
+    function clearTransport() {
+      for (const key of transportKeys) vi.stubEnv(key, undefined);
+    }
+
+    function publicCaFixture() {
+      const directory = mkdtempSync(
+        path.join(process.cwd(), ".shadcn-public-ca-test-"),
+      );
+      temporaryDirectories.push(directory);
+      const certificate = path.join(directory, "public-test-ca.pem");
+      writeFileSync(certificate, publicTestCertificate);
+      return { directory, certificate };
+    }
+
+    function observeEnvironment(keys: string[]) {
+      return createCliRunner({
+        cwd: process.cwd(),
+        command: process.execPath,
+        prefix: [
+          "-e",
+          `console.log(JSON.stringify(Object.fromEntries(${JSON.stringify(keys)}.map(key => [key, key === 'HTTP_PROXY' || key === 'HTTPS_PROXY' ? (process.env[key.toLowerCase()] ?? process.env[key]) === ${JSON.stringify(proxy)} : process.env[key] !== undefined]))))`,
+        ],
+      });
+    }
+
+    it("passes approved proxy routing without inheriting provider secrets or TLS overrides", async () => {
+      clearTransport();
+      vi.stubEnv("HTTP_PROXY", proxy);
+      vi.stubEnv("HTTPS_PROXY", proxy);
+      const excluded = [
+        "SHADCN_TEST_PROVIDER_SECRET",
+        "GITHUB_TOKEN",
+        "GH_TOKEN",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "STRIPE_SECRET_KEY",
+        "SHADCNUKIT_API_KEY",
+        "PROXY_AUTHORIZATION",
+        "ALL_PROXY",
+        "all_proxy",
+        "NODE_OPTIONS",
+        "NODE_TLS_REJECT_UNAUTHORIZED",
+      ];
+      for (const key of excluded)
+        vi.stubEnv(key, "opaque-test-only-excluded-value");
+      vi.stubEnv("NODE_TLS_REJECT_UNAUTHORIZED", "0");
+      const runCli = observeEnvironment([
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        ...excluded,
+      ]);
+      expect(JSON.parse(await runCli([]))).toEqual({
+        HTTP_PROXY: true,
+        HTTPS_PROXY: true,
+        ...Object.fromEntries(excluded.map((key) => [key, false])),
+      });
+    });
+
+    it("uses lowercase HTTP(S) proxy precedence consistently", async () => {
+      clearTransport();
+      vi.stubEnv("HTTP_PROXY", "http://upper-proxy.invalid:3128");
+      vi.stubEnv("HTTPS_PROXY", "http://upper-proxy.invalid:3128");
+      vi.stubEnv("http_proxy", proxy);
+      vi.stubEnv("https_proxy", proxy);
+      const runCli = observeEnvironment(["HTTP_PROXY", "HTTPS_PROXY"]);
+      expect(JSON.parse(await runCli([]))).toEqual({
+        HTTP_PROXY: true,
+        HTTPS_PROXY: true,
+      });
+    });
+
+    it("preserves direct concurrent CLI behavior when no proxy is configured", async () => {
+      clearTransport();
+      const runCli = createCliRunner({
+        cwd: process.cwd(),
+        command: process.execPath,
+        prefix: [
+          "-e",
+          `console.log(JSON.stringify({args:process.argv.slice(1),transport:${JSON.stringify(transportKeys)}.filter(key=>process.env[key]!==undefined)}))`,
+        ],
+      });
+      const outputs = await Promise.all([
+        runCli(["--", "--version"]),
+        runCli(["--", "info", "--json"]),
+      ]);
+      expect(outputs.map((output) => JSON.parse(output))).toEqual([
+        { args: ["--version"], transport: [] },
+        { args: ["info", "--json"], transport: [] },
+      ]);
+    });
+
+    it.each(
+      [
+        "http://opaque-test-user:opaque-test-password@proxy.invalid:3128",
+        "http://opaque-test-user@proxy.invalid:3128",
+        "http://opaque%2Dtest%2Duser:opaque%2Dtest%2Dpassword@proxy.invalid:3128",
+        "socks5://proxy.invalid:1080",
+        "file:///opaque-test-proxy",
+        "not-a-proxy-url",
+        "http://proxy.invalid:3128/?token=opaque-test-token",
+        "http://proxy.invalid:3128/#opaque-test-fragment",
+        "http://proxy.invalid:3128/unapproved-path",
+      ].flatMap((value, index) =>
+        ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"].map(
+          (key) => ({ key, value, caseNumber: index + 1 }),
+        ),
+      ),
+    )(
+      "rejects unsafe $key transport case $caseNumber without disclosing values",
+      async ({ key, value }) => {
+        clearTransport();
+        vi.stubEnv(key, value);
+        const directory = mkdtempSync(
+          path.join(process.cwd(), ".shadcn-transport-test-"),
+        );
+        temporaryDirectories.push(directory);
+        const marker = path.join(directory, "child-started");
+        const attempt = () =>
+          createCliRunner({
+            cwd: directory,
+            command: process.execPath,
+            prefix: [
+              "-e",
+              `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'started')`,
+            ],
+          })([]);
+        const error = await Promise.resolve()
+          .then(attempt)
+          .then(
+            () => undefined,
+            (failure: unknown) => failure,
+          );
+        expect(error).toBeInstanceOf(Error);
+        const message = String(error);
+        expect(message).toMatch(/proxy|transport/i);
+        expect(message).not.toContain(value);
+        expect(message).not.toMatch(/opaque-test-(?:user|password|token)/);
+        expect(existsSync(marker)).toBe(false);
+      },
+    );
+
+    it("does not report transport or provider values when a child fails", async () => {
+      clearTransport();
+      vi.stubEnv("HTTP_PROXY", proxy);
+      vi.stubEnv("HTTPS_PROXY", proxy);
+      vi.stubEnv("GH_TOKEN", "opaque-test-provider-token");
+      const log = vi.spyOn(console, "log").mockImplementation(() => {});
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+      const runCli = createCliRunner({
+        cwd: process.cwd(),
+        command: process.execPath,
+        prefix: [
+          "-e",
+          `console.error(${JSON.stringify(proxy)}); console.log('opaque-test-provider-token'); process.exit(17)`,
+        ],
+      });
+      await expect(runCli([])).rejects.toThrow(
+        "shadcn CLI coverage failed (exit 17)",
+      );
+      expect([log.mock.calls, warn.mock.calls, errorLog.mock.calls]).toEqual([
+        [],
+        [],
+        [],
+      ]);
+    });
+
+    it("forwards only a bounded public X509 CA path for configured proxy transport", async () => {
+      clearTransport();
+      const input = publicCaFixture();
+      const certificateBytes = ` \n${publicTestCertificate}\t\n`;
+      writeFileSync(input.certificate, certificateBytes);
+      vi.stubEnv("HTTPS_PROXY", proxy);
+      vi.stubEnv("NODE_EXTRA_CA_CERTS", input.certificate);
+      const excluded = [
+        "SSL_CERT_FILE",
+        "NODE_OPTIONS",
+        "NODE_TLS_REJECT_UNAUTHORIZED",
+        "GH_TOKEN",
+        "SUPABASE_SERVICE_ROLE_KEY",
+      ];
+      for (const key of excluded)
+        vi.stubEnv(key, "opaque-test-only-excluded-value");
+      vi.stubEnv("SSL_CERT_FILE", input.certificate);
+      vi.stubEnv("NODE_TLS_REJECT_UNAUTHORIZED", "0");
+      const runCli = createCliRunner({
+        cwd: input.directory,
+        command: process.execPath,
+        prefix: [
+          "-e",
+          `console.log(JSON.stringify({publicCaMatches:process.env.NODE_EXTRA_CA_CERTS===${JSON.stringify(input.certificate)},excluded:${JSON.stringify(excluded)}.filter(key=>process.env[key]!==undefined)}))`,
+        ],
+      });
+      expect(JSON.parse(await runCli([]))).toEqual({
+        publicCaMatches: true,
+        excluded: [],
+      });
+      expect(readFileSync(input.certificate, "utf8")).toBe(certificateBytes);
+    });
+
+    it("starts the child with approved proxy routing when optional CA is an empty setting", async () => {
+      clearTransport();
+      vi.stubEnv("HTTPS_PROXY", proxy);
+      vi.stubEnv("NODE_EXTRA_CA_CERTS", "");
+      const runCli = observeEnvironment(["HTTPS_PROXY", "NODE_EXTRA_CA_CERTS"]);
+      expect(JSON.parse(await runCli([]))).toEqual({
+        HTTPS_PROXY: true,
+        NODE_EXTRA_CA_CERTS: false,
+      });
+    });
+
+    it.each(["valid", "absent file"])(
+      "ignores optional CA configuration without a proxy: %s",
+      async (kind) => {
+        clearTransport();
+        const input = publicCaFixture();
+        vi.stubEnv(
+          "NODE_EXTRA_CA_CERTS",
+          kind === "valid"
+            ? input.certificate
+            : path.join(input.directory, "absent.pem"),
+        );
+        vi.stubEnv("SSL_CERT_FILE", input.certificate);
+        expect(
+          JSON.parse(
+            await observeEnvironment(["NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE"])(
+              [],
+            ),
+          ),
+        ).toEqual({
+          NODE_EXTRA_CA_CERTS: false,
+          SSL_CERT_FILE: false,
+        });
+      },
+    );
+
+    it("passes the validated public CA file when caller and child working directories differ", async () => {
+      clearTransport();
+      const input = publicCaFixture();
+      const childDirectory = path.join(input.directory, "child");
+      mkdirSync(childDirectory);
+      vi.stubEnv("HTTPS_PROXY", proxy);
+      vi.stubEnv(
+        "NODE_EXTRA_CA_CERTS",
+        path.relative(process.cwd(), input.certificate),
+      );
+      const runCli = createCliRunner({
+        cwd: childDirectory,
+        command: process.execPath,
+        prefix: [
+          "-e",
+          `const configured=process.env.NODE_EXTRA_CA_CERTS; const sameCertificate=Boolean(configured)&&require('node:path').resolve(configured)===${JSON.stringify(input.certificate)}; console.log(JSON.stringify({sameCertificate,sameBytes:sameCertificate&&require('node:fs').readFileSync(configured,'utf8')===${JSON.stringify(publicTestCertificate)}}))`,
+        ],
+      });
+      expect(JSON.parse(await runCli([]))).toEqual({
+        sameCertificate: true,
+        sameBytes: true,
+      });
+      expect(readFileSync(input.certificate, "utf8")).toBe(
+        publicTestCertificate,
+      );
+    });
+
+    // AL1955-public-ca-acceptance-v1 clarification: every supplied certificate
+    // must have CA authority, without adding expiry or key-usage requirements.
+    it.each(["leaf only", "mixed CA/leaf"])(
+      "rejects a public %s bundle before child startup without disclosing material",
+      async (kind) => {
+        clearTransport();
+        expect(new X509Certificate(publicTestCertificate).ca).toBe(true);
+        expect(new X509Certificate(publicLeafCertificate).ca).toBe(false);
+        const input = publicCaFixture();
+        writeFileSync(
+          input.certificate,
+          kind === "leaf only"
+            ? publicLeafCertificate
+            : publicTestCertificate + publicLeafCertificate,
+        );
+        vi.stubEnv("HTTPS_PROXY", proxy);
+        vi.stubEnv("NODE_EXTRA_CA_CERTS", input.certificate);
+        const marker = path.join(input.directory, "child-started");
+        const failure = await Promise.resolve()
+          .then(() =>
+            createCliRunner({
+              cwd: input.directory,
+              command: process.execPath,
+              prefix: [
+                "-e",
+                `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'started')`,
+              ],
+            })([]),
+          )
+          .then(
+            () => undefined,
+            (error: unknown) => error,
+          );
+        expect(failure).toBeInstanceOf(Error);
+        const message = String(failure);
+        expect(message).toBe("Error: Invalid public CA certificate transport");
+        expect(message).not.toContain(input.certificate);
+        expect(message).not.toContain(proxy);
+        expect(message).not.toContain(publicLeafCertificate);
+        expect(existsSync(marker)).toBe(false);
+      },
+    );
+
+    it("rejects unsafe CA files before child startup with one constant diagnostic", async () => {
+      const failures: string[] = [];
+      for (const defect of [
+        "absent",
+        "directory",
+        "empty",
+        "private key",
+        "invalid X509",
+        "mixed material",
+        "unsupported PEM",
+        "oversize",
+      ]) {
+        clearTransport();
+        const input = publicCaFixture();
+        const privateMaterial =
+          "-----BEGIN PRIVATE KEY-----\nopaque-test-only-material\n-----END PRIVATE KEY-----\n";
+        if (defect === "absent") rmSync(input.certificate);
+        else if (defect === "directory") {
+          rmSync(input.certificate);
+          mkdirSync(input.certificate);
+        } else if (defect === "empty") writeFileSync(input.certificate, "");
+        else if (defect === "private key")
+          writeFileSync(input.certificate, privateMaterial);
+        else if (defect === "invalid X509")
+          writeFileSync(
+            input.certificate,
+            "-----BEGIN CERTIFICATE-----\nZm9v\n-----END CERTIFICATE-----\n",
+          );
+        else if (defect === "mixed material")
+          writeFileSync(
+            input.certificate,
+            publicTestCertificate + privateMaterial,
+          );
+        else if (defect === "unsupported PEM")
+          writeFileSync(
+            input.certificate,
+            "-----BEGIN PUBLIC KEY-----\nopaque-test-only-material\n-----END PUBLIC KEY-----\n",
+          );
+        else
+          writeFileSync(
+            input.certificate,
+            publicTestCertificate + " ".repeat(1024 * 1024),
+          );
+        vi.stubEnv("HTTPS_PROXY", proxy);
+        vi.stubEnv("NODE_EXTRA_CA_CERTS", input.certificate);
+        const marker = path.join(input.directory, "child-started");
+        const failure = await Promise.resolve()
+          .then(() =>
+            createCliRunner({
+              cwd: input.directory,
+              command: process.execPath,
+              prefix: [
+                "-e",
+                `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'started')`,
+              ],
+            })([]),
+          )
+          .then(
+            () => undefined,
+            (error: unknown) => error,
+          );
+        expect(failure).toBeInstanceOf(Error);
+        const message = String(failure);
+        expect(message).toMatch(/certificate|public.?CA|trust/i);
+        expect(message).not.toContain(input.certificate);
+        expect(message).not.toContain(proxy);
+        expect(message).not.toContain("opaque-test-only-material");
+        expect(message).not.toContain("BEGIN");
+        expect(existsSync(marker)).toBe(false);
+        failures.push(message);
+      }
+      expect(new Set(failures).size).toBe(1);
+    });
+
+    const itNonRootPosix =
+      process.platform !== "win32" && process.getuid?.() !== 0 ? it : it.skip;
+    // Root can read chmod(000) files. A non-root offline run supplies this
+    // required readability evidence; a skip cannot establish acceptance.
+    itNonRootPosix(
+      "rejects an unreadable public CA before starting a child",
+      async () => {
+        clearTransport();
+        const input = publicCaFixture();
+        vi.stubEnv("HTTPS_PROXY", proxy);
+        vi.stubEnv("NODE_EXTRA_CA_CERTS", input.certificate);
+        chmodSync(input.certificate, 0o000);
+        const marker = path.join(input.directory, "child-started");
+        try {
+          const failure = await Promise.resolve()
+            .then(() =>
+              createCliRunner({
+                cwd: input.directory,
+                command: process.execPath,
+                prefix: [
+                  "-e",
+                  `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'started')`,
+                ],
+              })([]),
+            )
+            .then(
+              () => undefined,
+              (error: unknown) => error,
+            );
+          expect(failure).toBeInstanceOf(Error);
+          const message = String(failure);
+          expect(message).toMatch(/certificate|public.?CA|trust/i);
+          expect(message).not.toContain(input.certificate);
+          expect(message).not.toContain(proxy);
+          expect(existsSync(marker)).toBe(false);
+        } finally {
+          chmodSync(input.certificate, 0o600);
+        }
+      },
+    );
   });
 });
