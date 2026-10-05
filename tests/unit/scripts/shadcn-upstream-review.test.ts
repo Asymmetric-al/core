@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { X509Certificate } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -722,6 +723,32 @@ YYBVprXGlTP/hiYRLDoP20xKOYznx5cvHPJ9p+lVcOZUJsJj/Iy750+2n5UiBmXt
 lz88C25ucKA=
 -----END CERTIFICATE-----
 `;
+    // Public leaf fixture from the same pinned Node release; no private key:
+    // https://github.com/nodejs/node/blob/v24.15.0/test/fixtures/keys/agent1-cert.pem
+    const publicLeafCertificate = `-----BEGIN CERTIFICATE-----
+MIID6DCCAtCgAwIBAgIUFH02wcL3Qgben6tfIibXitsApCYwDQYJKoZIhvcNAQEL
+BQAwejELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMQswCQYDVQQHDAJTRjEPMA0G
+A1UECgwGSm95ZW50MRAwDgYDVQQLDAdOb2RlLmpzMQwwCgYDVQQDDANjYTExIDAe
+BgkqhkiG9w0BCQEWEXJ5QHRpbnljbG91ZHMub3JnMCAXDTIyMDkwMzIxNDAzN1oY
+DzIyOTYwNjE3MjE0MDM3WjB9MQswCQYDVQQGEwJVUzELMAkGA1UECAwCQ0ExCzAJ
+BgNVBAcMAlNGMQ8wDQYDVQQKDAZKb3llbnQxEDAOBgNVBAsMB05vZGUuanMxDzAN
+BgNVBAMMBmFnZW50MTEgMB4GCSqGSIb3DQEJARYRcnlAdGlueWNsb3Vkcy5vcmcw
+ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDUVjIK+yDTgnCT3CxChO0E
+37q9VuHdrlKeKLeQzUJW2yczSfNzX/0zfHpjY+zKWie39z3HCJqWxtiG2wxiOI8c
+3WqWOvzVmdWADlh6EfkIlg+E7VC6JaKDA+zabmhPvnuu3JzogBMnsWl68lCXzuPx
+deQAmEwNtqjrh74DtM+Ud0ulb//Ixjxo1q3rYKu+aaexSramuee6qJta2rjrB4l8
+B/bU+j1mDf9XQQfSjo9jRnp4hiTFdBl2k+lZzqE2L/rhu6EMjA2IhAq/7xA2MbLo
+9cObVUin6lfoo5+JKRgT9Fp2xEgDOit+2EA/S6oUfPNeLSVUqmXOSWlXlwlb9Nxr
+AgMBAAGjYTBfMF0GCCsGAQUFBwEBBFEwTzAjBggrBgEFBQcwAYYXaHR0cDovL29j
+c3Aubm9kZWpzLm9yZy8wKAYIKwYBBQUHMAKGHGh0dHA6Ly9jYS5ub2RlanMub3Jn
+L2NhLmNlcnQwDQYJKoZIhvcNAQELBQADggEBAMM0mBBjLMt9pYXePtUeNO0VTw9y
+FWCM8nAcAO2kRNwkJwcsispNpkcsHZ5o8Xf5mpCotdvziEWG1hyxwU6nAWyNOLcN
+G0a0KUfbMO3B6ZYe1GwPDjXaQnv75SkAdxgX5zOzca3xnhITcjUUGjQ0fbDfwFV5
+ix8mnzvfXjDONdEznVa7PFcN6QliFUMwR/h8pCRHtE5+a10OSPeJSrGG+FtrGnRW
+G1IJUv6oiGF/MvWCr84REVgc1j78xomGANJIu2hN7bnD1nEMON6em8IfnDOUtynV
+9wfWTqiQYD5Zifj6WcGa0aAHMuetyFG4lIfMAHmd3gaKpks7j9l26LwRPvI=
+-----END CERTIFICATE-----
+`;
     const transportKeys = [
       "HTTP_PROXY",
       "HTTPS_PROXY",
@@ -999,6 +1026,49 @@ lz88C25ucKA=
         publicTestCertificate,
       );
     });
+
+    // AL1955-public-ca-acceptance-v1 clarification: every supplied certificate
+    // must have CA authority, without adding expiry or key-usage requirements.
+    it.each(["leaf only", "mixed CA/leaf"])(
+      "rejects a public %s bundle before child startup without disclosing material",
+      async (kind) => {
+        clearTransport();
+        expect(new X509Certificate(publicTestCertificate).ca).toBe(true);
+        expect(new X509Certificate(publicLeafCertificate).ca).toBe(false);
+        const input = publicCaFixture();
+        writeFileSync(
+          input.certificate,
+          kind === "leaf only"
+            ? publicLeafCertificate
+            : publicTestCertificate + publicLeafCertificate,
+        );
+        vi.stubEnv("HTTPS_PROXY", proxy);
+        vi.stubEnv("NODE_EXTRA_CA_CERTS", input.certificate);
+        const marker = path.join(input.directory, "child-started");
+        const failure = await Promise.resolve()
+          .then(() =>
+            createCliRunner({
+              cwd: input.directory,
+              command: process.execPath,
+              prefix: [
+                "-e",
+                `require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'started')`,
+              ],
+            })([]),
+          )
+          .then(
+            () => undefined,
+            (error: unknown) => error,
+          );
+        expect(failure).toBeInstanceOf(Error);
+        const message = String(failure);
+        expect(message).toBe("Error: Invalid public CA certificate transport");
+        expect(message).not.toContain(input.certificate);
+        expect(message).not.toContain(proxy);
+        expect(message).not.toContain(publicLeafCertificate);
+        expect(existsSync(marker)).toBe(false);
+      },
+    );
 
     it("rejects unsafe CA files before child startup with one constant diagnostic", async () => {
       const failures: string[] = [];

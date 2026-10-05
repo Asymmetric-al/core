@@ -286,9 +286,11 @@ function validatePublicCa(file) {
       const payload = certificate[1].replace(/\s/g, "");
       if (!/^[A-Za-z0-9+/]+={0,2}$/.test(payload)) throw new Error();
       const der = Buffer.from(payload, "base64");
+      const x509 = new X509Certificate(der);
       if (
         der.toString("base64") !== payload ||
-        !new X509Certificate(der).raw.equals(der)
+        !x509.raw.equals(der) ||
+        !x509.ca
       )
         throw new Error();
     }
