@@ -1,9 +1,8 @@
 /** @vitest-environment jsdom */
+import { MotionProvider } from "@asym/lib/motion-provider";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-
-import { MotionProvider } from "@asym/lib/motion-provider";
 
 import { DashboardHome } from "../../../packages/missionary/components/dashboard-home";
 
@@ -107,6 +106,20 @@ function show(
   );
 }
 describe("missionary dashboard composition", () => {
+  it("does not advertise an unavailable report download", () => {
+    setup();
+    show({});
+    expect(
+      screen.getByRole("heading", { name: "Dashboard", exact: true }),
+    ).toBeTruthy();
+    expect(screen.getByText("Inserted dashboard content")).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Download Report", exact: true }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "Download Report", exact: true }),
+    ).toBeNull();
+  });
   it("retains snapshot amounts and excludes completed tasks", () => {
     setup();
     show();

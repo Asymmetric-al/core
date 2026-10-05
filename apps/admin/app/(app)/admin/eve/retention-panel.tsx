@@ -141,7 +141,11 @@ export function EveRetentionPanel() {
                 mutation.mutate({ action: "run_expiry", limit: 100 })
               }
             >
-              <DatabaseZap aria-hidden="true" className="size-4" />
+              <DatabaseZap
+                aria-hidden="true"
+                className="size-4"
+                data-icon="inline-start"
+              />
               Run expiry
             </Button>
           </div>
