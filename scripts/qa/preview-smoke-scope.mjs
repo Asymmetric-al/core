@@ -120,6 +120,16 @@ export function resolvePreviewSmokeScope(inputFiles) {
       continue;
     }
 
+    if (hasPrefix(file, "packages/missionary/")) {
+      result.missionary = true;
+      result.reasons.push({
+        file,
+        surface: "missionary",
+        reason: "missionary runtime package",
+      });
+      continue;
+    }
+
     for (const surface of SURFACES) {
       if (hasPrefix(file, SURFACE_PREFIXES[surface])) {
         result[surface] = true;
