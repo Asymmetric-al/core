@@ -62,7 +62,7 @@ rendered role prompts and tool execution in a later shell. A startup-script
 export alone does not make PATH persistent; initialize login shells and Husky
 or give each command the verified tools directory on PATH.
 
-The repository installer provides the reproducible instruction source. A
+The repository installer provides the reproducible instruction source. Configured home aliases are resolved to their canonical roots; linked directories inside role and personal-skill destinations are rejected before files are read or changed. A
 self-contained cloud bootstrap may stage those same reviewed files outside the
 product checkout until the setup branch merges. It must not require a surviving
 old `/workspace/samson-factory` directory or leave product sources modified.

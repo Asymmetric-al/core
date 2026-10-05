@@ -83,4 +83,18 @@ for (const fileName of migrationFiles) {
   runPsql(`apply ${fileName}`, args);
 }
 
+console.log("==> verify reviewed field-policy census");
+const censusResult = spawnSync(
+  process.execPath,
+  [path.join(repoRoot, "scripts/verify/field-policy-census.mjs")],
+  { cwd: repoRoot, env: process.env, stdio: "inherit", shell: false },
+);
+if (censusResult.error) {
+  console.error(
+    `error: Failed to run field-policy census: ${censusResult.error.message}`,
+  );
+  process.exit(1);
+}
+if (censusResult.status !== 0) process.exit(censusResult.status ?? 1);
+
 console.log(`Verified ${migrationFiles.length} forward Supabase migrations.`);

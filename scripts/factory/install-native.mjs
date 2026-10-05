@@ -27,7 +27,8 @@ const policyMarkers = [
   "<!-- END Samson coordination policy -->",
 ];
 
-function readOptional(file) {
+function readOptional(file, root) {
+  rejectDestinationSymlinks(file, root);
   try {
     return readFileSync(file);
   } catch (error) {
@@ -172,20 +173,39 @@ function canonicalDirectory(directory) {
   }
 }
 
-function rejectDestinationSymlinks(file) {
-  try {
-    if (lstatSync(file).isSymbolicLink()) {
-      throw new Error(
-        `Destination symlink is unsupported: ${file}. Files were left unchanged.`,
-      );
+function rejectDestinationSymlinks(file, root) {
+  const relative = path.relative(root, file);
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error(`Destination is outside its installation root: ${file}`);
+  }
+  const paths = [root];
+  for (const segment of relative.split(path.sep))
+    paths.push(path.join(paths.at(-1), segment));
+  for (const destination of paths) {
+    try {
+      const entry = lstatSync(destination);
+      if (entry.isSymbolicLink()) {
+        throw new Error(
+          `Destination symlink is unsupported: ${destination}. Files were left unchanged.`,
+        );
+      }
+      if (destination !== file && !entry.isDirectory()) {
+        throw new Error(
+          `Destination parent must be a directory: ${destination}. Files were left unchanged.`,
+        );
+      }
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
     }
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
   }
 }
 
-function replaceAtomically(file, bytes, atomicIO) {
-  rejectDestinationSymlinks(file);
+function replaceAtomically(file, bytes, root, atomicIO) {
+  rejectDestinationSymlinks(file, root);
   const existingMode = (() => {
     try {
       return statSync(file).mode & 0o7777;
@@ -203,7 +223,7 @@ function replaceAtomically(file, bytes, atomicIO) {
     const candidate = path.join(staging, "replacement");
     atomicIO.writeFileSync(candidate, bytes);
     if (existingMode !== null) chmodSync(candidate, existingMode);
-    rejectDestinationSymlinks(file);
+    rejectDestinationSymlinks(file, root);
     atomicIO.renameSync(candidate, file);
   } finally {
     rmSync(staging, { recursive: true, force: true });
@@ -272,9 +292,10 @@ export function installNative({
     file,
     readFileSync(path.join(skillSource, file)),
   ]);
+  const personalHome = canonicalDirectory(home);
   const destinations = [
     ...new Set([
-      canonicalDirectory(path.join(home, ".codex")),
+      canonicalDirectory(path.join(personalHome, ".codex")),
       ...(codexHome ? [canonicalDirectory(codexHome)] : []),
     ]),
   ];
@@ -290,11 +311,11 @@ export function installNative({
       ["AGENTS.md", policy, policyMarkers],
     ]) {
       const file = path.join(destination, name);
-      const existing = readOptional(file);
+      const existing = readOptional(file, destination);
       const merged = Buffer.from(
         mergeBlock(existing?.toString("utf8") ?? "", block, markers, file),
       );
-      plan.push([file, merged, existing]);
+      plan.push([file, merged, existing, destination]);
       if (name === "config.toml") {
         if (existing) tomlFiles.push([file, existing]);
         tomlFiles.push([`${file} (merged)`, merged]);
@@ -302,15 +323,19 @@ export function installNative({
     }
     for (const [relative, bytes] of roles) {
       const file = path.join(destination, "agents", relative);
-      plan.push([file, bytes, readOptional(file)]);
+      plan.push([file, bytes, readOptional(file, destination), destination]);
     }
   }
   for (const [relative, bytes] of skill) {
-    const file = path.join(home, ".agents/skills/samson-factory", relative);
-    plan.push([file, bytes, readOptional(file)]);
+    const file = path.join(
+      personalHome,
+      ".agents/skills/samson-factory",
+      relative,
+    );
+    plan.push([file, bytes, readOptional(file, personalHome), personalHome]);
   }
   // Complete all source and destination validation before the first write.
-  for (const [file] of plan) rejectDestinationSymlinks(file);
+  for (const [file, , , root] of plan) rejectDestinationSymlinks(file, root);
   validateToml(tomlFiles);
   const changed = plan.filter(
     ([, bytes, existing]) => !existing?.equals(bytes),
@@ -320,8 +345,8 @@ export function installNative({
       `Native installation drift: ${changed.map(([file]) => file).join(", ")}`,
     );
   if (!verify && !planOnly)
-    for (const [file, bytes] of changed)
-      replaceAtomically(file, bytes, atomicIO);
+    for (const [file, bytes, , root] of changed)
+      replaceAtomically(file, bytes, root, atomicIO);
   return { destinations, changedFiles: changed.map(([file]) => file) };
 }
 
