@@ -126,26 +126,6 @@ export function DonorTasks({
       });
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div
-            key={index}
-            className="flex items-start gap-3 rounded-xl border bg-white p-4"
-          >
-            <div className="mt-0.5 size-5 rounded-md bg-zinc-200" />
-            <div className="size-9 rounded-lg bg-zinc-200" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 w-3/4 rounded bg-zinc-200" />
-              <div className="h-3 w-1/2 rounded bg-zinc-200" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <motion.div {...fadeInUp} className="flex items-center justify-between">
@@ -174,7 +154,23 @@ export function DonorTasks({
         />
       </motion.div>
 
-      {filteredTasks.length === 0 ? (
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={index}
+              className="flex items-start gap-3 rounded-xl border bg-white p-4"
+            >
+              <div className="mt-0.5 size-5 rounded-md bg-zinc-200" />
+              <div className="size-9 rounded-lg bg-zinc-200" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-3/4 rounded bg-zinc-200" />
+                <div className="h-3 w-1/2 rounded bg-zinc-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredTasks.length === 0 ? (
         <motion.div
           {...fadeInUp}
           className="flex flex-col items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 py-12 text-center"

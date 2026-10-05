@@ -6,10 +6,12 @@ import { createRoot } from "react-dom/client";
 import {
   completeTaskDeleteFixtureFromRefresh,
   setTaskDeleteFixtureMode,
+  setTaskLoadingFixture,
   settleTaskDeleteFixture,
   useTaskDeleteFixtureState,
 } from "./task-toolbar-hooks-stub";
 import TasksPage from "../../../apps/missionary/app/tasks/page-client";
+import { DonorTasks } from "../../../apps/missionary/app/donors/donor-tasks";
 import { MotionProvider } from "../../../packages/lib/motion-provider";
 import { ThemeProvider } from "../../../packages/ui/lib/theme-provider";
 
@@ -62,6 +64,12 @@ function TaskToolbarContracts() {
         settleTaskDeleteFixture(detail.success);
       } else if (detail.command === "complete-from-refresh") {
         completeTaskDeleteFixtureFromRefresh();
+      } else if (
+        detail.command === "loading" &&
+        "loading" in detail &&
+        typeof detail.loading === "boolean"
+      ) {
+        setTaskLoadingFixture(detail.loading);
       }
     };
     document.addEventListener("fixture-task-delete-control", control);
@@ -74,7 +82,11 @@ function TaskToolbarContracts() {
       id="task-toolbar-contracts"
       className="min-h-svh bg-background text-foreground"
     >
-      <TasksPage />
+      {new URLSearchParams(location.search).get("surface") === "donor" ? (
+        <DonorTasks donorId="donor-toolbar-fixture" donorName="Anna" />
+      ) : (
+        <TasksPage />
+      )}
       <output aria-label="Task action counts">
         {JSON.stringify(counts, null, 2)}
       </output>

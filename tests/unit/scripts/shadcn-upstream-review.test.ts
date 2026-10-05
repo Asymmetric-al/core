@@ -328,6 +328,10 @@ describe("shadcn upstream review gate", () => {
     );
     const scripts = path.join(root, "scripts/verify");
     const cli = path.join(root, "node_modules/shadcn");
+    writeFileSync(
+      path.join(root, "package.json"),
+      JSON.stringify({ devDependencies: { shadcn: SHADCN_CLI_VERSION } }),
+    );
     mkdirSync(scripts, { recursive: true });
     mkdirSync(cli, { recursive: true });
     mkdirSync(path.join(root, "tooling/shadcn"), { recursive: true });

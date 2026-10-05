@@ -9,7 +9,7 @@ export default defineConfig({
     "../../../test-results/base-ui-compliance/playwright",
   ),
   timeout: 45_000,
-  globalTimeout: 240_000,
+  globalTimeout: 300_000,
   expect: { timeout: 5_000 },
   fullyParallel: true,
   workers: 2,
