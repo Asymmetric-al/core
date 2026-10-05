@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- This integration test mounts the real page; no app imports another app.
+// eslint-disable-next-line no-restricted-imports -- AL-1931 This integration test mounts the real page; no app imports another app.
 import AnalyticsPage from "../../../apps/missionary/app/analytics/page-client";
 
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), metrics: vi.fn() }));
