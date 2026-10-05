@@ -1211,11 +1211,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "066f5b55d5ca59bd342e1c7c7195310a929accff4d1838f9c73e0f2efc12aa37"
+          "sha256": "dd7dae958001168306327bb697ae0c7154acf3af53fa3d9bd3992504dc1aa554"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "bd23868a27ae51767cdd82611499aff177073419dacb8120501df6700a7f4cbc"
+          "sha256": "cdf73383346573ea14cb2e580bc3075e7ab6547e03784cea670fc9ee20c83c4d"
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
@@ -1248,11 +1248,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "066f5b55d5ca59bd342e1c7c7195310a929accff4d1838f9c73e0f2efc12aa37"
+          "sha256": "dd7dae958001168306327bb697ae0c7154acf3af53fa3d9bd3992504dc1aa554"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "bd23868a27ae51767cdd82611499aff177073419dacb8120501df6700a7f4cbc"
+          "sha256": "cdf73383346573ea14cb2e580bc3075e7ab6547e03784cea670fc9ee20c83c4d"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
