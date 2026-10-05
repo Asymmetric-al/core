@@ -541,8 +541,8 @@ export function validatePhase24(root) {
       add(prd, 1, String(n), String(n), "story-out-of-scope");
   let matrixSection;
   source.split("\n").forEach((line, index) => {
-    const heading = /^## (.+)$/.exec(line);
-    if (heading) matrixSection = heading[1];
+    const heading = /^## (.+)\r?$/.exec(line);
+    if (heading) matrixSection = heading[1].trimEnd();
     const normativeTable = [
       "Founder Decision Matrix",
       "User Story Matrix",

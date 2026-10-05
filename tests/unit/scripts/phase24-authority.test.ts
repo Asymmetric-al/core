@@ -291,6 +291,13 @@ describe("Phase 24 authority through the public read-only CLI", () => {
     expectFailure(root, "US24-119", matrix, "US24-119");
   });
 
+  it("accepts the equivalent traceability matrix with CRLF line endings", () => {
+    const root = checkout();
+    edit(root, matrix, (text) => text.replace(/\r?\n/g, "\r\n"));
+    const result = run(root);
+    expect(result.status, result.stderr || result.stdout).toBe(0);
+  });
+
   it.each([
     ["US24-001", "Release Closure Rule"],
     ["D1", "Release Closure Rule"],
