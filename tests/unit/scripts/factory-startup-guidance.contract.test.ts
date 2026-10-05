@@ -7,13 +7,14 @@ const root = path.resolve(import.meta.dirname, "../../..");
 const canonical = "docs/ai/skills/samson-factory/SKILL.md";
 const guide = "docs/guides/development/samson-codex-cloud.md";
 const change = "openspec/changes/add-six-agent-codex-factory";
+const spec = `${change}/specs/agent-instruction-system/spec.md`;
 const read = (relative: string) =>
   readFileSync(path.join(root, relative), "utf8");
 const normalized = (text: string) => text.replace(/\s+/g, " ");
 
 // Read coordinator instructions only as contract data. Never execute them or
 // snapshot the coordinator workflow; assertions select startup/safety clauses.
-it.each([canonical, guide, `${change}/specs/agent-instruction-system/spec.md`])(
+it.each([canonical, guide, spec])(
   "%s distinguishes read-only hosted validation and explicit local installation",
   (file) => {
     const text = normalized(read(file));
@@ -47,23 +48,19 @@ it("retains the exact independent reproduction safeguard and applies it to final
   expect(text).toContain("Give Micaiah and Luke the same actual candidate SHA");
 });
 
-it("keeps fresh own-role context, protected expected-head root merge and same-worker closeout", () => {
-  const text = normalized(
-    [
-      read(canonical),
-      read(guide),
-      read(`${change}/specs/agent-instruction-system/spec.md`),
-    ].join("\n"),
-  );
-  expect(text).toMatch(/fresh.{0,100}(?:own.role|role.only|specialist)/i);
-  expect(text).toMatch(
-    /(?:root|David).{0,160}(?:merge|protected)|(?:merge|protected).{0,160}(?:root|David)/i,
-  );
-  expect(text).toMatch(/expected.head|match-head-commit/);
-  expect(text).toMatch(
-    /same.worker.{0,100}closeout|same.{0,30}(?:repair\s+)?worker.{0,100}closeout/i,
-  );
-});
+it.each([canonical, guide, spec])(
+  "%s retains fresh role context, protected root merge and same-worker closeout",
+  (file) => {
+    // Another document cannot supply a clause missing from this required one.
+    const text = normalized(read(file));
+    expect(text).toMatch(/fresh.{0,100}(?:own.role|role.only|specialist)/i);
+    expect(text).toMatch(/stops? before merge/i);
+    expect(text).toMatch(/David.{0,240}protected expected.head merge/i);
+    expect(text).toMatch(
+      /same.worker.{0,100}closeout|same.{0,30}(?:repair\s+)?worker.{0,100}closeout/i,
+    );
+  },
+);
 
 it.each([".agents", ".claude", ".cursor"])(
   "%s Samson mirrors equal the canonical startup/safeguard bytes",
@@ -82,18 +79,41 @@ it.each([".agents", ".claude", ".cursor"])(
   },
 );
 
-it("keeps repository acceptance distinct from actual postmerge cloud publication and handoffs", () => {
-  const text = normalized(
-    [
-      read(guide),
-      read(`${change}/proposal.md`),
-      read(`${change}/tasks.md`),
-      read(`${change}/specs/agent-instruction-system/spec.md`),
-    ].join("\n"),
+it.each([guide, spec, `${change}/proposal.md`, `${change}/tasks.md`])(
+  "%s distinguishes repository acceptance from actual hosted qualification",
+  (file) => {
+    const text = normalized(read(file));
+    expect(text).toMatch(
+      file === `${change}/tasks.md`
+        ? /R1.{0,30}R2.*R3.*R4.{0,30}R5/
+        : /R1.{0,30}R5/,
+    );
+    expect(text).toMatch(/H1.{0,30}H2/);
+    expect(text).toMatch(/fresh.{0,100}(?:cloud|session|hosted)/i);
+    expect(text).toMatch(/(?:actual|native).{0,100}(?:handoff|return)/i);
+    expect(text).toMatch(/publish|publication|consumed/i);
+  },
+);
+
+it.each([guide, spec])(
+  "%s requires six real role returns, consumed assets and publication evidence",
+  (file) => {
+    // Detailed operational requirements belong to the guide/spec, not summaries.
+    const text = normalized(read(file));
+    expect(text).toMatch(/(?:all six|six configured roles)/i);
+    expect(text).toMatch(/native.{0,80}handoffs.{0,80}normal returns/i);
+    expect(text).toMatch(/consumed.{0,100}hashes/i);
+    expect(text).toMatch(/publication evidence/i);
+    expect(text).toMatch(
+      /(?:not|do not).{0,40}(?:auto.closed|close).{0,80}H1.{0,30}H2/i,
+    );
+  },
+);
+
+it("canonical guidance keeps postmerge qualification and the H1–H2 issue-close boundary", () => {
+  const text = normalized(read(canonical));
+  expect(text).toMatch(
+    /repository delivery.{0,100}separate from postmerge hosted qualification/i,
   );
-  expect(text).toMatch(/R1.{0,30}R5/);
-  expect(text).toMatch(/H1.{0,30}H2/);
-  expect(text).toMatch(/fresh.{0,100}(?:cloud|session|hosted)/i);
-  expect(text).toMatch(/(?:actual|native).{0,100}(?:handoff|return)/i);
-  expect(text).toMatch(/publish|publication|consumed/i);
+  expect(text).toMatch(/do not auto.close the issue before H1.{0,30}H2 pass/i);
 });

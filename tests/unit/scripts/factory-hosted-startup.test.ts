@@ -223,14 +223,19 @@ function fixture() {
 
 type Fixture = ReturnType<typeof fixture>;
 
-async function invoke(f: Fixture, overrides: Record<string, unknown> = {}) {
+async function invoke(
+  f: Fixture,
+  overrides: Record<string, unknown> & {
+    parserFailure?: { command: "python3" | "bun"; stderr: string };
+  } = {},
+) {
   const { validateHostedStartup } =
     await import("../../../scripts/factory/validate-hosted-startup.mjs");
   const actualProcess =
     await vi.importActual<typeof import("node:child_process")>(
       "node:child_process",
     );
-  const { unavailable, ...optionsOverride } = overrides;
+  const { unavailable, parserFailure, ...optionsOverride } = overrides;
   const execute = (
     command: string,
     args: string[],
@@ -254,6 +259,8 @@ async function invoke(f: Fixture, overrides: Record<string, unknown> = {}) {
         args[0] === "-e" &&
         args[1].includes("Bun.YAML.parse"))
     ) {
+      if (parserFailure?.command === command)
+        return { status: 1, stdout: "", stderr: parserFailure.stderr };
       return actualProcess.spawnSync(command, args, {
         ...options,
         shell: false,
@@ -475,6 +482,51 @@ it.each(["bash", "git", "gh", "node", "bun", "python3"])(
     await expect(invoke(fixture(), { unavailable: missing })).rejects.toThrow(
       new RegExp(`BLOCKED.*${missing}`, "i"),
     );
+  },
+);
+
+it.each([
+  "ModuleNotFoundError: No module named 'tomllib'\n",
+  "Python 3.11 or later is required\n",
+])("explains a stderr-only Python parser failure: %s", async (stderr) => {
+  await expect(
+    invoke(fixture(), { parserFailure: { command: "python3", stderr } }),
+  ).rejects.toThrow(/BLOCKED.*python3.*(?:3\.11.*tomllib|tomllib.*3\.11)/i);
+});
+
+it.each(["python3", "bun"] as const)(
+  "%s parser failure diagnostics do not disclose supplied stderr metadata",
+  async (command) => {
+    const f = fixture();
+    const marker = "PRIVATE_RETAINED_INPUT_FIXTURE_1955";
+    if (command === "bun")
+      f.pair(
+        skillRelative,
+        `---\nname: samson-factory\ndescription: ${marker}\n---\n# Samson\nValidate retained assets read-only.\n`,
+      );
+    else
+      f.pair(
+        ".codex/agents/samson.toml",
+        `model = "gpt-6.1-sol"\nmodel_reasoning_effort = "high"\ndeveloper_instructions = "You are Samson. ${marker}"\n`,
+      );
+    async function message(stderr: string) {
+      try {
+        await invoke(f, { parserFailure: { command, stderr } });
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        const text = (error as Error).message;
+        expect(text).toMatch(/BLOCKED/);
+        expect(text).toContain(command);
+        return text;
+      }
+      throw new Error("Expected hosted startup to block on parser failure");
+    }
+    const generic = await message("Parser failed\n");
+    const privateInput = await message(
+      `Parser failed while reading description: ${marker}\n`,
+    );
+    expect(privateInput).not.toContain(marker);
+    expect(privateInput).toBe(generic);
   },
 );
 

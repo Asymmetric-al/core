@@ -151,10 +151,17 @@ export function validateHostedStartup({
     } catch (error) {
       blocked(`Required executable ${tool} failed: ${error.message}`);
     }
-    if (result?.error || result?.status !== 0)
+    if (result?.error || result?.status !== 0) {
+      const diagnostic =
+        result?.error?.message ||
+        result?.stdout?.trim() ||
+        (tool === "python3"
+          ? "Role parsing requires Python 3.11 or later with tomllib; verify the required runtime is available."
+          : "No safe executable diagnostic available.");
       blocked(
-        `Required executable ${tool} failed (status ${result?.status ?? "unavailable"}): ${result?.error?.message ?? result?.stdout?.trim() ?? ""}`,
+        `Required executable ${tool} failed (status ${result?.status ?? "unavailable"}): ${diagnostic}`,
       );
+    }
     return result.stdout?.trim() ?? "";
   }
   const versions = {};
