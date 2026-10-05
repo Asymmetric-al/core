@@ -270,7 +270,7 @@ function DashboardHomeContent({
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5 font-semibold uppercase tracking-wider">
                           {post.createdAt
-                            ? new Date(post.createdAt).toLocaleDateString()
+                            ? formatDate(post.createdAt)
                             : "Draft"}
                         </p>
                       </div>
