@@ -43,6 +43,20 @@ function parsePreflightStages(
   return stages;
 }
 
+function integritySteps() {
+  const lines = readFileSync(".github/workflows/ci.yml", "utf8").split(/\r?\n/);
+  const start = lines.indexOf("  integrity:");
+  expect(start).toBeGreaterThanOrEqual(0);
+  const end = lines.findIndex(
+    (line, index) => index > start && /^  \S[^:]*:\s*$/.test(line),
+  );
+  return lines
+    .slice(start + 1, end < 0 ? undefined : end)
+    .join("\n")
+    .split(/^      - /m)
+    .slice(1);
+}
+
 describe("ci-preflight contract", () => {
   const source = readFileSync(PREFLIGHT_PATH, "utf8");
   const stages = parsePreflightStages(source);
@@ -71,6 +85,28 @@ describe("ci-preflight contract", () => {
 
   it("mirrors blocking ci.yml stage order documented in docs/ci.md", () => {
     expect(stages).toEqual(EXPECTED_STAGES);
+  });
+
+  it("audits the primary workspace before any auxiliary checkout can duplicate its projects", () => {
+    const steps = integritySteps();
+    const audit = steps.findIndex((step) =>
+      step.includes("run: bun run verify:shadscan -- --output"),
+    );
+    const retainedEvidence = steps.findIndex((step) =>
+      step.includes("name: shadscan-audit"),
+    );
+    const auxiliaryCheckouts = steps.flatMap((step, index) =>
+      /(?:^|\n)\s*uses: actions\/checkout@/.test(step) &&
+      /(?:^|\n)\s*path:\s*\S/.test(step)
+        ? [index]
+        : [],
+    );
+    expect(audit).toBeGreaterThanOrEqual(0);
+    expect(retainedEvidence).toBe(audit + 1);
+    expect(auxiliaryCheckouts.length).toBeGreaterThan(0);
+    expect(auxiliaryCheckouts.every((index) => index > retainedEvidence)).toBe(
+      true,
+    );
   });
 
   it("does not run deployment-discipline inside preflight", () => {

@@ -247,11 +247,14 @@ only. The unchecked tasks below describe future implementation and qualification
 this packet does not complete runtime work or unrelated tasks.
 
 - [x] 5.1 Author and validate the Phase 3 glossary, five foundation requirements,
-      ADR-A–D (canonical 0209–0212), registry and parity foundation row; record
-      documentation checks separately from runtime proof. AL-490 validation:
-      strict change valid; all current specs/changes 80 passed; archive audit
-      32 passed; delta compatibility 76 checked; changed-doc Prettier and
-      git diff --check passed; 30 introduced relative links/anchors resolved.
+    ADR-A–D (canonical 0209–0212), registry and parity foundation row; record
+    documentation checks separately from runtime proof. AL-490 validation:
+    strict change valid; all current specs/changes 80 passed; archive audit
+    32 passed; delta compatibility 76 checked; changed-doc Prettier and
+    git diff --check passed; 30 introduced relative links/anchors resolved.
+<!-- AL-491: receipts may use the approved evidence-bound absent/reserved census
+     disposition; every existing required column still needs complete classification.
+     Receipt access stays denied on all surfaces until canonical owner qualification. -->
 - [ ] 5.2 Implement and review the authoritative field census/static field policies,
       six sensitivity categories, whole-column classification and hard-locked
       processor identifiers; prove missing/unknown fields and surfaces fail closed.

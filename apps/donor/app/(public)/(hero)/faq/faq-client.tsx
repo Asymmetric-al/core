@@ -1,16 +1,17 @@
 "use client";
 
-import { motion, AnimatePresence } from "@asym/lib/motion";
+import { motion, useReducedMotion } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import {
-  transitionExitQuick,
-  transitionStandard,
-} from "@asym/lib/motion-presets";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@asym/ui/components/shadcn/accordion";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  Plus,
-  Minus,
   HelpCircle,
   Search,
   DollarSign,
@@ -18,7 +19,6 @@ import {
   ShieldCheck,
   Heart,
   Mail,
-  MessageCircle,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
@@ -131,107 +131,82 @@ const CategoryButton = ({
   label: string;
   icon: LucideIcon;
 }) => (
-  <button
+  <Button
+    variant={active ? "maia" : "maia-outline"}
+    size="lg"
+    type="button"
+    aria-pressed={active}
     onClick={onClick}
-    className={cn(
-      "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold press-feedback border",
-      active
-        ? "bg-zinc-900 text-white border-zinc-900 shadow-md ring-2 ring-zinc-900/10"
-        : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50",
-    )}
   >
-    <Icon
-      className={cn("size-4", active ? "text-emerald-400" : "text-zinc-400")}
-    />
+    <Icon data-icon="inline-start" />
     {label}
-  </button>
+  </Button>
 );
 
-const AccordionItem = ({
+const FAQAccordionItem = ({
   item,
+  value,
   isOpen,
-  onClick,
 }: {
   item: FAQItem;
+  value: number;
   isOpen: boolean;
-  onClick: () => void;
 }) => {
+  const reducedMotion = useReducedMotion();
   return (
-    <motion.div
+    <AccordionItem
+      value={value}
       // Siblings below an opening panel slide to their new position with a
-      // transform; the panel itself fades and rises instead of sweeping height.
-      layout="position"
-      initial={false}
+      // transform; the panel fades instead of sweeping height.
+      render={<motion.div layout="position" initial={false} />}
       className={cn(
-        "border rounded-2xl overflow-hidden transition-[border-color,background-color,box-shadow] duration-300",
+        "border last:border-b rounded-2xl px-6 overflow-hidden transition-[border-color,background-color,box-shadow] duration-300",
         isOpen
           ? "border-blue-200 bg-blue-50/30 shadow-sm"
           : "border-zinc-200 bg-white hover:border-zinc-300",
       )}
     >
-      <button
-        onClick={onClick}
-        className="w-full flex items-start justify-between p-6 text-left focus:outline-none group"
-      >
-        <div className="flex gap-4">
+      <AccordionTrigger>{item.question}</AccordionTrigger>
+      <AccordionContent
+        // This surface uses an opacity fade, not the shared height keyframes.
+        render={(panelProps, state) => (
           <div
+            {...panelProps}
+            hidden={state.open ? panelProps.hidden : true}
             className={cn(
-              "mt-1 size-6 rounded-full flex items-center justify-center shrink-0 transition-colors",
-              isOpen
-                ? "bg-blue-600 text-white"
-                : "bg-zinc-100 text-zinc-400 group-hover:bg-zinc-200",
+              panelProps.className,
+              "data-open:animate-none data-closed:animate-none",
             )}
-          >
-            {isOpen ? (
-              <Minus className="size-3.5" />
-            ) : (
-              <Plus className="size-3.5" />
-            )}
-          </div>
-          <span
-            className={cn(
-              "text-lg font-semibold transition-colors",
-              isOpen
-                ? "text-blue-900"
-                : "text-zinc-900 group-hover:text-zinc-700",
-            )}
-          >
-            {item.question}
-          </span>
-        </div>
-      </button>
-      <AnimatePresence initial={false} mode="popLayout">
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: transitionExitQuick }}
-            transition={transitionStandard}
-          >
-            <div className="px-6 pb-6 pl-[3.5rem] pr-8 text-zinc-600 leading-relaxed font-light">
-              {typeof item.answer === "string" ? (
-                <p>
-                  {item.answer.split("**").map((part, i) =>
-                    i % 2 === 1 ? (
-                      <strong
-                        key={`${item.question}-highlight-${part}`}
-                        className="font-semibold text-zinc-800"
-                      >
-                        {part}
-                      </strong>
-                    ) : (
-                      part
-                    ),
-                  )}
-                </p>
-              ) : (
-                item.answer
-              )}
-            </div>
-          </motion.div>
+          />
         )}
-      </AnimatePresence>
-    </motion.div>
+        className="pb-6 text-zinc-600 leading-relaxed font-light"
+      >
+        <motion.div
+          initial={reducedMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={reducedMotion ? { duration: 0 } : transitionStandard}
+        >
+          {typeof item.answer === "string" ? (
+            <p>
+              {item.answer.split("**").map((part, i) =>
+                i % 2 === 1 ? (
+                  <strong
+                    key={`${item.question}-highlight-${part}`}
+                    className="font-semibold text-zinc-800"
+                  >
+                    {part}
+                  </strong>
+                ) : (
+                  part
+                ),
+              )}
+            </p>
+          ) : (
+            item.answer
+          )}
+        </motion.div>
+      </AccordionContent>
+    </AccordionItem>
   );
 };
 
@@ -342,45 +317,50 @@ export function FAQPageClient() {
           />
         </div>
 
-        <div className="space-y-4 min-h-100">
-          <AnimatePresence mode="wait">
-            {filteredData.length > 0 ? (
-              filteredData.map((item, idx) => (
-                <AccordionItem
+        <h2 className="sr-only">Questions and answers</h2>
+        <div className="min-h-100">
+          {filteredData.length > 0 ? (
+            <Accordion
+              className="flex flex-col gap-4"
+              value={openIndex === null ? [] : [openIndex]}
+              onValueChange={(value) => setOpenIndex(value[0] ?? null)}
+            >
+              {filteredData.map((item, idx) => (
+                <FAQAccordionItem
                   key={`${item.category}-${item.question}`}
                   item={item}
+                  value={idx}
                   isOpen={openIndex === idx}
-                  onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
                 />
-              ))
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20"
+              ))}
+            </Accordion>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
+              <div className="size-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-zinc-100">
+                <Search className="size-8 text-zinc-300" />
+              </div>
+              <h3 className="text-lg font-semibold text-zinc-900">
+                No results found
+              </h3>
+              <p className="text-zinc-500">
+                Try adjusting your search terms or browse by category.
+              </p>
+              <Button
+                variant="link"
+                onClick={() => {
+                  setSearchQuery("");
+                  setActiveCategory("All");
+                }}
+                className="mt-2 text-blue-600"
               >
-                <div className="size-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-zinc-100">
-                  <Search className="size-8 text-zinc-300" />
-                </div>
-                <h3 className="text-lg font-semibold text-zinc-900">
-                  No results found
-                </h3>
-                <p className="text-zinc-500">
-                  Try adjusting your search terms or browse by category.
-                </p>
-                <Button
-                  variant="link"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setActiveCategory("All");
-                  }}
-                  className="mt-2 text-blue-600"
-                >
-                  View all questions
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                View all questions
+              </Button>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -416,12 +396,6 @@ export function FAQPageClient() {
             >
               <Mail className="mr-2 size-5" /> Email Support
             </Link>
-            <Button
-              variant="outline"
-              className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm hover-scale-subtle"
-            >
-              <MessageCircle className="mr-2 size-5" /> Chat with Us
-            </Button>
           </div>
         </div>
       </section>

@@ -103,6 +103,23 @@ New record families MUST remain blind until their owning phase supplies field
 classification and exact row/purpose scope. The retired CRM→surface shadow-sync
 stack MUST NOT be revived as an enforcement or synchronization dependency.
 
+The AL-491 receipt-census clarification approved on 2026-10-05 at 04:44:28
+UTC permits `receipts` to remain explicitly absent/reserved, bound to the exact
+live inventory and repository/schema revision. It MUST have zero fabricated
+columns and zero positive seed rows. `receipts` and prototype receipt aliases
+MUST remain denied on every surface, including Mission Control, despite
+permissive policy rows, category defaults or donation fallbacks. This disposition
+qualifies only receipt census availability; all existing required columns still
+require a reviewed census and seed. Phase 7 owns canonical source qualification;
+Phase 18 owns artifacts and Phase 17 delivery.
+
+#### Scenario: The canonical receipt source is absent
+
+- **GIVEN** the exact reviewed live inventory has no canonical receipt source
+- **WHEN** any surface requests a reserved receipt field, including Mission Control
+- **THEN** visibility, editability and exportability remain denied
+- **AND** prototype aliases, permissive stored rows and donation fallbacks cannot enable access
+
 #### Scenario: A new field remains blind outside Mission Control
 
 - **GIVEN** a new column has no reviewed field policy
