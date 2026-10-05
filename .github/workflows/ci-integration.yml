@@ -433,7 +433,7 @@ jobs:
   e2e-smoke-gate:
     if: always()
     needs: [test-e2e-smoke]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Fail if E2E smoke failed
         run: |
@@ -516,7 +516,7 @@ jobs:
   integration-gate:
     if: always()
     needs: [migrate, smoke, e2e-smoke-gate]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Fail if integration prerequisites failed
         run: |
