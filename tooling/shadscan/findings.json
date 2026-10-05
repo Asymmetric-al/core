@@ -1454,7 +1454,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/analytics/page-client.tsx",
-          "sha256": "7e0ceb3968929df133c360ea9ec52169ed89ecf5365fabb96bfaea837d150e44"
+          "sha256": "b12ebb36ff7f00eaf7c620a0ed37e867ba2e6c04f29cbfe02ee0b0c7ea62b72a"
         },
         {
           "path": "packages/ui/components/primitives/chart-wrappers.tsx",
