@@ -169,9 +169,9 @@ export default function RootLayout({
                 </TooltipProvider>
               </MotionProvider>
             </QueryProvider>
+            <Toaster />
           </ThemeProvider>
         </div>
-        <Toaster />
       </body>
     </html>
   );

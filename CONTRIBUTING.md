@@ -36,6 +36,9 @@ without repairing it. Setup does not start an issue trial.
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)
   for raw findings, shared-consumer checks, exceptions, and legacy debt.
+- **UI audit:** `bun run verify:shadscan` uses the locked scanner across all three
+  apps. CI and pre-commit require honest app floors and current reviewed evidence;
+  see the [Shadscan guide](docs/guides/development/shadscan.md).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Mission Control in Cursor Cloud:** `bun run setup:mission-control:cloud && bun run dev:mission-control` (writes gitignored dev placeholders only).
 - **Access:** organization members developing Core need Write or higher access;

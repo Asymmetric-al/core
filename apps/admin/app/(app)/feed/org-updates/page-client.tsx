@@ -1078,6 +1078,7 @@ function ComposeCard({
             className="flex-1 min-w-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <RichTextEditor
+              aria-label="Organization post content"
               value={postContent}
               onChange={(value) =>
                 dispatchCompose({ type: "set-content", value })

@@ -539,11 +539,14 @@ export function validatePhase24(root) {
   for (const n of prdStories)
     if (n < 1 || n > 120)
       add(prd, 1, String(n), String(n), "story-out-of-scope");
-  let normativeTable = false;
+  let matrixSection;
   source.split("\n").forEach((line, index) => {
-    if (/^## (Founder Decision Matrix|User Story Matrix)/.test(line))
-      normativeTable = true;
-    else if (/^## /.test(line)) normativeTable = false;
+    const heading = /^## (.+)\r?$/.exec(line);
+    if (heading) matrixSection = heading[1].trimEnd();
+    const normativeTable = [
+      "Founder Decision Matrix",
+      "User Story Matrix",
+    ].includes(matrixSection);
     if (!/^\|\s*(?:D\d|US24-)/.test(line)) {
       if (
         normativeTable &&
@@ -567,6 +570,13 @@ export function validatePhase24(root) {
       loc = index + 1;
     const fail = (token, code, field) =>
       add(matrix, loc, owner, token, code, field);
+    const owningSection = owner.startsWith("US24-")
+      ? "User Story Matrix"
+      : "Founder Decision Matrix";
+    if (matrixSection !== owningSection) {
+      fail(owner, "row-outside-matrix");
+      return;
+    }
     if (cells.length !== 10) {
       fail(owner, "row-shape");
       return;

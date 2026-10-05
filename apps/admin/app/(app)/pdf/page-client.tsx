@@ -1016,6 +1016,7 @@ function NativePdfDocumentBuilderSection({
           </Button>
         </div>
         <Textarea
+          aria-label="PDF template source"
           value={templateText}
           onChange={(event) => onTemplateTextChange(event.target.value)}
           spellCheck={false}

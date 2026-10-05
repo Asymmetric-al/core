@@ -9,7 +9,10 @@ import {
   type SuggestionListHandle,
 } from "./SuggestionList";
 
-import type { SuggestionOptions } from "@asym/ui/components/shadcn/rich-text-editor";
+import type {
+  Editor,
+  SuggestionOptions,
+} from "@asym/ui/components/shadcn/rich-text-editor";
 
 interface RendererOptions {
   heading?: string;
@@ -17,6 +20,7 @@ interface RendererOptions {
 }
 
 interface RenderProps<T> {
+  editor: Editor;
   items: T[];
   command: (item: T) => void;
   clientRect?: (() => DOMRect | null) | null;
@@ -43,6 +47,42 @@ export function buildSuggestionRenderer<T extends SuggestionItem>({
     let container: HTMLDivElement | null = null;
     let root: Root | null = null;
     let listRef: SuggestionListHandle | null = null;
+    let focusOwner: HTMLElement | null = null;
+    const previousAttributes = new Map<string, string | null>();
+    const ownedAttributes = new Map<string, string | null>();
+
+    const restoreFocusOwner = () => {
+      if (focusOwner) {
+        for (const [name, previous] of previousAttributes) {
+          // Another editor feature may have taken ownership in the meantime.
+          if (focusOwner.getAttribute(name) !== ownedAttributes.get(name))
+            continue;
+          if (previous === null) focusOwner.removeAttribute(name);
+          else focusOwner.setAttribute(name, previous);
+        }
+      }
+      focusOwner = null;
+      previousAttributes.clear();
+      ownedAttributes.clear();
+    };
+
+    const setFocusAttribute = (name: string, value: string | null) => {
+      if (!focusOwner) return;
+      if (!previousAttributes.has(name))
+        previousAttributes.set(name, focusOwner.getAttribute(name));
+      if (value === null) focusOwner.removeAttribute(name);
+      else focusOwner.setAttribute(name, value);
+      ownedAttributes.set(name, value);
+    };
+
+    const connectActiveOption = (
+      listboxId: string,
+      optionId: string | null,
+    ) => {
+      setFocusAttribute("aria-autocomplete", "list");
+      setFocusAttribute("aria-controls", listboxId);
+      setFocusAttribute("aria-activedescendant", optionId);
+    };
 
     const ensureContainer = () => {
       if (container) return container;
@@ -55,6 +95,10 @@ export function buildSuggestionRenderer<T extends SuggestionItem>({
     };
 
     const renderInto = (props: RenderProps<T>) => {
+      if (focusOwner !== props.editor.view.dom) {
+        restoreFocusOwner();
+        focusOwner = props.editor.view.dom;
+      }
       const node = ensureContainer();
       const rect = props.clientRect?.();
       if (rect) {
@@ -70,6 +114,7 @@ export function buildSuggestionRenderer<T extends SuggestionItem>({
           command={(item) => props.command(item as T)}
           heading={heading}
           emptyHint={emptyHint}
+          onActiveOptionChange={connectActiveOption}
         />,
       );
     };
@@ -87,6 +132,7 @@ export function buildSuggestionRenderer<T extends SuggestionItem>({
       },
       onExit: () => {
         listRef = null;
+        restoreFocusOwner();
         if (root) {
           root.unmount();
           root = null;

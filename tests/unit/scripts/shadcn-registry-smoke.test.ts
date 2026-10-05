@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,6 +9,116 @@ import {
 } from "../../../scripts/verify/shadcn-registry-smoke.mjs";
 
 describe("shadcn registry smoke helpers", () => {
+  it("previews UI Kit with the API key forwarded by the private launcher", () => {
+    const config = JSON.parse(
+      readFileSync(
+        new URL("../../../packages/ui/components.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    expect(
+      buildRegistrySmokePlan({
+        registries: { "@shadcnuikit": config.registries["@shadcnuikit"] },
+        env: { SHADCNUIKIT_API_KEY: "test-key" },
+      }),
+    ).toEqual([
+      {
+        namespace: "@shadcnuikit",
+        status: "attempt",
+        item: "@shadcnuikit/button1",
+        requiredEnvVars: ["SHADCNUIKIT_API_KEY"],
+      },
+    ]);
+  });
+
+  it("requires the ReUI license before previewing a paid block", () => {
+    const config = JSON.parse(
+      readFileSync(
+        new URL("../../../packages/ui/components.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const input = {
+      registries: { "@reui": config.registries["@reui"] },
+      canaries: { "@reui": "settings-2" },
+    };
+    expect(buildRegistrySmokePlan({ ...input, env: {} })).toEqual([
+      {
+        namespace: "@reui",
+        status: "skip",
+        reason: "missing env REUI_LICENSE_KEY",
+        requiredEnvVars: ["REUI_LICENSE_KEY"],
+      },
+    ]);
+    expect(
+      buildRegistrySmokePlan({
+        ...input,
+        env: { REUI_LICENSE_KEY: "test-license" },
+      }),
+    ).toEqual([
+      {
+        namespace: "@reui",
+        status: "attempt",
+        item: "@reui/settings-2",
+        requiredEnvVars: ["REUI_LICENSE_KEY"],
+      },
+    ]);
+  });
+
+  it("can preview Blocks with the supplied credential and Base UI style URL", () => {
+    const config = JSON.parse(
+      readFileSync(
+        new URL("../../../packages/ui/components.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const registry = config.registries["@shadcnblocks"];
+    expect(registry).toBeDefined();
+    expect(registry.url).toBe("https://www.shadcnblocks.com/r/{style}/{name}");
+    expect(
+      buildRegistrySmokePlan({
+        registries: { "@shadcnblocks": registry },
+        env: { SHADCNBLOCKS_API_KEY: "test-token" },
+        canaries: { "@shadcnblocks": "hero1" },
+      }),
+    ).toEqual([
+      {
+        namespace: "@shadcnblocks",
+        status: "attempt",
+        item: "@shadcnblocks/hero1",
+        requiredEnvVars: ["SHADCNBLOCKS_API_KEY"],
+      },
+    ]);
+  });
+
+  it("uses the private launcher's Studio credential names for a paid preview", () => {
+    const config = JSON.parse(
+      readFileSync(
+        new URL("../../../packages/ui/components.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const plan = buildRegistrySmokePlan({
+      registries: { "@ss-blocks": config.registries["@ss-blocks"] },
+      env: {
+        SHADCN_STUDIO_EMAIL: "owner@example.test",
+        SHADCN_STUDIO_LICENSE_KEY: "test-license",
+      },
+    });
+
+    expect(plan).toEqual([
+      {
+        namespace: "@ss-blocks",
+        status: "attempt",
+        item: "@ss-blocks/hero-section-09",
+        requiredEnvVars: ["SHADCN_STUDIO_EMAIL", "SHADCN_STUDIO_LICENSE_KEY"],
+      },
+    ]);
+    expect(config.registries["@ss-blocks"].url).toBe(
+      "https://shadcnstudio.com/r/blocks/{style}/{name}.json",
+    );
+  });
+
   it("extracts env placeholders from nested registry config", () => {
     expect(
       collectEnvRefs({

@@ -90,6 +90,7 @@ export function SupportTipTapEditor({
 
   return (
     <EditorRoot
+      aria-label={tone === "reply" ? "Reply message" : "Internal note"}
       value={value}
       onChange={onChange}
       disabled={disabled}

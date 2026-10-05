@@ -13,6 +13,7 @@ import {
   formatSharedContributionAmount,
   SHARED_CRM_POST_STATUS_LABELS,
 } from "@asym/api/admin/contribution-shared";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { getInitials } from "@asym/lib/utils";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
@@ -375,6 +376,7 @@ export function ContributionDetailSheet({
   receiptDelivery,
   onDecided,
 }: ContributionDetailSheetProps) {
+  const { formatDate } = useLocaleFormat();
   const open = isOpen ?? Boolean(contribution);
   const donorDisplayName = contribution
     ? contribution.isAnonymous
@@ -412,7 +414,6 @@ export function ContributionDetailSheet({
   }
 
   const { donorName, donorEmail, donorAvatar, isAnonymous } = contribution;
-  const date = makeDisplayDate(contribution.date);
   const resolvedDonorDisplayName = isAnonymous
     ? "Anonymous"
     : (donorName ?? "Unknown");
@@ -646,7 +647,7 @@ export function ContributionDetailSheet({
         {/* ---- Details grid ---- */}
         <div className="grid grid-cols-2 gap-6">
           <DetailField label="Date">
-            {date.toLocaleDateString("en-US", {
+            {formatDate(contribution.date, {
               weekday: "short",
               month: "short",
               day: "numeric",

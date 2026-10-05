@@ -95,7 +95,11 @@ export function InputContracts() {
         <Button type="submit">Save profile controls</Button>
         <output aria-label="Submitted controls">{submitted}</output>
       </form>
-      <RichTextEditor value={message} onChange={setMessage}>
+      <RichTextEditor
+        aria-label="Message body"
+        value={message}
+        onChange={setMessage}
+      >
         <EditorToolbar tools={["bold", "italic", "link", "undo", "redo"]} />
         <EditorContent aria-label="Message body" />
       </RichTextEditor>

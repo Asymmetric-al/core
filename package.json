@@ -95,6 +95,7 @@
     "verify:deployment-discipline": "node scripts/verify/deployment-discipline.mjs",
     "verify:shadcn-config": "node scripts/verify/shadcn-config-guardrails.mjs",
     "verify:shadcn-diff": "node scripts/verify/shadcn-diff.mjs",
+    "verify:shadscan": "node scripts/verify/shadscan.mjs",
     "verify:shadcn-registries": "node scripts/verify/shadcn-registry-smoke.mjs",
     "verify:shadcn-token-drift": "node scripts/verify/shadcn-token-drift.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
@@ -189,7 +190,7 @@
     "graphql-yoga": "5.17.1",
     "next": "16.3.6",
     "require-in-the-middle": "^8.0.1",
-    "sharp": "^0.34.5"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
@@ -199,6 +200,7 @@
     "@lhci/cli": "^0.15.1",
     "@next/playwright": "16.3.6",
     "@playwright/test": "^1.49.0",
+    "@shadscan/cli": "0.17.0",
     "@tailwindcss/postcss": "^4",
     "@tanstack/cli": "^0.63.1",
     "@testing-library/react": "^16.3.0",
@@ -222,8 +224,10 @@
     "jsdom": "^26.1.0",
     "lint-staged": "^16.2.7",
     "prettier": "^3.6.2",
+    "playwright-core": "1.59.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "shadcn": "4.21.1",
     "sonner": "^2.0.7",
     "tailwindcss": "^4",
     "turbo": "2.10.0",

@@ -433,6 +433,12 @@ export function ResendDisconnectedView({
                       <Input
                         className="pr-10 font-mono text-sm"
                         id={resendCredentialFieldId}
+                        aria-invalid={errors.length > 0}
+                        aria-describedby={
+                          errors.length > 0
+                            ? `${resendCredentialFieldId}-error`
+                            : undefined
+                        }
                         onBlur={field.handleBlur}
                         onChange={(event) =>
                           field.handleChange(event.target.value)
@@ -442,6 +448,9 @@ export function ResendDisconnectedView({
                         value={field.state.value}
                       />
                       <Button
+                        aria-label={
+                          showApiKey ? "Hide API key" : "Show API key"
+                        }
                         className="absolute right-0 top-0 h-full hover:bg-transparent"
                         onClick={onToggleApiKeyVisibility}
                         size="sm"
@@ -455,7 +464,10 @@ export function ResendDisconnectedView({
                         )}
                       </Button>
                     </div>
-                    <FieldError errors={errors} />
+                    <FieldError
+                      id={`${resendCredentialFieldId}-error`}
+                      errors={errors}
+                    />
                   </FieldContent>
                 </Field>
               );

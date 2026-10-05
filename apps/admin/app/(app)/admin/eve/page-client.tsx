@@ -292,9 +292,11 @@ function KillSwitchControl({
 function EveGovernanceLoading() {
   return (
     <div
+      role="status"
       aria-label="Loading Eve governance state"
       className="grid gap-4 md:grid-cols-3"
     >
+      <span className="sr-only">Loading Eve governance state…</span>
       {Array.from({ length: 3 }, (_, index) => (
         <Card key={`eve-governance-loading-${index}`}>
           <CardContent className="space-y-3 p-6">
@@ -649,6 +651,11 @@ export function EveGovernanceView({
 
   return (
     <div className="space-y-6">
+      {mutationPendingKey ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          Updating {KILL_SWITCH_COPY[mutationPendingKey].label}…
+        </p>
+      ) : null}
       <EveGovernanceStatusAlert system={system} />
 
       <div className="grid gap-4 md:grid-cols-3">

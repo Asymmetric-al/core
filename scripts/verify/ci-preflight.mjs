@@ -23,7 +23,7 @@ const ciSupabasePublicEnv = {
  * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:bun-lock-drift
  * -> verify:eslint -> verify:shadcn-config
- * -> verify:shadcn-diff
+ * -> verify:shadcn-diff -> verify:shadscan
  * -> typecheck -> build -> test-unit
  */
 const stages = [
@@ -78,6 +78,10 @@ const stages = [
   {
     id: "verify-shadcn-diff",
     script: "verify:shadcn-diff",
+  },
+  {
+    id: "verify-shadscan",
+    script: "verify:shadscan",
   },
   {
     id: "typecheck",

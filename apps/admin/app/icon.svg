@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 328 329" role="img" aria-labelledby="missionControlIconTitle">
+  <title id="missionControlIconTitle">Mission Control</title>
+  <rect y="0.5" width="328" height="328" rx="164" fill="black" />
+  <path d="M165.018 72.3008V132.771C165.018 152.653 148.9 168.771 129.018 168.771H70.2288" stroke="white" stroke-width="20" />
+  <path d="M166.627 265.241L166.627 204.771C166.627 184.889 182.744 168.771 202.627 168.771L261.416 168.771" stroke="white" stroke-width="20" />
+  <path d="m238.136 98.8184-41.376 40.8886m-61.072 61.25-41.3752 40.888m39.3762-104.321-41.1324-41.1326m145.1224 145.4126-41.132-41.132" stroke="white" stroke-width="20" />
+</svg>

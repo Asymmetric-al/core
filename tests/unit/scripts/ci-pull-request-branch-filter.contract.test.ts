@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 const WORKFLOW_PATHS = [
   ".github/workflows/ci.yml",
   ".github/workflows/ci-integration.yml",
-  ".github/workflows/shadscan.yml",
 ] as const;
 
 function onBlock(workflow: string): string {
@@ -36,6 +35,13 @@ function eventBlock(workflow: string, eventName: string): string {
 }
 
 describe("CI pull_request branch filter", () => {
+  it("reuses the integrity audit for Shadscan reporting without a second PR scan", () => {
+    const reporter = readFileSync(".github/workflows/shadscan.yml", "utf8");
+    expect(eventBlock(reporter, "workflow_call").trim()).toBe("workflow_call:");
+    expect(onBlock(reporter)).not.toContain("pull_request:");
+    const ci = readFileSync(".github/workflows/ci.yml", "utf8");
+    expect(ci).toContain("uses: ./.github/workflows/shadscan.yml");
+  });
   it("runs PRs against every base branch, including automation stacks", () => {
     for (const workflowPath of WORKFLOW_PATHS) {
       const workflow = readFileSync(workflowPath, "utf8");

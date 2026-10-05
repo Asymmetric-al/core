@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import AboutPage from "../../../../apps/donor/app/(public)/(hero)/about/page";
+import HeroPublicLayout from "../../../../apps/donor/app/(public)/(hero)/layout";
 import { ViewTransitionRouteLayerContext } from "../../../../packages/lib/view-transitions";
 
 import type { ImageProps } from "next/image";
@@ -49,13 +50,21 @@ describe("public About route", () => {
   }
 
   it("provides the unique focusable main target used by the public skip link", () => {
-    const container = renderAbout();
+    const container = document.createElement("div");
+    container.innerHTML = renderToStaticMarkup(
+      <HeroPublicLayout>
+        <AboutPage />
+      </HeroPublicLayout>,
+    );
     const main = container.querySelector("main#main-content");
     expect(main).not.toBeNull();
     expect(main?.getAttribute("tabindex")).toBe("-1");
-    expect(main?.getAttribute("data-testid")).toBe("about-route-shell");
+    expect(
+      main?.querySelector('[data-testid="about-route-shell"]'),
+    ).not.toBeNull();
     expect(container.querySelectorAll("main")).toHaveLength(1);
     expect(container.querySelectorAll("#main-content")).toHaveLength(1);
+    expect(container.querySelector('a[href="#main-content"]')).not.toBeNull();
   });
 
   it("preserves the five sections, editorial content and checkout destination", () => {

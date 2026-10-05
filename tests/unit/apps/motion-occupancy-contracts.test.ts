@@ -221,8 +221,17 @@ describe("reserved form-error line", () => {
   const field = extractFunction(source, "FormField");
 
   it("keeps a reserved error line and adds no extra error motion", () => {
-    expect(field).toMatch(/\bmin-h-4\b/);
-    const errorBranch = field.slice(field.indexOf("{error"));
+    expect(field).toContain("<LabeledField");
+    expect(field).toContain("error={error}");
+    const sharedField = readRepo(
+      "packages",
+      "ui",
+      "components",
+      "primitives",
+      "labeled-field.tsx",
+    );
+    expect(sharedField).toMatch(/\bmin-h-4\b/);
+    const errorBranch = sharedField.slice(sharedField.indexOf("{error"));
     expect(errorBranch).not.toMatch(/\by:\s*-4\b/);
     expect(errorBranch).not.toMatch(
       /<(?:motion\.)p\b[^>]*\b(?:initial|animate|exit)=/,

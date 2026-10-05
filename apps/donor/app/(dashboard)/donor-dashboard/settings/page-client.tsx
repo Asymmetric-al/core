@@ -268,6 +268,7 @@ function ProfilePersonalInfoCard({
             </Label>
             <Input
               id="firstName"
+              autoComplete="given-name"
               value={form.firstName}
               onChange={(event) =>
                 onFieldChange("firstName", event.target.value)
@@ -284,6 +285,7 @@ function ProfilePersonalInfoCard({
             </Label>
             <Input
               id="lastName"
+              autoComplete="family-name"
               value={form.lastName}
               onChange={(event) =>
                 onFieldChange("lastName", event.target.value)
@@ -305,6 +307,7 @@ function ProfilePersonalInfoCard({
               <Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />
               <Input
                 id="email"
+                autoComplete="email"
                 type="email"
                 value={form.email}
                 disabled
@@ -327,6 +330,7 @@ function ProfilePersonalInfoCard({
               <Phone className="absolute left-3 top-3 size-4 text-muted-foreground" />
               <Input
                 id="phone"
+                autoComplete="tel"
                 type="tel"
                 value={form.phone}
                 onChange={(event) => onFieldChange("phone", event.target.value)}
@@ -342,6 +346,7 @@ function ProfilePersonalInfoCard({
           aria-describedby="address-note"
           className="space-y-4 pt-2 opacity-60"
         >
+          <legend className="sr-only">Mailing address</legend>
           <div className="flex items-center gap-2">
             <Label
               htmlFor="address"
@@ -357,6 +362,7 @@ function ProfilePersonalInfoCard({
             <MapPin className="absolute left-3 top-3 size-4 text-muted-foreground" />
             <Input
               id="address"
+              autoComplete="street-address"
               placeholder="123 Mission Way"
               className="pl-9 h-10 rounded-lg"
             />
@@ -364,16 +370,19 @@ function ProfilePersonalInfoCard({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             <Input
               placeholder="City"
+              autoComplete="address-level2"
               className="h-10 rounded-lg"
               aria-label="City"
             />
             <Input
               placeholder="State"
+              autoComplete="address-level1"
               className="h-10 rounded-lg"
               aria-label="State"
             />
             <Input
               placeholder="Postal Code"
+              autoComplete="postal-code"
               className="h-10 rounded-lg col-span-2 md:col-span-1"
               aria-label="Postal code"
             />
@@ -384,6 +393,9 @@ function ProfilePersonalInfoCard({
         </fieldset>
       </CardContent>
       <CardFooter className="bg-muted/40 border-t border-border p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+        <p role="status" aria-atomic="true" className="sr-only">
+          {saving ? "Saving profile…" : success ? "Profile saved." : ""}
+        </p>
         <p
           role={errorMessage ? "alert" : undefined}
           className={cn(

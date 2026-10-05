@@ -77,9 +77,7 @@ for (const theme of ["light", "dark"]) {
       await page.keyboard.press("Tab");
       await expect(
         width < 640
-          ? toolbar
-              .getByRole("button")
-              .filter({ has: page.locator("svg.lucide-search") })
+          ? toolbar.getByRole("button", { name: "Open search", exact: true })
           : toolbar.getByRole("textbox", { name: "Search people" }),
       ).toBeFocused();
 
@@ -96,8 +94,7 @@ for (const theme of ["light", "dark"]) {
         .analyze();
       if (width < 640) {
         await toolbar
-          .getByRole("button")
-          .filter({ has: page.locator("svg.lucide-search") })
+          .getByRole("button", { name: "Open search", exact: true })
           .click();
       }
       const search = toolbar.getByRole("textbox", { name: "Search people" });
@@ -141,14 +138,19 @@ for (const theme of ["light", "dark"]) {
       ).toHaveText(["Alice", "Bob"]);
       if (width < 640) {
         const toggle = toolbar.getByRole("button", {
-          name: "Toggle search",
+          name: "Close search",
           exact: true,
         });
         await expect(toggle).toHaveAttribute("aria-expanded", "true");
         await toggle.focus();
         await page.keyboard.press("Enter");
         await expect(search).toHaveCount(0);
-        await expect(toggle).toHaveAttribute("aria-expanded", "false");
+        const openSearch = toolbar.getByRole("button", {
+          name: "Open search",
+          exact: true,
+        });
+        await expect(openSearch).toHaveAttribute("aria-expanded", "false");
+        await expect(openSearch).toBeFocused();
         await page.keyboard.press("Space");
         await expect(search).toBeFocused();
       }
@@ -217,7 +219,7 @@ for (const theme of ["light", "dark"]) {
       ).toBeDisabled();
 
       const refresh = toolbar.getByRole("button", {
-        name: "Refresh",
+        name: "Refresh table",
         exact: true,
       });
       await refresh.focus();
@@ -225,7 +227,7 @@ for (const theme of ["light", "dark"]) {
       await expect(page.getByTestId("refreshes")).toHaveText("1");
       if (width >= 640) {
         await toolbar
-          .getByRole("button", { name: "Export", exact: true })
+          .getByRole("button", { name: "Export table", exact: true })
           .focus();
         await page.keyboard.press("Enter");
         await expect(page.getByTestId("exports")).toHaveText("1");
@@ -237,7 +239,7 @@ for (const theme of ["light", "dark"]) {
       await expect(refresh).toBeDisabled();
       if (width < 640)
         await expect(
-          toolbar.getByRole("button", { name: "Toggle search", exact: true }),
+          toolbar.getByRole("button", { name: "Close search", exact: true }),
         ).toBeDisabled();
       expect(errors).toEqual([]);
     });

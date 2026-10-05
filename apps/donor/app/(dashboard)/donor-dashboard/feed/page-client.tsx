@@ -15,27 +15,12 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  DropdownMenuGroup,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@asym/ui/components/shadcn/dropdown-menu";
-import { Facebook, Linkedin, Twitter } from "@asym/ui/components/shadcn/icons";
 import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  MoreHorizontal,
-  Share2,
   Bookmark,
   Globe,
   ImageOff,
-  Link as LinkIcon,
-  Mail,
-  Check,
   BookmarkCheck,
   Loader2,
 } from "lucide-react";
@@ -45,7 +30,8 @@ import React, { useState, useMemo } from "react";
 import type { PostWithAuthor } from "@asym/database/types";
 
 // --- Types ---
-type ContentType = "Update" | "Prayer" | "Story" | "Video";
+// Additional categories need an evidenced mapping from a typed server discriminator.
+type ContentType = "Update";
 type FilterType = "All" | "Saved" | ContentType;
 
 interface Post {
@@ -78,7 +64,7 @@ const FeedFilter = ({
   current: FilterType;
   onChange: (val: FilterType) => void;
 }) => {
-  const filters: FilterType[] = ["All", "Update", "Story", "Video", "Saved"];
+  const filters: FilterType[] = ["All", "Update", "Saved"];
 
   return (
     <div className="sticky top-0 z-30 bg-zinc-50/90 backdrop-blur-xl border-b border-zinc-200/50 py-4 mb-8 transition-[background-color,border-color,backdrop-filter] duration-200">
@@ -86,6 +72,7 @@ const FeedFilter = ({
         {filters.map((type) => (
           <button
             key={type}
+            aria-pressed={current === type}
             onClick={() => onChange(type)}
             className={cn(
               "px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-[background-color,border-color,color,box-shadow,transform] duration-200 border select-none whitespace-nowrap flex items-center gap-2",
@@ -111,28 +98,6 @@ const FeedFilter = ({
 };
 
 const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
-  const [copied, setCopied] = useState(false);
-  const shareUrl = `https://givehope.app/posts/${post.id}`; // Mock URL
-  const shareText = `Check out this update from ${post.workerName} on Give Hope!`;
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleNativeShare = () => {
-    if (navigator.share) {
-      navigator
-        .share({
-          title: post.title || "Update from Give Hope",
-          text: shareText,
-          url: shareUrl,
-        })
-        .catch(console.error);
-    }
-  };
-
   return (
     <div className="flex items-center gap-1">
       <motion.button
@@ -154,85 +119,6 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
           strokeWidth={1.5}
         />
       </motion.button>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <motion.button
-              aria-label="Share post"
-              whileTap={{ scale: 0.9 }}
-              className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
-            >
-              <Share2 className="size-4" strokeWidth={1.5} />
-            </motion.button>
-          }
-        />
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuGroup>
-            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Share Update
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {typeof navigator !== "undefined" &&
-              typeof navigator.share === "function" && (
-                <DropdownMenuItem onClick={handleNativeShare}>
-                  <Share2 className="mr-2 size-4" /> Share via…
-                </DropdownMenuItem>
-              )}
-            <DropdownMenuItem onClick={handleCopyLink}>
-              {copied ? (
-                <Check className="mr-2 size-4 text-green-600" />
-              ) : (
-                <LinkIcon className="mr-2 size-4" />
-              )}
-              {copied ? "Copied!" : "Copy Link"}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-            >
-              <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-            >
-              <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-                  "_blank",
-                  "noopener,noreferrer",
-                )
-              }
-            >
-              <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `mailto:?subject=${encodeURIComponent(post.title || "Update from Give Hope")}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
-                )
-              }
-            >
-              <Mail className="mr-2 size-4" /> Email
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 };
@@ -255,8 +141,8 @@ const PostCard: React.FC<{
       {/* Meta Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="relative group cursor-pointer">
-            <Avatar className="size-10 border border-zinc-100 shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]">
+          <div className="relative">
+            <Avatar className="size-10 border border-zinc-100 shadow-sm">
               <AvatarImage src={post.workerAvatar} />
               <AvatarFallback className="bg-zinc-100 font-semibold text-zinc-600 uppercase">
                 {post.workerName[0]}
@@ -265,12 +151,9 @@ const PostCard: React.FC<{
           </div>
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-zinc-900 text-sm leading-none cursor-pointer hover:underline decoration-2 decoration-zinc-200 underline-offset-4 uppercase tracking-tight">
+              <p className="font-semibold text-zinc-900 text-sm leading-none uppercase tracking-tight">
                 {post.workerName}
-              </h3>
-              <button className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">
-                Follow
-              </button>
+              </p>
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 mt-1 uppercase tracking-widest">
               <span>{post.readTime || "3 min read"}</span>
@@ -278,35 +161,6 @@ const PostCard: React.FC<{
               <span>{post.time}</span>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  aria-label="Open post actions"
-                  variant="ghost"
-                  size="icon"
-                  className="text-zinc-300 hover:text-zinc-600 hover:bg-transparent -mr-2"
-                >
-                  <MoreHorizontal className="size-5" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest">
-                Mute Updates
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest text-rose-600">
-                Report
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest">
-                Copy Link
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 
@@ -465,20 +319,24 @@ export default function DonorFeedPage() {
       {/* Feed Stream */}
       <div className="space-y-6">
         {feedQuery.isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32 gap-4">
+          <div
+            role="status"
+            aria-atomic="true"
+            className="flex flex-col items-center justify-center py-32 gap-4"
+          >
             <Loader2 className="size-8 text-muted-foreground animate-spin" />
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
               Loading updates…
             </p>
           </div>
         ) : feedQuery.error ? (
-          <div className="py-32 text-center">
+          <div role="alert" className="py-32 text-center">
             <div className="inline-flex items-center justify-center size-20 rounded-full bg-destructive/10 text-destructive mb-6">
               <Globe className="size-10" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2 uppercase tracking-tighter">
+            <h2 className="text-xl font-semibold text-foreground mb-2 uppercase tracking-tighter">
               Couldn&apos;t load updates
-            </h3>
+            </h2>
             <p className="text-muted-foreground max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
               Something went wrong reaching the field. Please check back in a
               moment.
@@ -497,9 +355,9 @@ export default function DonorFeedPage() {
                 <div className="inline-flex items-center justify-center size-20 rounded-full bg-zinc-50 dark:bg-muted text-zinc-200 dark:text-muted-foreground mb-6">
                   <BookmarkCheck className="size-10" />
                 </div>
-                <h3 className="text-xl font-semibold text-zinc-900 dark:text-foreground mb-2 uppercase tracking-tighter">
+                <h2 className="text-xl font-semibold text-zinc-900 dark:text-foreground mb-2 uppercase tracking-tighter">
                   No posts found
-                </h3>
+                </h2>
                 <p className="text-zinc-400 dark:text-muted-foreground max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
                   {filter === "Saved"
                     ? "You haven't bookmarked any updates yet. Tap the bookmark icon on any post to save it here."

@@ -176,6 +176,7 @@ const donorServer = {
   command: devServerCommand("donor", port, DEFAULT_LOCAL_HOSTNAME),
   env: {
     ...resolvedEnv,
+    ASYM_E2E_AUTH_SURFACE: "donor",
     // Match admin Playwright server: bypass must be on in dev or middleware/RSC
     // ignore the E2E cookie even when tests run without run-with-ci-env.mjs.
     // @asym/env only accepts "true"|"false" for E2E_AUTH_BYPASS (not "1").
@@ -196,6 +197,7 @@ const adminServer = {
   command: devServerCommand("admin", adminPort, DEFAULT_LOCAL_HOSTNAME),
   env: {
     ...resolvedEnv,
+    ASYM_E2E_AUTH_SURFACE: "admin",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
     NEXT_PUBLIC_SUPABASE_URL: supabaseURL,
     PAYLOAD_DATABASE_URI:
@@ -225,9 +227,19 @@ const webServer = isRemoteBaseUrl
 const donorAuthState = path.join(__dirname, ".auth", "donor.json");
 const adminAuthState = path.join(__dirname, ".auth", "admin.json");
 
+const reportDirectory =
+  process.env.PLAYWRIGHT_REPORT_DIR || "playwright-report";
+const runStatusFile = path.join(
+  path.dirname(reportDirectory),
+  path.basename(reportDirectory) + "-run-status.json",
+);
+
 export default defineConfig({
   globalSetup: path.join(__dirname, "tests", "e2e", "global-setup.ts"),
   testDir: "./tests/e2e",
+  outputDir: process.env.PLAYWRIGHT_REPORT_DIR
+    ? path.join("test-results", path.basename(reportDirectory))
+    : "test-results",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -235,8 +247,14 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 15_000 },
   reporter: [
-    ["html", { outputFolder: "playwright-report" }],
-    ["json", { outputFile: "playwright-report/results.json" }],
+    // Record finalization before HTML runs; its cleanup cannot remove this sibling.
+    [
+      path.join(__dirname, "tests", "e2e", "run-progress-reporter.ts"),
+      { outputFile: runStatusFile },
+    ],
+    ["list"],
+    ["html", { outputFolder: reportDirectory }],
+    ["json", { outputFile: path.join(reportDirectory, "results.json") }],
   ],
   use: {
     baseURL,

@@ -6,6 +6,7 @@ node_modules
 # testing
 /coverage
 /playwright-report/
+/playwright-report-run-status.json
 /test-results/
 .auth/
 /apps/donor/generated/

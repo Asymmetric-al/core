@@ -3,6 +3,15 @@
 import { useTasks } from "@asym/lib/hooks";
 import { motion } from "@asym/lib/motion";
 import { TaskDialog } from "@asym/missionary/components/task-dialog";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
@@ -59,6 +68,14 @@ export function DonorTasks({
   } = useTasks({ donorId });
   const [taskDialogOpen, setTaskDialogOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = React.useState<Task | null>(null);
+  const [deletePending, setDeletePending] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const deletionInFlight = React.useRef(false);
+  const deleteActionRefs = React.useRef(new Map<string, HTMLElement>());
+  const deleteReturnFocus = React.useRef<HTMLElement | null>(null);
+  const cancelDeleteRef = React.useRef<HTMLButtonElement | null>(null);
+  const addTaskRef = React.useRef<HTMLButtonElement | null>(null);
 
   const activeTasks = filteredTasks.filter(
     (task) => task.status !== "completed" && task.status !== "deferred",
@@ -80,6 +97,33 @@ export function DonorTasks({
     refresh();
     setEditingTask(null);
     setTaskDialogOpen(false);
+  };
+
+  const requestDelete = (task: Task, trigger?: HTMLElement) => {
+    if (deletionInFlight.current) return;
+    deleteReturnFocus.current =
+      trigger ?? deleteActionRefs.current.get(task.id) ?? null;
+    setDeleteError(null);
+    setTaskToDelete(task);
+  };
+
+  const confirmDelete = () => {
+    if (!taskToDelete || deletionInFlight.current) return;
+    deletionInFlight.current = true;
+    setDeletePending(true);
+    setDeleteError(null);
+    return deleteTask(taskToDelete.id)
+      .then((deleted) => {
+        if (deleted) setTaskToDelete(null);
+        else setDeleteError("Could not delete this task. Please try again.");
+      })
+      .catch(() => {
+        setDeleteError("Could not delete this task. Please try again.");
+      })
+      .finally(() => {
+        deletionInFlight.current = false;
+        setDeletePending(false);
+      });
   };
 
   if (loading) {
@@ -123,7 +167,7 @@ export function DonorTasks({
           }}
           onSuccess={handleTaskSuccess}
           trigger={
-            <Button size="sm" className="rounded-xl text-xs hover-scale-subtle">
+            <Button ref={addTaskRef} size="sm">
               <Plus className="mr-1.5 size-3.5" /> Add Task
             </Button>
           }
@@ -179,7 +223,6 @@ export function DonorTasks({
                         aria-label={`Complete ${task.title}`}
                         checked={false}
                         onCheckedChange={() => handleComplete(task)}
-                        className="size-5 rounded-md"
                       />
                     </motion.div>
                     <div
@@ -197,9 +240,7 @@ export function DonorTasks({
                           {task.title}
                         </p>
                         {task.priority === "high" ? (
-                          <Badge className="h-4 border-0 bg-rose-50 px-1.5 text-[9px] font-semibold uppercase tracking-widest text-rose-600">
-                            High
-                          </Badge>
+                          <Badge variant="destructive">High</Badge>
                         ) : null}
                       </div>
                       {task.description ? (
@@ -227,44 +268,47 @@ export function DonorTasks({
                         </div>
                       ) : null}
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        aria-label="Open actions"
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
-                          >
-                            <MoreHorizontal className="size-4" />
-                          </Button>
-                        }
-                      />
-                      <DropdownMenuContent align="end" className="rounded-xl">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditingTask(task);
-                            setTaskDialogOpen(true);
+                    <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          aria-label="Open actions"
+                          ref={(element) => {
+                            if (element)
+                              deleteActionRefs.current.set(task.id, element);
+                            else deleteActionRefs.current.delete(task.id);
                           }}
-                          className="text-xs font-medium"
-                        >
-                          <Pencil className="mr-2 size-3.5" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleComplete(task)}
-                          className="text-xs font-medium"
-                        >
-                          <CheckCircle2 className="mr-2 size-3.5" /> Complete
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => deleteTask(task.id)}
-                          className="text-xs font-medium text-destructive focus:text-destructive"
-                        >
-                          <X className="mr-2 size-3.5" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          render={
+                            <Button variant="ghost" size="icon-sm">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          }
+                        />
+                        <DropdownMenuContent align="end" className="rounded-xl">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingTask(task);
+                              setTaskDialogOpen(true);
+                            }}
+                            className="text-xs font-medium"
+                          >
+                            <Pencil className="mr-2 size-3.5" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleComplete(task)}
+                            className="text-xs font-medium"
+                          >
+                            <CheckCircle2 className="mr-2 size-3.5" /> Complete
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => requestDelete(task)}
+                            className="text-xs font-medium text-destructive focus:text-destructive"
+                          >
+                            <X className="mr-2 size-3.5" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -298,7 +342,6 @@ export function DonorTasks({
                         aria-label={`Complete ${task.title}`}
                         checked={true}
                         onCheckedChange={() => handleComplete(task)}
-                        className="size-5 rounded-md data-checked:border-emerald-500 data-checked:bg-emerald-500"
                       />
                     </motion.div>
                     <div
@@ -326,14 +369,18 @@ export function DonorTasks({
                         </p>
                       ) : null}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
-                      onClick={() => deleteTask(task.id)}
-                    >
-                      <X className="size-4 text-zinc-400" />
-                    </Button>
+                    <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`Delete ${task.title}`}
+                        onClick={(event) =>
+                          requestDelete(task, event.currentTarget)
+                        }
+                      >
+                        <X className="size-4 text-zinc-400" />
+                      </Button>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -346,6 +393,62 @@ export function DonorTasks({
           ) : null}
         </div>
       )}
+      <AlertDialog
+        open={taskToDelete !== null}
+        onOpenChange={(open, details) => {
+          if (open) return;
+          if (deletionInFlight.current) {
+            details.cancel();
+            return;
+          }
+          setTaskToDelete(null);
+        }}
+      >
+        <AlertDialogContent
+          initialFocus={cancelDeleteRef}
+          finalFocus={() =>
+            deleteReturnFocus.current?.isConnected
+              ? deleteReturnFocus.current
+              : addTaskRef.current
+          }
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {taskToDelete?.title}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete this task from your task list? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deletePending ? (
+            <p
+              role="status"
+              aria-atomic="true"
+              className="text-sm text-muted-foreground"
+            >
+              Deleting {taskToDelete?.title}…
+            </p>
+          ) : null}
+          {deleteError ? (
+            <p role="alert" className="text-sm text-destructive">
+              {deleteError}
+            </p>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={cancelDeleteRef} disabled={deletePending}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deletePending}
+              focusableWhenDisabled={deletePending}
+              onClick={() => void confirmDelete()}
+            >
+              {deletePending ? "Deleting…" : "Delete task"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

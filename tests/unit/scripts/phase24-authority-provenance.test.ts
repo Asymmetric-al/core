@@ -27,6 +27,9 @@ const env = {
   GIT_AUTHOR_DATE: "2000-01-01T00:00:00Z",
   GIT_COMMITTER_DATE: "2000-01-01T00:00:00Z",
 };
+function shellQuote(value: string) {
+  return `'${value.replaceAll("'", "'\\''")}'`;
+}
 function git(root: string, args: string[]) {
   const result = spawnSync(
     "git",
@@ -188,21 +191,37 @@ it.skipIf(process.platform === "win32")(
       .find((filename) => existsSync(filename));
     if (!actualGit)
       throw new Error("The test requires the installed Git executable.");
-    const bin = mkdtempSync(path.join(tmpdir(), "phase24-git-transport-"));
+    const bin = mkdtempSync(path.join(tmpdir(), "phase24-git-transport ' -"));
     roots.push(bin);
     const marker = path.join(bin, "calls.jsonl");
     const executable = path.join(bin, "git");
     writeFileSync(
       executable,
-      `#!${process.execPath}
-const {appendFileSync}=require("node:fs");
-const {spawnSync}=require("node:child_process");
-appendFileSync(${JSON.stringify(marker)},JSON.stringify({path:process.env.PATH,isolated:!process.env.GIT_DIR && !process.env.GIT_WORK_TREE && !process.env.STRIPE_SECRET_KEY})+"\\n");
-const result=spawnSync(${JSON.stringify(realpathSync(actualGit))},process.argv.slice(2),{env:process.env,stdio:"inherit",shell:false});
-process.exit(result.status ?? 1);
+      `#!/bin/sh
+[ "$PATH" = ${shellQuote(bin)} ] &&
+[ "\${GIT_DIR+x}" != x ] &&
+[ "\${GIT_WORK_TREE+x}" != x ] &&
+[ "\${STRIPE_SECRET_KEY+x}" != x ] || exit 91
+printf '%s\\n' ${shellQuote(JSON.stringify({ path: bin, isolated: true }))} >> ${shellQuote(marker)} || exit 92
+exec ${shellQuote(realpathSync(actualGit))} "$@"
 `,
     );
     chmodSync(executable, 0o755);
+    for (const retained of [
+      { GIT_DIR: path.join(bin, "unused-caller-git-dir") },
+      { GIT_WORK_TREE: bin },
+      { STRIPE_SECRET_KEY: "synthetic-transport-only-canary" },
+      { PATH: path.join(bin, "unexpected-path") },
+    ]) {
+      const rejected = spawnSync(executable, ["--version"], {
+        env: { ...env, PATH: bin, ...retained },
+        encoding: "utf8",
+        shell: false,
+        timeout: 20_000,
+      });
+      expect(rejected.status, rejected.stderr || rejected.stdout).toBe(91);
+      expect(existsSync(marker)).toBe(false);
+    }
     const result = spawnSync(
       process.execPath,
       [

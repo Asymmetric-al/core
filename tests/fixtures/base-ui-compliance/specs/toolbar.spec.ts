@@ -22,11 +22,16 @@ test("responsive toolbar keeps column and export names when visible text is hidd
     scope.getByRole("status", { name: "Visible columns" }),
   ).toHaveText("name");
   await expect(columns).toBeFocused();
-  await scope.getByRole("button", { name: "Toggle table search" }).click();
+  const searchTrigger = scope.getByRole("button", { name: "Open search" });
+  await expect(searchTrigger).toHaveAttribute("aria-expanded", "false");
+  await searchTrigger.click();
+  await expect(
+    scope.getByRole("button", { name: "Close search" }),
+  ).toHaveAttribute("aria-expanded", "true");
   const search = scope.getByRole("textbox", { name: "Search people" });
   await expect(search).toBeFocused();
   await search.fill("Ada");
-  await scope.getByRole("button", { name: "Clear table search" }).click();
+  await scope.getByRole("button", { name: "Clear search" }).click();
   await expect(search).toHaveValue("");
   await page.setViewportSize({ width: 700, height: 844 });
   const exportButton = scope.getByRole("button", {

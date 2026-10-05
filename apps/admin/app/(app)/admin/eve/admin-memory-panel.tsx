@@ -431,7 +431,8 @@ export function EveAdminMemoryPanel() {
             </Button>
           </div>
           {query.isLoading ? (
-            <div className="space-y-2">
+            <div role="status" className="space-y-2">
+              <span className="sr-only">Loading private memory…</span>
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-24 w-full" />
             </div>
@@ -443,7 +444,10 @@ export function EveAdminMemoryPanel() {
             </Alert>
           ) : null}
           {!query.isLoading && entries.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
+            <p
+              role="status"
+              className="py-8 text-center text-sm text-muted-foreground"
+            >
               No matching private memory.
             </p>
           ) : null}

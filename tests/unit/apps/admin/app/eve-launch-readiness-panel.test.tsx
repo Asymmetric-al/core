@@ -10,7 +10,13 @@
  * the panel share one `@tanstack/react-query` module instance.
  */
 
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EveLaunchReadinessPanel } from "../../../../../apps/admin/app/(app)/admin/eve/launch-readiness-panel";
@@ -57,6 +63,48 @@ afterEach(() => {
 });
 
 describe("Eve launch readiness panel", () => {
+  it("announces an in-flight control change and prevents duplicate submission", async () => {
+    let finishMutation: () => void = () => {};
+    const pendingMutation = new Promise<void>((resolve) => {
+      finishMutation = resolve;
+    });
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === "POST") await pendingMutation;
+      return {
+        ok: true,
+        json: async () => ({
+          canActivate: false,
+          canReview: false,
+          governance: CLEARED_GOVERNANCE,
+          manifests: [],
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const view = renderPanel();
+    await view.findByText("Latest manifest");
+    fireEvent.change(
+      view.getByRole("textbox", { name: "Review or control reason" }),
+      {
+        target: { value: "Planned maintenance" },
+      },
+    );
+    const action = view.getByRole("button", { name: "Emergency off" });
+    fireEvent.click(action);
+    expect(await view.findByRole("status")).toHaveProperty(
+      "textContent",
+      "Updating launch readiness…",
+    );
+    expect(view.getByRole("status").closest('[aria-busy="true"]')).toBeNull();
+    expect(action.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(action);
+    expect(
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "POST"),
+    ).toHaveLength(1);
+    await act(async () => finishMutation());
+    await waitFor(() => expect(view.queryByRole("status")).toBeNull());
+  });
+
   it("keeps the control reason available before any manifest is imported", async () => {
     stubReadinessFetch(CLEARED_GOVERNANCE);
     const view = renderPanel();

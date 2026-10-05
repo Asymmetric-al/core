@@ -194,6 +194,7 @@ export function defineBoneyardConfig(
 
   return defineConfig({
     testDir: "./tests/e2e",
+    outputDir: `test-results/${surface.projectName}`,
     fullyParallel: false,
     forbidOnly: !!env.CI,
     retries: env.CI ? 2 : 0,

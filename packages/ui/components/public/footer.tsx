@@ -34,12 +34,6 @@ const footerSections: FooterSection[] = [
   {
     title: "Platform",
     links: [
-      { label: "Mission Control", href: "/", badge: "Admin" },
-      {
-        label: "Missionary Dashboard",
-        href: "/",
-        badge: "Field",
-      },
       { label: "Donor Portal", href: "/donor-dashboard", badge: "Partner" },
     ],
   },
@@ -144,7 +138,7 @@ const socialLinks = [
   { Icon: InstagramIcon, href: "#", label: "Instagram" },
   { Icon: TwitterIcon, href: "#", label: "Twitter" },
   { Icon: LinkedinIcon, href: "#", label: "LinkedIn" },
-];
+].filter(({ href }) => href.startsWith("https://"));
 
 const legalLinks = [
   { label: "Privacy Policy", href: "/privacy" },
@@ -176,9 +170,9 @@ export function Footer() {
 
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h4 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
+              <h2 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
                 {section.title}
-              </h4>
+              </h2>
               <ul className="space-y-3 sm:space-y-4 text-sm font-medium text-zinc-300">
                 {section.links.map((link) => (
                   <li key={link.href + link.label}>
@@ -200,21 +194,25 @@ export function Footer() {
           ))}
 
           <div>
-            <h4 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
-              Connect
-            </h4>
-            <div className="flex gap-3 sm:gap-4 mb-6 sm:mb-8">
-              {socialLinks.map(({ Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/20 transition-colors touch-target"
-                >
-                  <Icon className="size-4" />
-                </a>
-              ))}
-            </div>
+            {socialLinks.length > 0 && (
+              <>
+                <h2 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
+                  Connect
+                </h2>
+                <div className="flex flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8">
+                  {socialLinks.map(({ Icon, href, label }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      aria-label={label}
+                      className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/20 transition-colors touch-target"
+                    >
+                      <Icon className="size-4" />
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
             <p className="text-xs text-zinc-400">
               © 2025 GiveHope. <br className="sm:hidden" />
               Registered 501(c)(3) nonprofit.

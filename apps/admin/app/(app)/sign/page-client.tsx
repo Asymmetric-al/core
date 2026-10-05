@@ -1,7 +1,7 @@
 "use client";
 
 import { getTileById } from "@asym/lib/mission-control/tiles";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -62,6 +62,7 @@ export default function SignStudioPage() {
         <CardContent>
           <div className="flex gap-2">
             <Input
+              aria-label="Search documents"
               placeholder="Search by signer name, email, or document ID..."
               className="max-w-md"
             />
@@ -82,10 +83,15 @@ export default function SignStudioPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mc/sign/templates">
-              <Button variant="outline" size="sm" className="w-full">
-                Manage Templates
-              </Button>
+            <Link
+              href="/mc/sign/templates"
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "w-full",
+              })}
+            >
+              Manage Templates
             </Link>
           </CardContent>
         </Card>
@@ -99,10 +105,15 @@ export default function SignStudioPage() {
             <CardDescription>Documents out for signature</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mc/sign/active">
-              <Button variant="outline" size="sm" className="w-full">
-                View Active
-              </Button>
+            <Link
+              href="/mc/sign/active"
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "w-full",
+              })}
+            >
+              View Active
             </Link>
           </CardContent>
         </Card>
@@ -116,10 +127,15 @@ export default function SignStudioPage() {
             <CardDescription>Signed and archived documents</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mc/sign/completed">
-              <Button variant="outline" size="sm" className="w-full">
-                View Completed
-              </Button>
+            <Link
+              href="/mc/sign/completed"
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "w-full",
+              })}
+            >
+              View Completed
             </Link>
           </CardContent>
         </Card>
@@ -133,10 +149,15 @@ export default function SignStudioPage() {
             <CardDescription>Bulk download and audit exports</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mc/sign/export">
-              <Button variant="outline" size="sm" className="w-full">
-                Export Documents
-              </Button>
+            <Link
+              href="/mc/sign/export"
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "w-full",
+              })}
+            >
+              Export Documents
             </Link>
           </CardContent>
         </Card>

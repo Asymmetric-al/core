@@ -287,7 +287,11 @@ export function DataTableBodyWithUrl<TData extends RowData, TValue>({
 
 function DataTableBodyEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div
+      role="status"
+      aria-atomic="true"
+      className="flex flex-col items-center justify-center py-12 text-center"
+    >
       <div className="rounded-2xl bg-muted/50 p-4 mb-4">
         <Inbox className="size-10 text-muted-foreground" />
       </div>

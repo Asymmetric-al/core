@@ -26,6 +26,7 @@ import { Suspense, useMemo } from "react";
 
 import { PAGE_TEMPLATES_SLUG } from "../../../cms/constants";
 import { Link, useSearchParams } from "../routing";
+import { StudioFlowLoading } from "./studio-flow-loading";
 import { StudioLayout } from "../shell/studio-layout";
 
 type TemplateDoc = {
@@ -66,7 +67,7 @@ function wizardHrefForPageType(
 
 export function TemplateGalleryView() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<StudioFlowLoading />}>
       <TemplateGalleryViewContent />
     </Suspense>
   );

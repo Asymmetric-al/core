@@ -52,11 +52,11 @@ test.beforeAll(async () => {
     path.join(os.tmpdir(), "core-teams-surface-"),
   );
   const buildScript = path.join(temporaryDirectory, "build.ts");
-  const sections = path.join(
+  const teamsData = path.join(
     root,
-    "apps/admin/app/(app)/admin/teams/teams-sections.tsx",
+    "apps/admin/app/(app)/admin/teams/teams-data.ts",
   );
-  const hooks = `import {TEAMS,MEMBERS} from ${JSON.stringify(sections)}; export function useTeams(){return{data:TEAMS,isLoading:false}} export function useTeamMembers(){return{data:MEMBERS,isLoading:false}}`;
+  const hooks = `import {TEAMS,MEMBERS} from ${JSON.stringify(teamsData)}; export function useTeams(){return{data:TEAMS,isLoading:false}} export function useTeamMembers(){return{data:MEMBERS,isLoading:false}}`;
   await writeFile(
     buildScript,
     `const result=await Bun.build({

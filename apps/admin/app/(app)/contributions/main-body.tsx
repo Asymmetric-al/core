@@ -1,6 +1,7 @@
 "use client";
 
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { motion } from "@asym/lib/motion";
 import { getInitials } from "@asym/lib/utils";
 import {
@@ -58,12 +59,6 @@ import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 
 import type { Contribution, ContributionStatus } from "./types";
 import type { MissionControlNeedsAttentionGroup } from "@asym/database/hooks";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
 
 function formatSelectedContributionCount(count: number): string {
   return `${count} selected contribution${count === 1 ? "" : "s"}`;
@@ -252,6 +247,7 @@ export function ContributionsMainBody({
    */
   onBulkReceiptSuccess?: () => void;
 }) {
+  const { formatDate } = useLocaleFormat();
   const [pendingBulkReceiptRows, setPendingBulkReceiptRows] = useState<
     Contribution[]
   >([]);
@@ -584,14 +580,11 @@ export function ContributionsMainBody({
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-xs text-muted-foreground">
-                      {makeDisplayDate(contribution.date).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )}
+                      {formatDate(contribution.date, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </span>
                     <span className="font-mono font-semibold tabular-nums tracking-tight">
                       {formatSharedContributionAmount(

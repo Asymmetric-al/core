@@ -56,6 +56,9 @@ function fillValidKnownGift() {
 describe("OfflineGiftEntryDialog", () => {
   it("renders the offline entry form with a live receipt-status preview", () => {
     renderDialog();
+    expect(
+      screen.getByRole("dialog", { name: "Enter offline gift" }),
+    ).toBeTruthy();
     expect(screen.getByText("Enter offline gift")).toBeTruthy();
     // Known donor + receipt requested (defaults) → pending.
     expect(screen.getByText("Receipt pending")).toBeTruthy();

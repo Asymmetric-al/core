@@ -594,6 +594,11 @@ export function EveLaunchReadinessPanel() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {mutation.isPending ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            Updating launch readiness…
+          </p>
+        ) : null}
         {query.isError || mutation.isError || localError ? (
           <Alert variant="destructive">
             <AlertDescription>

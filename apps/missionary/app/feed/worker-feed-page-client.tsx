@@ -1213,6 +1213,7 @@ function PostComposerCard({
             className="flex-1 min-w-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <RichTextEditor
+              aria-label="Ministry post content"
               value={postContent}
               onChange={setPostContent}
               placeholder={`What's happening? Share a ${postType.toLowerCase()}…`}

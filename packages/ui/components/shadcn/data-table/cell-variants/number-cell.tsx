@@ -4,12 +4,14 @@ import { useState, useRef, useLayoutEffect, useCallback, useMemo } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { cellEditorAccessibleName } from "./accessible-name";
 import { Input } from "../../input";
 
 import type { RowData } from "../tanstack";
 import type { NumberCellProps } from "./types";
 
 function NumberCellEditor<TData extends RowData>({
+  cell,
   value,
   onValueChange,
   onEditComplete,
@@ -22,6 +24,7 @@ function NumberCellEditor<TData extends RowData>({
 }: Pick<
   NumberCellProps<TData>,
   | "value"
+  | "cell"
   | "onValueChange"
   | "onEditComplete"
   | "onEditCancel"
@@ -99,6 +102,7 @@ function NumberCellEditor<TData extends RowData>({
 
   return (
     <Input
+      aria-label={cellEditorAccessibleName(cell)}
       ref={inputRef}
       type="text"
       inputMode="decimal"
@@ -116,6 +120,7 @@ function NumberCellEditor<TData extends RowData>({
 }
 
 export function NumberCell<TData extends RowData>({
+  cell,
   value,
   isEditing = false,
   onValueChange,
@@ -177,6 +182,7 @@ export function NumberCell<TData extends RowData>({
   if (isEditing && !disabled) {
     return (
       <NumberCellEditor
+        cell={cell}
         value={value}
         onValueChange={onValueChange}
         onEditComplete={onEditComplete}

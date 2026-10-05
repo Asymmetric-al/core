@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { LabeledField } from "@asym/ui/components/primitives/labeled-field";
 import {
   Avatar,
   AvatarFallback,
@@ -14,7 +15,6 @@ import {
   Twitter,
   Youtube,
 } from "@asym/ui/components/shadcn/icons";
-import { Label } from "@asym/ui/components/shadcn/label";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   Tooltip,
@@ -35,7 +35,6 @@ import {
   ExternalLink,
   Copy,
   CheckCircle2,
-  AlertCircle,
   RotateCcw,
 } from "lucide-react";
 import * as React from "react";
@@ -113,31 +112,25 @@ export function FormField({
 }: {
   label: string;
   icon?: React.ElementType;
-  children: React.ReactNode;
+  children: React.ReactElement;
   error?: string;
   helperText?: React.ReactNode;
   className?: string;
 }) {
   return (
-    <motion.div className={cn("space-y-1.5", className)} variants={fadeInUp}>
-      <Label className="text-xs font-medium text-zinc-500 flex items-center gap-1.5">
-        {Icon && <Icon className="size-3.5" />}
-        {label}
-      </Label>
-      {children}
-      <div className="min-h-4">
-        {error ? (
-          <p
-            className="text-xs text-red-500 flex items-center gap-1"
-            role="alert"
-          >
-            <AlertCircle className="size-3 flex-shrink-0" />
-            {error}
-          </p>
-        ) : helperText ? (
-          helperText
-        ) : null}
-      </div>
+    <motion.div className={className} variants={fadeInUp}>
+      <LabeledField
+        label={
+          <>
+            {Icon && <Icon className="size-3.5" aria-hidden="true" />}
+            {label}
+          </>
+        }
+        error={error}
+        description={helperText}
+      >
+        {children}
+      </LabeledField>
     </motion.div>
   );
 }

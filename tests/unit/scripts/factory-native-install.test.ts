@@ -537,3 +537,57 @@ itPosix(
     expect(lstatSync(alias).isSymbolicLink()).toBe(true);
   },
 );
+
+const linkedDirectories = [
+  { base: "codex", relative: "agents" },
+  { base: "home", relative: ".codex/agents" },
+  { base: "home", relative: ".agents" },
+  { base: "home", relative: ".agents/skills" },
+  { base: "home", relative: ".agents/skills/samson-factory" },
+  { base: "home", relative: ".agents/skills/samson-factory/references" },
+].flatMap((directory) =>
+  ["install", "plan", "verify"].map((mode) => ({ ...directory, mode })),
+);
+
+itPosix.each(linkedDirectories)(
+  "rejects linked $base/$relative directories before changes in $mode mode",
+  ({ base, relative, mode }) => {
+    const f = fixture();
+    installNative(f);
+    const config = path.join(f.home, ".codex/config.toml");
+    const configBefore = readFileSync(config);
+    const alternateConfig = path.join(f.codexHome, "config.toml");
+    const alternateBefore = readFileSync(alternateConfig);
+    f.put(
+      ".codex/config.toml",
+      readFileSync(
+        path.join(f.sourceRoot, ".codex/config.toml"),
+        "utf8",
+      ).replace("max_threads = 3", "max_threads = 4"),
+    );
+    const external = path.join(path.dirname(f.sourceRoot), "unrelated-assets");
+    mkdirSync(external);
+    writeFileSync(path.join(external, "builder.toml"), "# personal role\n");
+    writeFileSync(path.join(external, "SKILL.md"), "Personal skill\n");
+    writeFileSync(path.join(external, "protocol.md"), "Personal protocol\n");
+    const externalBefore = snapshot(external);
+    const directory = path.join(
+      base === "codex" ? f.codexHome : f.home,
+      relative,
+    );
+    rmSync(directory, { recursive: true });
+    symlinkSync(external, directory, "dir");
+
+    expect(() =>
+      installNative({
+        ...f,
+        planOnly: mode === "plan",
+        verify: mode === "verify",
+      }),
+    ).toThrow(/symlink/i);
+    expect(snapshot(external)).toEqual(externalBefore);
+    expect(readFileSync(config)).toEqual(configBefore);
+    expect(readFileSync(alternateConfig)).toEqual(alternateBefore);
+    expect(lstatSync(directory).isSymbolicLink()).toBe(true);
+  },
+);
