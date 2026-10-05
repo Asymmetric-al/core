@@ -375,7 +375,7 @@ function TaskLinkedRecordSection({
                 <PopoverTrigger
                   render={
                     <Button className="w-full" type="button" variant="outline">
-                      <Plus className="mr-2 size-4" />
+                      <Plus className="mr-2 size-4" data-icon="inline-start" />
                       <span className="truncate">
                         Link a donor, missionary, or contact…
                       </span>
@@ -484,7 +484,8 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
               type="button"
               variant="ghost"
             >
-              <Plus className="mr-1 size-3" /> Add Reminder
+              <Plus className="mr-1 size-3" data-icon="inline-start" /> Add
+              Reminder
             </Button>
           </div>
           <FieldContent>
@@ -659,7 +660,7 @@ function TaskTagsSection({
                       type="button"
                       variant="outline"
                     >
-                      <Plus className="mr-2 size-4" />
+                      <Plus className="mr-2 size-4" data-icon="inline-start" />
                       Add tags…
                     </Button>
                   }
