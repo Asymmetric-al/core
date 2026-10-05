@@ -111,6 +111,7 @@
     "review-and-ship",
     "review-animations",
     "run-smoke-tests",
+    "samson-factory",
     "setup-matt-pocock-skills",
     "setup-pre-commit",
     "supabase",
@@ -916,6 +917,10 @@
     "run-smoke-tests": [
       "SKILL.md",
       "references/upstream.md"
+    ],
+    "samson-factory": [
+      "SKILL.md",
+      "references/protocol.md"
     ],
     "setup-matt-pocock-skills": [
       "SKILL.md",

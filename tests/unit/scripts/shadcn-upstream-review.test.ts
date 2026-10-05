@@ -1,5 +1,7 @@
 import { spawnSync } from "node:child_process";
 import {
+  chmodSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -168,6 +170,51 @@ function fixture() {
   return { root, baseline, runCli, previews, diffs };
 }
 
+function installedCliFixture() {
+  const root = mkdtempSync(path.join(tmpdir(), "core-shadcn-installed-"));
+  temporaryDirectories.push(root);
+  const cwd = path.join(root, "packages/ui");
+  const packageDirectory = path.join(root, "node_modules/shadcn");
+  mkdirSync(cwd, { recursive: true });
+  mkdirSync(path.join(packageDirectory, "dist"), { recursive: true });
+  writeFileSync(
+    path.join(root, "package.json"),
+    JSON.stringify({ devDependencies: { shadcn: SHADCN_CLI_VERSION } }),
+  );
+  writeFileSync(
+    path.join(packageDirectory, "package.json"),
+    JSON.stringify({
+      name: "shadcn",
+      version: SHADCN_CLI_VERSION,
+      bin: { shadcn: "dist/index.js" },
+    }),
+  );
+  writeFileSync(
+    path.join(packageDirectory, "dist/index.js"),
+    "console.log(JSON.stringify(process.argv.slice(2)));\n",
+  );
+  const command = path.join(root, "runtime");
+  const installerMarker = path.join(root, "installer-invoked");
+  writeFileSync(
+    command,
+    [
+      "#!/usr/bin/env node",
+      'const { spawnSync } = require("node:child_process");',
+      'const { writeFileSync } = require("node:fs");',
+      'if (process.argv[2] === "x") {',
+      `  writeFileSync(${JSON.stringify(installerMarker)}, "invoked");`,
+      "  process.exit(86);",
+      "}",
+      "const result = spawnSync(process.execPath, process.argv.slice(2), { encoding: 'utf8', env: process.env });",
+      "process.stdout.write(result.stdout ?? '');",
+      "process.stderr.write(result.stderr ?? '');",
+      "process.exit(result.status ?? 1);",
+    ].join("\n"),
+  );
+  chmodSync(command, 0o755);
+  return { root, cwd, command, packageDirectory, installerMarker };
+}
+
 describe("shadcn upstream review gate", () => {
   it("starts the locked public CLI concurrently without installing dependencies", async () => {
     const runCli = createCliRunner({
@@ -202,10 +249,85 @@ describe("shadcn upstream review gate", () => {
     ]);
   });
 
+  it("runs concurrent public previews using the declared installed CLI without package installation", async () => {
+    const input = installedCliFixture();
+    const runCli = createCliRunner(input);
+    await expect(
+      Promise.all([
+        runCli(["add", "accordion", "--dry-run"]),
+        runCli(["add", "alert", "--dry-run"]),
+      ]),
+    ).resolves.toEqual([
+      '["add","accordion","--dry-run"]\n',
+      '["add","alert","--dry-run"]\n',
+    ]);
+    expect(existsSync(input.installerMarker)).toBe(false);
+  });
+
+  it.each([undefined, "^4.21.1", "4.20.4"])(
+    "rejects an absent or nonexact project CLI pin: %s",
+    (version) => {
+      const input = installedCliFixture();
+      writeFileSync(
+        path.join(input.root, "package.json"),
+        JSON.stringify({ devDependencies: { shadcn: version } }),
+      );
+      expect(() => createCliRunner(input)).toThrow(
+        "Project must declare the exact pinned shadcn CLI version",
+      );
+      expect(existsSync(input.installerMarker)).toBe(false);
+    },
+  );
+
+  it("rejects an absent installation instead of downloading a CLI", () => {
+    const input = installedCliFixture();
+    rmSync(input.packageDirectory, { recursive: true });
+    expect(() => createCliRunner(input)).toThrow(
+      "Missing declared project-installed shadcn CLI",
+    );
+    expect(existsSync(input.installerMarker)).toBe(false);
+  });
+
+  it("rejects a differently installed CLI version before invoking it", () => {
+    const input = installedCliFixture();
+    writeFileSync(
+      path.join(input.packageDirectory, "package.json"),
+      JSON.stringify({
+        name: "shadcn",
+        version: "4.20.4",
+        bin: "dist/index.js",
+      }),
+    );
+    expect(() => createCliRunner(input)).toThrow(
+      "Project-installed shadcn CLI version mismatch",
+    );
+    expect(existsSync(input.installerMarker)).toBe(false);
+  });
+
+  it("rejects a CLI bin outside its installed package", () => {
+    const input = installedCliFixture();
+    writeFileSync(
+      path.join(input.packageDirectory, "package.json"),
+      JSON.stringify({
+        name: "shadcn",
+        version: SHADCN_CLI_VERSION,
+        bin: "../../runtime",
+      }),
+    );
+    expect(() => createCliRunner(input)).toThrow(
+      "Invalid project-installed shadcn CLI entry",
+    );
+    expect(existsSync(input.installerMarker)).toBe(false);
+  });
+
   it("rejects the deprecated CLI's false no-updates result at the real entry point", () => {
     const { root, baseline } = fixture();
     const scripts = path.join(root, "scripts/verify");
     const cli = path.join(root, "node_modules/shadcn");
+    writeFileSync(
+      path.join(root, "package.json"),
+      JSON.stringify({ devDependencies: { shadcn: SHADCN_CLI_VERSION } }),
+    );
     mkdirSync(scripts, { recursive: true });
     mkdirSync(cli, { recursive: true });
     mkdirSync(path.join(root, "tooling/shadcn"), { recursive: true });
@@ -215,7 +337,12 @@ describe("shadcn upstream review gate", () => {
     );
     writeFileSync(
       path.join(cli, "package.json"),
-      JSON.stringify({ name: "shadcn", type: "module", main: "index.mjs" }),
+      JSON.stringify({
+        name: "shadcn",
+        version: SHADCN_CLI_VERSION,
+        type: "module",
+        bin: { shadcn: "index.mjs" },
+      }),
     );
     writeFileSync(
       path.join(cli, "index.mjs"),
