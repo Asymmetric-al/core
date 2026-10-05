@@ -10,11 +10,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -27,11 +27,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -44,11 +44,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -61,11 +61,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -78,11 +78,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -95,11 +95,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -112,11 +112,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -129,11 +129,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "package.json",
-          "sha256": "059beebc35ef4b4d3b645001d6d35007e6f21af9dbf7029803207dd840cb0f66"
+          "sha256": "fdc53f817775b68609914e691a63062f09d7c47178b712ad112dd3abec59e105"
         }
       ]
     },
@@ -433,7 +433,7 @@
         },
         {
           "path": "apps/admin/package.json",
-          "sha256": "9c944e1dd7da92065959e8cc2cadc1fa147ba5e9cc6fdb513af9fd31ddd1db09"
+          "sha256": "f4eb6ad7bf3d0caee242e3ec10d9df1cd4c56fa7dab8d35b552886e59ac9a8c4"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -497,7 +497,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/components.json",
@@ -526,7 +526,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         }
       ]
     },
@@ -568,7 +568,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         }
       ]
     },
@@ -592,7 +592,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -620,7 +620,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -652,8 +652,8 @@
       "project": "apps/donor",
       "rule": "command-menu-hotkey-present",
       "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
-      "classification": "product-decision",
-      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "classification": "scanner-limitation",
+      "rationale": "The signed-in donor workspace mounts the shared NavigationCommandPalette with existing app-owned destinations. It composes Core CommandDialog, input, empty state and actionable items, with guarded Ctrl/Meta+K. Shadscan 0.17.0 limits these composition and shortcut reads to app-local files and misses the workspace import. Actual caller DOM tests and browser checks verify destination selection, keyboard/focus ownership, names and dismissal. Public flows retain their navigation.",
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
@@ -661,16 +661,45 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+        },
+        {
+          "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
+          "sha256": "6fa44309ba1a076af2547a27169556e0e0b90ba908f286b479311cc1b69d5347"
+        },
+        {
+          "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
+          "sha256": "70a7b4bcb39c92451b4477299a8de0946fa43773e256c6a63e17029b4bb1e38a"
+        },
+        {
+          "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
+          "sha256": "44cd3dac62b7f3ea976e6c018d11588e05803708154986e5c1bded5107bdb376"
+        },
+        {
+          "path": "tests/unit/apps/donor/donor-navigation-search.test.tsx",
+          "sha256": "72b4ab1099d79ae4f37691b2fa52c458b358a280698ef2610e40e75c704d91eb"
+        },
+        {
+          "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
+          "sha256": "b7d464d2c93a7664b0369abc2bf367ccf2cc26034980b9f3a5edc4b6bcae6d44"
         }
+      ],
+      "verificationTests": [
+        "tests/unit/apps/donor/donor-navigation-search.test.tsx",
+        "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts"
       ]
     },
     {
       "project": "apps/donor",
       "rule": "command-menu-present",
       "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
-      "classification": "product-decision",
-      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "classification": "scanner-limitation",
+      "rationale": "The signed-in donor workspace mounts the shared NavigationCommandPalette with existing app-owned destinations. It composes Core CommandDialog, input, empty state and actionable items, with guarded Ctrl/Meta+K. Shadscan 0.17.0 limits these composition and shortcut reads to app-local files and misses the workspace import. Actual caller DOM tests and browser checks verify destination selection, keyboard/focus ownership, names and dismissal. Public flows retain their navigation.",
       "proof": [
         {
           "path": "apps/donor/app/layout.tsx",
@@ -678,8 +707,37 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+        },
+        {
+          "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
+          "sha256": "6fa44309ba1a076af2547a27169556e0e0b90ba908f286b479311cc1b69d5347"
+        },
+        {
+          "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
+          "sha256": "70a7b4bcb39c92451b4477299a8de0946fa43773e256c6a63e17029b4bb1e38a"
+        },
+        {
+          "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
+          "sha256": "44cd3dac62b7f3ea976e6c018d11588e05803708154986e5c1bded5107bdb376"
+        },
+        {
+          "path": "tests/unit/apps/donor/donor-navigation-search.test.tsx",
+          "sha256": "72b4ab1099d79ae4f37691b2fa52c458b358a280698ef2610e40e75c704d91eb"
+        },
+        {
+          "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
+          "sha256": "b7d464d2c93a7664b0369abc2bf367ccf2cc26034980b9f3a5edc4b6bcae6d44"
         }
+      ],
+      "verificationTests": [
+        "tests/unit/apps/donor/donor-navigation-search.test.tsx",
+        "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts"
       ]
     },
     {
@@ -828,7 +886,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/components.json",
@@ -901,7 +959,7 @@
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         }
       ]
     },
@@ -925,7 +983,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -953,7 +1011,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -973,7 +1031,7 @@
       "proof": [
         {
           "path": "apps/missionary/components/app-header.tsx",
-          "sha256": "2b802aaadce394ed2bd3904042012f7f5073c4b64e4fed5bfe507c7d0f6473c3"
+          "sha256": "7734349776a8e9889beb8b0a48975aa39db0f3453ca383ce035aeda25302e4a1"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-header-pending.test.tsx",
@@ -985,34 +1043,134 @@
       "project": "apps/missionary",
       "rule": "command-menu-hotkey-present",
       "evidenceFingerprint": "74dfab3fc4c7dc3cf397ea28fda306d8d9f90a75112311f4e1d0cf45f1f27616",
-      "classification": "product-decision",
-      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "classification": "scanner-limitation",
+      "rationale": "MissionaryLayoutShell mounts the shared NavigationCommandPalette only on protected workspace paths, using the proxy public-route list and the preserved streamed role-gate early returns. Existing app-owned destinations compose Core CommandDialog, input, empty state and actionable items, with guarded Ctrl/Meta+K. Shadscan 0.17.0 limits these composition and shortcut reads to app-local files and misses the workspace import. Actual layout DOM tests and browser checks verify destination selection, keyboard/focus ownership and dismissal, public-route absence, and shortcut cleanup after returning to login. Authentication and redirect effects are unchanged.",
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+          "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+        },
+        {
+          "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
+          "sha256": "722a7775da9f64604fc2a00c637a8d97a70755d90db3d1154dc26dafa70c054b"
+        },
+        {
+          "path": "apps/missionary/components/app-shell.tsx",
+          "sha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799"
+        },
+        {
+          "path": "apps/missionary/components/navigation-search.tsx",
+          "sha256": "399d3460e62be0152df978cbb3fa83823cf7164d7fd16f6164c240dfb2641c87"
+        },
+        {
+          "path": "apps/missionary/components/navigation-items.ts",
+          "sha256": "9b7d136e9ff097dd7e8b69397be719ee7e0364cb07603edcb661c2c663c72ff6"
+        },
+        {
+          "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
+          "sha256": "44cd3dac62b7f3ea976e6c018d11588e05803708154986e5c1bded5107bdb376"
+        },
+        {
+          "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
+          "sha256": "54aa43546bc244c369f12ccfde5773733d76f83d15ab42643c313a723a434396"
+        },
+        {
+          "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
+          "sha256": "b7d464d2c93a7664b0369abc2bf367ccf2cc26034980b9f3a5edc4b6bcae6d44"
+        },
+        {
+          "path": "apps/missionary/lib/route-policy.ts",
+          "sha256": "c8b72c57ff82600d8fc952cdbc4eefbd62d8a01a5cfe5ad77c5217c69a0fed8e"
+        },
+        {
+          "path": "apps/missionary/proxy.ts",
+          "sha256": "cbdd8fde9bc5f40023e4234cb5853f72ff786789f3ce12a77d09a72b8515d951"
+        },
+        {
+          "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
+          "sha256": "c0a101c5196f1a63de2d4c627c5d57e301ffefed5cc2cbbf833aee74a6e33a79"
         }
+      ],
+      "verificationTests": [
+        "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
+        "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
+        "tests/unit/apps/missionary/route-gate-contract.test.ts"
       ]
     },
     {
       "project": "apps/missionary",
       "rule": "command-menu-present",
       "evidenceFingerprint": "7fa80b21a1533020dd783bc810963d02acb230f9bd76d2d30020e82cd567865c",
-      "classification": "product-decision",
-      "rationale": "The donor and missionary surfaces retain their existing navigation. A new global command palette and shortcut are optional product features with no established requirement here; the scoped Mission Control navigation search does not imply adding them to every product.",
+      "classification": "scanner-limitation",
+      "rationale": "MissionaryLayoutShell mounts the shared NavigationCommandPalette only on protected workspace paths, using the proxy public-route list and the preserved streamed role-gate early returns. Existing app-owned destinations compose Core CommandDialog, input, empty state and actionable items, with guarded Ctrl/Meta+K. Shadscan 0.17.0 limits these composition and shortcut reads to app-local files and misses the workspace import. Actual layout DOM tests and browser checks verify destination selection, keyboard/focus ownership and dismissal, public-route absence, and shortcut cleanup after returning to login. Authentication and redirect effects are unchanged.",
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+          "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
+        },
+        {
+          "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
+          "sha256": "722a7775da9f64604fc2a00c637a8d97a70755d90db3d1154dc26dafa70c054b"
+        },
+        {
+          "path": "apps/missionary/components/app-shell.tsx",
+          "sha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799"
+        },
+        {
+          "path": "apps/missionary/components/navigation-search.tsx",
+          "sha256": "399d3460e62be0152df978cbb3fa83823cf7164d7fd16f6164c240dfb2641c87"
+        },
+        {
+          "path": "apps/missionary/components/navigation-items.ts",
+          "sha256": "9b7d136e9ff097dd7e8b69397be719ee7e0364cb07603edcb661c2c663c72ff6"
+        },
+        {
+          "path": "packages/ui/components/primitives/navigation-command-palette.tsx",
+          "sha256": "44cd3dac62b7f3ea976e6c018d11588e05803708154986e5c1bded5107bdb376"
+        },
+        {
+          "path": "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
+          "sha256": "54aa43546bc244c369f12ccfde5773733d76f83d15ab42643c313a723a434396"
+        },
+        {
+          "path": "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+          "sha256": "1614579e1c543e7e5a4444498e7cd4c0a6deb04084487885414d81ca74fde4cc"
+        },
+        {
+          "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
+          "sha256": "b7d464d2c93a7664b0369abc2bf367ccf2cc26034980b9f3a5edc4b6bcae6d44"
+        },
+        {
+          "path": "apps/missionary/lib/route-policy.ts",
+          "sha256": "c8b72c57ff82600d8fc952cdbc4eefbd62d8a01a5cfe5ad77c5217c69a0fed8e"
+        },
+        {
+          "path": "apps/missionary/proxy.ts",
+          "sha256": "cbdd8fde9bc5f40023e4234cb5853f72ff786789f3ce12a77d09a72b8515d951"
+        },
+        {
+          "path": "tests/unit/apps/missionary/route-gate-contract.test.ts",
+          "sha256": "c0a101c5196f1a63de2d4c627c5d57e301ffefed5cc2cbbf833aee74a6e33a79"
         }
+      ],
+      "verificationTests": [
+        "tests/unit/apps/missionary/missionary-navigation-search.test.tsx",
+        "tests/unit/packages/ui/navigation-command-palette.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
+        "tests/unit/apps/missionary/route-gate-contract.test.ts"
       ]
     },
     {
@@ -1152,15 +1310,16 @@
       "project": "apps/missionary",
       "rule": "links-have-accessible-names",
       "classification": "scanner-limitation",
-      "rationale": "DropdownMenuItem render={<Link .../>} receives visible About children through Base UI render propagation. The scanner sees the empty JSX render element without evaluating forwarded children. Actual shared ProfileDropdown test demonstrates this same rendered anchor contract. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. Parent owns final broad gates and policy ledger.",
+      "rationale": "The observed About navigation uses DropdownMenuItem render={<Link .../>}; Base UI forwards its visible About children to the native anchor. The scanner inspects the empty render element without that propagation. The exact AppHeader DOM test now verifies the named About menu link and /help/about href; the retained shared composition test checks the same primitive contract.",
       "verificationTests": [
-        "tests/unit/packages/ui/shadscan-readiness.test.tsx"
+        "tests/unit/packages/ui/shadscan-readiness.test.tsx",
+        "tests/unit/apps/missionary/missionary-header-actions.test.tsx"
       ],
       "evidenceFingerprint": "ceecf8c3f59c3fd7e2bdc2af83563ec25d7cc0c42485803fdb702986bfdc8f01",
       "proof": [
         {
           "path": "apps/missionary/components/app-header.tsx",
-          "sha256": "2b802aaadce394ed2bd3904042012f7f5073c4b64e4fed5bfe507c7d0f6473c3"
+          "sha256": "7734349776a8e9889beb8b0a48975aa39db0f3453ca383ce035aeda25302e4a1"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -1169,6 +1328,10 @@
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
           "sha256": "2dd37ac61e595548ea3c9481ce90f57f324ee92e2c79ccfc4bf6814fb03d2995"
+        },
+        {
+          "path": "tests/unit/apps/missionary/missionary-header-actions.test.tsx",
+          "sha256": "4990a6336f5c36c6473d496fb1c17262c6f04db8f3d7ff5ad8d34dea35f3cb57"
         }
       ]
     },
@@ -1184,15 +1347,15 @@
       "proof": [
         {
           "path": "apps/missionary/components/app-header.tsx",
-          "sha256": "2b802aaadce394ed2bd3904042012f7f5073c4b64e4fed5bfe507c7d0f6473c3"
+          "sha256": "7734349776a8e9889beb8b0a48975aa39db0f3453ca383ce035aeda25302e4a1"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
-          "sha256": "3ab4aefce18b7081ac34b14562ea8e21ab777fe7a5522e5616a6457f07b0ee67"
+          "sha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799"
         },
         {
           "path": "apps/missionary/components/app-sidebar.tsx",
-          "sha256": "664cc837018b3cf110ce405f96ab0e20c8fda1c4b48019dd0790c6e1dcec7b61"
+          "sha256": "c5a0e5aef478ea2711bea35e20a67545e936e3427f13d271ffb0c0cd248e98ba"
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
@@ -1245,7 +1408,7 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/components.json",
@@ -1270,11 +1433,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+          "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         }
       ]
     },
@@ -1291,7 +1454,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/analytics/page-client.tsx",
-          "sha256": "37092782d2bec4762ed2be6340f83528b6edb8599065570b286654258b9a05f3"
+          "sha256": "b12ebb36ff7f00eaf7c620a0ed37e867ba2e6c04f29cbfe02ee0b0c7ea62b72a"
         },
         {
           "path": "packages/ui/components/primitives/chart-wrappers.tsx",
@@ -1323,7 +1486,7 @@
         },
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+          "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -1340,11 +1503,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+          "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
         },
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         }
       ]
     },
@@ -1360,7 +1523,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+          "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1368,7 +1531,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1388,7 +1551,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/layout.tsx",
-          "sha256": "0c7ba59da7f94f63f1b10be307e2e2823e4e9dabc4e9a6578ff05253818e8070"
+          "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
         },
         {
           "path": "packages/ui/components/shadcn/sonner.tsx",
@@ -1396,7 +1559,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1413,11 +1576,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1430,11 +1593,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1447,11 +1610,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1464,11 +1627,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1481,11 +1644,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1498,11 +1661,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1515,11 +1678,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1532,11 +1695,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1549,11 +1712,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/auth/package.json",
-          "sha256": "fdcfebbe6bdbc78209e60fcb1e7ffe5ac058c36314037a9cc0a49dcac3470980"
+          "sha256": "3982c2a65c6708632fe8475abba5fbad6ad85b231cb4d0751d8387f87fd9b9dc"
         }
       ]
     },
@@ -1590,11 +1753,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1607,11 +1770,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1624,11 +1787,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1641,11 +1804,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1658,11 +1821,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1675,11 +1838,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1692,11 +1855,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1709,11 +1872,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1726,11 +1889,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/database/package.json",
-          "sha256": "3febd5b39a6ba0010805ffccc49a8130dcfeb88341cbbbffbea9dae04da96e67"
+          "sha256": "8636c4e345e264cf8fa2b13d56d68cba3ba2d496a02c6c1671c0702a409a0c73"
         }
       ]
     },
@@ -1743,11 +1906,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1760,11 +1923,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1777,11 +1940,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1794,11 +1957,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1811,11 +1974,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1828,11 +1991,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1845,11 +2008,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1862,11 +2025,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1879,11 +2042,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/lib/package.json",
-          "sha256": "255a01091d6c0e0755a6793834f3bda5bbf49548c34ab3a9c9af04da0a37d16e"
+          "sha256": "fa4c4a678a17a42fcc4cb8e5ce32dc34de43cf4dbe599aeb9a7ba56b69de5e08"
         }
       ]
     },
@@ -1896,11 +2059,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -1913,11 +2076,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -1974,11 +2137,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -1991,11 +2154,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -2074,11 +2237,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -2111,11 +2274,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -2128,11 +2291,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -2145,11 +2308,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -2162,11 +2325,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "a9dcf32c353a1facbf2d5401f5137aaed4ff056ee27e21ea2deb3a03795e38a3"
+          "sha256": "a02d0781609276c1c4373d62a124e94d79fd4df49e9380c8199714f57d0da015"
         }
       ]
     },
@@ -2208,11 +2371,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         }
       ]
     },
@@ -2225,11 +2388,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         }
       ]
     },
@@ -2286,11 +2449,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         }
       ]
     },
@@ -2303,11 +2466,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         }
       ]
     },
@@ -2488,11 +2651,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         }
       ]
     },
@@ -2537,11 +2700,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         }
       ]
     },
@@ -2554,11 +2717,11 @@
       "proof": [
         {
           "path": "docs/guides/development/shadscan.md",
-          "sha256": "eb4c2d3aa3a6d6ba012ab16f168ebe13d1b1ed927f13fae051b0f8137e468be2"
+          "sha256": "91ffe87e3fa0aca7a3f9a3ae63a1a638f9e38ce653f66a68800f75228620f7a4"
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "f92198dbb817bcc9b8c4937f674151d66081e4f7efb32e83c11d6a8633c5057d"
+          "sha256": "d3e7629156e756a4b1a8feade4c0267dee35a16593f5f1305f6f53c8129c9c4a"
         }
       ]
     },

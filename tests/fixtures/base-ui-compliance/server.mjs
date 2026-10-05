@@ -40,6 +40,61 @@ await build({
       enforce: "pre",
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
+        const workspaceFile = importer?.replaceAll("\\", "/");
+        const usesAnalytics = workspaceFile?.endsWith(
+          "/missionary/app/analytics/page-client.tsx",
+        );
+        if (source === "@asym/lib/hooks" && usesAnalytics)
+          return resolve(fixtureDirectory, "analytics-metrics-stub.ts");
+        if (source === "next/dynamic" && usesAnalytics)
+          return resolve(fixtureDirectory, "analytics-chart-stub.ts");
+        const usesTaskToolbarHooks =
+          workspaceFile?.endsWith("/missionary/app/tasks/page-client.tsx") ||
+          workspaceFile?.endsWith("/missionary/components/task-dialog.tsx");
+        if (source === "@asym/lib/hooks" && usesTaskToolbarHooks)
+          return resolve(fixtureDirectory, "task-toolbar-hooks-stub.ts");
+        if (
+          source === "@asym/database/supabase" &&
+          workspaceFile?.endsWith("/missionary/components/task-dialog.tsx")
+        )
+          return resolve(fixtureDirectory, "task-toolbar-supabase-stub.ts");
+        const usesMissionaryLayout = workspaceFile?.endsWith(
+          "/missionary/app/_providers/missionary-layout-shell.tsx",
+        );
+        const sharedAliasPrefix = `${resolve(repositoryRoot, "packages/ui")}/`;
+        if (
+          usesMissionaryLayout &&
+          (source.startsWith("@/") || source.startsWith(sharedAliasPrefix))
+        )
+          return this.resolve(
+            resolve(
+              repositoryRoot,
+              "apps/missionary",
+              source.startsWith("@/")
+                ? source.slice(2)
+                : source.slice(sharedAliasPrefix.length),
+            ),
+            importer,
+            { skipSelf: true },
+          );
+        const usesWorkspaceSession =
+          workspaceFile?.endsWith("/donor/components/DonorSubNav.tsx") ||
+          workspaceFile?.endsWith("/missionary/components/app-header.tsx");
+        if (source === "@asym/auth/client-session" && usesWorkspaceSession)
+          return resolve(fixtureDirectory, "workspace-session-stub.ts");
+        if (
+          source === "next/navigation" &&
+          (workspaceFile?.endsWith("/donor/components/DonorSubNav.tsx") ||
+            usesMissionaryLayout ||
+            workspaceFile?.endsWith("/missionary/components/app-sidebar.tsx") ||
+            workspaceFile?.endsWith(
+              "/missionary/components/dashboard-footer.tsx",
+            ) ||
+            workspaceFile?.endsWith(
+              "/missionary/components/navigation-search.tsx",
+            ))
+        )
+          return resolve(fixtureDirectory, "workspace-navigation-stub.ts");
         if (
           source === "@asym/env" &&
           importer?.replaceAll("\\", "/").endsWith("/view-transitions/flags.ts")
@@ -105,6 +160,8 @@ await build({
       input: {
         main: resolve(fixtureDirectory, "index.html"),
         support: resolve(fixtureDirectory, "support.html"),
+        workspace: resolve(fixtureDirectory, "workspace.html"),
+        taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
       },
       onwarn(warning, warn) {
         // Every imported component runs in this client-only fixture. Rollup can

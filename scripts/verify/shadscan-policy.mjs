@@ -184,7 +184,7 @@ function isScore(value) {
 
 export function validatePolicy(policy) {
   requireCondition(
-    policy?.schemaVersion === 1,
+    policy?.schemaVersion === 2,
     "Unsupported Shadscan policy schema",
   );
   requireCondition(
@@ -208,6 +208,26 @@ export function validatePolicy(policy) {
   );
   for (const [project, floor] of Object.entries(policy.applicationFloors)) {
     requireCondition(isScore(floor), `${project} has an invalid score floor`);
+  }
+  requireCondition(
+    JSON.stringify(
+      Object.keys(policy.applicationCategoryFloors ?? {}).sort(),
+    ) === JSON.stringify(APPLICATIONS),
+    "Policy category floors must protect all three applications",
+  );
+  for (const project of APPLICATIONS) {
+    const floors = policy.applicationCategoryFloors[project];
+    requireCondition(
+      JSON.stringify(Object.keys(floors ?? {}).sort()) ===
+        JSON.stringify([...CATEGORIES].sort()),
+      `${project} must protect every category`,
+    );
+    for (const category of CATEGORIES) {
+      requireCondition(
+        isScore(floors[category]),
+        `${project} has an invalid category floor: ${category}`,
+      );
+    }
   }
   if (policy.libraryProjects) {
     requireCondition(
@@ -320,6 +340,39 @@ export function validateReport(report, policy) {
     }
   }
   validateAssessments(report, projects);
+  for (const project of APPLICATIONS) {
+    const findings = report.findings.filter(
+      (finding) => finding.packageDir === project,
+    );
+    const categories = categoryScores(findings);
+    requireCondition(
+      policy.applicationFloors[project] !== 100 ||
+        !findings.some(
+          (finding) => finding.status === "advisory" && finding.maxScore > 0,
+        ),
+      `${project} has an unresolved scored advisory at a 100 overall floor`,
+    );
+    requireCondition(
+      policy.applicationFloors[project] !== 100 ||
+        categories.every((category) => category.score === category.maxScore),
+      `${project} must earn every scored point for a 100 overall floor`,
+    );
+    for (const category of categories) {
+      const floor = policy.applicationCategoryFloors[project][category.id];
+      requireCondition(
+        category.applicable && isScore(category.percentage),
+        `${project} category ${category.id} is unassessed`,
+      );
+      requireCondition(
+        floor !== 100 || category.score === category.maxScore,
+        `${project} category ${category.id} must earn every scored point for a 100 floor`,
+      );
+      requireCondition(
+        category.percentage >= floor,
+        `${project} category ${category.id} score ${category.percentage} is below ${floor}`,
+      );
+    }
+  }
   return report;
 }
 

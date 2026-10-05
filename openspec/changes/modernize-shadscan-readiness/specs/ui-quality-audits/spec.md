@@ -26,6 +26,37 @@ without explicit owner acceptance of that regression.
 - THEN the shared gate fails even if the pooled score passes
 - AND the report identifies the application, observed score and required floor
 
+### Requirement: Each Application Category Has An Independent Score Floor
+
+Core SHALL protect all six categories of each deployed application independently
+using verified raw assessment percentages. An aggregate or application-level
+improvement SHALL NOT hide a category regression. Missing or unassessed categories
+SHALL fail even when their configured floor is zero. A 100-point application or
+category floor SHALL require every applicable scored point, not rounded totals.
+Activating an application's overall floor at 100 SHALL also reject unresolved
+advisory assessments for rules with positive point values in any of its
+categories. Existing raw category floors SHALL retain their current protection.
+Zero-point advisory results SHALL remain visible for separate verification.
+
+#### Scenario: A category regresses while the pooled score stays high
+
+- WHEN an application's category percentage falls below its recorded floor
+- THEN the shared gate fails and identifies the application, category and floor
+- AND raw scores and findings remain unchanged
+
+#### Scenario: A rounded perfect score still contains a scored failure
+
+- WHEN a protected application or category rounds to 100 without earning all points
+- THEN a 100-point floor fails
+- AND the unchanged assessment remains available for review
+
+#### Scenario: An unresolved behavior is excluded from a perfect score
+
+- WHEN an application's overall floor is activated at 100 and a score-bearing rule is advisory in any of its categories
+- THEN the perfect-score gate fails even if the remaining assessed rules earn 100
+- AND the unchanged advisory remains available for verification
+- AND current lower floors and zero-point advisories keep their existing behavior
+
 ### Requirement: Audit Classifications Preserve Evidence
 
 Core SHALL retain unmodified scanner statuses and scores. Scanner limitations
@@ -46,6 +77,21 @@ system. Interactive controls SHALL have meaningful names and keyboard access;
 material async feedback and validation errors SHALL expose usable relationships
 and announcements. Generic scanner feature preferences SHALL NOT override
 accepted theme, authorization, navigation or publication policy.
+
+#### Scenario: A signed-in donor or missionary searches workspace navigation
+
+- WHEN the workspace search control or guarded Cmd/Ctrl+K shortcut is activated
+- THEN one shared Base UI/base-maia palette searches existing permitted routes
+- AND selection navigates through the app router and dismissal restores focus
+- AND editing targets and other popup owners retain their shortcuts
+- AND public giving, checkout and login flows retain their navigation contracts
+
+#### Scenario: A donor signs out from a narrow viewport
+
+- WHEN the existing session helper is pending
+- THEN the named control remains disabled and exposes busy/status feedback
+- AND repeated activation starts no additional session operation
+- AND navigation controls retain their names and supported touch targets
 
 #### Scenario: A confirmed interaction defect is repaired
 

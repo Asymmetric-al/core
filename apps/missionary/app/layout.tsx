@@ -19,6 +19,7 @@ import type { Metadata, Viewport } from "next";
 import { BoneyardRegistry } from "@/app/_providers/boneyard-registry";
 import { MissionaryLayoutShell } from "@/app/_providers/missionary-layout-shell";
 import { MISSIONARY_ALLOWED_ROLES } from "@/app/access";
+import { isMissionaryRoleGatePublicPath } from "@/lib/route-policy";
 import "./globals.css";
 
 function getSupabaseOrigin() {
@@ -36,30 +37,12 @@ function getSupabaseOrigin() {
 
 const supabaseOrigin = getSupabaseOrigin();
 
-const MISSIONARY_PUBLIC_PATH_PREFIXES = [
-  "/login",
-  "/register",
-  "/auth/callback",
-  "/forgot-password",
-  "/no-access",
-  "/api/",
-  "/boneyard/",
-] as const;
-
-function isPublicPath(pathname: string) {
-  return MISSIONARY_PUBLIC_PATH_PREFIXES.some((prefix) =>
-    prefix.endsWith("/")
-      ? pathname.startsWith(prefix)
-      : pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-}
-
 /**
  * Redirect-only sibling of `{children}` — it renders nothing.
  *
  * It deliberately does not wrap the page: wherever this gate wraps `children`,
  * `children` cannot prerender (the gate must `await headers()` before it can
- * even reach its `isPublicPath` early return), so every route's real markup and
+ * even reach its public-path early return), so every route's real markup and
  * every `loading.tsx` fall out of the static shell. As a sibling, the pages —
  * all of which are thin client re-exports with no server data reads — prerender
  * their actual content instead.
@@ -74,7 +57,7 @@ function isPublicPath(pathname: string) {
  */
 async function MissionaryRoleGate() {
   const pathname = (await headers()).get("x-asym-pathname") ?? "/";
-  if (isPublicPath(pathname)) {
+  if (isMissionaryRoleGatePublicPath(pathname)) {
     return null;
   }
 

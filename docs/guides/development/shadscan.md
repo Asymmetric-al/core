@@ -26,8 +26,19 @@ truncated discovery, incomplete source coverage, incompatible report versions
 and unassessed scores fail the gate.
 
 `tooling/shadscan/policy.json` binds the engine, ruleset and report schema and
-protects each application's raw score independently. A higher pooled score cannot
-compensate for a regressing app. Library findings remain visible and reviewed;
+protects each application's raw score independently. Policy schema 2 also requires
+all six category floors for each app. Categories are recomputed from the unchanged
+raw assessments; a higher pooled or application score cannot compensate for a
+regressing category. Missing or unassessed categories fail even at a zero floor.
+A 100-point application or category floor requires every applicable scored point,
+not a percentage rounded to 100. Activating an application's overall floor at
+100 also rejects unresolved advisories on rules with positive point values in
+any of its categories. An unassessed behavior cannot disappear from that final
+perfect-application claim. Existing raw category floors and zero-point advisories
+keep their current behavior. Current floors capture the verified baseline;
+they do not claim the 100/100 target has been reached.
+
+Library findings remain visible and reviewed;
 their scores do not contribute to the scanner's pooled application score. Core
 does not calculate an adjusted score or present exceptions as passing raw rules.
 
@@ -81,8 +92,12 @@ for a score. The public donor site's declared social image must resolve.
 
 Mission Control navigation search uses the user's permitted navigation and guards
 Cmd/Ctrl+K against text editing and other active dialogs. Support inbox shortcuts
-retain their local scope. Donor and missionary products do not gain command
-palettes solely to satisfy an audit rule.
+retain their local scope. The owner approved useful donor and missionary
+navigation palettes on 2026-10-04. They mount once in each signed-in workspace,
+compose the shared Base UI/base-maia command widget, and use the existing
+permitted destinations. Public giving, checkout and login flows retain their
+existing navigation. The published scanner still misses this shared-package
+composition; executable caller and keyboard/focus tests support that finding.
 
 Authenticated CMS preview retains its blocking dynamic boundary. Redirect-only
 Suspense siblings retain invisible fallbacks. Global Next.js recovery boundaries

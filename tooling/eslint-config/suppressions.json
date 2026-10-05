@@ -2066,14 +2066,6 @@
       "count": 4
     }
   },
-  "apps/donor/features/donor/components/DonorSubNav.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
-    "shadcn/no-raw-colors": {
-      "count": 8
-    }
-  },
   "apps/donor/features/donor/components/ImpactTile.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 3
@@ -2138,7 +2130,7 @@
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 16
+      "count": 10
     }
   },
   "apps/missionary/app/donors/donor-tasks.tsx": {
@@ -2377,19 +2369,8 @@
     }
   },
   "apps/missionary/components/app-header.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 16
-    }
-  },
-  "apps/missionary/components/app-shell.tsx": {
-    "shadcn/no-raw-colors": {
-      "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 1
+      "count": 6
     }
   },
   "apps/missionary/components/app-sidebar.tsx": {

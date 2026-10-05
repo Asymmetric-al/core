@@ -16,6 +16,14 @@ classification is rejected or becomes unreviewed. A whole rule cannot be exempte
 because its first reported example is a false positive; rescans after repairs and
 targeted behavior tests cover the next visible examples.
 
+Policy schema 2 requires all six category floors for each app. The gate derives
+app categories from the validated raw assessments, preserving official weights
+and rounding for baseline floors. Missing or wholly unassessed app categories
+fail even at a zero floor. A 100-point category or overall app floor requires
+all applicable scored points; an integer rounded to 100 is insufficient. The
+schema migration preserves the current 43/59/47 overall floors and all verified
+category percentages. It does not upgrade the engine or assert a perfect audit.
+
 ## Product decisions
 
 All three apps intentionally force light. Do not add theme-toggle shortcuts.
@@ -23,7 +31,14 @@ Support's command shortcut is local to its focused workspace. Mission Control's
 existing advertised global navigation search should navigate current permitted
 routes and have a guarded Cmd/Ctrl+K handler without taking over Support's local
 shortcut. Public donor and missionary flows do not receive a new global command
-menu purely for audit points. Private surfaces remain noindex; their missing
+menu purely for audit points. The owner's 2026-10-04 amendment adds useful
+palettes only to signed-in donor and missionary workspaces. Each shell mounts
+one shared navigation widget with its existing app-owned destinations; both
+platform shortcuts preserve editing and other popup ownership. Donor controls
+retain mobile names, supported Maia sizes and pending sign-out feedback until
+the existing session helper settles. Unsupported missionary notification and
+theme actions are hidden under the retained forced-light policy.
+Private surfaces remain noindex; their missing
 social-card findings are product-policy differences. Donor's declared sharing
 asset must actually resolve.
 

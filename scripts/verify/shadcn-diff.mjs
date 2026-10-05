@@ -237,7 +237,7 @@ function installedCliEntry(root) {
 export function createCliRunner({
   cwd,
   root = fileURLToPath(new URL("../..", import.meta.url)),
-  command = "bun",
+  command = process.execPath,
   prefix,
 }) {
   // Execute the frozen project dependency; parallel registry reads must not

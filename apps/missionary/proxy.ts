@@ -2,6 +2,7 @@ import { createAuthMiddleware } from "@asym/auth/middleware";
 import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 
 import { MISSIONARY_ALLOWED_ROLES } from "./app/access";
+import { MISSIONARY_PUBLIC_ROUTES } from "./lib/route-policy";
 
 import type { NextRequest } from "next/server";
 
@@ -10,23 +11,7 @@ const authProxy = createAuthMiddleware({
   // before authentication and returns early, so listing it here would cancel
   // `protectedRoutePrefixes` below and let anonymous visitors render the
   // dashboard shell while the layout's redirect catches up on the client.
-  publicRoutes: [
-    "/about",
-    "/auth/callback",
-    "/faq",
-    "/financials",
-    "/register",
-    "/forgot-password",
-    "/ways-to-give",
-    "/workers",
-    "/checkout",
-    "/sign",
-    "/api/auth/demo-account",
-    "/sitemap.xml",
-    "/robots.txt",
-    "/no-access",
-    "/boneyard",
-  ],
+  publicRoutes: [...MISSIONARY_PUBLIC_ROUTES],
   protectedRoutePrefixes: ["/"],
   loginPath: "/login",
   redirectAuthenticatedTo: "/",

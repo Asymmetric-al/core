@@ -10,7 +10,7 @@ import { AppHeader } from "./app-header";
 import { AppSidebar } from "./app-sidebar";
 import { DashboardFooter } from "./dashboard-footer";
 
-type UserRole = "donor" | "missionary" | "admin";
+import type { UserRole } from "./navigation-items";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -19,6 +19,7 @@ interface AppShellProps {
   tenantLogo?: string;
   tenantName?: string;
   showFooter?: boolean;
+  navigation?: React.ReactNode;
 }
 
 export function AppShell({
@@ -28,12 +29,13 @@ export function AppShell({
   tenantLogo,
   tenantName,
   showFooter = true,
+  navigation,
 }: AppShellProps) {
   return (
     <SidebarProvider>
       <AppSidebar role={role} tenantLogo={tenantLogo} tenantName={tenantName} />
-      <SidebarInset className="bg-zinc-50/50 flex flex-col min-h-svh">
-        <AppHeader title={title} />
+      <SidebarInset className="flex flex-col min-h-svh">
+        <AppHeader title={title} navigation={navigation} />
         <RouteMainViewTransitionBoundary className="container-responsive flex-1 py-responsive-section">
           {children}
         </RouteMainViewTransitionBoundary>
