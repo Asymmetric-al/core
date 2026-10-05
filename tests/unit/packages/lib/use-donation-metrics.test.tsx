@@ -52,6 +52,119 @@ afterEach(() => {
 });
 
 describe("useDonationMetrics", () => {
+  it("reports permission-limited metrics as unavailable instead of successful empty data", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ donations: [], limited: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(fetchMock).toHaveBeenCalledWith(metricsUrl(MISSIONARY_A));
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error?.message).toBe(
+      "Donation metrics are unavailable.",
+    );
+  });
+
+  it.each([
+    { label: "without a limited flag", payload: { donations: [] } },
+    { label: "with limited false", payload: { donations: [], limited: false } },
+  ])("keeps genuine successful empty data $label", async ({ payload }) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => payload }),
+    );
+
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.error).toBeNull();
+    expect(result.current.thisMonth.total).toBe(0);
+    expect(result.current.monthlyBreakdown).toHaveLength(13);
+    expect(
+      result.current.monthlyBreakdown.every((point) => point.total === 0),
+    ).toBe(true);
+  });
+
+  it("keeps an explicit API error ahead of the limited flag", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          donations: [],
+          limited: true,
+          error: "Existing API error",
+        }),
+      }),
+    );
+
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.error?.message).toBe("Existing API error");
+  });
+
+  it("preserves HTTP failure handling before consuming a limited response body", async () => {
+    const json = vi.fn().mockResolvedValue({ donations: [], limited: true });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 403, json }),
+    );
+
+    const { result } = renderHook(() => useDonationMetrics(MISSIONARY_A));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.error?.message).toBe("HTTP error! status: 403");
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it("does not let a late limited response for A poison B's successful data", async () => {
+    const lateLimited = createDeferred<{ donations: []; limited: true }>();
+    const readLateLimited = vi.fn(() => lateLimited.promise);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: readLateLimited })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ donations: [donation(20)] }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result, rerender } = renderHook(
+      ({ missionaryId }) => useDonationMetrics(missionaryId),
+      { initialProps: { missionaryId: MISSIONARY_A } },
+    );
+    await waitFor(() => expect(readLateLimited).toHaveBeenCalled());
+    rerender({ missionaryId: MISSIONARY_B });
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.thisMonth.total).toBe(20);
+    });
+
+    await act(async () => {
+      lateLimited.resolve({ donations: [], limited: true });
+      await lateLimited.promise;
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, metricsUrl(MISSIONARY_A));
+    expect(fetchMock).toHaveBeenNthCalledWith(2, metricsUrl(MISSIONARY_B));
+    expect(result.current.error).toBeNull();
+    expect(result.current.thisMonth.total).toBe(20);
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it("does not let missionary A overwrite B when A's json() resolves later", async () => {
     const jsonById = new Map<
       string,

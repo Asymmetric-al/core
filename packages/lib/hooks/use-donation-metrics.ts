@@ -200,6 +200,10 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
           throw new Error(result.error);
         }
 
+        if (result.limited === true) {
+          throw new Error("Donation metrics are unavailable.");
+        }
+
         setDonations(result.donations || []);
       } catch (e) {
         if (!isMounted) return;
