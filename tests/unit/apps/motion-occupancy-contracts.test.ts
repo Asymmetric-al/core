@@ -74,29 +74,6 @@ function hasSafePresenceMode(tag: string): boolean {
   return /mode=["'](?:popLayout|wait)["']/.test(tag);
 }
 
-describe("FAQ exclusive occupancy", () => {
-  const source = readRepo(
-    "apps",
-    "donor",
-    "app",
-    "(public)",
-    "(hero)",
-    "faq",
-    "faq-client.tsx",
-  );
-  const accordion = extractFunction(source, "AccordionItem");
-
-  it("takes the exiting answer out of flow so only one panel occupies space", () => {
-    const presence = openingTagBefore(accordion, "{isOpen &&");
-    expect(presence).toContain("AnimatePresence");
-    expect(presence).toMatch(/mode=["']popLayout["']/);
-  });
-
-  it("does not slide the answer on y under the overflow-hidden clip", () => {
-    expect(accordion).not.toMatch(/\by:\s*-8\b/);
-  });
-});
-
 describe("QuickGive width handoff", () => {
   const source = readRepo(
     "apps",

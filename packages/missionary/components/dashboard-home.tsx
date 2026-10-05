@@ -116,11 +116,7 @@ function DashboardHomeContent({
   const percentFunded = support?.percentFunded ?? 0;
 
   return (
-    <PageShell
-      title="Dashboard"
-      description="Your ministry at a glance"
-      actions={<Button variant="outline">Download Report</Button>}
-    >
+    <PageShell title="Dashboard" description="Your ministry at a glance">
       <div className="section-gap">
         {belowHeaderSlot}
         <MetricTiles missionaryId={missionaryId} />

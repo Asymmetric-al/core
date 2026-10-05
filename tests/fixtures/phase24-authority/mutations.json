@@ -1,0 +1,142 @@
+[
+  {
+    "name": "an unresolved exact scenario",
+    "row": "US24-119",
+    "column": 5,
+    "value": "A Phase 24 scenario that does not exist",
+    "token": "A Phase 24 scenario that does not exist"
+  },
+  {
+    "name": "a scenario belonging to a different requirement",
+    "row": "US24-119",
+    "column": 5,
+    "value": "A donor's location is ambiguous",
+    "token": "A donor's location is ambiguous"
+  },
+  {
+    "name": "an unknown capability",
+    "row": "US24-119",
+    "column": 3,
+    "value": "not-a-phase24-capability",
+    "token": "not-a-phase24-capability"
+  },
+  {
+    "name": "an unknown exact requirement",
+    "row": "US24-119",
+    "column": 4,
+    "value": "Nonexistent Phase 24 Requirement",
+    "token": "Nonexistent Phase 24 Requirement"
+  },
+  {
+    "name": "an unresolved task",
+    "row": "US24-119",
+    "column": 7,
+    "value": "99.99",
+    "token": "99.99"
+  },
+  {
+    "name": "an unknown proof with a valid family grammar",
+    "row": "US24-119",
+    "column": 8,
+    "value": "T24-NONEXISTENT",
+    "token": "T24-NONEXISTENT"
+  },
+  {
+    "name": "an unknown release obligation",
+    "row": "US24-119",
+    "column": 9,
+    "value": "EV24-NONEXISTENT",
+    "token": "EV24-NONEXISTENT"
+  },
+  {
+    "name": "an implementation ticket used as a provider proof",
+    "row": "D2",
+    "column": 8,
+    "value": "C24-MONEY; DB24-MONEY; P24-01",
+    "token": "P24-01"
+  },
+  {
+    "name": "a malformed provider proof",
+    "row": "D2",
+    "column": 8,
+    "value": "C24-MONEY; DB24-MONEY; P24-1STRIPE",
+    "token": "P24-1STRIPE"
+  },
+  {
+    "name": "a missing deterministic proof",
+    "row": "US24-119",
+    "column": 8,
+    "value": "",
+    "token": "US24-119"
+  },
+  {
+    "name": "a missing release target",
+    "row": "US24-119",
+    "column": 9,
+    "value": "",
+    "token": "US24-119"
+  },
+  {
+    "name": "a duplicate proof within one row",
+    "row": "US24-119",
+    "column": 8,
+    "value": "T24-TRACE; T24-TRACE",
+    "token": "T24-TRACE"
+  },
+  {
+    "name": "an out-of-scope decision reference",
+    "row": "US24-001",
+    "column": 1,
+    "value": "D56",
+    "token": "D56"
+  },
+  {
+    "name": "a malformed decision range",
+    "row": "US24-001",
+    "column": 1,
+    "value": "D18-D1",
+    "token": "D18-D1"
+  },
+  {
+    "name": "a missing decision authority file",
+    "row": "D7",
+    "column": 1,
+    "value": "phase-24-authority-does-not-exist.md",
+    "token": "phase-24-authority-does-not-exist.md"
+  },
+  {
+    "name": "an unknown ADR authority",
+    "row": "D57",
+    "column": 1,
+    "value": "ADR-9999 and decision log D57",
+    "token": "ADR-9999"
+  },
+  {
+    "name": "a wrong decision-log authority",
+    "row": "D1",
+    "column": 1,
+    "value": "decision log D999",
+    "token": "D999"
+  },
+  {
+    "name": "an unresolved PRD locus",
+    "row": "US24-119",
+    "column": 2,
+    "value": "User Stories #999",
+    "token": "User Stories #999"
+  },
+  {
+    "name": "an unresolved design locus",
+    "row": "US24-119",
+    "column": 6,
+    "value": "Design Section That Does Not Exist",
+    "token": "Design Section That Does Not Exist"
+  },
+  {
+    "name": "forbidden predecessor implementation authority",
+    "row": "D59",
+    "column": 1,
+    "value": "#486 edit-to-live branding",
+    "token": "#486"
+  }
+]
