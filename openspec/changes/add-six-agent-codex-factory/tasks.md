@@ -17,3 +17,12 @@
 - [ ] 3.1 Publish the updated setup commit and obtain fresh required checks
 - [ ] 3.2 Obtain applicable human approval and verify setup merge
 - [ ] 3.3 Start the first issue trial only after the user releases its hold
+
+## 4. Bounded hosted startup regression repair (#1955)
+
+- [ ] 4.1 Reconcile canonical startup guidance and affected generated mirrors with read-only hosted validation and explicit local CLI installation
+- [ ] 4.2 Prove R1–R2 with retained asset/tool fixtures, absent/read-only active CODEX_HOME and zero attempted writes/installer/local CLI calls
+- [ ] 4.3 Prove R3 with unchanged local installer/setup tests in disposable homes
+- [ ] 4.4 Complete R4–R5 canonical/strict OpenSpec checks, normal hooks/current-head CI, independent committed-candidate reviews and final acceptance without weakening reproduction isolation
+- [ ] 4.5 Return exact-head DELIVERY_READY to David; verify root protected merge and same-worker closeout separately from full hosted repair
+- [ ] 4.6 Root completes H1–H2 actual fresh named-cloud native handoffs/normal returns, consumed hashes and publication evidence before #1954 resumption or #1955 closure

@@ -1,9 +1,12 @@
 # Native handoffs — coordinator only
 
-Canonical prompts are `.codex/agents/<role>.toml` in the source checkout.
-Installed copies are in the user Codex home and active `CODEX_HOME/agents/`.
-Use the role's `developer_instructions` when the native spawning tool does not
-automatically load named role files.
+Canonical prompts are `.codex/agents/<role>.toml` in reviewed source. Hosted
+startup validates the retained sources and personal copies read-only; it does
+not require active `CODEX_HOME/agents/` installation or local CLI verification.
+Explicit local installation may create copies in both homes. Missing or
+inconsistent required retained assets/tools are BLOCKED, without fallback repair.
+Use the validated role's `developer_instructions` when the native spawning tool
+does not automatically load named role files.
 
 Start fresh (`fork_turns: "none"` in this app) with only the specialist's own role,
 assignment identifier, relevant request/materials and constraints. Use its model/
@@ -35,10 +38,17 @@ during review of committed candidates.
 Give relevant shell commands the verified tools directory on PATH, including
 commits/pushes. In this workspace it is
 `/workspace/.onboarding-tools/node_modules/.bin`. Earlier shell exports do not
-establish PATH in later calls or fresh specialists. Startup also installs a
-persistent shell/Husky initialization snippet.
+establish PATH in later calls or fresh specialists. Explicit installation may also provide a
+persistent shell/Husky initialization snippet; hosted validation does not install it.
 
 CLI specialist profiles disable multi-agent; native configuration limits depth
 to one. Where the runtime does not load those settings, explicit role prompts
 are the boundary. This is a shared workspace. Do not claim filesystem isolation,
 tool removal, model access or rebuild persistence from configuration alone.
+
+Assigned issue workers return DELIVERY_READY with the actual PR/head/base,
+acceptance revision, independent review decisions, final acceptance and required
+checks, then stop before merge. David owns the protected expected-head merge,
+independent merge verification and the same-worker closeout handoff. Missing
+required isolation for review/acceptance command execution remains INCONCLUSIVE;
+shared files, hashes and role TOMLs do not establish that execution boundary.
