@@ -41,6 +41,13 @@ await build({
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
         const workspaceFile = importer?.replaceAll("\\", "/");
+        const usesAnalytics = workspaceFile?.endsWith(
+          "/missionary/app/analytics/page-client.tsx",
+        );
+        if (source === "@asym/lib/hooks" && usesAnalytics)
+          return resolve(fixtureDirectory, "analytics-metrics-stub.ts");
+        if (source === "next/dynamic" && usesAnalytics)
+          return resolve(fixtureDirectory, "analytics-chart-stub.ts");
         const usesTaskToolbarHooks =
           workspaceFile?.endsWith("/missionary/app/tasks/page-client.tsx") ||
           workspaceFile?.endsWith("/missionary/components/task-dialog.tsx");
