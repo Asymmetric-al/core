@@ -1,13 +1,18 @@
 import "virtual:base-ui-styles";
+import "./analytics-fonts.css";
 
 import React, { useEffect, useState } from "react";
 
+// eslint-disable-next-line no-restricted-imports -- AL-1931 This browser fixture mounts the real application surface; no app imports another app.
 import { DonorSubNav } from "../../../apps/donor/features/donor/components/DonorSubNav";
+// eslint-disable-next-line no-restricted-imports -- AL-1931 This browser fixture mounts the real application surface; no app imports another app.
 import { MissionaryLayoutShell } from "../../../apps/missionary/app/_providers/missionary-layout-shell";
+// eslint-disable-next-line no-restricted-imports -- AL-1931 This browser fixture mounts the real application surface; no app imports another app.
+import AnalyticsPage from "../../../apps/missionary/app/analytics/page-client";
 import { createRoot } from "../../../node_modules/react-dom/client";
+import { NavigationCommandPalette } from "../../../packages/ui/components/primitives/navigation-command-palette";
 import { Button } from "../../../packages/ui/components/shadcn/button";
 import { Input } from "../../../packages/ui/components/shadcn/input";
-import { NavigationCommandPalette } from "../../../packages/ui/components/primitives/navigation-command-palette";
 import { ThemeProvider } from "../../../packages/ui/lib/theme-provider";
 
 function WorkspaceContracts() {
@@ -17,6 +22,9 @@ function WorkspaceContracts() {
     new URLSearchParams(location.search).get("workspace") === "missionary";
   const shared =
     new URLSearchParams(location.search).get("workspace") === "shared";
+  const analytics =
+    missionary &&
+    new URLSearchParams(location.search).get("surface") === "analytics";
 
   useEffect(() => {
     const navigate = (event: Event) => {
@@ -65,7 +73,9 @@ function WorkspaceContracts() {
     );
 
   return missionary ? (
-    <MissionaryLayoutShell>{content}</MissionaryLayoutShell>
+    <MissionaryLayoutShell>
+      {analytics ? <AnalyticsPage /> : content}
+    </MissionaryLayoutShell>
   ) : (
     <div className="bg-background text-foreground">
       <div className="h-16" aria-hidden />
@@ -76,6 +86,9 @@ function WorkspaceContracts() {
 }
 
 const workspace = <WorkspaceContracts />;
+const analytics =
+  new URLSearchParams(location.search).get("workspace") === "missionary" &&
+  new URLSearchParams(location.search).get("surface") === "analytics";
 createRoot(document.getElementById("root")!).render(
   new URLSearchParams(location.search).get("workspace") === "shared" ? (
     workspace
@@ -86,7 +99,13 @@ createRoot(document.getElementById("root")!).render(
       defaultTheme="light"
       enableSystem={false}
     >
-      {workspace}
+      {analytics ? (
+        <div className="font-sans antialiased fixture-analytics-fonts">
+          {workspace}
+        </div>
+      ) : (
+        workspace
+      )}
     </ThemeProvider>
   ),
 );

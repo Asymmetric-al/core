@@ -1,0 +1,40 @@
+/* Match the app's stored Inter Latin font and declared weights without Next's font loader. */
+@font-face {
+  font-family: Analytics Fixture Inter;
+  src: url("../../../packages/ui/fonts/inter/latin.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Analytics Fixture Inter;
+  src: url("../../../packages/ui/fonts/inter/latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Analytics Fixture Inter;
+  src: url("../../../packages/ui/fonts/inter/latin.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Analytics Fixture Inter;
+  src: url("../../../packages/ui/fonts/inter/latin.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: Analytics Fixture Inter;
+  src: url("../../../packages/ui/fonts/inter/latin.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.fixture-analytics-fonts {
+  --font-inter: "Analytics Fixture Inter", "Inter Fallback";
+}

@@ -8,7 +8,6 @@ import {
   KpiTile,
   ChartTooltip,
 } from "@asym/ui/components/primitives/chart-wrappers";
-import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Select,
   SelectContent,
@@ -17,14 +16,7 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { cn } from "@asym/ui/lib/utils";
-import {
-  Users,
-  DollarSign,
-  Target,
-  Calendar,
-  Download,
-  Sparkles,
-} from "lucide-react";
+import { Users, DollarSign, Target, Calendar } from "lucide-react";
 import dynamic from "next/dynamic";
 import * as React from "react";
 
@@ -64,6 +56,9 @@ const ResponsiveContainer = loadRechartsComponent("ResponsiveContainer");
 export default function AnalyticsPage() {
   // Route VT owns the entrance when active; only animate on plain mounts.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
+  const [givingTrendPeriod, setGivingTrendPeriod] = React.useState<
+    "6m" | "12m"
+  >("6m");
 
   // Real giving trend: the shared donation-metrics hook aggregates the existing
   // /api/missionaries/[id]/metrics endpoint into per-month recurring/one-time
@@ -76,8 +71,9 @@ export default function AnalyticsPage() {
   } = useDonationMetrics(profile?.id ?? "");
 
   const givingTrend = React.useMemo(
-    () => selectGivingTrend(monthlyBreakdown),
-    [monthlyBreakdown],
+    () =>
+      selectGivingTrend(monthlyBreakdown, givingTrendPeriod === "12m" ? 12 : 6),
+    [monthlyBreakdown, givingTrendPeriod],
   );
   const givingTrendState = resolveGivingTrendState({
     isLoading: authLoading || metricsLoading,
@@ -95,44 +91,31 @@ export default function AnalyticsPage() {
       <PageHeader
         title="Analytics"
         description="Detailed insights into your support network and trends."
-      >
-        <Button variant="outline" size="sm" className="h-9 px-4 text-xs">
-          <Download className="mr-2 size-4" />
-          Download
-        </Button>
-        <Button size="sm" className="h-9 px-4 text-xs">
-          <Sparkles className="mr-2 size-4" />
-          Insights
-        </Button>
-      </PageHeader>
+      />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiTile
           label="Monthly Support"
-          value="$4,250"
-          subtitle="of $5,000 goal"
-          delta={{ value: "12%", trend: "up", label: "vs last month" }}
+          value="Unavailable"
+          subtitle="Monthly support metrics are not available."
           icon={DollarSign}
         />
         <KpiTile
           label="Active Partners"
-          value="42"
-          subtitle="+3 this month"
-          delta={{ value: "8%", trend: "up", label: "vs last month" }}
+          value="Unavailable"
+          subtitle="Partner counts are not available."
           icon={Users}
         />
         <KpiTile
           label="Retention Rate"
-          value="94.2%"
-          subtitle="Past 12 months"
-          delta={{ value: "2%", trend: "up", label: "vs last year" }}
+          value="Unavailable"
+          subtitle="Retention metrics are not available."
           icon={Target}
         />
         <KpiTile
           label="Avg. Gift Size"
-          value="$101"
-          subtitle="Per partner"
-          delta={{ value: "4%", trend: "down", label: "vs last month" }}
+          value="Unavailable"
+          subtitle="Average gift metrics are not available."
           icon={Calendar}
         />
       </div>
@@ -152,9 +135,13 @@ export default function AnalyticsPage() {
               items={[
                 { value: "6m", label: "Last 6m" },
                 { value: "12m", label: "Last 12m" },
-                { value: "all", label: "All Time" },
               ]}
-              defaultValue="6m"
+              value={givingTrendPeriod}
+              onValueChange={(value) => {
+                if (value === "6m" || value === "12m") {
+                  setGivingTrendPeriod(value);
+                }
+              }}
             >
               <SelectTrigger
                 aria-label="Giving trend period"
@@ -165,7 +152,6 @@ export default function AnalyticsPage() {
               <SelectContent className="rounded-lg border-zinc-100">
                 <SelectItem value="6m">Last 6m</SelectItem>
                 <SelectItem value="12m">Last 12m</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
               </SelectContent>
             </Select>
           }
