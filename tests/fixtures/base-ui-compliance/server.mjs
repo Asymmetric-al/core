@@ -41,6 +41,16 @@ await build({
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
         const workspaceFile = importer?.replaceAll("\\", "/");
+        const usesTaskToolbarHooks =
+          workspaceFile?.endsWith("/missionary/app/tasks/page-client.tsx") ||
+          workspaceFile?.endsWith("/missionary/components/task-dialog.tsx");
+        if (source === "@asym/lib/hooks" && usesTaskToolbarHooks)
+          return resolve(fixtureDirectory, "task-toolbar-hooks-stub.ts");
+        if (
+          source === "@asym/database/supabase" &&
+          workspaceFile?.endsWith("/missionary/components/task-dialog.tsx")
+        )
+          return resolve(fixtureDirectory, "task-toolbar-supabase-stub.ts");
         const usesMissionaryLayout = workspaceFile?.endsWith(
           "/missionary/app/_providers/missionary-layout-shell.tsx",
         );
@@ -144,6 +154,7 @@ await build({
         main: resolve(fixtureDirectory, "index.html"),
         support: resolve(fixtureDirectory, "support.html"),
         workspace: resolve(fixtureDirectory, "workspace.html"),
+        taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
       },
       onwarn(warning, warn) {
         // Every imported component runs in this client-only fixture. Rollup can
