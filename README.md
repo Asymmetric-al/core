@@ -4,6 +4,12 @@ A high-performance Next.js 16.3.3 (App Router) Turborepo monorepo for mission-fo
 
 ## Quickstart
 
+For the optional six-agent GitHub issue-to-`develop` workflow, use the
+[Samson Codex Cloud guide](docs/guides/development/samson-codex-cloud.md).
+`node scripts/factory/setup-cloud.mjs` installs frozen dependencies and native
+personal instructions; `--verify-only` checks existing setup without repair.
+The coordinator controls native handoffs; setup does not start an issue trial.
+
 1. **Install prerequisites:** [Node.js 20.9+](https://nodejs.org/), [Bun 1.4.0](https://bun.sh), and Git on your PATH.
 2. **Choose your setup path.**
 
