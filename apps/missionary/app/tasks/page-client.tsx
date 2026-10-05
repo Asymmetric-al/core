@@ -10,7 +10,6 @@ import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -239,6 +238,7 @@ type TasksPageActionsProps = {
   viewMode: ViewMode;
   loading: boolean;
   refresh: () => void | Promise<void>;
+  addTaskRef: React.RefObject<HTMLButtonElement | null>;
   editingTask: Task | null;
   initialStatus: TaskStatus | undefined;
   taskDialogOpen: boolean;
@@ -254,6 +254,7 @@ function TasksPageActions({
   viewMode,
   loading,
   refresh,
+  addTaskRef,
   editingTask,
   initialStatus,
   taskDialogOpen,
@@ -314,7 +315,10 @@ function TasksPageActions({
         }}
         onSuccess={refresh}
         trigger={
-          <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200">
+          <Button
+            ref={addTaskRef}
+            className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200"
+          >
             <Plus className="mr-2 size-4" />
             Add Task
           </Button>
@@ -514,6 +518,7 @@ type TasksContentProps = {
   handleEdit: (task: Task) => void;
   handleComplete: (task: Task) => void | Promise<void>;
   handleDeleteClick: (task: Task) => void;
+  rememberTaskAction: (event: React.SyntheticEvent<HTMLDivElement>) => void;
   handleCreateInStatus: (status: TaskStatus) => void;
   setTaskDialogOpen: (value: React.SetStateAction<boolean>) => void;
 };
@@ -529,6 +534,7 @@ function TasksContent({
   handleEdit,
   handleComplete,
   handleDeleteClick,
+  rememberTaskAction,
   handleCreateInStatus,
   setTaskDialogOpen,
 }: TasksContentProps) {
@@ -588,6 +594,8 @@ function TasksContent({
       ) : displayedTasks.length > 0 ? (
         <motion.div
           key={`list-view-${viewFilter}`}
+          onClickCapture={rememberTaskAction}
+          onFocusCapture={rememberTaskAction}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -631,19 +639,33 @@ function TasksContent({
 type DeleteTaskDialogProps = {
   deleteDialogOpen: boolean;
   taskToDelete: Task | null;
-  setDeleteDialogOpen: (value: React.SetStateAction<boolean>) => void;
+  deleteError: string | null;
+  deletePending: boolean;
+  cancelRef: React.RefObject<HTMLButtonElement | null>;
+  finalFocus: React.ComponentProps<typeof AlertDialogContent>["finalFocus"];
+  onOpenChange: NonNullable<
+    React.ComponentProps<typeof AlertDialog>["onOpenChange"]
+  >;
   handleDeleteConfirm: () => void | Promise<void>;
 };
 
 function DeleteTaskDialog({
   deleteDialogOpen,
   taskToDelete,
-  setDeleteDialogOpen,
+  deleteError,
+  deletePending,
+  cancelRef,
+  finalFocus,
+  onOpenChange,
   handleDeleteConfirm,
 }: DeleteTaskDialogProps) {
   return (
-    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      <AlertDialogContent className="rounded-4xl border-zinc-200">
+    <AlertDialog open={deleteDialogOpen} onOpenChange={onOpenChange}>
+      <AlertDialogContent
+        initialFocus={cancelRef}
+        finalFocus={finalFocus}
+        className="rounded-4xl border-zinc-200"
+      >
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl font-semibold tracking-tight text-zinc-900 uppercase">
             Delete Task
@@ -653,16 +675,40 @@ function DeleteTaskDialog({
             &quot;? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {deletePending ? (
+          <p
+            role="status"
+            aria-atomic="true"
+            className="text-sm text-muted-foreground"
+          >
+            Deleting {taskToDelete?.title}…
+          </p>
+        ) : null}
+        {deleteError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {deleteError}
+          </p>
+        ) : null}
         <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] h-11">
+          <AlertDialogCancel
+            ref={cancelRef}
+            disabled={deletePending}
+            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] h-11"
+          >
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDeleteConfirm}
+          <Button
+            type="button"
+            disabled={deletePending}
+            focusableWhenDisabled={deletePending}
+            onClick={(event) => {
+              event.currentTarget.focus();
+              void handleDeleteConfirm();
+            }}
             className="rounded-xl bg-rose-600 text-white hover:bg-rose-700 font-semibold uppercase tracking-widest text-[10px] h-11 border-none"
           >
-            Delete Task
-          </AlertDialogAction>
+            {deletePending ? "Deleting…" : "Delete Task"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -681,6 +727,14 @@ function TasksPageView() {
     moveTask,
     refresh,
   } = useTasks();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletePending, setDeletePending] = useState(false);
+  const deletionInFlight = React.useRef(false);
+  const deletionSucceeded = React.useRef(false);
+  const addTaskRef = React.useRef<HTMLButtonElement | null>(null);
+  const cancelDeleteRef = React.useRef<HTMLButtonElement | null>(null);
+  const deleteReturnFocus = React.useRef<HTMLButtonElement | null>(null);
+  const deleteReturnTaskId = React.useRef<string | null>(null);
 
   const [state, setState] = useState<TasksPageState>({
     viewFilter: "active",
@@ -857,15 +911,56 @@ function TasksPageView() {
   };
 
   const handleDeleteClick = (task: Task) => {
+    if (deletionInFlight.current) return;
+    deletionSucceeded.current = false;
+    deleteReturnTaskId.current = task.id;
+    setDeleteError(null);
     setTaskToDelete(task);
     setDeleteDialogOpen(true);
   };
 
+  const rememberTaskAction = (event: React.SyntheticEvent<HTMLDivElement>) => {
+    if (deleteDialogOpen || !(event.target instanceof Element)) return;
+    const button = event.target.closest<HTMLButtonElement>("button");
+    if (button && event.currentTarget.contains(button)) {
+      deleteReturnFocus.current = button;
+    }
+  };
+
   const handleDeleteConfirm = async () => {
-    if (taskToDelete) {
-      await deleteTask(taskToDelete.id);
-      setDeleteDialogOpen(false);
+    if (taskToDelete && !deletionInFlight.current) {
+      deletionInFlight.current = true;
+      setDeletePending(true);
+      setDeleteError(null);
+      try {
+        const deleted = await deleteTask(taskToDelete.id);
+        if (deleted === true) {
+          deletionSucceeded.current = true;
+          setDeleteDialogOpen(false);
+          setTaskToDelete(null);
+        } else {
+          setDeleteError("Could not delete this task. Please try again.");
+        }
+      } catch {
+        setDeleteError("Could not delete this task. Please try again.");
+      }
+      deletionInFlight.current = false;
+      setDeletePending(false);
+    }
+  };
+
+  const handleDeleteOpenChange: DeleteTaskDialogProps["onOpenChange"] = (
+    open,
+    details,
+  ) => {
+    if (!open && deletionInFlight.current) {
+      details.cancel();
+      return;
+    }
+    setDeleteDialogOpen(open);
+    if (!open) {
       setTaskToDelete(null);
+      setDeleteError(null);
     }
   };
 
@@ -903,6 +998,7 @@ function TasksPageView() {
           viewMode={viewMode}
           loading={loading}
           refresh={refresh}
+          addTaskRef={addTaskRef}
           editingTask={editingTask}
           initialStatus={initialStatus}
           taskDialogOpen={taskDialogOpen}
@@ -945,6 +1041,7 @@ function TasksPageView() {
           handleEdit={handleEdit}
           handleComplete={handleComplete}
           handleDeleteClick={handleDeleteClick}
+          rememberTaskAction={rememberTaskAction}
           handleCreateInStatus={handleCreateInStatus}
           setTaskDialogOpen={setTaskDialogOpen}
         />
@@ -952,7 +1049,21 @@ function TasksPageView() {
         <DeleteTaskDialog
           deleteDialogOpen={deleteDialogOpen}
           taskToDelete={taskToDelete}
-          setDeleteDialogOpen={setDeleteDialogOpen}
+          deleteError={deleteError}
+          deletePending={deletePending}
+          cancelRef={cancelDeleteRef}
+          finalFocus={() => {
+            const taskIsVisible = displayedTasks.some(
+              (task) => task.id === deleteReturnTaskId.current,
+            );
+            return !deletionSucceeded.current &&
+              !error &&
+              taskIsVisible &&
+              deleteReturnFocus.current?.isConnected
+              ? deleteReturnFocus.current
+              : addTaskRef.current;
+          }}
+          onOpenChange={handleDeleteOpenChange}
           handleDeleteConfirm={handleDeleteConfirm}
         />
       </div>
