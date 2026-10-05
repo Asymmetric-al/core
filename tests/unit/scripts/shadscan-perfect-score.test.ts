@@ -9,6 +9,7 @@ vi.mock("@shadscan/cli", () => ({
   RULE_CATALOG: [
     { id: "foundation-major", category: "foundation", maxScore: 1000 },
     { id: "foundation-minor", category: "foundation", maxScore: 1 },
+    { id: "foundation-informational", category: "foundation", maxScore: 0 },
     ...[
       "interaction",
       "states",
@@ -58,7 +59,7 @@ function roundedReportFixture() {
           status: failed ? "fail" : "pass",
           maxScore: rule.maxScore,
           score: failed ? 0 : rule.maxScore,
-          impactsScore: true,
+          impactsScore: rule.maxScore > 0,
           evidence: [],
         };
       }),
@@ -91,7 +92,65 @@ function roundedReportFixture() {
   return { report, policy };
 }
 
+function advisoryReportFixture(ruleId = "foundation-minor") {
+  const fixture = roundedReportFixture();
+  for (const finding of fixture.report.findings) {
+    finding.status = "pass";
+    finding.score = finding.maxScore;
+  }
+  for (const category of fixture.report.categories) {
+    category.score = category.maxScore;
+  }
+  const finding = fixture.report.findings.find(
+    (item) => item.packageDir === "apps/admin" && item.id === ruleId,
+  )!;
+  finding.status = "advisory";
+  finding.impactsScore = false;
+  return fixture;
+}
+
 describe("Shadscan genuine perfect-score gate", () => {
+  it("preserves existing raw category floors before activating a perfect application target", () => {
+    const { report, policy } = advisoryReportFixture();
+    expect(validateReport(report, policy)).toBe(report);
+    policy.applicationCategoryFloors["apps/admin"]!.foundation = 100;
+    expect(validateReport(report, policy)).toBe(report);
+    policy.applicationFloors["apps/admin"] = 100;
+    expect(() => validateReport(report, policy)).toThrow(
+      /unresolved scored advisory/,
+    );
+  });
+
+  it("rejects unresolved scored advisories at a 100 overall floor", () => {
+    const { report, policy } = advisoryReportFixture();
+    expect(validateReport(report, policy)).toBe(report);
+    policy.applicationFloors["apps/admin"] = 100;
+    expect(() => validateReport(report, policy)).toThrow(
+      /apps\/admin.*unresolved scored advisory/,
+    );
+  });
+
+  it("retains zero-point advisories without making them a score-bearing defect", () => {
+    const { report, policy } = advisoryReportFixture(
+      "foundation-informational",
+    );
+    policy.applicationFloors["apps/admin"] = 100;
+    policy.applicationCategoryFloors["apps/admin"]!.foundation = 100;
+    expect(validateReport(report, policy)).toBe(report);
+    expect(
+      report.findings.find((item) => item.id === "foundation-informational")
+        ?.status,
+    ).toBe("advisory");
+  });
+
+  it("keeps a perfect category independent from another category's unresolved advisory", () => {
+    const { report, policy } = advisoryReportFixture();
+    policy.applicationCategoryFloors["apps/admin"]!.interaction = 100;
+    const before = structuredClone(report);
+    expect(validateReport(report, policy)).toBe(report);
+    expect(report).toEqual(before);
+  });
+
   it("rejects a scored failure even when every reported percentage rounds to 100", () => {
     const { report, policy } = roundedReportFixture();
     expect(validateReport(report, policy)).toBe(report);
