@@ -1,6 +1,16 @@
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, realpathSync, statSync } from "node:fs";
+import { createHash, X509Certificate } from "node:crypto";
+import {
+  closeSync,
+  constants,
+  fstatSync,
+  openSync,
+  readFileSync,
+  readSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { stripVTControlCharacters } from "node:util";
@@ -234,6 +244,116 @@ function installedCliEntry(root) {
   return entry;
 }
 
+function validatePublicCa(file) {
+  let descriptor;
+  try {
+    const absoluteFile = realpathSync(path.resolve(file));
+    descriptor = openSync(
+      absoluteFile,
+      constants.O_RDONLY | constants.O_NONBLOCK,
+    );
+    const limit = 1024 * 1024;
+    const metadata = fstatSync(descriptor);
+    if (!metadata.isFile() || metadata.size > limit) throw new Error();
+    // Limit the read even if the public trust file grows after fstat.
+    const bytes = Buffer.alloc(limit + 1);
+    let length = 0;
+    for (;;) {
+      const count = readSync(descriptor, bytes, length, bytes.length - length);
+      length += count;
+      if (length > limit) throw new Error();
+      if (count === 0) break;
+    }
+    const pem = new TextDecoder("utf-8", { fatal: true }).decode(
+      bytes.subarray(0, length),
+    );
+    const certificates = [
+      ...pem.matchAll(
+        /-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/g,
+      ),
+    ];
+    if (
+      certificates.length === 0 ||
+      pem
+        .replace(
+          /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,
+          "",
+        )
+        .trim()
+    )
+      throw new Error();
+    for (const certificate of certificates) {
+      const payload = certificate[1].replace(/\s/g, "");
+      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(payload)) throw new Error();
+      const der = Buffer.from(payload, "base64");
+      if (
+        der.toString("base64") !== payload ||
+        !new X509Certificate(der).raw.equals(der)
+      )
+        throw new Error();
+    }
+    return absoluteFile;
+  } catch {
+    throw new Error("Invalid public CA certificate transport");
+  } finally {
+    if (descriptor !== undefined) {
+      try {
+        closeSync(descriptor);
+      } catch {
+        throw new Error("Invalid public CA certificate transport");
+      }
+    }
+  }
+}
+
+function approvedProxyEnvironment() {
+  const proxies = {};
+  for (const key of [
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "http_proxy",
+    "https_proxy",
+  ]) {
+    const value = process.env[key];
+    // An empty lowercase setting disables its uppercase counterpart in undici.
+    if (value === undefined || value === "") continue;
+    let url;
+    try {
+      url = new URL(value);
+    } catch {
+      throw new Error("Invalid approved HTTP(S) proxy transport");
+    }
+    requireCondition(
+      /^https?:\/\/[^/?#@\\\s]+\/?$/i.test(value) &&
+        ["http:", "https:"].includes(url.protocol) &&
+        Boolean(url.hostname) &&
+        !url.username &&
+        !url.password &&
+        !url.search &&
+        !url.hash &&
+        url.pathname === "/",
+      "Invalid approved HTTP(S) proxy transport",
+    );
+  }
+  // Resolve precedence rather than forwarding ignored or unsupported variables.
+  // The pinned registry client already uses EnvHttpProxyAgent. Forward only
+  // approved routes and an optional validated existing public CA bundle;
+  // TLS overrides, NODE_OPTIONS, ALL_PROXY and NO_PROXY remain excluded.
+  for (const key of ["HTTP_PROXY", "HTTPS_PROXY"]) {
+    const value = process.env[key.toLowerCase()] ?? process.env[key];
+    if (value) proxies[key] = value;
+  }
+  if (
+    Object.keys(proxies).length > 0 &&
+    process.env.NODE_EXTRA_CA_CERTS !== undefined
+  ) {
+    proxies.NODE_EXTRA_CA_CERTS = validatePublicCa(
+      process.env.NODE_EXTRA_CA_CERTS,
+    );
+  }
+  return proxies;
+}
+
 export function createCliRunner({
   cwd,
   root = fileURLToPath(new URL("../..", import.meta.url)),
@@ -263,6 +383,7 @@ export function createCliRunner({
       .filter((key) => process.env[key] !== undefined)
       .map((key) => [key, process.env[key]]),
   );
+  Object.assign(environment, approvedProxyEnvironment());
   environment.NO_COLOR = "1";
   environment.COLUMNS = "80";
   return (args) =>
