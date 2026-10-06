@@ -8,7 +8,7 @@ type CmsRequestUser = {
   publicTenantId?: string | null;
 };
 
-export type TenantContext = {
+type TenantContext = {
   isAuthenticated: boolean;
   userId: string | null;
   /**

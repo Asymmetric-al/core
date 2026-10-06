@@ -262,38 +262,40 @@ function TeamMembersTab({
           </Button>
         </div>
         <div className="grid gap-3">
-          {members
-            .filter((member) => member.team === selectedTeam.name)
-            .map((member) => (
-              <div
-                key={member.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex min-w-0 flex-col">
-                    <span className="break-words text-sm font-semibold text-foreground">
-                      {member.name}
-                    </span>
-                    <span className="break-all text-xs text-muted-foreground">
-                      {member.email}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{member.role}</Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Open actions for ${member.name}`}
+          {members.flatMap((member) =>
+            member.team === selectedTeam.name
+              ? [
+                  <div
+                    key={member.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3"
                   >
-                    <MoreHorizontal />
-                  </Button>
-                </div>
-              </div>
-            ))}
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex min-w-0 flex-col">
+                        <span className="break-words text-sm font-semibold text-foreground">
+                          {member.name}
+                        </span>
+                        <span className="break-all text-xs text-muted-foreground">
+                          {member.email}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{member.role}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`Open actions for ${member.name}`}
+                      >
+                        <MoreHorizontal />
+                      </Button>
+                    </div>
+                  </div>,
+                ]
+              : [],
+          )}
         </div>
       </div>
     </TabsContent>

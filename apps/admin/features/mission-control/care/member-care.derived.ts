@@ -218,16 +218,18 @@ export function getDueCareTasks(
   now = new Date(),
 ): CarePlanTask[] {
   return tasks
-    .filter((task) => task.status !== "completed")
-    .map((task) => {
+    .flatMap((task) => {
+      if (!(task.status !== "completed")) return [];
       const isPastDue = toDate(task.dueDate) < now;
-      return {
-        ...task,
-        status:
-          isPastDue && task.status === "pending"
-            ? ("overdue" as const)
-            : task.status,
-      };
+      return [
+        {
+          ...task,
+          status:
+            isPastDue && task.status === "pending"
+              ? ("overdue" as const)
+              : task.status,
+        },
+      ];
     })
     .sort((a, b) => toDate(a.dueDate).getTime() - toDate(b.dueDate).getTime());
 }

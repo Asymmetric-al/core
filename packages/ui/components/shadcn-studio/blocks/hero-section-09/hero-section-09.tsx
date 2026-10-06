@@ -15,7 +15,7 @@ import { cn } from "@asym/ui/lib/utils";
 
 const HeroSection = () => {
   return (
-    <section className="bg-muted -mt-16 flex min-h-screen w-full pt-16">
+    <section className="bg-muted -mt-16 flex min-h-dvh w-full pt-16">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative flex h-full items-start">
           <div className="z-1 flex w-full flex-col items-center gap-7 py-32 max-lg:text-center lg:items-start lg:py-12">

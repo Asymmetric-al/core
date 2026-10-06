@@ -100,7 +100,7 @@ export function RunMacroPopover({
               disabled={busyMacroId !== null}
             >
               <div className="flex w-full items-center justify-between gap-2">
-                <span className="text-[13px] font-medium text-zinc-900">
+                <span className="text-xs font-medium text-zinc-900">
                   {macro.name}
                 </span>
                 {busyMacroId === macro.id ? (
@@ -108,7 +108,7 @@ export function RunMacroPopover({
                 ) : null}
               </div>
               {macro.description ? (
-                <p className="text-[11px] text-zinc-500">{macro.description}</p>
+                <p className="text-xs text-zinc-500">{macro.description}</p>
               ) : null}
               <MacroPreviewLine actions={macro.actions} />
             </CommandItem>

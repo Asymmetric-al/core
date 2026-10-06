@@ -12,12 +12,12 @@ export function Logo() {
           {brandConfig.name}
         </span>
         <div className="mt-1 flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-muted-foreground">
+          <span className="text-xs font-semibold tracking-[0.18em] uppercase text-muted-foreground">
             Site Studio
           </span>
           <Badge
             variant="secondary"
-            className="h-4 px-1.5 text-[9px] font-semibold uppercase"
+            className="h-4 px-1.5 font-semibold uppercase"
           >
             CMS
           </Badge>

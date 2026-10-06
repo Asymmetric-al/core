@@ -61,10 +61,7 @@ export function AutomationActionRow({
           if (value !== null) handleKindChange(value);
         }}
       >
-        <SelectTrigger
-          aria-label="Action type"
-          className="h-8 min-w-45 text-[12px]"
-        >
+        <SelectTrigger aria-label="Action type" className="h-8 min-w-45">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -89,7 +86,7 @@ export function AutomationActionRow({
             onChange({ kind: "assign_agent", agentId: value });
           }}
           aria-label="Assigned agent"
-          className="h-8 min-w-50 text-[12px]"
+          className="h-8 min-w-50"
           placeholder="Pick an agent"
         />
       ) : null}
@@ -110,7 +107,7 @@ export function AutomationActionRow({
             onChange({ kind: "assign_team", teamId: value });
           }}
           aria-label="Assigned team"
-          className="h-8 min-w-50 text-[12px]"
+          className="h-8 min-w-50"
           placeholder="Pick a team"
         />
       ) : null}
@@ -128,7 +125,7 @@ export function AutomationActionRow({
             onChange({ kind: "add_label", labelId: value });
           }}
           aria-label="Label to add"
-          className="h-8 min-w-50 text-[12px]"
+          className="h-8 min-w-50"
           placeholder="Pick a label"
         />
       ) : null}
@@ -150,10 +147,7 @@ export function AutomationActionRow({
             });
           }}
         >
-          <SelectTrigger
-            aria-label="Priority"
-            className="h-8 min-w-35 text-[12px]"
-          >
+          <SelectTrigger aria-label="Priority" className="h-8 min-w-35">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -183,10 +177,7 @@ export function AutomationActionRow({
             });
           }}
         >
-          <SelectTrigger
-            aria-label="Status"
-            className="h-8 min-w-35 text-[12px]"
-          >
+          <SelectTrigger aria-label="Status" className="h-8 min-w-35">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -210,7 +201,7 @@ export function AutomationActionRow({
               hours: Number(event.target.value) || 1,
             })
           }
-          className="h-8 w-30 font-mono text-[12px]"
+          className="h-8 w-30 font-mono"
         />
       ) : null}
 
@@ -227,7 +218,7 @@ export function AutomationActionRow({
             onChange({ kind: "run_macro", macroId: value });
           }}
           aria-label="Macro to run"
-          className="h-8 min-w-55 text-[12px]"
+          className="h-8 min-w-55"
           placeholder="Pick a macro"
         />
       ) : null}

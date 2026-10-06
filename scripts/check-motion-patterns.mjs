@@ -28,6 +28,7 @@
  */
 
 import { readFile, stat } from "node:fs/promises";
+import { lstatSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -42,6 +43,7 @@ const IGNORE_PREFIXES = [
   ".cursor/skills/",
   ".agents/skills/",
   "docs/ai/skills/",
+  "packages/eve-runtime/skill-catalog/",
   "docs/ai/rules/frontend.md",
   "scripts/check-motion-patterns.mjs",
 ];
@@ -69,18 +71,43 @@ const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 const JS_LITERALS = new Set(["true", "false", "null", "undefined"]);
 
 function shouldScan(rel) {
-  return !IGNORE_PREFIXES.some((p) => rel.startsWith(p));
+  return (
+    !IGNORE_PREFIXES.some((p) => rel.startsWith(p)) &&
+    !rel.split("/").some((part) => part.startsWith(".catalog-stage-")) &&
+    !/^packages\/eve-runtime\/agent\/subagents\/[^/]+\/skills\//.test(rel)
+  );
 }
 
-export function listScanTargets() {
-  const out = spawnSync("git", ["ls-files", "--", ...SCAN_GLOBS], {
-    cwd: repoRoot,
-    encoding: "utf8",
-  });
+export function listScanTargets(root = repoRoot) {
+  const out = spawnSync(
+    "git",
+    [
+      "ls-files",
+      "-z",
+      "--cached",
+      "--others",
+      "--exclude-standard",
+      "--",
+      ...SCAN_GLOBS,
+    ],
+    {
+      cwd: root,
+      encoding: "utf8",
+    },
+  );
   if (out.status !== 0) {
     throw new Error(out.stderr || "git ls-files failed");
   }
-  return out.stdout.split("\n").filter(Boolean).filter(shouldScan);
+  return [...new Set(out.stdout.split("\0").filter(Boolean))]
+    .filter(shouldScan)
+    .filter((rel) => {
+      try {
+        return lstatSync(path.join(root, rel)).isFile();
+      } catch (error) {
+        if (error.code === "ENOENT") return false;
+        throw error;
+      }
+    });
 }
 
 function listMatchingFiles() {

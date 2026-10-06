@@ -15,30 +15,30 @@ import React from "react";
 import { PersonnelList } from "@/features/mission-control/care/components/PersonnelList";
 import { useCarePersonnel } from "@/features/mission-control/care/hooks/use-care";
 
+const careDirectoryActions = (
+  <>
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-10 rounded-xl border-zinc-200 px-4 font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
+    >
+      <Download className="mr-2 size-4 text-zinc-500" /> Export
+    </Button>
+    <Button className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800">
+      <Plus className="mr-2 size-4" /> Add Personnel
+    </Button>
+  </>
+);
+
 export default function CareDirectoryPage() {
   const { data: personnel, isLoading } = useCarePersonnel();
-
-  const actions = (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-10 rounded-xl border-zinc-200 px-4 font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
-      >
-        <Download className="mr-2 size-4 text-zinc-500" /> Export
-      </Button>
-      <Button className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800">
-        <Plus className="mr-2 size-4" /> Add Personnel
-      </Button>
-    </>
-  );
 
   return (
     <PageShell
       title="Personnel Directory"
       description="Manage and monitor all global team members."
       density="compact"
-      actions={actions}
+      actions={careDirectoryActions}
     >
       <Card className="overflow-hidden rounded-2xl border-zinc-200/70 shadow-sm">
         <CardHeader className="border-b border-zinc-100 bg-zinc-50/30 p-5">

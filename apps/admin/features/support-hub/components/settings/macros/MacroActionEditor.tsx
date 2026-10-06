@@ -23,6 +23,7 @@ import {
 } from "../../../hooks/use-support-agents";
 import { useSupportCannedResponses } from "../../../hooks/use-support-canned-responses";
 import { useSupportLabels } from "../../../hooks/use-support-labels";
+import { createDraftRow, type DraftRow } from "../draft-rows";
 
 import type { SupportMacroAction } from "../../../types";
 
@@ -39,48 +40,50 @@ const ACTION_KINDS: SupportMacroAction["kind"][] = [
 ];
 
 interface MacroActionEditorProps {
-  actions: SupportMacroAction[];
-  onChange: (next: SupportMacroAction[]) => void;
+  rows: DraftRow<SupportMacroAction>[];
+  onChange: (next: DraftRow<SupportMacroAction>[]) => void;
 }
 
-export function MacroActionEditor({
-  actions,
-  onChange,
-}: MacroActionEditorProps) {
+export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
   const { data: labels } = useSupportLabels();
   const { data: cannedResponses } = useSupportCannedResponses();
   const { data: agents } = useSupportAgents();
   const teams = useSupportTeams();
 
   const handleAdd = () => {
-    onChange([...actions, defaultActionForKind("set_status")]);
+    onChange([...rows, createDraftRow(defaultActionForKind("set_status"))]);
   };
 
   const handleRemove = (index: number) => {
-    onChange(actions.filter((_, i) => i !== index));
+    onChange(rows.filter((_, i) => i !== index));
   };
 
   const handleKindChange = (
     index: number,
     kind: SupportMacroAction["kind"],
   ) => {
-    const next = [...actions];
-    next[index] = defaultActionForKind(kind);
+    const next = [...rows];
+    const current = next[index];
+    if (!current) return;
+    next[index] = { ...current, value: defaultActionForKind(kind) };
     onChange(next);
   };
 
   const handlePatch = (index: number, patch: Partial<SupportMacroAction>) => {
-    const next = [...actions];
+    const next = [...rows];
     const current = next[index];
     if (!current) return;
-    next[index] = { ...current, ...patch } as SupportMacroAction;
+    next[index] = {
+      ...current,
+      value: { ...current.value, ...patch } as SupportMacroAction,
+    };
     onChange(next);
   };
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-white p-3">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           Actions
         </span>
         <Button
@@ -88,22 +91,22 @@ export function MacroActionEditor({
           variant="ghost"
           size="sm"
           onClick={handleAdd}
-          className="h-7 gap-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider"
+          className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
         >
           <Plus className="size-3" />
           Add action
         </Button>
       </div>
 
-      {actions.length === 0 ? (
-        <p className="text-[12px] text-zinc-500">
+      {rows.length === 0 ? (
+        <p className="text-xs text-zinc-500">
           No actions yet. Add at least one to save the macro.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {actions.map((action, index) => (
+          {rows.map(({ id, value: action }, index) => (
             <li
-              key={index}
+              key={id}
               className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2"
             >
               <Select
@@ -120,7 +123,7 @@ export function MacroActionEditor({
               >
                 <SelectTrigger
                   aria-label={`Action ${index + 1} type`}
-                  className="h-8 min-w-42.5 text-[12px]"
+                  className="h-8 min-w-42.5"
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -152,7 +155,7 @@ export function MacroActionEditor({
                 >
                   <SelectTrigger
                     aria-label={`Action ${index + 1} status`}
-                    className="h-8 min-w-35 text-[12px]"
+                    className="h-8 min-w-35"
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -185,7 +188,7 @@ export function MacroActionEditor({
                 >
                   <SelectTrigger
                     aria-label={`Action ${index + 1} priority`}
-                    className="h-8 min-w-35 text-[12px]"
+                    className="h-8 min-w-35"
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -218,7 +221,7 @@ export function MacroActionEditor({
                     });
                   }}
                   aria-label={`Action ${index + 1} agent`}
-                  className="h-8 min-w-50 text-[12px]"
+                  className="h-8 min-w-50"
                   placeholder="Pick an agent"
                 />
               ) : null}
@@ -239,7 +242,7 @@ export function MacroActionEditor({
                     handlePatch(index, { kind: "assign_team", teamId: value });
                   }}
                   aria-label={`Action ${index + 1} team`}
-                  className="h-8 min-w-50 text-[12px]"
+                  className="h-8 min-w-50"
                   placeholder="Pick a team"
                 />
               ) : null}
@@ -263,7 +266,7 @@ export function MacroActionEditor({
                     } as SupportMacroAction);
                   }}
                   aria-label={`Action ${index + 1} label`}
-                  className="h-8 min-w-45 text-[12px]"
+                  className="h-8 min-w-45"
                   placeholder="Pick a label"
                 />
               ) : null}
@@ -287,7 +290,7 @@ export function MacroActionEditor({
                     });
                   }}
                   aria-label={`Action ${index + 1} canned response`}
-                  className="h-8 min-w-55 text-[12px]"
+                  className="h-8 min-w-55"
                   placeholder="Pick a canned response"
                 />
               ) : null}
@@ -303,7 +306,7 @@ export function MacroActionEditor({
                       hours: Number(event.target.value) || 1,
                     })
                   }
-                  className="h-8 w-25 font-mono text-[12px]"
+                  className="h-8 w-25 font-mono"
                   aria-label="Hours to snooze"
                 />
               ) : null}
@@ -318,7 +321,7 @@ export function MacroActionEditor({
                     })
                   }
                   placeholder="Note text"
-                  className="h-8 min-w-60 text-[12px]"
+                  className="h-8 min-w-60"
                 />
               ) : null}
 

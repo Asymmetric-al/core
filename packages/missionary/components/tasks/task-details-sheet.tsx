@@ -285,13 +285,12 @@ function TaskDetailsPartnerSection({ donor }: { donor: Task["donor"] }) {
               )}
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          <span
+            className="flex size-8 shrink-0 items-center justify-center text-muted-foreground"
+            aria-hidden
           >
             <ExternalLink className="size-4" />
-          </Button>
+          </span>
         </div>
       ) : (
         <div className="p-6 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center">

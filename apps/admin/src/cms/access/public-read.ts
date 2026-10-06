@@ -34,7 +34,7 @@ const MEDIA_IMAGE_SIZE_FILENAME_FIELDS = [
   "sizes.card.filename",
 ] as const;
 
-export type PublicReadContext = {
+type PublicReadContext = {
   /** The resolved CMS tenant document id (`cms` schema). */
   cmsTenantId: number | string;
 };

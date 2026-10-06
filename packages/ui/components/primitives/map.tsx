@@ -21,6 +21,14 @@ import { createPortal } from "react-dom";
 
 import { cn } from "@asym/ui/lib/utils";
 
+const mapOverlayPositions = {
+  "top-left": "top-4 left-4",
+  "top-right": "top-4 right-4",
+  "bottom-left": "bottom-4 left-4",
+  "bottom-right": "bottom-4 right-4",
+  center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+};
+
 type MapContextValue = {
   map: maplibregl.Map | null;
   isLoaded: boolean;
@@ -86,7 +94,7 @@ function Loader() {
           Loading Map
         </span>
         <div className="flex gap-1">
-          <span className="size-1 rounded-full bg-primary animate-bounce" />
+          <span className="size-1 rounded-full bg-primary" />
           <span className="size-1 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
           <span className="size-1 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
         </div>
@@ -510,16 +518,10 @@ export function MapOverlay({
     | "bottom-right"
     | "center";
 }) {
-  const positions = {
-    "top-left": "top-4 left-4",
-    "top-right": "top-4 right-4",
-    "bottom-left": "bottom-4 left-4",
-    "bottom-right": "bottom-4 right-4",
-    center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-  };
-
   return (
-    <div className={cn("absolute z-10", positions[position], className)}>
+    <div
+      className={cn("absolute z-10", mapOverlayPositions[position], className)}
+    >
       {children}
     </div>
   );
@@ -785,8 +787,8 @@ export function MapLegend({
       position={position}
       className={cn("hidden lg:block", className)}
     >
-      <div className="bg-popover/90 border-border/80 ring-border/40 min-w-40 rounded-2xl border p-4 shadow-xl ring-1 backdrop-blur-xl">
-        <p className="text-muted-foreground mb-3 text-[10px] font-bold uppercase tracking-wider">
+      <div className="bg-popover/90 border-border/80 ring-border/40 min-w-40 rounded-2xl border p-4 shadow-sm ring-1 backdrop-blur-xl">
+        <p className="text-muted-foreground mb-3 text-xs font-bold uppercase tracking-wider">
           {title}
         </p>
         <div className="space-y-2.5">{children}</div>

@@ -71,13 +71,13 @@ export function CannedResponseList() {
                   <MessageSquareText className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-[13px] font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-zinc-900">
                     {row.title}
-                    <span className="ml-2 inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500">
+                    <span className="ml-2 inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-xs text-zinc-500">
                       /{row.shortCode}
                     </span>
                   </span>
-                  <span className="truncate text-[11px] text-zinc-500">
+                  <span className="truncate text-xs text-zinc-500">
                     {row.bodyText.slice(0, 160)}
                     {row.bodyText.length > 160 ? "…" : ""}
                   </span>

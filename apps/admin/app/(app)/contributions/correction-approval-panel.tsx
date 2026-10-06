@@ -12,7 +12,7 @@ import { CircleCheck, LoaderCircle } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
-import { invalidateContributionOperationQueries } from "./contribution-detail-overlay";
+import { invalidateContributionOperationQueries } from "./contribution-detail-query";
 import {
   ReceiptDeliveryChoiceField,
   type ContributionReceiptDeliveryContext,
@@ -146,7 +146,7 @@ export function CorrectionApprovalPanel({
         className="space-y-3"
         data-testid="correction-approval-panel"
       >
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Correction approvals
         </p>
         {pendingRequests.map((request) => (

@@ -70,11 +70,11 @@ export function MacroList() {
                   <Wand2 className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-[13px] font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-zinc-900">
                     {macro.name}
                   </span>
                   {macro.description ? (
-                    <span className="text-[11px] text-zinc-500">
+                    <span className="text-xs text-zinc-500">
                       {macro.description}
                     </span>
                   ) : null}

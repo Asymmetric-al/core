@@ -20,7 +20,7 @@ import type { ReactNode } from "react";
 type ContributionsPageComponent =
   typeof import("../../../../../apps/admin/app/(app)/contributions/page-client").default;
 type InvalidateContributionOperationQueries =
-  typeof import("../../../../../apps/admin/app/(app)/contributions/page-client").invalidateContributionOperationQueries;
+  typeof import("../../../../../apps/admin/app/(app)/contributions/contribution-detail-query").invalidateContributionOperationQueries;
 type ContributionsDataModule =
   typeof import("../../../../../apps/admin/app/(app)/contributions/data");
 type UseAdminContributionsModule =
@@ -465,8 +465,9 @@ async function loadEnvSensitiveModules() {
     await import("../../../../../apps/admin/app/(app)/contributions/page-client");
 
   ContributionsPage = pageClientModule.default;
-  invalidateContributionOperationQueries =
-    pageClientModule.invalidateContributionOperationQueries;
+  invalidateContributionOperationQueries = (
+    await import("../../../../../apps/admin/app/(app)/contributions/contribution-detail-query")
+  ).invalidateContributionOperationQueries;
   boneyardContributionsFixture = dataModule.boneyardContributionsFixture;
   mockContributions = dataModule.mockContributions;
   loadMockAdminContributions =

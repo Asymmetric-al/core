@@ -92,7 +92,7 @@ export interface MacroActionOutcome {
   message: string;
 }
 
-export interface MacroRunResult {
+interface MacroRunResult {
   macroId: string;
   conversationId: string;
   outcomes: MacroActionOutcome[];

@@ -36,7 +36,7 @@ export function WorkerProfileHeroWithViewTransitions({
             quality={85}
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+            className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"
             aria-hidden="true"
           />
           <figcaption className="absolute bottom-5 left-5 text-white flex items-center gap-2">
@@ -67,7 +67,7 @@ export function WorkerProfileHeroWithViewTransitions({
                 {worker.title}
               </h1>
             </SharedNamedViewTransition>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[11px] font-semibold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold uppercase tracking-wider">
               <ShieldCheck className="size-3.5" aria-hidden="true" /> Verified
             </div>
           </div>

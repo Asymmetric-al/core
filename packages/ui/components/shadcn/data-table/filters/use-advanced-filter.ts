@@ -40,18 +40,18 @@ export function useAdvancedFilter({
   initialFilter,
   onFilterChange,
 }: UseAdvancedFilterOptions): UseAdvancedFilterReturn {
-  const [filter, setFilterState] = useState<AdvancedFilterState>(
+  const [filterState, setFilterState] = useState<AdvancedFilterState>(
     initialFilter ?? createEmptyFilterState(),
   );
   // Latest filter for event handlers. React may replay state updater
   // functions, so `onFilterChange` must not run inside them; deriving the
   // next state from this ref keeps updaters pure while still letting several
   // actions in one tick build on each other.
-  const filterRef = useRef(filter);
+  const filterRef = useRef(filterState);
 
   useEffect(() => {
-    filterRef.current = filter;
-  }, [filter]);
+    filterRef.current = filterState;
+  }, [filterState]);
 
   const commit = useCallback(
     (next: AdvancedFilterState) => {
@@ -121,18 +121,18 @@ export function useAdvancedFilter({
   );
 
   const toColumnFilters = useCallback((): ColumnFiltersState => {
-    return filter.conditions.map((condition: FilterCondition) => ({
+    return filterState.conditions.map((condition: FilterCondition) => ({
       id: condition.field,
       value: {
         operator: condition.operator,
         value: condition.value,
       },
     }));
-  }, [filter]);
+  }, [filterState]);
 
   const toUrlParam = useCallback((): string => {
-    return serializeFilter(filter);
-  }, [filter]);
+    return serializeFilter(filterState);
+  }, [filterState]);
 
   const fromUrlParam = useCallback(
     (param: string) => {
@@ -145,7 +145,7 @@ export function useAdvancedFilter({
   );
 
   return {
-    filter,
+    filter: filterState,
     setFilter,
     resetFilter,
     addCondition,

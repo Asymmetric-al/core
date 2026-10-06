@@ -31,7 +31,7 @@ function TextCellEditor<TData extends RowData>({
     inputRef.current?.select();
   }, []);
 
-  const handleChange = useCallback(
+  const handleTextChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setLocalValue(e.target.value);
     },
@@ -52,7 +52,7 @@ function TextCellEditor<TData extends RowData>({
     [localValue, onValueChange, onEditComplete, onEditCancel],
   );
 
-  const handleBlur = useCallback(() => {
+  const handleTextBlur = useCallback(() => {
     onValueChange?.(localValue || null);
     onEditComplete?.();
   }, [localValue, onValueChange, onEditComplete]);
@@ -60,9 +60,6 @@ function TextCellEditor<TData extends RowData>({
   const commonProps = {
     "aria-label": cellEditorAccessibleName(cell),
     value: localValue,
-    onChange: handleChange,
-    onKeyDown: handleKeyDown,
-    onBlur: handleBlur,
     placeholder,
     maxLength,
     className: cn(
@@ -76,7 +73,14 @@ function TextCellEditor<TData extends RowData>({
     return (
       <Textarea
         ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-        {...commonProps}
+        aria-label={commonProps["aria-label"]}
+        value={commonProps.value}
+        onChange={handleTextChange}
+        onKeyDown={handleKeyDown}
+        onBlur={handleTextBlur}
+        placeholder={commonProps.placeholder}
+        maxLength={commonProps.maxLength}
+        disabled={commonProps.disabled}
         rows={2}
         className={cn(commonProps.className, "resize-none")}
       />
@@ -87,7 +91,15 @@ function TextCellEditor<TData extends RowData>({
     <Input
       ref={inputRef as React.RefObject<HTMLInputElement>}
       type="text"
-      {...commonProps}
+      aria-label={commonProps["aria-label"]}
+      value={commonProps.value}
+      onChange={handleTextChange}
+      onKeyDown={handleKeyDown}
+      onBlur={handleTextBlur}
+      placeholder={commonProps.placeholder}
+      maxLength={commonProps.maxLength}
+      disabled={commonProps.disabled}
+      className={commonProps.className}
     />
   );
 }
@@ -118,7 +130,7 @@ export function TextCell<TData extends RowData>({
         placeholder={placeholder}
         maxLength={maxLength}
         multiline={multiline}
-        isEditing={true}
+        isEditing
         row={row}
         cell={cell}
       />

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
-export function TileCardSkeleton() {
+function TileCardSkeleton() {
   return (
     <Card className="flex flex-col">
       <CardHeader className="pb-2">
@@ -21,7 +21,7 @@ export function TileCardSkeleton() {
   );
 }
 
-export function TilesGridSkeleton() {
+function TilesGridSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (

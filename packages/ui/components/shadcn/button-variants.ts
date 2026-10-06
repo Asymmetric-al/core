@@ -1,9 +1,6 @@
-import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 
-import { mergeBaseUIClassName } from "../../lib/base-ui";
-
-const buttonVariants = cva(
+export const buttonVariants = cva(
   // Base: press-feedback (subtle scale on :active) plus a transition
   // list that already covers color/border/box-shadow. Don't add
   // `transition-colors` or `transition-all` here — they would compete
@@ -45,36 +42,3 @@ const buttonVariants = cva(
     },
   },
 );
-
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  disabled,
-  focusableWhenDisabled,
-  type,
-  ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
-  return (
-    <ButtonPrimitive
-      data-slot="button"
-      data-variant={variant}
-      data-size={size}
-      className={mergeBaseUIClassName(
-        buttonVariants({ variant, size }),
-        className,
-      )}
-      {...props}
-      type={type}
-      disabled={disabled}
-      focusableWhenDisabled={
-        type === "submit" && disabled ? false : focusableWhenDisabled
-      }
-    />
-  );
-}
-
-// shadcn registry component: the cva variants are exported alongside the
-// component per the registry convention, and consumers import them from here.
-// react-doctor-disable-next-line react-doctor/only-export-components
-export { Button, buttonVariants };

@@ -48,16 +48,16 @@ export function KanbanView({
       {columns.map((status) => (
         <div
           key={status}
-          className="flex-shrink-0 w-80 flex flex-col h-full bg-muted/30 rounded-xl border border-border/50 overflow-hidden"
+          className="shrink-0 w-80 flex flex-col h-full bg-muted/30 rounded-xl border border-border/50 overflow-hidden"
         >
           <div className="p-3 bg-muted/50 border-b border-border flex items-center justify-between">
             <Badge
               variant="secondary"
-              className="text-[9px] font-semibold uppercase tracking-[0.15em] rounded shadow-none"
+              className="font-semibold uppercase tracking-[0.15em] rounded shadow-none"
             >
               {status}
             </Badge>
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               {
                 rows.filter((r) => (r.lifecycleStatus ?? "Unknown") === status)
                   .length
@@ -65,58 +65,57 @@ export function KanbanView({
             </span>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
-            {rows
-              .filter((r) => (r.lifecycleStatus ?? "Unknown") === status)
-              .map((c) => {
-                const name = c.displayName || "Unnamed";
-                const org = c.primaryOrganization ?? "";
-                const orgInitial = org.trim()[0] ?? "?";
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => onSelectRow(c)}
-                    className="w-full bg-card p-3 rounded-lg border border-border shadow-sm transition-shadow hover:shadow-md cursor-pointer space-y-3 text-left"
-                  >
-                    <div className="flex justify-between items-start">
-                      <SharedNamedViewTransition
-                        name={crmRecordTitleTransitionName(c.id)}
-                      >
-                        <span className="font-semibold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
-                          {name}
-                        </span>
-                      </SharedNamedViewTransition>
-                      <MoreHorizontal
-                        className="size-3.5 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="size-4 rounded bg-muted flex items-center justify-center text-[8px] font-semibold text-muted-foreground border border-border">
-                        {orgInitial}
-                      </div>
-                      <span className="text-[10px] text-muted-foreground font-medium truncate">
-                        {org || EMPTY_CELL_VALUE}
+            {rows.flatMap((c) => {
+              if (!((c.lifecycleStatus ?? "Unknown") === status)) return [];
+              const name = c.displayName || "Unnamed";
+              const org = c.primaryOrganization ?? "";
+              const orgInitial = org.trim()[0] ?? "?";
+              return [
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => onSelectRow(c)}
+                  className="w-full bg-card px-4 py-3 rounded-lg border border-border shadow-sm transition-shadow hover:shadow-md cursor-pointer space-y-3 text-left"
+                >
+                  <div className="flex justify-between items-start">
+                    <SharedNamedViewTransition
+                      name={crmRecordTitleTransitionName(c.id)}
+                    >
+                      <span className="font-semibold text-foreground text-xs truncate leading-none inline-block max-w-[85%]">
+                        {name}
                       </span>
+                    </SharedNamedViewTransition>
+                    <MoreHorizontal
+                      className="size-3.5 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="size-4 rounded bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground border border-border">
+                      {orgInitial}
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-muted">
-                      <span className="text-[10px] font-semibold text-foreground tabular-nums">
-                        {formatCurrency(c.lifetimeGiving)}
-                      </span>
-                      <SharedNamedViewTransition
-                        name={crmRecordAvatarTransitionName(c.id)}
-                      >
-                        <Avatar className="size-4">
-                          <AvatarImage src={c.avatarUrl ?? undefined} />
-                          <AvatarFallback className="text-[8px] font-semibold">
-                            {name[0] ?? "?"}
-                          </AvatarFallback>
-                        </Avatar>
-                      </SharedNamedViewTransition>
-                    </div>
-                  </button>
-                );
-              })}
+                    <span className="text-xs text-muted-foreground font-medium truncate">
+                      {org || EMPTY_CELL_VALUE}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-muted">
+                    <span className="text-xs font-semibold text-foreground tabular-nums">
+                      {formatCurrency(c.lifetimeGiving)}
+                    </span>
+                    <SharedNamedViewTransition
+                      name={crmRecordAvatarTransitionName(c.id)}
+                    >
+                      <Avatar className="size-4">
+                        <AvatarImage src={c.avatarUrl ?? undefined} />
+                        <AvatarFallback className="text-xs font-semibold">
+                          {name[0] ?? "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </SharedNamedViewTransition>
+                  </div>
+                </button>,
+              ];
+            })}
           </div>
         </div>
       ))}

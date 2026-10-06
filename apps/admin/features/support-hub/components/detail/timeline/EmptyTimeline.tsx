@@ -8,8 +8,8 @@ export function EmptyTimeline() {
       <div className="flex size-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-zinc-100">
         <Inbox className="size-4 text-zinc-300" />
       </div>
-      <p className="text-[12px] font-medium text-zinc-700">No messages yet</p>
-      <p className="text-[11px] text-zinc-500">
+      <p className="text-xs font-medium text-zinc-700">No messages yet</p>
+      <p className="text-xs text-zinc-500">
         Inbound donor email will land here as soon as it arrives.
       </p>
     </div>

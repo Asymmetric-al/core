@@ -398,14 +398,14 @@ function HoverTooltip({
           transition={{ duration: 0.15 }}
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-50"
         >
-          <div className="bg-popover border border-border rounded-xl shadow-xl px-3 py-2 whitespace-nowrap">
+          <div className="bg-popover border border-border rounded-xl shadow-md px-3 py-2 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <div className={cn("size-1.5 rounded-full", colors.bg)} />
               <span className="text-xs font-semibold text-foreground">
                 {location.title}
               </span>
             </div>
-            <p className={cn("text-[10px] font-medium mt-0.5", colors.text)}>
+            <p className={cn("text-xs font-medium mt-0.5", colors.text)}>
               {colors.label}
             </p>
           </div>
@@ -535,10 +535,10 @@ function DetailDialog({
               className="object-cover"
               sizes="520px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
             <button
               onClick={() => onOpenChange(false)}
-              aria-label="Close"
+              aria-label="Close location details"
               className="absolute top-3 right-3 size-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors"
             >
               <XIcon className="size-4 text-white" />
@@ -555,7 +555,7 @@ function DetailDialog({
             <GlobeIcon className="size-12 text-white/30" />
             <button
               onClick={() => onOpenChange(false)}
-              aria-label="Close"
+              aria-label="Close location details"
               className="absolute top-3 right-3 size-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors"
             >
               <XIcon className="size-4 text-white" />
@@ -594,7 +594,7 @@ function DetailDialog({
                   // Shell carries no per-worker content, so only a full prefetch
                   // pulls that worker's prerendered page. One dialog is open at a
                   // time, so this costs a single prefetch.
-                  prefetch={true}
+                  prefetch
                   className={cn(
                     buttonVariants(),
                     "flex-1 h-11 rounded-xl font-semibold",
@@ -658,7 +658,7 @@ function MobileDetailSheet({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="gap-0 bg-card rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto"
+        className="gap-0 bg-card rounded-t-3xl shadow-md max-h-[85vh] overflow-y-auto"
       >
         <div className="sticky top-0 bg-card p-3 flex justify-center">
           <div className="w-12 h-1 bg-muted-foreground/20 rounded-full" />
@@ -685,11 +685,15 @@ function MobileDetailSheet({
             {location.title}
           </SheetTitle>
 
-          {location.summary && (
-            <SheetDescription className="text-muted-foreground text-sm leading-relaxed mb-6">
-              {location.summary}
-            </SheetDescription>
-          )}
+          <SheetDescription
+            className={
+              location.summary
+                ? "text-muted-foreground text-sm leading-relaxed mb-6"
+                : "sr-only"
+            }
+          >
+            {location.summary || "Location details"}
+          </SheetDescription>
 
           <div className="flex gap-3">
             {location.linked_id && location.type === "missionary" ? (
@@ -697,7 +701,7 @@ function MobileDetailSheet({
                 <Link
                   href={`/workers/${location.linked_id}`}
                   // See the desktop dialog above: one sheet is open at a time.
-                  prefetch={true}
+                  prefetch
                   className={cn(
                     buttonVariants(),
                     "flex-1 h-12 rounded-xl font-semibold",
@@ -735,7 +739,7 @@ function MobileDetailSheet({
                   className="size-12 rounded-xl shrink-0"
                 />
               }
-              aria-label="Close"
+              aria-label="Close location details"
             >
               <XIcon className="size-5" />
             </SheetClose>
@@ -776,7 +780,7 @@ function MapHeaderControls({
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl overflow-hidden"
+          className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-md rounded-2xl overflow-hidden"
         >
           <button
             onClick={onOpenSearch}
@@ -786,7 +790,7 @@ function MapHeaderControls({
             <span className="text-sm text-muted-foreground font-medium">
               Search locations…
             </span>
-            <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
+            <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground ml-auto">
               <span className="text-xs">⌘</span>K
             </kbd>
           </button>
@@ -839,7 +843,7 @@ function SelectedLocationPill({
         >
           <button
             onClick={onOpenDetails}
-            className="bg-card/95 backdrop-blur-xl shadow-2xl rounded-full pl-4 pr-2 py-2 flex items-center gap-3 border border-border/50 hover:bg-card transition-colors group"
+            className="bg-card/95 backdrop-blur-xl shadow-md rounded-full pl-4 pr-2 py-2 flex items-center gap-3 border border-border/50 hover:bg-card transition-colors group"
           >
             <div
               className={cn(
@@ -869,7 +873,7 @@ function MapScrollHint() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="flex items-center gap-2 text-[10px] text-muted-foreground/60 font-medium"
+        className="flex items-center gap-2 text-xs text-muted-foreground/60 font-medium"
       >
         <span>Scroll down for more</span>
         <motion.div

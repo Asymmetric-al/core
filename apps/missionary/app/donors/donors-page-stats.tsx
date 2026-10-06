@@ -72,7 +72,7 @@ function StatCard({
         >
           {value}
         </motion.p>
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
           {subtext}
         </span>
       </CardContent>

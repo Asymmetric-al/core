@@ -1,4 +1,4 @@
-export interface TaskTag {
+interface TaskTag {
   id: string;
   label: string;
   color: string;
@@ -501,8 +501,4 @@ export const DEFAULT_TASK_TAGS: TaskTag[] = [
 
 export function getTagConfig(tagId: string): TaskTag | undefined {
   return DEFAULT_TASK_TAGS.find((t) => t.id === tagId);
-}
-
-export function getTagsByCategory(category: TagCategory): TaskTag[] {
-  return DEFAULT_TASK_TAGS.filter((t) => t.category === category);
 }

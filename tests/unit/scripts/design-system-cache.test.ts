@@ -28,7 +28,9 @@ const webWorkspaces = [
 ];
 const fixtures: string[] = [];
 const sharedInputs = [
-  "packages/ui/components/shadcn/button.tsx",
+  "packages/ui/components/shadcn/button.ts",
+  "packages/ui/components/shadcn/button-component.tsx",
+  "packages/ui/components/shadcn/button-variants.ts",
   "packages/ui/styles/theme.css",
   "packages/missionary/styles.css",
   "packages/missionary/components/forwarder.tsx",
@@ -306,7 +308,7 @@ describe("design-system lint cache and selection", () => {
     expect(run(root, process.execPath, command)).toContain("cache hit");
     write(
       root,
-      "packages/ui/components/shadcn/button.tsx",
+      "packages/ui/components/shadcn/button-component.tsx",
       "changed owned component variant\n",
     );
     expect(run(root, process.execPath, command)).toContain("cache miss");
@@ -396,7 +398,7 @@ describe("design-system lint cache and selection", () => {
   it("affected PR lint selects consumers for shared components, policy, and suppressions", () => {
     const root = fixture();
     for (const file of [
-      "packages/ui/components/shadcn/button.tsx",
+      "packages/ui/components/shadcn/button-component.tsx",
       "tooling/eslint-config/design-system.mjs",
       "tooling/eslint-config/suppressions.json",
     ]) {

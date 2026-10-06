@@ -29,5 +29,5 @@ export function Greeting() {
   );
 
   if (!greeting) return null;
-  return <>{greeting}</>;
+  return greeting;
 }

@@ -197,14 +197,14 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                         <span className="text-sm font-bold text-primary">
                           {alert.reasonLabel}
                         </span>
-                        <Badge className="h-4 px-1 bg-destructive text-destructive-foreground border-none text-[10px] font-black">
+                        <Badge className="h-4 px-1 bg-destructive text-destructive-foreground border-none font-black">
                           {alert.daysOverdue}d
                         </Badge>
                       </div>
-                      <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
+                      <p className="text-xs font-medium text-muted-foreground mt-0.5">
                         {alert.personnelName}
                       </p>
-                      <p className="text-[11px] text-destructive/80 mt-1">
+                      <p className="text-xs text-destructive/80 mt-1">
                         Follow up today
                       </p>
                     </div>
@@ -242,7 +242,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative">
-                          <div className="size-10 rounded-full bg-primary/5 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/10">
+                          <div className="size-10 rounded-full bg-primary/5 flex items-center justify-center text-xs font-bold text-primary border border-primary/10">
                             {p.initials}
                           </div>
                           <div className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-background flex items-center justify-center border border-border/50 shadow-sm">
@@ -253,7 +253,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                           <p className="text-sm font-bold text-primary leading-tight">
                             {p.name}
                           </p>
-                          <p className="text-[11px] font-medium text-muted-foreground mt-1">
+                          <p className="text-xs font-medium text-muted-foreground mt-1">
                             {note.title} • {note.detail}
                           </p>
                         </div>
@@ -261,7 +261,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-[opacity,color] text-muted-foreground hover:text-primary"
+                        className="size-8 rounded-lg   transition-[opacity,color] text-muted-foreground hover:text-primary"
                         aria-label={`Open ${p.name} care profile`}
                       >
                         <ArrowUpRight className="size-4" />

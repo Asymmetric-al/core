@@ -97,50 +97,12 @@ function ImageUploadCustomTrigger({
   const isSingleElement = React.isValidElement(content);
 
   if (isSingleElement) {
-    const element = content as React.ReactElement<{
-      className?: React.ComponentProps<typeof Button>["className"];
-      focusableWhenDisabled?: boolean;
-      onClick?: React.MouseEventHandler;
-      onKeyDown?: React.KeyboardEventHandler;
-      role?: string;
-      tabIndex?: number;
-      type?: "button" | "submit" | "reset";
-      disabled?: boolean;
-      "aria-disabled"?: boolean;
-      "aria-label"?: string;
-    }>;
-    const isButtonLike = isImageUploadButtonLike(element.type, Button);
-
-    const clonedTriggerProps = imageUploadClonedTriggerProps({
-      elementProps: element.props as ImageUploadTriggerProps,
+    return cloneImageUploadTrigger(content, {
       isInteractive,
-      isButtonLike,
       openFilePicker,
       triggerAriaLabel,
-      className:
-        typeof element.props.className === "string"
-          ? cn(element.props.className, sharedClassName)
-          : sharedClassName,
-    });
-    const isBaseButton = element.type === Button;
-
-    return React.cloneElement(element, {
-      ...clonedTriggerProps,
-      "aria-label": isButtonLike
-        ? element.props["aria-label"]
-        : (element.props["aria-label"] ?? triggerAriaLabel),
-      className: isBaseButton
-        ? mergeBaseUIClassName(sharedClassName, element.props.className)
-        : clonedTriggerProps.className,
-      ...(isBaseButton
-        ? {
-            focusableWhenDisabled:
-              element.props.focusableWhenDisabled ?? isUploading,
-          }
-        : {}),
-      disabled: isButtonLike
-        ? Boolean(element.props.disabled) || !isInteractive
-        : undefined,
+      sharedClassName,
+      isUploading,
     });
   }
 
@@ -197,7 +159,7 @@ function ImageUploadDefaultContent({
                 onRemove();
               }}
               aria-label="Remove image"
-              className="absolute -top-1 -right-1 bg-rose-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute -top-1 -right-1 bg-rose-500 text-white p-1 rounded-full   transition-opacity"
             >
               <X className="size-3" />
             </button>
@@ -224,7 +186,7 @@ function ImageUploadDefaultContent({
           ) : (
             <>
               <Upload className="text-muted-foreground size-6" />
-              <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+              <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
                 Upload
               </span>
             </>
@@ -538,4 +500,67 @@ export function ImageUpload({
       )}
     </div>
   );
+}
+
+function cloneImageUploadTrigger(
+  content: React.ReactElement,
+  {
+    isInteractive,
+    openFilePicker,
+    triggerAriaLabel,
+    sharedClassName,
+    isUploading,
+  }: {
+    isInteractive: boolean;
+    openFilePicker: () => void;
+    triggerAriaLabel?: string;
+    sharedClassName: string;
+    isUploading: boolean;
+  },
+) {
+  const element = content as React.ReactElement<{
+    className?: React.ComponentProps<typeof Button>["className"];
+    focusableWhenDisabled?: boolean;
+    onClick?: React.MouseEventHandler;
+    onKeyDown?: React.KeyboardEventHandler;
+    role?: string;
+    tabIndex?: number;
+    type?: "button" | "submit" | "reset";
+    disabled?: boolean;
+    "aria-disabled"?: boolean;
+    "aria-label"?: string;
+  }>;
+  const isButtonLike = isImageUploadButtonLike(element.type, Button);
+
+  const clonedTriggerProps = imageUploadClonedTriggerProps({
+    elementProps: element.props as ImageUploadTriggerProps,
+    isInteractive,
+    isButtonLike,
+    openFilePicker,
+    triggerAriaLabel,
+    className:
+      typeof element.props.className === "string"
+        ? cn(element.props.className, sharedClassName)
+        : sharedClassName,
+  });
+  const isBaseButton = element.type === Button;
+
+  return React.cloneElement(element, {
+    ...clonedTriggerProps,
+    "aria-label": isButtonLike
+      ? element.props["aria-label"]
+      : (element.props["aria-label"] ?? triggerAriaLabel),
+    className: isBaseButton
+      ? mergeBaseUIClassName(sharedClassName, element.props.className)
+      : clonedTriggerProps.className,
+    ...(isBaseButton
+      ? {
+          focusableWhenDisabled:
+            element.props.focusableWhenDisabled ?? isUploading,
+        }
+      : {}),
+    disabled: isButtonLike
+      ? Boolean(element.props.disabled) || !isInteractive
+      : undefined,
+  });
 }

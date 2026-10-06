@@ -4,7 +4,7 @@
  * its client `PageShell` read from here, so the loading skeleton and the
  * loaded page never drift on heading text or spacing.
  */
-export interface TablePageMeta {
+interface TablePageMeta {
   title: string;
   description: string;
   density: "default" | "compact";

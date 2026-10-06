@@ -73,15 +73,15 @@ export function TeamList() {
         <ul className="flex flex-col divide-y divide-zinc-100">
           {rows.map((team) => (
             <li key={team.id} className="flex items-center gap-3 py-2.5">
-              <span className="inline-flex size-9 items-center justify-center rounded-xl bg-zinc-100 font-mono text-[11px] font-black uppercase tracking-wider text-zinc-700">
+              <span className="inline-flex size-9 items-center justify-center rounded-xl bg-zinc-100 font-mono text-xs font-black uppercase tracking-wider text-zinc-700">
                 {team.initials}
               </span>
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="text-[13px] font-semibold text-zinc-900">
+                <span className="text-xs font-semibold text-zinc-900">
                   {team.name}
                 </span>
                 {team.description ? (
-                  <span className="truncate text-[11px] text-zinc-500">
+                  <span className="truncate text-xs text-zinc-500">
                     {team.description}
                   </span>
                 ) : null}
@@ -113,6 +113,7 @@ export function TeamList() {
 
       {isFormOpen ? (
         <TeamForm
+          key={editingTeam?.id ?? "new-team"}
           team={editingTeam}
           onSaved={() => setEditing(null)}
           onCancel={() => setEditing(null)}

@@ -226,7 +226,7 @@ export function MobilizePipelineTable({
             className="flex w-full items-center gap-2.5 py-1 text-left"
           >
             <Avatar className="size-8 bg-zinc-100 border border-zinc-200 rounded-lg">
-              <AvatarFallback className="text-[10px] font-semibold text-zinc-600">
+              <AvatarFallback className="text-xs font-semibold text-zinc-600">
                 {row.original.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -459,12 +459,12 @@ export function MobilizeAddCandidateSheet({
         <SheetFooter className="p-6 border-t bg-card mt-auto">
           <Button
             variant="outline"
-            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px]"
+            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest"
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </Button>
-          <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px]">
+          <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest">
             Create Profile
           </Button>
         </SheetFooter>
@@ -537,13 +537,13 @@ export function MobilizeCandidateDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px]"
+                    className="h-9 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest"
                   >
                     Edit
                   </Button>
                   <Button
                     size="sm"
-                    className="h-9 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px]"
+                    className="h-9 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest"
                   >
                     Contact
                   </Button>
@@ -670,19 +670,19 @@ export function MobilizeCandidateDetailSheet({
             <SheetFooter className="p-4 border-t bg-white flex justify-between items-center sm:justify-between">
               <Button
                 variant="outline"
-                className="rounded-xl font-semibold uppercase tracking-widest text-[10px] text-red-600 hover:text-red-700 border-red-100 hover:bg-red-50"
+                className="rounded-xl font-semibold uppercase tracking-widest text-red-600 hover:text-red-700 border-red-100 hover:bg-red-50"
               >
                 Reject
               </Button>
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
-                  className="rounded-xl font-semibold uppercase tracking-widest text-[10px]"
+                  className="rounded-xl font-semibold uppercase tracking-widest"
                   onClick={() => onOpenChange(false)}
                 >
                   Close
                 </Button>
-                <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px]">
+                <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest">
                   Advance Stage
                 </Button>
               </div>

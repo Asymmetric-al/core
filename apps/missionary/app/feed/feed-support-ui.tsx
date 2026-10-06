@@ -26,7 +26,7 @@ export function LastSyncedDisplay() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.4 }}
-      className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+      className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground"
     >
       <Clock className="size-3.5" />
       {lastSynced ? `Last synced: ${lastSynced}` : "Syncing…"}
@@ -34,7 +34,7 @@ export function LastSyncedDisplay() {
   );
 }
 
-export function LoadingState() {
+function LoadingState() {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -101,7 +101,7 @@ export function EmptyState({
   );
 }
 
-export function FeedLoadErrorState({
+function FeedLoadErrorState({
   message,
   onRetry,
 }: {

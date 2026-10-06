@@ -100,6 +100,13 @@ export function ConversationComposer({
     mergeContext,
   ]);
 
+  const handleComposerSetMode = composer.setMode;
+  const handleComposerSetValue = composer.setValue;
+  const handleComposerAddAttachment = composer.addAttachment;
+  const handleComposerRemoveAttachment = composer.removeAttachment;
+  const handleComposerSetAppendSignature = composer.setAppendSignature;
+  const handleComposerSend = composer.send;
+  const handleComposerSaveDraft = composer.saveDraft;
   return (
     <div
       ref={containerRef}
@@ -111,7 +118,7 @@ export function ConversationComposer({
     >
       <ComposerTabs
         mode={composer.mode}
-        onModeChange={composer.setMode}
+        onModeChange={handleComposerSetMode}
         donorName={
           conversation.externalContactName ?? conversation.externalContactEmail
         }
@@ -119,7 +126,7 @@ export function ConversationComposer({
 
       <SupportTipTapEditor
         value={composer.value}
-        onChange={composer.setValue}
+        onChange={handleComposerSetValue}
         disabled={composer.isPending}
         tone={composer.mode}
         extraExtensions={extraExtensions}
@@ -132,7 +139,7 @@ export function ConversationComposer({
         afterToolbar={
           slots?.afterToolbar ?? (
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-xs text-zinc-500">
                 {composer.mode === "reply"
                   ? "Type / for a canned response."
                   : "Type @ to mention a teammate."}
@@ -151,15 +158,15 @@ export function ConversationComposer({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <AttachmentChips
                 attachments={composer.attachments}
-                onAdd={composer.addAttachment}
-                onRemove={composer.removeAttachment}
+                onAdd={handleComposerAddAttachment}
+                onRemove={handleComposerRemoveAttachment}
                 disabled={composer.isPending}
               />
               {composer.mode === "reply" ? (
                 <SignatureChip
                   agent={composer.agent}
                   enabled={composer.appendSignature}
-                  onChange={composer.setAppendSignature}
+                  onChange={handleComposerSetAppendSignature}
                 />
               ) : null}
             </div>
@@ -172,8 +179,8 @@ export function ConversationComposer({
         isPending={composer.isPending}
         pendingAction={composer.pendingAction}
         isDirty={composer.isDirty}
-        onSend={composer.send}
-        onSaveDraft={composer.saveDraft}
+        onSend={handleComposerSend}
+        onSaveDraft={handleComposerSaveDraft}
         beforeSend={
           slots?.beforeSend ? (
             <QuickActionsSlot>{slots.beforeSend}</QuickActionsSlot>
@@ -222,21 +229,21 @@ function ComposerTabs({ mode, onModeChange, donorName }: ComposerTabsProps) {
         <TabsList className="h-9 gap-1 rounded-lg bg-zinc-100/60 p-1">
           <TabsTrigger
             value="reply"
-            className="h-7 gap-1.5 rounded-md px-2.5 text-[12px] font-medium data-active:bg-white data-active:text-zinc-900 data-active:shadow-sm"
+            className="h-7 gap-1.5 rounded-md px-2.5 font-medium data-active:bg-white data-active:text-zinc-900 data-active:shadow-sm"
           >
             <Mail className="size-3.5" />
             Reply
           </TabsTrigger>
           <TabsTrigger
             value="note"
-            className="h-7 gap-1.5 rounded-md px-2.5 text-[12px] font-medium data-active:bg-amber-100 data-active:text-amber-900 data-active:shadow-sm"
+            className="h-7 gap-1.5 rounded-md px-2.5 font-medium data-active:bg-amber-100 data-active:text-amber-900 data-active:shadow-sm"
           >
             <StickyNote className="size-3.5" />
             Internal note
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <p className="text-[11px] text-zinc-500">
+      <p className="text-xs text-zinc-500">
         {mode === "reply" ? (
           <>
             Replying to{" "}

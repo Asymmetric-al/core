@@ -155,7 +155,7 @@ const PostCard: React.FC<{
                 {post.workerName}
               </p>
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-zinc-400 mt-1 uppercase tracking-widest">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 mt-1 uppercase tracking-widest">
               <span>{post.readTime || "3 min read"}</span>
               <span className="text-zinc-200">•</span>
               <span>{post.time}</span>
@@ -167,7 +167,7 @@ const PostCard: React.FC<{
       {/* Content */}
       <div className="space-y-6 text-left">
         {post.title && (
-          <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-tighter leading-tight uppercase">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-zinc-900 tracking-normal leading-tight uppercase">
             {post.title}
           </h2>
         )}
@@ -194,7 +194,7 @@ const PostCard: React.FC<{
           <div className="rounded-xl overflow-hidden border border-zinc-100 bg-zinc-50 h-32 flex items-center justify-center text-zinc-400">
             <div className="flex flex-col items-center gap-2">
               <ImageOff className="size-6" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest">
+              <span className="text-xs font-semibold uppercase tracking-widest">
                 Image unavailable
               </span>
             </div>
@@ -304,10 +304,10 @@ export default function DonorFeedPage() {
     <div className="max-w-2xl mx-auto pb-20">
       {/* Hero Header */}
       <div className="px-1 mb-8 pt-8 text-center sm:text-left">
-        <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-zinc-900 mb-4 uppercase">
+        <h1 className="text-4xl md:text-6xl font-semibold tracking-normal text-zinc-900 mb-4 uppercase">
           Ministry Updates
         </h1>
-        <p className="text-lg text-zinc-400 font-semibold uppercase tracking-widest leading-relaxed max-w-lg">
+        <p className="text-lg text-zinc-400 font-semibold leading-relaxed max-w-lg">
           Field stories, urgent needs, and joyful updates from the partners you
           empower.
         </p>
@@ -325,7 +325,7 @@ export default function DonorFeedPage() {
             className="flex flex-col items-center justify-center py-32 gap-4"
           >
             <Loader2 className="size-8 text-muted-foreground animate-spin" />
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               Loading updates…
             </p>
           </div>
@@ -334,10 +334,10 @@ export default function DonorFeedPage() {
             <div className="inline-flex items-center justify-center size-20 rounded-full bg-destructive/10 text-destructive mb-6">
               <Globe className="size-10" />
             </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2 uppercase tracking-tighter">
+            <h2 className="text-xl font-semibold text-foreground mb-2 uppercase tracking-normal">
               Couldn&apos;t load updates
             </h2>
-            <p className="text-muted-foreground max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
+            <p className="text-muted-foreground max-w-xs mx-auto text-xs font-semibold">
               Something went wrong reaching the field. Please check back in a
               moment.
             </p>
@@ -355,10 +355,10 @@ export default function DonorFeedPage() {
                 <div className="inline-flex items-center justify-center size-20 rounded-full bg-zinc-50 dark:bg-muted text-zinc-200 dark:text-muted-foreground mb-6">
                   <BookmarkCheck className="size-10" />
                 </div>
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-foreground mb-2 uppercase tracking-tighter">
+                <h2 className="text-xl font-semibold text-zinc-900 dark:text-foreground mb-2 uppercase tracking-normal">
                   No posts found
                 </h2>
-                <p className="text-zinc-400 dark:text-muted-foreground max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
+                <p className="text-zinc-400 dark:text-muted-foreground max-w-xs mx-auto text-xs font-semibold">
                   {filter === "Saved"
                     ? "You haven't bookmarked any updates yet. Tap the bookmark icon on any post to save it here."
                     : "Check back later for new stories from the partners you empower."}
@@ -367,7 +367,7 @@ export default function DonorFeedPage() {
                   <Button
                     variant="link"
                     onClick={() => setFilter("All")}
-                    className="mt-4 text-zinc-900 dark:text-foreground font-semibold uppercase tracking-widest text-[10px]"
+                    className="mt-4 text-zinc-900 dark:text-foreground font-semibold uppercase tracking-widest"
                   >
                     Browse All Updates
                   </Button>
@@ -386,7 +386,7 @@ export default function DonorFeedPage() {
             <div className="size-1.5 rounded-full bg-zinc-400" />
             <div className="size-1.5 rounded-full bg-zinc-400" />
           </div>
-          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pt-2">
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest pt-2">
             You&apos;re all caught up
           </p>
         </div>

@@ -85,7 +85,7 @@ function buildChipOptions(
   );
 }
 
-export interface HubSharedFilterChip {
+interface HubSharedFilterChip {
   /** Shared filter id; doubles as the hidden filter-only column id. */
   id: SharedContributionFilterId;
   label: string;
@@ -94,13 +94,17 @@ export interface HubSharedFilterChip {
 
 /** Chips the Hub renders for the shared filters, in registry order. */
 export const hubSharedContributionFilterChips: HubSharedFilterChip[] =
-  SHARED_CONTRIBUTION_FILTERS.filter(
-    (definition) => !HUB_SHARED_CHIP_EXCLUDED_IDS.has(definition.id),
-  ).map((definition) => ({
-    id: definition.id,
-    label: definition.label,
-    options: buildChipOptions(definition),
-  }));
+  SHARED_CONTRIBUTION_FILTERS.flatMap((definition) =>
+    !HUB_SHARED_CHIP_EXCLUDED_IDS.has(definition.id)
+      ? [
+          {
+            id: definition.id,
+            label: definition.label,
+            options: buildChipOptions(definition),
+          },
+        ]
+      : [],
+  );
 
 /**
  * The shared filter chips evaluate through hidden, filter-only table columns.

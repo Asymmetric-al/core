@@ -48,6 +48,8 @@ import {
 
 import type {
   EmailMetadata,
+  EmailStudioUiAction,
+  EmailStudioUiState,
   EmailTemplateListEntry,
   PreviewDevice,
   PreviewResult,
@@ -137,364 +139,64 @@ export default function EmailStudio() {
 
   const isLegacyReadOnly = legacyPreviewResult !== null;
   const canEditCurrentTemplate = ui.isEditorReady && !isLegacyReadOnly;
-  const canPreview = ui.isEditorReady || isLegacyReadOnly;
-
-  const loadEditorDesign = useCallback(
-    (design: Record<string, unknown>) => {
-      if (ui.isEditorReady && editorRef.current) {
-        pendingDesignRef.current = null;
-        editorRef.current.loadDesign(design);
-        return;
-      }
-
-      pendingDesignRef.current = design;
-    },
-    [ui.isEditorReady],
-  );
-
-  useEffect(() => {
-    if (!templatesQuery.isError) {
-      return;
-    }
-    toast.error("Failed to load templates", {
-      description: "Please try again.",
-    });
-  }, [templatesQuery.isError]);
-
-  const handleEditorReady = useCallback(() => {
-    dispatch({ type: "editor_ready", config: getEmailStudioConfig() });
-    const pending = pendingDesignRef.current;
-    if (pending) {
-      pendingDesignRef.current = null;
-      editorRef.current?.loadDesign(pending);
-    }
-  }, []);
-
-  const handleUndo = useCallback(() => {
-    editorRef.current?.undo();
-  }, []);
-
-  const handleRedo = useCallback(() => {
-    editorRef.current?.redo();
-  }, []);
-
-  const handlePreview = useCallback(
-    async (device: PreviewDevice) => {
-      dispatch({ type: "set_preview_device", device });
-      if (isLegacyReadOnly && legacyPreviewResult) {
-        setPreviewResult(legacyPreviewResult);
-        return;
-      }
-      const editor = editorRef.current;
-      if (!editor) {
-        return;
-      }
-      try {
-        const exported = await editor.exportEmail(
-          studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
-        );
-        setPreviewResult(exported);
-      } catch (error) {
-        toast.error("Preview failed", {
-          description:
-            error instanceof Error ? error.message : "Could not export email.",
-        });
-      }
-    },
-    [
-      isLegacyReadOnly,
-      legacyPreviewResult,
-      metadata,
-      ui.studioConfig?.export.minifyHtml,
-    ],
-  );
-
-  const handleExportHtml = useCallback(async () => {
-    if (isLegacyReadOnly) {
-      toast.error("Legacy templates are preview-only in Email Studio");
-      return;
-    }
-    const editor = editorRef.current;
-    if (!editor) {
-      return;
-    }
-    try {
-      const exported = await editor.exportEmail(
-        studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
-      );
-      dispatch({ type: "open_export_dialog", html: exported.html });
-    } catch (error) {
-      toast.error("Export failed", {
-        description:
-          error instanceof Error ? error.message : "Could not export HTML.",
-      });
-    }
-  }, [isLegacyReadOnly, metadata, ui.studioConfig?.export.minifyHtml]);
-
-  const persistCurrentTemplate = useCallback(
-    async (metadataOverride?: EmailMetadata) => {
-      const editor = editorRef.current;
-      if (!canEditCurrentTemplate || pendingDesignRef.current || !editor) {
-        throw new Error("Email editor is not ready.");
-      }
-      const nextMetadata = metadataOverride ?? metadata;
-      const exportResult = await editor.exportEmail(
-        studioExportOptions(nextMetadata, ui.studioConfig?.export.minifyHtml),
-      );
-      const saved = await persistEmailTemplate(nextMetadata, exportResult);
-      const nextDesign = studioEditorDesign(exportResult.design);
-      setInitialDesign(nextDesign);
-      setMetadata({
-        ...nextMetadata,
-        id: saved.id,
-        name: saved.name,
-      });
-      if (nextMetadata.id !== saved.id) {
-        pendingDesignRef.current = null;
-        dispatch({ type: "editor_unmounted" });
-      }
-      dispatch({ type: "set_unsaved_changes", unsaved: false });
-      void invalidateAdminSurfaceQuery(queryClient, "emailTemplates");
-      return saved;
-    },
-    [
-      canEditCurrentTemplate,
-      metadata,
-      queryClient,
-      ui.studioConfig?.export.minifyHtml,
-    ],
-  );
-
-  const handleSaveClick = useCallback(() => {
-    if (isLegacyReadOnly) {
-      toast.error("Legacy templates are read-only in Email Studio");
-      return;
-    }
-    if (saveInFlightRef.current || testSendInFlightRef.current) {
-      return;
-    }
-    dispatch({ type: "set_show_save_dialog", open: true });
-  }, [isLegacyReadOnly]);
-
-  const handleConfirmSave = useCallback(
-    async (next: EmailMetadata) => {
-      if (
-        saveInFlightRef.current ||
-        testSendInFlightRef.current ||
-        isLegacyReadOnly ||
-        !canEditCurrentTemplate ||
-        pendingDesignRef.current
-      ) {
-        return;
-      }
-      saveInFlightRef.current = true;
-      dispatch({ type: "set_saving", saving: true });
-      try {
-        await persistCurrentTemplate(next);
-        toast.success("Template saved", {
-          description: `"${next.name}" has been saved successfully.`,
-        });
-        dispatch({ type: "set_show_save_dialog", open: false });
-      } catch (error) {
-        toast.error("Save failed", {
-          description:
-            error instanceof Error ? error.message : "Could not save template.",
-        });
-      } finally {
-        saveInFlightRef.current = false;
-        dispatch({ type: "set_saving", saving: false });
-      }
-    },
-    [canEditCurrentTemplate, isLegacyReadOnly, persistCurrentTemplate],
-  );
-
-  const handleNewTemplate = useCallback(() => {
-    if (saveInFlightRef.current || testSendInFlightRef.current) {
-      return;
-    }
-    setShowTestSendDialog(false);
-    dispatch({ type: "set_show_save_dialog", open: false });
-    const remountEditor = metadata.id !== null || isLegacyReadOnly;
-    setMetadata(DEFAULT_METADATA);
-    setPreviewResult(null);
-    setLegacyPreviewResult(null);
-    setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
-    dispatch({ type: "set_unsaved_changes", unsaved: false });
-    if (remountEditor) {
-      pendingDesignRef.current = null;
-      dispatch({ type: "editor_unmounted" });
-    } else {
-      loadEditorDesign(EMPTY_REACT_EMAIL_DESIGN);
-    }
-    toast.success("New template created");
-  }, [isLegacyReadOnly, loadEditorDesign, metadata.id]);
-
-  const handleSelectTemplate = useCallback(
-    (template: EmailTemplateListEntry) => {
-      setShowTemplatePicker(false);
-      setShowTestSendDialog(false);
-      dispatch({ type: "set_show_save_dialog", open: false });
-      if (template.builder === "react_email" && template.id === metadata.id) {
-        return;
-      }
-      const preview = previewFromTemplate(template);
-      setMetadata({
-        id: template.id,
-        name: template.name,
-        subject: coercePreviewText(template.default_subject),
-        preheader: coercePreviewText(template.default_preheader),
-      });
-      if (template.builder !== "react_email") {
-        pendingDesignRef.current = null;
-        setLegacyPreviewResult(preview);
-        setPreviewResult(preview);
-        setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
-        dispatch({ type: "editor_unmounted" });
-        dispatch({ type: "set_unsaved_changes", unsaved: false });
-        toast.info("Legacy template opened read-only", {
-          description:
-            "Legacy templates cannot be edited in React Email. Showing a preview.",
-        });
-        return;
-      }
-      const design = studioEditorDesign(template.design_json);
-      setLegacyPreviewResult(null);
-      setPreviewResult(null);
-      setInitialDesign(design);
-      pendingDesignRef.current = null;
-      dispatch({ type: "editor_unmounted" });
-      dispatch({ type: "set_unsaved_changes", unsaved: false });
-    },
-    [metadata.id],
-  );
-
-  const handleConfirmTestSend = useCallback(async () => {
-    if (
-      testSendInFlightRef.current ||
-      saveInFlightRef.current ||
-      isLegacyReadOnly ||
-      !canEditCurrentTemplate ||
-      pendingDesignRef.current
-    ) {
-      return;
-    }
-    const editor = editorRef.current;
-    if (!editor) {
-      return;
-    }
-    testSendInFlightRef.current = true;
-    setIsSendingTest(true);
-    try {
-      const exportResult = await editor.exportEmail(
-        studioExportOptions(
-          metadata,
-          ui.studioConfig?.export.minifyHtml,
-          metadata.subject || metadata.name,
-        ),
-      );
-      const result = await sendTemplateTestEmail(
-        testToEmail,
-        metadata,
-        exportResult,
-      );
-      toast.success("Test email sent", {
-        description: result.messageId
-          ? `Message ${result.messageId} queued for ${testToEmail}.`
-          : `Test email queued for ${testToEmail}.`,
-      });
-      setShowTestSendDialog(false);
-      setTestToEmail("");
-    } catch (error) {
-      toast.error("Test send failed", {
-        description:
-          error instanceof Error ? error.message : "Could not send test email.",
-      });
-    } finally {
-      testSendInFlightRef.current = false;
-      setIsSendingTest(false);
-    }
-  }, [
-    canEditCurrentTemplate,
+  const {
+    handleEditorReady,
+    handleUndo,
+    handleRedo,
+    handlePreview,
+    handleExportHtml,
+    handleSaveClick,
+    handleConfirmSave,
+    handleNewTemplate,
+    handleSelectTemplate,
+    canPreview,
+  } = useEmailStudioAuthoringActions({
+    ui,
     isLegacyReadOnly,
+    editorRef,
+    pendingDesignRef,
+    templatesQuery,
+    dispatch,
+    legacyPreviewResult,
+    setPreviewResult,
     metadata,
-    testToEmail,
-    ui.studioConfig?.export.minifyHtml,
-  ]);
-
-  const handleCopyHtml = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(ui.exportedHtml);
-      dispatch({ type: "set_copied_html", copied: true });
-      window.setTimeout(() => {
-        dispatch({ type: "set_copied_html", copied: false });
-      }, 2000);
-    } catch {
-      toast.error("Copy failed", {
-        description: "Could not copy HTML to the clipboard.",
-      });
-    }
-  }, [ui.exportedHtml]);
-
-  const handleDownloadHtml = useCallback(() => {
-    const blob = new Blob([ui.exportedHtml], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${metadata.name || "email-template"}.html`;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  }, [metadata.name, ui.exportedHtml]);
-
-  const onKeyboardShortcut = useEffectEvent((event: KeyboardEvent) => {
-    const isMod = event.metaKey || event.ctrlKey;
-    if (isMod && event.key.toLowerCase() === "s") {
-      event.preventDefault();
-      if (
-        canEditCurrentTemplate &&
-        !saveInFlightRef.current &&
-        !testSendInFlightRef.current
-      ) {
-        dispatch({ type: "set_show_save_dialog", open: true });
-      }
-      return;
-    }
-    if (isEditableKeyboardTarget(event.target)) {
-      return;
-    }
-    if (isMod && event.key.toLowerCase() === "z") {
-      if (!canEditCurrentTemplate) {
-        return;
-      }
-      event.preventDefault();
-      if (event.shiftKey) {
-        editorRef.current?.redo();
-      } else {
-        editorRef.current?.undo();
-      }
-      return;
-    }
-    if (isMod && event.key.toLowerCase() === "e") {
-      if (!canEditCurrentTemplate) {
-        return;
-      }
-      event.preventDefault();
-      void handleExportHtml();
-      return;
-    }
-    if (event.key === "Escape" && ui.isFullscreen) {
-      dispatch({ type: "set_fullscreen", fullscreen: false });
-    }
+    canEditCurrentTemplate,
+    setInitialDesign,
+    setMetadata,
+    queryClient,
+    saveInFlightRef,
+    testSendInFlightRef,
+    setShowTestSendDialog,
+    setLegacyPreviewResult,
+    setShowTemplatePicker,
   });
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      onKeyboardShortcut(event);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  const { handleConfirmTestSend } = useEmailStudioTestDelivery({
+    testSendInFlightRef,
+    saveInFlightRef,
+    isLegacyReadOnly,
+    canEditCurrentTemplate,
+    pendingDesignRef,
+    editorRef,
+    setIsSendingTest,
+    metadata,
+    ui,
+    testToEmail,
+    setShowTestSendDialog,
+    setTestToEmail,
+  });
+
+  const { handleCopyHtml, handleDownloadHtml } =
+    useEmailStudioExportAndShortcuts({
+      ui,
+      dispatch,
+      metadata,
+      canEditCurrentTemplate,
+      saveInFlightRef,
+      testSendInFlightRef,
+      editorRef,
+      handleExportHtml,
+    });
 
   return (
     <div
@@ -638,4 +340,524 @@ export default function EmailStudio() {
       />
     </div>
   );
+}
+
+function useEmailStudioAuthoringActions({
+  ui,
+  isLegacyReadOnly,
+  editorRef,
+  pendingDesignRef,
+  templatesQuery,
+  dispatch,
+  legacyPreviewResult,
+  setPreviewResult,
+  metadata,
+  canEditCurrentTemplate,
+  setInitialDesign,
+  setMetadata,
+  queryClient,
+  saveInFlightRef,
+  testSendInFlightRef,
+  setShowTestSendDialog,
+  setLegacyPreviewResult,
+  setShowTemplatePicker,
+}: {
+  ui: EmailStudioUiState;
+  isLegacyReadOnly: boolean;
+  editorRef: React.RefObject<EmailStudioEditorHandle | null>;
+  pendingDesignRef: React.RefObject<Record<string, unknown> | null>;
+  templatesQuery: Pick<ReturnType<typeof useQuery>, "isError">;
+  dispatch: React.Dispatch<EmailStudioUiAction>;
+  legacyPreviewResult: PreviewResult | null;
+  setPreviewResult: React.Dispatch<React.SetStateAction<PreviewResult | null>>;
+  metadata: EmailMetadata;
+  canEditCurrentTemplate: boolean;
+  setInitialDesign: React.Dispatch<
+    React.SetStateAction<Record<string, unknown>>
+  >;
+  setMetadata: React.Dispatch<React.SetStateAction<EmailMetadata>>;
+  queryClient: ReturnType<typeof useQueryClient>;
+  saveInFlightRef: React.RefObject<boolean>;
+  testSendInFlightRef: React.RefObject<boolean>;
+  setShowTestSendDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setLegacyPreviewResult: React.Dispatch<
+    React.SetStateAction<PreviewResult | null>
+  >;
+  setShowTemplatePicker: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const canPreview = ui.isEditorReady || isLegacyReadOnly;
+
+  const loadEditorDesign = useCallback(
+    (design: Record<string, unknown>) => {
+      if (ui.isEditorReady && editorRef.current) {
+        pendingDesignRef.current = null;
+        editorRef.current.loadDesign(design);
+        return;
+      }
+
+      pendingDesignRef.current = design;
+    },
+    [editorRef, pendingDesignRef, ui.isEditorReady],
+  );
+
+  useEffect(() => {
+    if (!templatesQuery.isError) {
+      return;
+    }
+    toast.error("Failed to load templates", {
+      description: "Please try again.",
+    });
+  }, [templatesQuery.isError]);
+
+  const handleEditorReady = useCallback(() => {
+    dispatch({ type: "editor_ready", config: getEmailStudioConfig() });
+    const pending = pendingDesignRef.current;
+    if (pending) {
+      pendingDesignRef.current = null;
+      editorRef.current?.loadDesign(pending);
+    }
+  }, [dispatch, editorRef, pendingDesignRef]);
+
+  const handleUndo = useCallback(() => {
+    editorRef.current?.undo();
+  }, [editorRef]);
+
+  const handleRedo = useCallback(() => {
+    editorRef.current?.redo();
+  }, [editorRef]);
+
+  const handlePreview = useCallback(
+    async (device: PreviewDevice) => {
+      dispatch({ type: "set_preview_device", device });
+      if (isLegacyReadOnly && legacyPreviewResult) {
+        setPreviewResult(legacyPreviewResult);
+        return;
+      }
+      const editor = editorRef.current;
+      if (!editor) {
+        return;
+      }
+      try {
+        const exported = await editor.exportEmail(
+          studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
+        );
+        setPreviewResult(exported);
+      } catch (error) {
+        toast.error("Preview failed", {
+          description:
+            error instanceof Error ? error.message : "Could not export email.",
+        });
+      }
+    },
+    [
+      dispatch,
+      editorRef,
+      isLegacyReadOnly,
+      legacyPreviewResult,
+      metadata,
+      setPreviewResult,
+      ui.studioConfig?.export.minifyHtml,
+    ],
+  );
+
+  const handleExportHtml = useCallback(async () => {
+    if (isLegacyReadOnly) {
+      toast.error("Legacy templates are preview-only in Email Studio");
+      return;
+    }
+    const editor = editorRef.current;
+    if (!editor) {
+      return;
+    }
+    try {
+      const exported = await editor.exportEmail(
+        studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
+      );
+      dispatch({ type: "open_export_dialog", html: exported.html });
+    } catch (error) {
+      toast.error("Export failed", {
+        description:
+          error instanceof Error ? error.message : "Could not export HTML.",
+      });
+    }
+  }, [
+    dispatch,
+    editorRef,
+    isLegacyReadOnly,
+    metadata,
+    ui.studioConfig?.export.minifyHtml,
+  ]);
+
+  const persistCurrentTemplate = useCallback(
+    async (metadataOverride?: EmailMetadata) => {
+      const editor = editorRef.current;
+      if (!canEditCurrentTemplate || pendingDesignRef.current || !editor) {
+        throw new Error("Email editor is not ready.");
+      }
+      const nextMetadata = metadataOverride ?? metadata;
+      const exportResult = await editor.exportEmail(
+        studioExportOptions(nextMetadata, ui.studioConfig?.export.minifyHtml),
+      );
+      const saved = await persistEmailTemplate(nextMetadata, exportResult);
+      const nextDesign = studioEditorDesign(exportResult.design);
+      setInitialDesign(nextDesign);
+      setMetadata({
+        ...nextMetadata,
+        id: saved.id,
+        name: saved.name,
+      });
+      if (nextMetadata.id !== saved.id) {
+        pendingDesignRef.current = null;
+        dispatch({ type: "editor_unmounted" });
+      }
+      dispatch({ type: "set_unsaved_changes", unsaved: false });
+      void invalidateAdminSurfaceQuery(queryClient, "emailTemplates");
+      return saved;
+    },
+    [
+      canEditCurrentTemplate,
+      dispatch,
+      editorRef,
+      metadata,
+      pendingDesignRef,
+      queryClient,
+      setInitialDesign,
+      setMetadata,
+      ui.studioConfig?.export.minifyHtml,
+    ],
+  );
+
+  const handleSaveClick = useCallback(() => {
+    if (isLegacyReadOnly) {
+      toast.error("Legacy templates are read-only in Email Studio");
+      return;
+    }
+    if (saveInFlightRef.current || testSendInFlightRef.current) {
+      return;
+    }
+    dispatch({ type: "set_show_save_dialog", open: true });
+  }, [dispatch, isLegacyReadOnly, saveInFlightRef, testSendInFlightRef]);
+
+  const handleConfirmSave = useCallback(
+    async (next: EmailMetadata) => {
+      if (
+        saveInFlightRef.current ||
+        testSendInFlightRef.current ||
+        isLegacyReadOnly ||
+        !canEditCurrentTemplate ||
+        pendingDesignRef.current
+      ) {
+        return;
+      }
+      saveInFlightRef.current = true;
+      dispatch({ type: "set_saving", saving: true });
+      try {
+        await persistCurrentTemplate(next);
+        toast.success("Template saved", {
+          description: `"${next.name}" has been saved successfully.`,
+        });
+        dispatch({ type: "set_show_save_dialog", open: false });
+      } catch (error) {
+        toast.error("Save failed", {
+          description:
+            error instanceof Error ? error.message : "Could not save template.",
+        });
+      } finally {
+        saveInFlightRef.current = false;
+        dispatch({ type: "set_saving", saving: false });
+      }
+    },
+    [
+      canEditCurrentTemplate,
+      dispatch,
+      isLegacyReadOnly,
+      pendingDesignRef,
+      persistCurrentTemplate,
+      saveInFlightRef,
+      testSendInFlightRef,
+    ],
+  );
+
+  const handleNewTemplate = useCallback(() => {
+    if (saveInFlightRef.current || testSendInFlightRef.current) {
+      return;
+    }
+    setShowTestSendDialog(false);
+    dispatch({ type: "set_show_save_dialog", open: false });
+    const remountEditor = metadata.id !== null || isLegacyReadOnly;
+    setMetadata(DEFAULT_METADATA);
+    setPreviewResult(null);
+    setLegacyPreviewResult(null);
+    setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
+    dispatch({ type: "set_unsaved_changes", unsaved: false });
+    if (remountEditor) {
+      pendingDesignRef.current = null;
+      dispatch({ type: "editor_unmounted" });
+    } else {
+      loadEditorDesign(EMPTY_REACT_EMAIL_DESIGN);
+    }
+    toast.success("New template created");
+  }, [
+    dispatch,
+    isLegacyReadOnly,
+    loadEditorDesign,
+    metadata.id,
+    pendingDesignRef,
+    saveInFlightRef,
+    setInitialDesign,
+    setLegacyPreviewResult,
+    setMetadata,
+    setPreviewResult,
+    setShowTestSendDialog,
+    testSendInFlightRef,
+  ]);
+
+  const handleSelectTemplate = useCallback(
+    (template: EmailTemplateListEntry) => {
+      setShowTemplatePicker(false);
+      setShowTestSendDialog(false);
+      dispatch({ type: "set_show_save_dialog", open: false });
+      if (template.builder === "react_email" && template.id === metadata.id) {
+        return;
+      }
+      const preview = previewFromTemplate(template);
+      setMetadata({
+        id: template.id,
+        name: template.name,
+        subject: coercePreviewText(template.default_subject),
+        preheader: coercePreviewText(template.default_preheader),
+      });
+      if (template.builder !== "react_email") {
+        pendingDesignRef.current = null;
+        setLegacyPreviewResult(preview);
+        setPreviewResult(preview);
+        setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
+        dispatch({ type: "editor_unmounted" });
+        dispatch({ type: "set_unsaved_changes", unsaved: false });
+        toast.info("Legacy template opened read-only", {
+          description:
+            "Legacy templates cannot be edited in React Email. Showing a preview.",
+        });
+        return;
+      }
+      const design = studioEditorDesign(template.design_json);
+      setLegacyPreviewResult(null);
+      setPreviewResult(null);
+      setInitialDesign(design);
+      pendingDesignRef.current = null;
+      dispatch({ type: "editor_unmounted" });
+      dispatch({ type: "set_unsaved_changes", unsaved: false });
+    },
+    [
+      dispatch,
+      metadata.id,
+      pendingDesignRef,
+      setInitialDesign,
+      setLegacyPreviewResult,
+      setMetadata,
+      setPreviewResult,
+      setShowTemplatePicker,
+      setShowTestSendDialog,
+    ],
+  );
+
+  return {
+    handleEditorReady,
+    handleUndo,
+    handleRedo,
+    handlePreview,
+    handleExportHtml,
+    handleSaveClick,
+    handleConfirmSave,
+    handleNewTemplate,
+    handleSelectTemplate,
+    canPreview,
+  };
+}
+
+function useEmailStudioTestDelivery({
+  testSendInFlightRef,
+  saveInFlightRef,
+  isLegacyReadOnly,
+  canEditCurrentTemplate,
+  pendingDesignRef,
+  editorRef,
+  setIsSendingTest,
+  metadata,
+  ui,
+  testToEmail,
+  setShowTestSendDialog,
+  setTestToEmail,
+}: {
+  testSendInFlightRef: React.RefObject<boolean>;
+  saveInFlightRef: React.RefObject<boolean>;
+  isLegacyReadOnly: boolean;
+  canEditCurrentTemplate: boolean;
+  pendingDesignRef: React.RefObject<Record<string, unknown> | null>;
+  editorRef: React.RefObject<EmailStudioEditorHandle | null>;
+  setIsSendingTest: React.Dispatch<React.SetStateAction<boolean>>;
+  metadata: EmailMetadata;
+  ui: EmailStudioUiState;
+  testToEmail: string;
+  setShowTestSendDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setTestToEmail: React.Dispatch<React.SetStateAction<string>>;
+}) {
+  const handleConfirmTestSend = useCallback(async () => {
+    if (
+      testSendInFlightRef.current ||
+      saveInFlightRef.current ||
+      isLegacyReadOnly ||
+      !canEditCurrentTemplate ||
+      pendingDesignRef.current
+    ) {
+      return;
+    }
+    const editor = editorRef.current;
+    if (!editor) {
+      return;
+    }
+    testSendInFlightRef.current = true;
+    setIsSendingTest(true);
+    try {
+      const exportResult = await editor.exportEmail(
+        studioExportOptions(
+          metadata,
+          ui.studioConfig?.export.minifyHtml,
+          metadata.subject || metadata.name,
+        ),
+      );
+      const result = await sendTemplateTestEmail(
+        testToEmail,
+        metadata,
+        exportResult,
+      );
+      toast.success("Test email sent", {
+        description: result.messageId
+          ? `Message ${result.messageId} queued for ${testToEmail}.`
+          : `Test email queued for ${testToEmail}.`,
+      });
+      setShowTestSendDialog(false);
+      setTestToEmail("");
+    } catch (error) {
+      toast.error("Test send failed", {
+        description:
+          error instanceof Error ? error.message : "Could not send test email.",
+      });
+    } finally {
+      testSendInFlightRef.current = false;
+      setIsSendingTest(false);
+    }
+  }, [
+    canEditCurrentTemplate,
+    editorRef,
+    isLegacyReadOnly,
+    metadata,
+    pendingDesignRef,
+    saveInFlightRef,
+    setIsSendingTest,
+    setShowTestSendDialog,
+    setTestToEmail,
+    testSendInFlightRef,
+    testToEmail,
+    ui.studioConfig?.export.minifyHtml,
+  ]);
+
+  return { handleConfirmTestSend };
+}
+
+function useEmailStudioExportAndShortcuts({
+  ui,
+  dispatch,
+  metadata,
+  canEditCurrentTemplate,
+  saveInFlightRef,
+  testSendInFlightRef,
+  editorRef,
+  handleExportHtml,
+}: {
+  ui: EmailStudioUiState;
+  dispatch: React.Dispatch<EmailStudioUiAction>;
+  metadata: EmailMetadata;
+  canEditCurrentTemplate: boolean;
+  saveInFlightRef: React.RefObject<boolean>;
+  testSendInFlightRef: React.RefObject<boolean>;
+  editorRef: React.RefObject<EmailStudioEditorHandle | null>;
+  handleExportHtml: () => Promise<void>;
+}) {
+  const handleCopyHtml = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(ui.exportedHtml);
+      dispatch({ type: "set_copied_html", copied: true });
+      window.setTimeout(() => {
+        dispatch({ type: "set_copied_html", copied: false });
+      }, 2000);
+    } catch {
+      toast.error("Copy failed", {
+        description: "Could not copy HTML to the clipboard.",
+      });
+    }
+  }, [dispatch, ui.exportedHtml]);
+
+  const handleDownloadHtml = useCallback(() => {
+    const blob = new Blob([ui.exportedHtml], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${metadata.name || "email-template"}.html`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }, [metadata.name, ui.exportedHtml]);
+
+  const onKeyboardShortcut = useEffectEvent((event: KeyboardEvent) => {
+    const isMod = event.metaKey || event.ctrlKey;
+    if (isMod && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      if (
+        canEditCurrentTemplate &&
+        !saveInFlightRef.current &&
+        !testSendInFlightRef.current
+      ) {
+        dispatch({ type: "set_show_save_dialog", open: true });
+      }
+      return;
+    }
+    if (isEditableKeyboardTarget(event.target)) {
+      return;
+    }
+    if (isMod && event.key.toLowerCase() === "z") {
+      if (!canEditCurrentTemplate) {
+        return;
+      }
+      event.preventDefault();
+      if (event.shiftKey) {
+        editorRef.current?.redo();
+      } else {
+        editorRef.current?.undo();
+      }
+      return;
+    }
+    if (isMod && event.key.toLowerCase() === "e") {
+      if (!canEditCurrentTemplate) {
+        return;
+      }
+      event.preventDefault();
+      void handleExportHtml();
+      return;
+    }
+    if (event.key === "Escape" && ui.isFullscreen) {
+      dispatch({ type: "set_fullscreen", fullscreen: false });
+    }
+  });
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      onKeyboardShortcut(event);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  return { handleCopyHtml, handleDownloadHtml };
 }

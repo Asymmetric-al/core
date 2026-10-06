@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "scope": "Exact source inline native ESLint exceptions, separate from React Doctor diagnostics and existing native design-system debt counts.",
+  "exceptions": [
+    {
+      "filePath": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
+      "rule": "react-hooks/refs",
+      "line": 2096,
+      "reason": "The render-time factory only captures the supplied refs and returns an async payment event handler. Every ref read/write is inside that returned handler; factory creation itself performs no ref access. The compiler lint heuristically treats passing a ref to any function as a possible read.",
+      "evidence": [
+        "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
+        "tests/unit/apps/donor/checkout-client.test.tsx",
+        "Root ESLint file-level react-hooks/refs error configuration keeps the same compiler check active under the shared lint context; one factory-only disable remains. Root lint --fix and app lint both preserve it."
+      ],
+      "sourceFileHash": "cfd34cfaa902b1c81a31ddac9f5de1b251752ba2c2e2e3948a52b72948d2e41d",
+      "evidenceFileHashes": {
+        "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx": "cfd34cfaa902b1c81a31ddac9f5de1b251752ba2c2e2e3948a52b72948d2e41d",
+        "tests/unit/apps/donor/checkout-client.test.tsx": "b9b0d9967ef832de549d288319fb6e72a72101441603303489897c2f601d6124"
+      },
+      "reconsiderWhen": "Reconsider if the factory body reads/writes a ref before invocation or submission ownership, mount identity, revision or idempotency contracts change."
+    }
+  ]
+}

@@ -15,7 +15,7 @@
 
 import { resolveGiftIntakeCharge } from "@asym/api/donate/fee-policy";
 
-export type DonateRequestBody = {
+type DonateRequestBody = {
   amount: number;
   currency: string;
   cover_fees: boolean;
@@ -32,7 +32,7 @@ export type ServerDonation = {
   publishableKey: string | null;
 };
 
-export type DonateResult =
+type DonateResult =
   | { kind: "initialized"; donation: ServerDonation }
   | { kind: "processing"; donationId: string | null }
   | { kind: "error"; message: string };
@@ -42,7 +42,7 @@ export type CheckoutMode = "live" | "test";
 export type CheckoutFrequency = "one-time" | "monthly";
 export type CheckoutPaymentMethod = "card" | "ach" | "wallet";
 
-export type GuestGivingCheckoutFeeQuote = {
+type GuestGivingCheckoutFeeQuote = {
   giftAmount: number;
   coverAmount: number;
   chargedAmount: number;
@@ -51,7 +51,7 @@ export type GuestGivingCheckoutFeeQuote = {
   paymentMethod: CheckoutPaymentMethod;
 };
 
-export type CheckoutRequestFingerprintInput = {
+type CheckoutRequestFingerprintInput = {
   amount: number;
   coverFees: boolean;
   currency?: string | null;
@@ -67,14 +67,14 @@ export type CheckoutRequestFingerprintInput = {
   startDate?: string | null;
 };
 
-export type ResolveIdempotencyKeyInput = {
+type ResolveIdempotencyKeyInput = {
   currentFingerprint: string;
   existingFingerprint: string | null;
   existingKey: string | null;
   generateKey: () => string;
 };
 
-export type ResolveIdempotencyKeyResult = {
+type ResolveIdempotencyKeyResult = {
   idempotencyKey: string;
   isNewKey: boolean;
 };

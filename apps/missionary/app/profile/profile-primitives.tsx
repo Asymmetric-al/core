@@ -196,10 +196,7 @@ export function AvatarUploadArea({
         className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
         initial={false}
       >
-        <motion.div
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
-          initial={false}
-        >
+        <motion.div className="transition-opacity" initial={false}>
           <Camera className="size-6 text-white drop-shadow-lg" />
         </motion.div>
       </motion.div>
@@ -242,7 +239,7 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
             className="absolute inset-0 bg-black/0 hover:bg-black/40 flex items-center justify-center transition-colors"
             initial={false}
           >
-            <motion.div className="bg-white rounded-lg px-3 py-1.5 shadow-lg opacity-0 hover:opacity-100 transition-opacity">
+            <motion.div className="bg-white rounded-lg px-3 py-1.5 shadow-lg transition-opacity">
               <span className="text-xs font-medium flex items-center gap-1.5">
                 <Camera className="size-3.5" />
                 Change Cover
@@ -263,7 +260,7 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
           <p className="text-xs sm:text-sm font-medium text-zinc-700">
             Click to upload cover photo
           </p>
-          <p className="text-[10px] sm:text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs sm:text-xs text-zinc-400 mt-0.5">
             1200x400px recommended
           </p>
         </motion.div>
@@ -444,9 +441,9 @@ export type ProfileHeaderActionsProps = {
   hasChanges: boolean;
   isSaving: boolean;
   saveSuccess: boolean;
-  handleCopyLink: () => void | Promise<void>;
-  handleDiscard: () => void;
-  handleSave: () => void | Promise<void>;
+  onCopyLink: () => void | Promise<void>;
+  onDiscard: () => void;
+  onSave: () => void | Promise<void>;
 };
 
 export function ProfileHeaderActions({
@@ -455,9 +452,9 @@ export function ProfileHeaderActions({
   hasChanges,
   isSaving,
   saveSuccess,
-  handleCopyLink,
-  handleDiscard,
-  handleSave,
+  onCopyLink,
+  onDiscard,
+  onSave,
 }: ProfileHeaderActionsProps) {
   const pendingActionLabelId = React.useId();
 
@@ -470,7 +467,7 @@ export function ProfileHeaderActions({
             <Button
               variant="outline"
               size="sm"
-              onClick={handleCopyLink}
+              onClick={onCopyLink}
               className="h-9 text-xs"
             >
               <AnimatePresence mode="wait">
@@ -536,7 +533,7 @@ export function ProfileHeaderActions({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleDiscard}
+              onClick={onDiscard}
               className="h-9 text-xs text-zinc-500 hover:text-zinc-900"
             >
               <RotateCcw className="mr-1.5 size-4" data-icon="inline-start" />
@@ -554,7 +551,7 @@ export function ProfileHeaderActions({
         <Button
           aria-labelledby={`${pendingActionLabelId}-28`}
           focusableWhenDisabled={isSaving}
-          onClick={handleSave}
+          onClick={onSave}
           disabled={isSaving || !hasChanges}
           size="sm"
           className={cn(

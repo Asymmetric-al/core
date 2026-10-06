@@ -214,7 +214,7 @@ function CrmRelationshipsMobileCard({
             {relationship.secondaryLabel ?? relationship.authorityLabel}
           </p>
         </div>
-        <Badge variant="outline" className="rounded-md text-[9px]">
+        <Badge variant="outline" className="rounded-md">
           {relationship.domain}
         </Badge>
       </div>

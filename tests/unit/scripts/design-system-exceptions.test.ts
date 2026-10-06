@@ -64,7 +64,7 @@ const runtimeCases = [
     properties: ["maxHeight", "width", "height"],
   },
   {
-    file: "packages/ui/components/shadcn/rich-text-editor/image-view.tsx",
+    file: "packages/ui/components/shadcn/rich-text-editor/image-node-view.tsx",
     properties: ["width"],
   },
   {
@@ -260,7 +260,7 @@ describe("scoped design-system runtime boundaries", () => {
         "payload-native-edit",
       ],
       [
-        "packages/ui/components/shadcn/rich-text-editor/image-view.tsx",
+        "packages/ui/components/shadcn/rich-text-editor/image-node-view.tsx",
         "image-resizable image-selected",
       ],
     ]) {

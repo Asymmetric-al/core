@@ -72,7 +72,7 @@ const supportInboxParsers = {
     ]).withDefault(DEFAULT_SUPPORT_INBOX_ROUTE_STATE.section),
 };
 
-export interface SupportInboxRouteStateApi {
+interface SupportInboxRouteStateApi {
   state: SupportInboxRouteState;
   setState: (next: Partial<SupportInboxRouteState>) => void;
   resetState: () => void;

@@ -10,11 +10,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
+import { ContributionDetailOverlay } from "./contribution-detail-overlay";
 import {
-  ContributionDetailOverlay,
   invalidateContributionOperationQueries,
   isContributionGiftParam,
-} from "./contribution-detail-overlay";
+} from "./contribution-detail-query";
 import { boneyardContributionsFixture, mockContributions } from "./data";
 import {
   ContributionFreshnessIndicator,
@@ -23,12 +23,6 @@ import {
 import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
 import { useAdminContributions } from "./use-admin-contributions";
 import { CONTRIBUTIONS_PAGE_META } from "../../../components/table-page-meta";
-
-/**
- * Re-exported so existing consumers (tests, sibling surfaces) keep one import
- * path for the shared freshness helper that lives with the overlay.
- */
-export { invalidateContributionOperationQueries };
 
 /** When `"1"`, table data comes from `mockContributions` (local dev only). */
 const USE_MOCK_CONTRIBUTIONS_UI =
@@ -164,7 +158,7 @@ export default function ContributionsPage({
               type="button"
               onClick={() => void contributionsQuery.refetch()}
               variant="outline"
-              className="mt-6 h-10 px-6 font-semibold uppercase tracking-widest text-[10px]"
+              className="mt-6 h-10 px-6 font-semibold uppercase tracking-widest"
             >
               <RefreshCw className="mr-2 size-4" />
               Retry

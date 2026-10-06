@@ -89,7 +89,7 @@ export function StudioPreviewDeviceToggle({
               className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
             >
               <Monitor className="size-3.5" />
-              <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+              <span className="hidden lg:inline ml-1.5 text-xs font-medium uppercase tracking-wider">
                 Desktop
               </span>
             </ToggleGroupItem>
@@ -105,7 +105,7 @@ export function StudioPreviewDeviceToggle({
               className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
             >
               <Smartphone className="size-3.5" />
-              <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+              <span className="hidden lg:inline ml-1.5 text-xs font-medium uppercase tracking-wider">
                 Mobile
               </span>
             </ToggleGroupItem>
@@ -170,7 +170,7 @@ export function StudioExportedHtmlPreview({
           <Button
             variant="secondary"
             size="sm"
-            className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-7 px-2   transition-opacity"
             onClick={onCopy}
           >
             {copied ? (

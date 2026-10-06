@@ -23,7 +23,7 @@ export type DonorsStatFilterType =
   | "lapsed"
   | "new";
 
-export type DonorsStatFilterState = DonorsPageFilterState & {
+type DonorsStatFilterState = DonorsPageFilterState & {
   selectedDonorId: null;
 };
 

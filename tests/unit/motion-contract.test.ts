@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -21,16 +21,6 @@ import {
  */
 
 const REPO_ROOT = join(__dirname, "..", "..");
-const SCAN_ROOTS = ["apps", "packages"] as const;
-const SKIP_DIRS = new Set([
-  "node_modules",
-  ".next",
-  ".turbo",
-  "dist",
-  "build",
-  "coverage",
-]);
-
 const BANNED_PATTERNS: Array<{ name: string; regex: RegExp; hint: string }> = [
   {
     name: "transition-all",
@@ -44,20 +34,6 @@ const BANNED_PATTERNS: Array<{ name: string; regex: RegExp; hint: string }> = [
   },
 ];
 
-function collectTsxFiles(dir: string, out: string[]): void {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name)) {
-        collectTsxFiles(join(dir, entry.name), out);
-      }
-      continue;
-    }
-    if (entry.isFile() && entry.name.endsWith(".tsx")) {
-      out.push(join(dir, entry.name));
-    }
-  }
-}
-
 function isCommentLine(line: string): boolean {
   const trimmed = line.trimStart();
   return (
@@ -69,10 +45,9 @@ function isCommentLine(line: string): boolean {
 }
 
 describe("motion contract", () => {
-  const files: string[] = [];
-  for (const root of SCAN_ROOTS) {
-    collectTsxFiles(join(REPO_ROOT, root), files);
-  }
+  const files = listScanTargets()
+    .filter((file) => file.endsWith(".tsx"))
+    .map((file) => join(REPO_ROOT, file));
 
   it("scans a non-trivial number of component files", () => {
     expect(files.length).toBeGreaterThan(100);

@@ -132,7 +132,7 @@ function NotificationRow({
         <div className="flex flex-col items-center gap-2">
           <Label
             htmlFor={`${notificationId}-inApp`}
-            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+            className="text-xs font-black uppercase tracking-widest text-zinc-300"
           >
             In-App
           </Label>
@@ -149,7 +149,7 @@ function NotificationRow({
         <div className="flex flex-col items-center gap-2">
           <Label
             htmlFor={`${notificationId}-email`}
-            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+            className="text-xs font-black uppercase tracking-widest text-zinc-300"
           >
             Email
           </Label>
@@ -166,7 +166,7 @@ function NotificationRow({
         <div className="flex flex-col items-center gap-2">
           <Label
             htmlFor={`${notificationId}-sms`}
-            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+            className="text-xs font-black uppercase tracking-widest text-zinc-300"
           >
             SMS
           </Label>
@@ -187,7 +187,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = React.useState(INITIAL_NOTIFICATION_SETTINGS);
   const [hasChanges, setHasChanges] = React.useState(false);
 
-  const handleChange = (
+  const handleSettingFieldChange = (
     id: string,
     channel: "inApp" | "email" | "sms",
     value: boolean,
@@ -220,14 +220,14 @@ export default function SettingsPage() {
         <div className="lg:col-span-8 space-y-10">
           <Card className="border-zinc-200 bg-white shadow-sm overflow-hidden rounded-[2.5rem]">
             <CardHeader className="border-b border-zinc-50 bg-zinc-50/30 px-8 py-6">
-              <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+              <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
                 Account Security
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">
+                  <Label className="text-xs font-black uppercase tracking-widest text-zinc-400 px-1">
                     Email Address
                   </Label>
                   <Input
@@ -237,7 +237,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">
+                  <Label className="text-xs font-black uppercase tracking-widest text-zinc-400 px-1">
                     Two-Factor Authentication
                   </Label>
                   <div className="flex items-center justify-between h-12 px-4 rounded-xl border border-zinc-100 bg-zinc-50/50">
@@ -250,7 +250,7 @@ export default function SettingsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-900 hover:bg-white"
+                      className="rounded-lg font-black uppercase tracking-widest text-zinc-900 hover:bg-white"
                     >
                       Configure
                     </Button>
@@ -260,7 +260,7 @@ export default function SettingsPage() {
               <div className="pt-4">
                 <Button
                   variant="outline"
-                  className="h-11 rounded-2xl border-zinc-200 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+                  className="h-11 rounded-2xl border-zinc-200 px-6 font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                 >
                   <ShieldCheck className="mr-2 size-4" />
                   Update Password
@@ -271,7 +271,7 @@ export default function SettingsPage() {
 
           <Card className="border-zinc-200 bg-white shadow-sm overflow-hidden rounded-[2.5rem]">
             <CardHeader className="border-b border-zinc-50 bg-zinc-50/30 px-8 py-6">
-              <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+              <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
                 Notification Channels
               </CardTitle>
             </CardHeader>
@@ -281,7 +281,7 @@ export default function SettingsPage() {
                   <NotificationRow
                     key={setting.id}
                     setting={setting}
-                    onChange={handleChange}
+                    onChange={handleSettingFieldChange}
                   />
                 ))}
               </div>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                 <div className="size-10 rounded-2xl bg-zinc-50 flex items-center justify-center">
                   <Globe className="size-5 text-zinc-400" />
                 </div>
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
                   Identity
                 </CardTitle>
               </div>
@@ -306,7 +306,7 @@ export default function SettingsPage() {
                 <p className="text-sm font-bold text-zinc-900">
                   {siteConfig.name}
                 </p>
-                <p className="text-[10px] font-medium text-zinc-500 leading-relaxed">
+                <p className="text-xs font-medium text-zinc-500 leading-relaxed">
                   Access your public ministry home page and donor portal.
                 </p>
               </div>
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                 rel="noopener noreferrer"
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "w-full h-11 rounded-2xl border-zinc-200 text-[10px] font-black uppercase tracking-widest text-zinc-900 group",
+                  "w-full h-11 rounded-2xl border-zinc-200 text-xs font-black uppercase tracking-widest text-zinc-900 group",
                 )}
               >
                 Visit Website
@@ -345,7 +345,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-black">Mailchimp</span>
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white">
+                    <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest transition-colors group-hover:text-white">
                       Connected
                     </span>
                   </div>
@@ -360,7 +360,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-black">Zapier</span>
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
                       Not Connected
                     </span>
                   </div>
@@ -368,14 +368,14 @@ export default function SettingsPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="rounded-lg text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10"
+                  className="rounded-lg font-black uppercase tracking-widest text-white hover:bg-white/10"
                 >
                   Link
                 </Button>
               </div>
 
               <div className="pt-6 border-t border-white/5">
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
+                <p className="text-xs font-bold text-zinc-500 leading-relaxed">
                   Need a custom integration? Contact our support team for API
                   access.
                 </p>
@@ -389,7 +389,7 @@ export default function SettingsPage() {
                 <div className="size-10 rounded-2xl bg-violet-50 flex items-center justify-center">
                   <Sparkles className="size-5 text-violet-600" />
                 </div>
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
                   System Preferences
                 </CardTitle>
               </div>
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                   <p className="text-sm font-bold text-zinc-900">
                     Developer Mode
                   </p>
-                  <p className="text-[10px] font-medium text-zinc-400">
+                  <p className="text-xs font-medium text-zinc-400">
                     Access advanced API tools
                   </p>
                 </div>
@@ -414,7 +414,7 @@ export default function SettingsPage() {
                   <p className="text-sm font-bold text-zinc-900">
                     Beta Features
                   </p>
-                  <p className="text-[10px] font-medium text-zinc-400">
+                  <p className="text-xs font-medium text-zinc-400">
                     Try new dashboard widgets
                   </p>
                 </div>

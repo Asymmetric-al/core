@@ -19,13 +19,13 @@ const LogoSvg = (props: SVGAttributes<SVGElement>) => {
         className="dark:fill-white"
       />
       <path
-        d="M165.018 72.3008V132.771C165.018 152.653 148.9 168.771 129.018 168.771H70.2288"
+        d="M165.02 72.3V132.77C165.02 152.65 148.9 168.77 129.02 168.77H70.23"
         stroke="white"
         strokeWidth="20"
         className="dark:stroke-black"
       />
       <path
-        d="M166.627 265.241L166.627 204.771C166.627 184.889 182.744 168.771 202.627 168.771L261.416 168.771"
+        d="M166.63 265.24L166.63 204.77C166.63 184.89 182.74 168.77 202.63 168.77L261.42 168.77"
         stroke="white"
         strokeWidth="20"
         className="dark:stroke-black"

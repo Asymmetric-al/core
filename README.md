@@ -183,6 +183,13 @@ builds retain full qualification; see the
 [build runbook](docs/guides/development/build-runbook.md#eve-artifacts-and-qualification)
 before treating any preview as launch evidence.
 
+For React and Next.js source cleanup, use `bun run react-doctor:audit`, retain
+`bun run react-doctor:raw`, and finish with `bun run react-doctor:check`.
+The strict command requires all eight targets to complete with no unexcepted
+warnings or errors. `bun run test:react-cleanup` runs the isolated component
+browser fixtures. See the [React Doctor guide](docs/guides/development/react-doctor.md)
+for exact exceptions, source-copy integrity, and verification limits.
+
 ### AI Agent Guidance System
 
 Agent-oriented docs live under `docs/ai/`:

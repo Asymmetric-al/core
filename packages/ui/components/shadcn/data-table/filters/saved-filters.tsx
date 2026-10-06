@@ -210,6 +210,7 @@ export function SavedFilters({
                     {editingFilter?.id === filter.id ? (
                       <div className="flex-1 flex items-center gap-1">
                         <Input
+                          aria-label="Rename saved view"
                           ref={editNameInputRef}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
@@ -264,7 +265,7 @@ export function SavedFilters({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
+                                className="size-7 shrink-0  "
                               >
                                 <MoreHorizontalIcon className="size-3" />
                               </Button>

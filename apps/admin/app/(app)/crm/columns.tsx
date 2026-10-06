@@ -74,7 +74,7 @@ export function getCrmColumns({
             >
               <Avatar className="size-9 rounded-xl border border-border">
                 <AvatarImage src={record.avatarUrl ?? undefined} />
-                <AvatarFallback className="rounded-xl bg-primary text-[10px] font-semibold text-primary-foreground">
+                <AvatarFallback className="rounded-xl bg-primary text-xs font-semibold text-primary-foreground">
                   {initial}
                 </AvatarFallback>
               </Avatar>
@@ -175,7 +175,7 @@ export function getCrmColumns({
         <Badge
           variant="outline"
           className={cn(
-            "border text-[10px] font-semibold shadow-none",
+            "border font-semibold shadow-none",
             LIFECYCLE_BADGE_CLASS[
               row.original.lifecycleStatus?.toLowerCase() ?? ""
             ] ?? "border-border bg-background text-muted-foreground",
@@ -286,7 +286,7 @@ export function getCrmColumns({
           <Badge
             variant="outline"
             className={cn(
-              "border text-[10px] font-semibold shadow-none",
+              "border font-semibold shadow-none",
               PORTAL_BADGE_CLASS[label],
             )}
           >
@@ -320,11 +320,7 @@ export function getCrmColumns({
             </span>
           ) : (
             row.original.tags.map((t) => (
-              <Badge
-                key={t}
-                variant="secondary"
-                className="h-5 px-1.5 text-[10px]"
-              >
+              <Badge key={t} variant="secondary" className="h-5 px-1.5">
                 {t}
               </Badge>
             ))

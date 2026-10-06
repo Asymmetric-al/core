@@ -58,7 +58,7 @@
   },
   "apps/admin/app/(app)/admin/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 34
@@ -73,9 +73,6 @@
     }
   },
   "apps/admin/app/(app)/care/directory/[id]/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 17
     },
@@ -100,14 +97,11 @@
     }
   },
   "apps/admin/app/(app)/care/settings/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
     "shadcn/no-raw-colors": {
       "count": 62
     },
     "shadcn/no-restyle": {
-      "count": 94
+      "count": 91
     }
   },
   "apps/admin/app/(app)/contributions/boneyard-fallback.tsx": {
@@ -124,27 +118,16 @@
     }
   },
   "apps/admin/app/(app)/contributions/contribution-detail-sheet.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 24
-    },
     "shadcn/no-raw-colors": {
       "count": 3
     },
     "shadcn/no-restyle": {
-      "count": 91
-    }
-  },
-  "apps/admin/app/(app)/contributions/correction-approval-panel.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
+      "count": 82
     }
   },
   "apps/admin/app/(app)/contributions/main-body.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
     "shadcn/no-restyle": {
-      "count": 25
+      "count": 22
     }
   },
   "apps/admin/app/(app)/contributions/needs-attention-panel.tsx": {
@@ -178,11 +161,8 @@
     }
   },
   "apps/admin/app/(app)/contributions/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 6
+      "count": 5
     }
   },
   "apps/admin/app/(app)/contributions/receipt-delivery-choice.tsx": {
@@ -191,11 +171,8 @@
     }
   },
   "apps/admin/app/(app)/crm/columns.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-restyle": {
-      "count": 32
+      "count": 29
     },
     "shadcn/require-static-classes": {
       "count": 2
@@ -203,10 +180,10 @@
   },
   "apps/admin/app/(app)/crm/detail-drawer.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 24
+      "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 112
+      "count": 105
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -217,23 +194,12 @@
       "count": 10
     }
   },
-  "apps/admin/app/(app)/crm/gift-history-rows.tsx": {
+  "apps/admin/app/(app)/crm/gift-history-section.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 1
     }
   },
-  "apps/admin/app/(app)/crm/gift-history-section.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
-    "shadcn/no-restyle": {
-      "count": 2
-    }
-  },
   "apps/admin/app/(app)/crm/gift-history-view-settings-menu.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
     "shadcn/no-restyle": {
       "count": 28
     }
@@ -244,46 +210,37 @@
     }
   },
   "apps/admin/app/(app)/crm/gift-inline-action-controls.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
       "count": 13
     }
   },
   "apps/admin/app/(app)/crm/kanban-view.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 8
-    },
-    "shadcn/no-restyle": {
-      "count": 8
-    }
-  },
-  "apps/admin/app/(app)/crm/notes/columns.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
+      "count": 2
     },
     "shadcn/no-restyle": {
       "count": 7
     }
   },
+  "apps/admin/app/(app)/crm/notes/columns.tsx": {
+    "shadcn/no-restyle": {
+      "count": 6
+    }
+  },
   "apps/admin/app/(app)/crm/notes/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 9
     },
     "shadcn/no-restyle": {
-      "count": 33
+      "count": 30
     }
   },
   "apps/admin/app/(app)/crm/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 13
+      "count": 12
     }
   },
   "apps/admin/app/(app)/crm/relationships/columns.tsx": {
@@ -298,25 +255,22 @@
     }
   },
   "apps/admin/app/(app)/crm/relationships/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 3
     },
     "shadcn/no-restyle": {
-      "count": 15
+      "count": 14
     }
   },
   "apps/admin/app/(app)/events/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 95
     },
     "shadcn/no-restyle": {
-      "count": 194
+      "count": 191
     },
     "shadcn/require-static-classes": {
       "count": 2
@@ -337,13 +291,13 @@
   },
   "apps/admin/app/(app)/feed/content-moderation-sections.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 48
+      "count": 6
     },
     "shadcn/no-raw-colors": {
       "count": 24
     },
     "shadcn/no-restyle": {
-      "count": 308
+      "count": 284
     },
     "shadcn/no-unknown-classes": {
       "count": 3
@@ -351,22 +305,19 @@
   },
   "apps/admin/app/(app)/feed/org-updates/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 32
+      "count": 7
     },
     "shadcn/no-raw-colors": {
       "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 233
+      "count": 216
     },
     "shadcn/no-unknown-classes": {
       "count": 2
     }
   },
   "apps/admin/app/(app)/help/about/page.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 16
     },
@@ -375,9 +326,6 @@
     }
   },
   "apps/admin/app/(app)/mobilize/locations/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 13
     },
@@ -387,13 +335,13 @@
   },
   "apps/admin/app/(app)/mobilize/mobilize-sections.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 3
     },
     "shadcn/no-raw-colors": {
       "count": 74
     },
     "shadcn/no-restyle": {
-      "count": 203
+      "count": 196
     },
     "shadcn/require-static-classes": {
       "count": 2
@@ -409,7 +357,7 @@
   },
   "apps/admin/app/(app)/pdf/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 5
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 11
@@ -477,7 +425,7 @@
   },
   "apps/admin/app/(app)/support/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 5
     },
     "shadcn/no-restyle": {
       "count": 16
@@ -557,7 +505,7 @@
   },
   "apps/admin/app/global-error.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 7
@@ -565,16 +513,13 @@
   },
   "apps/admin/app/global-not-found.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 6
     }
   },
   "apps/admin/app/mc-shell.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 9
-    },
     "shadcn/no-raw-colors": {
       "count": 34
     },
@@ -584,24 +529,21 @@
   },
   "apps/admin/app/web-studio/web-studio-sections.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 29
+      "count": 8
     },
     "shadcn/no-raw-colors": {
       "count": 95
     },
     "shadcn/no-restyle": {
-      "count": 148
+      "count": 137
     }
   },
   "apps/admin/components/dashboard/activity-item.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 9
     },
     "shadcn/no-restyle": {
-      "count": 10
+      "count": 9
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -625,26 +567,26 @@
       "count": 5
     },
     "shadcn/no-restyle": {
-      "count": 5
+      "count": 3
     }
   },
   "apps/admin/components/studio/studio-chrome.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 5
     },
     "shadcn/no-restyle": {
-      "count": 17
+      "count": 15
     }
   },
   "apps/admin/features/mission-control/care/components/CareDashboard.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 50
+      "count": 47
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -652,16 +594,13 @@
   },
   "apps/admin/features/mission-control/care/components/CareTools.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 68
+      "count": 65
     }
   },
   "apps/admin/features/mission-control/care/components/HealthHeatmap.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 3
     },
@@ -673,20 +612,14 @@
     }
   },
   "apps/admin/features/mission-control/care/components/PersonnelList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 7
-    },
     "shadcn/no-raw-colors": {
       "count": 8
     },
     "shadcn/no-restyle": {
-      "count": 49
+      "count": 47
     }
   },
   "apps/admin/features/mission-control/care/components/PersonnelProfile.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 7
-    },
     "shadcn/no-raw-colors": {
       "count": 103
     },
@@ -703,28 +636,22 @@
     }
   },
   "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 6
-    },
     "shadcn/no-raw-colors": {
       "count": 23
     },
     "shadcn/no-restyle": {
-      "count": 26
+      "count": 24
     }
   },
   "apps/admin/features/mission-control/care/components/UI.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-restyle": {
       "count": 4
     }
   },
   "apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 1
     },
@@ -733,14 +660,11 @@
     }
   },
   "apps/admin/features/mission-control/components/WorkflowSummariesTable.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 9
-    },
     "shadcn/no-raw-colors": {
       "count": 17
     },
     "shadcn/no-restyle": {
-      "count": 17
+      "count": 15
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -748,7 +672,7 @@
   },
   "apps/admin/features/mission-control/components/app-shell/index.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 9
+      "count": 3
     },
     "shadcn/no-raw-colors": {
       "count": 52
@@ -764,7 +688,7 @@
   },
   "apps/admin/features/mission-control/components/tiles/dashboard-tile.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 18
@@ -772,13 +696,13 @@
   },
   "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 8
     },
     "shadcn/no-raw-colors": {
       "count": 24
     },
     "shadcn/no-restyle": {
-      "count": 79
+      "count": 77
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -794,7 +718,7 @@
   },
   "apps/admin/features/mission-control/components/tiles/tile-card.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 21
@@ -821,81 +745,66 @@
   },
   "apps/admin/features/mission-control/locations/components/LocationEditor.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 10
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 22
     },
     "shadcn/no-restyle": {
-      "count": 41
+      "count": 39
     }
   },
   "apps/admin/features/mission-control/locations/components/LocationTable.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 16
     },
     "shadcn/no-restyle": {
-      "count": 30
+      "count": 29
     }
   },
   "apps/admin/features/support-hub/components/SupportFailureBanner.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 8
-    },
-    "shadcn/no-restyle": {
-      "count": 10
-    }
-  },
-  "apps/admin/features/support-hub/components/SupportInboxEmptyState.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
-    "shadcn/no-raw-colors": {
-      "count": 7
     },
     "shadcn/no-restyle": {
       "count": 9
     }
   },
-  "apps/admin/features/support-hub/components/board/BoardCard.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 6
-    },
+  "apps/admin/features/support-hub/components/SupportInboxEmptyState.tsx": {
     "shadcn/no-raw-colors": {
-      "count": 12
-    },
-    "shadcn/no-restyle": {
-      "count": 17
-    }
-  },
-  "apps/admin/features/support-hub/components/board/BoardColumn.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
-    "shadcn/no-raw-colors": {
-      "count": 10
+      "count": 7
     },
     "shadcn/no-restyle": {
       "count": 8
     }
   },
-  "apps/admin/features/support-hub/components/board/SupportBoardView.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
+  "apps/admin/features/support-hub/components/board/BoardCard.tsx": {
+    "shadcn/no-raw-colors": {
+      "count": 12
     },
+    "shadcn/no-restyle": {
+      "count": 16
+    }
+  },
+  "apps/admin/features/support-hub/components/board/BoardColumn.tsx": {
+    "shadcn/no-arbitrary-values": {
+      "count": 2
+    },
+    "shadcn/no-raw-colors": {
+      "count": 10
+    },
+    "shadcn/no-restyle": {
+      "count": 7
+    }
+  },
+  "apps/admin/features/support-hub/components/board/SupportBoardView.tsx": {
     "shadcn/no-raw-colors": {
       "count": 1
     }
   },
   "apps/admin/features/support-hub/components/command/InboxShortcutHints.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 3
@@ -913,19 +822,16 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationAssigneeMenu.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 8
-    },
     "shadcn/no-raw-colors": {
       "count": 9
     },
     "shadcn/no-restyle": {
-      "count": 24
+      "count": 23
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationContactSidecar.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 6
@@ -935,17 +841,11 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationCrmLinks.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 6
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationDetail.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 11
     },
@@ -954,22 +854,19 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationDetailEmpty.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 5
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationHeader.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 5
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 12
     },
     "shadcn/no-restyle": {
-      "count": 23
+      "count": 21
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -977,24 +874,21 @@
   },
   "apps/admin/features/support-hub/components/detail/ConversationLabelMenu.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 7
     },
     "shadcn/no-restyle": {
-      "count": 23
+      "count": 21
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationPriorityMenu.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 15
+      "count": 14
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationSlaChip.tsx": {
@@ -1003,34 +897,25 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationSnoozeMenu.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 5
     },
     "shadcn/no-restyle": {
-      "count": 16
+      "count": 15
     }
   },
   "apps/admin/features/support-hub/components/detail/ConversationStatusMenu.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 15
+      "count": 14
     },
     "shadcn/require-static-classes": {
       "count": 1
     }
   },
   "apps/admin/features/support-hub/components/detail/composer/AttachmentChips.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 9
     },
@@ -1039,9 +924,6 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/composer/ComposerActions.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 5
     },
@@ -1050,14 +932,11 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/composer/ConversationComposer.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 11
     },
     "shadcn/no-restyle": {
-      "count": 23
+      "count": 21
     }
   },
   "apps/admin/features/support-hub/components/detail/composer/SignatureChip.tsx": {
@@ -1084,7 +963,7 @@
   },
   "apps/admin/features/support-hub/components/detail/composer/extensions/SuggestionList.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 1
     }
   },
   "apps/admin/features/support-hub/components/detail/conversation-crm-links.tsx": {
@@ -1093,49 +972,40 @@
     }
   },
   "apps/admin/features/support-hub/components/detail/timeline/ActivityEntry.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 5
     }
   },
   "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 3
     },
     "shadcn/no-restyle": {
-      "count": 38
+      "count": 34
     },
     "shadcn/require-static-classes": {
       "count": 2
     }
   },
   "apps/admin/features/support-hub/components/detail/timeline/EmptyTimeline.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 6
     }
   },
   "apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
     "shadcn/no-raw-colors": {
       "count": 10
     },
     "shadcn/no-restyle": {
-      "count": 14
+      "count": 13
     }
   },
   "apps/admin/features/support-hub/components/detail/timeline/TimelineSeparator.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 3
@@ -1150,9 +1020,6 @@
     }
   },
   "apps/admin/features/support-hub/components/labels/LabelManagerDialog.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 14
     },
@@ -1180,9 +1047,6 @@
     }
   },
   "apps/admin/features/support-hub/components/macros/RunMacroPopover.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 3
     },
@@ -1192,7 +1056,7 @@
   },
   "apps/admin/features/support-hub/components/reports/ReportBarChart.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 6
@@ -1202,27 +1066,24 @@
     }
   },
   "apps/admin/features/support-hub/components/reports/ReportExportMenu.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 7
+      "count": 6
     }
   },
   "apps/admin/features/support-hub/components/reports/ReportFilters.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 13
+      "count": 4
     },
     "shadcn/no-raw-colors": {
-      "count": 11
+      "count": 9
     },
     "shadcn/no-restyle": {
-      "count": 38
+      "count": 34
     }
   },
   "apps/admin/features/support-hub/components/reports/ReportLineChart.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 8
@@ -1233,18 +1094,18 @@
   },
   "apps/admin/features/support-hub/components/reports/ReportScopeSelect.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 3
     },
     "shadcn/no-raw-colors": {
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 16
+      "count": 14
     }
   },
   "apps/admin/features/support-hub/components/reports/ReportSummaryCards.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 4
@@ -1252,97 +1113,82 @@
   },
   "apps/admin/features/support-hub/components/reports/ReportTable.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 6
     }
   },
   "apps/admin/features/support-hub/components/settings/SettingsPanel.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 3
     }
   },
   "apps/admin/features/support-hub/components/settings/SettingsRow.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 5
+      "count": 1
     },
     "shadcn/no-restyle": {
       "count": 6
     }
   },
   "apps/admin/features/support-hub/components/settings/SettingsToolbar.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 5
     },
     "shadcn/no-restyle": {
-      "count": 7
+      "count": 5
     }
   },
   "apps/admin/features/support-hub/components/settings/assignment/AssignmentRulesForm.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 3
+      "count": 2
     }
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationActionRow.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 8
-    },
     "shadcn/no-raw-colors": {
       "count": 3
     },
     "shadcn/no-restyle": {
-      "count": 28
+      "count": 20
     }
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationConditionRow.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 6
-    },
     "shadcn/no-raw-colors": {
       "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 19
+      "count": 14
     }
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 10
+      "count": 8
     }
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationRuleForm.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 10
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 7
     },
     "shadcn/no-restyle": {
-      "count": 21
+      "count": 18
     }
   },
   "apps/admin/features/support-hub/components/settings/automations/AutomationRuleList.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 14
@@ -1353,19 +1199,16 @@
   },
   "apps/admin/features/support-hub/components/settings/business-hours/BusinessHoursForm.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 14
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 15
     },
     "shadcn/no-restyle": {
-      "count": 33
+      "count": 28
     }
   },
   "apps/admin/features/support-hub/components/settings/business-hours/BusinessHoursList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 11
     },
@@ -1374,20 +1217,14 @@
     }
   },
   "apps/admin/features/support-hub/components/settings/canned-responses/CannedResponseForm.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 3
     },
     "shadcn/no-restyle": {
-      "count": 5
+      "count": 3
     }
   },
   "apps/admin/features/support-hub/components/settings/canned-responses/CannedResponseList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 13
     },
@@ -1396,9 +1233,6 @@
     }
   },
   "apps/admin/features/support-hub/components/settings/collaborators/AgentsList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 5
     },
@@ -1415,9 +1249,6 @@
     }
   },
   "apps/admin/features/support-hub/components/settings/collaborators/TeamList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 10
     },
@@ -1426,20 +1257,14 @@
     }
   },
   "apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 8
-    },
     "shadcn/no-raw-colors": {
       "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 12
+      "count": 8
     }
   },
   "apps/admin/features/support-hub/components/settings/labels/LabelsSettingsPanel.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 8
     },
@@ -1449,13 +1274,13 @@
   },
   "apps/admin/features/support-hub/components/settings/macros/MacroActionEditor.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 13
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 6
     },
     "shadcn/no-restyle": {
-      "count": 39
+      "count": 29
     }
   },
   "apps/admin/features/support-hub/components/settings/macros/MacroForm.tsx": {
@@ -1464,9 +1289,6 @@
     }
   },
   "apps/admin/features/support-hub/components/settings/macros/MacroList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 10
     },
@@ -1476,19 +1298,16 @@
   },
   "apps/admin/features/support-hub/components/settings/notifications/NotificationPreferencesForm.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 8
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 11
     },
     "shadcn/no-restyle": {
-      "count": 3
+      "count": 2
     }
   },
   "apps/admin/features/support-hub/components/settings/saved-views/SavedViewsList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 11
     },
@@ -1498,19 +1317,16 @@
   },
   "apps/admin/features/support-hub/components/settings/signatures/SignatureForm.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 5
     },
     "shadcn/no-restyle": {
-      "count": 12
+      "count": 10
     }
   },
   "apps/admin/features/support-hub/components/settings/signatures/SignatureList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 14
     },
@@ -1519,20 +1335,14 @@
     }
   },
   "apps/admin/features/support-hub/components/settings/sla/SlaPolicyForm.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
     "shadcn/no-raw-colors": {
       "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 14
+      "count": 10
     }
   },
   "apps/admin/features/support-hub/components/settings/sla/SlaPolicyList.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 14
     },
@@ -1542,24 +1352,18 @@
   },
   "apps/admin/features/support-hub/components/stats/StatCard.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 4
     }
   },
   "apps/admin/features/support-hub/components/table/SupportTableView.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 15
     }
   },
   "apps/admin/features/support-hub/components/table/bulk-actions.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 1
     },
@@ -1568,23 +1372,17 @@
     }
   },
   "apps/admin/features/support-hub/components/table/cells.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 18
-    },
     "shadcn/no-raw-colors": {
       "count": 21
     },
     "shadcn/no-restyle": {
-      "count": 22
+      "count": 20
     },
     "shadcn/require-static-classes": {
       "count": 2
     }
   },
   "apps/admin/features/support-hub/components/table/columns.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 1
     }
@@ -1601,33 +1399,27 @@
     }
   },
   "apps/admin/features/support-hub/components/toolbar/AssigneeFilter.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 9
+      "count": 8
     }
   },
   "apps/admin/features/support-hub/components/toolbar/InboxToolbar.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 14
+      "count": 13
     }
   },
   "apps/admin/features/support-hub/components/toolbar/LabelFilter.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 36
+      "count": 35
     }
   },
   "apps/admin/features/support-hub/components/toolbar/LayoutToggle.tsx": {
@@ -1636,28 +1428,19 @@
     }
   },
   "apps/admin/features/support-hub/components/toolbar/StatusFilter.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
-      "count": 2
-    },
-    "shadcn/no-restyle": {
-      "count": 8
-    }
-  },
-  "apps/admin/features/support-hub/components/views/SaveViewDialog.tsx": {
-    "shadcn/no-arbitrary-values": {
       "count": 2
     },
     "shadcn/no-restyle": {
       "count": 7
     }
   },
+  "apps/admin/features/support-hub/components/views/SaveViewDialog.tsx": {
+    "shadcn/no-restyle": {
+      "count": 7
+    }
+  },
   "apps/admin/features/support-hub/components/views/SavedViewItem.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 13
     },
@@ -1667,80 +1450,66 @@
   },
   "apps/admin/features/support-hub/components/views/SavedViewsBar.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 5
     },
     "shadcn/no-restyle": {
-      "count": 11
+      "count": 10
     }
   },
   "apps/admin/features/support-hub/components/workspace/SupportEmptySection.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 6
     }
   },
-  "apps/admin/features/support-hub/components/workspace/SupportSettingsLayout.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
-    "shadcn/no-raw-colors": {
-      "count": 1
-    }
-  },
   "apps/admin/features/support-hub/components/workspace/SupportSubNav.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 10
     },
     "shadcn/no-restyle": {
-      "count": 6
+      "count": 5
     }
   },
   "apps/admin/src/cms-ui/brand/Logo.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 5
+      "count": 4
     }
   },
   "apps/admin/src/cms-ui/root/Header.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 7
+      "count": 6
     }
   },
   "apps/admin/src/cms-ui/root/Nav.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 5
+      "count": 3
     },
     "shadcn/no-restyle": {
-      "count": 7
+      "count": 6
     }
   },
   "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 7
+      "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 8
+      "count": 5
     }
   },
   "apps/admin/src/cms-ui/web-studio/collections/shared/list-workspace/NativeCollectionListView.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 11
+      "count": 10
     },
     "shadcn/no-unknown-classes": {
       "count": 1
@@ -1752,11 +1521,8 @@
     }
   },
   "apps/admin/src/cms-ui/web-studio/flows/TemplateGalleryView.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-restyle": {
-      "count": 7
+      "count": 5
     }
   },
   "apps/admin/src/cms-ui/web-studio/shell/studio-layout.tsx": {
@@ -1765,9 +1531,6 @@
     }
   },
   "apps/admin/src/cms-ui/web-studio/shell/studio-nav-rail.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-restyle": {
       "count": 1
     }
@@ -1787,21 +1550,18 @@
   },
   "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 9
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 47
     },
     "shadcn/no-restyle": {
-      "count": 31
+      "count": 30
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-restyle": {
-      "count": 31
+      "count": 29
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -1809,13 +1569,13 @@
   },
   "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 12
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 41
     },
     "shadcn/no-restyle": {
-      "count": 110
+      "count": 108
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx": {
@@ -1824,22 +1584,16 @@
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 6
     },
     "shadcn/no-restyle": {
-      "count": 6
+      "count": 5
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
     "shadcn/no-restyle": {
-      "count": 26
+      "count": 24
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -1847,13 +1601,13 @@
   },
   "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 41
+      "count": 8
     },
     "shadcn/no-raw-colors": {
       "count": 84
     },
     "shadcn/no-restyle": {
-      "count": 243
+      "count": 232
     }
   },
   "apps/donor/app/(dashboard)/donor-dashboard/wallet/loading.tsx": {
@@ -1866,7 +1620,7 @@
   },
   "apps/donor/app/(public)/(hero)/faq/faq-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 2
     },
     "shadcn/no-inline-styles": {
       "count": 2
@@ -1912,13 +1666,13 @@
   },
   "apps/donor/app/(public)/(hero)/workers/workers-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 17
+      "count": 7
     },
     "shadcn/no-raw-colors": {
       "count": 58
     },
     "shadcn/no-restyle": {
-      "count": 90
+      "count": 89
     }
   },
   "apps/donor/app/(public)/(solid)/[...cmsSlug]/page.tsx": {
@@ -1950,7 +1704,7 @@
   },
   "apps/donor/app/(public)/(solid)/help/about/page.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 17
@@ -1961,15 +1715,15 @@
   },
   "apps/donor/app/(public)/(solid)/sign/[token]/page-client.tsx": {
     "shadcn/no-raw-colors": {
-      "count": 39
+      "count": 37
     },
     "shadcn/no-restyle": {
-      "count": 14
+      "count": 13
     }
   },
   "apps/donor/app/(public)/(solid)/where-we-work/map-wrapper.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 8
+      "count": 5
     },
     "shadcn/no-raw-colors": {
       "count": 5
@@ -1988,7 +1742,7 @@
   },
   "apps/donor/app/(public)/(solid)/workers/[id]/giving-widget.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 34
@@ -1999,18 +1753,18 @@
   },
   "apps/donor/app/(public)/(solid)/workers/[id]/page.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 37
     },
     "shadcn/no-restyle": {
-      "count": 29
+      "count": 28
     }
   },
   "apps/donor/app/(public)/(solid)/workers/[id]/profile-hero-view-transitions.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 11
@@ -2026,13 +1780,13 @@
   },
   "apps/donor/app/(public)/(solid)/workers/[id]/worker-profile-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 7
     },
     "shadcn/no-raw-colors": {
       "count": 84
     },
     "shadcn/no-restyle": {
-      "count": 90
+      "count": 88
     }
   },
   "apps/donor/app/(public)/(solid)/workers/[id]/worker-story.tsx": {
@@ -2042,7 +1796,7 @@
   },
   "apps/donor/app/global-error.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 7
@@ -2050,7 +1804,7 @@
   },
   "apps/donor/app/global-not-found.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 6
@@ -2068,7 +1822,7 @@
   },
   "apps/donor/features/donor/components/ImpactTile.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 4
@@ -2079,7 +1833,7 @@
   },
   "apps/donor/features/donor/components/MissionBriefing.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 5
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 9
@@ -2095,13 +1849,13 @@
   },
   "apps/donor/features/donor/components/donor-dashboard-main-body.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 18
+      "count": 5
     },
     "shadcn/no-raw-colors": {
       "count": 37
     },
     "shadcn/no-restyle": {
-      "count": 29
+      "count": 28
     }
   },
   "apps/donor/features/giving/components/QuickGive.tsx": {
@@ -2123,20 +1877,14 @@
     }
   },
   "apps/missionary/app/analytics/page-client.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 10
+      "count": 9
     }
   },
   "apps/missionary/app/donors/donor-tasks.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 31
     },
@@ -2160,18 +1908,18 @@
   },
   "apps/missionary/app/donors/donors-page-columns.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 22
+      "count": 21
     }
   },
   "apps/missionary/app/donors/donors-page-detail-contact.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 11
+      "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 14
+      "count": 13
     },
     "shadcn/require-static-classes": {
       "count": 2
@@ -2179,23 +1927,23 @@
   },
   "apps/missionary/app/donors/donors-page-detail-overview.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 7
+      "count": 2
     },
     "shadcn/no-restyle": {
-      "count": 35
+      "count": 32
     }
   },
   "apps/missionary/app/donors/donors-page-detail-recurring.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     }
   },
   "apps/missionary/app/donors/donors-page-detail.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 10
+      "count": 3
     },
     "shadcn/no-restyle": {
-      "count": 111
+      "count": 107
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -2216,26 +1964,23 @@
   },
   "apps/missionary/app/donors/donors-page-roster.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 10
+      "count": 1
     },
     "shadcn/no-restyle": {
-      "count": 108
+      "count": 104
     },
     "shadcn/require-static-classes": {
       "count": 1
     }
   },
   "apps/missionary/app/donors/donors-page-states.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 12
+      "count": 11
     }
   },
   "apps/missionary/app/donors/donors-page-stats.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-restyle": {
       "count": 1
@@ -2243,7 +1988,7 @@
   },
   "apps/missionary/app/donors/edit-donor-dialog.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 11
@@ -2257,20 +2002,15 @@
       "count": 5
     }
   },
-  "apps/missionary/app/feed/feed-support-ui.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
   "apps/missionary/app/feed/worker-feed-page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 50
+      "count": 10
     },
     "shadcn/no-raw-colors": {
       "count": 9
     },
     "shadcn/no-restyle": {
-      "count": 322
+      "count": 303
     },
     "shadcn/no-unknown-classes": {
       "count": 2
@@ -2281,7 +2021,7 @@
   },
   "apps/missionary/app/global-error.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 7
@@ -2289,24 +2029,18 @@
   },
   "apps/missionary/app/global-not-found.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     },
     "shadcn/no-raw-colors": {
       "count": 6
     }
   },
   "apps/missionary/app/help/about/page.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-restyle": {
       "count": 2
     }
   },
   "apps/missionary/app/profile/profile-form-column.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 27
     },
@@ -2321,18 +2055,18 @@
   },
   "apps/missionary/app/profile/profile-preview.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 15
+      "count": 3
     },
     "shadcn/no-raw-colors": {
       "count": 47
     },
     "shadcn/no-restyle": {
-      "count": 45
+      "count": 43
     }
   },
   "apps/missionary/app/profile/profile-primitives.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 27
@@ -2348,24 +2082,24 @@
   },
   "apps/missionary/app/settings/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 29
+      "count": 10
     },
     "shadcn/no-raw-colors": {
       "count": 60
     },
     "shadcn/no-restyle": {
-      "count": 106
+      "count": 103
     }
   },
   "apps/missionary/app/tasks/page-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 15
+      "count": 3
     },
     "shadcn/no-raw-colors": {
       "count": 37
     },
     "shadcn/no-restyle": {
-      "count": 132
+      "count": 125
     }
   },
   "apps/missionary/components/app-header.tsx": {
@@ -2374,9 +2108,6 @@
     }
   },
   "apps/missionary/components/app-sidebar.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 5
-    },
     "shadcn/no-raw-colors": {
       "count": 22
     },
@@ -2409,7 +2140,7 @@
   },
   "packages/missionary/components/activity-feed.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 5
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 20
@@ -2419,9 +2150,6 @@
     }
   },
   "packages/missionary/components/alerts-section.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 16
     },
@@ -2430,9 +2158,6 @@
     }
   },
   "packages/missionary/components/metric-card.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 5
     },
@@ -2449,9 +2174,6 @@
     }
   },
   "packages/missionary/components/quick-actions.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 2
-    },
     "shadcn/no-raw-colors": {
       "count": 9
     },
@@ -2461,7 +2183,7 @@
   },
   "packages/missionary/components/task-dialog.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 18
+      "count": 11
     },
     "shadcn/no-raw-colors": {
       "count": 36
@@ -2472,7 +2194,7 @@
   },
   "packages/missionary/components/task-kanban-board.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 22
@@ -2483,7 +2205,7 @@
   },
   "packages/missionary/components/task-partner-select.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 1
     },
     "shadcn/no-restyle": {
       "count": 18
@@ -2491,7 +2213,7 @@
   },
   "packages/missionary/components/task-row.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 9
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 33
@@ -2504,9 +2226,6 @@
     }
   },
   "packages/missionary/components/tasks-preview.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 4
-    },
     "shadcn/no-raw-colors": {
       "count": 22
     },
@@ -2527,7 +2246,7 @@
       "count": 11
     },
     "shadcn/no-restyle": {
-      "count": 29
+      "count": 25
     },
     "shadcn/require-static-classes": {
       "count": 1
@@ -2535,7 +2254,7 @@
   },
   "packages/missionary/components/tasks/task-row.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 41
+      "count": 32
     },
     "shadcn/no-raw-colors": {
       "count": 5
@@ -2545,30 +2264,19 @@
     }
   },
   "packages/missionary/components/tasks/task-stats.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 6
     }
   },
   "packages/missionary/components/tasks/task-table.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-raw-colors": {
       "count": 21
     },
     "shadcn/no-restyle": {
-      "count": 35
+      "count": 33
     }
   },
   "packages/missionary/components/tasks/task-view-tabs.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
-  "packages/ui/components/auth/FullLoginCard.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 1
     }
@@ -2606,12 +2314,12 @@
   },
   "packages/ui/components/ministry-update/reaction-bar.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 6
+      "count": 4
     }
   },
   "packages/ui/components/primitives/chart-wrappers.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 7
+      "count": 2
     },
     "shadcn/no-restyle": {
       "count": 12
@@ -2621,16 +2329,13 @@
     }
   },
   "packages/ui/components/primitives/filter-bar.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 3
-    },
     "shadcn/no-restyle": {
       "count": 36
     }
   },
   "packages/ui/components/primitives/image-cropper.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 4
+      "count": 1
     },
     "shadcn/no-raw-colors": {
       "count": 2
@@ -2640,9 +2345,6 @@
     }
   },
   "packages/ui/components/primitives/image-upload.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-raw-colors": {
       "count": 1
     },
@@ -2652,7 +2354,7 @@
   },
   "packages/ui/components/primitives/map.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 3
+      "count": 2
     },
     "shadcn/no-restyle": {
       "count": 4
@@ -2670,7 +2372,7 @@
   },
   "packages/ui/components/public/footer.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 5
+      "count": 2
     },
     "shadcn/no-raw-colors": {
       "count": 8
@@ -2678,7 +2380,7 @@
   },
   "packages/ui/components/public/home-hero-animated.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 9
+      "count": 7
     },
     "shadcn/no-raw-colors": {
       "count": 6
@@ -2689,7 +2391,7 @@
   },
   "packages/ui/components/public/home-sections.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 32
+      "count": 18
     },
     "shadcn/no-inline-styles": {
       "count": 2
@@ -2882,7 +2584,7 @@
   },
   "packages/ui/components/shadcn/data-table/cell-variants/text-cell.tsx": {
     "shadcn/no-restyle": {
-      "count": 22
+      "count": 15
     }
   },
   "packages/ui/components/shadcn/data-table/data-table-action-bar.tsx": {
@@ -2912,11 +2614,8 @@
     }
   },
   "packages/ui/components/shadcn/data-table/data-table-faceted-filter.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 37
+      "count": 33
     }
   },
   "packages/ui/components/shadcn/data-table/data-table-floating-bar.tsx": {
@@ -2978,7 +2677,7 @@
   },
   "packages/ui/components/shadcn/data-table/data-table-wrapper.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-restyle": {
       "count": 8
@@ -3009,11 +2708,8 @@
     }
   },
   "packages/ui/components/shadcn/data-table/filters/filter-select-inputs.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    },
     "shadcn/no-restyle": {
-      "count": 67
+      "count": 60
     }
   },
   "packages/ui/components/shadcn/data-table/filters/filter-value-inputs.tsx": {
@@ -3023,7 +2719,7 @@
   },
   "packages/ui/components/shadcn/data-table/filters/saved-filters.tsx": {
     "shadcn/no-restyle": {
-      "count": 17
+      "count": 15
     }
   },
   "packages/ui/components/shadcn/data-table/hooks/use-column-resizing.tsx": {
@@ -3034,11 +2730,6 @@
   "packages/ui/components/shadcn/drawer.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 2
-    }
-  },
-  "packages/ui/components/shadcn/rich-text-editor/image-view.tsx": {
-    "shadcn/no-restyle": {
-      "count": 8
     }
   },
   "packages/ui/components/shadcn/rich-text-editor/legacy-rich-text-editor.tsx": {
@@ -3106,14 +2797,11 @@
     }
   },
   "packages/ui/components/studio/PDFStudioSetupStatus.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 8
-    },
     "shadcn/no-raw-colors": {
       "count": 16
     },
     "shadcn/no-restyle": {
-      "count": 23
+      "count": 20
     }
   },
   "packages/ui/components/studio/ReactEmailEditor.tsx": {

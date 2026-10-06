@@ -75,7 +75,7 @@ function NumberCellEditor<TData extends RowData>({
     [localValue, min, max, step, onValueChange, onEditComplete, onEditCancel],
   );
 
-  const handleBlur = useCallback(() => {
+  const handleCommitNumberDraft = useCallback(() => {
     const numValue = localValue === "" ? null : parseFloat(localValue);
     if (numValue !== null && !isNaN(numValue)) {
       const clampedValue = Math.max(
@@ -89,16 +89,19 @@ function NumberCellEditor<TData extends RowData>({
     onEditComplete?.();
   }, [localValue, min, max, onValueChange, onEditComplete]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    if (
-      inputValue === "" ||
-      inputValue === "-" ||
-      /^-?\d*\.?\d*$/.test(inputValue)
-    ) {
-      setLocalValue(inputValue);
-    }
-  }, []);
+  const handleNumberDraftChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      if (
+        inputValue === "" ||
+        inputValue === "-" ||
+        /^-?\d*\.?\d*$/.test(inputValue)
+      ) {
+        setLocalValue(inputValue);
+      }
+    },
+    [],
+  );
 
   return (
     <Input
@@ -107,9 +110,9 @@ function NumberCellEditor<TData extends RowData>({
       type="text"
       inputMode="decimal"
       value={localValue}
-      onChange={handleChange}
+      onChange={handleNumberDraftChange}
       onKeyDown={handleKeyDown}
-      onBlur={handleBlur}
+      onBlur={handleCommitNumberDraft}
       className={cn(
         "h-8 px-2 py-1 text-sm text-right tabular-nums border-primary/50 focus-visible:ring-1",
         className,

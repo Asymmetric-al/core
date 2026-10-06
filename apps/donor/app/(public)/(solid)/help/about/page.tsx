@@ -23,11 +23,11 @@ export default function HelpAboutPage() {
   const licenseUrl = getGitHubLicenseUrl(build.ref);
 
   return (
-    <div className="bg-white min-h-screen selection:bg-emerald-500/30">
+    <div className="bg-white min-h-dvh selection:bg-emerald-500/30">
       <section className="pt-28 pb-16 sm:pt-32 sm:pb-20">
         <div className="container-responsive max-w-3xl">
           <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tighter text-zinc-900">
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-normal text-zinc-900">
               About asymmetric.al
             </h1>
             <p className="text-zinc-500">
@@ -60,7 +60,7 @@ export default function HelpAboutPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
+                    <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
                       Source for this deployment
                     </div>
                     <a
@@ -80,7 +80,7 @@ export default function HelpAboutPage() {
                   </div>
 
                   <div>
-                    <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
+                    <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
                       License
                     </div>
                     <p className="text-zinc-700 text-sm mt-1">
@@ -98,7 +98,7 @@ export default function HelpAboutPage() {
                   </div>
 
                   <div>
-                    <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
+                    <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
                       Warranty
                     </div>
                     <p className="text-zinc-700 text-sm mt-1">

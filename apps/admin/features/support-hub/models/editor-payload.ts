@@ -37,10 +37,3 @@ export const supportReplyPayloadSchema = z.object({
   text: z.string(),
   attachments: z.array(supportAttachmentDraftSchema),
 });
-
-export const EMPTY_SUPPORT_REPLY_PAYLOAD: SupportReplyPayload = {
-  json: null,
-  html: "",
-  text: "",
-  attachments: [],
-};

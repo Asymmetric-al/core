@@ -55,7 +55,7 @@ export default function AboutPage() {
 
           <div className="space-y-4">
             <div>
-              <div className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
+              <div className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
                 Source for this deployment
               </div>
               <a
@@ -75,7 +75,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
+              <div className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
                 License
               </div>
               <p className="text-sm mt-1">
@@ -93,7 +93,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">
+              <div className="text-muted-foreground text-xs font-semibold uppercase tracking-widest">
                 Warranty
               </div>
               <p className="text-sm mt-1">

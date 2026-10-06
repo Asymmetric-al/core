@@ -89,22 +89,22 @@ function EmailMessageHeader({
           src={message.author.avatarUrl ?? undefined}
           alt={message.author.name}
         />
-        <AvatarFallback className="text-[11px] font-semibold">
+        <AvatarFallback className="text-xs font-semibold">
           {message.author.name.charAt(0)}
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-foreground">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-foreground">
           <span className="font-semibold">{message.author.name}</span>
           {message.author.email ? (
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               &lt;{message.author.email}&gt;
             </span>
           ) : null}
           {isDraft ? (
             <Badge
               variant="outline"
-              className="h-5 gap-1 rounded-md border-amber-200 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
+              className="h-5 gap-1 rounded-md border-amber-200 bg-amber-100 px-1.5 font-bold uppercase tracking-wider text-amber-800"
             >
               <Save className="size-3" />
               Draft
@@ -114,7 +114,7 @@ function EmailMessageHeader({
             <Badge
               variant="outline"
               className={cn(
-                "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider",
+                "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
                 DELIVERY_TONES[message.deliveryState]?.tone,
               )}
             >
@@ -123,13 +123,13 @@ function EmailMessageHeader({
           ) : null}
         </div>
         {headers ? (
-          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
             to {headers.to.join(", ")}
             {headers.cc.length > 0 ? ` · cc ${headers.cc.join(", ")}` : null}
           </p>
         ) : null}
       </div>
-      <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+      <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
         {formatRelative(message.postedAt, nowIso)}
       </span>
     </header>
@@ -153,7 +153,7 @@ function EmailMessageAttachmentsFooter({
       {message.attachments.map((attachment) => (
         <span
           key={attachment.id}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground"
         >
           <Paperclip className="size-3 text-muted-foreground" />
           <span className="max-w-[200px] truncate">{attachment.filename}</span>
@@ -267,7 +267,7 @@ function InboundAttachmentState({
       <Badge
         variant="outline"
         className={cn(
-          "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider",
+          "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
           config.tone,
         )}
       >
@@ -279,7 +279,7 @@ function InboundAttachmentState({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-5 gap-1 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+          className="h-5 gap-1 px-1.5 font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
           onClick={requestRetry}
           disabled={retryState === "requesting"}
           focusableWhenDisabled={retryState === "requesting"}

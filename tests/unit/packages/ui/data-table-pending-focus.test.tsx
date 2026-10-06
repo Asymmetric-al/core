@@ -66,12 +66,14 @@ const columns = [{ accessorKey: "name", header: "Name" }];
 
 function Harness({
   kind = "pagination",
+  search = false,
   transition = true,
   delayPending = false,
   delayedRefresh = false,
   onAction = () => {},
 }: {
   kind?: "pagination" | "standard" | "responsive";
+  search?: boolean;
   transition?: boolean;
   delayPending?: boolean;
   delayedRefresh?: boolean;
@@ -129,7 +131,12 @@ function Harness({
         {kind === "pagination" ? (
           <DataTablePagination table={table} urlStatePending={pending} />
         ) : kind === "standard" ? (
-          <DataTableToolbar table={table} urlStatePending={pending} />
+          <DataTableToolbar
+            table={table}
+            searchKey={search ? "name" : undefined}
+            searchPlaceholder="Search partners"
+            urlStatePending={pending}
+          />
         ) : (
           <DataTableToolbarResponsive
             table={table}
@@ -416,4 +423,16 @@ describe("table chrome pending focus ownership", () => {
     act(() => screen.getByRole("button", { name: "Background load" }).focus());
     expect(refresh.hasAttribute("disabled")).toBe(true);
   });
+});
+
+it("names standard table search and retains pending protection while filtering", () => {
+  const onAction = vi.fn();
+  render(<Harness kind="standard" search onAction={onAction} />);
+  const search = screen.getByRole("textbox", { name: "Search partners" });
+  fireEvent.change(search, { target: { value: "Ada 1" } });
+  expect(onAction).toHaveBeenCalledTimes(1);
+  expect((search as HTMLInputElement).value).toBe("Ada 1");
+  expect(search.hasAttribute("disabled")).toBe(true);
+  fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+  expect(search.hasAttribute("disabled")).toBe(false);
 });

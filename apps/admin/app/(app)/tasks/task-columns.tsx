@@ -36,6 +36,14 @@ import { getPriorityConfig, getStatusConfig } from "./types";
 
 import type { Task, TaskType, TaskPriority, TaskStatus } from "./types";
 
+const DATE_TIME_FORMATTER_1 = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+});
+const DATE_TIME_FORMATTER_2 = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+});
+
 const TYPE_ICONS: Record<
   TaskType,
   React.ComponentType<{ className?: string }>
@@ -71,23 +79,15 @@ function formatDueDate(dateStr?: string, timeStr?: string) {
   } else if (isTomorrow) {
     label = "Tomorrow";
   } else if (isOverdue) {
-    label = new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-    }).format(date);
+    label = DATE_TIME_FORMATTER_1.format(date);
   } else {
     const diffDays = Math.ceil(
       (dateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (diffDays <= 7) {
-      label = new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(
-        date,
-      );
+      label = DATE_TIME_FORMATTER_2.format(date);
     } else {
-      label = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-      }).format(date);
+      label = DATE_TIME_FORMATTER_1.format(date);
     }
   }
 

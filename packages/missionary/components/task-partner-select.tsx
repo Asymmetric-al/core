@@ -50,7 +50,7 @@ function PartnerAvatar({
   return (
     <Avatar className={size === "sm" ? "size-6" : "size-8"}>
       <AvatarImage src={donor.avatar_url || undefined} />
-      <AvatarFallback className="bg-muted text-[10px] font-bold">
+      <AvatarFallback className="bg-muted text-xs font-bold">
         {donor.name
           .split(" ")
           .map((name) => name[0])
@@ -90,7 +90,7 @@ export function TaskPartnerSelect({
     <div className="grid gap-2">
       <span
         id={labelId}
-        className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+        className="text-xs font-black uppercase tracking-widest text-muted-foreground"
       >
         Associated Partner
       </span>

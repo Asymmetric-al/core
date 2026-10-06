@@ -11,7 +11,7 @@ export type PostTypeFilter =
   | "announcement";
 export type SortOption = "newest" | "oldest" | "engagement";
 
-export interface ContentModerationUiState {
+interface ContentModerationUiState {
   activeTab: ModerationTab;
   searchQuery: string;
   filterVisibility: VisibilityFilter;

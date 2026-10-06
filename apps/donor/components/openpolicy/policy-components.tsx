@@ -121,7 +121,7 @@ export function PolicyLink({ node }: { node: LinkNode }) {
 }
 
 export function PolicyText({ node }: { node: TextNode }) {
-  return <>{node.value}</>;
+  return node.value;
 }
 
 export function PolicyBold({ node }: { node: BoldNode }) {

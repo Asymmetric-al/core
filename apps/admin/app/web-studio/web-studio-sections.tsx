@@ -96,7 +96,7 @@ const PreviewContent = ({
             alt="Cover"
           />
         ) : (
-          <div className="size-full bg-gradient-to-br from-zinc-50 to-zinc-100 flex items-center justify-center text-zinc-200">
+          <div className="size-full bg-linear-to-br from-zinc-50 to-zinc-100 flex items-center justify-center text-zinc-200">
             <ImageIcon className="size-8 opacity-50" />
           </div>
         )}
@@ -154,7 +154,7 @@ const PreviewContent = ({
           <SafeHtml
             className={cn(
               "text-zinc-600 leading-relaxed font-medium",
-              mode === "mobile" ? "text-[11px] px-2" : "text-sm max-w-2xl",
+              mode === "mobile" ? "text-xs px-2" : "text-sm max-w-2xl",
             )}
             html={basicInfo.bio}
           />
@@ -167,14 +167,14 @@ const PreviewContent = ({
           >
             <Button
               size="sm"
-              className="rounded-full bg-zinc-900 text-white font-semibold uppercase tracking-wider text-[10px] px-6 shadow-md"
+              className="rounded-full bg-zinc-900 text-white font-semibold uppercase tracking-wider px-6 shadow-md"
             >
               Give Support
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full px-4 text-[10px] font-semibold uppercase tracking-wider"
+              className="rounded-full px-4 font-semibold uppercase tracking-wider"
             >
               Follow
             </Button>
@@ -186,38 +186,40 @@ const PreviewContent = ({
               mode === "desktop" ? "grid grid-cols-2 gap-4" : "space-y-3 px-1",
             )}
           >
-            {projects
-              .filter((project) => project.status === "Public")
-              .map((project) => (
-                <div
-                  key={project.id}
-                  className="rounded-xl bg-white shadow-sm border border-zinc-100 overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow"
-                >
-                  <div
-                    className={cn(
-                      "bg-zinc-50 relative",
-                      mode === "mobile" ? "h-20" : "h-32",
-                    )}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center text-zinc-200">
-                      <ImageIcon className="size-6" />
-                    </div>
-                  </div>
-                  <div className="p-3 space-y-2">
-                    <h4 className="font-semibold text-xs text-zinc-900 leading-tight">
-                      {project.title}
-                    </h4>
-                    <div className="pt-1 flex items-center justify-between">
-                      <div className="h-1 w-16 bg-zinc-100 rounded-full overflow-hidden flex-1 mr-3">
-                        <div className="h-full bg-blue-600 w-2/3" />
+            {projects.flatMap((project) =>
+              project.status === "Public"
+                ? [
+                    <div
+                      key={project.id}
+                      className="rounded-xl bg-white shadow-sm border border-zinc-100 overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow"
+                    >
+                      <div
+                        className={cn(
+                          "bg-zinc-50 relative",
+                          mode === "mobile" ? "h-20" : "h-32",
+                        )}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center text-zinc-200">
+                          <ImageIcon className="size-6" />
+                        </div>
                       </div>
-                      <span className="text-[9px] font-semibold text-blue-600">
-                        Give &rarr;
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      <div className="p-3 space-y-2">
+                        <h4 className="font-semibold text-xs text-zinc-900 leading-tight">
+                          {project.title}
+                        </h4>
+                        <div className="pt-1 flex items-center justify-between">
+                          <div className="h-1 w-16 bg-zinc-100 rounded-full overflow-hidden flex-1 mr-3">
+                            <div className="h-full bg-blue-600 w-2/3" />
+                          </div>
+                          <span className="text-xs font-semibold text-blue-600">
+                            Give &rarr;
+                          </span>
+                        </div>
+                      </div>
+                    </div>,
+                  ]
+                : [],
+            )}
           </div>
         </div>
       </div>
@@ -247,28 +249,26 @@ export function WebStudioHeader({
           <div className="p-1.5 rounded-md bg-blue-50 text-blue-600 border border-blue-100">
             <Globe className="size-4" />
           </div>
-          <span className="uppercase tracking-widest text-[11px]">
-            Web Studio
-          </span>
+          <span className="uppercase tracking-widest text-xs">Web Studio</span>
         </div>
         <div className="h-6 w-px bg-zinc-200 mx-1" />
         <Tabs value={view} onValueChange={onViewChange} className="h-10">
           <TabsList className="bg-transparent h-full p-0 gap-4 border-none">
             <TabsTrigger
               value="content"
-              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
+              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
             >
               Live Content
             </TabsTrigger>
             <TabsTrigger
               value="projects"
-              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
+              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
             >
               Projects
             </TabsTrigger>
             <TabsTrigger
               value="updates"
-              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
+              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
             >
               Updates
             </TabsTrigger>
@@ -280,7 +280,7 @@ export function WebStudioHeader({
         <Button
           variant="outline"
           size="sm"
-          className="bg-white border-zinc-200 text-zinc-600 text-[10px] font-semibold uppercase tracking-wider"
+          className="bg-white border-zinc-200 text-zinc-600 font-semibold uppercase tracking-wider"
         >
           <Eye className="size-3.5 mr-1.5" /> View Live
         </Button>
@@ -290,7 +290,7 @@ export function WebStudioHeader({
           size="sm"
           onClick={onSave}
           disabled={isSaving}
-          className="px-4 font-semibold uppercase tracking-wider text-[10px] bg-zinc-900 hover:bg-zinc-800"
+          className="px-4 font-semibold uppercase tracking-wider bg-zinc-900 hover:bg-zinc-800"
         >
           {isSaving ? (
             <Loader2 className="size-3.5 animate-spin mr-1.5" />
@@ -332,7 +332,7 @@ export function WebStudioEditorPanel({
               <div className="space-y-2">
                 <Label
                   htmlFor={`${fieldId}-display-name`}
-                  className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+                  className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
                 >
                   Public Display Name
                 </Label>
@@ -351,7 +351,7 @@ export function WebStudioEditorPanel({
               <div className="space-y-2">
                 <Label
                   htmlFor={`${fieldId}-location`}
-                  className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+                  className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
                 >
                   Location Base
                 </Label>
@@ -372,14 +372,14 @@ export function WebStudioEditorPanel({
               <div className="flex justify-between items-center mb-1">
                 <Label
                   htmlFor={`${fieldId}-bio`}
-                  className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500"
+                  className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
                 >
                   Public Bio
                 </Label>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-[9px] font-semibold uppercase tracking-wider gap-1 border border-purple-100 bg-purple-50 text-purple-700"
+                  className="h-6 font-semibold uppercase tracking-wider gap-1 border border-purple-100 bg-purple-50 text-purple-700"
                 >
                   <Wand2 className="size-3" /> AI Polish
                 </Button>
@@ -403,7 +403,7 @@ export function WebStudioEditorPanel({
               Active Giving Pages
               <Button
                 size="sm"
-                className="h-7 text-[10px] font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
+                className="h-7 font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
               >
                 <Plus className="size-3 mr-1" /> New Page
               </Button>
@@ -422,25 +422,25 @@ export function WebStudioEditorPanel({
                       <p className="font-semibold text-zinc-900 text-sm">
                         {project.title}
                       </p>
-                      <p className="text-[10px] font-mono text-zinc-400">
+                      <p className="text-xs font-mono text-zinc-400">
                         /{project.slug} • Goal: ${project.goal}
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                  <div className="flex gap-1 transition-opacity">
                     <Button
-                      aria-label={`View project ${project.title}`}
                       variant="ghost"
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900"
+                      aria-label={`Open ${project.title} page`}
                     >
                       <ExternalLink className="size-4" />
                     </Button>
                     <Button
-                      aria-label={`Edit project ${project.title}`}
                       variant="ghost"
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900"
+                      aria-label={`Edit ${project.title} page`}
                     >
                       <Edit2 className="size-4" />
                     </Button>
@@ -455,7 +455,7 @@ export function WebStudioEditorPanel({
               Field Journal Updates
               <Button
                 size="sm"
-                className="h-7 text-[10px] font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
+                className="h-7 font-semibold uppercase tracking-wider bg-zinc-900 text-white shadow-sm"
               >
                 <Plus className="size-3 mr-1" /> New Update
               </Button>
@@ -474,12 +474,12 @@ export function WebStudioEditorPanel({
                         </p>
                         <Badge
                           variant="secondary"
-                          className="text-[9px] h-4 font-semibold uppercase tracking-widest px-1.5"
+                          className="h-4 font-semibold uppercase tracking-widest px-1.5"
                         >
                           {update.type}
                         </Badge>
                       </div>
-                      <p className="text-[10px] text-zinc-400 font-medium">
+                      <p className="text-xs text-zinc-400 font-medium">
                         {update.date}
                       </p>
                     </div>
@@ -521,7 +521,7 @@ export function WebStudioPreviewRail({
   return (
     <div className="w-112.5 bg-zinc-50 flex flex-col shrink-0 overflow-hidden relative">
       <div className="h-14 border-b border-zinc-200 flex items-center justify-between px-4 bg-white shrink-0">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
           Live Preview
         </span>
         <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 scale-90">
@@ -569,15 +569,20 @@ export function WebStudioPreviewRail({
             />
           </div>
         ) : (
-          <div className="size-full rounded-xl border border-zinc-200 bg-white shadow-2xl overflow-hidden flex flex-col">
+          <div className="size-full rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col">
             <div className="h-8 border-b border-zinc-100 flex items-center px-3 gap-1.5 shrink-0 bg-zinc-50/50">
               <div className="flex gap-1">
                 <div className="size-2 rounded-full bg-red-400" />
                 <div className="size-2 rounded-full bg-amber-400" />
                 <div className="size-2 rounded-full bg-emerald-400" />
               </div>
-              <div className="mx-auto bg-white border border-zinc-200 rounded h-5 w-48 text-[8px] font-mono flex items-center justify-center text-zinc-400">
-                example.com/the-miller-family
+              <div className="mx-auto min-w-0 bg-white border border-zinc-200 rounded h-5 w-48 px-2 text-xs font-mono flex items-center justify-center text-zinc-400">
+                <span
+                  className="min-w-0 truncate"
+                  title="example.com/the-miller-family"
+                >
+                  example.com/the-miller-family
+                </span>
               </div>
             </div>
             <div className="flex-1 overflow-auto">

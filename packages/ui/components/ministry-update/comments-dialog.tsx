@@ -163,7 +163,7 @@ export function CommentsDialog({
             ) : isError ? (
               <div className="flex flex-col items-center gap-3 py-8 text-center">
                 <p role="alert" className="text-sm text-foreground">
-                  Couldn't load comments. Please try again.
+                  Couldn&apos;t load comments. Please try again.
                 </p>
                 <Button
                   variant="outline"

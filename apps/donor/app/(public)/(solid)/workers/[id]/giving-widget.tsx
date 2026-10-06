@@ -108,7 +108,7 @@ export function GivingWidget({
             />
 
             <span
-              className="absolute right-5 text-[9px] font-semibold text-zinc-400 pointer-events-none uppercase tracking-wider bg-zinc-50 px-2 py-1 rounded"
+              className="absolute right-5 text-xs font-semibold text-zinc-400 pointer-events-none uppercase tracking-wider bg-zinc-50 px-2 py-1 rounded"
               aria-hidden="true"
             >
               USD

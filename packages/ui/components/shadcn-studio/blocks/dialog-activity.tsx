@@ -90,7 +90,7 @@ const ActivityDialog = ({ defaultOpen = false, trigger }: Props) => {
                 </p>
                 <p>39 mins ago</p>
               </div>
-              <div className="bg-muted flex items-center gap-1 rounded-md px-1.5 py-1">
+              <div className="bg-muted flex items-center gap-1 rounded-md p-2">
                 <Image
                   src="https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/image-14.png"
                   className="h-5"

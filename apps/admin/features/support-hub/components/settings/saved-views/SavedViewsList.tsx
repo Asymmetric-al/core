@@ -44,7 +44,7 @@ export function SavedViewsList() {
           action={
             <Link
               href="/support"
-              className="inline-flex h-8 items-center rounded-lg bg-zinc-900 px-3 text-[11px] font-black uppercase tracking-wider text-white"
+              className="inline-flex h-8 items-center rounded-lg bg-zinc-900 px-3 text-xs font-black uppercase tracking-wider text-white"
             >
               Open inbox
             </Link>
@@ -58,13 +58,13 @@ export function SavedViewsList() {
                 <Bookmark className="size-4" />
               </span>
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="text-[13px] font-semibold text-zinc-900">
+                <span className="text-xs font-semibold text-zinc-900">
                   {view.name}
-                  <span className="ml-2 inline-flex h-4 items-center rounded-md bg-zinc-100 px-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-500">
+                  <span className="ml-2 inline-flex h-4 items-center rounded-md bg-zinc-100 px-1.5 text-xs font-black uppercase tracking-wider text-zinc-500">
                     {view.scope}
                   </span>
                 </span>
-                <span className="text-[11px] text-zinc-500">
+                <span className="text-xs text-zinc-500">
                   view:{view.filter.view} · status:{view.filter.status} ·
                   layout:{view.filter.layout}
                 </span>

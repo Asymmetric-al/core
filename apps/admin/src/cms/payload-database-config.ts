@@ -42,7 +42,7 @@ export type PayloadDatabaseConfigIssue = {
   message: string;
 };
 
-export type PayloadDatabaseConfig = {
+type PayloadDatabaseConfig = {
   connectionString: string;
   host: string | null;
   isDefaultLocal: boolean;

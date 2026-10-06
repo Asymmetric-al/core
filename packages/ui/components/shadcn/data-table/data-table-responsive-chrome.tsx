@@ -305,87 +305,18 @@ export function DataTableResponsiveTableView<TData extends RowData>({
     const isSelected = row.getIsSelected();
     const isRowFocused = Boolean(rowProps["data-focused"]);
     return (
-      <TableRow
+      <ResponsiveTableDataRow
         key={row.id}
-        data-state={row.getIsSelected() && "selected"}
-        className={cn(
-          "group hover:bg-muted/30 transition-colors border-border",
-          "data-[state=selected]:bg-muted/50",
-          onRowClick && "cursor-pointer",
-          rowProps["data-focused"] && keyboardStyles.focusedRow,
-        )}
-        ref={rowProps.ref}
-        tabIndex={rowProps.tabIndex}
-        onKeyDown={rowProps.onKeyDown}
-        onFocus={rowProps.onFocus}
-        onBlur={rowProps.onBlur}
-        onClick={() => onRowClick?.(row)}
-        role="row"
-      >
-        {row.getVisibleCells().map((cell, cellIndex) => {
-          const meta = cell.column.columnDef.meta;
-          const isSticky = meta?.sticky;
-          const stickyStateClass = isSticky
-            ? cn(
-                "relative transition-colors",
-                isSelected
-                  ? "bg-muted/50"
-                  : isRowFocused
-                    ? "bg-muted/30"
-                    : "bg-card group-hover:bg-muted/30",
-                isSticky === "left" &&
-                  "sticky left-0 z-10 shadow-[1px_0_0_0_var(--color-border)]",
-                isSticky === "right" &&
-                  "sticky right-0 z-10 shadow-[-1px_0_0_0_var(--color-border)]",
-              )
-            : undefined;
-          const cellProps = keyboard.getCellProps(rowIndex, cellIndex);
-          return (
-            <TableCell
-              key={cell.id}
-              className={cn(
-                "py-3 px-4",
-                meta?.cellClassName,
-                stickyStateClass,
-                cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
-              )}
-              tabIndex={cellProps.tabIndex}
-              role="gridcell"
-            >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </TableCell>
-          );
-        })}
-        {rowActions && rowActions.length > 0 && (
-          <TableCell className="py-3 px-4 text-right" role="gridcell">
-            <div className="flex justify-end gap-1">
-              {rowActions.map((action, actionIndex) => (
-                <Button
-                  key={getDataTableRowActionKey(action, actionIndex)}
-                  type="button"
-                  variant={
-                    action.variant === "destructive" ? "destructive" : "ghost"
-                  }
-                  size="sm"
-                  className="h-8 gap-2 rounded-lg"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    action.onClick(row.original);
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.stopPropagation();
-                    }
-                  }}
-                >
-                  {action.icon && <action.icon className="size-4" />}
-                  <span className="sr-only sm:not-sr-only">{action.label}</span>
-                </Button>
-              ))}
-            </div>
-          </TableCell>
-        )}
-      </TableRow>
+        row={row}
+        onRowClick={onRowClick}
+        rowProps={rowProps}
+        keyboardStyles={keyboardStyles}
+        isSelected={isSelected}
+        isRowFocused={isRowFocused}
+        keyboard={keyboard}
+        rowIndex={rowIndex}
+        rowActions={rowActions}
+      />
     );
   };
 
@@ -409,56 +340,11 @@ export function DataTableResponsiveTableView<TData extends RowData>({
         }
       >
         <Table role="grid">
-          <TableHeader className="bg-muted/30">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow
-                key={headerGroup.id}
-                className="hover:bg-transparent border-border"
-                role="row"
-              >
-                {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta;
-                  const isSticky = meta?.sticky;
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className={cn(
-                        "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
-                        stickyHeader && "sticky top-0 z-20 bg-muted/30",
-                        meta?.headerClassName,
-                        isSticky === "left" &&
-                          "sticky left-0 z-30 bg-muted/30 shadow-[1px_0_0_0_var(--color-border)]",
-                        isSticky === "right" &&
-                          "sticky right-0 z-30 bg-muted/30 shadow-[-1px_0_0_0_var(--color-border)]",
-                      )}
-                      style={{
-                        width:
-                          header.getSize() !== 150
-                            ? header.getSize()
-                            : undefined,
-                      }}
-                      role="columnheader"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-                {rowActions && rowActions.length > 0 && (
-                  <TableHead
-                    className="h-11 px-4 text-right text-xs font-semibold text-muted-foreground whitespace-nowrap"
-                    role="columnheader"
-                  >
-                    Actions
-                  </TableHead>
-                )}
-              </TableRow>
-            ))}
-          </TableHeader>
+          <ResponsiveTableHeader
+            table={table}
+            stickyHeader={stickyHeader}
+            rowActions={rowActions}
+          />
           <TableBody role="rowgroup">
             {rows.length ? (
               isVirtualized ? (
@@ -511,5 +397,172 @@ export function DataTableResponsiveTableView<TData extends RowData>({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function ResponsiveTableDataRow<TData extends RowData>({
+  row,
+  onRowClick,
+  rowProps,
+  keyboardStyles,
+  isSelected,
+  isRowFocused,
+  keyboard,
+  rowIndex,
+  rowActions,
+}: {
+  row: Row<TData>;
+  onRowClick: ((row: Row<TData>) => void) | undefined;
+  rowProps: ReturnType<UseDataTableKeyboardReturn["getRowProps"]>;
+  keyboardStyles: { focusedRow: string; focusedCell: string };
+  isSelected: boolean;
+  isRowFocused: boolean;
+  keyboard: UseDataTableKeyboardReturn;
+  rowIndex: number;
+  rowActions: DataTableInteractiveRowAction<TData>[] | undefined;
+}) {
+  return (
+    <TableRow
+      key={row.id}
+      data-state={row.getIsSelected() && "selected"}
+      className={cn(
+        "group hover:bg-muted/30 transition-colors border-border",
+        "data-[state=selected]:bg-muted/50",
+        onRowClick && "cursor-pointer",
+        rowProps["data-focused"] && keyboardStyles.focusedRow,
+      )}
+      ref={rowProps.ref}
+      tabIndex={rowProps.tabIndex}
+      onKeyDown={rowProps.onKeyDown}
+      onFocus={rowProps.onFocus}
+      onBlur={rowProps.onBlur}
+      onClick={() => onRowClick?.(row)}
+      role="row"
+    >
+      {row.getVisibleCells().map((cell, cellIndex) => {
+        const meta = cell.column.columnDef.meta;
+        const isSticky = meta?.sticky;
+        const stickyStateClass = isSticky
+          ? cn(
+              "relative transition-colors",
+              isSelected
+                ? "bg-muted/50"
+                : isRowFocused
+                  ? "bg-muted/30"
+                  : "bg-card group-hover:bg-muted/30",
+              isSticky === "left" &&
+                "sticky left-0 z-10 shadow-[1px_0_0_0_var(--color-border)]",
+              isSticky === "right" &&
+                "sticky right-0 z-10 shadow-[-1px_0_0_0_var(--color-border)]",
+            )
+          : undefined;
+        const cellProps = keyboard.getCellProps(rowIndex, cellIndex);
+        return (
+          <TableCell
+            key={cell.id}
+            className={cn(
+              "py-3 px-4",
+              meta?.cellClassName,
+              stickyStateClass,
+              cellProps["data-cell-focused"] && keyboardStyles.focusedCell,
+            )}
+            tabIndex={cellProps.tabIndex}
+            role="gridcell"
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        );
+      })}
+      {rowActions && rowActions.length > 0 && (
+        <TableCell className="py-3 px-4 text-right" role="gridcell">
+          <div className="flex justify-end gap-1">
+            {rowActions.map((action, actionIndex) => (
+              <Button
+                key={getDataTableRowActionKey(action, actionIndex)}
+                type="button"
+                variant={
+                  action.variant === "destructive" ? "destructive" : "ghost"
+                }
+                size="sm"
+                className="h-8 gap-2 rounded-lg"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  action.onClick(row.original);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.stopPropagation();
+                  }
+                }}
+              >
+                {action.icon && <action.icon className="size-4" />}
+                <span className="sr-only sm:not-sr-only">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+        </TableCell>
+      )}
+    </TableRow>
+  );
+}
+
+function ResponsiveTableHeader<TData extends RowData>({
+  table,
+  stickyHeader,
+  rowActions,
+}: {
+  table: TanStackTable<TData>;
+  stickyHeader: boolean;
+  rowActions: DataTableInteractiveRowAction<TData>[] | undefined;
+}) {
+  return (
+    <TableHeader className="bg-muted/30">
+      {table.getHeaderGroups().map((headerGroup) => (
+        <TableRow
+          key={headerGroup.id}
+          className="hover:bg-transparent border-border"
+          role="row"
+        >
+          {headerGroup.headers.map((header) => {
+            const meta = header.column.columnDef.meta;
+            const isSticky = meta?.sticky;
+            return (
+              <TableHead
+                key={header.id}
+                className={cn(
+                  "h-11 px-4 text-xs font-semibold text-muted-foreground whitespace-nowrap",
+                  stickyHeader && "sticky top-0 z-20 bg-muted/30",
+                  meta?.headerClassName,
+                  isSticky === "left" &&
+                    "sticky left-0 z-30 bg-muted/30 shadow-[1px_0_0_0_var(--color-border)]",
+                  isSticky === "right" &&
+                    "sticky right-0 z-30 bg-muted/30 shadow-[-1px_0_0_0_var(--color-border)]",
+                )}
+                style={{
+                  width:
+                    header.getSize() !== 150 ? header.getSize() : undefined,
+                }}
+                role="columnheader"
+              >
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+              </TableHead>
+            );
+          })}
+          {rowActions && rowActions.length > 0 && (
+            <TableHead
+              className="h-11 px-4 text-right text-xs font-semibold text-muted-foreground whitespace-nowrap"
+              role="columnheader"
+            >
+              Actions
+            </TableHead>
+          )}
+        </TableRow>
+      ))}
+    </TableHeader>
   );
 }

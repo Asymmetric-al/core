@@ -14,7 +14,7 @@ export const metadata: Metadata = pageMetadata.about;
 export default function AboutPage() {
   return (
     <div
-      className="bg-background text-foreground min-h-screen selection:bg-accent"
+      className="bg-background text-foreground min-h-dvh selection:bg-accent"
       data-testid="about-route-shell"
     >
       <BreadcrumbJsonLd

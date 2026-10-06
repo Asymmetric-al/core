@@ -71,7 +71,9 @@ export function PageShell({
       )}
     >
       <motion.div
-        {...headerMotion}
+        initial={headerMotion.initial}
+        animate={headerMotion.animate}
+        transition={headerMotion.transition}
         data-slot="page-shell-header"
         className={cn(
           density === "compact"
@@ -112,7 +114,9 @@ export function PageShell({
 
         {actions && (
           <motion.div
-            {...actionsMotion}
+            initial={actionsMotion.initial}
+            animate={actionsMotion.animate}
+            transition={actionsMotion.transition}
             className={cn(
               density === "compact"
                 ? "flex flex-wrap items-center gap-2.5"

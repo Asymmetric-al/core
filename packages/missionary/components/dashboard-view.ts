@@ -36,7 +36,7 @@ export interface DashboardAlertView {
   severity: "high" | "medium";
 }
 
-export interface MissionaryDashboardView {
+interface MissionaryDashboardView {
   support: DashboardSupportView | null;
   updates: DashboardUpdateView[];
   pendingTasks: DashboardTaskView[];
@@ -70,14 +70,19 @@ export function buildMissionaryDashboardView(
     }),
   );
 
-  const pendingTasks: DashboardTaskView[] = (snapshot?.tasks ?? [])
-    .filter((task) => task.status !== "completed")
-    .map((task) => ({
-      id: String(task.id),
-      title: task.title,
-      priority: task.priority ?? "none",
-      dueDate: task.due_date ?? null,
-    }));
+  const pendingTasks: DashboardTaskView[] = (snapshot?.tasks ?? []).flatMap(
+    (task) =>
+      task.status !== "completed"
+        ? [
+            {
+              id: String(task.id),
+              title: task.title,
+              priority: task.priority ?? "none",
+              dueDate: task.due_date ?? null,
+            },
+          ]
+        : [],
+  );
 
   const alerts: DashboardAlertView[] = [];
   if (pendingTasks.length > 0) {

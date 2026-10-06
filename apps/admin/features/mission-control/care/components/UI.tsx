@@ -17,6 +17,52 @@ import { ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
 import Image, { type ImageLoader } from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 
+const careButtonVariants = {
+  default:
+    "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold",
+  destructive:
+    "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+  outline:
+    "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground font-medium",
+  secondary:
+    "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 font-medium",
+  ghost: "hover:bg-accent hover:text-accent-foreground",
+  link: "text-primary underline-offset-4 hover:underline font-medium",
+  warning:
+    "bg-amber-100 text-amber-900 hover:bg-amber-200 shadow-sm font-semibold border border-amber-200/50",
+  success:
+    "bg-emerald-100 text-emerald-900 hover:bg-emerald-200 shadow-sm font-semibold border border-emerald-200/50",
+  critical:
+    "bg-destructive/10 text-destructive hover:bg-destructive/20 shadow-sm font-semibold border border-destructive/20",
+  info: "bg-sky-100 text-sky-900 hover:bg-sky-200 shadow-sm font-semibold border border-sky-200/50",
+};
+
+const careButtonSizes = {
+  default: "h-10 px-5 py-2",
+  sm: "h-8 px-3.5 text-xs gap-1.5",
+  lg: "h-11 px-7 text-base",
+  icon: "size-9",
+};
+
+const careBadgeVariants = {
+  default: "border-transparent bg-primary text-primary-foreground",
+  secondary: "border-transparent bg-secondary text-secondary-foreground",
+  outline: "text-foreground border-border bg-background",
+  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  warning: "border-amber-200 bg-amber-50 text-amber-700",
+  info: "border-sky-200 bg-sky-50 text-sky-700",
+  destructive: "border-transparent bg-destructive text-destructive-foreground",
+  critical: "border-destructive/30 bg-destructive/10 text-destructive",
+};
+
+const careAlertVariants = {
+  default: "bg-background text-foreground",
+  destructive:
+    "border-destructive/50 text-destructive bg-destructive/5 [&>svg]:text-destructive",
+  warning:
+    "border-amber-500/50 text-amber-700 bg-amber-50 [&>svg]:text-amber-600",
+};
+
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
     ? new globalThis.Date()
@@ -42,40 +88,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
-    const variants = {
-      default:
-        "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 font-semibold",
-      destructive:
-        "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-      outline:
-        "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground font-medium",
-      secondary:
-        "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 font-medium",
-      ghost: "hover:bg-accent hover:text-accent-foreground",
-      link: "text-primary underline-offset-4 hover:underline font-medium",
-      warning:
-        "bg-amber-100 text-amber-900 hover:bg-amber-200 shadow-sm font-semibold border border-amber-200/50",
-      success:
-        "bg-emerald-100 text-emerald-900 hover:bg-emerald-200 shadow-sm font-semibold border border-emerald-200/50",
-      critical:
-        "bg-destructive/10 text-destructive hover:bg-destructive/20 shadow-sm font-semibold border border-destructive/20",
-      info: "bg-sky-100 text-sky-900 hover:bg-sky-200 shadow-sm font-semibold border border-sky-200/50",
-    };
-    const sizes = {
-      default: "h-10 px-5 py-2",
-      sm: "h-8 px-3.5 text-xs gap-1.5",
-      lg: "h-11 px-7 text-base",
-      icon: "size-9",
-    };
-
     return (
       <button
         ref={ref}
         data-slot="button"
         className={cn(
           'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm press-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*="size-"])]:size-4 shrink-0 cursor-pointer',
-          variants[variant as keyof typeof variants] || variants.default,
-          sizes[size],
+          careButtonVariants[variant as keyof typeof careButtonVariants] ||
+            careButtonVariants.default,
+          careButtonSizes[size],
           className,
         )}
         {...props}
@@ -304,24 +325,13 @@ export const Badge: React.FC<BadgeProps> = ({
   children,
   ...props
 }) => {
-  const variants = {
-    default: "border-transparent bg-primary text-primary-foreground",
-    secondary: "border-transparent bg-secondary text-secondary-foreground",
-    outline: "text-foreground border-border bg-background",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    warning: "border-amber-200 bg-amber-50 text-amber-700",
-    info: "border-sky-200 bg-sky-50 text-sky-700",
-    destructive:
-      "border-transparent bg-destructive text-destructive-foreground",
-    critical: "border-destructive/30 bg-destructive/10 text-destructive",
-  };
-
   return (
     <div
       data-slot="badge"
       className={cn(
-        "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold w-fit whitespace-nowrap shrink-0 gap-1 transition-colors",
-        variants[variant as keyof typeof variants] || variants.default,
+        "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-semibold w-fit whitespace-nowrap shrink-0 gap-1 transition-colors",
+        careBadgeVariants[variant as keyof typeof careBadgeVariants] ||
+          careBadgeVariants.default,
         className,
       )}
       {...props}
@@ -464,20 +474,13 @@ export const Alert: React.FC<AlertProps> = ({
   children,
   ...props
 }) => {
-  const variants = {
-    default: "bg-background text-foreground",
-    destructive:
-      "border-destructive/50 text-destructive bg-destructive/5 [&>svg]:text-destructive",
-    warning:
-      "border-amber-500/50 text-amber-700 bg-amber-50 [&>svg]:text-amber-600",
-  };
   return (
     <div
       data-slot="alert"
       role="alert"
       className={cn(
         "relative w-full rounded-2xl border p-4 [&>svg~*]:pl-8 [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
-        variants[variant],
+        careAlertVariants[variant],
         className,
       )}
       {...props}
@@ -520,11 +523,14 @@ interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className, label, ...props }, ref) => {
+  ({ className, label, id, ...props }, ref) => {
+    const generatedId = React.useId();
+    const inputId = id ?? generatedId;
     return (
       <div className="flex items-center gap-2 group">
         <input
           type="checkbox"
+          id={inputId}
           ref={ref}
           data-slot="checkbox"
           className={cn(
@@ -534,7 +540,10 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           {...props}
         />
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-muted-foreground peer-checked:text-foreground transition-colors">
+          <label
+            htmlFor={inputId}
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-muted-foreground peer-checked:text-foreground transition-colors"
+          >
             {label}
           </label>
         )}
@@ -766,7 +775,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 w-full text-center text-[10px] mb-2 text-muted-foreground uppercase tracking-wider font-bold">
+      <div className="grid grid-cols-7 gap-1 w-full text-center text-xs mb-2 text-muted-foreground uppercase tracking-wider font-bold">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((dayLabel) => (
           <div key={dayLabel} className="py-1">
             {dayLabel}

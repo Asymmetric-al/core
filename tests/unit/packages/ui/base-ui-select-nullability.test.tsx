@@ -386,7 +386,7 @@ describe("remaining single-Select callback contracts", () => {
     const onChange = vi.fn();
     render(
       <MacroActionEditor
-        actions={[{ kind: "set_status", status: "open" }]}
+        rows={[{ id: "row-1", value: { kind: "set_status", status: "open" } }]}
         onChange={onChange}
       />,
     );
@@ -394,7 +394,7 @@ describe("remaining single-Select callback contracts", () => {
     expect(onChange).not.toHaveBeenCalled();
     emitChange("set_status", "set_priority");
     expect(onChange).toHaveBeenCalledWith([
-      expect.objectContaining({ kind: "set_priority" }),
+      { id: "row-1", value: expect.objectContaining({ kind: "set_priority" }) },
     ]);
   });
 
@@ -402,7 +402,7 @@ describe("remaining single-Select callback contracts", () => {
     const onChange = vi.fn();
     render(
       <MacroActionEditor
-        actions={[{ kind: "set_status", status: "open" }]}
+        rows={[{ id: "row-1", value: { kind: "set_status", status: "open" } }]}
         onChange={onChange}
       />,
     );
@@ -410,7 +410,7 @@ describe("remaining single-Select callback contracts", () => {
     expect(onChange).not.toHaveBeenCalled();
     emitChange("open", "resolved");
     expect(onChange).toHaveBeenCalledExactlyOnceWith([
-      { kind: "set_status", status: "resolved" },
+      { id: "row-1", value: { kind: "set_status", status: "resolved" } },
     ]);
   });
 
@@ -418,7 +418,9 @@ describe("remaining single-Select callback contracts", () => {
     const onChange = vi.fn();
     render(
       <MacroActionEditor
-        actions={[{ kind: "set_priority", priority: "low" }]}
+        rows={[
+          { id: "row-1", value: { kind: "set_priority", priority: "low" } },
+        ]}
         onChange={onChange}
       />,
     );
@@ -426,7 +428,7 @@ describe("remaining single-Select callback contracts", () => {
     expect(onChange).not.toHaveBeenCalled();
     emitChange("low", "high");
     expect(onChange).toHaveBeenCalledExactlyOnceWith([
-      { kind: "set_priority", priority: "high" },
+      { id: "row-1", value: { kind: "set_priority", priority: "high" } },
     ]);
   });
 

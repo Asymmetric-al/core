@@ -143,7 +143,7 @@ export default function LocationsPage() {
 
             {isAdding && (
               <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                <div className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-full shadow-2xl animate-bounce">
+                <div className="bg-amber-500 text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-full shadow-2xl">
                   Add Mode Active: Click anywhere on map
                 </div>
               </div>

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "reactDoctorVersion": "0.9.17",
+  "baseCommit": "1e7db7cfe9eb3737d531eca3138cf2676a0cc104",
+  "raw": 8623,
+  "obsoleteClassicJsx": 8327,
+  "applicable": 296,
+  "reviewedExactExceptions": 296,
+  "actionable": 0,
+  "targets": [
+    {
+      "target": "apps/admin",
+      "complete": true,
+      "scannedFileCount": 677,
+      "skippedChecks": [],
+      "rawDiagnostics": 5080,
+      "applicableDiagnostics": 110
+    },
+    {
+      "target": "apps/donor",
+      "complete": true,
+      "scannedFileCount": 140,
+      "skippedChecks": [],
+      "rawDiagnostics": 941,
+      "applicableDiagnostics": 39
+    },
+    {
+      "target": "apps/missionary",
+      "complete": true,
+      "scannedFileCount": 120,
+      "skippedChecks": [],
+      "rawDiagnostics": 651,
+      "applicableDiagnostics": 16
+    },
+    {
+      "target": "packages/auth",
+      "complete": true,
+      "scannedFileCount": 21,
+      "skippedChecks": [],
+      "rawDiagnostics": 0,
+      "applicableDiagnostics": 0
+    },
+    {
+      "target": "packages/database",
+      "complete": true,
+      "scannedFileCount": 61,
+      "skippedChecks": [],
+      "rawDiagnostics": 4,
+      "applicableDiagnostics": 1
+    },
+    {
+      "target": "packages/lib",
+      "complete": true,
+      "scannedFileCount": 55,
+      "skippedChecks": [],
+      "rawDiagnostics": 31,
+      "applicableDiagnostics": 2
+    },
+    {
+      "target": "packages/missionary",
+      "complete": true,
+      "scannedFileCount": 37,
+      "skippedChecks": [],
+      "rawDiagnostics": 84,
+      "applicableDiagnostics": 9
+    },
+    {
+      "target": "packages/ui",
+      "complete": true,
+      "scannedFileCount": 270,
+      "skippedChecks": [],
+      "rawDiagnostics": 1832,
+      "applicableDiagnostics": 119
+    }
+  ],
+  "rawEvidenceSha256": "278df13bd51428a941ddac0d4d7d1b7295d15ce4ab775412d3dc96fd29073ef3",
+  "sourceIntegrity": {
+    "artifact": "source-integrity.json.gz",
+    "sha256": "7b16a3e45731776a7ab94c552adf5a3fd9f0bc4f5a0fee24f01a727171191de7",
+    "rawVerifiedAt": "2026-10-06T15:29:47.732Z",
+    "strictVerifiedAt": "2026-10-06T15:33:13.595Z",
+    "rawOriginalFiles": 2215,
+    "rawSnapshotFiles": 2215,
+    "strictOriginalFiles": 2215,
+    "strictSnapshotFiles": 2215
+  }
+}

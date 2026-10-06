@@ -39,6 +39,29 @@ import {
 } from "@asym/ui/components/shadcn/dialog";
 import { cn } from "@asym/ui/lib/utils";
 
+const pdfStudioStatusConfig = {
+  not_configured: {
+    color: "bg-amber-50 text-amber-700 border-amber-200",
+    icon: AlertCircle,
+    label: "Free Mode",
+  },
+  free_tier: {
+    color: "bg-amber-50 text-amber-700 border-amber-200",
+    icon: AlertCircle,
+    label: "Free Tier",
+  },
+  configured: {
+    color: "bg-blue-50 text-blue-700 border-blue-200",
+    icon: CheckCircle2,
+    label: "Configured",
+  },
+  white_label: {
+    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    icon: Crown,
+    label: "White Label",
+  },
+};
+
 interface PDFStudioSetupStatusProps {
   variant?: "badge" | "banner" | "inline";
   showSetupButton?: boolean;
@@ -53,30 +76,7 @@ export function PDFStudioSetupStatus({
   const status = useMemo(() => getPDFStudioSetupStatus(), []);
   const config = useMemo(() => getUnlayerAccountConfig(), []);
 
-  const statusConfig = {
-    not_configured: {
-      color: "bg-amber-50 text-amber-700 border-amber-200",
-      icon: AlertCircle,
-      label: "Free Mode",
-    },
-    free_tier: {
-      color: "bg-amber-50 text-amber-700 border-amber-200",
-      icon: AlertCircle,
-      label: "Free Tier",
-    },
-    configured: {
-      color: "bg-blue-50 text-blue-700 border-blue-200",
-      icon: CheckCircle2,
-      label: "Configured",
-    },
-    white_label: {
-      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      icon: Crown,
-      label: "White Label",
-    },
-  };
-
-  const currentStatus = statusConfig[status.status];
+  const currentStatus = pdfStudioStatusConfig[status.status];
   const Icon = currentStatus.icon;
 
   if (variant === "badge") {
@@ -87,7 +87,7 @@ export function PDFStudioSetupStatus({
             <button
               type="button"
               className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
+                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
                 currentStatus.color,
                 className,
               )}
@@ -176,7 +176,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 rounded-lg bg-muted/50 border border-border">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Environment
           </div>
           <div className="text-sm font-medium text-foreground capitalize">
@@ -184,7 +184,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
           </div>
         </div>
         <div className="p-3 rounded-lg bg-muted/50 border border-border">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Project ID
           </div>
           <div className="text-sm font-medium text-foreground">
@@ -194,7 +194,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       </div>
 
       <div className="space-y-2">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Available Features
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -202,7 +202,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
             <Badge
               key={feature}
               variant="outline"
-              className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]"
+              className="bg-emerald-50 text-emerald-700 border-emerald-200"
             >
               <CheckCircle2 className="size-3 mr-1" />
               {feature}
@@ -215,7 +215,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
               <Badge
                 key={feature}
                 variant="outline"
-                className="bg-muted text-muted-foreground text-[10px]"
+                className="bg-muted text-muted-foreground"
               >
                 <Zap className="size-3 mr-1 opacity-50" />
                 {feature}
@@ -252,7 +252,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
               <div className="flex flex-col gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                 {PDF_STUDIO_SETUP_INSTRUCTIONS.steps.map((step) => (
                   <div key={step.step} className="flex gap-3">
-                    <div className="flex-shrink-0 size-6 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
+                    <div className="shrink-0 size-6 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
                       {step.step}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -333,7 +333,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                 <div className="flex flex-col gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                   {PDF_STUDIO_SETUP_INSTRUCTIONS.whiteLabelSteps.map((step) => (
                     <div key={step.step} className="flex gap-3">
-                      <div className="flex-shrink-0 size-6 rounded-full bg-chart-4/15 text-chart-4 flex items-center justify-center text-xs font-bold">
+                      <div className="shrink-0 size-6 rounded-full bg-chart-4/15 text-chart-4 flex items-center justify-center text-xs font-bold">
                         {step.step}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -394,23 +394,19 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
         <div className="p-3 rounded-lg bg-muted/50 border border-border">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="size-4 text-muted-foreground" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Allowed Domains
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {config.allowedDomains.map((domain) => (
-              <Badge
-                key={domain}
-                variant="outline"
-                className="text-[10px] font-mono"
-              >
+              <Badge key={domain} variant="outline" className="font-mono">
                 {domain}
               </Badge>
             ))}
           </div>
           <p className="text-xs text-muted-foreground/80 mt-2 flex items-start gap-1">
-            <Info className="size-3 mt-0.5 flex-shrink-0" />
+            <Info className="size-3 mt-0.5 shrink-0" />
             For production, add your domain in the Unlayer Console.
           </p>
         </div>

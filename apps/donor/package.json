@@ -27,7 +27,6 @@
     "@asym/lib": "workspace:*",
     "@asym/mock-data": "workspace:*",
     "@asym/ui": "workspace:*",
-    "@base-ui/react": "1.8.0",
     "@next/env": "16.3.8",
     "@openpolicy/react": "0.0.17",
     "@openpolicy/sdk": "0.0.17",
@@ -45,13 +44,11 @@
     "nuqs": "^2.8.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "recharts": "^2.15.4",
-    "stripe": "22.2.0"
+    "recharts": "^2.15.4"
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
     "@asym/typescript-config": "workspace:*",
-    "@openpolicy/cli": "0.0.17",
     "@openpolicy/core": "0.0.17",
     "@openpolicy/renderers": "0.0.14",
     "@types/node": "^22.10.5",

@@ -9,6 +9,13 @@ import {
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
 
+const emailProviderBadge = (
+  <Badge variant="default" className="h-7 gap-1.5 rounded-md">
+    <BadgeCheck />
+    React Email
+  </Badge>
+);
+
 export interface EmailStudioProviderStatusProps {
   variant?: "badge" | "inline";
 }
@@ -20,18 +27,11 @@ export interface EmailStudioProviderStatusProps {
 export function EmailStudioProviderStatus({
   variant = "inline",
 }: EmailStudioProviderStatusProps) {
-  const badge = (
-    <Badge variant="default" className="h-7 gap-1.5 rounded-md">
-      <BadgeCheck />
-      React Email
-    </Badge>
-  );
-
   if (variant === "badge") {
     return (
       <Tooltip>
         <TooltipTrigger
-          render={badge}
+          render={emailProviderBadge}
           tabIndex={0}
           aria-label="React Email"
           aria-description="Email Studio uses React Email Editor; sending uses the Resend delivery layer."
