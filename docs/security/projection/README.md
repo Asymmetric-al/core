@@ -92,9 +92,14 @@ complete, and are not emitted unless independently policy-admitted. The scope
 and context envelopes never appear in the result. Data must be finite plain
 JSON-like primitives/objects/arrays (undefined is retained as supplied); cycles,
 functions or accessor facts refuse. Inputs are never mutated. Callback-visible
-facts are isolated frozen snapshots. Whole policy-admitted container values are
-preserved as supplied; projection never invents defaults, aliases, totals or
-nested paths.
+facts are isolated frozen snapshots. Validation inspects every own descriptor,
+including non-enumerable and symbol properties, without executing getters.
+Hidden executable serializers and accessors refuse recursively, including hidden
+array indices. Emitted containers come from that validated frozen data graph, not
+the original mutable references. Supplied data values, property enumerability,
+array length and sparse holes are preserved; object reference identity is not an
+authority or output guarantee. Projection never invents defaults, aliases, totals
+or nested paths.
 
 ## Ceiling, export and immutable floors
 

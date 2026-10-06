@@ -173,13 +173,13 @@ export function snapshot(
   const copy: Record<string, unknown> | unknown[] = Array.isArray(value)
     ? []
     : (Object.create(null) as Record<string, unknown>);
-  for (const key of Object.keys(object)) {
+  for (const key of Reflect.ownKeys(object)) {
     const descriptor = Object.getOwnPropertyDescriptor(object, key);
     if (!descriptor || !("value" in descriptor))
       throw new Error("Accessor fact");
     Object.defineProperty(copy, key, {
       value: snapshot(descriptor.value, ancestors),
-      enumerable: true,
+      enumerable: descriptor.enumerable,
       configurable: false,
       writable: false,
     });

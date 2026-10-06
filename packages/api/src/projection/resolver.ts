@@ -9,7 +9,6 @@ export function resolveProjection<
   Row extends Readonly<Record<string, unknown>>,
 >(input: ProjectionInput<Row>): ProjectionResult<Row> {
   try {
-    const original = input;
     input = {
       ...input,
       row: snapshot(input.row, new Set(), true) as Row,
@@ -40,7 +39,7 @@ export function resolveProjection<
     const projection: Record<string, unknown> = {};
     for (const key of Object.keys(input.row)) {
       if (!removed.has(key) && admits(policies, key, input.auth))
-        projection[key] = original.row[key];
+        projection[key] = input.row[key];
     }
     return { kind: "allowed", projection: projection as Partial<Row> };
   } catch {
