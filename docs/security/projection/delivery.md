@@ -12,8 +12,10 @@ subsequently committed and pushed the repaired implementation as
 **937fbf15137b255bd3770ec9562f4173eb61202b**. The subsequent documentation-only
 local candidate **e72ce04f72e04e66aaafdbc338020279cf2c24f3** retained those source
 bytes, but both M4/L4 reviews then identified a separate general-ceiling purpose/
-operation binding gap under unchanged E1-r1. B4 repairs that gap below as an
-uncommitted handoff from `e72ce04…`; no new repaired candidate SHA is asserted.
+operation binding gap under unchanged E1-r1. B4 originally returned the repair
+below as an uncommitted implementation-worker handoff from `e72ce04…`; the
+coordinator subsequently committed it through normal hooks as
+**6fe97a9224cb5611ba987a56dfef2da7171e81f3**.
 Historical B1/B2 passes, scoped reviews and 937 CI do not approve changed B4
 source or close the newly isolated binding dimension.
 
@@ -83,7 +85,7 @@ From the repository root with the assigned tool PATH and Vitest **4.1.4**:
 | `bunx prettier --check packages/api/src/projection packages/api/package.json tests/unit/packages/api/projection docs/security/projection` | Passed, exit 0.                                                                                                                                                                             |
 | Actual `@asym/api/projection` package probes via `bun --conditions=react-server -e ...`                                                   | Eight literal assertions passed: matching read/name, matching export/exact values, matching empty, purpose-only/operation-only/combined swaps, missing purpose and missing operation.       |
 | `git diff --check` and local documentation-link checks                                                                                    | Passed.                                                                                                                                                                                     |
-| Broad normal preflight/unit/build/CI and independent acceptance for the future B4 head                                                    | **Pending**, not inferred from historical 937 results. No redundant broad host suite run in B4; normal new-head gates will run through required pre-push after committed review/acceptance. |
+| Broad normal preflight/unit/build/CI and independent acceptance for the final PR head                                                     | **Pending**, not inferred from historical 937 results. No redundant broad host suite run in B4; normal new-head gates will run through required pre-push after committed review/acceptance. |
 
 B4 changes only projection types/qualification, dedicated synthetic tests/fixtures
 and these documents. No policy/taxonomy/reader, DB/schema/seed, grant, live context/
