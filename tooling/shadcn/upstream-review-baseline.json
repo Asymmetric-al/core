@@ -1683,7 +1683,7 @@
     },
     {
       "path": "packages/ui/components/primitives/page-shell.tsx",
-      "localSha256": "1421733ae9fffc75eae76d92a1d03d018b2362db85183eefedbe79f26c0b86ae",
+      "localSha256": "a73113dcc130ce8b1b0f379b2f89cbaaabbc1b8b0fcdfd2c313dc19dd084a3e7",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/page-shell.tsx",
@@ -1811,7 +1811,7 @@
     },
     {
       "path": "packages/ui/components/primitives/page-shell.tsx",
-      "sha256": "1421733ae9fffc75eae76d92a1d03d018b2362db85183eefedbe79f26c0b86ae"
+      "sha256": "a73113dcc130ce8b1b0f379b2f89cbaaabbc1b8b0fcdfd2c313dc19dd084a3e7"
     },
     {
       "path": "packages/ui/components/primitives/responsive-container.tsx",
