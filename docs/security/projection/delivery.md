@@ -7,12 +7,15 @@ revision **E1-r1**, 2026-10-06. Base
 
 The first reviewed candidate **238415d579580b7e478a95f507f087bc81f5b933 was
 rejected** for a serialization escape confirmed independently by Micaiah and
-Luke. The repair below is an uncommitted handoff from that rejected SHA; it does
-not yet have an approved new candidate SHA. Historical B1 passes do not establish
-passing gates for the repaired source. No commit, push, merge or deployment was
-performed by the implementation worker. Exact-head hooks, broad normal gates,
-both independent re-reviews, final E1-r1 acceptance and required CI remain pending
-coordinator delivery steps.
+Luke. B2 originally returned an uncommitted repair handoff; the coordinator
+subsequently committed and pushed the repaired implementation as
+**937fbf15137b255bd3770ec9562f4173eb61202b**. Historical B1 passes do not establish
+passing gates for the repaired source; its later checks are recorded below.
+
+The current-head delivery packet on [PR #1960](https://github.com/Asymmetric-al/core/pull/1960)
+is authoritative for the final candidate SHA, required CI and final C8 acceptance.
+The fixed implementation SHA above binds the completed source checks and reviews;
+it does not predict the SHA of a later documentation-only commit.
 
 The exported seam and complete input/result/context/scope contracts are in
 [the integration contract](./README.md). The B2 repair changes only projection
@@ -58,12 +61,38 @@ Commands ran from the repository root with the assignment's
 | `bunx prettier --check packages/api/src/projection packages/api/package.json tests/unit/packages/api/projection docs/security/projection` | Passed, exit 0.                                                                                                                                                                               |
 | Public package server-condition smoke and serialization probes                                                                            | Passed, exit 0. Original positive literal preserved; object serializer, array serializer and hidden array-index accessor each refused with zero executions through the actual package export. |
 | `git diff --check`                                                                                                                        | Passed for the repair's tracked diff; new files also passed formatter checks.                                                                                                                 |
-| `bun run test:unit`, whole-repository lint/typecheck, hooks/preflight and required CI for repaired SHA                                    | **Not established by B2.** Broad normal final gates will run on the repaired committed candidate; B1 results cannot substitute.                                                               |
+| `bun run test:unit`, whole-repository lint/typecheck, hooks/preflight and required CI for repaired SHA                                    | Not established during the historical B2 handoff. Subsequent normal gates passed at `937fbf151…`, as recorded below; final current-head CI/C8 remain pending.                                 |
 
 No source edits followed the final focused/type/lint checks; delivery documentation
 was finalized with their actual outputs afterward. Focused test counts establish
 their assertions, not a line/branch coverage threshold. The existing custom
 coverage provider does not calculate line/statement/branch totals.
+
+## Committed implementation checks and reviews
+
+At repaired implementation `937fbf15137b255bd3770ec9562f4173eb61202b`, the normal
+push passed all **17 preflight stages**, including repository format/lint/typecheck,
+boundary/integrity checks, builds and the full unit gate. All three app builds
+(admin, donor and missionary) passed. The full unit result was **804 files / 6453
+tests passed**, with **2 existing skipped files / 4 skipped tests** (290.13s).
+The exact normal-push evidence is coordinator-held
+`/workspace/scratch/AL1954-prepush-937.log`; these are completed gates on that
+implementation SHA, not fabricated results for a future PR head.
+
+Micaiah M2 and Luke L2 independently returned **CLEAR within their repaired
+source/systems scopes** at the same implementation SHA. Ezra E3 independently
+returned **C1–C7 PASS** under E1-r1 at that SHA. Their records are
+`/workspace/scratch/AL1954-micaiah-m2-review.md`,
+`/workspace/scratch/AL1954-luke-l2-review.md` and
+`/workspace/scratch/AL1954-ezra-e3-acceptance.md`. These scoped results do not
+constitute merge approval or final delivery acceptance.
+
+Required CI and final **C8 remain pending on the final current PR head**. A later
+change to this delivery document preserves the implementation source bytes, but
+its final candidate identity and current-head CI/acceptance evidence must come
+from [PR #1960's current-head delivery packet](https://github.com/Asymmetric-al/core/pull/1960).
+The historical failed/interrupted records below remain evidence of their original
+runs and are not rewritten as passes.
 
 ## Portable supplemental reproduction
 
@@ -173,5 +202,7 @@ entity/root/line attribution, actual private-fact reader ordering, raw SELECT/DT
 parity with reviewed narrowing, adjacent/encoded processor paths, full sensitive-
 reader lint, pre-data-access client CSV refusal and applicable #496/#632/#635/
 source-family closure. This repair grants no new integration authority and never
-closes #493. C8 remains pending one repaired committed SHA with passing normal
-gates, both re-reviews, independent E1-r1 acceptance and required current-head CI.
+closes #493. The repaired implementation's normal gates, both scoped re-reviews
+and C1–C7 acceptance are recorded above at `937fbf151…`. Final C8 remains pending
+required CI and the authoritative final current-head delivery/acceptance packet
+on [PR #1960](https://github.com/Asymmetric-al/core/pull/1960).
