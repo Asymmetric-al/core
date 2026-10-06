@@ -611,6 +611,58 @@ it.each(roles)(
   },
 );
 
+it.each(
+  roles.flatMap((role) =>
+    ["-Samson", "/Samson"].map((suffix) => ({ role, suffix })),
+  ),
+)(
+  "blocks a suffixed own-role identity for $role with $suffix",
+  async ({ role, suffix }) => {
+    const f = fixture("mirror");
+    const identity = role[0].toUpperCase() + role.slice(1);
+    // Reviewed/consumed bytes match and settings are valid. Only the claimed
+    // identity is wrong: a regex word boundary also matches '-' and '/'.
+    f.pair(
+      `.codex/agents/${role}.toml`,
+      `model = "gpt-6.1-sol"\nmodel_reasoning_effort = "high"\ndeveloper_instructions = "You are ${identity}${suffix}. Your only role is the assigned task."\n`,
+    );
+    await expect(invoke(f)).rejects.toThrow(
+      new RegExp(`BLOCKED.*${role}.*identity`, "i"),
+    );
+  },
+);
+
+it.each(
+  roles.flatMap((role) =>
+    [
+      { delimiter: "period", ending: ". Your only role is the assigned task." },
+      { delimiter: "comma", ending: ", your only role is the assigned task." },
+      {
+        delimiter: "whitespace",
+        ending: " Your only role is the assigned task.",
+      },
+      { delimiter: "end", ending: "" },
+    ].map((punctuation) => ({ role, ...punctuation })),
+  ),
+)(
+  "preserves exact own-role instructions for $role with a $delimiter delimiter",
+  async ({ role, ending }) => {
+    const f = fixture("mirror");
+    const identity = role[0].toUpperCase() + role.slice(1);
+    const instructions = `You are ${identity}${ending}`;
+    f.pair(
+      `.codex/agents/${role}.toml`,
+      `model = "gpt-6.1-sol"\nmodel_reasoning_effort = "high"\ndeveloper_instructions = ${JSON.stringify(instructions)}\n`,
+    );
+    const result = await invoke(f);
+    expect(result.roleInstructions[role]).toBe(instructions);
+    expect(result.requestedRoleSettings[role]).toEqual({
+      model: "gpt-6.1-sol",
+      model_reasoning_effort: "high",
+    });
+  },
+);
+
 it.each(nativeTools)(
   "blocks unavailable registered tool %s",
   async (missing) => {

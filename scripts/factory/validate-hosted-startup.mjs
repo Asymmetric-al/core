@@ -241,7 +241,7 @@ for asset in json.load(sys.stdin):
         for key in ("developer_instructions", "model", "model_reasoning_effort"):
             if not isinstance(data.get(key), str) or not data[key].strip():
                 raise ValueError("missing nonempty own " + key)
-        if not re.match(r"\\s*You are " + role + r"\\b", data["developer_instructions"], re.IGNORECASE):
+        if not re.match(r"\\s*You are " + role + r"(?=[.,\\s]|$)", data["developer_instructions"], re.IGNORECASE):
             raise ValueError("incorrect role identity")
         instructions[role] = data["developer_instructions"]
         settings[role] = {key: data[key] for key in ("model", "model_reasoning_effort")}
@@ -261,7 +261,7 @@ print(json.dumps({"requestedRoleSettings": settings, "roleInstructions": instruc
         (role) =>
           typeof roleInstructions?.[role] !== "string" ||
           !roleInstructions[role].trim() ||
-          !new RegExp(`^\\s*You are ${role}\\b`, "i").test(
+          !new RegExp(`^\\s*You are ${role}(?=[.,\\s]|$)`, "i").test(
             roleInstructions[role],
           ) ||
           ["model", "model_reasoning_effort"].some(
