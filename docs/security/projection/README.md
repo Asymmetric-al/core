@@ -33,8 +33,15 @@ Four distinct input contracts are exported:
 
 - `human`: one selected assignment ID/revision, current assignment revision and
   exact principal/Tenant; its already-resolved `ceiling` is bound to the exact
-  context reference/revision and its purpose/operation. `readableFields` and
-  `exportableFields` are the producer's current capability intersection for this
+  context reference/revision and its purpose/operation. `ProjectionCeiling`
+  requires its own explicit `purpose` and `operation` facts. Qualification checks
+  nonempty purpose and supported `read`/`bulk_export` operation against
+  `auth.binding`, in addition to context reference/revision, before any field can
+  be admitted. Missing, empty, malformed, unsupported or mismatched association
+  refuses the whole row, even when both lists are empty; it is never filled from
+  outer auth/scope, roles or defaults. Correct complete binding with empty lists
+  remains allowed-empty. `readableFields` and `exportableFields` are the producer's
+  current capability intersection for this
   target, not raw role or membership names. Exact finance evidence is separate.
   This is the supported pure input variant; no live producer is delivered here.
 - `public`: exact host, current Site/resource/public-projection source facts,
@@ -115,8 +122,11 @@ contained data rather than trying to admit dotted descendants.
 
 `read` intersects `visible` with `ceiling.readableFields`; editability is inert.
 `bulk_export` intersects `exportable` with `ceiling.exportableFields`, independently
-of `visible`. Its operation and purpose must be bound identically in context and
-scope. Surface `export` always applies export ceilings/floors, even under `read`.
+of `visible`. Its operation and purpose must be supplied explicitly and bound
+identically in the general ceiling, context and scope. General ceiling binding
+is checked independently of the finance sub-fact and operation-specific field
+list selection. Surface `export` always applies export ceilings/floors, even
+under `read`.
 Mission Control bulk export also applies all external immutable floors.
 
 Internal/care/security categories are always removed outside Mission Control and

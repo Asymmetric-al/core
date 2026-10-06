@@ -88,7 +88,15 @@ describe("static ceiling and immutable floors", () => {
     expect(
       resolveProjection({
         ...x,
-        auth: { ...x.auth, binding },
+        auth: {
+          ...x.auth,
+          binding,
+          ceiling: {
+            ...x.auth.ceiling,
+            purpose: "support_export",
+            operation: "bulk_export",
+          },
+        },
         scope: { ...x.scope, binding },
         policies: policies(x.surface, x.recordType, [
           { fieldKey: "amount", visible: false, exportable: true },
@@ -293,7 +301,15 @@ describe("value and authority preservation", () => {
     expect(
       resolveProjection({
         ...authorized,
-        auth: { ...authorized.auth, binding },
+        auth: {
+          ...authorized.auth,
+          binding,
+          ceiling: {
+            ...authorized.auth.ceiling,
+            purpose: "support_history",
+            operation: "bulk_export",
+          },
+        },
         scope: { ...x.scope, binding },
       }),
     ).toEqual({ kind: "allowed", projection: {} });

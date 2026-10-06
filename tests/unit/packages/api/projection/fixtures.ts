@@ -51,6 +51,8 @@ export function fixture(
       ceiling: {
         contextRef: "context-a",
         contextRevision: "context-v1",
+        purpose: "support_history",
+        operation: "read",
         readableFields: ["display_name", "amount"],
         exportableFields: ["display_name", "amount"],
       },

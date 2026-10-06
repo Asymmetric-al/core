@@ -24,6 +24,8 @@ export type ContextFacts = Readonly<{
 export type ProjectionCeiling = Readonly<{
   contextRef: string;
   contextRevision: string;
+  purpose: string;
+  operation: ProjectionOperation;
   readableFields: readonly string[];
   exportableFields: readonly string[];
   /** Exact finance capability evidence; role names are not evidence. */

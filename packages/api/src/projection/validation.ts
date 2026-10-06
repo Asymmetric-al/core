@@ -86,6 +86,10 @@ export function qualified(input: ProjectionInput): boolean {
     !ceiling ||
     ceiling.contextRef !== binding.contextRef ||
     ceiling.contextRevision !== binding.contextRevision ||
+    !reference(ceiling.purpose) ||
+    ceiling.purpose !== binding.purpose ||
+    (ceiling.operation !== "read" && ceiling.operation !== "bulk_export") ||
+    ceiling.operation !== binding.operation ||
     !fields(ceiling.readableFields) ||
     !fields(ceiling.exportableFields)
   )
