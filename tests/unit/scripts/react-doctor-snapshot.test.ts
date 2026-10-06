@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   createAuditSnapshot,
@@ -19,6 +19,8 @@ import {
   assertAuditSourcesUnchanged,
   runReactDoctorAudit,
 } from "../../../scripts/react-doctor-audit.mjs";
+
+import { repositoryGitEnvironment } from "../../../scripts/git/environment.mjs";
 
 const roots: string[] = [];
 function fixture() {
@@ -45,34 +47,52 @@ function fixture() {
   return { root, snapshot, sourcePaths };
 }
 afterEach(() => {
+  vi.unstubAllEnvs();
   for (const root of roots.splice(0))
     rmSync(root, { recursive: true, force: true });
 });
 
 describe("React Doctor disposable source snapshots", () => {
-  it("rejects source edits and new files made while an audit is running", () => {
-    const { root } = fixture();
-    execFileSync("git", ["init", "--quiet", root]);
-    const expected = auditSourceHashes(root);
-    writeFileSync(
-      path.join(root, "apps/admin/component.tsx"),
-      "changed source",
-    );
-    expect(() => assertAuditSourcesUnchanged({ root, expected })).toThrow(
-      /changed/i,
-    );
-    writeFileSync(
-      path.join(root, "apps/admin/component.tsx"),
-      "// eslint-disable-next-line\nexport const Component = () => null;\n",
-    );
-    writeFileSync(
-      path.join(root, "apps/admin/new.tsx"),
-      "export const New = () => null;",
-    );
-    expect(() => assertAuditSourcesUnchanged({ root, expected })).toThrow(
-      /changed/i,
-    );
-  });
+  it.each([false, true])(
+    "rejects concurrent edits with inherited Git hook environment: %s",
+    (hookEnvironment) => {
+      const { root } = fixture();
+      execFileSync("git", ["init", "--quiet", root], {
+        env: repositoryGitEnvironment(),
+      });
+      const gitConfig = path.join(root, ".git/config");
+      const configBefore = readFileSync(gitConfig, "utf8");
+      if (hookEnvironment) {
+        const foreign = fixture().root;
+        execFileSync("git", ["init", "--quiet", foreign], {
+          env: repositoryGitEnvironment(),
+        });
+        vi.stubEnv("GIT_DIR", path.join(foreign, ".git"));
+        vi.stubEnv("GIT_WORK_TREE", foreign);
+        vi.stubEnv("GIT_INDEX_FILE", path.join(foreign, ".git/index"));
+      }
+      const expected = auditSourceHashes(root);
+      writeFileSync(
+        path.join(root, "apps/admin/component.tsx"),
+        "changed source",
+      );
+      expect(() => assertAuditSourcesUnchanged({ root, expected })).toThrow(
+        /changed/i,
+      );
+      writeFileSync(
+        path.join(root, "apps/admin/component.tsx"),
+        "// eslint-disable-next-line\nexport const Component = () => null;\n",
+      );
+      writeFileSync(
+        path.join(root, "apps/admin/new.tsx"),
+        "export const New = () => null;",
+      );
+      expect(() => assertAuditSourcesUnchanged({ root, expected })).toThrow(
+        /changed/i,
+      );
+      expect(readFileSync(gitConfig, "utf8")).toBe(configBefore);
+    },
+  );
 
   it("rejects snapshot rewrites, deletions, and added source files", () => {
     const { root, snapshot, sourcePaths } = fixture();

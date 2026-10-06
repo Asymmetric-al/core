@@ -1885,7 +1885,7 @@
       "file": "docs/qa/react-doctor/pr-validation.md",
       "change": "added",
       "baseHash": null,
-      "finalHash": "553cd161631760c4fb3898bebfd8f60ff5f122a845ada72c42c4b77e8a1f0bed"
+      "finalHash": "bc9d0baf72dedd66803ea5d333ad47b71721676ab8ca7492cddea988313efca2"
     },
     {
       "file": "docs/qa/react-doctor/raw-findings.json.gz",
@@ -2647,13 +2647,19 @@
       "file": "scripts/check-motion-patterns.mjs",
       "change": "modified",
       "baseHash": "f020102f0b60f4dac7255fd8de6455bb583dc9bd765666b6d873f53a0c34b2a5",
-      "finalHash": "5172641bd257876cdd9f84f754631898e715f56f8b1f989fa67f4223025481d4"
+      "finalHash": "b447add2166dffece98f4c577fb0aa2f40450960be9a0ff1d6c7846f790a56d8"
+    },
+    {
+      "file": "scripts/git/environment.mjs",
+      "change": "added",
+      "baseHash": null,
+      "finalHash": "7650e34006e3eb797476ae498682220f6e2169796e49c85eb783295f471173ef"
     },
     {
       "file": "scripts/react-doctor-audit.mjs",
       "change": "added",
       "baseHash": null,
-      "finalHash": "dac64d267f12bceab90028c60ef46cdff190b2566c686067a663b50f0805c720"
+      "finalHash": "15512599d8f07920cf0f719ba6ecf27e17d22338eff5b863f10b2b44b666094c"
     },
     {
       "file": "scripts/react-doctor-first-party.mjs",
@@ -2911,7 +2917,7 @@
       "file": "tests/unit/scripts/check-motion-patterns.test.ts",
       "change": "modified",
       "baseHash": "f6293ef403d017e104e39f76462acddf6af09817793ae2fa66077790de93c4c2",
-      "finalHash": "8523863552696dfc7cf7a11bd31245a10d47aec4e991bc930b68c45f6ab0aff0"
+      "finalHash": "d018cc310ce58634a8421b74f6e8d9d9e05367e008252b353bb05c106b70d058"
     },
     {
       "file": "tests/unit/scripts/design-system-cache.test.ts",
@@ -2965,7 +2971,7 @@
       "file": "tests/unit/scripts/react-doctor-snapshot.test.ts",
       "change": "added",
       "baseHash": null,
-      "finalHash": "0a65a90c14c351699e8de83ee4e3df64bee1fb1e0b8466617c9f8a8a3ee96dc3"
+      "finalHash": "996731da353c042a60b35a23b094977afe5971052a92a27b25b3803bc1a6965c"
     },
     {
       "file": "tests/unit/scripts/shadcn-upstream-review.test.ts",

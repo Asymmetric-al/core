@@ -33,6 +33,8 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
+import { repositoryGitEnvironment } from "./git/environment.mjs";
+
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
 
 const IGNORE_PREFIXES = [
@@ -93,6 +95,7 @@ export function listScanTargets(root = repoRoot) {
     {
       cwd: root,
       encoding: "utf8",
+      env: repositoryGitEnvironment(),
     },
   );
   if (out.status !== 0) {

@@ -16,6 +16,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { repositoryGitEnvironment } from "./git/environment.mjs";
+
 import {
   createReactDoctorCommand,
   createSpawnCommand,
@@ -64,7 +66,12 @@ function trackedAndUntrackedFiles(root) {
   const result = spawnSync(
     "git",
     ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-    { cwd: root, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 },
+    {
+      cwd: root,
+      encoding: "utf8",
+      maxBuffer: 32 * 1024 * 1024,
+      env: repositoryGitEnvironment(),
+    },
   );
   if (result.error || result.status !== 0)
     throw new Error("Git could not inventory the current source tree.");
