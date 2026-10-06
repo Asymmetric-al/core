@@ -1843,7 +1843,7 @@
       "file": "docs/qa/react-doctor/audit-summary.json",
       "change": "added",
       "baseHash": null,
-      "finalHash": "227795423ebc510879d9e9f26b5435d99f735318a62b450901344940fdd2a492"
+      "finalHash": "fae60e0566a531589fdf53deebe782a79a703dc639de951d6c5ec1b2171f9c13"
     },
     {
       "file": "docs/qa/react-doctor/baseline-findings.json.gz",
@@ -1897,7 +1897,7 @@
       "file": "docs/qa/react-doctor/source-integrity.json.gz",
       "change": "added",
       "baseHash": null,
-      "finalHash": "7b16a3e45731776a7ab94c552adf5a3fd9f0bc4f5a0fee24f01a727171191de7"
+      "finalHash": "a8f8e90e4e9d6003cf951ae80e9ce4c272491c89eb8debe6ce4a20d89effec4a"
     },
     {
       "file": "doctor.config.json",
@@ -3013,13 +3013,13 @@
       "file": "tooling/shadcn/upstream-review-baseline.json",
       "change": "modified",
       "baseHash": "ad66ec0bc5ac56fc2d66fde6a037cd3e2dbe3e42218be3b0f92bd0c95198381d",
-      "finalHash": "d5ec2d2e15b3bcc8996a848b922235bc2f8a4a654438c9831c296cc1a9c450ff"
+      "finalHash": "d52d2a81c05294df81cdb05c463e62cb0ba9625ea650aa17e473dd84235fae25"
     },
     {
       "file": "tooling/shadscan/findings.json",
       "change": "modified",
       "baseHash": "5001f2a93662c66c03052ac562f8aeae9acaba97990f60f1e0718e835b084b02",
-      "finalHash": "72aa397136f1abf91c9bbd72c8c56608487de06e2ed9ed08d18d5b903bff76f0"
+      "finalHash": "73fd9344c7fc2d01ba6f3cea314d9f5722565358386f19c9436980fc793c1733"
     }
   ]
 }

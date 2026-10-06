@@ -76,9 +76,9 @@
   "rawEvidenceSha256": "278df13bd51428a941ddac0d4d7d1b7295d15ce4ab775412d3dc96fd29073ef3",
   "sourceIntegrity": {
     "artifact": "source-integrity.json.gz",
-    "sha256": "7b16a3e45731776a7ab94c552adf5a3fd9f0bc4f5a0fee24f01a727171191de7",
-    "rawVerifiedAt": "2026-10-06T15:29:47.732Z",
-    "strictVerifiedAt": "2026-10-06T15:33:13.595Z",
+    "sha256": "a8f8e90e4e9d6003cf951ae80e9ce4c272491c89eb8debe6ce4a20d89effec4a",
+    "rawVerifiedAt": "2026-10-06T15:40:07.807Z",
+    "strictVerifiedAt": "2026-10-06T15:41:36.804Z",
     "rawOriginalFiles": 2215,
     "rawSnapshotFiles": 2215,
     "strictOriginalFiles": 2215,
