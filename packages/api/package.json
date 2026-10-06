@@ -176,7 +176,8 @@
     "./eve/notifications/route": "./src/eve/notifications/route.ts",
     "./eve/launch-readiness": "./src/eve/launch-readiness/index.ts",
     "./eve/launch-readiness/route": "./src/eve/launch-readiness/route.ts",
-    "./field-policies": "./src/field-policies/index.ts"
+    "./field-policies": "./src/field-policies/index.ts",
+    "./projection": "./src/projection/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
