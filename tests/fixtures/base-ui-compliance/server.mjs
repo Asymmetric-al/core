@@ -50,6 +50,7 @@ await build({
           return resolve(fixtureDirectory, "analytics-chart-stub.ts");
         const usesTaskToolbarHooks =
           workspaceFile?.endsWith("/missionary/app/tasks/page-client.tsx") ||
+          workspaceFile?.endsWith("/missionary/app/donors/donor-tasks.tsx") ||
           workspaceFile?.endsWith("/missionary/components/task-dialog.tsx");
         if (source === "@asym/lib/hooks" && usesTaskToolbarHooks)
           return resolve(fixtureDirectory, "task-toolbar-hooks-stub.ts");
@@ -163,6 +164,7 @@ await build({
         workspace: resolve(fixtureDirectory, "workspace.html"),
         taskToolbar: resolve(fixtureDirectory, "task-toolbar.html"),
         faq: resolve(fixtureDirectory, "faq.html"),
+        adminAvailability: resolve(fixtureDirectory, "admin-availability.html"),
       },
       onwarn(warning, warn) {
         // Every imported component runs in this client-only fixture. Rollup can

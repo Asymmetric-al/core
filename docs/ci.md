@@ -271,6 +271,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 ### `migrate`
 
 - _What it does:_ Spins up a fresh `postgres:15-alpine` container, runs `node scripts/verify/supabase-migrations.mjs` to bootstrap the minimal Supabase `auth`/`storage` compatibility schemas and apply timestamped forward migrations from `supabase/migrations/`, then runs Payload migrations via `bun run cms:migrate` and verifies status with `bun run cms:migrate:status`, then applies `supabase/seed.sql`. Verifies that `public.profiles` has exactly 1 row after seeding.
+- The SQL verifier requires the reviewed field-policy census after all forward migrations and before reporting success. Policy-flag drift, uncensused columns and census execution failures block the job. Unsupported nonlocal targets are refused before any SQL runs; the old nonlocal override no longer applies. Migration and unit-test jobs fetch full Git history so the census can verify its recorded source revision.
 - _Why it matters:_ Catches migration ordering conflicts across both SQL + Payload migration systems, plus FK/seed incompatibilities, before they reach a hosted Supabase project.
 - _Debug locally:_ Run `bun run db:migrate:local` (applies migrations without seed) or `bun run seed:demo:local` (migrate + seed via helper script).
 

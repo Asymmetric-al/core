@@ -122,7 +122,7 @@ export default function AdminPage() {
       density="compact"
       actions={
         <>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               className="h-10 rounded-xl border-zinc-200 font-semibold hover:bg-zinc-50"

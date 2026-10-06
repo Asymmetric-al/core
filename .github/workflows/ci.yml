@@ -245,6 +245,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh

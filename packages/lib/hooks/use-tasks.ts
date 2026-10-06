@@ -134,6 +134,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   const { profile } = useAuth();
   const mountedRef = useRef(true);
   const initialFetchDone = useRef(false);
+  const requestSequence = useRef(0);
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -154,6 +155,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   }, []);
 
   const fetchTasks = useCallback(async () => {
+    const requestId = ++requestSequence.current;
     if (!profile?.id) {
       setLoading(false);
       return;
@@ -175,7 +177,7 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       },
     );
 
-    if (!mountedRef.current) {
+    if (!mountedRef.current || requestId !== requestSequence.current) {
       return;
     }
 

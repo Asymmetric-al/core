@@ -15,3 +15,34 @@ args = [
 
 [mcp_servers.reui]
 url = "https://mcp.reui.io"
+
+# BEGIN Samson native role configuration
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 6
+max_depth = 1
+
+[agents.samson]
+description = "Coordinate assignments, waiting, Git delivery and verified completion."
+config_file = "agents/samson.toml"
+
+[agents.ezra]
+description = "Define acceptance checks, write assigned tests and verify acceptance."
+config_file = "agents/ezra.toml"
+
+[agents.bezalel]
+description = "Implement assigned changes and run relevant checks."
+config_file = "agents/bezalel.toml"
+
+[agents.micaiah]
+description = "Review correctness and completeness."
+config_file = "agents/micaiah.toml"
+
+[agents.luke]
+description = "Review system interactions and failure cases."
+config_file = "agents/luke.toml"
+
+[agents.agabus]
+description = "Resolve supplied conflicting or uncertain findings by evidence."
+config_file = "agents/agabus.toml"
+# END Samson native role configuration
