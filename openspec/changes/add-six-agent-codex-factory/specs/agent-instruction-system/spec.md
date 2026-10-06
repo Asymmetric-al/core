@@ -77,7 +77,7 @@ nor establish merge authority.
 ### Requirement: Hosted Startup Validates Retained Assets Read-Only
 
 Hosted startup SHALL validate retained/personal coordinator guidance, handoff
-protocol, workspace coordination policy, all six own-role TOML sources/copies and
+protocol, workspace coordination policy, all six reviewed and consumed role TOMLs and
 available native tools read-only. It SHALL NOT require installation into active
 CODEX_HOME or local CLI verification/app-server launch. Active-home absence or a
 read-only mount SHALL NOT request repair. Explicit local installer/setup flags
@@ -86,7 +86,7 @@ and preservation semantics SHALL remain unchanged.
 #### Scenario: Hosted coordinating chat starts
 
 - WHEN reviewed retained assets and required observed native/tools are available
-- THEN matching coordinator/protocol and six role copies are validated with parsed own-role instructions and requested settings
+- THEN matching personal coordinator/protocol guidance and all six reviewed/consumed role bytes are validated with parsed own-role instructions and requested settings
 - AND reviewed Node/Bun pins and shell/Git/GitHub/Python availability are checked
 - AND fresh native own-role handoffs may follow without active-home writes, installer invocation or local CLI launch
 - AND configuration, hashes and supplied tool inventory do not prove runtime enforcement, isolation or hosted qualification
@@ -114,3 +114,16 @@ and preservation semantics SHALL remain unchanged.
 - AND merge, configuration parsing, mocked handoffs, catalog revisions or unpublished Start artifacts do not establish publication/consumption or product readiness
 - AND missing review/acceptance execution isolation remains missing required evidence and INCONCLUSIVE
 - AND #1955 is not auto-closed before H1–H2 passes
+
+#### Scenario: Actual role consumption is bound explicitly
+
+- WHEN hosted startup validates roles for native handoff
+- THEN required explicit `consumedRoleRoot` identifies the observed actual consumed directory, separate from retained `sourceRoot`, personal `home` and `workspaceRoot`
+- AND all six canonical `sourceRoot/.codex/agents/<role>.toml` bytes match `consumedRoleRoot/<role>.toml` bytes before parsing the exact consumed bytes
+- AND role assets report canonical `path`, `consumedPath` and `sha256` hashes of consumed bytes
+- AND `roleInstructions` returns exact parsed own-role `developer_instructions` for handoff alongside `requestedRoleSettings`, without validating one file then reading another
+- AND personal role copies are required only when a supported automatic loader actually consumes them and the caller binds that directory
+- AND absent or unused stale personal role copies do not block explicit handoffs
+- AND no ambient home, default directory or historical root supplies the consumed binding
+- AND missing, drifted or malformed source/consumed roles or invalid parser instructions, identity, model or effort block startup
+- AND repository fixtures do not establish saved publication/consumption; H1–H2 remain pending, #1955 stays open and #1954 paused

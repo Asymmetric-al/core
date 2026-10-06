@@ -9,7 +9,7 @@ covers fresh prompts and short results.
 ## Hosted startup: read-only validation
 
 Each hosted coordinating chat validates retained/personal coordinator guidance,
-the handoff protocol, workspace coordination policy, six role sources/copies and
+the handoff protocol, workspace coordination policy, six reviewed/consumed roles and
 available native tools read-only. Compare reviewed retained bytes, parse all six
 TOMLs, retain each role's own instructions and requested model/effort, and verify
 shell/Git/GitHub, Python 3.11+ and reviewed Node/Bun pins. Confirm native spawn,
@@ -22,13 +22,29 @@ not require local CLI verification or launching local app-server state. An absen
 or read-only active home is supported. After validation, use fresh native
 own-role handoffs. The read-only exported `validateHostedStartup` helper in
 `scripts/factory/validate-hosted-startup.mjs` accepts retained `sourceRoot`,
-personal `home`, `workspaceRoot`, explicit `expectedNodeVersion` and
+required explicit `consumedRoleRoot`, personal `home`, `workspaceRoot`, explicit
+`expectedNodeVersion` and
 `expectedBunVersion`, and the coordinator's observed `nativeTools` inventory:
 `collaboration.spawn_agent`, `collaboration.followup_task`,
 `collaboration.wait_agent`, `update_plan`. The inventory is an observed
 capability input, not evidence of enforcement or actual role execution. Pins
 come from reviewed environment tooling/current repository requirements, not from
 the retained package, which need not contain full repository manifests.
+
+Bind `consumedRoleRoot` to the observed actual consumed directory for native
+handoffs, separate from `sourceRoot`, `home` and `workspaceRoot`. Compare each
+canonical `sourceRoot/.codex/agents/<role>.toml` with
+`consumedRoleRoot/<role>.toml` and parse the exact matched consumed bytes. Role
+assets return canonical `path`, `consumedPath` and `sha256` hashes of consumed
+bytes. `roleInstructions` maps all six roles to exact parsed
+`developer_instructions` for own-role handoffs; `requestedRoleSettings` returns
+requested model/effort separately. Pass those returned instructions unchanged;
+do not validate one file and read another for handoff. Personal role copies are
+required only when a supported automatic loader actually consumes them; bind
+that directory and apply the same equality checks. Absent or unused stale
+personal role copies do not block explicit handoffs. No ambient home, default
+or historical root supplies the binding. An old local draft is not evidence of
+the current saved root.
 
 The bounded #1955 startup-repair exception permits read-only diagnosis and
 retained asset/tool validation, independent acceptance and the repository repair
@@ -143,3 +159,17 @@ the shared workspace and role configuration do not establish the boundary.
 
 The first product trial remains paused until the user requests it. A cloud
 template restores files/tools; it does not create a persistent queue controller.
+
+## Owner-approved corrective record (#1955, 2026-10-06)
+
+The original mandatory per-chat active CODEX_HOME installation failed with EROFS.
+PR #1956 (ccc6dbccb) removed that prerequisite, but added an unnecessary guard
+requiring six personal role copies. The actual bootstrap retains reviewed role
+sources and uses explicit own-role handoffs without restoring/checking personal
+roles. Blake approved corrective delivery with “do it” at 03:14:43 UTC. The
+consumed-role contract above supersedes that extra mechanism while preserving
+personal coordinator skill/protocol validation and equality, workspace policy,
+reviewed pins/tools, independent isolation safeguards and delivery boundaries.
+H1–H2 remain pending: #1955 stays open,
+#1954 paused, and workers STOP BEFORE MERGE. Repository fixtures and delivery do
+not establish actual hosted execution or publication.

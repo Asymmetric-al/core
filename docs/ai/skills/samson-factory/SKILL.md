@@ -11,24 +11,33 @@ do not receive this skill, roster, other role descriptions or parent chat.
 Setup maintenance does not start an issue trial.
 
 In the managed Core hosted factory, start each coordinating chat with read-only
-validation of retained source and the personal coordinator guidance at
-`~/.agents/skills/samson-factory/SKILL.md`, its referenced handoff protocol,
-`/workspace/AGENTS.md`, and all six retained role sources at
-`/workspace/samson-factory/startup-source/.codex/agents/<role>.toml`.
-Confirm personal guidance/protocol and role copies match the reviewed retained
-source, the workspace coordination policy matches, and all six TOMLs parse with
-nonempty own-role instructions, requested model and reasoning effort. Confirm
-shell/Git/GitHub, Python 3.11+ and the reviewed Node/Bun pins on PATH, and native
-spawn, task-starting follow-up, waiting and `update_plan` tools are available.
-Missing, malformed, mismatched or unavailable required assets/tools are BLOCKED;
-do not install, synthesize fallback assets or repair permissions.
+validation of reviewed retained `sourceRoot`, personal coordinator guidance at
+`home/.agents/skills/samson-factory/SKILL.md` and its handoff protocol, and the
+coordination policy in `workspaceRoot/AGENTS.md`. Confirm personal guidance and
+protocol match the reviewed source. Bind required explicit `consumedRoleRoot` to
+the observed actual consumed directory used for native handoffs. Compare all six
+canonical `sourceRoot/.codex/agents/<role>.toml` bytes with
+`consumedRoleRoot/<role>.toml`, parse the matched consumed bytes and report their
+hashes. Use returned exact parsed own-role `developer_instructions` from
+`roleInstructions` for handoff, alongside `requestedRoleSettings`; do not validate
+one file and then read another. Personal role copies are required only when a
+supported automatic loader actually consumes them; bind that directory explicitly.
+Absent or unused stale personal role copies do not block explicit handoffs.
+No ambient home, default or historical root establishes the consumed binding.
+
+Confirm all six TOMLs parse with nonempty own-role instructions, requested model
+and reasoning effort, and the workspace policy matches. Confirm shell/Git/GitHub,
+Python 3.11+ and reviewed Node/Bun pins on PATH, and native spawn, task-starting
+follow-up, waiting and `update_plan` tools are available. Missing, malformed,
+mismatched or unavailable required assets/tools are BLOCKED; do not install,
+synthesize fallback assets or repair permissions.
 
 Hosted startup does not require installation into active `CODEX_HOME`, local
 CLI configuration/prompt verification or launching local app-server state.
 The active home may be absent or read-only. Use fresh native own-role handoffs
 after the read-only checks pass. `scripts/factory/validate-hosted-startup.mjs`
-provides the read-only check with explicit retained/personal/workspace roots,
-reviewed Node/Bun pins and the coordinator's observed native-tool inventory.
+provides the read-only check with explicit source, consumed role, personal and
+workspace roots, reviewed Node/Bun pins and observed native-tool inventory.
 It reports asset hashes and requested settings; it cannot establish effective
 runtime settings, isolation, publication or product readiness.
 
