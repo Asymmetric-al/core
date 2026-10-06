@@ -259,11 +259,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
-          "sha256": "25d7a16c3e94e8548dbeaa513fd7583477562f8ed1df4e89499899e50601d52e"
+          "sha256": "f5a57670542ce5b7ddb058ab288199165e5d1cbb1c241e22d1104bec265707b4"
         },
         {
           "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
-          "sha256": "5ccc3db97af4d86e7a4cb6eac12e950f6a011e153ff1a54c9f35f7ec1d6d3208"
+          "sha256": "3f28cf57545ac7155f0074568e68426df6994787e9a5d531004adbdc6c2a91a7"
         }
       ]
     },
@@ -1282,7 +1282,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "ae3642c7a74cb20de572ee0a5c81dc9a8d5044a28fb4607c6c5ebd4eb4c307ff"
+          "sha256": "58bd926f2d55c06f94cc26417b3a33fb4cc41359b0fdd930cea0a2440a2086ec"
         },
         {
           "path": "packages/ui/components/shadcn/button.tsx",

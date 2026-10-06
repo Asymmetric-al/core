@@ -111,3 +111,54 @@ test("real offline gift donor modes select and restore focus without submitting"
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
 });
+
+test("offline gift success and the next entry retain a single named dialog", async ({
+  page,
+}) => {
+  let submissions = 0;
+  await page.route(
+    "http://127.0.0.1:5198/api/admin/contributions/offline",
+    async (route) => {
+      expect(route.request().method()).toBe("POST");
+      submissions += 1;
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          result: {
+            contributionId: "fixture-gift",
+            donorIdentityStatus: "known",
+            receiptStatus: "pending",
+          },
+        }),
+      });
+    },
+  );
+  const trigger = page.getByRole("button", {
+    name: "Open offline donor modes",
+  });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  const entry = page.getByRole("dialog", { name: "Enter offline gift" });
+  await entry.getByPlaceholder("Ada", { exact: true }).fill("Ada");
+  await entry.getByPlaceholder("Lovelace", { exact: true }).fill("Lovelace");
+  await entry.getByPlaceholder("0.00", { exact: true }).fill("100");
+  await entry.locator('input[type="date"]').fill("2026-07-01");
+  await entry.getByPlaceholder("fund ID", { exact: true }).fill("fixture-fund");
+  const record = entry.getByRole("button", { name: "Record gift" });
+  await record.focus();
+  await page.keyboard.press("Enter");
+  const success = page.getByRole("dialog", { name: "Gift recorded" });
+  await expect(success).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(1);
+  expect(submissions).toBe(1);
+  const another = success.getByRole("button", { name: "Enter another" });
+  await another.focus();
+  await page.keyboard.press("Enter");
+  await expect(entry).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(entry.getByPlaceholder("Ada", { exact: true })).toHaveValue("");
+  expect(submissions).toBe(1);
+  await page.keyboard.press("Escape");
+  await expect(entry).toBeHidden();
+  await expect(trigger).toBeFocused();
+});

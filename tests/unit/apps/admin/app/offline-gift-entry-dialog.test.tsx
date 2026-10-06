@@ -122,12 +122,44 @@ describe("OfflineGiftEntryDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Record gift" }));
 
     expect(await screen.findByText("Gift recorded")).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Gift recorded" })).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/admin/contributions/offline",
       expect.objectContaining({
         method: "POST",
       }),
     );
+  });
+
+  it("restores the named entry dialog and clears the form when entering another gift", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        result: {
+          contributionId: "contrib-1",
+          donorIdentityStatus: "known",
+          receiptStatus: "pending",
+        },
+      }),
+    } as Response);
+
+    renderDialog();
+    fillValidKnownGift();
+    fireEvent.click(screen.getByRole("button", { name: "Record gift" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Gift recorded" }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Enter another" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Enter offline gift" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("dialog", { name: "Gift recorded" })).toBeNull();
+    expect((screen.getByPlaceholderText("Ada") as HTMLInputElement).value).toBe(
+      "",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("shows an error banner when the route rejects the request", async () => {

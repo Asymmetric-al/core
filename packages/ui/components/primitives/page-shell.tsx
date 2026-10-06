@@ -72,6 +72,7 @@ export function PageShell({
     >
       <motion.div
         {...headerMotion}
+        data-slot="page-shell-header"
         className={cn(
           density === "compact"
             ? "flex flex-col items-start justify-between gap-4 border-b border-border/80 pb-5 md:flex-row md:items-end"

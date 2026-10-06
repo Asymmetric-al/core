@@ -113,6 +113,7 @@ const SECURITY_TIPS = [
 export default function AdminPage() {
   // Route VT owns the entrance when active; only animate on plain mounts.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
+  const unavailableActionsDescriptionId = React.useId();
 
   return (
     <PageShell
@@ -120,17 +121,36 @@ export default function AdminPage() {
       description="Global system configuration and security oversight."
       density="compact"
       actions={
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="h-10 rounded-xl border-zinc-200 font-semibold hover:bg-zinc-50"
+        <>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl border-zinc-200 font-semibold hover:bg-zinc-50"
+              disabled
+              aria-describedby={unavailableActionsDescriptionId}
+            >
+              <Activity
+                className="size-4 text-zinc-600"
+                data-icon="inline-start"
+              />{" "}
+              Audit Logs
+            </Button>
+            <Button
+              className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800"
+              disabled
+              aria-describedby={unavailableActionsDescriptionId}
+            >
+              <Shield className="size-4" data-icon="inline-start" /> Security
+              Scan
+            </Button>
+          </div>
+          <p
+            id={unavailableActionsDescriptionId}
+            className="basis-full text-xs text-muted-foreground"
           >
-            <Activity className="size-4 text-zinc-600" /> Audit Logs
-          </Button>
-          <Button className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800">
-            <Shield className="size-4" /> Security Scan
-          </Button>
-        </div>
+            Audit logs and security scans are not available from this page.
+          </p>
+        </>
       }
     >
       <div
