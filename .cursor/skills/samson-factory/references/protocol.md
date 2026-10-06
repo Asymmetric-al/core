@@ -1,12 +1,20 @@
 # Native handoffs — coordinator only
 
-Canonical prompts are `.codex/agents/<role>.toml` in reviewed source. Hosted
-startup validates the retained sources and personal copies read-only; it does
+Canonical prompts are `sourceRoot/.codex/agents/<role>.toml` in reviewed source.
+Hosted startup validates retained/personal coordinator guidance and protocol
+read-only. Required explicit `consumedRoleRoot` binds the observed actual consumed
+directory for handoff. Compare all six canonical role bytes with
+`consumedRoleRoot/<role>.toml`, parse the matched consumed bytes and report their
+hashes. Use exact parsed own-role `developer_instructions` returned in
+`roleInstructions` for handoff, alongside `requestedRoleSettings`; never validate
+one file then reread another. Personal role copies are required only when a
+supported automatic loader actually consumes them and the caller binds that root.
+Absent or unused stale personal role copies do not block explicit handoffs.
+Do not infer a consumed root from ambient homes, defaults or historical drafts.
+Hosted startup does
 not require active `CODEX_HOME/agents/` installation or local CLI verification.
 Explicit local installation may create copies in both homes. Missing or
-inconsistent required retained assets/tools are BLOCKED, without fallback repair.
-Use the validated role's `developer_instructions` when the native spawning tool
-does not automatically load named role files.
+inconsistent required retained/consumed assets/tools are BLOCKED, without repair.
 
 Start fresh (`fork_turns: "none"` in this app) with only the specialist's own role,
 assignment identifier, relevant request/materials and constraints. Use its model/

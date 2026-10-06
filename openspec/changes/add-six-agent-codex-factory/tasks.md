@@ -26,3 +26,11 @@
 - [ ] 4.4 Complete R4–R5 canonical/strict OpenSpec checks, normal hooks/current-head CI, independent committed-candidate reviews and final acceptance without weakening reproduction isolation
 - [ ] 4.5 Return exact-head DELIVERY_READY to David; verify root protected merge and same-worker closeout separately from full hosted repair
 - [ ] 4.6 Root completes H1–H2 actual fresh named-cloud native handoffs/normal returns, consumed hashes and publication evidence before #1954 resumption or #1955 closure
+
+## 5. Owner-approved consumed-role correction (#1955)
+
+- [ ] 5.1 Bind required explicit `consumedRoleRoot` to the observed actual handoff directory, compare all six reviewed sources and consumed bytes, and return hashes, paths and exact parsed instructions
+- [ ] 5.2 Prove R1–R2 independent RED/GREEN acceptance with absent/unused stale personal roles and conditional actual automatic-loader consumption; preserve coordinator equality and fail-closed tool/policy checks
+- [ ] 5.3 Preserve R3 local setup/installer behavior and run R4–R5 canonical mirrors, OpenSpec, formatting and independent isolated candidate checks
+- [ ] 5.4 Return reviewable repository evidence and STOP BEFORE MERGE; root protected expected-head merge and same-worker closeout remain separate
+- [ ] 5.5 Verify actual saved bootstrap consumption and H1–H2 fresh hosted native handoffs/normal returns, consumed hashes and publication evidence before #1955 closure or #1954 resumption

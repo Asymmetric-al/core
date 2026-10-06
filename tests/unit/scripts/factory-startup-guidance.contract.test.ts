@@ -6,11 +6,59 @@ import { expect, it } from "vitest";
 const root = path.resolve(import.meta.dirname, "../../..");
 const canonical = "docs/ai/skills/samson-factory/SKILL.md";
 const guide = "docs/guides/development/samson-codex-cloud.md";
+const protocol = "docs/ai/skills/samson-factory/references/protocol.md";
 const change = "openspec/changes/add-six-agent-codex-factory";
 const spec = `${change}/specs/agent-instruction-system/spec.md`;
 const read = (relative: string) =>
   readFileSync(path.join(root, relative), "utf8");
 const normalized = (text: string) => text.replace(/\s+/g, " ");
+
+it.each([canonical, protocol, guide, spec])(
+  "%s binds reviewed role validation to the instructions actually consumed",
+  (file) => {
+    const text = normalized(read(file));
+    expect(text).toMatch(/consumedRoleRoot/);
+    expect(text).toMatch(
+      /(?:explicit|required).{0,140}consumed.{0,100}(?:root|directory)/i,
+    );
+    expect(text).toMatch(/(?:compar|match|equal).{0,180}(?:consumed|handoff)/i);
+    expect(text).toMatch(
+      /(?:hash|sha256).{0,180}consumed|consumed.{0,180}(?:hash|sha256)/i,
+    );
+    expect(text).toMatch(
+      /(?:own.role|developer_instructions).{0,180}(?:handoff|instructions)|handoff.{0,180}(?:own.role|developer_instructions)/i,
+    );
+    expect(text).toMatch(
+      /(?:personal|copies).{0,180}(?:only|conditional).{0,180}(?:automatic|loader)|(?:only|conditional).{0,180}(?:automatic|loader).{0,180}(?:personal|copies)/i,
+    );
+    expect(text).toMatch(
+      /(?:absent|missing|without|not required|unnecessary).{0,120}personal.{0,60}role|personal.{0,60}role.{0,120}(?:absent|missing|not required|unnecessary)/i,
+    );
+    expect(text).not.toMatch(
+      /Confirm personal guidance\/protocol and role copies match/i,
+    );
+    expect(text).not.toMatch(
+      /matching coordinator\/protocol and six role copies/i,
+    );
+    expect(text).not.toMatch(/all six own.role TOML sources\/copies/i);
+  },
+);
+
+it("documents the validator's consumed-path and exact instruction outputs", () => {
+  const text = normalized(read(guide));
+  for (const name of [
+    "consumedRoleRoot",
+    "consumedPath",
+    "roleInstructions",
+    "developer_instructions",
+    "requestedRoleSettings",
+  ])
+    expect(text).toContain(name);
+  expect(text).toMatch(/sourceRoot/);
+  expect(text).toMatch(
+    /(?:exact|unchanged).{0,100}(?:parsed|instructions)|(?:parsed|instructions).{0,100}(?:exact|unchanged)/i,
+  );
+});
 
 // Read coordinator instructions only as contract data. Never execute them or
 // snapshot the coordinator workflow; assertions select startup/safety clauses.

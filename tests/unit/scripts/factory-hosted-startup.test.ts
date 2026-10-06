@@ -176,7 +176,7 @@ const policy =
   "<!-- BEGIN Samson coordination policy -->\nSamson alone coordinates; specialists report their own role.\n<!-- END Samson coordination policy -->\n";
 const roots: string[] = [];
 
-function fixture() {
+function fixture(consumption: "retained" | "mirror" = "retained") {
   // Even disposable fixture writes stay within the candidate checkout.
   const root = fs.mkdtempSync(
     path.join(process.cwd(), ".factory-hosted-test-"),
@@ -186,12 +186,20 @@ function fixture() {
   const home = path.join(root, "personal");
   const workspaceRoot = path.join(root, "workspace");
   const activeHome = path.join(root, "runtime");
-  function put(file: string, bytes: string) {
+  const consumedRoleRoot =
+    consumption === "retained"
+      ? path.join(sourceRoot, ".codex/agents")
+      : path.join(root, "observed-handoff-mirror");
+  function put(file: string, bytes: string | Uint8Array) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, bytes);
   }
   function pair(relative: string, bytes: string) {
     put(path.join(sourceRoot, relative), bytes);
+    if (relative.startsWith(".codex/agents/")) {
+      put(path.join(consumedRoleRoot, path.basename(relative)), bytes);
+      return;
+    }
     const installed = relative.startsWith("docs/")
       ? relative.replace("docs/ai/skills/", ".agents/skills/")
       : relative;
@@ -218,7 +226,16 @@ function fixture() {
     `Personal workspace instructions\n${policy}`,
   );
   // No package.json/config.toml/.node-version exists in the retained package.
-  return { root, sourceRoot, home, workspaceRoot, activeHome, pair, put };
+  return {
+    root,
+    sourceRoot,
+    home,
+    workspaceRoot,
+    activeHome,
+    consumedRoleRoot,
+    pair,
+    put,
+  };
 }
 
 type Fixture = ReturnType<typeof fixture>;
@@ -334,6 +351,110 @@ it.each(["absent", "read-only"])(
   },
 );
 
+it.each(["retained", "mirror"] as const)(
+  "validates the observed %s consumed role directory without personal role copies",
+  async (consumption) => {
+    const f = fixture(consumption);
+    expect(fs.existsSync(path.join(f.home, ".codex/agents"))).toBe(false);
+    const result = await invoke(f);
+    const roleAssets = result.assets.filter((asset: { path: string }) =>
+      asset.path.endsWith(".toml"),
+    );
+    expect(roleAssets).toHaveLength(6);
+    for (const role of roles) {
+      expect(roleAssets).toContainEqual({
+        path: path.join(f.sourceRoot, ".codex/agents", `${role}.toml`),
+        consumedPath: path.join(f.consumedRoleRoot, `${role}.toml`),
+        sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+      });
+      expect(result.requestedRoleSettings[role]).toEqual({
+        model: "gpt-6.1-sol",
+        model_reasoning_effort: "high",
+      });
+    }
+    expect(result.roleInstructions).toEqual({
+      samson: "You are Samson. Your only role is the assigned task.",
+      ezra: "You are Ezra. Your only role is the assigned task.",
+      bezalel: "You are Bezalel. Your only role is the assigned task.",
+      micaiah: "You are Micaiah. Your only role is the assigned task.",
+      luke: "You are Luke. Your only role is the assigned task.",
+      agabus: "You are Agabus. Your only role is the assigned task.",
+    });
+    expect(fs.existsSync(path.join(f.home, ".codex/agents"))).toBe(false);
+  },
+);
+
+it.each([undefined, "", "   ", 17])(
+  "blocks a missing or invalid explicit consumedRoleRoot: %s",
+  async (consumedRoleRoot) => {
+    await expect(invoke(fixture(), { consumedRoleRoot })).rejects.toThrow(
+      /BLOCKED.*consumedRoleRoot/i,
+    );
+  },
+);
+
+it("returns the exact parsed handoff instructions and hash of the consumed bytes", async () => {
+  const f = fixture("mirror");
+  // Independently fixed SHA-256 of this literal TOML, including its final newline.
+  // The handoff preserves the parsed instruction's trailing spaces and newline.
+  const bytes =
+    'model = "gpt-6.1-sol"\nmodel_reasoning_effort = "high"\ndeveloper_instructions = """\nYou are Ezra.\nKeep exact handoff whitespace.  \n"""\n';
+  f.pair(".codex/agents/ezra.toml", bytes);
+  const result = await invoke(f);
+  expect(result.roleInstructions.ezra).toBe(
+    "You are Ezra.\nKeep exact handoff whitespace.  \n",
+  );
+  expect(result.assets).toContainEqual({
+    path: path.join(f.sourceRoot, ".codex/agents/ezra.toml"),
+    consumedPath: path.join(f.consumedRoleRoot, "ezra.toml"),
+    sha256: "1424ce66741876a2717c6caae9dbb8c2383f5cdd116d75c8f570cf15700846e4",
+  });
+});
+
+it("ignores stale personal roles that explicit handoffs do not consume", async () => {
+  const f = fixture("mirror");
+  for (const role of roles)
+    f.put(
+      path.join(f.home, ".codex/agents", `${role}.toml`),
+      "stale malformed TOML",
+    );
+  const result = await invoke(f);
+  expect(result.roleInstructions.ezra).toBe(
+    "You are Ezra. Your only role is the assigned task.",
+  );
+  for (const role of roles)
+    expect(
+      fs.readFileSync(
+        path.join(f.home, ".codex/agents", `${role}.toml`),
+        "utf8",
+      ),
+    ).toBe("stale malformed TOML");
+});
+
+it("compares personal roles when the supported loader actually consumes that directory", async () => {
+  const f = fixture("mirror");
+  const personalRoleRoot = path.join(f.home, ".codex/agents");
+  for (const role of roles)
+    f.put(
+      path.join(personalRoleRoot, `${role}.toml`),
+      fs.readFileSync(path.join(f.consumedRoleRoot, `${role}.toml`)),
+    );
+  const result = await invoke(f, { consumedRoleRoot: personalRoleRoot });
+  expect(result.assets).toContainEqual({
+    path: path.join(f.sourceRoot, ".codex/agents/ezra.toml"),
+    consumedPath: path.join(personalRoleRoot, "ezra.toml"),
+    sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+  });
+  f.put(path.join(personalRoleRoot, "ezra.toml"), 'model = "unreviewed"\n');
+  await expect(
+    invoke(f, { consumedRoleRoot: personalRoleRoot }),
+  ).rejects.toThrow(/BLOCKED.*ezra/i);
+  fs.rmSync(path.join(personalRoleRoot, "ezra.toml"));
+  await expect(
+    invoke(f, { consumedRoleRoot: personalRoleRoot }),
+  ).rejects.toThrow(/BLOCKED.*ezra/i);
+});
+
 it.each([skillRelative, protocolRelative])(
   "blocks missing, empty or mismatched coordinator asset %s",
   async (relative) => {
@@ -426,36 +547,63 @@ it.each([
 );
 
 it.each(roles)(
-  "blocks missing, malformed, mismatched or misidentified %s role",
+  "blocks missing or drifted source/consumed %s role",
   async (role) => {
-    for (const invalid of [
-      "missing-source",
-      "missing-personal",
-      "malformed",
-      "mismatch",
-      "identity",
-      "settings",
-    ]) {
-      const f = fixture();
-      const relative = `.codex/agents/${role}.toml`;
-      if (invalid === "missing-source")
-        fs.rmSync(path.join(f.sourceRoot, relative));
-      else if (invalid === "missing-personal")
-        fs.rmSync(path.join(f.home, relative));
-      else if (invalid === "malformed")
-        f.pair(relative, 'model = "unterminated');
-      else if (invalid === "mismatch")
-        f.put(path.join(f.home, relative), 'model = "unreviewed"\n');
-      else if (invalid === "identity")
-        f.pair(
-          relative,
-          'model = "gpt-6.1-sol"\nmodel_reasoning_effort = "high"\ndeveloper_instructions = "You are SomeoneElse."\n',
+    for (const target of ["source", "consumed"])
+      for (const defect of ["missing", "drift", "empty", "invalid-utf8"]) {
+        const f = fixture("mirror");
+        const file = path.join(
+          target === "source"
+            ? path.join(f.sourceRoot, ".codex/agents")
+            : f.consumedRoleRoot,
+          `${role}.toml`,
         );
-      else
-        f.pair(
-          relative,
-          `model = ""\nmodel_reasoning_effort = ""\ndeveloper_instructions = "You are ${role}."\n`,
+        if (defect === "missing") fs.rmSync(file);
+        else if (defect === "empty") f.put(file, " \n");
+        else if (defect === "invalid-utf8") f.put(file, Uint8Array.of(0xff));
+        else
+          // Still valid TOML with the same identity/settings: content drift blocks.
+          f.put(file, fs.readFileSync(file, "utf8") + "# unreviewed drift\n");
+        await expect(invoke(f)).rejects.toThrow(
+          new RegExp(`BLOCKED.*${role}`, "i"),
         );
+      }
+  },
+);
+
+it.each(roles)(
+  "blocks matching source/consumed %s roles with invalid TOML, identity or own settings",
+  async (role) => {
+    const valid = {
+      model: '"gpt-6.1-sol"',
+      model_reasoning_effort: '"high"',
+      developer_instructions: `"You are ${role}. Your only role is the assigned task."`,
+    };
+    const invalid: (string | Uint8Array)[] = [
+      'model = "unterminated',
+      "",
+      " \n",
+      Uint8Array.of(0xff),
+      'model = "gpt-6.1-sol"\nmodel_reasoning_effort = "high"\ndeveloper_instructions = "You are SomeoneElse."\n',
+    ];
+    for (const key of Object.keys(valid)) {
+      for (const value of [undefined, '""', '"   "', "17", "true", "[]"]) {
+        const fields: Record<string, string | undefined> = {
+          ...valid,
+          [key]: value,
+        };
+        invalid.push(
+          Object.entries(fields)
+            .filter(([, entry]) => entry !== undefined)
+            .map(([name, entry]) => `${name} = ${entry}`)
+            .join("\n") + "\n",
+        );
+      }
+    }
+    for (const bytes of invalid) {
+      const f = fixture("mirror");
+      f.put(path.join(f.sourceRoot, ".codex/agents", `${role}.toml`), bytes);
+      f.put(path.join(f.consumedRoleRoot, `${role}.toml`), bytes);
       await expect(invoke(f)).rejects.toThrow(
         new RegExp(`BLOCKED.*${role}`, "i"),
       );

@@ -43,3 +43,22 @@ Postmerge H1–H2 requires actual fresh named-cloud handoffs/normal returns and
 consumed-source/publication evidence. Merge or fixtures do not qualify hosted
 startup; #1954 remains paused until those root-owned gates pass. No implicit
 saved-environment publication or issue auto-close is authorized.
+
+## Owner-approved role-consumption correction (#1955, 2026-10-06)
+
+Blake approved corrective delivery with “do it” at 03:14:43 UTC, after PR #1956
+merged as ccc6dbccb. The original mandatory per-chat active CODEX_HOME installer
+failed with EROFS; its removal remains correct. The extra six-personal-role copy
+guard contradicted the actual bootstrap, which retains reviewed role sources and
+uses explicit own-role handoffs without restoring or checking personal roles.
+This approved revision binds validation to required `consumedRoleRoot`, the
+observed directory actually used for handoffs, separate from `sourceRoot`,
+`home` and `workspaceRoot`. Compare all six reviewed sources with consumed bytes
+and return exact parsed instructions for handoff, alongside requested settings.
+Personal role equality applies only when a supported automatic loader actually
+consumes that directory. Absent or unused stale personal roles are ignored.
+Coordinator personal skill/protocol equality and every existing safety gate stay.
+The actual current saved bootstrap base binding remains pending; historical local
+drafts do not establish the current absolute root. R1–R5 repository delivery does
+not establish H1–H2: #1955 remains open, #1954 paused, and workers STOP BEFORE
+MERGE pending root protected expected-head merge and same-worker closeout.

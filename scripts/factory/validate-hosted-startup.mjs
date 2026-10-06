@@ -55,6 +55,7 @@ function policyBlock(text, label) {
  */
 export function validateHostedStartup({
   sourceRoot,
+  consumedRoleRoot,
   home,
   workspaceRoot,
   nativeTools,
@@ -64,6 +65,7 @@ export function validateHostedStartup({
 } = {}) {
   for (const [name, value] of Object.entries({
     sourceRoot,
+    consumedRoleRoot,
     home,
     workspaceRoot,
   }))
@@ -114,14 +116,20 @@ export function validateHostedStartup({
   if (!/^#\s+\S/m.test(protocol))
     blocked("Malformed coordinator protocol: expected a Markdown heading");
 
-  const roleAssets = roles.map((role) => ({
-    role,
-    text: matched(
-      `.codex/agents/${role}.toml`,
-      `.codex/agents/${role}.toml`,
-      `${role} role`,
-    ),
-  }));
+  const roleAssets = roles.map((role) => {
+    const file = path.join(sourceRoot, `.codex/agents/${role}.toml`);
+    const consumedPath = path.join(consumedRoleRoot, `${role}.toml`);
+    const source = readAsset(file, `${role} role source`);
+    const consumed = readAsset(consumedPath, `${role} consumed role`);
+    if (!source.bytes.equals(consumed.bytes))
+      blocked(`Mismatched retained and consumed ${role} role: ${consumedPath}`);
+    assets.push({
+      path: file,
+      consumedPath,
+      sha256: createHash("sha256").update(consumed.bytes).digest("hex"),
+    });
+    return { role, text: consumed.text };
+  });
   const policyFile = path.join(sourceRoot, ".codex/factory-AGENTS.md");
   const policy = readAsset(policyFile, "coordination policy");
   const workspaceFile = path.join(workspaceRoot, "AGENTS.md");
@@ -225,6 +233,7 @@ export function validateHostedStartup({
 if sys.version_info < (3, 11):
     sys.exit("Python 3.11 or later is required")
 settings = {}
+instructions = {}
 for asset in json.load(sys.stdin):
     role = asset["role"]
     try:
@@ -234,24 +243,32 @@ for asset in json.load(sys.stdin):
                 raise ValueError("missing nonempty own " + key)
         if not re.match(r"\\s*You are " + role + r"\\b", data["developer_instructions"], re.IGNORECASE):
             raise ValueError("incorrect role identity")
+        instructions[role] = data["developer_instructions"]
         settings[role] = {key: data[key] for key in ("model", "model_reasoning_effort")}
     except (tomllib.TOMLDecodeError, ValueError) as error:
         print(role + " role: " + str(error))
         sys.exit(1)
-print(json.dumps(settings))`,
+print(json.dumps({"requestedRoleSettings": settings, "roleInstructions": instructions}))`,
     ],
     JSON.stringify(roleAssets),
   );
   let requestedRoleSettings;
+  let roleInstructions;
   try {
-    requestedRoleSettings = JSON.parse(parsed);
+    ({ requestedRoleSettings, roleInstructions } = JSON.parse(parsed));
     if (
-      roles.some((role) =>
-        ["model", "model_reasoning_effort"].some(
-          (key) =>
-            typeof requestedRoleSettings?.[role]?.[key] !== "string" ||
-            !requestedRoleSettings[role][key].trim(),
-        ),
+      roles.some(
+        (role) =>
+          typeof roleInstructions?.[role] !== "string" ||
+          !roleInstructions[role].trim() ||
+          !new RegExp(`^\\s*You are ${role}\\b`, "i").test(
+            roleInstructions[role],
+          ) ||
+          ["model", "model_reasoning_effort"].some(
+            (key) =>
+              typeof requestedRoleSettings?.[role]?.[key] !== "string" ||
+              !requestedRoleSettings[role][key].trim(),
+          ),
       )
     )
       blocked("Incomplete python3 role validation response");
@@ -263,5 +280,6 @@ print(json.dumps(settings))`,
     versions,
     nativeTools: [...requiredTools],
     requestedRoleSettings,
+    roleInstructions,
   };
 }
