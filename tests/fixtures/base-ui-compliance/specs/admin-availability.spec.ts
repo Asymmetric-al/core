@@ -7,7 +7,7 @@ test("unavailable Administration actions remain explained and cannot activate", 
 }, testInfo) => {
   await page.goto("/admin-availability.html");
   const scope = page.locator("#admin-availability-contracts");
-  const header = scope.locator(":scope > div > div").first();
+  const header = scope.locator('[data-slot="page-shell-header"]');
   const audit = scope.getByRole("button", { name: "Audit Logs" });
   const scan = scope.getByRole("button", { name: "Security Scan" });
   const explanation =
@@ -39,7 +39,9 @@ test("unavailable Administration actions remain explained and cannot activate", 
     expect(
       (
         await new AxeBuilder({ page })
-          .include("#admin-availability-contracts > div > div:first-child")
+          .include(
+            '#admin-availability-contracts [data-slot="page-shell-header"]',
+          )
           .analyze()
       ).violations,
     ).toEqual([]);
