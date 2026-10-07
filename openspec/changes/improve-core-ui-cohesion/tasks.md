@@ -22,7 +22,7 @@
 
 ## 4. Completion evidence
 
-- [ ] 4.1 Complete matching after screenshots and interaction checks for each changed distinct layout/state; record genuine blocked states.
-- [ ] 4.2 Review every in-scope disposition and changed shared consumer across apps; close remaining safe material opportunities.
-- [ ] 4.3 Run affected suites/builds, design-system/motion/workspace/skill checks, format, check and final ci:preflight; distinguish failures and limits.
+- [x] 4.1 Complete matching after screenshots and interaction checks for each changed distinct layout/state; record genuine blocked states.
+- [x] 4.2 Review every in-scope disposition and changed shared consumer across apps; close remaining safe material opportunities.
+- [x] 4.3 Run affected suites/builds, design-system/motion/workspace/skill checks, format, check and final ci:preflight; distinguish failures and limits.
 - [ ] 4.4 Validate OpenSpec and mirrors, review provenance/rollback, open ordered coherent PRs and attach every PR; do not merge or deploy.

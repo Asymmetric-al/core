@@ -1,0 +1,586 @@
+{
+  "schemaVersion": 1,
+  "style": "base-maia",
+  "base": "base",
+  "sourceFetchedOn": "2026-10-07",
+  "publicUpstreamHead": "ef0fe1252d9b24d69bdedee48a69ec9b29d1f217",
+  "registryContentIdentity": "sha256 records identify the exact fetched payload; the live registry is mutable and is not asserted identical to the public repository HEAD.",
+  "license": "Public components/hooks/examples remain MIT. Actual Pro settings derivatives are commercial under the owner-confirmed covering agreement; see reui-pro-research.json and docs/guides/development/reui-source-license.md.",
+  "licenseUrl": "https://reui.io/legal/license",
+  "items": [
+    {
+      "name": "c-filters-7",
+      "url": "https://reui.io/r/styles/base-maia/c-filters-7.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "b2d7ba35250fa16ea748667924ac892e7d626ddc45c75597fdaf7b4f74656acf",
+      "dependencies": ["@tanstack/react-table", "cn"],
+      "registryDependencies": [
+        "avatar",
+        "@reui/badge",
+        "card",
+        "@reui/data-grid",
+        "@reui/data-grid-column-header",
+        "@reui/data-grid-pagination",
+        "@reui/data-grid-scroll-area",
+        "@reui/data-grid-table",
+        "@reui/filters",
+        "@reui/filters-query",
+        "@reui/filters-types"
+      ],
+      "files": [
+        {
+          "path": "c-filters-7.tsx",
+          "target": "components/examples/c-filters-7.tsx",
+          "sha256": "cfdaab2e98287b0f5e8a2ee2e2853d40b38f6e03f72fe05f91418b76a6ac1dbc",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "c-sidebar-1",
+      "url": "https://reui.io/r/styles/base-maia/c-sidebar-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "da9d28788a03576bb3c6b5ac4c9596b11dfd3cfcd1c76460e85425a17f9a040a",
+      "dependencies": ["cn"],
+      "registryDependencies": [
+        "avatar",
+        "breadcrumb",
+        "button",
+        "card",
+        "dropdown-menu",
+        "sidebar"
+      ],
+      "files": [
+        {
+          "path": "c-sidebar-1.tsx",
+          "target": "components/examples/c-sidebar-1.tsx",
+          "sha256": "32d8095081d9d1b8f21187b62f65aa0c8c5a9321f8bd6b5226730fc329a021a6",
+          "competingPrimitive": false,
+          "radixComposition": false,
+          "initialTextScanRadixMention": true,
+          "manualCompositionReview": "The initial scan matched comments comparing the Radix twin. Actual Base UI source uses render composition; it does not invoke Radix asChild or import a competing primitive. Comments are not primitive usage."
+        }
+      ]
+    },
+    {
+      "name": "c-field-7",
+      "url": "https://reui.io/r/styles/base-maia/c-field-7.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "c420002a29ae259388871efebaec5ed946ec90d1e1b63a9cbaebcae80738f56c",
+      "dependencies": [],
+      "registryDependencies": [
+        "button",
+        "checkbox",
+        "field",
+        "input",
+        "switch",
+        "textarea"
+      ],
+      "files": [
+        {
+          "path": "c-field-7.tsx",
+          "target": "components/examples/c-field-7.tsx",
+          "sha256": "6c8a842e0d071ca030de93f5be9e583652cbb9e7fff52cfca605ebfacceb171c",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "c-tabs-1",
+      "url": "https://reui.io/r/styles/base-maia/c-tabs-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "dcc624e07e0abb1632721e9685bc6976373f391c54f395a74d07068517758ce0",
+      "dependencies": [],
+      "registryDependencies": ["button", "card", "input", "label", "tabs"],
+      "files": [
+        {
+          "path": "c-tabs-1.tsx",
+          "target": "components/examples/c-tabs-1.tsx",
+          "sha256": "cbfe3e727aeae0df0cbf65a7358070b64457d6cb6850e65a3b128ad5fc07044e",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "c-dialog-1",
+      "url": "https://reui.io/r/styles/base-maia/c-dialog-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "e78e386ebd7b078507cd69d715722d81a349164ebdc062aa71daaa72710c74b4",
+      "dependencies": [],
+      "registryDependencies": ["button", "dialog", "field", "input"],
+      "files": [
+        {
+          "path": "c-dialog-1.tsx",
+          "target": "components/examples/c-dialog-1.tsx",
+          "sha256": "bd50deb933ceb0d0e8012fb1499b0095abe514a91dd9700019a09d9ab2d1ef8b",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "c-empty-9",
+      "url": "https://reui.io/r/styles/base-maia/c-empty-9.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "8f4d53f789fd05d84cb0f56940b7172ea44ca9755e676a4fcbad05b18e54a226",
+      "dependencies": [],
+      "registryDependencies": ["empty"],
+      "files": [
+        {
+          "path": "c-empty-9.tsx",
+          "target": "components/examples/c-empty-9.tsx",
+          "sha256": "b66bb2ef71ba14be1819160c1b64e9ca103415379442c4b1430d7185984c2903",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "c-chart-1",
+      "url": "https://reui.io/r/styles/base-maia/c-chart-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "33427180531cfac138185e58e51db3f93295f65790553be6ca0d6cf701885634",
+      "dependencies": ["recharts"],
+      "registryDependencies": ["@reui/badge", "card", "chart"],
+      "files": [
+        {
+          "path": "c-chart-1.tsx",
+          "target": "components/examples/c-chart-1.tsx",
+          "sha256": "b7ad1db474460308392a30223482652d845cabc8c60cdce0b0e97105042245d5",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "c-file-upload-1",
+      "url": "https://reui.io/r/styles/base-maia/c-file-upload-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "b3d77cf202d7ccb5ebae2469fb161a2911706a11ab4cece8eebbb5a062f92370",
+      "dependencies": [],
+      "registryDependencies": ["button", "@reui/use-file-upload"],
+      "files": [
+        {
+          "path": "c-file-upload-1.tsx",
+          "target": "components/examples/c-file-upload-1.tsx",
+          "sha256": "62ccfc47ac1fb78c07d07488053750a45eaf9d7aff335cfe820af488b1bbc6cb",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "data-grid",
+      "url": "https://reui.io/r/styles/base-maia/data-grid.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "6c9684aea02522a91cccfc8d8e35fe2fa693ea0ff80f6f005369412b512d9311",
+      "dependencies": [
+        "@base-ui/react",
+        "@dnd-kit/core",
+        "@dnd-kit/modifiers",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities",
+        "@tanstack/react-table",
+        "@tanstack/react-virtual",
+        "cn"
+      ],
+      "registryDependencies": [
+        "@reui/badge",
+        "button",
+        "checkbox",
+        "@reui/data-grid-i18n",
+        "@reui/data-grid-table",
+        "dropdown-menu",
+        "input",
+        "popover",
+        "select",
+        "separator",
+        "skeleton",
+        "spinner"
+      ],
+      "files": [
+        {
+          "path": "data-grid-cell-selection.tsx",
+          "target": "components/reui/data-grid/data-grid-cell-selection.tsx",
+          "sha256": "9b6789186cacb9128b90137fc615984a08ee86c7daa936137c7ce9604ad82a81",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-column-filter.tsx",
+          "target": "components/reui/data-grid/data-grid-column-filter.tsx",
+          "sha256": "1769089651ef59be6006a03a8ae97ceaa77a0cc32ea8f8ea55518bdee8d490c0",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-column-header.tsx",
+          "target": "components/reui/data-grid/data-grid-column-header.tsx",
+          "sha256": "82f42640706b9de5ebd873c55befe19ae2ed257443cb1094a0d6f6e5bfaf106d",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-column-visibility.tsx",
+          "target": "components/reui/data-grid/data-grid-column-visibility.tsx",
+          "sha256": "5078f1766c61817f2427b61c721e7ac966f7860c7564ae241b9dede3ebb7d823",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-i18n.tsx",
+          "target": "components/reui/data-grid/data-grid-i18n.tsx",
+          "sha256": "0fb8aa2f50e73381eda697978e9905686866f4d3cfe9ca029b14c26f3c8e8403",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-pagination.tsx",
+          "target": "components/reui/data-grid/data-grid-pagination.tsx",
+          "sha256": "aefc8c9ecac59661af39891d2ebae965d272fd4587609fc3c2b87fa3c6b05291",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-scroll-area.tsx",
+          "target": "components/reui/data-grid/data-grid-scroll-area.tsx",
+          "sha256": "9572f92d4ae711708e563a9612471a941416583a11a286b8a898c6400ee1968a",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-table-dnd-rows.tsx",
+          "target": "components/reui/data-grid/data-grid-table-dnd-rows.tsx",
+          "sha256": "9cad7bd4a748640e179fbc3ad5b535055e4abf5d1eedc88a28d0585bfd7a2672",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-table-dnd.tsx",
+          "target": "components/reui/data-grid/data-grid-table-dnd.tsx",
+          "sha256": "f730fef4c2e715f10be46ad24b9f087f2916778600f820f51b93c4389bd2be34",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-table-virtual.tsx",
+          "target": "components/reui/data-grid/data-grid-table-virtual.tsx",
+          "sha256": "a54bead637173181f915dd1f98ef9217abc73c44e0c0aa6c54cfecde679dba7f",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid-table.tsx",
+          "target": "components/reui/data-grid/data-grid-table.tsx",
+          "sha256": "ae84e78aa497f391a52fd1a6f13f93fcf0108400cdaa4389d5c6f176612ebdc8",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "data-grid.tsx",
+          "target": "components/reui/data-grid/data-grid.tsx",
+          "sha256": "e4e796f037f96515d1bbb2c5b0725d5afd63c47c448800bab9c4209124efe362",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    },
+    {
+      "name": "filters",
+      "url": "https://reui.io/r/styles/base-maia/filters.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "4a96cce060130ce71747e51e3574aa92259a7d44d2e53ad609eb2c69f00cf2d3",
+      "dependencies": ["class-variance-authority", "cn", "date-fns"],
+      "registryDependencies": [
+        "button",
+        "button-group",
+        "@reui/cascader",
+        "@reui/cascader-context",
+        "@reui/cascader-footer",
+        "@reui/cascader-item",
+        "@reui/cascader-lib",
+        "@reui/cascader-nav",
+        "@reui/cascader-types",
+        "@reui/cascader-virtual",
+        "dropdown-menu",
+        "@reui/filters-advanced",
+        "@reui/filters-builder",
+        "@reui/filters-chip",
+        "@reui/filters-context",
+        "@reui/filters-dnd",
+        "@reui/filters-draft",
+        "@reui/filters-editors",
+        "@reui/filters-i18n",
+        "@reui/filters-lib",
+        "@reui/filters-operators",
+        "@reui/filters-query",
+        "@reui/filters-types",
+        "input",
+        "popover",
+        "tooltip"
+      ],
+      "files": [
+        {
+          "path": "filters-advanced.tsx",
+          "target": "components/reui/filters/filters-advanced.tsx",
+          "sha256": "93de3fa2dd3e491cbaf4c51bc3e268b83613258ad9b9dac2118b0e38a5c6521a",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-builder.tsx",
+          "target": "components/reui/filters/filters-builder.tsx",
+          "sha256": "047ec7cc52e90e69eb94908131fdc4045431c192c795bc8f2f3723527eaa8b89",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-chip.tsx",
+          "target": "components/reui/filters/filters-chip.tsx",
+          "sha256": "ef11db52bdb119c59712afc533c2dac7c9d208ae4ef8ecb6d0acd263401a2d02",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-context.tsx",
+          "target": "components/reui/filters/filters-context.tsx",
+          "sha256": "2ee681023b278951dd3c97b4f6af8a9f7787c43b7fbc3c029a741b0cc79cce73",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-date.tsx",
+          "target": "components/reui/filters/filters-date.tsx",
+          "sha256": "151de13916f7fffc1fdc9ef57230608d87e3a4e0447d6008063414900638360e",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-dnd.tsx",
+          "target": "components/reui/filters/filters-dnd.tsx",
+          "sha256": "e4bffc18fed03b68fd641b9331f7942db78cb01d8ff045d159fa49c9be5616d9",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-draft.tsx",
+          "target": "components/reui/filters/filters-draft.tsx",
+          "sha256": "1ea9dbfe13405294552c4f6fcc1ffb7bccb4d2ca262f711b242a3f17e6ea72b6",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-editors.tsx",
+          "target": "components/reui/filters/filters-editors.tsx",
+          "sha256": "a1495cab00e50bab475b14d8a81aa8b367c914040e98369652722eaef2f91cf1",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-i18n.tsx",
+          "target": "components/reui/filters/filters-i18n.tsx",
+          "sha256": "6de40eaeb0d4934e3e25ebfc150d9d97b2a8a232e92aa9fe7965fdd215b0c82c",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-lib.tsx",
+          "target": "components/reui/filters/filters-lib.tsx",
+          "sha256": "c2a94ccf2f842618a0126059885559d86563aedb00935ba2d850dc2276edc48f",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-operators.tsx",
+          "target": "components/reui/filters/filters-operators.tsx",
+          "sha256": "0806b739434bdbca3da2e97afc558dc009f0a10395bc36ccf9fac61395cdddd6",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-query.tsx",
+          "target": "components/reui/filters/filters-query.tsx",
+          "sha256": "15293c1a7e3433966081a5e63ffd4cebfcca644403974bc595530fe2975d1f23",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters-types.tsx",
+          "target": "components/reui/filters/filters-types.tsx",
+          "sha256": "1ec904aed6da6db6f5e3ed88c45d6266c6e791f18860780f525e9314b2bad274",
+          "competingPrimitive": false,
+          "radixComposition": false
+        },
+        {
+          "path": "filters.tsx",
+          "target": "components/reui/filters/filters.tsx",
+          "sha256": "9031d6f6b504ef84404be3c15f651bbcf9ea579531df65e68b69574d28b65f3c",
+          "competingPrimitive": false,
+          "radixComposition": false
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "c-filters-7": {
+      "name": "c-filters-7",
+      "type": "example",
+      "title": "Filtering a table",
+      "description": "The query tree compiled to a row predicate.",
+      "category": "filters",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-filters-7",
+      "docsUrl": "https://reui.io/components/filters/c-filters-7?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-filters-7?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-filters-7-light.webp",
+      "componentsUsed": ["badge", "data-grid", "filters"],
+      "registryDependencies": [
+        "avatar",
+        "badge",
+        "card",
+        "data-grid",
+        "data-grid-column-header",
+        "data-grid-pagination",
+        "data-grid-scroll-area",
+        "data-grid-table",
+        "filters",
+        "filters-query",
+        "filters-types"
+      ],
+      "dependencies": ["@tanstack/react-table", "cn"],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-filters-7-dark.webp",
+      "componentDigests": {
+        "badge": "Text child; shadcn-compatible. `variant` (solid, `-outline`, `-light` per color), `size` xs..xl, `radius` default|full. Prefer Badge variants over raw color classes for statuses.",
+        "data-grid": "Build a TanStack v9 `useTable({ features: dataGridFeatures, data, columns })` instance and pass `<DataGrid table={table} recordCount={total}><DataGridTable/></DataGrid>`. No `data`/`columns` props and never a hand-rolled `<table>`; drive layout via `tableLayout`, not ad-hoc classes. Read the full api for server fetch + features.",
+        "filters": "Required `fields` (`FilterField[]`, nested via each field's own `fields`). The value is ONE `FilterQuery` TREE - `query` + `onQueryChange`, or uncontrolled `defaultQuery` - not an array of chips; seed it with `createFilterQuery()` and read it with `flattenFilterConditions`. `variant` `basic`|`advanced` picks the chrome (`advancedMode` `popover`|`inline`); both edit the same tree. The pre-rewrite `filters`/`onChange` props and `createFilter()` no longer exist. Pairs with `data-grid`."
+      },
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    },
+    "c-sidebar-1": {
+      "name": "c-sidebar-1",
+      "type": "example",
+      "title": "Application shell with a workspace switcher",
+      "description": "Grouped navigation with count badges, row menus and a footer account menu.",
+      "category": "sidebar",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-sidebar-1",
+      "docsUrl": "https://reui.io/components/sidebar/c-sidebar-1?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-sidebar-1?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-sidebar-1-light.webp",
+      "registryDependencies": [
+        "avatar",
+        "breadcrumb",
+        "button",
+        "card",
+        "dropdown-menu",
+        "sidebar"
+      ],
+      "dependencies": ["cn"],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-sidebar-1-dark.webp",
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    },
+    "c-field-7": {
+      "name": "c-field-7",
+      "type": "example",
+      "title": "Settings form with validation",
+      "description": "Settings form with validation",
+      "category": "field",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-field-7",
+      "docsUrl": "https://reui.io/components/field/c-field-7?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-field-7?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-field-7-light.webp",
+      "registryDependencies": [
+        "button",
+        "checkbox",
+        "field",
+        "input",
+        "switch",
+        "textarea"
+      ],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-field-7-dark.webp",
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    },
+    "c-tabs-1": {
+      "name": "c-tabs-1",
+      "type": "example",
+      "title": "Basic tabs.",
+      "description": "Basic tabs.",
+      "category": "tabs",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-tabs-1",
+      "docsUrl": "https://reui.io/components/tabs/c-tabs-1?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-tabs-1?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-tabs-1-light.webp",
+      "registryDependencies": ["button", "card", "input", "label", "tabs"],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-tabs-1-dark.webp",
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    },
+    "c-dialog-1": {
+      "name": "c-dialog-1",
+      "type": "example",
+      "title": "Basic dialog",
+      "description": "Basic dialog",
+      "category": "dialog",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-dialog-1",
+      "docsUrl": "https://reui.io/components/dialog/c-dialog-1?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-dialog-1?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-dialog-1-light.webp",
+      "registryDependencies": ["button", "dialog", "field", "input"],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-dialog-1-dark.webp",
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    },
+    "c-empty-9": {
+      "name": "c-empty-9",
+      "type": "example",
+      "title": "No notifications empty state",
+      "description": "No notifications empty state",
+      "category": "empty",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-empty-9",
+      "docsUrl": "https://reui.io/components/empty/c-empty-9?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-empty-9?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-empty-9-light.webp",
+      "registryDependencies": ["empty"],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-empty-9-dark.webp",
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    },
+    "c-chart-1": {
+      "name": "c-chart-1",
+      "type": "example",
+      "title": "Basic bar chart",
+      "description": "Basic bar chart",
+      "category": "chart",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-chart-1",
+      "docsUrl": "https://reui.io/components/chart/c-chart-1?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-chart-1?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-chart-1-light.webp",
+      "componentsUsed": ["badge"],
+      "registryDependencies": ["badge", "card", "chart"],
+      "dependencies": ["recharts"],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-chart-1-dark.webp",
+      "componentDigests": {
+        "badge": "Text child; shadcn-compatible. `variant` (solid, `-outline`, `-light` per color), `size` xs..xl, `radius` default|full. Prefer Badge variants over raw color classes for statuses."
+      },
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    },
+    "c-file-upload-1": {
+      "name": "c-file-upload-1",
+      "type": "example",
+      "title": "Basic file upload",
+      "description": "Basic file upload",
+      "category": "file-upload",
+      "free": true,
+      "install": "npx shadcn@latest add @reui/c-file-upload-1",
+      "docsUrl": "https://reui.io/components/file-upload/c-file-upload-1?ref=mcp",
+      "previewUrl": "https://reui.io/preview/base/components/c-file-upload-1?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/components/c-file-upload-1-light.webp",
+      "registryDependencies": ["button", "use-file-upload"],
+      "thumbnailDark": "https://reui.io/thumbnails/components/c-file-upload-1-dark.webp",
+      "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+    }
+  },
+  "compatibilityDecisions": {
+    "data-grid": "Retain shared owner/TanStack boundary and beta9 feature/state adapters; current registry creates components/reui duplicates and exposes newer v9 features. No blanket upgrade.",
+    "filters": "Retain Core serialized flat filter/public hook adapters. Current upstream requires query/onQueryChange, compiler trees and cascader dependencies; copying would be an API/state migration.",
+    "c-file-upload-1": "Retain existing crop/async backend ImageUpload behavior; upstream file hook would change state ownership. Improve existing disabled/removal behavior.",
+    "generic-controls": "Existing official shadcn Base UI wrappers remain canonical. Reuse compatible example composition through current wrappers; omit unused demo modules and engine dependencies.",
+    "premium-candidates": "Initial compose_page metadata shortlisted app-shell-18/app-shell-20,navbar-6,stats-2,solution-analytics-7. After owner-confirmed public distribution permission, actual settings-7/settings-11 source was selectively integrated; actual app-shell-18 source was retained for product/provider/theme compatibility, not blocked by licensing. Other metadata-only candidates did not justify adding demo metrics/providers or replacing cohesive Core compositions."
+  },
+  "commercialProRecord": "docs/qa/core-ui/sources/reui-pro-research.json"
+}

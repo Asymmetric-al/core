@@ -1,0 +1,1756 @@
+{
+  "schemaVersion": 1,
+  "sourceBaseline": "f49fc2e03bce9246f5d3dc22c16d0a6c794a8304",
+  "purpose": "Explicit source-disposition joins for every discovered app route/layout/state entry and separately identified global/shared/dormant/protected surface family. Specialized admin delegation joins by exact source entry; global families identify their own source arrays/pointers and may overlap concrete file entries. Owner ledgers retain consumer graphs, benefit, contracts and checks.",
+  "limits": [
+    "Page counts exclude layouts/loading/error/global-state entries. Separately joined global surface families may overlap concrete source files; specialized entries overlap admin routes. None of these dimensions is added as unique or visually verified product screens.",
+    "Structured inspection and an evidenced retention reason do not prove every productive state renders.",
+    "Runtime indexes are authoritative for actual captures, failed states and exclusions; current after review is attributed in source reviews and exact final gates remain separately root-owned."
+  ],
+  "counts": {
+    "adminPageRoutes": 60,
+    "adminRouteLayoutStateEntries": 90,
+    "donorPageRoutes": 26,
+    "donorStandaloneFallbacks": 2,
+    "missionaryPageRoutes": 15,
+    "missionaryGlobalSurfaces": 5,
+    "sharedSourceEntries": 279,
+    "specializedRouteEntries": 39,
+    "specializedVirtualCmsSurfaces": 22,
+    "specializedRendererEntries": 207,
+    "sharedBaselineSourceEntries": 275,
+    "sharedNewSourceEntries": 4,
+    "primaryRouteLedgerRecords": 131,
+    "donorRouteLayoutStateEntries": 45,
+    "missionaryRouteLayoutStateEntries": 25,
+    "missionaryGlobalFamilyRecords": 5,
+    "sourceDispositionJoinRecords": 165,
+    "donorAdditionalLayoutLoadingEntries": 17,
+    "missionaryAdditionalLayoutLoadingGlobalEntries": 10
+  },
+  "records": [
+    {
+      "app": "admin",
+      "route": "/global-error.tsx",
+      "kind": "global-error",
+      "entry": "apps/admin/app/global-error.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/0",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/layout.tsx",
+      "kind": "layout",
+      "entry": "apps/admin/app/layout.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/admin.json#/routes/1",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/",
+      "kind": "layout",
+      "entry": "apps/admin/app/(app)/layout.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/2",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/3",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/4",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/",
+      "kind": "loading",
+      "entry": "apps/admin/app/(auth)/loading.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/admin.json#/routes/5",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/",
+      "kind": "layout",
+      "entry": "apps/admin/app/(payload)/layout.tsx",
+      "source_disposition": "implemented-through-specialized-native-shell",
+      "detail": "inventory/admin.json#/routes/6",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/implementation/owned_changed_files",
+      "delegation_join": "Exact layout is in specialized owned_changed_files; native CMS provider/engine preserved."
+    },
+    {
+      "app": "admin",
+      "route": "/web-studio",
+      "kind": "loading",
+      "entry": "apps/admin/app/web-studio/loading.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/7",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/0",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/admin",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/admin/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/8",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/admin",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/admin/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/9",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/automations",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/automations/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/10",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/automations",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/automations/page.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/11",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/care",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/care/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/12",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/care",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/care/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/13",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/contributions",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/contributions/loading.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/14",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/contributions",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/contributions/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/15",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/crm",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/crm/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/16",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/crm",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/crm/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/17",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/email",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/email/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/18",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/email",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/email/page.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/19",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/events",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/events/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/20",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/events",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/events/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/21",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/feed",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/feed/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/22",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/mobilize",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/mobilize/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/23",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/mobilize",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/mobilize/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/24",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/pdf",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/pdf/loading.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/25",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/1",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/pdf",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/pdf/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/26",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/2",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/reports",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/reports/loading.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/27",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/reports",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/reports/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/28",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/sign",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/sign/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/29",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/sign",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/sign/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/30",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/support",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/support/loading.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/31",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/3",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/32",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/4",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/tasks",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/tasks/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/33",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/tasks",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/tasks/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/34",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/workflows",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/workflows/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/35",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/admin/eve",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/admin/eve/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/36",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/5",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/admin/teams",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/admin/teams/page.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/37",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/care/directory",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/care/directory/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/38",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/care/settings",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/care/settings/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/39",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/care/directory/[id]",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/care/directory/[id]/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/40",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/contributions/[contributionId]",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/contributions/[contributionId]/page.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/41",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/crm/notes",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/crm/notes/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/42",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/crm/notes",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/crm/notes/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/43",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/crm/relationships",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/crm/relationships/loading.tsx",
+      "source_disposition": "retained-with-shared-improvements",
+      "detail": "inventory/admin.json#/routes/44",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/crm/relationships",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/crm/relationships/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/45",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/feed/org-updates",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/feed/org-updates/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/46",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/help/about",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/help/about/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/47",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/mobilize/locations",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/mobilize/locations/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/48",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/settings/integrations/resend",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/settings/integrations/resend/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/49",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/support/contacts",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/contacts/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/50",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/6",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/knowledge",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/knowledge/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/51",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/7",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/macros",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/macros/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/52",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/8",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports",
+      "kind": "layout",
+      "entry": "apps/admin/app/(app)/support/reports/layout.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/53",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/9",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/support/reports/loading.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/54",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/10",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/reports/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/55",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/11",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings",
+      "kind": "layout",
+      "entry": "apps/admin/app/(app)/support/settings/layout.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/56",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/12",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/support/settings/loading.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/57",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/13",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/58",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/14",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/tickets",
+      "kind": "loading",
+      "entry": "apps/admin/app/(app)/support/tickets/loading.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/59",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/15",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/tickets",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/tickets/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/60",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/16",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports/agents",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/reports/agents/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/61",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/17",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports/inbox",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/reports/inbox/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/62",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/18",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports/labels",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/reports/labels/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/63",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/19",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports/overview",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/reports/overview/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/64",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/20",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/reports/teams",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/reports/teams/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/65",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/21",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/assignment",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/assignment/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/66",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/22",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/automations",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/automations/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/67",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/23",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/business-hours",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/business-hours/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/68",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/24",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/canned-responses",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/canned-responses/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/69",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/25",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/collaborators",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/collaborators/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/70",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/26",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/inbox",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/inbox/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/71",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/27",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/labels",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/labels/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/72",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/28",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/macros",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/macros/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/73",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/29",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/notifications",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/notifications/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/74",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/30",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/saved-views",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/saved-views/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/75",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/31",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/signatures",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/signatures/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/76",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/32",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/settings/sla",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/settings/sla/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/77",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/33",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/tickets/[id]",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/tickets/[id]/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/78",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/34",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/support/tickets/new",
+      "kind": "page",
+      "entry": "apps/admin/app/(app)/support/tickets/new/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/79",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/35",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/forgot-password",
+      "kind": "page",
+      "entry": "apps/admin/app/(auth)/forgot-password/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/admin.json#/routes/80",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/login",
+      "kind": "loading",
+      "entry": "apps/admin/app/(auth)/login/loading.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/admin.json#/routes/81",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/login",
+      "kind": "page",
+      "entry": "apps/admin/app/(auth)/login/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/admin.json#/routes/82",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/no-access",
+      "kind": "page",
+      "entry": "apps/admin/app/(auth)/no-access/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/admin.json#/routes/83",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/register",
+      "kind": "page",
+      "entry": "apps/admin/app/(auth)/register/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/admin.json#/routes/84",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/boneyard/contributions",
+      "kind": "page",
+      "entry": "apps/admin/app/(auth)/boneyard/contributions/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/85",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "admin",
+      "route": "/web-studio/[[...segments]]",
+      "kind": "not-found",
+      "entry": "apps/admin/app/(payload)/web-studio/[[...segments]]/not-found.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/86",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/36",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/web-studio/[[...segments]]",
+      "kind": "page",
+      "entry": "apps/admin/app/(payload)/web-studio/[[...segments]]/page.tsx",
+      "source_disposition": "retained-engine-or-scaffold-source-reviewed",
+      "detail": "inventory/admin.json#/routes/87",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/37",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "/web-studio/preview/[collection]/[id]",
+      "kind": "page",
+      "entry": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
+      "source_disposition": "implemented-through-reviewed-shared-app-seams",
+      "detail": "inventory/admin.json#/routes/88",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "specialized_detail": "inventory/specialized.json#/routes/38",
+      "delegation_join": "exact source entry"
+    },
+    {
+      "app": "admin",
+      "route": "*",
+      "kind": "global-not-found",
+      "entry": "apps/admin/app/global-not-found.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/admin.json#/routes/89",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/forgot-password",
+      "kind": "page",
+      "entry": "apps/donor/app/(auth)/forgot-password/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/0",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/login",
+      "kind": "page",
+      "entry": "apps/donor/app/(auth)/login/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/1",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/register",
+      "kind": "page",
+      "entry": "apps/donor/app/(auth)/register/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/2",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/donor-dashboard/feed",
+      "kind": "page",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/feed/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/3",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/donor-dashboard/history",
+      "kind": "page",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/4",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/donor-dashboard",
+      "kind": "page",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/5",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/donor-dashboard/pledges",
+      "kind": "page",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/pledges/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/6",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/donor-dashboard/settings",
+      "kind": "page",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/settings/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/7",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/donor-dashboard/wallet",
+      "kind": "page",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/8",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/about",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(hero)/about/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/9",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/faq",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(hero)/faq/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/10",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/financials",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(hero)/financials/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/11",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(hero)/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/12",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/ways-to-give",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(hero)/ways-to-give/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/13",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/workers",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(hero)/workers/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/14",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/[...cmsSlug]",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/[...cmsSlug]/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/15",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/checkout",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/checkout/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/16",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/cookies",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/cookies/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/17",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/help/about",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/help/about/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/18",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/privacy",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/privacy/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/19",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/sign/[token]",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/sign/[token]/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/20",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/terms",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/terms/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/21",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/where-we-work",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/where-we-work/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/22",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/workers/[id]",
+      "kind": "page",
+      "entry": "apps/donor/app/(public)/(solid)/workers/[id]/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/23",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/boneyard/donor-dashboard",
+      "kind": "page",
+      "entry": "apps/donor/app/boneyard/donor-dashboard/page.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/routes/24",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "route": "/no-access",
+      "kind": "page",
+      "entry": "apps/donor/app/no-access/page.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/routes/25",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/login",
+      "kind": "page",
+      "entry": "apps/missionary/app/(auth)/login/page.tsx",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/routes/0",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/analytics",
+      "kind": "page",
+      "entry": "apps/missionary/app/analytics/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/1",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/boneyard/tasks",
+      "kind": "page",
+      "entry": "apps/missionary/app/boneyard/tasks/page.tsx",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/routes/2",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/donors",
+      "kind": "page",
+      "entry": "apps/missionary/app/donors/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/3",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/email-studio",
+      "kind": "page",
+      "entry": "apps/missionary/app/email-studio/page.tsx",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/routes/4",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/feed",
+      "kind": "page",
+      "entry": "apps/missionary/app/feed/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/5",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/forgot-password",
+      "kind": "page",
+      "entry": "apps/missionary/app/forgot-password/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/6",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/help/about",
+      "kind": "page",
+      "entry": "apps/missionary/app/help/about/page.tsx",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/routes/7",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/ministry-updates",
+      "kind": "page",
+      "entry": "apps/missionary/app/ministry-updates/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/8",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/no-access",
+      "kind": "page",
+      "entry": "apps/missionary/app/no-access/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/9",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/",
+      "kind": "page",
+      "entry": "apps/missionary/app/page.tsx",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/routes/10",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/profile",
+      "kind": "page",
+      "entry": "apps/missionary/app/profile/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/11",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/register",
+      "kind": "page",
+      "entry": "apps/missionary/app/register/page.tsx",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/routes/12",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/settings",
+      "kind": "page",
+      "entry": "apps/missionary/app/settings/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/13",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "missionary",
+      "route": "/tasks",
+      "kind": "page",
+      "entry": "apps/missionary/app/tasks/page.tsx",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/routes/14",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage."
+    },
+    {
+      "app": "donor",
+      "kind": "global-error",
+      "surface": "global error",
+      "entry": "apps/donor/app/global-error.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/standaloneSurfaces/0",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "additional_source_join": "separately enumerated standalone fallback"
+    },
+    {
+      "app": "donor",
+      "kind": "global-not-found",
+      "surface": "global not-found",
+      "entry": "apps/donor/app/global-not-found.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/standaloneSurfaces/1",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "additional_source_join": "separately enumerated standalone fallback"
+    },
+    {
+      "app": "missionary",
+      "kind": "global-surface-family",
+      "surface": "AppShell/AppSidebar/AppHeader/DashboardFooter/navigation search",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/global_surfaces/0",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "additional_source_join": "explicit separately enumerated global/shared/dormant/protected surface family; overlaps concrete source entries",
+      "source_entries": [
+        "apps/missionary/components/app-shell.tsx",
+        "apps/missionary/components/app-sidebar.tsx",
+        "apps/missionary/components/app-header.tsx",
+        "apps/missionary/components/dashboard-footer.tsx",
+        "apps/missionary/components/navigation-items.ts",
+        "apps/missionary/components/navigation-search.tsx",
+        "apps/missionary/app/_providers/missionary-layout-shell.tsx",
+        "apps/missionary/app/layout.tsx"
+      ]
+    },
+    {
+      "app": "missionary",
+      "kind": "global-surface-family",
+      "surface": "GlobalNotFound/GlobalError",
+      "source_disposition": "implemented",
+      "detail": "inventory/missionary.json#/global_surfaces/1",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "additional_source_join": "explicit separately enumerated global/shared/dormant/protected surface family; overlaps concrete source entries",
+      "source_entries": [
+        "apps/missionary/app/global-not-found.tsx",
+        "apps/missionary/app/global-error.tsx"
+      ]
+    },
+    {
+      "app": "missionary",
+      "kind": "global-surface-family",
+      "surface": "Shared auth controls, primitives, ImageUpload/RichTextEditor/Reactions/comments",
+      "source_disposition": "retained_shared_consumer",
+      "detail": "inventory/missionary.json#/global_surfaces/2",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "additional_source_join": "explicit separately enumerated global/shared/dormant/protected surface family; overlaps concrete source entries",
+      "owner_scope_evidence": "inventory/missionary.json#/first_party_source_index and the exact global family reason/implementation_review; protected and dormant boundaries are retained, not productive screens."
+    },
+    {
+      "app": "missionary",
+      "kind": "global-surface-family",
+      "surface": "Unused exported @asym/missionary alternate task/dashboard components",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/global_surfaces/3",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "additional_source_join": "explicit separately enumerated global/shared/dormant/protected surface family; overlaps concrete source entries",
+      "owner_scope_evidence": "inventory/missionary.json#/first_party_source_index and the exact global family reason/implementation_review; protected and dormant boundaries are retained, not productive screens."
+    },
+    {
+      "app": "missionary",
+      "kind": "global-surface-family",
+      "surface": "Boneyard-generated bones/vendor editor runtime",
+      "source_disposition": "retain",
+      "detail": "inventory/missionary.json#/global_surfaces/4",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "additional_source_join": "explicit separately enumerated global/shared/dormant/protected surface family; overlaps concrete source entries",
+      "owner_scope_evidence": "inventory/missionary.json#/first_party_source_index and the exact global family reason/implementation_review; protected and dormant boundaries are retained, not productive screens."
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(auth)/login/loading.tsx",
+      "entry": "apps/donor/app/(auth)/login/loading.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/sourceFiles/1",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "cb95a00073f5cea07bd8ec048176d2aa518ae08c8c8c024de76d38cbee2e8124",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(auth)/register/loading.tsx",
+      "entry": "apps/donor/app/(auth)/register/loading.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/sourceFiles/3",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "982d1cc48ca7e772621254543f478001c874d7ba3c8433829ac942c9e899d081",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(dashboard)/donor-dashboard/feed/loading.tsx",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/feed/loading.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/6",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "c3fe4e9bfef4255db0253d5987d0ba67420ce2ab3f35b2de4bff9f3ca221ea04",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(dashboard)/donor-dashboard/history/loading.tsx",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/history/loading.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/11",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "5bfa9dadb00095430fd923662d2ca7a86c461ddfa62e9c86148b430dbdc06f3a",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/sourceFiles/15",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(dashboard)/donor-dashboard/pledges/loading.tsx",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/pledges/loading.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/18",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "5e978510fbfb23f142fed0687fbf4f3da66845f73748e5c38d0df9ceb0b1a47c",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(dashboard)/donor-dashboard/settings/loading.tsx",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/settings/loading.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/21",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "1eb1e021d55385a2e0a019ab13a3ceef020535942a169f99b456c2739a64872c",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(dashboard)/donor-dashboard/wallet/loading.tsx",
+      "entry": "apps/donor/app/(dashboard)/donor-dashboard/wallet/loading.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/24",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "f4a20b00408c7d8aa28ca913f4b4adc01b633c35cd0017e9cdffe85d8167c334",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/(dashboard)/layout.tsx",
+      "entry": "apps/donor/app/(dashboard)/layout.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/27",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "66728d77e47fb4d4a2a52c8ea9f94bfe31589d1fbf62aa0f874fb0f26ac161e2",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/(public)/(hero)/layout.tsx",
+      "entry": "apps/donor/app/(public)/(hero)/layout.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/34",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "4eec09cc800f31966292d2483da52cd47788825e98c91d3b299ea88d29143cfd",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(public)/(solid)/[...cmsSlug]/loading.tsx",
+      "entry": "apps/donor/app/(public)/(solid)/[...cmsSlug]/loading.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/41",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "608455d82c2e2eeb399d1ecc14efb0a77855c0fee06cd629bb673d48d9bfd2b6",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "loading",
+      "surface": "apps/donor/app/(public)/(solid)/checkout/loading.tsx",
+      "entry": "apps/donor/app/(public)/(solid)/checkout/loading.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/donor.json#/sourceFiles/44",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "ea11f1fc339727747af59ddb064005da9819c05ec809ecf4394fe94235929684",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/(public)/(solid)/layout.tsx",
+      "entry": "apps/donor/app/(public)/(solid)/layout.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/48",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "56955d7a5529210bb8238ee3d8aefa516ee956f8b4038ae0edc255d9e8ba0ac7",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/(public)/(solid)/where-we-work/layout.tsx",
+      "entry": "apps/donor/app/(public)/(solid)/where-we-work/layout.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/54",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "187cbca470aed4b3a281433a08dd2caab3a04c132a7df0281c91c6736ce07933",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/(public)/(solid)/workers/[id]/layout.tsx",
+      "entry": "apps/donor/app/(public)/(solid)/workers/[id]/layout.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/59",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "8ed4207914471454595237df8bfd58926968717576fd577ee2f85c66071a9b95",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/(public)/layout.tsx",
+      "entry": "apps/donor/app/(public)/layout.tsx",
+      "source_disposition": "retained-owner-boundary-with-child-improvements",
+      "detail": "inventory/donor.json#/sourceFiles/65",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "545ccb846a0438934da33b136f842d9324c991b5898eee2d736505e1011ef2e5",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "donor",
+      "kind": "layout",
+      "surface": "apps/donor/app/layout.tsx",
+      "entry": "apps/donor/app/layout.tsx",
+      "source_disposition": "retained",
+      "detail": "inventory/donor.json#/sourceFiles/71",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "a194fc7668652d5d0ad8f29b5058a08364a9e4a4a87cd227e9f64f6e8f847224",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "loading",
+      "surface": "apps/missionary/app/(auth)/login/loading.tsx",
+      "entry": "apps/missionary/app/(auth)/login/loading.tsx",
+      "source_disposition": "retained-owner-boundary",
+      "detail": "inventory/missionary.json#/first_party_source_index/0",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "84426242235c7d945bd09f9ab90e5dc1775bddbdd48eb487616ce319e8cb9223",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "layout",
+      "surface": "apps/missionary/app/analytics/layout.tsx",
+      "entry": "apps/missionary/app/analytics/layout.tsx",
+      "source_disposition": "retained-source-inspected",
+      "detail": "inventory/missionary.json#/first_party_source_index/4",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "2afee383df3f20af1a1171b6bcf0655cddbf5a3a5aa52f9a12291ae85d49a113",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "loading",
+      "surface": "apps/missionary/app/analytics/loading.tsx",
+      "entry": "apps/missionary/app/analytics/loading.tsx",
+      "source_disposition": "retained-owner-boundary",
+      "detail": "inventory/missionary.json#/first_party_source_index/5",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "fe02a8e460a274b58d00bf299815611f40bf1f9eadecec6c05a84c1d808aaffb",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "layout",
+      "surface": "apps/missionary/app/boneyard/tasks/layout.tsx",
+      "entry": "apps/missionary/app/boneyard/tasks/layout.tsx",
+      "source_disposition": "retained-source-inspected",
+      "detail": "inventory/missionary.json#/first_party_source_index/9",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "8c37574b92ccc554fba72765f97f7f5f51e91e80845f2bf780cffab0004ed564",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "layout",
+      "surface": "apps/missionary/app/email-studio/layout.tsx",
+      "entry": "apps/missionary/app/email-studio/layout.tsx",
+      "source_disposition": "retained-source-inspected",
+      "detail": "inventory/missionary.json#/first_party_source_index/29",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "e8f8495a991cdeeedd0b37bc019073fc06e15059f3d10a9af2680172d890d9d0",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "global-error",
+      "surface": "apps/missionary/app/global-error.tsx",
+      "entry": "apps/missionary/app/global-error.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/missionary.json#/first_party_source_index/36",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "d2c2abe684f30dcb1a43f8f0d52a403d91c4160c0392ebe0aec55a3134d29eac",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "global-not-found",
+      "surface": "apps/missionary/app/global-not-found.tsx",
+      "entry": "apps/missionary/app/global-not-found.tsx",
+      "source_disposition": "improved",
+      "detail": "inventory/missionary.json#/first_party_source_index/37",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "b8330d317cdfe3c709714063fb49c275064283120a3234d155e6ffc936931e8d",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "layout",
+      "surface": "apps/missionary/app/layout.tsx",
+      "entry": "apps/missionary/app/layout.tsx",
+      "source_disposition": "retained-owner-boundary",
+      "detail": "inventory/missionary.json#/first_party_source_index/39",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "loading",
+      "surface": "apps/missionary/app/register/loading.tsx",
+      "entry": "apps/missionary/app/register/loading.tsx",
+      "source_disposition": "retained-owner-boundary",
+      "detail": "inventory/missionary.json#/first_party_source_index/48",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "f2c809f5e3ed6440745b2cc9e53da9642ea047cee200218efd48f4a591abf385",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    },
+    {
+      "app": "missionary",
+      "kind": "loading",
+      "surface": "apps/missionary/app/tasks/loading.tsx",
+      "entry": "apps/missionary/app/tasks/loading.tsx",
+      "source_disposition": "retained-owner-boundary",
+      "detail": "inventory/missionary.json#/first_party_source_index/53",
+      "browser_evidence": "Runtime-owned before-index.json, after-index.json and after-seam-checks.json identify actual captured route/component/state verdicts. Source disposition does not establish browser or productive provider coverage.",
+      "current_source_sha256": "fa1440068395b09fb7050d3e64dd35fe803d7db43911078cac8f57e67c078a18",
+      "additional_source_join": "exact source-index layout/loading/global-state disposition; not an additional page URL"
+    }
+  ],
+  "additionalLedgerSurfaces": {
+    "donorFallbacks": "inventory/donor.json#/standaloneSurfaces",
+    "missionaryGlobalSurfaces": "inventory/missionary.json#/global_surfaces",
+    "sharedSourceGraph": "inventory/shared.json#/entries",
+    "specializedVirtualCmsViews": "inventory/specialized.json#/payload_view_surfaces",
+    "specializedRenderers": "inventory/specialized.json#/components",
+    "allResponsiveTableConsumers": "sources/mobile-table-consumer-review.json"
+  },
+  "commercialProEvidence": "sources/reui-pro-research.json",
+  "sourceReviewClosure": "Every discovered app page/layout/loading/global-state file has an explicit owner-backed source disposition. Seven separately enumerated donor fallback/missionary global-family records are also joined; families distinguish live shell/shared ownership from dormant/protected boundaries. All14 responsive table app consumers have four material source/TDD closures and ten retained contracts. Actual captured states and productive provider limits remain runtime-owned.",
+  "finalResponsiveConsumerEvidence": "sources/mobile-table-consumer-review.json",
+  "finalVisualReviewEvidence": "sources/visual-review-donor-shared.json",
+  "supplementalMapControlEvidence": "sources/map-runtime-review.json",
+  "accepted_slice_review_joins": [
+    {
+      "surface": "Shared Email preview sizing",
+      "source": "inventory/shared.json",
+      "review": "sources/visual-review-donor-shared.json#/findings/2",
+      "disposition": "retained editor/provider boundaries; available actual fixture sizing reviewed"
+    },
+    {
+      "surface": "Shared specialized charts",
+      "source": "inventory/specialized.json",
+      "review": "sources/visual-review-donor-shared.json#/findings/3",
+      "disposition": "retained calculations/engine; settled actual fixture reviewed with expanded-height qualification"
+    },
+    {
+      "surface": "Donor checkout preset/custom amount",
+      "source": "inventory/donor.json#/candidates/2",
+      "review": "sources/visual-review-donor-shared.json#/findings/4",
+      "runtime": "after-index.json#/metadata/after-donor-final-corrections.json",
+      "disposition": "improved native grid geometry; actual value/NextBack checked; no payment submission"
+    },
+    {
+      "surface": "Donor History fields/actions",
+      "source": "inventory/donor.json#/candidates/3",
+      "review": "sources/visual-review-donor-shared.json#/findings/5",
+      "runtime": "after-index.json#/metadata/after-history-main-state.json",
+      "disposition": "improved mobile fields/actions; actual three-record and successful-receipt proof; matching-scroll pair restored"
+    },
+    {
+      "surface": "Donor public reserved-header contrast",
+      "source": "inventory/donor.json#/candidates/6",
+      "review": "sources/visual-review-donor-shared.json#/findings/1",
+      "runtime": "after-index.json#/metadata/after-donor-final-corrections.json",
+      "disposition": "improved three reserved-page strips; actual supported-mode contrast and pixels reviewed"
+    },
+    {
+      "surface": "Donor Financials sectors/legend",
+      "source": "inventory/donor.json#/candidates/7",
+      "review": "sources/visual-review-donor-shared.json",
+      "runtime": "after-index.json#/metadata/after-financial-pie-settled.json",
+      "disposition": "improved semantic tokens; actual complete85/10/5 native viewport images accepted; earlier fullPage arc comparison excluded"
+    },
+    {
+      "surface": "Contributions/Support controlled mobile selection",
+      "source": "sources/mobile-table-consumer-review.json",
+      "review": "sources/late-component-browser-review.json",
+      "runtime": "after-index.json#/metadata/after-mobile-selection.json",
+      "disposition": "improved existing Row selection reachability; actual naturalTab/Space/confirmation/pending/request identity checked; hosted receipt/realtime convergence unverified"
+    },
+    {
+      "surface": "Missionary Giving records and focused tab rail",
+      "source": "inventory/missionary.json",
+      "review": "sources/late-component-browser-review.json",
+      "runtime": "after-index.json#/metadata/after-giving-rail-keyboard.json",
+      "disposition": "improved exact existing cell display and native horizontal focus reveal; actual MotionProvider/opacity1 and synthetic-input fixture verified; productive partner data unavailable"
+    },
+    {
+      "surface": "Missionary task board document geometry",
+      "source": "inventory/missionary.json",
+      "review": "inventory/missionary.json#/browser_review",
+      "runtime": "after-index.json#/metadata/after-missionary-board-geometry.json",
+      "disposition": "improved shell min-width; actual document1440/390 and internal four-column scroll verified; productive task submission not reached"
+    },
+    {
+      "surface": "Donor map controls and geography",
+      "source": "inventory/donor.json#/candidates/13",
+      "review": "sources/map-runtime-review.json",
+      "runtime": "after-index.json#/metadata/after-map-controls.json",
+      "disposition": "improved control placement/hit-tests/focus; fresh original/current geography reviewed; productive selected locations unavailable"
+    }
+  ],
+  "upstreamIntegrationEvidence": "sources/upstream-integration-review.json",
+  "capture_epoch_limit": "All retained before/current runtime artifacts are explicitly Next16.3.8/5319246eb before the root rebase onto newer develop180dde/Next16.4. Current source identity/CI checks do not imply post-rebase runtime coverage."
+}

@@ -1,0 +1,16 @@
+{
+  "surface": "Profile AvatarUploadArea steady camera chip",
+  "scrim": "oklch(0.1 0.005 265)",
+  "opacity": 0.65,
+  "foreground": "oklch(0.985 0.002 265)",
+  "worst_photography_background": "white",
+  "composite_srgb": [
+    0.35722949736964965, 0.35843867022726494, 0.3613029288183268
+  ],
+  "contrast_ratio": 6.465196171257571,
+  "minimum_non_text": 3,
+  "result": "pass",
+  "limit": "Mathematical token/alpha contrast evidence; productive uploaded-photo browser fixture remains credential blocked. No claimed live upload.",
+  "evidence_kind": "mathematical-token-estimate",
+  "qualification_limit": "This calculation is not a productive application browser test. Actual computed CSS, transparency, image context, focus indicators and supported light/dark states require separate browser evidence."
+}

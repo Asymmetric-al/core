@@ -1,0 +1,111 @@
+{
+  "command": "VITEST_MAX_WORKERS=1 bun run ci:preflight -- --full",
+  "exitCode": 0,
+  "implementationCommit": "0cc25be9c47b5fd3ab739f8cf18c33bde3b90bb3",
+  "integrationBase": "180dde9e41b849e0c3a649aeef8989f3974bf4cd",
+  "nextVersion": "16.4.0",
+  "stages": [
+    {
+      "id": "format",
+      "result": "passed"
+    },
+    {
+      "id": "skills-verify",
+      "result": "passed"
+    },
+    {
+      "id": "verify-phase25-spec",
+      "result": "passed"
+    },
+    {
+      "id": "openspec-validate",
+      "result": "passed"
+    },
+    {
+      "id": "verify-openspec-deltas",
+      "result": "passed"
+    },
+    {
+      "id": "lint",
+      "result": "passed"
+    },
+    {
+      "id": "verify-data-boundary",
+      "result": "passed"
+    },
+    {
+      "id": "verify-cms-public-sole-entry",
+      "result": "passed"
+    },
+    {
+      "id": "verify-workspace-contract",
+      "result": "passed"
+    },
+    {
+      "id": "verify-bun-lock-drift",
+      "result": "passed"
+    },
+    {
+      "id": "verify-eslint",
+      "result": "passed"
+    },
+    {
+      "id": "verify-shadcn-config",
+      "result": "passed"
+    },
+    {
+      "id": "verify-shadcn-diff",
+      "result": "passed"
+    },
+    {
+      "id": "verify-shadscan",
+      "result": "passed"
+    },
+    {
+      "id": "typecheck",
+      "result": "passed"
+    },
+    {
+      "id": "build",
+      "result": "passed"
+    },
+    {
+      "id": "test-unit",
+      "result": "passed"
+    }
+  ],
+  "lint": {
+    "tasksPassed": 15,
+    "tasksTotal": 15
+  },
+  "typecheck": {
+    "tasksPassed": 15,
+    "tasksTotal": 15
+  },
+  "builds": {
+    "admin": "passed",
+    "donor": "passed",
+    "missionary": "passed",
+    "mode": "Repository CI defaults; Eve artifacts only. Compilation does not qualify productive providers or sandbox/runtime integrations."
+  },
+  "unit": {
+    "filesPassed": 851,
+    "filesSkipped": 2,
+    "filesTotal": 853,
+    "testsPassed": 6752,
+    "testsSkipped": 4,
+    "testsTotal": 6756,
+    "durationSeconds": 637.55
+  },
+  "completeLocalLogSha256": "ab8f716327b4159aee92e707e1d333e217167bde8a0970ba1e5a2d85c287fcbb",
+  "completeLocalLogLimit": "Full build output remains local-only; the durable summary contains stage/results and counts, not environment or full build output.",
+  "summary": "checks/preflight-summary.txt",
+  "summarySha256": "444a18f1d8d4f0c0e51bd7af3b139532a237bffee842608a31c717b5eeb21dbd",
+  "priorAttempt": {
+    "exitCode": 1,
+    "failedStage": "format",
+    "scope": "Nine final QA evidence files required formatting. No lint/type/build/unit stage ran in that attempt. Scoped formatting corrected the files; the complete retry passed."
+  },
+  "captureEpochLimit": "Screenshots and selected62before/62after browser checks used Next16.3.8 pre-integration. No Next16.4 application browser recapture claimed.",
+  "hostedCiLimit": "This is complete local-stack preflight, not independent hosted CI for each intermediate PR."
+}
