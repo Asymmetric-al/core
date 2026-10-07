@@ -34,7 +34,7 @@
     "@sentry/nextjs": "^10.32.1",
     "@stripe/react-stripe-js": "^6.5.0",
     "@stripe/stripe-js": "^9.7.0",
-    "@tanstack/react-query": "^5.96.2",
+    "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-table": "9.0.0-beta.9",
     "boneyard-js": "^1.8.1",
     "date-fns": "^4.1.0",
