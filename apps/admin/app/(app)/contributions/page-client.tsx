@@ -7,7 +7,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import { ContributionDetailOverlay } from "./contribution-detail-overlay";
@@ -44,20 +44,31 @@ export default function ContributionsPage({
     ? giftParam
     : null;
   const hasInvalidGiftParam = giftParam != null && selectedGiftParam == null;
+  const [giftSelection, setGiftSelection] = useState({
+    giftParam,
+    donationId: selectedGiftParam,
+  });
+  if (giftSelection.giftParam !== giftParam) {
+    setGiftSelection({ giftParam, donationId: selectedGiftParam });
+  }
+  const selectedDonationId =
+    giftSelection.giftParam === giftParam
+      ? giftSelection.donationId
+      : selectedGiftParam;
   const { markFreshness, showFreshness } = useContributionFreshness();
-
   const openerElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (selectedGiftParam || !openerElementRef.current) {
+    if (selectedDonationId || !openerElementRef.current) {
       return;
     }
-    // Return focus after the route closes the sheet and releases its focus trap.
+    // Wait for the sheet to close before returning focus, so its
+    // focus-trap cleanup cannot clobber the opener (ADR-CD-023).
     const opener = openerElementRef.current;
     openerElementRef.current = null;
     const timeout = window.setTimeout(() => opener.focus(), 0);
     return () => window.clearTimeout(timeout);
-  }, [selectedGiftParam]);
+  }, [selectedDonationId]);
 
   /**
    * Bulk receipt batches change receipt state for many rows at once; refresh
@@ -77,14 +88,16 @@ export default function ContributionsPage({
         document.activeElement instanceof HTMLElement
           ? document.activeElement
           : null;
+      setGiftSelection({ giftParam, donationId });
       const params = new URLSearchParams(searchParams.toString());
       params.set("gift", donationId);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams],
+    [giftParam, pathname, router, searchParams],
   );
 
   const closeGift = useCallback(() => {
+    setGiftSelection({ giftParam, donationId: null });
     // Smart close removes only the gift selection from route state; filters,
     // search, and the rest of the workspace stay untouched (ADR-CD-023).
     const params = new URLSearchParams(searchParams.toString());
@@ -93,7 +106,7 @@ export default function ContributionsPage({
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
-  }, [pathname, router, searchParams]);
+  }, [giftParam, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!hasInvalidGiftParam) {
@@ -194,7 +207,7 @@ export default function ContributionsPage({
         )}
 
         <ContributionDetailOverlay
-          donationId={selectedGiftParam}
+          donationId={selectedDonationId}
           sourceSurface="contribution_hub"
           onClose={closeGift}
           onActionSuccess={markFreshness}

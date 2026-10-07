@@ -1,4 +1,14 @@
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -82,17 +92,113 @@ describe("github apt install scripts bound hung metadata fetches", () => {
     expect(prepare).toContain("APT_GET_TIMEOUT_SECONDS");
   });
 
-  it("pins Ubuntu apt away from Azure mirrors before update", () => {
+  it("pins Ubuntu apt to HTTPS away from Azure mirrors before update", () => {
     const prepare = readScript("scripts/github/prepare-apt.sh");
 
-    expect(prepare).toContain("http://archive.ubuntu.com/ubuntu/");
-    expect(prepare).toContain("http://security.ubuntu.com/ubuntu/");
-    expect(prepare).toContain("azure.archive.ubuntu.com/ubuntu");
+    expect(prepare).toContain("https://archive.ubuntu.com/ubuntu/");
+    expect(prepare).toContain("https://security.ubuntu.com/ubuntu/");
     expect(prepare).toContain("mirror+file:/etc/apt/apt-mirrors.txt");
     expect(prepare).toContain('Acquire::http::Timeout "20"');
     expect(prepare).toContain('Acquire::https::Timeout "20"');
     expect(prepare).toContain('Acquire::Retries "2"');
   });
+
+  // This helper runs only on Ubuntu CI; its shell behavior needs GNU sed.
+  it.skipIf(process.platform !== "linux")(
+    "normalizes Ubuntu list and deb822 sources while retaining signatures and unrelated feeds",
+    () => {
+      const fixtureRoot = mkdtempSync(path.join(tmpdir(), "core-github-apt-"));
+      const aptRoot = path.join(fixtureRoot, "apt");
+      const sourcesRoot = path.join(aptRoot, "sources.list.d");
+      const commandLog = path.join(fixtureRoot, "commands.log");
+      const keyring = "/usr/share/keyrings/ubuntu-archive-keyring.gpg";
+
+      try {
+        mkdirSync(sourcesRoot, { recursive: true });
+        mkdirSync(path.join(aptRoot, "apt.conf.d"));
+        writeFileSync(path.join(aptRoot, "apt-mirrors.txt"), "old mirror\n");
+        writeFileSync(
+          path.join(aptRoot, "sources.list"),
+          [
+            "deb http://archive.ubuntu.com/ubuntu noble main",
+            "deb-src http://security.ubuntu.com/ubuntu noble-security main",
+            "deb https://azure.archive.ubuntu.com/ubuntu noble-updates main",
+            "deb http://example.org/ubuntu noble main",
+            "deb https://example.org/ubuntu noble main",
+            "",
+          ].join("\n"),
+        );
+        writeFileSync(
+          path.join(sourcesRoot, "ubuntu.list"),
+          "deb http://azure.archive.ubuntu.com/ubuntu noble-backports main\n",
+        );
+        writeFileSync(
+          path.join(sourcesRoot, "ubuntu.sources"),
+          `Types: deb\nURIs: mirror+file:${aptRoot}/apt-mirrors.txt http://security.ubuntu.com/ubuntu/\nSuites: noble noble-security\nComponents: main\nSigned-By: ${keyring}\n`,
+        );
+        writeFileSync(
+          path.join(sourcesRoot, "microsoft.sources"),
+          "Types: deb\nURIs: https://packages.microsoft.com/ubuntu\n",
+        );
+
+        const prepare = readScript("scripts/github/prepare-apt.sh");
+        execFileSync(
+          "bash",
+          [
+            "-c",
+            // Run the real helper against temporary apt files. Intercept only
+            // the privileged boundary; no apt/network operation is executed.
+            `sudo() { if [[ "$1" == timeout ]]; then printf '%s\\n' "$*" >> "$APT_TEST_COMMAND_LOG"; else "$@"; fi; }\n${prepare.replaceAll("/etc/apt", aptRoot)}`,
+          ],
+          {
+            env: {
+              ...process.env,
+              APT_GET_TIMEOUT_SECONDS: "9",
+              APT_TEST_COMMAND_LOG: commandLog,
+            },
+            timeout: 10_000,
+          },
+        );
+
+        expect(readFileSync(path.join(aptRoot, "sources.list"), "utf8")).toBe(
+          [
+            "deb https://archive.ubuntu.com/ubuntu noble main",
+            "deb-src https://security.ubuntu.com/ubuntu noble-security main",
+            "deb https://archive.ubuntu.com/ubuntu noble-updates main",
+            "deb http://example.org/ubuntu noble main",
+            "deb https://example.org/ubuntu noble main",
+            "",
+          ].join("\n"),
+        );
+        expect(
+          readFileSync(path.join(sourcesRoot, "ubuntu.list"), "utf8"),
+        ).toBe("deb https://archive.ubuntu.com/ubuntu noble-backports main\n");
+        expect(
+          readFileSync(path.join(sourcesRoot, "ubuntu.sources"), "utf8"),
+        ).toBe(
+          `Types: deb\nURIs: https://archive.ubuntu.com/ubuntu https://security.ubuntu.com/ubuntu/\nSuites: noble noble-security\nComponents: main\nSigned-By: ${keyring}\n`,
+        );
+        expect(
+          readFileSync(path.join(aptRoot, "apt-mirrors.txt"), "utf8"),
+        ).toBe(
+          "https://archive.ubuntu.com/ubuntu/\nhttps://security.ubuntu.com/ubuntu/\n",
+        );
+        expect(existsSync(path.join(sourcesRoot, "microsoft.sources"))).toBe(
+          false,
+        );
+        expect(
+          existsSync(
+            path.join(sourcesRoot, "microsoft.sources.disabled-by-core-ci"),
+          ),
+        ).toBe(true);
+        expect(readFileSync(commandLog, "utf8")).toBe(
+          "timeout --kill-after=10s 9s apt-get update\n",
+        );
+      } finally {
+        rmSync(fixtureRoot, { recursive: true, force: true });
+      }
+    },
+  );
 
   it("wraps canvas and postgres client installs with a longer GNU timeout and retries once", () => {
     const canvas = readScript("scripts/github/install-canvas-deps.sh");
