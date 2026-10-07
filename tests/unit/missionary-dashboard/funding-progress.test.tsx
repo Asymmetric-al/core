@@ -50,6 +50,11 @@ describe("funding progress presentation", () => {
     });
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
     expect(progress.getAttribute("aria-valuetext")).toBe("-25% funded");
+    expect(
+      progress
+        .querySelector<HTMLElement>("[style]")
+        ?.style.getPropertyValue("--funding-progress-transform"),
+    ).toBe("scaleX(0)");
     expect(screen.getByText("$-1,250", { exact: true })).toBeTruthy();
     expect(screen.getByText("$6,250", { exact: true })).toBeTruthy();
   });

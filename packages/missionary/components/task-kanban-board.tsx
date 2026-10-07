@@ -40,11 +40,7 @@ import {
 import * as React from "react";
 
 import type { Task, TaskStatus } from "../types";
-import type {
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-} from "@dnd-kit/core";
+import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
@@ -149,18 +145,6 @@ export function TaskKanbanBoard({
     if (task) setActiveTask(task);
   }
 
-  function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id;
-    const overId = over.id;
-
-    if (activeId === overId) return;
-
-    // Logic for cross-column dragging if needed for visual feedback
-  }
-
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveTask(null);
@@ -209,7 +193,6 @@ export function TaskKanbanBoard({
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="flex gap-6 overflow-x-auto pb-6 h-[calc(100vh-320px)] min-h-125 items-start">
@@ -319,7 +302,7 @@ function KanbanColumn({
             />
           ))}
           {tasks.length === 0 && (
-            <div className="h-24 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center text-[10px] font-semibold uppercase tracking-widest text-zinc-300">
+            <div className="h-24 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center text-xs font-semibold uppercase tracking-widest text-zinc-300">
               Drop tasks here
             </div>
           )}
@@ -392,7 +375,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
               {task.title}
             </h4>
           </div>
-          <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+          <div className="transition-opacity">
             <Button
               variant="ghost"
               size="icon-sm"
@@ -405,7 +388,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
         </div>
 
         {task.description && (
-          <p className="text-[11px] text-zinc-500 line-clamp-2 leading-relaxed font-medium">
+          <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed font-medium">
             {task.description}
           </p>
         )}
@@ -419,7 +402,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
             </Badge>
           )}
           {task.due_date && (
-            <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-100">
+            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-100">
               <Calendar className="size-3" />
               {format(makeDisplayDate(task.due_date), "MMM d")}
             </div>
@@ -432,11 +415,11 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
               <div className="flex items-center gap-2 max-w-35">
                 <Avatar className="size-5 ring-2 ring-white">
                   <AvatarImage src={task.donor.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-[8px] font-semibold uppercase">
+                  <AvatarFallback className="text-xs font-semibold uppercase">
                     {task.donor.name[0]}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-500 truncate">
+                <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 truncate">
                   {task.donor.name}
                 </span>
               </div>

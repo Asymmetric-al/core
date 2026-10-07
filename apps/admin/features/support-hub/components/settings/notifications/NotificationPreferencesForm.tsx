@@ -46,7 +46,7 @@ export function NotificationPreferencesForm() {
         title="Notification preferences"
         description="Pick an agent to manage their notification channels."
       >
-        <p className="text-[12px] text-zinc-500">No agents yet.</p>
+        <p className="text-xs text-zinc-500">No agents yet.</p>
       </SettingsPanel>
     );
   }
@@ -119,12 +119,12 @@ export function NotificationPreferencesForm() {
             if (value !== null) setAgentId(value);
           }}
           aria-label="Agent"
-          className="h-9 max-w-sm text-[12px]"
+          className="h-9 max-w-sm"
         />
       </SettingsRow>
 
       <div className="rounded-xl border border-zinc-100">
-        <div className="border-b border-zinc-100 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+        <div className="border-b border-zinc-100 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           Email
         </div>
         <div className="flex flex-col divide-y divide-zinc-100">
@@ -150,7 +150,7 @@ export function NotificationPreferencesForm() {
       </div>
 
       <div className="rounded-xl border border-zinc-100">
-        <div className="border-b border-zinc-100 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+        <div className="border-b border-zinc-100 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           In-app
         </div>
         <div className="flex flex-col divide-y divide-zinc-100">
@@ -199,8 +199,8 @@ function PrefRow({
   return (
     <div className="flex items-center gap-3 px-3 py-2">
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[12px] font-semibold text-zinc-900">{label}</span>
-        <span className="text-[11px] text-zinc-500">{description}</span>
+        <span className="text-xs font-semibold text-zinc-900">{label}</span>
+        <span className="text-xs text-zinc-500">{description}</span>
       </div>
       <Switch checked={value} onCheckedChange={onChange} aria-label={label} />
     </div>

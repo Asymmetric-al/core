@@ -98,7 +98,7 @@ function FilterOptions({ multiple = false }: { multiple?: boolean }) {
             )}
             <span>{option.label}</span>
             {option.count !== undefined && (
-              <span className="ml-auto min-w-6 text-right font-mono text-[11px] font-medium text-muted-foreground/80">
+              <span className="ml-auto min-w-6 text-right font-mono text-xs font-medium text-muted-foreground/80">
                 {option.count}
               </span>
             )}
@@ -133,7 +133,7 @@ export function FilterSelectInput({
         aria-label={field.label}
         render={<Button variant="outline" />}
         className={cn(
-          "h-9 w-45 justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
+          "h-9 w-45 justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
           !selectedOption && "text-muted-foreground",
           className,
         )}
@@ -154,7 +154,7 @@ export function FilterSelectInput({
       </ComboboxTrigger>
       <ComboboxContent
         aria-label={field.label}
-        className="w-55 overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
+        className="w-55 overflow-hidden rounded-2xl bg-popover p-0"
         sideOffset={8}
       >
         <FilterSearch label={field.label} />
@@ -177,9 +177,9 @@ export function FilterMultiSelectInput({
   const selectedValues = Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
     : [];
+  const selectedValueSet = new Set(selectedValues);
   const selectedOptions =
-    field.options?.filter((option) => selectedValues.includes(option.value)) ??
-    [];
+    field.options?.filter((option) => selectedValueSet.has(option.value)) ?? [];
 
   return (
     <Combobox
@@ -195,7 +195,7 @@ export function FilterMultiSelectInput({
       <div
         ref={anchorRef}
         className={cn(
-          "flex min-h-9 w-60 items-center gap-1 rounded-xl border border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 has-aria-expanded:border-border has-aria-expanded:bg-muted/50",
+          "flex min-h-9 w-60 items-center gap-1 rounded-xl border border-border/70 bg-background px-3 text-sm font-normal hover:bg-muted/40 has-aria-expanded:border-border has-aria-expanded:bg-muted/50",
           className,
         )}
       >
@@ -253,7 +253,7 @@ export function FilterMultiSelectInput({
       <ComboboxContent
         anchor={anchorRef}
         aria-label={field.label}
-        className="w-65 overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
+        className="w-65 overflow-hidden rounded-2xl bg-popover p-0"
         sideOffset={8}
       >
         <FilterSearch label={field.label} inputRef={searchInputRef} />

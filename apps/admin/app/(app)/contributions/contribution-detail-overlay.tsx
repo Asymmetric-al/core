@@ -1,128 +1,28 @@
 "use client";
 
 import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
-import {
-  ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
-  ADMIN_CRM_RECORDS_QUERY_KEY,
-  MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
-} from "@asym/database/hooks";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import {
+  contributionDetailQueryKey,
+  invalidateContributionOperationQueries,
+  isContributionGiftParam,
+  useContributionDetail,
+} from "./contribution-detail-query";
+import {
   ContributionDetailSheet,
   type ContributionDetailPendingAction,
 } from "./contribution-detail-sheet";
-// Intentional module cycle with ./operation-shell: the shell reuses this
-// file's detail query + invalidation helpers, and the overlay mounts the
-// shell for refunds. Both sides only reference the other inside function
-// bodies, so evaluation order is safe.
 import { ContributionOperationShell } from "./operation-shell";
-import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 
 import type { Contribution } from "./types";
 import type {
   ContributionDetail,
   ContributionSourceSurface,
   CrmPostFailedScope,
-  ViewerProjectedContributionDetail,
 } from "@asym/api/admin/contribution-operations";
-
-export const ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY = [
-  "admin",
-  "contribution-detail",
-] as const;
-
-export function contributionDetailQueryKey(donationId: string) {
-  return [...ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY, donationId] as const;
-}
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-export function isContributionGiftParam(value: string | null): value is string {
-  return Boolean(value && UUID_PATTERN.test(value));
-}
-
-/**
- * Invalidates every query that renders shared contribution fields so the
- * Contributions Hub, CRM donor gift history, and the open detail overlay
- * refresh from the same database truth after an operation (ADR-CD-032).
- */
-export async function invalidateContributionOperationQueries(
-  queryClient: QueryClient,
-  options?: {
-    /**
-     * TanStack Query resolves `invalidateQueries` even when the triggered
-     * refetches fail. Callers that surface a stale-data warning on refresh
-     * failure (the operation shell) opt into rejection instead.
-     */
-    throwOnError?: boolean;
-  },
-) {
-  const refetchOptions = { throwOnError: options?.throwOnError ?? false };
-  await Promise.all([
-    queryClient.invalidateQueries(
-      { queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY },
-      refetchOptions,
-    ),
-    queryClient.invalidateQueries(
-      { queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY },
-      refetchOptions,
-    ),
-    queryClient.invalidateQueries(
-      { queryKey: ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY },
-      refetchOptions,
-    ),
-    queryClient.invalidateQueries(
-      { queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY },
-      refetchOptions,
-    ),
-    queryClient.invalidateQueries(
-      { queryKey: ADMIN_CRM_RECORDS_QUERY_KEY },
-      refetchOptions,
-    ),
-  ]);
-}
-
-async function fetchContributionDetail(donationId: string) {
-  const response = await fetch(
-    `/api/admin/contribution-operations/${encodeURIComponent(donationId)}`,
-    { headers: { accept: "application/json" } },
-  );
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      error?: string;
-    } | null;
-    throw new Error(body?.error ?? "Could not load contribution detail.");
-  }
-
-  const body = (await response.json()) as {
-    contribution: ViewerProjectedContributionDetail;
-  };
-  return body.contribution;
-}
-
-export function useContributionDetail(donationId: string | null) {
-  const validDonationId = isContributionGiftParam(donationId)
-    ? donationId
-    : null;
-
-  return useQuery({
-    enabled: Boolean(validDonationId),
-    queryFn: () => fetchContributionDetail(validDonationId!),
-    queryKey: contributionDetailQueryKey(validDonationId ?? "none"),
-    refetchOnWindowFocus: false,
-    staleTime: 30_000,
-  });
-}
 
 async function postContributionOperation(input: {
   actionType: "approve_staged_gift" | "retry_staged_gift" | "resend_receipt";
@@ -223,9 +123,7 @@ function sourceFromDetail(detail: ContributionDetail): Contribution["source"] {
   }
 }
 
-export function contributionFromDetail(
-  detail: ContributionDetail,
-): Contribution {
+function contributionFromDetail(detail: ContributionDetail): Contribution {
   const shared = detail.shared;
   const stagedGift = detail.stagedGift;
   const crmPostStatus = shared.crmPostStatus;
@@ -447,31 +345,17 @@ export function ContributionDetailOverlay({
   const contribution = detailQuery.data
     ? contributionFromDetail(detailQuery.data)
     : null;
-  const pendingAction: ContributionDetailPendingAction | null =
-    approveMutation.isPending && approveMutation.variables
-      ? {
-          actionType: "approve_staged_gift",
-          ...approveMutation.variables,
-        }
-      : retryMutation.isPending && retryMutation.variables
-        ? {
-            actionType: "retry_staged_gift",
-            ...retryMutation.variables,
-          }
-        : receiptMutation.isPending && receiptMutation.variables
-          ? {
-              actionType: "resend_receipt",
-              ...receiptMutation.variables,
-            }
-          : null;
-  const detailErrorMessage =
-    donationId && !validDonationId
-      ? "Invalid contribution link."
-      : detailQuery.isError
-        ? detailQuery.error instanceof Error
-          ? detailQuery.error.message
-          : "Could not load contribution detail."
-        : null;
+  const pendingAction = resolveOverlayPendingAction({
+    approveMutation,
+    retryMutation,
+    receiptMutation,
+  });
+  const detailErrorMessage = resolveOverlayDetailError(
+    donationId,
+    validDonationId,
+    detailQuery.isError,
+    detailQuery.error,
+  );
 
   return (
     <>
@@ -521,4 +405,44 @@ export function ContributionDetailOverlay({
       />
     </>
   );
+}
+
+function resolveOverlayPendingAction({
+  approveMutation,
+  retryMutation,
+  receiptMutation,
+}: ReturnType<
+  typeof useContributionDetailOverlayActions
+>): ContributionDetailPendingAction | null {
+  return approveMutation.isPending && approveMutation.variables
+    ? {
+        actionType: "approve_staged_gift",
+        ...approveMutation.variables,
+      }
+    : retryMutation.isPending && retryMutation.variables
+      ? {
+          actionType: "retry_staged_gift",
+          ...retryMutation.variables,
+        }
+      : receiptMutation.isPending && receiptMutation.variables
+        ? {
+            actionType: "resend_receipt",
+            ...receiptMutation.variables,
+          }
+        : null;
+}
+
+function resolveOverlayDetailError(
+  donationId: string | null,
+  validDonationId: string | null,
+  isError: boolean,
+  error: unknown,
+): string | null {
+  return donationId && !validDonationId
+    ? "Invalid contribution link."
+    : isError
+      ? error instanceof Error
+        ? error.message
+        : "Could not load contribution detail."
+      : null;
 }

@@ -60,7 +60,8 @@ AssertionError: expected 'import PageClient from "./page-client";' to match /use
         testFile: "tests/unit/rich-text.test.ts",
         testName: "documents raw images",
         assertion: "<img should only appear in image-view",
-        block: "packages/ui/components/shadcn/rich-text-editor/image-view.tsx",
+        block:
+          "packages/ui/components/shadcn/rich-text-editor/image-node-view.tsx",
       }),
     ).toBe("rich-text image policy");
   });

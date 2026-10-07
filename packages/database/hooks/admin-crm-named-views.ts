@@ -71,7 +71,7 @@ export function useCrmNamedViews(tableId: string) {
   });
 }
 
-export interface CrmNamedViewCreateInput {
+interface CrmNamedViewCreateInput {
   name: string;
   isDefault?: boolean;
   pinnedActionId?: string | null;
@@ -88,7 +88,7 @@ export interface CrmNamedViewUpdateInput {
   filtersSort?: CrmViewSettingsLayer["filtersSort"];
 }
 
-export interface CrmNamedViewDeleteInput {
+interface CrmNamedViewDeleteInput {
   viewId: string;
   nextDefaultViewId?: string | null;
 }

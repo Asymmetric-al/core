@@ -56,26 +56,26 @@ export function ReportFilters({
     <div className="flex flex-col gap-4 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+          <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
             From
           </Label>
           <Input
             type="date"
             value={fromInput}
             onChange={(event) => handleDateChange("from", event.target.value)}
-            className="w-40 font-mono text-[12px]"
+            className="w-40 font-mono"
             aria-label={`Start date (${INPUT_DATE})`}
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+          <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
             To
           </Label>
           <Input
             type="date"
             value={toInput}
             onChange={(event) => handleDateChange("to", event.target.value)}
-            className="w-40 font-mono text-[12px]"
+            className="w-40 font-mono"
             aria-label={`End date (${INPUT_DATE})`}
           />
         </div>
@@ -91,10 +91,10 @@ export function ReportFilters({
               if (value !== null) setState({ groupBy: value });
             }}
           >
-            <SelectControlLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+            <SelectControlLabel className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
               Group by
             </SelectControlLabel>
-            <SelectTrigger className="h-9 w-35 text-[12px]">
+            <SelectTrigger className="h-9 w-35">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -105,10 +105,10 @@ export function ReportFilters({
           </Select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+          <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
             Business hours only
           </Label>
-          <div className="flex h-9 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-2">
+          <div className="flex h-9 items-center gap-2 px-2">
             <Switch
               checked={state.businessHoursOnly}
               onCheckedChange={(value) =>
@@ -116,7 +116,7 @@ export function ReportFilters({
               }
               aria-label="Business hours only"
             />
-            <span className="text-[11px] font-medium text-zinc-600">
+            <span className="text-xs font-medium text-zinc-600">
               {state.businessHoursOnly ? "On" : "Off"}
             </span>
           </div>
@@ -128,7 +128,7 @@ export function ReportFilters({
             variant="ghost"
             size="sm"
             onClick={() => resetState()}
-            className="h-9 rounded-lg text-[11px] font-bold uppercase tracking-wider text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            className="h-9 rounded-lg font-bold uppercase tracking-wider text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
           >
             <RotateCcw className="size-3.5" />
             Reset

@@ -112,327 +112,35 @@ export function DonorsPageDetail() {
         {selectedDonor ? (
           <motion.div
             key={selectedDonor.id}
-            {...slideInRight}
+            initial={slideInRight.initial}
+            animate={slideInRight.animate}
+            exit={slideInRight.exit}
             transition={smoothTransition}
             className="h-full"
           >
             <Card className="border-border bg-card rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
               <div className="p-6 border-b border-border bg-card shrink-0">
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                  <div className="flex w-full min-w-0 items-start gap-4 sm:flex-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="lg:hidden size-8 -ml-2 mt-1 text-muted-foreground"
-                      onClick={clearSelection}
-                      aria-label="Back to partner list"
-                    >
-                      <ArrowLeft data-icon="inline-start" />
-                    </Button>
-                    <Avatar className="size-16 rounded-2xl border border-border shadow-sm">
-                      <AvatarImage src={selectedDonor.avatar_url} />
-                      <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground font-semibold">
-                        {selectedDonor.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex flex-col gap-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-xl font-semibold tracking-tight text-foreground truncate">
-                          {selectedDonor.name}
-                        </h2>
-                        {getStatusBadge(selectedDonor.status)}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="size-3" />
-                          {selectedDonor.location || "Unknown"}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          {selectedDonor.type === "Church" ? (
-                            <Church className="size-3" />
-                          ) : selectedDonor.type === "Organization" ? (
-                            <Building2 className="size-3" />
-                          ) : (
-                            <User className="size-3" />
-                          )}
-                          {selectedDonor.type}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
-                    className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto"
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted"
-                        onClick={() => noteComposer.open("note")}
-                      >
-                        <Pencil data-icon="inline-start" /> Note
-                      </Button>
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1 sm:flex-none"
-                    >
-                      {callHref ? (
-                        <a
-                          href={callHref}
-                          className={cn(
-                            buttonVariants({
-                              variant: "outline",
-                              size: "sm",
-                            }),
-                            "w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted",
-                          )}
-                        >
-                          <Phone data-icon="inline-start" /> Call
-                        </a>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled
-                          className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border"
-                        >
-                          <Phone data-icon="inline-start" /> Call
-                        </Button>
-                      )}
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1 sm:flex-none"
-                    >
-                      {emailHref ? (
-                        <a
-                          href={emailHref}
-                          className={cn(
-                            buttonVariants({ size: "sm" }),
-                            "w-full h-9 px-4 text-xs font-medium rounded-xl",
-                          )}
-                        >
-                          <Mail data-icon="inline-start" /> Email
-                        </a>
-                      ) : (
-                        <Button
-                          size="sm"
-                          disabled
-                          className="w-full h-9 px-4 text-xs font-medium rounded-xl"
-                        >
-                          <Mail data-icon="inline-start" /> Email
-                        </Button>
-                      )}
-                    </motion.div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Partner actions"
-                            className="size-9 text-muted-foreground rounded-xl hover:bg-muted"
-                          >
-                            <MoreHorizontal className="size-5" />
-                          </Button>
-                        }
-                      />
-                      <DropdownMenuContent
-                        align="end"
-                        className="rounded-xl border-border shadow-xl"
-                      >
-                        <DropdownMenuGroup>
-                          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                            Actions
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator className="bg-muted" />
-                          <DropdownMenuItem
-                            onClick={editDialog.open}
-                            disabled={selectedDonor.is_anonymous}
-                            className="text-xs font-medium"
-                          >
-                            <Pencil data-icon="inline-start" /> Edit Profile
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={tagEditor.open}
-                            disabled={selectedDonor.is_anonymous}
-                            className="text-xs font-medium"
-                          >
-                            <Tag data-icon="inline-start" /> Manage Tags
-                          </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator className="bg-muted" />
-                        <DropdownMenuGroup>
-                          <DropdownMenuItem
-                            onClick={() => noteComposer.open("call")}
-                            className="text-xs font-medium"
-                          >
-                            <Phone data-icon="inline-start" /> Log Call
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => noteComposer.open("meeting")}
-                            className="text-xs font-medium"
-                          >
-                            <Briefcase data-icon="inline-start" /> Log Meeting
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => noteComposer.open("email")}
-                            className="text-xs font-medium"
-                          >
-                            <Mail data-icon="inline-start" /> Log Email
-                          </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </motion.div>
+                  <DonorDetailIdentity
+                    clearSelection={clearSelection}
+                    selectedDonor={selectedDonor}
+                  />
+                  <DonorDetailActions
+                    callHref={callHref}
+                    emailHref={emailHref}
+                    noteComposer={noteComposer}
+                    editDialog={editDialog}
+                    selectedDonor={selectedDonor}
+                    tagEditor={tagEditor}
+                  />
                 </div>
 
-                <motion.div
-                  variants={staggerContainer}
-                  initial="initial"
-                  animate="animate"
-                  className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
-                >
-                  {[
-                    {
-                      label: "Lifetime",
-                      value: formatCurrency(selectedDonor.total_given),
-                    },
-                    {
-                      label: "Last Gift",
-                      value: formatCurrency(selectedDonor.last_gift_amount),
-                      extra: selectedDonor.last_gift_date
-                        ? formatDistanceToNow(
-                            parseDisplayDate(selectedDonor.last_gift_date),
-                            { addSuffix: true },
-                          )
-                        : null,
-                      showPulse:
-                        selectedDonor.last_gift_date &&
-                        differenceInMonths(
-                          currentDisplayDate(),
-                          parseDisplayDate(selectedDonor.last_gift_date),
-                        ) < 1,
-                    },
-                    {
-                      label: "Frequency",
-                      value: selectedDonor.frequency || "N/A",
-                      icon: ArrowUpRight,
-                    },
-                    {
-                      label: "Partner Since",
-                      value: selectedDonor.joined_date
-                        ? format(
-                            parseDisplayDate(selectedDonor.joined_date),
-                            "MMM yyyy",
-                          )
-                        : "N/A",
-                    },
-                  ].map((stat, i) => (
-                    <motion.div
-                      key={stat.label}
-                      variants={fadeInUp}
-                      transition={{
-                        ...smoothTransition,
-                        delay: 0.2 + i * 0.05,
-                      }}
-                      whileHover={{ y: -2 }}
-                      className="bg-muted p-4 rounded-2xl border border-border"
-                    >
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        {stat.label}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        {stat.icon ? (
-                          <stat.icon className="size-3.5 text-primary" />
-                        ) : null}
-                        <p
-                          className={cn(
-                            stat.label === "Lifetime" ||
-                              stat.label === "Last Gift"
-                              ? "text-lg"
-                              : "text-sm",
-                            "font-semibold text-foreground",
-                          )}
-                        >
-                          {stat.value}
-                        </p>
-                        {stat.showPulse ? (
-                          <motion.div
-                            animate={{
-                              scale: [1, 1.3, 1],
-                              opacity: [1, 0.7, 1],
-                            }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                            className="size-2 bg-primary/100 rounded-full"
-                          />
-                        ) : null}
-                      </div>
-                      {stat.extra ? (
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {stat.extra}
-                        </p>
-                      ) : null}
-                    </motion.div>
-                  ))}
-                </motion.div>
+                <DonorDetailStats selectedDonor={selectedDonor} />
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="flex flex-wrap items-center gap-1.5 mt-4"
-                >
-                  <AnimatePresence mode="popLayout">
-                    {(selectedDonor.tags || []).map((tag, i) => (
-                      <motion.div
-                        key={tag}
-                        layout
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{
-                          ...springTransition,
-                          delay: i * 0.03,
-                        }}
-                      >
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                            getTagStyle(tag),
-                          )}
-                        >
-                          {getTagLabel(tag)}
-                        </Badge>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
-                      onClick={tagEditor.open}
-                      disabled={selectedDonor.is_anonymous}
-                    >
-                      <Plus data-icon="inline-start" /> Add Tag
-                    </Button>
-                  </motion.div>
-                </motion.div>
+                <DonorDetailTags
+                  selectedDonor={selectedDonor}
+                  tagEditor={tagEditor}
+                />
               </div>
 
               <Tabs
@@ -452,7 +160,7 @@ export function DonorsPageDetail() {
                       <TabsTrigger
                         key={tab}
                         value={tab}
-                        className="rounded-xl data-active:bg-card data-active:shadow-sm px-2 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground data-active:text-foreground transition-colors"
+                        className="rounded-xl data-active:bg-card data-active:shadow-sm px-2 sm:px-6 py-2 font-semibold uppercase tracking-widest text-muted-foreground data-active:text-foreground transition-colors"
                       >
                         {tab === "overview"
                           ? "Overview"
@@ -533,39 +241,422 @@ export function DonorsPageDetail() {
             </Card>
           </motion.div>
         ) : (
-          <motion.div key="empty" {...scaleIn} transition={smoothTransition}>
-            <Card className="border-border border-dashed bg-muted/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
-              <CardContent className="p-16">
-                <Empty className="border-none bg-transparent min-h-0">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <User />
-                    </EmptyMedia>
-                    <EmptyTitle>Select a Partner</EmptyTitle>
-                    <EmptyDescription>
-                      Choose a donor from the list to view their profile,
-                      recurring donations, and giving history.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                  {profile?.id ? (
-                    <EmptyContent>
-                      <AddPartnerDialog
-                        missionaryId={profile.id}
-                        onSuccess={refreshDonors}
-                        trigger={
-                          <Button className="h-11 px-8 rounded-2xl bg-primary text-[10px] font-semibold uppercase tracking-[0.2em] text-primary-foreground hover:bg-primary">
-                            <Plus data-icon="inline-start" /> Add Partner
-                          </Button>
-                        }
-                      />
-                    </EmptyContent>
-                  ) : null}
-                </Empty>
-              </CardContent>
-            </Card>
-          </motion.div>
+          <DonorDetailEmpty profile={profile} refreshDonors={refreshDonors} />
         )}
       </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function DonorDetailIdentity({
+  clearSelection,
+  selectedDonor,
+}: {
+  clearSelection: ReturnType<
+    typeof useDonorsPageViewFields
+  >["donors"]["clearSelection"];
+  selectedDonor: NonNullable<
+    ReturnType<typeof useDonorsPageViewFields>["donors"]["selected"]
+  >;
+}) {
+  return (
+    <div className="flex w-full min-w-0 items-start gap-4 sm:flex-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="lg:hidden size-8 -ml-2 mt-1 text-muted-foreground"
+        onClick={clearSelection}
+        aria-label="Back to partner list"
+      >
+        <ArrowLeft data-icon="inline-start" />
+      </Button>
+      <Avatar className="size-16 rounded-2xl border border-border shadow-sm">
+        <AvatarImage src={selectedDonor.avatar_url} />
+        <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground font-semibold">
+          {selectedDonor.initials}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground truncate">
+            {selectedDonor.name}
+          </h2>
+          {getStatusBadge(selectedDonor.status)}
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <MapPin className="size-3" />
+            {selectedDonor.location || "Unknown"}
+          </span>
+          <span className="flex items-center gap-1">
+            {selectedDonor.type === "Church" ? (
+              <Church className="size-3" />
+            ) : selectedDonor.type === "Organization" ? (
+              <Building2 className="size-3" />
+            ) : (
+              <User className="size-3" />
+            )}
+            {selectedDonor.type}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DonorDetailActions({
+  callHref,
+  emailHref,
+  noteComposer,
+  editDialog,
+  selectedDonor,
+  tagEditor,
+}: {
+  callHref: string | null;
+  emailHref: string | null;
+  noteComposer: ReturnType<typeof useDonorsPageViewFields>["noteComposer"];
+  editDialog: ReturnType<typeof useDonorsPageViewFields>["editDialog"];
+  selectedDonor: NonNullable<
+    ReturnType<typeof useDonorsPageViewFields>["donors"]["selected"]
+  >;
+  tagEditor: ReturnType<typeof useDonorsPageViewFields>["tagEditor"];
+}) {
+  const handleEditDialogOpen = editDialog.open;
+  const handleTagEditorOpen = tagEditor.open;
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto"
+    >
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex-1 sm:flex-none"
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted"
+          onClick={() => noteComposer.open("note")}
+        >
+          <Pencil data-icon="inline-start" /> Note
+        </Button>
+      </motion.div>
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex-1 sm:flex-none"
+      >
+        {callHref ? (
+          <a
+            href={callHref}
+            className={cn(
+              buttonVariants({
+                variant: "outline",
+                size: "sm",
+              }),
+              "w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted",
+            )}
+          >
+            <Phone data-icon="inline-start" /> Call
+          </a>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled
+            className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border"
+          >
+            <Phone data-icon="inline-start" /> Call
+          </Button>
+        )}
+      </motion.div>
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex-1 sm:flex-none"
+      >
+        {emailHref ? (
+          <a
+            href={emailHref}
+            className={cn(
+              buttonVariants({ size: "sm" }),
+              "w-full h-9 px-4 text-xs font-medium rounded-xl",
+            )}
+          >
+            <Mail data-icon="inline-start" /> Email
+          </a>
+        ) : (
+          <Button
+            size="sm"
+            disabled
+            className="w-full h-9 px-4 text-xs font-medium rounded-xl"
+          >
+            <Mail data-icon="inline-start" /> Email
+          </Button>
+        )}
+      </motion.div>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Partner actions"
+              className="size-9 text-muted-foreground rounded-xl hover:bg-muted"
+            >
+              <MoreHorizontal className="size-5" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent
+          align="end"
+          className="rounded-xl border-border shadow-xl"
+        >
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Actions
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-muted" />
+            <DropdownMenuItem
+              onClick={handleEditDialogOpen}
+              disabled={selectedDonor.is_anonymous}
+              className="text-xs font-medium"
+            >
+              <Pencil data-icon="inline-start" /> Edit Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleTagEditorOpen}
+              disabled={selectedDonor.is_anonymous}
+              className="text-xs font-medium"
+            >
+              <Tag data-icon="inline-start" /> Manage Tags
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={() => noteComposer.open("call")}
+              className="text-xs font-medium"
+            >
+              <Phone data-icon="inline-start" /> Log Call
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => noteComposer.open("meeting")}
+              className="text-xs font-medium"
+            >
+              <Briefcase data-icon="inline-start" /> Log Meeting
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => noteComposer.open("email")}
+              className="text-xs font-medium"
+            >
+              <Mail data-icon="inline-start" /> Log Email
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </motion.div>
+  );
+}
+
+function DonorDetailStats({
+  selectedDonor,
+}: {
+  selectedDonor: NonNullable<
+    ReturnType<typeof useDonorsPageViewFields>["donors"]["selected"]
+  >;
+}) {
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
+    >
+      {[
+        {
+          label: "Lifetime",
+          value: formatCurrency(selectedDonor.total_given),
+        },
+        {
+          label: "Last Gift",
+          value: formatCurrency(selectedDonor.last_gift_amount),
+          extra: selectedDonor.last_gift_date
+            ? formatDistanceToNow(
+                parseDisplayDate(selectedDonor.last_gift_date),
+                { addSuffix: true },
+              )
+            : null,
+          showPulse:
+            selectedDonor.last_gift_date &&
+            differenceInMonths(
+              currentDisplayDate(),
+              parseDisplayDate(selectedDonor.last_gift_date),
+            ) < 1,
+        },
+        {
+          label: "Frequency",
+          value: selectedDonor.frequency || "N/A",
+          icon: ArrowUpRight,
+        },
+        {
+          label: "Partner Since",
+          value: selectedDonor.joined_date
+            ? format(parseDisplayDate(selectedDonor.joined_date), "MMM yyyy")
+            : "N/A",
+        },
+      ].map((stat, i) => (
+        <motion.div
+          key={stat.label}
+          variants={fadeInUp}
+          transition={{
+            ...smoothTransition,
+            delay: 0.2 + i * 0.05,
+          }}
+          whileHover={{ y: -2 }}
+          className="bg-muted p-4 rounded-2xl border border-border"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            {stat.label}
+          </p>
+          <div className="flex items-center gap-2">
+            {stat.icon ? <stat.icon className="size-3.5 text-primary" /> : null}
+            <p
+              className={cn(
+                stat.label === "Lifetime" || stat.label === "Last Gift"
+                  ? "text-lg"
+                  : "text-sm",
+                "font-semibold text-foreground",
+              )}
+            >
+              {stat.value}
+            </p>
+            {stat.showPulse ? (
+              <motion.div
+                animate={{
+                  scale: [1, 1.3, 1],
+                  opacity: [1, 0.7, 1],
+                }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="size-2 bg-primary/100 rounded-full"
+              />
+            ) : null}
+          </div>
+          {stat.extra ? (
+            <p className="text-xs text-muted-foreground mt-0.5">{stat.extra}</p>
+          ) : null}
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+function DonorDetailTags({
+  selectedDonor,
+  tagEditor,
+}: {
+  selectedDonor: NonNullable<
+    ReturnType<typeof useDonorsPageViewFields>["donors"]["selected"]
+  >;
+  tagEditor: ReturnType<typeof useDonorsPageViewFields>["tagEditor"];
+}) {
+  const handleTagEditorOpen = tagEditor.open;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.4 }}
+      className="flex flex-wrap items-center gap-1.5 mt-4"
+    >
+      <AnimatePresence mode="popLayout">
+        {(selectedDonor.tags || []).map((tag, i) => (
+          <motion.div
+            key={tag}
+            layout
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{
+              ...springTransition,
+              delay: i * 0.03,
+            }}
+          >
+            <Badge
+              variant="outline"
+              className={cn(
+                "font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
+                getTagStyle(tag),
+              )}
+            >
+              {getTagLabel(tag)}
+            </Badge>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 px-2 font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+          onClick={handleTagEditorOpen}
+          disabled={selectedDonor.is_anonymous}
+        >
+          <Plus data-icon="inline-start" /> Add Tag
+        </Button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function DonorDetailEmpty({
+  profile,
+  refreshDonors,
+}: {
+  profile: ReturnType<typeof useDonorsPageViewFields>["profile"];
+  refreshDonors: ReturnType<
+    typeof useDonorsPageViewFields
+  >["actions"]["refreshDonors"];
+}) {
+  return (
+    <motion.div
+      key="empty"
+      initial={scaleIn.initial}
+      animate={scaleIn.animate}
+      exit={scaleIn.exit}
+      transition={smoothTransition}
+    >
+      <Card className="border-border border-dashed bg-muted/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
+        <CardContent className="p-16">
+          <Empty className="border-none bg-transparent min-h-0">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <User />
+              </EmptyMedia>
+              <EmptyTitle>Select a Partner</EmptyTitle>
+              <EmptyDescription>
+                Choose a donor from the list to view their profile, recurring
+                donations, and giving history.
+              </EmptyDescription>
+            </EmptyHeader>
+            {profile?.id ? (
+              <EmptyContent>
+                <AddPartnerDialog
+                  missionaryId={profile.id}
+                  onSuccess={refreshDonors}
+                  trigger={
+                    <Button className="h-11 px-8 rounded-2xl bg-primary font-semibold uppercase tracking-[0.2em] text-primary-foreground hover:bg-primary">
+                      <Plus data-icon="inline-start" /> Add Partner
+                    </Button>
+                  }
+                />
+              </EmptyContent>
+            ) : null}
+          </Empty>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }

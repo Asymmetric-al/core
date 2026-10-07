@@ -56,7 +56,7 @@ export function StatusCell({ status }: { status: SupportConversationStatus }) {
     <Badge
       variant="outline"
       className={cn(
-        "h-6 rounded-md px-2 text-[11px] font-semibold uppercase tracking-wider ring-1 ring-inset",
+        "h-6 rounded-md px-2 font-semibold uppercase tracking-wider ring-1 ring-inset",
         STATUS_TONES[status],
       )}
     >
@@ -70,7 +70,7 @@ export function PriorityCell({ priority }: { priority: SupportPriority }) {
     <Badge
       variant="outline"
       className={cn(
-        "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset",
+        "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider ring-1 ring-inset",
         PRIORITY_TONES[priority],
       )}
     >
@@ -82,11 +82,11 @@ export function PriorityCell({ priority }: { priority: SupportPriority }) {
 export function DonorCell({ row }: { row: SupportConversation }) {
   return (
     <div className="flex min-w-0 flex-col">
-      <span className="truncate text-[13px] font-medium text-zinc-900">
+      <span className="truncate text-xs font-medium text-zinc-900">
         {row.externalContactName ?? row.externalContactEmail}
       </span>
       {row.externalContactName ? (
-        <span className="truncate text-[11px] text-zinc-500">
+        <span className="truncate text-xs text-zinc-500">
           {row.externalContactEmail}
         </span>
       ) : null}
@@ -109,7 +109,7 @@ export function SubjectCell({ row }: { row: SupportConversation }) {
           className="size-1.5 shrink-0 rounded-full bg-zinc-900"
         />
       ) : null}
-      <span className="truncate text-[13px] font-medium text-zinc-900">
+      <span className="truncate text-xs font-medium text-zinc-900">
         {row.subject}
       </span>
       {showAlert ? (
@@ -127,7 +127,7 @@ export function AssigneeCell({
 }) {
   if (!assignee) {
     return (
-      <span className="inline-flex items-center gap-2 text-[12px] text-zinc-400">
+      <span className="inline-flex items-center gap-2 text-xs text-zinc-400">
         <span
           className="flex size-6 items-center justify-center rounded-full border border-dashed border-amber-300 text-amber-600"
           aria-hidden
@@ -145,20 +145,18 @@ export function AssigneeCell({
           src={assignee.avatarUrl ?? undefined}
           alt={assignee.name}
         />
-        <AvatarFallback className="text-[10px] font-semibold">
+        <AvatarFallback className="text-xs font-semibold">
           {assignee.name.charAt(0)}
         </AvatarFallback>
       </Avatar>
-      <span className="truncate text-[12px] text-zinc-700">
-        {assignee.name}
-      </span>
+      <span className="truncate text-xs text-zinc-700">{assignee.name}</span>
     </span>
   );
 }
 
 export function LabelsCell({ labels }: { labels: SupportLabel[] }) {
   if (labels.length === 0) {
-    return <span className="text-[11px] text-zinc-400">--</span>;
+    return <span className="text-xs text-zinc-400">--</span>;
   }
   const visible = labels.slice(0, 2);
   const overflow = labels.length - visible.length;
@@ -168,7 +166,7 @@ export function LabelsCell({ labels }: { labels: SupportLabel[] }) {
         <span
           key={label.id}
           className={cn(
-            "inline-flex h-5 items-center rounded-md px-1.5 text-[10px] font-semibold ring-1 ring-inset",
+            "inline-flex h-5 items-center rounded-md px-1.5 text-xs font-semibold ring-1 ring-inset",
             LABEL_TONES[label.tone],
           )}
         >
@@ -176,9 +174,7 @@ export function LabelsCell({ labels }: { labels: SupportLabel[] }) {
         </span>
       ))}
       {overflow > 0 ? (
-        <span className="text-[10px] font-semibold text-zinc-400">
-          +{overflow}
-        </span>
+        <span className="text-xs font-semibold text-zinc-400">+{overflow}</span>
       ) : null}
     </div>
   );
@@ -186,9 +182,9 @@ export function LabelsCell({ labels }: { labels: SupportLabel[] }) {
 
 export function RelativeTimeCell({ value }: { value: string | null }) {
   const nowIso = useSupportNow();
-  if (!value) return <span className="text-[11px] text-zinc-400">--</span>;
+  if (!value) return <span className="text-xs text-zinc-400">--</span>;
   return (
-    <span className="font-mono text-[11px] tabular-nums text-zinc-600">
+    <span className="font-mono text-xs tabular-nums text-zinc-600">
       {formatRelative(value, nowIso)}
     </span>
   );
@@ -201,22 +197,22 @@ export function RelativeTimeCell({ value }: { value: string | null }) {
 export function WaitingTimeCell({ row }: { row: SupportConversation }) {
   const nowIso = useSupportNow();
   if (row.status !== "open" && row.status !== "pending") {
-    return <span className="text-[11px] text-zinc-400">--</span>;
+    return <span className="text-xs text-zinc-400">--</span>;
   }
   if (row.lastMessageDirection !== "inbound") {
-    return <span className="text-[11px] text-zinc-400">--</span>;
+    return <span className="text-xs text-zinc-400">--</span>;
   }
   const since = row.lastCustomerMessageAt ?? row.lastMessageAt;
   const minutes = minutesBetween(since, nowIso);
   if (minutes === null) {
-    return <span className="text-[11px] text-zinc-400">--</span>;
+    return <span className="text-xs text-zinc-400">--</span>;
   }
   const label = formatRelative(since, nowIso);
   const isOver24h = minutes >= 24 * 60;
   return (
     <span
       className={cn(
-        "font-mono text-[11px] tabular-nums",
+        "font-mono text-xs tabular-nums",
         isOver24h ? "text-rose-600" : "text-zinc-600",
       )}
     >
@@ -226,7 +222,5 @@ export function WaitingTimeCell({ row }: { row: SupportConversation }) {
 }
 
 export function InboxCell({ inboxId }: { inboxId: string }) {
-  return (
-    <span className="text-[11px] font-medium text-zinc-500">{inboxId}</span>
-  );
+  return <span className="text-xs font-medium text-zinc-500">{inboxId}</span>;
 }

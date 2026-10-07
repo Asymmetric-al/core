@@ -92,7 +92,7 @@ function RippleButton({
     [reduceMotion, removeAfterMs],
   );
 
-  const handleClick = React.useCallback(
+  const handleRipplePress = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       createRipple(event);
 
@@ -108,7 +108,7 @@ function RippleButton({
       <m.button
         ref={buttonRef}
         data-slot="ripple-button"
-        onClick={handleClick}
+        onClick={handleRipplePress}
         className={cn(
           buttonVariants({ variant, size }),
           "relative overflow-hidden",

@@ -15,23 +15,3 @@ export type {
   SupportAutomationRule,
   SupportAutomationTrigger,
 } from "./automation";
-
-export interface SupportBusinessHoursDay {
-  day:
-    | "monday"
-    | "tuesday"
-    | "wednesday"
-    | "thursday"
-    | "friday"
-    | "saturday"
-    | "sunday";
-  enabled: boolean;
-  openTime: string;
-  closeTime: string;
-}
-
-export interface SupportBusinessHoursHoliday {
-  id: string;
-  date: string;
-  label: string;
-}

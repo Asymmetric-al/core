@@ -1,11 +1,6 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
-import {
-  type NodeViewProps,
-  NodeViewWrapper,
-  ReactNodeViewRenderer,
-} from "@tiptap/react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { Trash } from "lucide-react";
 import {
   useEffect,
@@ -19,25 +14,11 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
-
-export const IMAGE_RESIZE_MIN_PX = 150;
-
-export function resolveImageResizeAriaValues({
-  currentWidthPx,
-  maxWidthPx,
-}: {
-  currentWidthPx: number;
-  maxWidthPx: number;
-}): { min: number; max: number; now: number } {
-  const min = IMAGE_RESIZE_MIN_PX;
-  const finiteMax =
-    Number.isFinite(maxWidthPx) && maxWidthPx > 0
-      ? maxWidthPx
-      : Math.max(currentWidthPx, min);
-  const max = Math.max(min, finiteMax);
-  const now = Math.min(Math.max(currentWidthPx, min), max);
-  return { min, max, now };
-}
+import {
+  IMAGE_RESIZE_MIN_PX,
+  normalizeImageWidth,
+  resolveImageResizeAriaValues,
+} from "./image-resize";
 
 export function ImageResizeHandle({
   side,
@@ -81,58 +62,15 @@ export function ImageResizeHandle({
   );
 }
 
-function normalizeImageWidth(value: unknown): string {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return `${value}px`;
-  }
-
-  if (typeof value === "string") {
-    const normalizedValue = value.trim();
-
-    if (!normalizedValue) return "100%";
-    if (/^\d+$/.test(normalizedValue)) return `${normalizedValue}px`;
-
-    return normalizedValue;
-  }
-
-  return "100%";
-}
-
 /* -------------------------------------------------------------------------- */
 /*    Extension - extends base Image with width attribute + custom NodeView   */
 /* -------------------------------------------------------------------------- */
-
-export const ResizableImageExtension = Image.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      width: {
-        default: "100%",
-        renderHTML: (attributes) => {
-          const width = normalizeImageWidth(attributes.width);
-
-          if (width === "100%") return {};
-
-          return { style: `width: ${width}` };
-        },
-        parseHTML: (element) =>
-          normalizeImageWidth(
-            element.style.width || element.getAttribute("width") || "100%",
-          ),
-      },
-    };
-  },
-
-  addNodeView() {
-    return ReactNodeViewRenderer(ResizableImageView);
-  },
-});
 
 /* -------------------------------------------------------------------------- */
 /*            NodeView - renders image with drag-to-resize handles            */
 /* -------------------------------------------------------------------------- */
 
-function ResizableImageView({
+export function ResizableImageView({
   node,
   editor,
   selected,
@@ -285,15 +223,16 @@ function ResizableImageView({
               }}
             />
 
-            <Button
-              variant="destructive"
-              size="icon"
-              aria-label="Delete image"
-              className="absolute top-2 right-2 z-20 size-7 opacity-0 transition-opacity group-hover:opacity-100"
-              onClick={deleteNode}
-            >
-              <Trash className="size-3.5" />
-            </Button>
+            <div className="absolute top-2 right-2 z-20">
+              <Button
+                variant="destructive"
+                size="icon-sm"
+                aria-label="Delete image"
+                onClick={deleteNode}
+              >
+                <Trash className="size-3.5" />
+              </Button>
+            </div>
           </>
         )}
       </div>

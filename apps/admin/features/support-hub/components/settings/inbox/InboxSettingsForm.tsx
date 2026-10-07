@@ -42,7 +42,7 @@ export function InboxSettingsForm() {
         title="Inbox identity"
         description="No default inbox configured yet."
       >
-        <p className="text-[12px] text-zinc-500">
+        <p className="text-xs text-zinc-500">
           Configure an inbox in the Mission Control integrations area first.
         </p>
       </SettingsPanel>
@@ -102,7 +102,7 @@ export function InboxSettingsForm() {
             });
           }}
           aria-label="Default signature"
-          className="h-9 max-w-sm text-[12px]"
+          className="h-9 max-w-sm"
         />
       </SettingsRow>
       <SettingsRow
@@ -127,7 +127,7 @@ export function InboxSettingsForm() {
             });
           }}
           aria-label="Default SLA policy"
-          className="h-9 max-w-sm text-[12px]"
+          className="h-9 max-w-sm"
         />
       </SettingsRow>
       <SettingsRow
@@ -152,7 +152,7 @@ export function InboxSettingsForm() {
             });
           }}
           aria-label="Business hours"
-          className="h-9 max-w-sm text-[12px]"
+          className="h-9 max-w-sm"
         />
       </SettingsRow>
       <SettingsRow
@@ -167,7 +167,7 @@ export function InboxSettingsForm() {
             }
             aria-label="Round-robin assignment"
           />
-          <span className="text-[12px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {draft.roundRobinEnabled ? "Enabled" : "Disabled"}
           </span>
         </div>
@@ -190,9 +190,9 @@ export function InboxSettingsForm() {
                   : null,
               })
             }
-            className="w-30 font-mono text-[12px]"
+            className="w-30 font-mono"
           />
-          <span className="text-[12px] text-zinc-500">days</span>
+          <span className="text-xs text-zinc-500">days</span>
         </div>
       </SettingsRow>
       <SettingsRow
@@ -207,7 +207,7 @@ export function InboxSettingsForm() {
             }
             aria-label="Contact sidecar"
           />
-          <span className="text-[12px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {draft.showContactSidecar ? "Visible" : "Hidden"}
           </span>
         </div>

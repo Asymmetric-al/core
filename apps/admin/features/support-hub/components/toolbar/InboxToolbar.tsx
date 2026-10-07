@@ -45,7 +45,7 @@ export function InboxToolbar() {
           value={searchDraft}
           onChange={(event) => setSearchDraft(event.target.value)}
           placeholder="Search by donor, subject, or email..."
-          className="h-10 rounded-xl border-zinc-200 bg-white pl-9 pr-9 text-[13px]"
+          className="h-10 rounded-xl border-zinc-200 bg-white pl-9 pr-9"
           aria-label="Search conversations"
         />
         {searchDraft.length > 0 ? (

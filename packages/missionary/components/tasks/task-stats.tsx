@@ -48,7 +48,7 @@ export function StatCard({
         />
       )}
       <ValueText value={value} />
-      <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70 group-hover:opacity-100 transition-opacity">
+      <span className="text-xs font-semibold uppercase tracking-wider opacity-70 group-hover:opacity-100 transition-opacity">
         {label}
       </span>
     </button>

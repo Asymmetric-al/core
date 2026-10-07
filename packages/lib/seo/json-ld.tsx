@@ -2,6 +2,50 @@ import { siteConfig } from "@asym/config/site";
 
 const SITE_URL = siteConfig.url;
 
+const websiteJsonLdJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: siteConfig.name,
+  url: SITE_URL,
+  description: siteConfig.description,
+  publisher: {
+    "@id": `${SITE_URL}/#organization`,
+  },
+  inLanguage: siteConfig.language,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/workers?search={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const donateActionJsonLdJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "DonateAction",
+  "@id": `${SITE_URL}/#donate`,
+  agent: {
+    "@type": "Organization",
+    "@id": `${SITE_URL}/#organization`,
+    name: siteConfig.name,
+    url: SITE_URL,
+  },
+  recipient: {
+    "@type": "Organization",
+    name: `${siteConfig.name} Field Workers`,
+  },
+  description:
+    "Support verified field missionaries with tax-deductible donations.",
+  potentialAction: {
+    "@type": "DonateAction",
+    target: `${SITE_URL}/workers`,
+    name: "Donate to Support Missionaries",
+  },
+};
+
 function serializeJsonLd(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");
 }
@@ -54,55 +98,19 @@ export function OrganizationJsonLd() {
 }
 
 export function WebsiteJsonLd() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${SITE_URL}/#website`,
-    name: siteConfig.name,
-    url: SITE_URL,
-    description: siteConfig.description,
-    publisher: {
-      "@id": `${SITE_URL}/#organization`,
-    },
-    inLanguage: siteConfig.language,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${SITE_URL}/workers?search={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-  };
-
-  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
+  return (
+    <script type="application/ld+json">
+      {serializeJsonLd(websiteJsonLdJsonLd)}
+    </script>
+  );
 }
 
 export function DonateActionJsonLd() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "DonateAction",
-    "@id": `${SITE_URL}/#donate`,
-    agent: {
-      "@type": "Organization",
-      "@id": `${SITE_URL}/#organization`,
-      name: siteConfig.name,
-      url: SITE_URL,
-    },
-    recipient: {
-      "@type": "Organization",
-      name: `${siteConfig.name} Field Workers`,
-    },
-    description:
-      "Support verified field missionaries with tax-deductible donations.",
-    potentialAction: {
-      "@type": "DonateAction",
-      target: `${SITE_URL}/workers`,
-      name: "Donate to Support Missionaries",
-    },
-  };
-
-  return <script type="application/ld+json">{serializeJsonLd(jsonLd)}</script>;
+  return (
+    <script type="application/ld+json">
+      {serializeJsonLd(donateActionJsonLdJsonLd)}
+    </script>
+  );
 }
 
 interface WorkerJsonLdProps {

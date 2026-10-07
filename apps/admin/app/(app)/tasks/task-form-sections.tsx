@@ -391,67 +391,73 @@ function TaskLinkedRecordSection({
                     <CommandList>
                       <CommandEmpty>No records found.</CommandEmpty>
                       <CommandGroup heading="Donors">
-                        {linkedEntities
-                          .filter((entity) => entity.type === "donor")
-                          .map((entity) => (
-                            <CommandItem
-                              key={entity.id}
-                              onSelect={() => {
-                                field.handleChange(entity);
-                                onEntitySearchOpenChange(false);
-                              }}
-                            >
-                              <Avatar className="mr-2" size="sm">
-                                <AvatarImage src={entity.avatar} />
-                                <AvatarFallback>
-                                  {entity.name[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{entity.name}</span>
-                            </CommandItem>
-                          ))}
+                        {linkedEntities.flatMap((entity) =>
+                          entity.type === "donor"
+                            ? [
+                                <CommandItem
+                                  key={entity.id}
+                                  onSelect={() => {
+                                    field.handleChange(entity);
+                                    onEntitySearchOpenChange(false);
+                                  }}
+                                >
+                                  <Avatar className="mr-2" size="sm">
+                                    <AvatarImage src={entity.avatar} />
+                                    <AvatarFallback>
+                                      {entity.name[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span>{entity.name}</span>
+                                </CommandItem>,
+                              ]
+                            : [],
+                        )}
                       </CommandGroup>
                       <CommandGroup heading="Missionaries">
-                        {linkedEntities
-                          .filter((entity) => entity.type === "missionary")
-                          .map((entity) => (
-                            <CommandItem
-                              key={entity.id}
-                              onSelect={() => {
-                                field.handleChange(entity);
-                                onEntitySearchOpenChange(false);
-                              }}
-                            >
-                              <Avatar className="mr-2" size="sm">
-                                <AvatarImage src={entity.avatar} />
-                                <AvatarFallback>
-                                  {entity.name[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{entity.name}</span>
-                            </CommandItem>
-                          ))}
+                        {linkedEntities.flatMap((entity) =>
+                          entity.type === "missionary"
+                            ? [
+                                <CommandItem
+                                  key={entity.id}
+                                  onSelect={() => {
+                                    field.handleChange(entity);
+                                    onEntitySearchOpenChange(false);
+                                  }}
+                                >
+                                  <Avatar className="mr-2" size="sm">
+                                    <AvatarImage src={entity.avatar} />
+                                    <AvatarFallback>
+                                      {entity.name[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span>{entity.name}</span>
+                                </CommandItem>,
+                              ]
+                            : [],
+                        )}
                       </CommandGroup>
                       <CommandGroup heading="Contacts">
-                        {linkedEntities
-                          .filter((entity) => entity.type === "contact")
-                          .map((entity) => (
-                            <CommandItem
-                              key={entity.id}
-                              onSelect={() => {
-                                field.handleChange(entity);
-                                onEntitySearchOpenChange(false);
-                              }}
-                            >
-                              <Avatar className="mr-2" size="sm">
-                                <AvatarImage src={entity.avatar} />
-                                <AvatarFallback>
-                                  {entity.name[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{entity.name}</span>
-                            </CommandItem>
-                          ))}
+                        {linkedEntities.flatMap((entity) =>
+                          entity.type === "contact"
+                            ? [
+                                <CommandItem
+                                  key={entity.id}
+                                  onSelect={() => {
+                                    field.handleChange(entity);
+                                    onEntitySearchOpenChange(false);
+                                  }}
+                                >
+                                  <Avatar className="mr-2" size="sm">
+                                    <AvatarImage src={entity.avatar} />
+                                    <AvatarFallback>
+                                      {entity.name[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span>{entity.name}</span>
+                                </CommandItem>,
+                              ]
+                            : [],
+                        )}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -495,7 +501,7 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
                   (reminder: TaskFormReminder, index: number) => (
                     <div
                       className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-1 sm:p-3"
-                      key={reminder.id ?? index}
+                      key={reminder.id}
                     >
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="w-full sm:min-w-0 sm:flex-1">

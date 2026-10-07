@@ -1,7 +1,10 @@
 "use client";
 
 import { EVE_POLICY_ACTION_IDS } from "@asym/api/eve/approval-budget";
-import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
+import {
+  useLocaleFormat,
+  type DateInput,
+} from "@asym/lib/hooks/use-locale-format";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Alert,
@@ -28,15 +31,23 @@ import {
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { Gauge, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
 import type {
   EveApprovalBudgetAdminView,
   EveBudgetScopeType,
   EvePolicyActionId,
 } from "@asym/api/eve/approval-budget/types";
+
+const NUMBER_FORMATTER_1 = new Intl.NumberFormat();
 
 interface ResponseBody extends EveApprovalBudgetAdminView {
   mutation?: { action: string; result: unknown };
@@ -116,7 +127,7 @@ async function requestPolicy(body?: MutationBody): Promise<ResponseBody> {
 }
 
 function formatNumber(value: number) {
-  return new Intl.NumberFormat().format(value);
+  return NUMBER_FORMATTER_1.format(value);
 }
 
 export function EveApprovalBudgetPanel() {
@@ -148,373 +159,479 @@ export function EveApprovalBudgetPanel() {
 
   return (
     <section className="space-y-6" aria-labelledby="approval-budget-title">
+      <ApprovalPolicySection
+        mutation={mutation}
+        actionId={actionId}
+        setActionId={setActionId}
+        targetKey={targetKey}
+        setTargetKey={setTargetKey}
+        matchingApproval={matchingApproval}
+      />
+
+      <ApprovalBudgetSummary query={query} mutation={mutation} />
+
+      <PendingApprovalsSection
+        query={query}
+        formatDateTime={formatDateTime}
+        mutation={mutation}
+      />
+
+      <RecentApprovalActions query={query} />
+    </section>
+  );
+}
+
+function ApprovalPolicySection({
+  mutation,
+  actionId,
+  setActionId,
+  targetKey,
+  setTargetKey,
+  matchingApproval,
+}: {
+  mutation: UseMutationResult<
+    ResponseBody,
+    Error,
+    MutationBody | undefined,
+    unknown
+  >;
+  actionId:
+    | "engineering.review_artifact.write"
+    | "engineering.github_operation.write"
+    | "engineering.github_merge.execute"
+    | "engineering.subagent.delegate"
+    | "engineering.dynamic_workflow.execute"
+    | "engineering.monitor.collect"
+    | "engineering.notification.deliver"
+    | "engineering.shared_context.write"
+    | "engineering.shared_context.resolve"
+    | "product.internal_status.write"
+    | "memory.advisory.write"
+    | "product.donor.write";
+  setActionId: Dispatch<
+    SetStateAction<
+      | "engineering.review_artifact.write"
+      | "engineering.github_operation.write"
+      | "engineering.github_merge.execute"
+      | "engineering.subagent.delegate"
+      | "engineering.dynamic_workflow.execute"
+      | "engineering.monitor.collect"
+      | "engineering.notification.deliver"
+      | "engineering.shared_context.write"
+      | "engineering.shared_context.resolve"
+      | "product.internal_status.write"
+      | "memory.advisory.write"
+      | "product.donor.write"
+    >
+  >;
+  targetKey: string;
+  setTargetKey: Dispatch<SetStateAction<string>>;
+  matchingApproval: ResponseBody["approvals"][number] | undefined;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle
+          id="approval-budget-title"
+          className="flex items-center gap-2"
+        >
+          <ShieldCheck aria-hidden="true" className="size-5" />
+          Approval and budget policy
+        </CardTitle>
+        <CardDescription>
+          Executable tracer for separate trust zones, stricter business-data
+          approval, and hard persisted budgets. It writes only a non-business
+          tracer artifact and does not enable Eve.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {mutation.error ? (
+          <Alert variant="destructive">
+            <AlertTitle>Policy mutation failed closed</AlertTitle>
+            <AlertDescription>{mutation.error.message}</AlertDescription>
+          </Alert>
+        ) : null}
+        {mutation.data?.mutation ? (
+          <Alert>
+            <AlertTitle>Policy decision recorded</AlertTitle>
+            <AlertDescription>
+              {JSON.stringify(mutation.data.mutation.result)}
+            </AlertDescription>
+          </Alert>
+        ) : null}
+        <div className="grid gap-4 md:grid-cols-[1fr_18rem]">
+          <div>
+            <Select<EvePolicyActionId>
+              items={ACTION_LABELS}
+              value={actionId}
+              onValueChange={(value) => {
+                if (value !== null) setActionId(value);
+              }}
+            >
+              <SelectControlLabel>Fixed app-owned action</SelectControlLabel>
+              <SelectTrigger id="policy-action" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVE_POLICY_ACTION_IDS.map((id) => (
+                  <SelectItem key={id} value={id}>
+                    {ACTION_LABELS[id]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="policy-target">Non-sensitive target key</Label>
+            <Input
+              id="policy-target"
+              value={targetKey}
+              onChange={(event) => setTargetKey(event.target.value)}
+              pattern="[a-zA-Z0-9:_-]+"
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            focusableWhenDisabled={
+              mutation.isPending && mutation.variables?.action === "execute"
+            }
+            disabled={mutation.isPending || !targetKey}
+            onClick={() =>
+              mutation.mutate({
+                action: "execute",
+                actionId,
+                targetKey,
+                approvalId: matchingApproval?.id,
+              })
+            }
+          >
+            Consult and execute tracer
+          </Button>
+          <Button
+            variant="outline"
+            focusableWhenDisabled={
+              mutation.isPending &&
+              mutation.variables?.action === "request_approval"
+            }
+            disabled={mutation.isPending || !targetKey}
+            onClick={() =>
+              mutation.mutate({
+                action: "request_approval",
+                actionId,
+                targetKey,
+              })
+            }
+          >
+            Request required approval
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          The server resolves zone, write class, domain, and cost from its
+          catalog. The target key cannot contain spaces or payload data.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ApprovalBudgetSummary({
+  query,
+  mutation,
+}: {
+  query: UseQueryResult<ResponseBody, Error>;
+  mutation: UseMutationResult<
+    ResponseBody,
+    Error,
+    MutationBody | undefined,
+    unknown
+  >;
+}) {
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle
-            id="approval-budget-title"
-            className="flex items-center gap-2"
-          >
-            <ShieldCheck aria-hidden="true" className="size-5" />
-            Approval and budget policy
+          <CardTitle>Separate trust-zone rules</CardTitle>
+          <CardDescription>
+            An allowance never crosses into another zone.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {query.isLoading ? (
+            <div role="status">
+              <span className="sr-only">
+                Loading approval and budget policy…
+              </span>
+              <Skeleton className="h-28 w-full" />
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {query.data?.policies.map((policy) => (
+                <li
+                  key={policy.trustZone}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <span className="text-sm font-medium">
+                    {policy.trustZone.replace("_", " /")}
+                  </span>
+                  <Badge
+                    variant={
+                      policy.operationalMode === "allow"
+                        ? "default"
+                        : policy.operationalMode === "deny"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                  >
+                    {policy.operationalMode.replace("_", " ")}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+      <Card id="eve-budgets">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gauge aria-hidden="true" className="size-5" />
+            Hard budgets
           </CardTitle>
           <CardDescription>
-            Executable tracer for separate trust zones, stricter business-data
-            approval, and hard persisted budgets. It writes only a non-business
-            tracer artifact and does not enable Eve.
+            Active overrides are additive, bounded, permissioned, expiring, and
+            audited.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
-          {mutation.error ? (
-            <Alert variant="destructive">
-              <AlertTitle>Policy mutation failed closed</AlertTitle>
-              <AlertDescription>{mutation.error.message}</AlertDescription>
-            </Alert>
-          ) : null}
-          {mutation.data?.mutation ? (
-            <Alert>
-              <AlertTitle>Policy decision recorded</AlertTitle>
-              <AlertDescription>
-                {JSON.stringify(mutation.data.mutation.result)}
-              </AlertDescription>
-            </Alert>
-          ) : null}
-          <div className="grid gap-4 md:grid-cols-[1fr_18rem]">
-            <div>
-              <Select<EvePolicyActionId>
-                items={ACTION_LABELS}
-                value={actionId}
-                onValueChange={(value) => {
-                  if (value !== null) setActionId(value);
-                }}
-              >
-                <SelectControlLabel>Fixed app-owned action</SelectControlLabel>
-                <SelectTrigger id="policy-action" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVE_POLICY_ACTION_IDS.map((id) => (
-                    <SelectItem key={id} value={id}>
-                      {ACTION_LABELS[id]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="policy-target">Non-sensitive target key</Label>
-              <Input
-                id="policy-target"
-                value={targetKey}
-                onChange={(event) => setTargetKey(event.target.value)}
-                pattern="[a-zA-Z0-9:_-]+"
-              />
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              focusableWhenDisabled={
-                mutation.isPending && mutation.variables?.action === "execute"
-              }
-              disabled={mutation.isPending || !targetKey}
-              onClick={() =>
-                mutation.mutate({
-                  action: "execute",
-                  actionId,
-                  targetKey,
-                  approvalId: matchingApproval?.id,
-                })
-              }
-            >
-              Consult and execute tracer
-            </Button>
-            <Button
-              variant="outline"
-              focusableWhenDisabled={
-                mutation.isPending &&
-                mutation.variables?.action === "request_approval"
-              }
-              disabled={mutation.isPending || !targetKey}
-              onClick={() =>
-                mutation.mutate({
-                  action: "request_approval",
-                  actionId,
-                  targetKey,
-                })
-              }
-            >
-              Request required approval
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            The server resolves zone, write class, domain, and cost from its
-            catalog. The target key cannot contain spaces or payload data.
-          </p>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Separate trust-zone rules</CardTitle>
-            <CardDescription>
-              An allowance never crosses into another zone.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {query.isLoading ? (
-              <div role="status">
-                <span className="sr-only">
-                  Loading approval and budget policy…
-                </span>
-                <Skeleton className="h-28 w-full" />
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {query.data?.policies.map((policy) => (
-                  <li
-                    key={policy.trustZone}
-                    className="flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <span className="text-sm font-medium">
-                      {policy.trustZone.replace("_", " /")}
-                    </span>
-                    <Badge
-                      variant={
-                        policy.operationalMode === "allow"
-                          ? "default"
-                          : policy.operationalMode === "deny"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                    >
-                      {policy.operationalMode.replace("_", " ")}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-        <Card id="eve-budgets">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gauge aria-hidden="true" className="size-5" />
-              Hard budgets
-            </CardTitle>
-            <CardDescription>
-              Active overrides are additive, bounded, permissioned, expiring,
-              and audited.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {query.data?.budgets.map((budget) => (
-              <div key={budget.id} className="space-y-2 rounded-lg border p-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">
-                    {budget.scopeType}: {budget.scopeId}
-                  </p>
-                  <Badge
-                    variant={
-                      budget.usedRequests >=
-                      budget.maxRequests + budget.additionalRequests
-                        ? "destructive"
-                        : "outline"
-                    }
-                  >
-                    {formatNumber(budget.usedRequests)} /{" "}
-                    {formatNumber(
-                      budget.maxRequests + budget.additionalRequests,
-                    )}{" "}
-                    requests
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  USD micros {formatNumber(budget.usedUsdMicros)} /{" "}
-                  {formatNumber(
-                    budget.maxUsdMicros + budget.additionalUsdMicros,
-                  )}{" "}
-                  · input {formatNumber(budget.usedInputTokens)} /{" "}
-                  {formatNumber(
-                    budget.maxInputTokens + budget.additionalInputTokens,
-                  )}{" "}
-                  · output {formatNumber(budget.usedOutputTokens)} /{" "}
-                  {formatNumber(
-                    budget.maxOutputTokens + budget.additionalOutputTokens,
-                  )}
+        <CardContent className="space-y-4">
+          {query.data?.budgets.map((budget) => (
+            <div key={budget.id} className="space-y-2 rounded-lg border p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">
+                  {budget.scopeType}: {budget.scopeId}
                 </p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  focusableWhenDisabled={
-                    mutation.isPending &&
-                    mutation.variables?.action === "override_budget" &&
-                    mutation.variables.scopeType === budget.scopeType &&
-                    mutation.variables.scopeId === budget.scopeId
-                  }
-                  disabled={mutation.isPending}
-                  onClick={() =>
-                    mutation.mutate({
-                      action: "override_budget",
-                      scopeType: budget.scopeType,
-                      scopeId: budget.scopeId,
-                      additionalRequests: 1,
-                      additionalUsdMicros: 0,
-                      additionalInputTokens: 0,
-                      additionalOutputTokens: 0,
-                      expiresAt: new Date(
-                        Date.now() + 60 * 60 * 1000,
-                      ).toISOString(),
-                      reason:
-                        "One-hour emergency tracer allowance requested by a verified operator.",
-                    })
+                <Badge
+                  variant={
+                    budget.usedRequests >=
+                    budget.maxRequests + budget.additionalRequests
+                      ? "destructive"
+                      : "outline"
                   }
                 >
-                  Add one request for 1 hour
-                </Button>
+                  {formatNumber(budget.usedRequests)} /{" "}
+                  {formatNumber(budget.maxRequests + budget.additionalRequests)}{" "}
+                  requests
+                </Badge>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card id="eve-approvals">
-        <CardHeader>
-          <CardTitle>Approval queue</CardTitle>
-          <CardDescription>
-            Business-data actions require strict approval; zone approval cannot
-            substitute. Each approval is target-bound, expiring, and single-use.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(query.data?.approvals.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No approval requests.
-            </p>
-          ) : (
-            <ul className="divide-y">
-              {query.data?.approvals.map((approval) => (
-                <li
-                  key={approval.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {ACTION_LABELS[approval.actionId as EvePolicyActionId] ??
-                        approval.actionId}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {approval.targetKey} · {approval.trustZone} ·{" "}
-                      {approval.approvalLevel} · expires{" "}
-                      {formatDateTime(approval.expiresAt)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={
-                        approval.status === "denied" ? "destructive" : "outline"
-                      }
-                    >
-                      {approval.status}
-                    </Badge>
-                    {approval.status === "pending" ? (
-                      <>
-                        <Button
-                          size="sm"
-                          focusableWhenDisabled={
-                            mutation.isPending &&
-                            mutation.variables?.action === "decide_approval" &&
-                            mutation.variables.approvalId === approval.id &&
-                            mutation.variables.approved === true
-                          }
-                          disabled={mutation.isPending}
-                          onClick={() =>
-                            mutation.mutate({
-                              action: "decide_approval",
-                              approvalId: approval.id,
-                              approved: true,
-                              reason:
-                                "Verified operator approved this exact tracer action and target.",
-                            })
-                          }
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          focusableWhenDisabled={
-                            mutation.isPending &&
-                            mutation.variables?.action === "decide_approval" &&
-                            mutation.variables.approvalId === approval.id &&
-                            mutation.variables.approved === false
-                          }
-                          disabled={mutation.isPending}
-                          onClick={() =>
-                            mutation.mutate({
-                              action: "decide_approval",
-                              approvalId: approval.id,
-                              approved: false,
-                              reason:
-                                "Verified operator denied this tracer action.",
-                            })
-                          }
-                        >
-                          Deny
-                        </Button>
-                      </>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+              <p className="text-xs text-muted-foreground">
+                USD micros {formatNumber(budget.usedUsdMicros)} /{" "}
+                {formatNumber(budget.maxUsdMicros + budget.additionalUsdMicros)}{" "}
+                · input {formatNumber(budget.usedInputTokens)} /{" "}
+                {formatNumber(
+                  budget.maxInputTokens + budget.additionalInputTokens,
+                )}{" "}
+                · output {formatNumber(budget.usedOutputTokens)} /{" "}
+                {formatNumber(
+                  budget.maxOutputTokens + budget.additionalOutputTokens,
+                )}
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                focusableWhenDisabled={
+                  mutation.isPending &&
+                  mutation.variables?.action === "override_budget" &&
+                  mutation.variables.scopeType === budget.scopeType &&
+                  mutation.variables.scopeId === budget.scopeId
+                }
+                disabled={mutation.isPending}
+                onClick={() =>
+                  mutation.mutate({
+                    action: "override_budget",
+                    scopeType: budget.scopeType,
+                    scopeId: budget.scopeId,
+                    additionalRequests: 1,
+                    additionalUsdMicros: 0,
+                    additionalInputTokens: 0,
+                    additionalOutputTokens: 0,
+                    expiresAt: new Date(
+                      Date.now() + 60 * 60 * 1000,
+                    ).toISOString(),
+                    reason:
+                      "One-hour emergency tracer allowance requested by a verified operator.",
+                  })
+                }
+              >
+                Add one request for 1 hour
+              </Button>
+            </div>
+          ))}
         </CardContent>
       </Card>
+    </div>
+  );
+}
 
-      <Card id="eve-recent-actions">
-        <CardHeader>
-          <CardTitle>Recent policy decisions</CardTitle>
-          <CardDescription>
-            Every allow, deny, and pause is persisted with a matching ADR-0020
-            audit event.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(query.data?.decisions.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No policy decisions yet.
-            </p>
-          ) : (
-            <ul className="divide-y">
-              {query.data?.decisions.map((decision) => (
-                <li
-                  key={decision.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{decision.actionId}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {decision.targetKey} · {decision.trustZone} ·{" "}
-                      {decision.writeClass} · {decision.reason}
-                    </p>
-                  </div>
+function PendingApprovalsSection({
+  query,
+  formatDateTime,
+  mutation,
+}: {
+  query: UseQueryResult<ResponseBody, Error>;
+  formatDateTime: (
+    value: DateInput,
+    options?: Intl.DateTimeFormatOptions,
+  ) => string;
+  mutation: UseMutationResult<
+    ResponseBody,
+    Error,
+    MutationBody | undefined,
+    unknown
+  >;
+}) {
+  return (
+    <Card id="eve-approvals">
+      <CardHeader>
+        <CardTitle>Approval queue</CardTitle>
+        <CardDescription>
+          Business-data actions require strict approval; zone approval cannot
+          substitute. Each approval is target-bound, expiring, and single-use.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {(query.data?.approvals.length ?? 0) === 0 ? (
+          <p className="text-sm text-muted-foreground">No approval requests.</p>
+        ) : (
+          <ul className="divide-y">
+            {query.data?.approvals.map((approval) => (
+              <li
+                key={approval.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div>
+                  <p className="text-sm font-medium">
+                    {ACTION_LABELS[approval.actionId as EvePolicyActionId] ??
+                      approval.actionId}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {approval.targetKey} · {approval.trustZone} ·{" "}
+                    {approval.approvalLevel} · expires{" "}
+                    {formatDateTime(approval.expiresAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
                   <Badge
                     variant={
-                      decision.decision === "allow"
-                        ? "default"
-                        : decision.decision === "pause"
-                          ? "secondary"
-                          : "destructive"
+                      approval.status === "denied" ? "destructive" : "outline"
                     }
                   >
-                    {decision.decision}
+                    {approval.status}
                   </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+                  {approval.status === "pending" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        focusableWhenDisabled={
+                          mutation.isPending &&
+                          mutation.variables?.action === "decide_approval" &&
+                          mutation.variables.approvalId === approval.id &&
+                          mutation.variables.approved === true
+                        }
+                        disabled={mutation.isPending}
+                        onClick={() =>
+                          mutation.mutate({
+                            action: "decide_approval",
+                            approvalId: approval.id,
+                            approved: true,
+                            reason:
+                              "Verified operator approved this exact tracer action and target.",
+                          })
+                        }
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        focusableWhenDisabled={
+                          mutation.isPending &&
+                          mutation.variables?.action === "decide_approval" &&
+                          mutation.variables.approvalId === approval.id &&
+                          mutation.variables.approved === false
+                        }
+                        disabled={mutation.isPending}
+                        onClick={() =>
+                          mutation.mutate({
+                            action: "decide_approval",
+                            approvalId: approval.id,
+                            approved: false,
+                            reason:
+                              "Verified operator denied this tracer action.",
+                          })
+                        }
+                      >
+                        Deny
+                      </Button>
+                    </>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function RecentApprovalActions({
+  query,
+}: {
+  query: UseQueryResult<ResponseBody, Error>;
+}) {
+  return (
+    <Card id="eve-recent-actions">
+      <CardHeader>
+        <CardTitle>Recent policy decisions</CardTitle>
+        <CardDescription>
+          Every allow, deny, and pause is persisted with a matching ADR-0020
+          audit event.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {(query.data?.decisions.length ?? 0) === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No policy decisions yet.
+          </p>
+        ) : (
+          <ul className="divide-y">
+            {query.data?.decisions.map((decision) => (
+              <li
+                key={decision.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div>
+                  <p className="text-sm font-medium">{decision.actionId}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {decision.targetKey} · {decision.trustZone} ·{" "}
+                    {decision.writeClass} · {decision.reason}
+                  </p>
+                </div>
+                <Badge
+                  variant={
+                    decision.decision === "allow"
+                      ? "default"
+                      : decision.decision === "pause"
+                        ? "secondary"
+                        : "destructive"
+                  }
+                >
+                  {decision.decision}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }

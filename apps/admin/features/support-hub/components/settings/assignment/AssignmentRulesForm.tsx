@@ -32,7 +32,7 @@ export function AssignmentRulesForm() {
         title="Auto assignment"
         description="No inbox settings available yet."
       >
-        <p className="text-[12px] text-zinc-500">
+        <p className="text-xs text-zinc-500">
           Configure the inbox first, then come back here to set assignment
           rules.
         </p>
@@ -79,7 +79,7 @@ export function AssignmentRulesForm() {
             onCheckedChange={setRoundRobin}
             aria-label="Round-robin"
           />
-          <span className="text-[12px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {roundRobin ? "Enabled" : "Disabled"}
           </span>
         </div>
@@ -102,7 +102,7 @@ export function AssignmentRulesForm() {
           }}
           disabled
           aria-label="Fallback agent"
-          className="h-9 max-w-sm text-[12px]"
+          className="h-9 max-w-sm"
           placeholder="Configured in a later phase"
         />
       </SettingsRow>

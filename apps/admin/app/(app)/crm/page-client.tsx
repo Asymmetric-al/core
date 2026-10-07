@@ -45,16 +45,30 @@ import { DetailDrawer } from "./detail-drawer";
 import { KanbanView } from "./kanban-view";
 import { toCrmRecord, toCrmRecordFromDetail } from "./types";
 import { CRM_PAGE_META } from "../../../components/table-page-meta";
-import {
-  ContributionDetailOverlay,
-  isContributionGiftParam,
-} from "../contributions/contribution-detail-overlay";
+import { ContributionDetailOverlay } from "../contributions/contribution-detail-overlay";
+import { isContributionGiftParam } from "../contributions/contribution-detail-query";
 import {
   ContributionFreshnessIndicator,
   useContributionFreshness,
 } from "../contributions/freshness-indicator";
 
 import type { CrmGridRow, CrmRecord } from "./types";
+
+const missionControlCRMHandleBulkArchive = (_selected: CrmGridRow[]) => {
+  toast.info("Bulk archive is not available yet.");
+};
+
+const missionControlCRMHandleBulkExport = (selected: CrmGridRow[]) => {
+  const params = new URLSearchParams({ slice: "donors" });
+  if (selected.length > 0) {
+    toast.info("Export includes the current donor report slice.");
+  }
+  // The authenticated route returns Content-Disposition: attachment, not a Next.js page.
+  window.location.assign(
+    new URL(`/api/admin/crm/reports/export?${params}`, window.location.origin)
+      .href,
+  );
+};
 
 export default function MissionControlCRM() {
   const [view, setView] = useState<"table" | "kanban">("table");
@@ -256,257 +270,34 @@ export default function MissionControlCRM() {
     [selectRecord, tagOptions],
   );
 
-  const handleBulkArchive = (_selected: CrmGridRow[]) => {
-    toast.info("Bulk archive is not available yet.");
-  };
-
-  const handleBulkExport = (selected: CrmGridRow[]) => {
-    const params = new URLSearchParams({ slice: "donors" });
-    if (selected.length > 0) {
-      toast.info("Export includes the current donor report slice.");
-    }
-    window.location.assign(`/api/admin/crm/reports/export?${params}`);
-  };
-
   return (
     <>
       <PageShell
         title={CRM_PAGE_META.title}
         description={CRM_PAGE_META.description}
         density={CRM_PAGE_META.density}
-        actions={
-          <div className="flex items-center gap-3">
-            <div className="flex bg-muted p-0.5 rounded-lg border border-border">
-              <button
-                type="button"
-                aria-label="Show CRM table view"
-                onClick={() => setView("table")}
-                className={cn(
-                  "p-1.5 rounded-md transition-colors",
-                  view === "table"
-                    ? "bg-card shadow-sm text-foreground"
-                    : "text-muted-foreground",
-                )}
-              >
-                <List className="size-4" />
-              </button>
-              <button
-                type="button"
-                aria-label="Show CRM kanban view"
-                onClick={() => setView("kanban")}
-                className={cn(
-                  "p-1.5 rounded-md transition-colors",
-                  view === "kanban"
-                    ? "bg-card shadow-sm text-foreground"
-                    : "text-muted-foreground",
-                )}
-              >
-                <Columns className="size-4" />
-              </button>
-            </div>
-            <Button className="h-10 rounded-xl px-5 font-semibold shadow-sm">
-              <Plus className="size-3.5" /> New Record
-            </Button>
-            <Link
-              href="/crm/relationships"
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-11 gap-2",
-              )}
-            >
-              <Network className="h-4 w-4" />
-              Relationships
-            </Link>
-            <Link
-              href="/crm/notes"
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-11 gap-2",
-              )}
-            >
-              <StickyNote className="h-4 w-4" />
-              Notes
-            </Link>
-          </div>
-        }
+        actions={<CrmViewToolbar setView={setView} view={view} />}
       >
-        <div className="flex flex-col min-h-100">
-          <ContributionFreshnessIndicator show={showFreshness} />
-          <AnimatePresence mode="wait">
-            {view === "table" ? (
-              <motion.div
-                key="table"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="h-full"
-              >
-                <DataTableResponsive
-                  columns={columns}
-                  data={rows}
-                  devtoolsKey="admin-crm-records"
-                  isLoading={isLoading}
-                  filterFields={filterFields}
-                  searchColumnId="displayName"
-                  searchPlaceholder="Search name, email, or organization..."
-                  getRowId={(row) => row.id}
-                  onFiltersChange={onFiltersChange}
-                  onSortingChange={onSortingChange}
-                  onRefresh={() => void onRefresh()}
-                  onRowClick={(row) => selectRecord(toCrmRecord(row.original))}
-                  infiniteScroll={{
-                    hasMore,
-                    isFetchingMore,
-                    onLoadMore: loadMore,
-                    threshold: 10,
-                    loadingContent: "Loading more records...",
-                  }}
-                  emptyState={
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className="rounded-2xl bg-muted/50 p-4 mb-4">
-                        <User className="size-10 text-muted-foreground" />
-                      </div>
-                      <h3 className="text-lg font-semibold">No CRM records</h3>
-                      {tableError ? (
-                        <p className="text-sm text-destructive mt-1 max-w-xl">
-                          {tableError.message}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                          No donors match the current filters for your
-                          workspace.
-                        </p>
-                      )}
-                      <div className="mt-6 flex gap-3">
-                        {tableError && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => void onRefresh()}
-                          >
-                            Retry
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  }
-                  config={{
-                    enableRowSelection: true,
-                    enableColumnVisibility: true,
-                    enablePagination: false,
-                    enableFilters: true,
-                    enableSorting: true,
-                    enableViewToggle: false,
-                    mobileBreakpoint: 0,
-                    manualFiltering: true,
-                    manualSorting: true,
-                    stickyHeader: true,
-                    virtualization: {
-                      enabled: true,
-                      estimateSize: 72,
-                      overscan: 10,
-                      containerHeight: 720,
-                    },
-                  }}
-                  initialState={{
-                    sorting,
-                    columnFilters,
-                    columnVisibility: {
-                      primaryContactLine: false,
-                      fundsGivenToSummary: false,
-                      nextTaskSummary: false,
-                    },
-                  }}
-                  floatingBarActions={[
-                    {
-                      label: "Export",
-                      icon: Receipt,
-                      onClick: handleBulkExport,
-                    },
-                    {
-                      label: "Archive",
-                      icon: Trash2,
-                      onClick: handleBulkArchive,
-                      variant: "destructive",
-                    },
-                  ]}
-                  mobileCardConfig={{
-                    primaryField: "displayName",
-                    secondaryField: "primaryOrganization",
-                    badgeField: "lifecycleStatus",
-                    renderCard: (row) => {
-                      const c = row.original;
-                      const name = c.displayName || "Unnamed";
-                      return (
-                        <button
-                          type="button"
-                          onClick={() => selectRecord(toCrmRecord(c))}
-                          className="w-full p-4 cursor-pointer space-y-3 text-left"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <SharedNamedViewTransition
-                                name={crmRecordAvatarTransitionName(c.id)}
-                              >
-                                <Avatar className="size-10 border border-border">
-                                  <AvatarImage src={c.avatarUrl ?? undefined} />
-                                  <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
-                                    {name[0] ?? "?"}
-                                  </AvatarFallback>
-                                </Avatar>
-                              </SharedNamedViewTransition>
-                              <div>
-                                <SharedNamedViewTransition
-                                  name={crmRecordTitleTransitionName(c.id)}
-                                >
-                                  <div className="font-semibold text-sm text-foreground">
-                                    {name}
-                                  </div>
-                                </SharedNamedViewTransition>
-                                <div className="text-xs text-muted-foreground">
-                                  {c.primaryOrganization ?? EMPTY_CELL_VALUE}
-                                </div>
-                              </div>
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className="text-[9px] uppercase"
-                            >
-                              {c.lifecycleStatus ?? EMPTY_CELL_VALUE}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground line-clamp-1">
-                              {c.recordType ?? EMPTY_CELL_VALUE}
-                            </span>
-                            <span className="font-semibold tabular-nums">
-                              {formatCurrency(c.lifetimeGiving)}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    },
-                  }}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="kanban"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="h-full"
-              >
-                <KanbanView
-                  rows={rows}
-                  onSelectRow={(r) => selectRecord(toCrmRecord(r))}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <CrmResultsSection
+          hasMore={hasMore}
+          isFetchingMore={isFetchingMore}
+          sorting={sorting}
+          columnFilters={columnFilters}
+          showFreshness={showFreshness}
+          view={view}
+          columns={columns}
+          rows={rows}
+          isLoading={isLoading}
+          filterFields={filterFields}
+          onFiltersChange={onFiltersChange}
+          onSortingChange={onSortingChange}
+          onRefresh={onRefresh}
+          selectRecord={selectRecord}
+          loadMore={loadMore}
+          tableError={tableError}
+          handleBulkExport={missionControlCRMHandleBulkExport}
+          handleBulkArchive={missionControlCRMHandleBulkArchive}
+        />
       </PageShell>
 
       {selectedRecord && (
@@ -525,5 +316,285 @@ export default function MissionControlCRM() {
         onActionSuccess={markFreshness}
       />
     </>
+  );
+}
+
+function CrmViewToolbar({
+  setView,
+  view,
+}: {
+  setView: React.Dispatch<React.SetStateAction<"table" | "kanban">>;
+  view: "table" | "kanban";
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex bg-muted p-0.5 rounded-lg border border-border">
+        <button
+          type="button"
+          aria-label="Show CRM table view"
+          onClick={() => setView("table")}
+          className={cn(
+            "p-1.5 rounded-md transition-colors",
+            view === "table"
+              ? "bg-card shadow-sm text-foreground"
+              : "text-muted-foreground",
+          )}
+        >
+          <List className="size-4" />
+        </button>
+        <button
+          type="button"
+          aria-label="Show CRM kanban view"
+          onClick={() => setView("kanban")}
+          className={cn(
+            "p-1.5 rounded-md transition-colors",
+            view === "kanban"
+              ? "bg-card shadow-sm text-foreground"
+              : "text-muted-foreground",
+          )}
+        >
+          <Columns className="size-4" />
+        </button>
+      </div>
+      <Button className="h-10 rounded-xl px-5 font-semibold shadow-sm">
+        <Plus className="size-3.5" /> New Record
+      </Button>
+      <Link
+        href="/crm/relationships"
+        className={cn(buttonVariants({ variant: "outline" }), "h-11 gap-2")}
+      >
+        <Network className="size-4" />
+        Relationships
+      </Link>
+      <Link
+        href="/crm/notes"
+        className={cn(buttonVariants({ variant: "outline" }), "h-11 gap-2")}
+      >
+        <StickyNote className="size-4" />
+        Notes
+      </Link>
+    </div>
+  );
+}
+
+function CrmResultsSection({
+  hasMore,
+  isFetchingMore,
+  sorting,
+  columnFilters,
+  showFreshness,
+  view,
+  columns,
+  rows,
+  isLoading,
+  filterFields,
+  onFiltersChange,
+  onSortingChange,
+  onRefresh,
+  selectRecord,
+  loadMore,
+  tableError,
+  handleBulkExport,
+  handleBulkArchive,
+}: {
+  hasMore: boolean;
+  isFetchingMore: boolean;
+  sorting: ReturnType<typeof useAdminCrmRecordsInfiniteGrid>["sorting"];
+  columnFilters: ReturnType<
+    typeof useAdminCrmRecordsInfiniteGrid
+  >["columnFilters"];
+  showFreshness: boolean;
+  view: "table" | "kanban";
+  columns: ReturnType<typeof getCrmColumns>;
+  rows: ReturnType<typeof useAdminCrmRecordsInfiniteGrid>["rows"];
+  isLoading: boolean;
+  filterFields: DataTableFilterField<CrmGridRow>[];
+  onFiltersChange: ReturnType<
+    typeof useAdminCrmRecordsInfiniteGrid
+  >["onFiltersChange"];
+  onSortingChange: ReturnType<
+    typeof useAdminCrmRecordsInfiniteGrid
+  >["onSortingChange"];
+  onRefresh: () => Promise<void>;
+  selectRecord: (record: CrmRecord | null) => void;
+  loadMore: () => void;
+  tableError: Error | null;
+  handleBulkExport: (selected: CrmGridRow[]) => void;
+  handleBulkArchive: (_selected: CrmGridRow[]) => void;
+}) {
+  return (
+    <div className="flex flex-col min-h-100">
+      <ContributionFreshnessIndicator show={showFreshness} />
+      <AnimatePresence mode="wait">
+        {view === "table" ? (
+          <motion.div
+            key="table"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <DataTableResponsive
+              columns={columns}
+              data={rows}
+              devtoolsKey="admin-crm-records"
+              isLoading={isLoading}
+              filterFields={filterFields}
+              searchColumnId="displayName"
+              searchPlaceholder="Search name, email, or organization..."
+              getRowId={(row) => row.id}
+              onFiltersChange={onFiltersChange}
+              onSortingChange={onSortingChange}
+              onRefresh={() => void onRefresh()}
+              onRowClick={(row) => selectRecord(toCrmRecord(row.original))}
+              infiniteScroll={{
+                hasMore,
+                isFetchingMore,
+                onLoadMore: loadMore,
+                threshold: 10,
+                loadingContent: "Loading more records...",
+              }}
+              emptyState={
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="rounded-2xl bg-muted/50 p-4 mb-4">
+                    <User className="size-10 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold">No CRM records</h3>
+                  {tableError ? (
+                    <p className="text-sm text-destructive mt-1 max-w-xl">
+                      {tableError.message}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                      No donors match the current filters for your workspace.
+                    </p>
+                  )}
+                  <div className="mt-6 flex gap-3">
+                    {tableError && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void onRefresh()}
+                      >
+                        Retry
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              }
+              config={{
+                enableRowSelection: true,
+                enableColumnVisibility: true,
+                enablePagination: false,
+                enableFilters: true,
+                enableSorting: true,
+                enableViewToggle: false,
+                mobileBreakpoint: 0,
+                manualFiltering: true,
+                manualSorting: true,
+                stickyHeader: true,
+                virtualization: {
+                  enabled: true,
+                  estimateSize: 72,
+                  overscan: 10,
+                  containerHeight: 720,
+                },
+              }}
+              initialState={{
+                sorting,
+                columnFilters,
+                columnVisibility: {
+                  primaryContactLine: false,
+                  fundsGivenToSummary: false,
+                  nextTaskSummary: false,
+                },
+              }}
+              floatingBarActions={[
+                {
+                  label: "Export",
+                  icon: Receipt,
+                  onClick: handleBulkExport,
+                },
+                {
+                  label: "Archive",
+                  icon: Trash2,
+                  onClick: handleBulkArchive,
+                  variant: "destructive",
+                },
+              ]}
+              mobileCardConfig={{
+                primaryField: "displayName",
+                secondaryField: "primaryOrganization",
+                badgeField: "lifecycleStatus",
+                renderCard: (row) => {
+                  const c = row.original;
+                  const name = c.displayName || "Unnamed";
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => selectRecord(toCrmRecord(c))}
+                      className="w-full p-4 cursor-pointer space-y-3 text-left"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <SharedNamedViewTransition
+                            name={crmRecordAvatarTransitionName(c.id)}
+                          >
+                            <Avatar className="size-10 border border-border">
+                              <AvatarImage src={c.avatarUrl ?? undefined} />
+                              <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
+                                {name[0] ?? "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                          </SharedNamedViewTransition>
+                          <div>
+                            <SharedNamedViewTransition
+                              name={crmRecordTitleTransitionName(c.id)}
+                            >
+                              <div className="font-semibold text-sm text-foreground">
+                                {name}
+                              </div>
+                            </SharedNamedViewTransition>
+                            <div className="text-xs text-muted-foreground">
+                              {c.primaryOrganization ?? EMPTY_CELL_VALUE}
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="uppercase">
+                          {c.lifecycleStatus ?? EMPTY_CELL_VALUE}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground line-clamp-1">
+                          {c.recordType ?? EMPTY_CELL_VALUE}
+                        </span>
+                        <span className="font-semibold tabular-nums">
+                          {formatCurrency(c.lifetimeGiving)}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                },
+              }}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="kanban"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <KanbanView
+              rows={rows}
+              onSelectRow={(r) => selectRecord(toCrmRecord(r))}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

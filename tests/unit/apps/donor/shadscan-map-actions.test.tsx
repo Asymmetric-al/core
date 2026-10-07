@@ -68,7 +68,7 @@ it.each([390, 1280])(
     expect(profile.getAttribute("href")).toBe("/workers/worker-1");
     expect(give.getAttribute("href")).toContain("missionary_id=worker-1");
     expect(
-      within(dialog).getAllByRole("button", { name: "Close" }).length,
+      within(dialog).getAllByRole("button", { name: /Close/ }).length,
     ).toBeGreaterThan(0);
   },
 );

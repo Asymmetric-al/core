@@ -72,15 +72,15 @@ export function BusinessHoursList() {
                   <Clock className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-[13px] font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-zinc-900">
                     {row.name}{" "}
                     {row.isDefault ? (
-                      <span className="ml-1 inline-flex h-4 items-center rounded-md bg-zinc-900 px-1.5 text-[9px] font-black uppercase tracking-wider text-white">
+                      <span className="ml-1 inline-flex h-4 items-center rounded-md bg-zinc-900 px-1.5 text-xs font-black uppercase tracking-wider text-white">
                         Default
                       </span>
                     ) : null}
                   </span>
-                  <span className="text-[11px] text-zinc-500">
+                  <span className="text-xs text-zinc-500">
                     {row.timezone} ·{" "}
                     {row.weeklySchedule.filter((entry) => entry.enabled).length}{" "}
                     working days · {row.holidays.length} holidays

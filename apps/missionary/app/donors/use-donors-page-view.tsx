@@ -26,6 +26,11 @@ import {
   type DonorsPageSummary,
   type DonorsStatFilterType,
 } from "./donors-page-model";
+import {
+  EMPTY_TAG_DRAFT,
+  nextTagDraftOnDonorSelect,
+  type DonorTagDraft,
+} from "./tag-draft";
 
 import type { Address, Donor } from "./donor-types";
 import type { Profile } from "@asym/database/types";
@@ -124,7 +129,8 @@ function useDonorsPageView(): DonorsPageViewModel {
   const [isNoteDialogOpen, setIsNoteDialogOpen] = React.useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  const [tagDraft, setTagDraft] =
+    React.useState<DonorTagDraft>(EMPTY_TAG_DRAFT);
   const [isSavingTags, setIsSavingTags] = React.useState(false);
   const [isSavingNote, setIsSavingNote] = React.useState(false);
   const [activityType, setActivityType] = React.useState<
@@ -183,11 +189,11 @@ function useDonorsPageView(): DonorsPageViewModel {
     [donors, selectedDonorId],
   );
 
-  React.useEffect(() => {
-    if (!selectedDonor) return;
-    setSelectedTags(selectedDonor.tags || []);
-    // Key on id only: refreshing donor rows must not wipe in-progress tag edits for the same partner.
-  }, [selectedDonor?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when selected partner id changes
+  // Derive the new partner draft before rendering; preserve same-partner edits on refresh.
+  const selectedTags =
+    selectedDonor && tagDraft.donorId === selectedDonor.id
+      ? tagDraft.tags
+      : createTagEditorDraft(selectedDonor?.tags);
 
   const copyToClipboard = React.useCallback((text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -196,10 +202,12 @@ function useDonorsPageView(): DonorsPageViewModel {
 
   const selectDonorById = React.useCallback((id: string) => {
     setSelectedDonorId(id);
+    setTagDraft((previous) => nextTagDraftOnDonorSelect(previous, id));
   }, []);
 
   const clearSelectedDonor = React.useCallback(() => {
     setSelectedDonorId(null);
+    setTagDraft(EMPTY_TAG_DRAFT);
   }, []);
 
   const toggleFilterTag = React.useCallback((tagId: string) => {
@@ -231,14 +239,17 @@ function useDonorsPageView(): DonorsPageViewModel {
 
   const openTagEditor = React.useCallback(() => {
     if (!selectedDonor || selectedDonor.is_anonymous) return;
-    setSelectedTags(createTagEditorDraft(selectedDonor?.tags));
+    setTagDraft({
+      donorId: selectedDonor.id,
+      tags: createTagEditorDraft(selectedDonor.tags),
+    });
     setIsTagDialogOpen(true);
   }, [selectedDonor]);
 
   const closeTagEditor = React.useCallback(() => {
-    setSelectedTags(createTagEditorDraft(selectedDonor?.tags));
+    setTagDraft(EMPTY_TAG_DRAFT);
     setIsTagDialogOpen(false);
-  }, [selectedDonor]);
+  }, []);
 
   const handleAddNote = React.useCallback(async () => {
     if (!selectedDonor || !noteInput.trim()) return;
@@ -286,9 +297,21 @@ function useDonorsPageView(): DonorsPageViewModel {
     }
   }, [selectedDonor, selectedTags, handleRefreshDonors]);
 
-  const toggleTag = React.useCallback((tagId: string) => {
-    setSelectedTags((prev) => toggleTagSelection(prev, tagId));
-  }, []);
+  const toggleTag = React.useCallback(
+    (tagId: string) => {
+      if (!selectedDonor) return;
+      setTagDraft((previous) => ({
+        donorId: selectedDonor.id,
+        tags: toggleTagSelection(
+          previous.donorId === selectedDonor.id
+            ? previous.tags
+            : selectedDonor.tags,
+          tagId,
+        ),
+      }));
+    },
+    [selectedDonor],
+  );
 
   const openEditDialog = React.useCallback(() => {
     if (!selectedDonor || selectedDonor.is_anonymous) return;
@@ -308,6 +331,7 @@ function useDonorsPageView(): DonorsPageViewModel {
       setTagFilter(nextFilterState.tagFilter);
       setPledgeFilter(nextFilterState.pledgeFilter);
       setSelectedDonorId(nextFilterState.selectedDonorId);
+      setTagDraft(EMPTY_TAG_DRAFT);
     },
     [],
   );

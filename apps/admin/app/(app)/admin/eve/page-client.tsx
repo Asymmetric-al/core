@@ -361,22 +361,30 @@ function collectGovernedFailures(
   data: EveGovernancePageData,
 ): GovernedFailure[] {
   return [
-    ...data.recentRuns
-      .filter((run) => run.status === "failed")
-      .map((run) => ({
-        id: `run:${run.id}`,
-        label: run.action,
-        summary: `${run.reason}. Target: ${run.target ?? "No external target"}.`,
-        timestamp: run.updatedAt,
-      })),
-    ...data.auditHistory
-      .filter((event) => event.result === "failed")
-      .map((event) => ({
-        id: `audit:${event.id}`,
-        label: event.action,
-        summary: event.decisionSummary,
-        timestamp: event.createdAt,
-      })),
+    ...data.recentRuns.flatMap((run) =>
+      run.status === "failed"
+        ? [
+            {
+              id: `run:${run.id}`,
+              label: run.action,
+              summary: `${run.reason}. Target: ${run.target ?? "No external target"}.`,
+              timestamp: run.updatedAt,
+            },
+          ]
+        : [],
+    ),
+    ...data.auditHistory.flatMap((event) =>
+      event.result === "failed"
+        ? [
+            {
+              id: `audit:${event.id}`,
+              label: event.action,
+              summary: event.decisionSummary,
+              timestamp: event.createdAt,
+            },
+          ]
+        : [],
+    ),
   ]
     .sort((first, second) => {
       return Date.parse(second.timestamp) - Date.parse(first.timestamp);

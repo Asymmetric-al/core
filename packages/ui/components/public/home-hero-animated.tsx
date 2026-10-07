@@ -65,7 +65,7 @@ export function HomeHeroAnimated({
             <m.div {...propsHeroEntrance(reduceMotion, 0)}>
               <h1
                 id="hero-heading"
-                className="text-6xl sm:text-7xl md:text-9xl lg:text-[11rem] font-semibold tracking-tighter leading-[0.85] font-syne text-balance"
+                className="text-6xl sm:text-7xl md:text-9xl lg:text-[11rem] font-semibold tracking-normal leading-[0.85] font-syne text-balance"
               >
                 Hope is a <br />
                 <span className="to-white/20">verb.</span>
@@ -135,7 +135,7 @@ export function HomeHeroAnimated({
                   <Icon className="size-3" />
                 </div>
                 <div>
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
                     {stat.label}
                   </p>
                   <p className="text-xl font-semibold font-syne">{stat.val}</p>
@@ -145,7 +145,7 @@ export function HomeHeroAnimated({
           })}
         </div>
 
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30 flex flex-col items-center gap-3 text-[10px] font-semibold tracking-[0.3em] uppercase">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30 flex flex-col items-center gap-3 text-xs font-semibold tracking-[0.3em] uppercase">
           <span className="sr-only">Scroll to explore more content</span>
           <span aria-hidden="true">Explore</span>
           <div

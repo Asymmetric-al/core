@@ -2,7 +2,7 @@ import type { SupportMessage } from "../../../types";
 
 export type TimelineEntryKind = "email" | "note" | "draft" | "activity";
 
-export interface TimelineEntry {
+interface TimelineEntry {
   /** Stable key for React rendering. */
   id: string;
   kind: TimelineEntryKind;
@@ -15,7 +15,7 @@ export interface TimelineEntry {
   isFirstOfDay: boolean;
 }
 
-export interface MergeOptions {
+interface MergeOptions {
   /** Stable "now" used to compute Today / Yesterday day labels. */
   nowIso: string;
 }

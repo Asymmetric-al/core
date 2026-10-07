@@ -124,7 +124,7 @@ function gradientOverride(file: string, componentName: string): string {
           property.name.getText(source) === "className" &&
           property.initializer &&
           ts.isStringLiteral(property.initializer) &&
-          property.initializer.text.includes("bg-gradient-to-br")
+          /\bbg-(?:gradient|linear)-to-br\b/.test(property.initializer.text)
         ) {
           matches.push(property.initializer.text);
         }
@@ -182,7 +182,7 @@ describe("application gradient background regressions", () => {
 
       expect(classes.contains(defaultBackground)).toBe(false);
       expect(classes.contains("bg-transparent")).toBe(true);
-      expect(classes.contains("bg-gradient-to-br")).toBe(true);
+      expect(classes.contains("bg-linear-to-br")).toBe(true);
       for (const stop of className
         .split(/\s+/)
         .filter((value) => /^(from|via|to)-/.test(value))) {

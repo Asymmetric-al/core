@@ -52,7 +52,9 @@ export function useColumnResizing(
     onColumnSizeChange,
   } = options;
 
-  const [columnSizing, setColumnSizingState] = useState<ColumnSizingState>({});
+  const [columnSizingState, setColumnSizingState] = useState<ColumnSizingState>(
+    {},
+  );
 
   const [isResizing, setIsResizing] = useState(false);
 
@@ -66,10 +68,10 @@ export function useColumnResizing(
   }, [persistKey]);
 
   useEffect(() => {
-    if (persistKey && Object.keys(columnSizing).length > 0) {
-      saveToStorage(persistKey, columnSizing);
+    if (persistKey && Object.keys(columnSizingState).length > 0) {
+      saveToStorage(persistKey, columnSizingState);
     }
-  }, [columnSizing, persistKey]);
+  }, [columnSizingState, persistKey]);
 
   const setColumnSizing = useCallback(
     (sizing: ColumnSizingState) => {
@@ -140,7 +142,7 @@ export function useColumnResizing(
   );
 
   return {
-    columnSizing,
+    columnSizing: columnSizingState,
     setColumnSizing,
     resetColumnSizing,
     getResizeHandler,

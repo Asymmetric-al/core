@@ -41,32 +41,14 @@ export function ComposerActions({
   const isReply = mode === "reply";
   const isSending = pendingAction === "send";
   const isSavingDraft = pendingAction === "draft";
-  const sendIcon = isSending ? (
-    <Loader2 className="size-3.5 animate-spin" />
-  ) : isReply ? (
-    <Send className="size-3.5" />
-  ) : (
-    <StickyNote className="size-3.5" />
+  const { sendLabel, sendAccessibleLabel } = resolveComposerSendLabels(
+    isReply,
+    isSending,
   );
-
-  const sendLabel = isReply
-    ? isSending
-      ? "Sending"
-      : "Send reply"
-    : isSending
-      ? "Saving"
-      : "Add note";
-  const sendAccessibleLabel = isReply
-    ? isSending
-      ? "Sending reply to donor"
-      : "Send reply to donor"
-    : isSending
-      ? "Saving internal note"
-      : "Add internal note";
 
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-2">
-      <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+      <div className="flex items-center gap-2 text-xs text-zinc-500">
         {beforeSend}
         {!beforeSend ? (
           <span aria-hidden className="text-zinc-300">
@@ -115,7 +97,7 @@ export function ComposerActions({
           onClick={onSend}
           className="rounded-lg bg-zinc-900 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800"
         >
-          {sendIcon}
+          <ComposerSendIcon isReply={isReply} isSending={isSending} />
           <span id={`${pendingActionLabelId}-17`} className="sr-only">
             {sendAccessibleLabel}
           </span>
@@ -124,4 +106,38 @@ export function ComposerActions({
       </div>
     </div>
   );
+}
+
+function ComposerSendIcon({
+  isReply,
+  isSending,
+}: {
+  isReply: boolean;
+  isSending: boolean;
+}) {
+  return isSending ? (
+    <Loader2 className="size-3.5 animate-spin" />
+  ) : isReply ? (
+    <Send className="size-3.5" />
+  ) : (
+    <StickyNote className="size-3.5" />
+  );
+}
+
+function resolveComposerSendLabels(isReply: boolean, isSending: boolean) {
+  const sendLabel = isReply
+    ? isSending
+      ? "Sending"
+      : "Send reply"
+    : isSending
+      ? "Saving"
+      : "Add note";
+  const sendAccessibleLabel = isReply
+    ? isSending
+      ? "Sending reply to donor"
+      : "Send reply to donor"
+    : isSending
+      ? "Saving internal note"
+      : "Add internal note";
+  return { sendLabel, sendAccessibleLabel };
 }

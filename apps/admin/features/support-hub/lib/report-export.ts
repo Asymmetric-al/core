@@ -32,7 +32,7 @@ export function toReportJson(series: SupportReportSeries): string {
   return JSON.stringify(series, null, 2);
 }
 
-export interface ReportExportFile {
+interface ReportExportFile {
   filename: string;
   mimeType: "text/csv" | "application/json";
   contents: string;

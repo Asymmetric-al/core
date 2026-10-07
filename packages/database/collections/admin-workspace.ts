@@ -29,7 +29,7 @@ const crmContactSchema = z.object({
   avatar: z.string().optional(),
   title: z.string().min(1),
   company: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   phone: z.string().min(1),
   value: z.number(),
   stage: z.enum(["New", "Contacted", "Meeting", "Proposal", "Won"]),
@@ -93,7 +93,7 @@ const taskSchema = z.object({
 const taskStaffSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   avatar_url: z.string().optional(),
   role: z.string().min(1),
 });
@@ -151,7 +151,7 @@ const careActivitySchema = z.object({
 const attendeeSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   phone: z.string().optional(),
   ticketType: z.string().min(1),
   status: z.enum(["Registered", "Checked In", "Cancelled", "Waitlist"]),
@@ -174,7 +174,7 @@ const attendeeSchema = z.object({
 const mobilizeCandidateSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   phone: z.string().min(1),
   role: z.string().min(1),
   location: z.string().min(1),
@@ -199,7 +199,7 @@ const teamSchema = z.object({
 const teamMemberSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   role: z.string().min(1),
   status: z.string().min(1),
   team: z.string().min(1),

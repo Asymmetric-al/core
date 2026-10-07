@@ -35,15 +35,6 @@ export type AdminCrmNotesListResponse = {
   rollback: { existingCrmPath: "/crm" };
 };
 
-export type CreateAdminCrmNoteInput = {
-  title: string;
-  body: string;
-  visibility?: "standard" | "restricted";
-  linkedRecordId?: string | null;
-  linkedRecordType?: string | null;
-  linkedRecordLabel?: string | null;
-};
-
 export type AdminCrmNoteCreateResponse = {
   note: CrmNoteRow;
   commandLogId: string;

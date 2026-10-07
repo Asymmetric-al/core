@@ -11,7 +11,7 @@ function readRepoFile(path: string) {
 describe("missionary package high-complexity extraction contracts", () => {
   it("keeps stacked bar rounding on geometry and path helpers", () => {
     const source = readRepoFile(
-      "packages/missionary/components/giving-breakdown-chart.tsx",
+      "packages/missionary/internal/charts/giving-breakdown-view.tsx",
     );
 
     expect(source).toContain("type DonationBarKey =");

@@ -17,6 +17,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { useSaveSupportAutomationRule } from "../../../hooks/use-support-mutations";
+import { createDraftRow, createDraftRows } from "../draft-rows";
 import { SettingsPanel } from "../SettingsPanel";
 import { SettingsRow } from "../SettingsRow";
 import { SettingsToolbar } from "../SettingsToolbar";
@@ -49,12 +50,34 @@ export function AutomationRuleForm({
   const [trigger, setTrigger] = React.useState<
     SupportAutomationRule["trigger"]
   >(rule?.trigger ?? "conversation_created");
-  const [conditions, setConditions] = React.useState<
-    SupportAutomationCondition[]
-  >(rule?.conditions ?? []);
-  const [actions, setActions] = React.useState<SupportAutomationAction[]>(
-    rule?.actions ?? [],
+  const [conditionRows, setConditionRows] = React.useState(() =>
+    createDraftRows(rule?.conditions ?? []),
   );
+  const [actionRows, setActionRows] = React.useState(() =>
+    createDraftRows(rule?.actions ?? []),
+  );
+  const conditions = React.useMemo(
+    () => conditionRows.map((row) => row.value),
+    [conditionRows],
+  );
+  const actions = React.useMemo(
+    () => actionRows.map((row) => row.value),
+    [actionRows],
+  );
+  const handleAddCondition = () => {
+    const row = createDraftRow<SupportAutomationCondition>({
+      kind: "subject_contains",
+      value: "",
+    });
+    setConditionRows((previous) => [...previous, row]);
+  };
+  const handleAddAction = () => {
+    const row = createDraftRow<SupportAutomationAction>({
+      kind: "add_label",
+      labelId: "",
+    });
+    setActionRows((previous) => [...previous, row]);
+  };
 
   const isDirty = React.useMemo(
     () =>
@@ -146,7 +169,7 @@ export function AutomationRuleForm({
             onCheckedChange={setEnabled}
             aria-label="Enabled"
           />
-          <span className="text-[12px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {enabled ? "Active" : "Disabled"}
           </span>
         </div>
@@ -168,10 +191,7 @@ export function AutomationRuleForm({
             if (value !== null) setTrigger(value);
           }}
         >
-          <SelectTrigger
-            aria-label="Trigger"
-            className="h-9 max-w-sm text-[12px]"
-          >
+          <SelectTrigger aria-label="Trigger" className="h-9 max-w-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -186,42 +206,41 @@ export function AutomationRuleForm({
 
       <div className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-white p-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
             Conditions
           </span>
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() =>
-              setConditions((prev) => [
-                ...prev,
-                { kind: "subject_contains", value: "" },
-              ])
-            }
-            className="h-7 gap-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider"
+            onClick={handleAddCondition}
+            className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
           >
             <Plus className="size-3" />
             Add condition
           </Button>
         </div>
         {conditions.length === 0 ? (
-          <p className="text-[12px] text-zinc-500">
+          <p className="text-xs text-zinc-500">
             No conditions, the rule fires for every event.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {conditions.map((condition, index) => (
+            {conditionRows.map(({ id, value: condition }) => (
               <AutomationConditionRow
-                key={index}
+                key={id}
                 condition={condition}
                 onChange={(next) =>
-                  setConditions((prev) =>
-                    prev.map((c, i) => (i === index ? next : c)),
+                  setConditionRows((prev) =>
+                    prev.map((row) =>
+                      row.id === id ? { ...row, value: next } : row,
+                    ),
                   )
                 }
                 onRemove={() =>
-                  setConditions((prev) => prev.filter((_, i) => i !== index))
+                  setConditionRows((prev) =>
+                    prev.filter((row) => row.id !== id),
+                  )
                 }
               />
             ))}
@@ -231,42 +250,39 @@ export function AutomationRuleForm({
 
       <div className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-white p-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
             Actions
           </span>
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() =>
-              setActions((prev) => [
-                ...prev,
-                { kind: "add_label", labelId: "" },
-              ])
-            }
-            className="h-7 gap-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider"
+            onClick={handleAddAction}
+            className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
           >
             <Plus className="size-3" />
             Add action
           </Button>
         </div>
         {actions.length === 0 ? (
-          <p className="text-[12px] text-zinc-500">
+          <p className="text-xs text-zinc-500">
             Add at least one action to save the rule.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {actions.map((action, index) => (
+            {actionRows.map(({ id, value: action }) => (
               <AutomationActionRow
-                key={index}
+                key={id}
                 action={action}
                 onChange={(next) =>
-                  setActions((prev) =>
-                    prev.map((a, i) => (i === index ? next : a)),
+                  setActionRows((prev) =>
+                    prev.map((row) =>
+                      row.id === id ? { ...row, value: next } : row,
+                    ),
                   )
                 }
                 onRemove={() =>
-                  setActions((prev) => prev.filter((_, i) => i !== index))
+                  setActionRows((prev) => prev.filter((row) => row.id !== id))
                 }
               />
             ))}

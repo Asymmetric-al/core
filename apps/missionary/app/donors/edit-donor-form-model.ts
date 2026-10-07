@@ -6,7 +6,7 @@ const PREFERRED_CONTACT_VALUES = ["email", "phone", "text"] as const;
 
 export const editDonorSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+  email: z.email("Invalid email address"),
   phone: z.string(),
   mobile: z.string(),
   work_phone: z.string(),

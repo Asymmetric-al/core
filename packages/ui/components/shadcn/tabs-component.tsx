@@ -1,11 +1,13 @@
 "use client";
 
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
-import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { tabsListVariants } from "./tabs-variants";
 import { mergeBaseUIClassName } from "../../lib/base-ui";
+
+import type { VariantProps } from "class-variance-authority";
 
 function Tabs({
   className,
@@ -25,21 +27,6 @@ function Tabs({
     />
   );
 }
-
-const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-[orientation=horizontal]/tabs:h-9 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col data-[variant=line]:rounded-none",
-  {
-    variants: {
-      variant: {
-        default: "bg-muted",
-        line: "gap-1 bg-transparent",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-);
 
 function TabsList({
   className,
@@ -84,7 +71,4 @@ function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   );
 }
 
-// shadcn registry component: the cva variants are exported alongside the
-// component per the registry convention, and consumers import them from here.
-// react-doctor-disable-next-line react-doctor/only-export-components
-export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants };
+export { Tabs, TabsList, TabsTrigger, TabsContent };

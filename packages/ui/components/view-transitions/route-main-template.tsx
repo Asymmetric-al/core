@@ -47,17 +47,13 @@ export function RouteMainViewTransitionTemplate({
   if (!enabled) {
     return (
       <ViewTransitionRouteLayerContext.Provider value={false}>
-        {className ? (
-          <div className={className}>{children}</div>
-        ) : (
-          <>{children}</>
-        )}
+        {className ? <div className={className}>{children}</div> : children}
       </ViewTransitionRouteLayerContext.Provider>
     );
   }
 
   return (
-    <ViewTransitionRouteLayerContext.Provider value={true}>
+    <ViewTransitionRouteLayerContext.Provider value>
       <ViewTransition
         default="none"
         enter="asym-vt-route-enter"

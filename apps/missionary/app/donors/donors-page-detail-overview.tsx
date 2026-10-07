@@ -46,10 +46,13 @@ export function DonorsPageDetailOverview() {
     return null;
   }
 
+  const handleNoteComposerSave = noteComposer.save;
   return (
     <div className="flex flex-col gap-6">
       <motion.div
-        {...fadeInUp}
+        initial={fadeInUp.initial}
+        animate={fadeInUp.animate}
+        exit={fadeInUp.exit}
         transition={smoothTransition}
         className="bg-muted p-4 rounded-2xl border border-border"
       >
@@ -96,8 +99,8 @@ export function DonorsPageDetailOverview() {
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               size="sm"
-              className="h-8 rounded-xl px-4 text-[10px] font-semibold uppercase tracking-widest"
-              onClick={noteComposer.save}
+              className="h-8 rounded-xl px-4 font-semibold uppercase tracking-widest"
+              onClick={handleNoteComposerSave}
               disabled={!noteComposer.noteInput.trim() || noteComposer.isSaving}
             >
               {noteComposer.isSaving ? (
@@ -160,7 +163,7 @@ export function DonorsPageDetailOverview() {
                         {activity.amount ? (
                           <Badge
                             className={cn(
-                              "font-semibold px-2 h-5 rounded-lg text-[9px] uppercase tracking-widest border-0",
+                              "font-semibold px-2 h-5 rounded-lg uppercase tracking-widest border-0",
                               activity.status === "Failed"
                                 ? "bg-destructive/10 text-destructive"
                                 : "bg-primary/10 text-primary",
@@ -170,13 +173,13 @@ export function DonorsPageDetailOverview() {
                           </Badge>
                         ) : null}
                         {activity.gift_type ? (
-                          <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+                          <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
                             {getGiftTypeIcon(activity.gift_type)}
                             {activity.gift_type}
                           </span>
                         ) : null}
                         {activity.status === "Failed" ? (
-                          <Badge className="bg-destructive/10 text-destructive border-0 text-[9px] font-semibold uppercase tracking-widest">
+                          <Badge className="bg-destructive/10 text-destructive border-0 font-semibold uppercase tracking-widest">
                             Failed
                           </Badge>
                         ) : null}
@@ -192,7 +195,7 @@ export function DonorsPageDetailOverview() {
                         </p>
                       ) : null}
                     </div>
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
                       {format(parseDisplayDate(activity.date), "MMM d, yyyy")}
                     </span>
                   </div>

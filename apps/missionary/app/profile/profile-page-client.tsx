@@ -74,9 +74,9 @@ export function ProfilePageClient() {
               hasChanges={vm.hasChanges}
               isSaving={vm.isSaving}
               saveSuccess={vm.saveSuccess}
-              handleCopyLink={vm.handleCopyLink}
-              handleDiscard={vm.handleDiscard}
-              handleSave={vm.handleSave}
+              onCopyLink={vm.handleCopyLink}
+              onDiscard={vm.handleDiscard}
+              onSave={vm.handleSave}
             />
           </PageHeader>
         </motion.div>
@@ -88,7 +88,7 @@ export function ProfilePageClient() {
             bioWordCount={vm.bioWordCount}
             initials={vm.initials}
             updateProfile={vm.updateProfile}
-            handleSave={vm.handleSave}
+            onSave={vm.handleSave}
           />
 
           <ProfilePreviewColumn

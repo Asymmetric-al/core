@@ -382,9 +382,9 @@ export function useAdminContributionsInfiniteGrid() {
     const currentById = new Map(currentRows.map((row) => [row.id, row]));
     const nextIds = new Set(flattenedRows.map((row) => row.id));
 
-    const removedIds = currentRows
-      .map((row) => row.id)
-      .filter((id) => !nextIds.has(id));
+    const removedIds = currentRows.flatMap((row) =>
+      nextIds.has(row.id) ? [] : [row.id],
+    );
 
     if (removedIds.length > 0) {
       loadedCollection.delete(removedIds);

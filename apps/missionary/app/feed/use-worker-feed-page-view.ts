@@ -32,7 +32,7 @@ function publishedFeedErrorMessage(failure: FetchFailure): string {
   return failure.message;
 }
 
-export type WorkerFeedPageViewModel = {
+type WorkerFeedPageViewModel = {
   postType: string;
   postContent: string;
   activeTab: PostStatus;

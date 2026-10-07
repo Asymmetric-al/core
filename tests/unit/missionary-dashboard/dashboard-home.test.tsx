@@ -2,6 +2,7 @@
 import { MotionProvider } from "@asym/lib/motion-provider";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { DashboardHome } from "../../../packages/missionary/components/dashboard-home";
@@ -15,13 +16,15 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@asym/database/hooks", () => ({
   useMissionaryPortalSnapshot: mocks.query,
 }));
-vi.mock("@asym/lib/hooks", () => ({
-  useAuth: mocks.auth,
-  useDonationMetrics: mocks.metrics,
-  useLocaleFormat: () => ({
-    formatDate: (value: string) => value,
-  }),
-}));
+vi.mock("@asym/lib/hooks", async () => {
+  const { useLocaleFormat } =
+    await import("../../../packages/lib/hooks/use-locale-format");
+  return {
+    useAuth: mocks.auth,
+    useDonationMetrics: mocks.metrics,
+    useLocaleFormat,
+  };
+});
 vi.mock("@asym/env", () => ({
   clientEnv: { NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED: false },
 }));
@@ -40,6 +43,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.restoreAllMocks();
 });
 const snapshot = {
   support: {
@@ -135,6 +139,34 @@ describe("missionary dashboard composition", () => {
     expect(mocks.auth).not.toHaveBeenCalled();
     expect(mocks.metrics).toHaveBeenCalledWith("explicit-fixture");
   });
+  it("renders update dates consistently on the server and preserves draft labels", () => {
+    vi.spyOn(Date.prototype, "toLocaleDateString").mockReturnValue(
+      "host-dependent date",
+    );
+    setup({
+      data: {
+        ...snapshot,
+        ministryUpdates: [
+          {
+            id: "published",
+            excerpt: "Published update",
+            createdAt: "2026-01-05T01:00:00.000Z",
+          },
+          { id: "draft", excerpt: "Unpublished update", createdAt: null },
+        ],
+      },
+    });
+
+    const html = renderToString(
+      <MotionProvider>
+        <DashboardHome missionaryId="explicit-fixture" />
+      </MotionProvider>,
+    );
+
+    expect(html).toContain("1/5/2026");
+    expect(html).not.toContain("host-dependent date");
+    expect(html).toContain("Draft");
+  });
   it("retains the injected slot and retry callback in the error state", () => {
     setup({ error: new Error("Local fixture failure"), data: undefined });
     show();
@@ -191,6 +223,9 @@ describe("missionary dashboard composition", () => {
     });
     expect(bar.getAttribute("aria-valuenow")).toBe("100");
     expect(bar.getAttribute("aria-valuetext")).toBe("150% funded");
+    expect(bar.style.getPropertyValue("--funding-progress-transform")).toBe(
+      "scaleX(1)",
+    );
   });
   it("bounds negative progress announcements without rewriting support values", () => {
     setup({
@@ -211,6 +246,9 @@ describe("missionary dashboard composition", () => {
     });
     expect(bar.getAttribute("aria-valuenow")).toBe("0");
     expect(bar.getAttribute("aria-valuetext")).toBe("-25% funded");
+    expect(bar.style.getPropertyValue("--funding-progress-transform")).toBe(
+      "scaleX(0)",
+    );
   });
   it("names the busy loading group while retaining the inserted content", () => {
     setup({ isLoading: true, data: undefined });

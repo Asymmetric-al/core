@@ -99,6 +99,14 @@ export function DonorTasks({
     setTaskDialogOpen(false);
   };
 
+  const handleRegisterDeleteAction = (
+    taskId: string,
+    element: HTMLElement | null,
+  ) => {
+    if (element) deleteActionRefs.current.set(taskId, element);
+    else deleteActionRefs.current.delete(taskId);
+  };
+
   const requestDelete = (task: Task, trigger?: HTMLElement) => {
     if (deletionInFlight.current) return;
     deleteReturnFocus.current =
@@ -128,7 +136,12 @@ export function DonorTasks({
 
   return (
     <div className="space-y-6">
-      <motion.div {...fadeInUp} className="flex items-center justify-between">
+      <motion.div
+        initial={fadeInUp.initial}
+        animate={fadeInUp.animate}
+        exit={fadeInUp.exit}
+        className="flex items-center justify-between"
+      >
         <div>
           <h3 className="text-sm font-semibold text-zinc-900">Tasks</h3>
           <p className="mt-0.5 text-xs text-zinc-500">
@@ -179,7 +192,9 @@ export function DonorTasks({
         </div>
       ) : filteredTasks.length === 0 ? (
         <motion.div
-          {...fadeInUp}
+          initial={fadeInUp.initial}
+          animate={fadeInUp.animate}
+          exit={fadeInUp.exit}
           className="flex flex-col items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 py-12 text-center"
         >
           <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-white shadow-sm">
@@ -193,206 +208,22 @@ export function DonorTasks({
       ) : (
         <div className="space-y-4">
           {activeTasks.length > 0 ? (
-            <div className="space-y-2">
-              <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                Active ({activeTasks.length})
-              </p>
-              {activeTasks.map((task, index) => {
-                const typeConfig =
-                  TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
-                if (!typeConfig) {
-                  return null;
-                }
-
-                const Icon = typeConfig.icon;
-                const isOverdue =
-                  task.due_date &&
-                  makeDisplayDate(task.due_date) < makeDisplayDate();
-                const isDueToday =
-                  task.due_date &&
-                  makeDisplayDate(task.due_date).toDateString() ===
-                    makeDisplayDate().toDateString();
-
-                return (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="group flex items-start gap-3 rounded-xl border border-zinc-100 bg-white p-4 transition-colors hover:border-zinc-200"
-                  >
-                    <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
-                      <Checkbox
-                        aria-label={`Complete ${task.title}`}
-                        checked={false}
-                        onCheckedChange={() => handleComplete(task)}
-                      />
-                    </motion.div>
-                    <div
-                      className={cn(
-                        "flex size-9 shrink-0 items-center justify-center rounded-lg",
-                        typeConfig.bgColor,
-                        typeConfig.color,
-                      )}
-                    >
-                      <Icon className="size-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold text-zinc-900">
-                          {task.title}
-                        </p>
-                        {task.priority === "high" ? (
-                          <Badge variant="destructive">High</Badge>
-                        ) : null}
-                      </div>
-                      {task.description ? (
-                        <p className="mt-0.5 line-clamp-1 text-xs text-zinc-500">
-                          {task.description}
-                        </p>
-                      ) : null}
-                      {task.due_date ? (
-                        <div
-                          className={cn(
-                            "mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
-                            isOverdue
-                              ? "border-rose-100 bg-rose-50 text-rose-600"
-                              : isDueToday
-                                ? "border-amber-100 bg-amber-50 text-amber-600"
-                                : "border-zinc-200 bg-zinc-100 text-zinc-600",
-                          )}
-                        >
-                          <Clock className="size-3" />
-                          {isOverdue
-                            ? "Overdue"
-                            : isDueToday
-                              ? "Due Today"
-                              : format(makeDisplayDate(task.due_date), "MMM d")}
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          aria-label="Open actions"
-                          ref={(element) => {
-                            if (element)
-                              deleteActionRefs.current.set(task.id, element);
-                            else deleteActionRefs.current.delete(task.id);
-                          }}
-                          render={
-                            <Button variant="ghost" size="icon-sm">
-                              <MoreHorizontal className="size-4" />
-                            </Button>
-                          }
-                        />
-                        <DropdownMenuContent align="end" className="rounded-xl">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setEditingTask(task);
-                              setTaskDialogOpen(true);
-                            }}
-                            className="text-xs font-medium"
-                          >
-                            <Pencil className="mr-2 size-3.5" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleComplete(task)}
-                            className="text-xs font-medium"
-                          >
-                            <CheckCircle2 className="mr-2 size-3.5" /> Complete
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => requestDelete(task)}
-                            className="text-xs font-medium text-destructive focus:text-destructive"
-                          >
-                            <X className="mr-2 size-3.5" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+            <ActiveDonorTasks
+              activeTasks={activeTasks}
+              handleComplete={handleComplete}
+              setEditingTask={setEditingTask}
+              setTaskDialogOpen={setTaskDialogOpen}
+              requestDelete={requestDelete}
+              onRegisterDeleteAction={handleRegisterDeleteAction}
+            />
           ) : null}
 
           {completedTasks.length > 0 ? (
-            <div className="space-y-2">
-              <p className="px-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                Completed ({completedTasks.length})
-              </p>
-              {completedTasks.slice(0, 5).map((task, index) => {
-                const typeConfig =
-                  TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
-                if (!typeConfig) {
-                  return null;
-                }
-
-                const Icon = typeConfig.icon;
-
-                return (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="group flex items-start gap-3 rounded-xl border border-transparent bg-zinc-50/50 p-4"
-                  >
-                    <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
-                      <Checkbox
-                        aria-label={`Complete ${task.title}`}
-                        checked={true}
-                        onCheckedChange={() => handleComplete(task)}
-                      />
-                    </motion.div>
-                    <div
-                      className={cn(
-                        "flex size-9 shrink-0 items-center justify-center rounded-lg opacity-50",
-                        typeConfig.bgColor,
-                        typeConfig.color,
-                      )}
-                    >
-                      <Icon className="size-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-zinc-400 line-through">
-                        {task.title}
-                      </p>
-                      {task.completed_at ? (
-                        <p className="mt-0.5 text-xs text-zinc-400">
-                          Completed{" "}
-                          {formatDistanceToNow(
-                            makeDisplayDate(task.completed_at),
-                            {
-                              addSuffix: true,
-                            },
-                          )}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Delete ${task.title}`}
-                        onClick={(event) =>
-                          requestDelete(task, event.currentTarget)
-                        }
-                      >
-                        <X className="size-4 text-zinc-400" />
-                      </Button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-              {completedTasks.length > 5 ? (
-                <p className="py-2 text-center text-xs text-zinc-400">
-                  + {completedTasks.length - 5} more completed tasks
-                </p>
-              ) : null}
-            </div>
+            <CompletedDonorTasks
+              completedTasks={completedTasks}
+              handleComplete={handleComplete}
+              requestDelete={requestDelete}
+            />
           ) : null}
         </div>
       )}
@@ -452,6 +283,225 @@ export function DonorTasks({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function ActiveDonorTasks({
+  activeTasks,
+  handleComplete,
+  setEditingTask,
+  setTaskDialogOpen,
+  requestDelete,
+  onRegisterDeleteAction,
+}: {
+  activeTasks: Task[];
+  handleComplete: (task: Task) => Promise<void>;
+  setEditingTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setTaskDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  requestDelete: (task: Task, trigger?: HTMLElement) => void;
+  onRegisterDeleteAction: (taskId: string, element: HTMLElement | null) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="px-1 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        Active ({activeTasks.length})
+      </p>
+      {activeTasks.map((task, index) => {
+        const typeConfig =
+          TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
+        if (!typeConfig) {
+          return null;
+        }
+
+        const Icon = typeConfig.icon;
+        const isOverdue =
+          task.due_date && makeDisplayDate(task.due_date) < makeDisplayDate();
+        const isDueToday =
+          task.due_date &&
+          makeDisplayDate(task.due_date).toDateString() ===
+            makeDisplayDate().toDateString();
+
+        return (
+          <motion.div
+            key={task.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.03 }}
+            className="group flex items-start gap-3 rounded-xl border border-zinc-100 bg-white p-4 transition-colors hover:border-zinc-200"
+          >
+            <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
+              <Checkbox
+                aria-label={`Complete ${task.title}`}
+                checked={false}
+                onCheckedChange={() => handleComplete(task)}
+              />
+            </motion.div>
+            <div
+              className={cn(
+                "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                typeConfig.bgColor,
+                typeConfig.color,
+              )}
+            >
+              <Icon className="size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-zinc-900">
+                  {task.title}
+                </p>
+                {task.priority === "high" ? (
+                  <Badge variant="destructive">High</Badge>
+                ) : null}
+              </div>
+              {task.description ? (
+                <p className="mt-0.5 line-clamp-1 text-xs text-zinc-500">
+                  {task.description}
+                </p>
+              ) : null}
+              {task.due_date ? (
+                <div
+                  className={cn(
+                    "mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wider",
+                    isOverdue
+                      ? "border-rose-100 bg-rose-50 text-rose-600"
+                      : isDueToday
+                        ? "border-amber-100 bg-amber-50 text-amber-600"
+                        : "border-zinc-200 bg-zinc-100 text-zinc-600",
+                  )}
+                >
+                  <Clock className="size-3" />
+                  {isOverdue
+                    ? "Overdue"
+                    : isDueToday
+                      ? "Due Today"
+                      : format(makeDisplayDate(task.due_date), "MMM d")}
+                </div>
+              ) : null}
+            </div>
+            <div className="transition-opacity">
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="Open actions"
+                  ref={(element) => onRegisterDeleteAction(task.id, element)}
+                  render={
+                    <Button variant="ghost" size="icon-sm">
+                      <MoreHorizontal className="size-4" />
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end" className="rounded-xl">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEditingTask(task);
+                      setTaskDialogOpen(true);
+                    }}
+                    className="text-xs font-medium"
+                  >
+                    <Pencil className="mr-2 size-3.5" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleComplete(task)}
+                    className="text-xs font-medium"
+                  >
+                    <CheckCircle2 className="mr-2 size-3.5" /> Complete
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => requestDelete(task)}
+                    className="text-xs font-medium text-destructive focus:text-destructive"
+                  >
+                    <X className="mr-2 size-3.5" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CompletedDonorTasks({
+  completedTasks,
+  handleComplete,
+  requestDelete,
+}: {
+  completedTasks: Task[];
+  handleComplete: (task: Task) => Promise<void>;
+  requestDelete: (task: Task, trigger?: HTMLElement) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="px-1 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        Completed ({completedTasks.length})
+      </p>
+      {completedTasks.slice(0, 5).map((task, index) => {
+        const typeConfig =
+          TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
+        if (!typeConfig) {
+          return null;
+        }
+
+        const Icon = typeConfig.icon;
+
+        return (
+          <motion.div
+            key={task.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.03 }}
+            className="group flex items-start gap-3 rounded-xl border border-transparent bg-zinc-50/50 p-4"
+          >
+            <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
+              <Checkbox
+                aria-label={`Complete ${task.title}`}
+                checked
+                onCheckedChange={() => handleComplete(task)}
+              />
+            </motion.div>
+            <div
+              className={cn(
+                "flex size-9 shrink-0 items-center justify-center rounded-lg opacity-50",
+                typeConfig.bgColor,
+                typeConfig.color,
+              )}
+            >
+              <Icon className="size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-zinc-400 line-through">
+                {task.title}
+              </p>
+              {task.completed_at ? (
+                <p className="mt-0.5 text-xs text-zinc-400">
+                  Completed{" "}
+                  {formatDistanceToNow(makeDisplayDate(task.completed_at), {
+                    addSuffix: true,
+                  })}
+                </p>
+              ) : null}
+            </div>
+            <div className="transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Delete ${task.title}`}
+                onClick={(event) => requestDelete(task, event.currentTarget)}
+              >
+                <X className="size-4 text-zinc-400" />
+              </Button>
+            </div>
+          </motion.div>
+        );
+      })}
+      {completedTasks.length > 5 ? (
+        <p className="py-2 text-center text-xs text-zinc-400">
+          + {completedTasks.length - 5} more completed tasks
+        </p>
+      ) : null}
     </div>
   );
 }

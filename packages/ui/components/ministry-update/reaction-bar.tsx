@@ -202,7 +202,7 @@ function ChipReactionButton({
     };
   }, []);
 
-  const handleClick = () => {
+  const handleToggleReaction = () => {
     const activating = !state.mine;
     if (activating && !reduceMotion) {
       const burst: Particle[] = Array.from(
@@ -254,9 +254,9 @@ function ChipReactionButton({
               }
         }
         whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-        onClick={handleClick}
+        onClick={handleToggleReaction}
         className={cn(
-          "group relative flex h-10 items-center gap-2.5 overflow-hidden rounded-2xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest transition-[background-color,color,box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
+          "group relative flex h-10 items-center gap-2.5 overflow-hidden rounded-2xl px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-[background-color,color,box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
           state.mine
             ? cn(
                 config.chipActiveBg,
@@ -313,14 +313,14 @@ function ChipReactionButton({
         {state.mine &&
           (reduceMotion ? (
             <span
-              className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent"
+              className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/40 to-transparent"
               aria-hidden="true"
             />
           ) : (
             <m.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent"
+              className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/40 to-transparent"
               aria-hidden="true"
             />
           ))}
@@ -385,7 +385,7 @@ function CommentsButton({
       <button
         type="button"
         onClick={onOpen}
-        className="flex h-10 items-center gap-2.5 rounded-2xl border border-border bg-background px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+        className="flex h-10 items-center gap-2.5 rounded-2xl border border-border bg-background px-5 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
       >
         <MessageCircle aria-hidden className="size-4" strokeWidth={1.5} />
         <span className="sr-only">Comments</span>

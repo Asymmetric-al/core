@@ -92,7 +92,7 @@ const initialUiState: ProfilePageUiState = {
   validationErrors: {},
 };
 
-export type ProfilePageViewModel = {
+type ProfilePageViewModel = {
   isLoading: boolean;
   fetchError: string | null;
   profile: ProfileData;

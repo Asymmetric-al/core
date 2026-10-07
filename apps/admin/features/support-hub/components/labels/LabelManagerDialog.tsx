@@ -99,10 +99,8 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
             <span className="flex size-8 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-zinc-100">
               <Tag className="size-4 text-zinc-300" />
             </span>
-            <p className="text-[12px] font-medium text-zinc-700">
-              No labels yet
-            </p>
-            <p className="max-w-xs text-[11px] text-zinc-500">
+            <p className="text-xs font-medium text-zinc-700">No labels yet</p>
+            <p className="max-w-xs text-xs text-zinc-500">
               Create the first label to start triaging donor questions.
             </p>
           </div>
@@ -121,11 +119,11 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
                       TONE_DOT_CLASSES[label.tone],
                     )}
                   />
-                  <span className="text-[13px] font-medium text-zinc-900">
+                  <span className="text-xs font-medium text-zinc-900">
                     {label.name}
                   </span>
                   {label.description ? (
-                    <span className="truncate text-[11px] text-zinc-500">
+                    <span className="truncate text-xs text-zinc-500">
                       {label.description}
                     </span>
                   ) : null}
@@ -179,10 +177,11 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
         <Button
           type="button"
           size="sm"
+          aria-label="Close label manager"
           onClick={onDone}
           className="h-8 rounded-lg px-3 text-xs"
         >
-          Done
+          Close
         </Button>
       </DialogFooter>
     </>

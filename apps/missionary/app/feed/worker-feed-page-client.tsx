@@ -196,7 +196,7 @@ function FollowerRequestItem({
         <motion.div whileHover={{ scale: 1.02 }} transition={springTransition}>
           <Avatar className="size-9 shrink-0 border border-border/50 shadow-sm">
             <AvatarImage src={request.avatar_url || undefined} />
-            <AvatarFallback className="bg-transparent bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
+            <AvatarFallback className="bg-transparent bg-linear-to-br from-muted to-muted/50 text-muted-foreground text-xs font-semibold">
               {request.initials}
             </AvatarFallback>
           </Avatar>
@@ -220,7 +220,7 @@ function FollowerRequestItem({
                   >
                     <Badge
                       variant="secondary"
-                      className="text-[7px] h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-semibold uppercase tracking-wider"
+                      className="h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-semibold uppercase tracking-wider"
                     >
                       Donor
                     </Badge>
@@ -228,7 +228,7 @@ function FollowerRequestItem({
                 )}
                 <TimeAgo
                   date={request.created_at}
-                  className="text-[9px] text-muted-foreground"
+                  className="text-xs text-muted-foreground"
                 />
               </div>
             </div>
@@ -252,7 +252,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia"
-                      className="w-full text-[9px] uppercase tracking-wider rounded-lg"
+                      className="w-full uppercase tracking-wider rounded-lg"
                       onClick={() => handleAction("approve")}
                     >
                       Accept
@@ -266,7 +266,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia-outline"
-                      className="w-full text-[9px] uppercase tracking-wider rounded-lg"
+                      className="w-full uppercase tracking-wider rounded-lg"
                       onClick={() => handleAction("ignore")}
                     >
                       Ignore
@@ -313,7 +313,7 @@ function FollowerRequestItem({
                   >
                     <Check className="size-3" />
                   </motion.div>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider">
+                  <span className="text-xs font-semibold uppercase tracking-wider">
                     Accepted
                   </span>
                 </motion.div>
@@ -336,7 +336,7 @@ function FollowerRequestItem({
                   >
                     <X className="size-3" />
                   </motion.div>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider">
+                  <span className="text-xs font-semibold uppercase tracking-wider">
                     Removed
                   </span>
                 </motion.div>
@@ -405,17 +405,17 @@ function PostCard({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[9px] uppercase tracking-wider">
+                  <Badge className="bg-muted text-muted-foreground border-none font-semibold uppercase tracking-wider">
                     {post.post_type}
                   </Badge>
                 </motion.div>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                   {formatDate(post.created_at)}
                 </span>
                 <span className="text-border">•</span>
-                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
                   {post.visibility === "public" ? (
                     <Globe className="size-3" />
                   ) : post.visibility === "partners" ? (
@@ -445,12 +445,12 @@ function PostCard({
               align="end"
               className="rounded-xl border-border shadow-lg p-2 min-w-40 sm:min-w-45"
             >
-              <DropdownMenuItem className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
+              <DropdownMenuItem className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
                 <Pin className="size-3.5 text-muted-foreground" /> Pin to Top
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onEdit}
-                className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
+                className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
               >
                 <Settings className="size-3.5 text-muted-foreground" /> Edit
                 Post
@@ -458,7 +458,7 @@ function PostCard({
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
                 onClick={onDelete}
-                className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2.5 sm:gap-3"
+                className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2.5 sm:py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2.5 sm:gap-3"
               >
                 <Trash2 className="size-3.5" /> Delete Post
               </DropdownMenuItem>
@@ -635,179 +635,18 @@ function SecurityAccessDialog({
         </DialogHeader>
 
         <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-          <div className="space-y-3">
-            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Security Level
-            </Label>
-            <div className="space-y-3">
-              {SECURITY_OPTIONS.map(
-                ({
-                  level,
-                  icon: Icon,
-                  title,
-                  description,
-                  features,
-                  color,
-                  bgColor,
-                  borderColor,
-                  ringColor,
-                }) => {
-                  const isSelected = localLevel === level;
-                  return (
-                    <motion.button
-                      key={level}
-                      type="button"
-                      onClick={() => handleLevelChange(level)}
-                      whileHover={{ scale: 1.005 }}
-                      whileTap={{ scale: 0.995 }}
-                      className={cn(
-                        "w-full text-left p-4 rounded-xl border-2 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200",
-                        isSelected
-                          ? cn(borderColor, bgColor, "ring-2", ringColor)
-                          : "border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/30",
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            "size-10 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                            isSelected
-                              ? cn(bgColor, color)
-                              : "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          <Icon className="size-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className={cn(
-                                "font-semibold text-sm",
-                                isSelected ? color : "text-foreground",
-                              )}
-                            >
-                              {title}
-                            </span>
-                            {isSelected && (
-                              <motion.div
-                                initial={{ scale: 0.95, opacity: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={springTransition}
-                              >
-                                <Badge
-                                  className={cn(
-                                    "h-5 px-1.5 text-[8px] font-semibold uppercase tracking-wider border-0",
-                                    bgColor,
-                                    color,
-                                  )}
-                                >
-                                  Active
-                                </Badge>
-                              </motion.div>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground leading-relaxed mb-2">
-                            {description}
-                          </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {features.map((feature) => (
-                              <span
-                                key={feature}
-                                className={cn(
-                                  "text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full",
-                                  isSelected
-                                    ? cn(bgColor, color)
-                                    : "bg-muted text-muted-foreground",
-                                )}
-                              >
-                                {feature}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <div
-                          className={cn(
-                            "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]",
-                            isSelected
-                              ? cn(borderColor, bgColor)
-                              : "border-border",
-                          )}
-                        >
-                          {isSelected && (
-                            <motion.div
-                              initial={{ scale: 0.95, opacity: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={springTransition}
-                            >
-                              <Check className={cn("size-3", color)} />
-                            </motion.div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.button>
-                  );
-                },
-              )}
-            </div>
-          </div>
+          <SecurityAccessOptions
+            localLevel={localLevel}
+            handleLevelChange={handleLevelChange}
+          />
 
-          <div className="space-y-4 pt-4 border-t border-border">
-            <Label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Quick Settings
-            </Label>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
-                <div className="flex items-center gap-3">
-                  <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Globe className="size-4 text-primary" />
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor={`${settingsId}-mirror`}
-                      className="text-xs font-semibold cursor-pointer"
-                    >
-                      Public Mirror
-                    </Label>
-                    <p className="text-[10px] text-muted-foreground">
-                      Sync updates to your giving page
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  id={`${settingsId}-mirror`}
-                  aria-label="Public Mirror"
-                  checked={publicMirror}
-                  onCheckedChange={handlePublicMirrorChange}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
-                <div className="flex items-center gap-3">
-                  <div className="size-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                    <Users className="size-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <Label
-                      htmlFor={`${settingsId}-approval`}
-                      className="text-xs font-semibold cursor-pointer"
-                    >
-                      Auto-Approve Donors
-                    </Label>
-                    <p className="text-[10px] text-muted-foreground">
-                      Instantly accept donor follow requests
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  id={`${settingsId}-approval`}
-                  aria-label="Auto-Approve Donors"
-                  checked={autoApproval}
-                  onCheckedChange={handleAutoApprovalChange}
-                />
-              </div>
-            </div>
-          </div>
+          <SecurityAccessNotes
+            settingsId={settingsId}
+            publicMirror={publicMirror}
+            handlePublicMirrorChange={handlePublicMirrorChange}
+            autoApproval={autoApproval}
+            handleAutoApprovalChange={handleAutoApprovalChange}
+          />
         </div>
 
         <DialogFooter className="px-6 py-4 border-t border-border bg-muted/20">
@@ -866,7 +705,7 @@ type PostComposerCardProps = {
   setEditingPostId: (value: React.SetStateAction<string | null>) => void;
   setPostPrivacy: (value: React.SetStateAction<Visibility>) => void;
   simulateUpload: () => Promise<void>;
-  handlePost: (status?: PostStatus) => Promise<void>;
+  onPost: (status?: PostStatus) => Promise<void>;
 };
 
 type PostComposerActionsProps = {
@@ -892,7 +731,7 @@ export function PostComposerActions({
   setSelectedMedia,
   setPostPrivacy,
   simulateUpload,
-  handlePost,
+  handlePost: onPost,
 }: PostComposerActionsProps) {
   const publishLabelId = useId();
   const [pendingAction, setPendingAction] = useState<PostStatus | null>(null);
@@ -907,7 +746,7 @@ export function PostComposerActions({
     pendingActionRef.current = status;
     setPendingAction(status);
     try {
-      await handlePost(status);
+      await onPost(status);
     } finally {
       pendingActionRef.current = null;
       setPendingAction(null);
@@ -943,12 +782,14 @@ export function PostComposerActions({
                   className="size-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
                 />
                 <motion.button
+                  type="button"
+                  aria-label="Remove attached media"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() =>
                     setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))
                   }
-                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
+                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5   transition-opacity shadow-sm"
                 >
                   <X className="size-3" />
                 </motion.button>
@@ -964,7 +805,7 @@ export function PostComposerActions({
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
-              className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
+              className="text-xs text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
             >
               Saved{" "}
               {formatTime(lastSaved, { hour: "2-digit", minute: "2-digit" })}
@@ -979,7 +820,7 @@ export function PostComposerActions({
             size="sm"
             disabled={isUploading}
             onClick={simulateUpload}
-            className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+            className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             {isUploading ? (
               <motion.div
@@ -1006,7 +847,7 @@ export function PostComposerActions({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
+                className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
               >
                 {postPrivacy === "public" ? (
                   <Globe className="size-3" />
@@ -1028,21 +869,21 @@ export function PostComposerActions({
           >
             <DropdownMenuItem
               onClick={() => setPostPrivacy("public")}
-              className="font-semibold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
               <Globe className="size-3.5 text-muted-foreground" />
               Public
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setPostPrivacy("partners")}
-              className="font-semibold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
               <Users className="size-3.5 text-muted-foreground" />
               Partners Only
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setPostPrivacy("private")}
-              className="font-semibold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
               <Lock className="size-3.5 text-muted-foreground" />
               Private
@@ -1060,7 +901,7 @@ export function PostComposerActions({
             size="sm"
             disabled={actionsDisabled}
             focusableWhenDisabled={draftPending}
-            className="px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
+            className="px-2.5 sm:px-4 uppercase tracking-wider rounded-lg"
           >
             {draftPending ? (
               <motion.div
@@ -1088,7 +929,7 @@ export function PostComposerActions({
             size="sm"
             disabled={actionsDisabled}
             focusableWhenDisabled={publishPending}
-            className="sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
+            className="sm:px-5 uppercase tracking-wider rounded-lg shadow-sm"
           >
             <span id={publishLabelId} className="sr-only">
               {publishPending ? "Publishing update" : "Publish"}
@@ -1129,7 +970,7 @@ function PostComposerCard({
   setEditingPostId,
   setPostPrivacy,
   simulateUpload,
-  handlePost,
+  onPost,
 }: PostComposerCardProps) {
   const isComposerEmpty = isPostContentEmpty(postContent);
   const postActionDisabled =
@@ -1158,7 +999,7 @@ function PostComposerCard({
                   variant={postType === type ? "maia" : "maia-outline"}
                   onClick={() => setPostType(type)}
                   className={cn(
-                    "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold",
+                    "px-3 sm:px-5 py-2 h-8 sm:h-9 uppercase tracking-wider font-semibold",
                     postType === type && "shadow-md",
                   )}
                 >
@@ -1183,7 +1024,7 @@ function PostComposerCard({
                     setEditingPostId(null);
                     setPostContent("");
                   }}
-                  className="ml-auto text-destructive font-semibold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+                  className="ml-auto text-destructive font-semibold uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
                 >
                   Cancel Edit
                 </Button>
@@ -1232,7 +1073,7 @@ function PostComposerCard({
                   setSelectedMedia={setSelectedMedia}
                   setPostPrivacy={setPostPrivacy}
                   simulateUpload={simulateUpload}
-                  handlePost={handlePost}
+                  handlePost={onPost}
                 />
               }
             />
@@ -1251,8 +1092,8 @@ type FeedPostsTabsSectionProps = {
   isLoading: boolean;
   reloadPosts: () => Promise<void>;
   setActiveTab: (value: React.SetStateAction<PostStatus>) => void;
-  handleEditDraft: (draft: Post) => void;
-  handleDeletePost: (postId: string) => Promise<void>;
+  onEditDraft: (draft: Post) => void;
+  onDeletePost: (postId: string) => Promise<void>;
 };
 
 function FeedPostsTabsSection({
@@ -1263,8 +1104,8 @@ function FeedPostsTabsSection({
   isLoading,
   reloadPosts,
   setActiveTab,
-  handleEditDraft,
-  handleDeletePost,
+  onEditDraft,
+  onDeletePost,
 }: FeedPostsTabsSectionProps) {
   const { formatDate } = useLocaleFormat();
   return (
@@ -1284,13 +1125,13 @@ function FeedPostsTabsSection({
           <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
             <TabsTrigger
               value="published"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors"
             >
               Published
             </TabsTrigger>
             <TabsTrigger
               value="draft"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors flex items-center gap-2"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors flex items-center gap-2"
             >
               Drafts
               <AnimatePresence>
@@ -1301,7 +1142,7 @@ function FeedPostsTabsSection({
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Badge className="border-none h-4 px-1 text-[8px] font-semibold">
+                    <Badge className="border-none h-4 px-1 font-semibold">
                       {drafts.length}
                     </Badge>
                   </motion.div>
@@ -1330,8 +1171,8 @@ function FeedPostsTabsSection({
                       key={post.id}
                       post={post}
                       index={index}
-                      onEdit={() => handleEditDraft(post)}
-                      onDelete={() => handleDeletePost(post.id)}
+                      onEdit={() => onEditDraft(post)}
+                      onDelete={() => onDeletePost(post.id)}
                     />
                   ))}
                 </PublishedFeedPane>
@@ -1368,11 +1209,11 @@ function FeedPostsTabsSection({
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
                               >
-                                <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[8px] uppercase tracking-wider">
+                                <Badge className="bg-muted text-muted-foreground border-none font-semibold uppercase tracking-wider">
                                   Draft • {draft.post_type}
                                 </Badge>
                               </motion.div>
-                              <span className="text-[10px] text-muted-foreground font-medium">
+                              <span className="text-xs text-muted-foreground font-medium">
                                 Saved {formatDate(draft.created_at)}
                               </span>
                             </div>
@@ -1391,8 +1232,8 @@ function FeedPostsTabsSection({
                               <Button
                                 variant="maia"
                                 size="sm"
-                                onClick={() => handleEditDraft(draft)}
-                                className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl"
+                                onClick={() => onEditDraft(draft)}
+                                className="w-full h-9 sm:h-10 px-4 sm:px-6 uppercase tracking-wider rounded-xl"
                               >
                                 <ExternalLink className="size-3.5 mr-2" />
                                 <span className="hidden sm:inline">
@@ -1409,8 +1250,8 @@ function FeedPostsTabsSection({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeletePost(draft.id)}
-                                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
+                                onClick={() => onDeletePost(draft.id)}
+                                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-semibold uppercase tracking-wider rounded-xl"
                               >
                                 <Trash2 className="size-3.5 mr-2" />
                                 Delete
@@ -1440,13 +1281,13 @@ function FeedPostsTabsSection({
 type FollowerRequestsCardProps = {
   pendingRequests: FollowerRequest[];
   isLoadingRequests: boolean;
-  handleResolveRequest: (id: string, approved: boolean) => void;
+  onResolveRequest: (id: string, approved: boolean) => void;
 };
 
 function FollowerRequestsCard({
   pendingRequests,
   isLoadingRequests,
-  handleResolveRequest,
+  onResolveRequest,
 }: FollowerRequestsCardProps) {
   return (
     <MotionCard
@@ -1456,7 +1297,7 @@ function FollowerRequestsCard({
       className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card"
     >
       <div className="px-4 py-3 flex items-center justify-between">
-        <h3 className="font-semibold text-[11px] uppercase tracking-wider text-foreground">
+        <h3 className="font-semibold text-xs uppercase tracking-wider text-foreground">
           Follow Requests
         </h3>
         <AnimatePresence>
@@ -1467,7 +1308,7 @@ function FollowerRequestsCard({
               exit={{ scale: 0.95, opacity: 0 }}
               transition={springTransition}
             >
-              <Badge className="border-none font-semibold text-[10px] h-5 min-w-5 px-1.5 flex">
+              <Badge className="border-none font-semibold h-5 min-w-5 px-1.5 flex">
                 {pendingRequests.length}
               </Badge>
             </motion.div>
@@ -1505,7 +1346,7 @@ function FollowerRequestsCard({
                 <FollowerRequestItem
                   key={req.id}
                   request={req}
-                  onResolve={handleResolveRequest}
+                  onResolve={onResolveRequest}
                   index={index}
                 />
               ))}
@@ -1526,7 +1367,7 @@ function FollowerRequestsCard({
             >
               <Check className="size-5 text-emerald-500" />
             </motion.div>
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               All caught up!
             </p>
           </motion.div>
@@ -1577,7 +1418,7 @@ function WorkerFeedPageView() {
             setEditingPostId={vm.setEditingPostId}
             setPostPrivacy={vm.setPostPrivacy}
             simulateUpload={vm.simulateUpload}
-            handlePost={vm.handlePost}
+            onPost={vm.handlePost}
           />
 
           <FeedPostsTabsSection
@@ -1588,8 +1429,8 @@ function WorkerFeedPageView() {
             isLoading={vm.isLoading}
             reloadPosts={vm.reloadPosts}
             setActiveTab={vm.setActiveTab}
-            handleEditDraft={vm.handleEditDraft}
-            handleDeletePost={vm.handleDeletePost}
+            onEditDraft={vm.handleEditDraft}
+            onDeletePost={vm.handleDeletePost}
           />
         </motion.div>
 
@@ -1602,7 +1443,7 @@ function WorkerFeedPageView() {
           <FollowerRequestsCard
             pendingRequests={vm.pendingRequests}
             isLoadingRequests={vm.isLoadingRequests}
-            handleResolveRequest={vm.handleResolveRequest}
+            onResolveRequest={vm.handleResolveRequest}
           />
         </motion.div>
       </div>
@@ -1612,4 +1453,202 @@ function WorkerFeedPageView() {
 
 export default function WorkerFeed() {
   return <WorkerFeedPageView />;
+}
+
+function SecurityAccessOptions({
+  localLevel,
+  handleLevelChange,
+}: {
+  localLevel: SecurityLevel;
+  handleLevelChange: (level: SecurityLevel) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        Security Level
+      </Label>
+      <div className="space-y-3">
+        {SECURITY_OPTIONS.map(
+          ({
+            level,
+            icon: Icon,
+            title,
+            description,
+            features,
+            color,
+            bgColor,
+            borderColor,
+            ringColor,
+          }) => {
+            const isSelected = localLevel === level;
+            return (
+              <motion.button
+                key={level}
+                type="button"
+                onClick={() => handleLevelChange(level)}
+                whileHover={{ scale: 1.005 }}
+                whileTap={{ scale: 0.995 }}
+                className={cn(
+                  "w-full text-left p-4 rounded-xl border-2 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200",
+                  isSelected
+                    ? cn(borderColor, bgColor, "ring-2", ringColor)
+                    : "border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/30",
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={cn(
+                      "size-10 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                      isSelected
+                        ? cn(bgColor, color)
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="size-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className={cn(
+                          "font-semibold text-sm",
+                          isSelected ? color : "text-foreground",
+                        )}
+                      >
+                        {title}
+                      </span>
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0.95, opacity: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={springTransition}
+                        >
+                          <Badge
+                            className={cn(
+                              "h-5 px-1.5 font-semibold uppercase tracking-wider border-0",
+                              bgColor,
+                              color,
+                            )}
+                          >
+                            Active
+                          </Badge>
+                        </motion.div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-2">
+                      {description}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {features.map((feature) => (
+                        <span
+                          key={feature}
+                          className={cn(
+                            "text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full",
+                            isSelected
+                              ? cn(bgColor, color)
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]",
+                      isSelected ? cn(borderColor, bgColor) : "border-border",
+                    )}
+                  >
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={springTransition}
+                      >
+                        <Check className={cn("size-3", color)} />
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              </motion.button>
+            );
+          },
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SecurityAccessNotes({
+  settingsId,
+  publicMirror,
+  handlePublicMirrorChange,
+  autoApproval,
+  handleAutoApprovalChange,
+}: {
+  settingsId: string;
+  publicMirror: boolean;
+  handlePublicMirrorChange: (checked: boolean) => void;
+  autoApproval: boolean;
+  handleAutoApprovalChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="space-y-4 pt-4 border-t border-border">
+      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        Quick Settings
+      </Label>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
+          <div className="flex items-center gap-3">
+            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Globe className="size-4 text-primary" />
+            </div>
+            <div>
+              <Label
+                htmlFor={`${settingsId}-mirror`}
+                className="text-xs font-semibold cursor-pointer"
+              >
+                Public Mirror
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Sync updates to your giving page
+              </p>
+            </div>
+          </div>
+          <Switch
+            id={`${settingsId}-mirror`}
+            aria-label="Public Mirror"
+            checked={publicMirror}
+            onCheckedChange={handlePublicMirrorChange}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
+          <div className="flex items-center gap-3">
+            <div className="size-8 rounded-lg bg-purple-50 flex items-center justify-center">
+              <Users className="size-4 text-purple-600" />
+            </div>
+            <div>
+              <Label
+                htmlFor={`${settingsId}-approval`}
+                className="text-xs font-semibold cursor-pointer"
+              >
+                Auto-Approve Donors
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Instantly accept donor follow requests
+              </p>
+            </div>
+          </div>
+          <Switch
+            id={`${settingsId}-approval`}
+            aria-label="Auto-Approve Donors"
+            checked={autoApproval}
+            onCheckedChange={handleAutoApprovalChange}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

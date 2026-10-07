@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
             >
               <SelectTrigger
                 aria-label="Giving trend period"
-                className="w-25 h-8 rounded-lg text-[9px] font-bold uppercase tracking-wider border-zinc-200"
+                className="w-25 h-8 rounded-lg font-bold uppercase tracking-wider border-zinc-200"
               >
                 <SelectValue />
               </SelectTrigger>

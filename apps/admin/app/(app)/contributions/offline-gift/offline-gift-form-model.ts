@@ -72,7 +72,7 @@ export const INITIAL_OFFLINE_GIFT_FORM_VALUES: OfflineGiftFormValues = {
   internalNote: "",
 };
 
-export interface OfflineMethodOption {
+interface OfflineMethodOption {
   label: string;
   value: OfflineMethod;
 }
@@ -96,7 +96,7 @@ export const OFFLINE_METHOD_OPTIONS_UNKNOWN: readonly OfflineMethodOption[] = [
   { label: "Other", value: "other" },
 ];
 
-export interface OfflineReceiptStatusDisplay {
+interface OfflineReceiptStatusDisplay {
   label: string;
   description: string;
   /** Literal Tailwind palette classes (light + dark) — matches columns.tsx. */

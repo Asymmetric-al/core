@@ -21,7 +21,7 @@ export function MetricCard({ metric }: { metric: Metric }) {
           <metric.icon className="size-4.5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
             {metric.title}
           </p>
           <div className="flex items-baseline gap-1">
@@ -29,7 +29,7 @@ export function MetricCard({ metric }: { metric: Metric }) {
               {metric.value}
             </p>
           </div>
-          <p className="truncate text-[9px] font-bold text-zinc-500 uppercase tracking-tight">
+          <p className="truncate text-xs font-bold text-zinc-500 uppercase tracking-tight">
             {metric.subtitle}
           </p>
         </div>

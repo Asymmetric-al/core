@@ -29,15 +29,36 @@ export function TimezoneScheduler({
     return () => clearInterval(timer);
   }, []);
 
-  const remoteTime = localTime
-    ? new Intl.DateTimeFormat("en-US", {
-        timeZone: remoteTimezone,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      }).format(localTime)
-    : "--:--:-- --";
+  const hasLocalTime = localTime !== null;
+  const remoteTimeFormatter = React.useMemo(
+    () =>
+      hasLocalTime
+        ? new Intl.DateTimeFormat("en-US", {
+            timeZone: remoteTimezone,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          })
+        : null,
+    [hasLocalTime, remoteTimezone],
+  );
+  const remoteHourFormatter = React.useMemo(
+    () =>
+      hasLocalTime
+        ? new Intl.DateTimeFormat("en-US", {
+            timeZone: remoteTimezone,
+            hour: "numeric",
+            hour12: false,
+          })
+        : null,
+    [hasLocalTime, remoteTimezone],
+  );
+
+  const remoteTime =
+    localTime && remoteTimeFormatter
+      ? remoteTimeFormatter.format(localTime)
+      : "--:--:-- --";
 
   const localTimeStr = localTime
     ? localTime.toLocaleTimeString("en-US", {
@@ -49,14 +70,8 @@ export function TimezoneScheduler({
     : "--:--:-- --";
 
   const isRemoteWorkingHours = () => {
-    if (!localTime) return false;
-    const hour = parseInt(
-      new Intl.DateTimeFormat("en-US", {
-        timeZone: remoteTimezone,
-        hour: "numeric",
-        hour12: false,
-      }).format(localTime),
-    );
+    if (!localTime || !remoteHourFormatter) return false;
+    const hour = parseInt(remoteHourFormatter.format(localTime));
     return hour >= 9 && hour <= 17;
   };
 
@@ -72,7 +87,7 @@ export function TimezoneScheduler({
           <Badge
             variant={working ? "default" : "outline"}
             className={cn(
-              "text-[10px] font-bold h-5",
+              "font-bold h-5",
               working
                 ? "bg-emerald-500 text-white border-none"
                 : "bg-zinc-100 text-zinc-500 border-zinc-200",
@@ -85,13 +100,11 @@ export function TimezoneScheduler({
       <CardContent className="pt-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 space-y-1">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase">
-              My Time
-            </p>
+            <p className="text-xs font-bold text-zinc-400 uppercase">My Time</p>
             <p className="text-xl font-bold text-zinc-900 tabular-nums">
               {localTimeStr}
             </p>
-            <p className="text-[10px] text-zinc-500 font-medium truncate">
+            <p className="text-xs text-zinc-500 font-medium truncate">
               Local Timezone
             </p>
           </div>
@@ -101,13 +114,13 @@ export function TimezoneScheduler({
           </div>
 
           <div className="flex-1 text-right space-y-1">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase">
+            <p className="text-xs font-bold text-zinc-400 uppercase">
               {remoteName}&apos;s Time
             </p>
             <p className="text-xl font-bold text-zinc-900 tabular-nums">
               {remoteTime}
             </p>
-            <p className="text-[10px] text-zinc-500 font-medium truncate">
+            <p className="text-xs text-zinc-500 font-medium truncate">
               {remoteTimezone}
             </p>
           </div>
@@ -128,7 +141,7 @@ export function TimezoneScheduler({
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 text-[10px] font-bold uppercase text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            className="h-7 font-bold uppercase text-blue-600 hover:text-blue-700 hover:bg-blue-50"
           >
             Schedule Call
           </Button>

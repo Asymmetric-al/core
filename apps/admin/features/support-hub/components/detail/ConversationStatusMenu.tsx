@@ -52,7 +52,7 @@ export function ConversationStatusMenu({
             variant="outline"
             size="sm"
             className={cn(
-              "h-8 gap-1.5 rounded-lg px-2.5 text-[11px] font-bold uppercase tracking-wider",
+              "h-8 gap-1.5 rounded-lg px-2.5 font-bold uppercase tracking-wider",
               STATUS_TRIGGER_TONES[conversation.status],
             )}
           >
@@ -63,7 +63,7 @@ export function ConversationStatusMenu({
       />
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+          <DropdownMenuLabel className="text-xs uppercase tracking-widest text-zinc-400">
             Set status
           </DropdownMenuLabel>
 
@@ -79,7 +79,7 @@ export function ConversationStatusMenu({
                     status,
                   })
                 }
-                className="gap-2 text-[12px]"
+                className="gap-2 text-xs"
               >
                 <Check
                   className={cn(

@@ -19,7 +19,10 @@ import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
 import { DataGridCell } from "./data-grid-cell";
-import { activateDataGridCellFromKeyboard } from "./data-grid-keyboard";
+import {
+  handleDataGridKeyboardCommand,
+  activateDataGridCellFromKeyboard,
+} from "./data-grid-keyboard";
 import { useDataTableVirtualization } from "../data-table/hooks/use-data-table-virtualization";
 import { Input } from "../input";
 import {
@@ -597,37 +600,8 @@ export function DataGrid<TData extends Record<string, unknown>>({
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [copiedData, setCopiedData] = React.useState<string[][]>([]);
-  const [undoStack, setUndoStack] = React.useState<TData[][]>([]);
-  const [redoStack, setRedoStack] = React.useState<TData[][]>([]);
-
-  const saveToUndo = React.useCallback(() => {
-    if (enableUndo) {
-      setUndoStack((prev) => [...prev.slice(-19), [...gridData]]);
-      setRedoStack([]);
-    }
-  }, [gridData, enableUndo]);
-
-  const handleUndo = React.useCallback(() => {
-    if (undoStack.length > 0) {
-      const previousState = undoStack[undoStack.length - 1];
-      if (previousState) {
-        setRedoStack((prev) => [...prev, [...gridData]]);
-        setUndoStack((prev) => prev.slice(0, -1));
-        setGridData(previousState);
-      }
-    }
-  }, [undoStack, gridData]);
-
-  const handleRedo = React.useCallback(() => {
-    if (redoStack.length > 0) {
-      const nextState = redoStack[redoStack.length - 1];
-      if (nextState) {
-        setUndoStack((prev) => [...prev, [...gridData]]);
-        setRedoStack((prev) => prev.slice(0, -1));
-        setGridData(nextState);
-      }
-    }
-  }, [redoStack, gridData]);
+  const { saveToUndo, handleUndo, handleRedo, undoStack, redoStack } =
+    useDataGridHistory({ enableUndo, gridData, setGridData });
 
   const handleCellChange = React.useCallback(
     (rowIndex: number, columnId: string, value: unknown) => {
@@ -681,48 +655,18 @@ export function DataGrid<TData extends Record<string, unknown>>({
     });
   }, [selectedCells, columns, saveToUndo, onPaste]);
 
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "c" && enableCopy) {
-          e.preventDefault();
-          handleCopy();
-        }
-        if (e.key === "v" && enablePaste) {
-          e.preventDefault();
-          handlePaste();
-        }
-        if (e.key === "z" && enableUndo) {
-          e.preventDefault();
-          if (e.shiftKey) {
-            handleRedo();
-          } else {
-            handleUndo();
-          }
-        }
-        if (e.key === "y" && enableUndo) {
-          e.preventDefault();
-          handleRedo();
-        }
-      }
-      if (e.key === "Delete" && enableRowDelete && selectedRows.size > 0) {
-        e.preventDefault();
-        handleDeleteRows();
-      }
-    },
-    [
-      enableCopy,
-      enablePaste,
-      enableUndo,
-      enableRowDelete,
-      handleCopy,
-      handlePaste,
-      handleUndo,
-      handleRedo,
-      handleDeleteRows,
-      selectedRows,
-    ],
-  );
+  const { handleKeyDown } = useDataGridKeyboardCommands({
+    enableCopy,
+    handleCopy,
+    enablePaste,
+    handlePaste,
+    enableUndo,
+    handleRedo,
+    handleUndo,
+    enableRowDelete,
+    selectedRows,
+    handleDeleteRows,
+  });
 
   const tableColumns: ColumnDef<TData>[] = React.useMemo(
     () =>
@@ -886,4 +830,102 @@ export function DataGrid<TData extends Record<string, unknown>>({
       />
     </div>
   );
+}
+
+function useDataGridHistory<TData extends Record<string, unknown>>({
+  enableUndo,
+  gridData,
+  setGridData,
+}: {
+  enableUndo: boolean;
+  gridData: TData[];
+  setGridData: React.Dispatch<React.SetStateAction<TData[]>>;
+}) {
+  const [undoStack, setUndoStack] = React.useState<TData[][]>([]);
+  const [redoStack, setRedoStack] = React.useState<TData[][]>([]);
+
+  const saveToUndo = React.useCallback(() => {
+    if (enableUndo) {
+      setUndoStack((prev) => [...prev.slice(-19), [...gridData]]);
+      setRedoStack([]);
+    }
+  }, [gridData, enableUndo]);
+
+  const handleUndo = React.useCallback(() => {
+    if (undoStack.length > 0) {
+      const previousState = undoStack[undoStack.length - 1];
+      if (previousState) {
+        setRedoStack((prev) => [...prev, [...gridData]]);
+        setUndoStack((prev) => prev.slice(0, -1));
+        setGridData(previousState);
+      }
+    }
+  }, [undoStack, setGridData, gridData]);
+
+  const handleRedo = React.useCallback(() => {
+    if (redoStack.length > 0) {
+      const nextState = redoStack[redoStack.length - 1];
+      if (nextState) {
+        setUndoStack((prev) => [...prev, [...gridData]]);
+        setRedoStack((prev) => prev.slice(0, -1));
+        setGridData(nextState);
+      }
+    }
+  }, [redoStack, setGridData, gridData]);
+
+  return { saveToUndo, handleUndo, handleRedo, undoStack, redoStack };
+}
+
+function useDataGridKeyboardCommands({
+  enableCopy,
+  handleCopy,
+  enablePaste,
+  handlePaste,
+  enableUndo,
+  handleRedo,
+  handleUndo,
+  enableRowDelete,
+  selectedRows,
+  handleDeleteRows,
+}: {
+  enableCopy: boolean;
+  handleCopy: () => void;
+  enablePaste: boolean;
+  handlePaste: () => Promise<void>;
+  enableUndo: boolean;
+  handleRedo: () => void;
+  handleUndo: () => void;
+  enableRowDelete: boolean;
+  selectedRows: Set<number>;
+  handleDeleteRows: () => void;
+}) {
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) =>
+      handleDataGridKeyboardCommand(e, {
+        enableCopy,
+        handleCopy,
+        enablePaste,
+        handlePaste,
+        enableUndo,
+        handleRedo,
+        handleUndo,
+        enableRowDelete,
+        selectedRows,
+        handleDeleteRows,
+      }),
+    [
+      enableCopy,
+      enablePaste,
+      enableUndo,
+      enableRowDelete,
+      handleCopy,
+      handlePaste,
+      handleUndo,
+      handleRedo,
+      handleDeleteRows,
+      selectedRows,
+    ],
+  );
+
+  return { handleKeyDown };
 }

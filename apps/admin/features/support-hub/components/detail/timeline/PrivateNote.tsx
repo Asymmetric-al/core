@@ -36,26 +36,26 @@ export function PrivateNote({ message }: PrivateNoteProps) {
               src={message.author.avatarUrl ?? undefined}
               alt={message.author.name}
             />
-            <AvatarFallback className="text-[10px] font-semibold">
+            <AvatarFallback className="text-xs font-semibold">
               {message.author.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-[12px] font-semibold text-amber-900">
+          <span className="text-xs font-semibold text-amber-900">
             {message.author.name}
           </span>
           <Badge
             variant="outline"
-            className="h-5 rounded-md border-amber-300 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
+            className="h-5 rounded-md border-amber-300 bg-amber-100 px-1.5 font-bold uppercase tracking-wider text-amber-800"
           >
             <Lock className="size-3" />
             Internal note
           </Badge>
         </div>
-        <span className="font-mono text-[11px] tabular-nums text-amber-700/70">
+        <span className="font-mono text-xs tabular-nums text-amber-700/70">
           {formatRelative(message.postedAt, nowIso)}
         </span>
       </header>
-      <div className="mt-2 text-[13px] leading-relaxed text-amber-950">
+      <div className="mt-2 text-xs leading-relaxed text-amber-950">
         <RichTextViewer value={renderableBody(message)} />
       </div>
     </article>

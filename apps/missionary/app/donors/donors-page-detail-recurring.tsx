@@ -39,7 +39,9 @@ export function DonorsPageDetailRecurring() {
   return (
     <div className="flex flex-col gap-6">
       <motion.div
-        {...fadeInUp}
+        initial={fadeInUp.initial}
+        animate={fadeInUp.animate}
+        exit={fadeInUp.exit}
         transition={smoothTransition}
         className="flex items-center justify-between mb-2"
       >
@@ -154,7 +156,7 @@ export function DonorsPageDetailRecurring() {
                       animate={{ opacity: 1, scale: 1 }}
                       className="bg-card p-3 rounded-xl border border-primary/20 text-center lg:text-right"
                     >
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                         Next Payment
                       </p>
                       <p className="text-lg font-semibold text-foreground">
@@ -202,7 +204,7 @@ export function DonorsPageDetailRecurring() {
                     },
                   ].map((item) => (
                     <div key={item.label}>
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
                         {item.label}
                       </p>
                       <div className="flex items-center gap-1.5">
@@ -224,7 +226,7 @@ export function DonorsPageDetailRecurring() {
 
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                       Progress
                     </span>
                     <span className="text-xs font-semibold text-muted-foreground">

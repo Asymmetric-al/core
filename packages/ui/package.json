@@ -48,7 +48,15 @@
     "./components/view-transitions": "./components/view-transitions/index.ts",
     "./components/primitives": "./components/primitives/index.ts",
     "./components/primitives/*": "./components/primitives/*.tsx",
-    "./components/ministry-update": "./components/ministry-update/index.ts"
+    "./components/ministry-update": "./components/ministry-update/index.ts",
+    "./components/shadcn/badge": "./components/shadcn/badge.ts",
+    "./components/shadcn/button": "./components/shadcn/button.ts",
+    "./components/shadcn/button-group": "./components/shadcn/button-group.ts",
+    "./components/shadcn/tabs": "./components/shadcn/tabs.ts",
+    "./components/shadcn/toggle": "./components/shadcn/toggle.ts",
+    "./components/shadcn/navigation-menu": "./components/shadcn/navigation-menu.ts",
+    "./components/shadcn/combobox": "./components/shadcn/combobox.ts",
+    "./components/shadcn/rich-text-editor/image-view": "./components/shadcn/rich-text-editor/image-view.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -72,10 +80,8 @@
     "@tanstack/react-virtual": "^3.13.23",
     "@tiptap/core": "^3.22.3",
     "@tiptap/extension-image": "^3.22.3",
-    "@tiptap/extension-link": "^3.22.3",
     "@tiptap/extension-mention": "^3.22.3",
     "@tiptap/extension-placeholder": "^3.22.3",
-    "@tiptap/extension-underline": "^3.22.3",
     "@tiptap/pm": "^3.22.3",
     "@tiptap/react": "^3.22.3",
     "@tiptap/starter-kit": "^3.22.3",

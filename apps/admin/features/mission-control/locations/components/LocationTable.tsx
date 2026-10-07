@@ -100,7 +100,7 @@ export function LocationTable({
           <Badge
             variant="outline"
             className={cn(
-              "h-5 px-2.5 rounded-full border shadow-none text-[11px] font-medium capitalize",
+              "h-5 px-2.5 rounded-full border shadow-none font-medium capitalize",
               status === "published"
                 ? "bg-emerald-500/10 text-emerald-600"
                 : "bg-zinc-100 text-zinc-500",
@@ -152,13 +152,13 @@ export function LocationTable({
             >
               <DropdownMenuItem
                 onClick={() => onEdit(row.original)}
-                className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 focus:text-zinc-900"
+                className="text-xs font-bold uppercase tracking-widest text-zinc-600 focus:text-zinc-900"
               >
                 <Edit2 className="mr-2 size-3.5" /> Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(row.original.id)}
-                className="text-[10px] font-bold uppercase tracking-widest text-red-600 focus:text-red-700"
+                className="text-xs font-bold uppercase tracking-widest text-red-600 focus:text-red-700"
               >
                 <Trash2 className="mr-2 size-3.5" /> Delete
               </DropdownMenuItem>

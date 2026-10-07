@@ -255,14 +255,14 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
                 >
                   <span
                     className={cn(
-                      "inline-flex h-5 items-center rounded-md px-1.5 text-[10px] font-semibold ring-1 ring-inset",
+                      "inline-flex h-5 items-center rounded-md px-1.5 text-xs font-semibold ring-1 ring-inset",
                       TONE_CLASSES[label.tone],
                     )}
                   >
                     {label.name}
                   </span>
                   {label.description ? (
-                    <span className="truncate text-[11px] text-zinc-500">
+                    <span className="truncate text-xs text-zinc-500">
                       {label.description}
                     </span>
                   ) : null}

@@ -198,7 +198,7 @@ function StatCard({
         >
           {value}
         </motion.span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-60 mt-0.5">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] opacity-60 mt-0.5">
           {label}
         </span>
       </div>
@@ -317,7 +317,7 @@ function TasksPageActions({
         trigger={
           <Button
             ref={addTaskRef}
-            className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200"
+            className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-xs shadow-lg shadow-zinc-200"
           >
             <Plus className="mr-2 size-4" />
             Add Task
@@ -424,19 +424,19 @@ function TasksFilterBar({
               <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
                 <TabsTrigger
                   value="active"
-                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
+                  className="font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
                 >
                   Active
                 </TabsTrigger>
                 <TabsTrigger
                   value="completed"
-                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
+                  className="font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
                 >
                   Done
                 </TabsTrigger>
                 <TabsTrigger
                   value="all"
-                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
+                  className="font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
                 >
                   All
                 </TabsTrigger>
@@ -449,7 +449,7 @@ function TasksFilterBar({
               render={
                 <Button
                   variant="outline"
-                  className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px]"
+                  className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest"
                 >
                   <ListFilter className="size-4 text-zinc-400" />
                   Refine
@@ -461,7 +461,7 @@ function TasksFilterBar({
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
             >
               <DropdownMenuGroup>
-                <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
                   Task Type
                 </DropdownMenuLabel>
                 {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
@@ -480,7 +480,7 @@ function TasksFilterBar({
               </DropdownMenuGroup>
               <DropdownMenuSeparator className="bg-zinc-100 mx-1 my-2" />
               <DropdownMenuGroup>
-                <DropdownMenuLabel className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
                   Priority
                 </DropdownMenuLabel>
                 {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
@@ -554,7 +554,7 @@ function TasksContent({
           <Button
             onClick={refresh}
             variant="outline"
-            className="mt-6 h-10 px-6 rounded-xl font-semibold uppercase tracking-widest text-[10px]"
+            className="mt-6 h-10 px-6 rounded-xl font-semibold uppercase tracking-widest"
           >
             <RefreshCw className="mr-2 size-4" />
             Retry Sync
@@ -563,7 +563,7 @@ function TasksContent({
       ) : loading && displayedTasks.length === 0 ? (
         <BoneyardSkeleton
           name="missionary-tasks-list"
-          loading={true}
+          loading
           fallback={<TaskListSkeleton />}
           fixture={<MissionaryTasksListBoneyardFixture />}
           snapshotConfig={{
@@ -625,7 +625,7 @@ function TasksContent({
           </p>
           <Button
             onClick={() => setTaskDialogOpen(true)}
-            className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest text-[10px]"
+            className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest"
           >
             <Plus className="mr-2 size-4" />
             Create New Task
@@ -693,7 +693,7 @@ function DeleteTaskDialog({
           <AlertDialogCancel
             ref={cancelRef}
             disabled={deletePending}
-            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] h-11"
+            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest h-11"
           >
             Cancel
           </AlertDialogCancel>
@@ -705,7 +705,7 @@ function DeleteTaskDialog({
               event.currentTarget.focus();
               void handleDeleteConfirm();
             }}
-            className="rounded-xl bg-rose-600 text-white hover:bg-rose-700 font-semibold uppercase tracking-widest text-[10px] h-11 border-none"
+            className="rounded-xl bg-rose-600 text-white hover:bg-rose-700 font-semibold uppercase tracking-widest text-xs h-11 border-none"
           >
             {deletePending ? "Deleting…" : "Delete Task"}
           </Button>
@@ -715,7 +715,7 @@ function DeleteTaskDialog({
   );
 }
 
-function TasksPageView() {
+function useTasksPageController() {
   const {
     loading,
     error,
@@ -988,6 +988,100 @@ function TasksPageView() {
     return chips;
   }, [typeFilter, priorityFilter, setTypeFilter, setPriorityFilter]);
 
+  const resolveDeleteFinalFocus = () => {
+    const taskIsVisible = displayedTasks.some(
+      (task) => task.id === deleteReturnTaskId.current,
+    );
+    return !deletionSucceeded.current &&
+      !error &&
+      taskIsVisible &&
+      deleteReturnFocus.current?.isConnected
+      ? deleteReturnFocus.current
+      : addTaskRef.current;
+  };
+  return {
+    viewMode,
+    loading,
+    refresh,
+    addTaskRef,
+    editingTask,
+    initialStatus,
+    taskDialogOpen,
+    setViewMode,
+    setTaskDialogOpen,
+    setEditingTask,
+    setInitialStatus,
+    stats,
+    viewFilter,
+    setViewFilter,
+    searchTerm,
+    typeFilter,
+    priorityFilter,
+    activeFilterChips,
+    setSearchTerm,
+    setTypeFilter,
+    setPriorityFilter,
+    clearFilters,
+    error,
+    displayedTasks,
+    moveTask,
+    handleEdit,
+    handleComplete,
+    handleDeleteClick,
+    rememberTaskAction,
+    handleCreateInStatus,
+    deleteDialogOpen,
+    taskToDelete,
+    deleteError,
+    deletePending,
+    cancelDeleteRef,
+    resolveDeleteFinalFocus,
+    handleDeleteOpenChange,
+    handleDeleteConfirm,
+  };
+}
+
+function TasksPageView() {
+  const {
+    viewMode,
+    loading,
+    refresh,
+    addTaskRef,
+    editingTask,
+    initialStatus,
+    taskDialogOpen,
+    setViewMode,
+    setTaskDialogOpen,
+    setEditingTask,
+    setInitialStatus,
+    stats,
+    viewFilter,
+    setViewFilter,
+    searchTerm,
+    typeFilter,
+    priorityFilter,
+    activeFilterChips,
+    setSearchTerm,
+    setTypeFilter,
+    setPriorityFilter,
+    clearFilters,
+    error,
+    displayedTasks,
+    moveTask,
+    handleEdit,
+    handleComplete,
+    handleDeleteClick,
+    rememberTaskAction,
+    handleCreateInStatus,
+    deleteDialogOpen,
+    taskToDelete,
+    deleteError,
+    deletePending,
+    cancelDeleteRef,
+    resolveDeleteFinalFocus,
+    handleDeleteOpenChange,
+    handleDeleteConfirm,
+  } = useTasksPageController();
   return (
     <PageShell
       title="Mission Tasks"
@@ -1052,17 +1146,7 @@ function TasksPageView() {
           deleteError={deleteError}
           deletePending={deletePending}
           cancelRef={cancelDeleteRef}
-          finalFocus={() => {
-            const taskIsVisible = displayedTasks.some(
-              (task) => task.id === deleteReturnTaskId.current,
-            );
-            return !deletionSucceeded.current &&
-              !error &&
-              taskIsVisible &&
-              deleteReturnFocus.current?.isConnected
-              ? deleteReturnFocus.current
-              : addTaskRef.current;
-          }}
+          finalFocus={resolveDeleteFinalFocus}
           onOpenChange={handleDeleteOpenChange}
           handleDeleteConfirm={handleDeleteConfirm}
         />

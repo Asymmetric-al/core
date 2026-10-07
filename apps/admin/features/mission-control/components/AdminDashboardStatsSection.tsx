@@ -63,7 +63,7 @@ export function AdminDashboardStatsSection({
           className="gap-1 border-zinc-200 bg-white px-3 py-2.5 shadow-sm"
         >
           <CardHeader className="space-y-0 p-0">
-            <CardTitle className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-tight">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground leading-tight">
               {card.label}
             </CardTitle>
           </CardHeader>
@@ -71,7 +71,7 @@ export function AdminDashboardStatsSection({
             <p className="text-lg font-bold tabular-nums leading-none tracking-tight text-foreground">
               {card.value}
             </p>
-            <p className="line-clamp-2 text-[10px] leading-snug text-muted-foreground">
+            <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
               {card.hint}
             </p>
           </CardContent>

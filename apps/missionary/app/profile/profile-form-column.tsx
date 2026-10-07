@@ -51,7 +51,7 @@ export type ProfileFormColumnProps = {
   bioWordCount: number;
   initials: string;
   updateProfile: (field: keyof ProfileData, value: string) => void;
-  handleSave: () => void | Promise<void>;
+  onSave: () => void | Promise<void>;
 };
 
 export function ProfileFormColumn({
@@ -60,7 +60,7 @@ export function ProfileFormColumn({
   bioWordCount,
   initials,
   updateProfile,
-  handleSave,
+  onSave,
 }: ProfileFormColumnProps) {
   return (
     <motion.div className="lg:col-span-7 space-y-6" variants={staggerContainer}>
@@ -124,8 +124,8 @@ export function ProfileFormColumn({
               label="Tagline"
               error={validationErrors.ministryFocus}
               helperText={
-                <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
-                  <Info className="size-3 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-zinc-400 flex items-start gap-1.5">
+                  <Info className="size-3 mt-0.5 shrink-0" />
                   <span>
                     A brief description of your work that appears next to your
                     name on the giving page and directory.
@@ -157,8 +157,8 @@ export function ProfileFormColumn({
               error={validationErrors.bio}
               helperText={
                 <div className="space-y-1">
-                  <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
-                    <Info className="size-3 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-zinc-400 flex items-start gap-1.5">
+                    <Info className="size-3 mt-0.5 shrink-0" />
                     <span>
                       Share your story, calling, and ministry work. This appears
                       on your public profile page. Include what you do, where
@@ -167,7 +167,7 @@ export function ProfileFormColumn({
                   </p>
                   <p
                     className={cn(
-                      "text-[11px] font-medium text-right",
+                      "text-xs font-medium text-right",
                       bioWordCount < BIO_MIN_WORDS
                         ? "text-zinc-400"
                         : bioWordCount > BIO_MAX_WORDS
@@ -208,7 +208,7 @@ export function ProfileFormColumn({
               value={profile.avatarUrl}
               onChange={(url) => {
                 updateProfile("avatarUrl", url);
-                handleSave();
+                onSave();
               }}
               path="avatars"
               aspect={1}
@@ -230,7 +230,7 @@ export function ProfileFormColumn({
                 value={profile.avatarUrl}
                 onChange={(url) => {
                   updateProfile("avatarUrl", url);
-                  handleSave();
+                  onSave();
                 }}
                 path="avatars"
               >
@@ -258,7 +258,7 @@ export function ProfileFormColumn({
               value={profile.coverUrl}
               onChange={(url) => {
                 updateProfile("coverUrl", url);
-                handleSave();
+                onSave();
               }}
               path="covers"
               aspect={3 / 1}
@@ -266,7 +266,7 @@ export function ProfileFormColumn({
             >
               <CoverUploadArea coverUrl={profile.coverUrl} />
             </ImageUpload>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-xs text-zinc-400">
               This image appears at the top of your public profile. Max 10MB.
             </p>
           </motion.div>

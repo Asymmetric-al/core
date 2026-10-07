@@ -151,13 +151,16 @@ export function exportTableToCSV<TData extends RowData>(
 export function getExportableColumns<TData extends RowData>(
   table: Table<TData>,
 ): ExportColumn[] {
-  return table
-    .getAllLeafColumns()
-    .filter((column) => !["select", "actions"].includes(column.id))
-    .map((column) => ({
-      id: column.id,
-      header: getColumnHeader(column),
-    }));
+  return table.getAllLeafColumns().flatMap((column) =>
+    !["select", "actions"].includes(column.id)
+      ? [
+          {
+            id: column.id,
+            header: getColumnHeader(column),
+          },
+        ]
+      : [],
+  );
 }
 
 export function getExportRowCount<TData extends RowData>(

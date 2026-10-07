@@ -129,7 +129,7 @@ function TemplateGalleryViewContent() {
           {pageTypeFilter ? (
             <p className="mt-2 text-muted-foreground text-xs">
               Filtered to{" "}
-              <Badge variant="secondary" className="text-[10px]">
+              <Badge variant="secondary" className="">
                 {pageTypeFilter}
               </Badge>
               .{" "}
@@ -180,10 +180,7 @@ function TemplateGalleryViewContent() {
                           {template.name ?? id}
                         </CardTitle>
                         {template.pageType ? (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] uppercase"
-                          >
+                          <Badge variant="outline" className="uppercase">
                             {template.pageType}
                           </Badge>
                         ) : null}

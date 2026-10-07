@@ -82,7 +82,7 @@ function PersonnelProfileHeaderCard({
   const attentionLabelId = useId();
   return (
     <Card className="border-zinc-200 shadow-sm overflow-hidden">
-      <div className="h-24 bg-gradient-to-r from-zinc-900 to-zinc-800" />
+      <div className="h-24 bg-linear-to-r from-zinc-900 to-zinc-800" />
       <CardContent className="relative pt-0 pb-6 px-6">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-10">
           <Avatar className="size-24 border-4 border-white shadow-lg bg-white">
@@ -204,14 +204,14 @@ function OverviewTabContentSection({
                         <span className="text-sm font-semibold text-zinc-900">
                           {activity.type}
                         </span>
-                        <span className="text-[10px] text-zinc-400 font-medium">
+                        <span className="text-xs text-zinc-400 font-medium">
                           {formatDate(activity.date)}
                         </span>
                       </div>
                       <p className="text-xs text-zinc-600 leading-relaxed">
                         {activity.content}
                       </p>
-                      <div className="text-[10px] text-zinc-400 font-semibold uppercase">
+                      <div className="text-xs text-zinc-400 font-semibold uppercase">
                         By {activity.authorName}
                       </div>
                     </div>
@@ -377,7 +377,7 @@ function CareThreadTabContent({
                 key={entry.id}
                 className="rounded-xl border border-zinc-100 bg-white p-4 shadow-sm"
               >
-                <div className="mb-2 flex items-center justify-between text-[11px]">
+                <div className="mb-2 flex items-center justify-between text-xs">
                   <span className="font-semibold uppercase tracking-wider text-zinc-500">
                     {entry.authorName}
                   </span>
@@ -509,9 +509,7 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
                 <p className="text-sm font-semibold text-zinc-900">
                   {item.title}
                 </p>
-                <p className="text-[11px] text-zinc-500">
-                  Owner: Member Care Team
-                </p>
+                <p className="text-xs text-zinc-500">Owner: Member Care Team</p>
               </div>
               <Badge
                 className={cn(
@@ -563,7 +561,7 @@ function ActivityTabContent({
                 <p className="text-sm font-semibold text-zinc-900">
                   {activity.type}
                 </p>
-                <p className="text-[11px] text-zinc-400">
+                <p className="text-xs text-zinc-400">
                   {formatDateTime(activity.date)}
                 </p>
               </div>
@@ -629,7 +627,7 @@ function SecureNotesTabContent({
           </Button>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
-          <div className="rounded-xl border border-amber-200/60 bg-amber-50 p-4 text-[11px] text-amber-900">
+          <div className="rounded-xl border border-amber-200/60 bg-amber-50 p-4 text-xs text-amber-900">
             Private notes are visible only to the author and platform super
             admins. They are for internal ministry/admin use only. Do not store
             regulated or legally protected information unless your organization
@@ -646,7 +644,7 @@ function SecureNotesTabContent({
                     <span className="text-xs font-semibold text-amber-900">
                       {note.authorName}
                     </span>
-                    <span className="text-[10px] text-zinc-400 font-medium">
+                    <span className="text-xs text-zinc-400 font-medium">
                       {formatDate(note.date)}
                     </span>
                   </div>

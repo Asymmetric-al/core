@@ -67,7 +67,7 @@ export function CareTools({ personnel }: CareToolsProps) {
           <span className="sr-only">Open Care Tools</span>
 
           {/* Keycap Hint - Hidden on mobile */}
-          <div className="absolute -top-2 -left-2 h-6 px-1.5 rounded-lg bg-background border border-border/50 text-[10px] font-black shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hide-mobile">
+          <div className="absolute -top-2 -left-2 h-6 px-1.5 rounded-lg bg-background border border-border/50 text-xs font-black shadow-sm flex items-center justify-center transition-opacity hide-mobile">
             ⌘K
           </div>
         </Button>
@@ -95,7 +95,7 @@ export function CareTools({ personnel }: CareToolsProps) {
 
           <CommandGroup
             heading={
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
                 Personnel Directory
               </span>
             }
@@ -106,20 +106,20 @@ export function CareTools({ personnel }: CareToolsProps) {
                 onSelect={() => navigate(`/mc/care/directory/${p.id}`)}
                 className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-muted transition-colors group"
               >
-                <div className="size-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center text-[10px] font-black border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                <div className="size-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center text-xs font-black border border-primary/10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   {p.initials}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-primary">
                     {p.name}
                   </span>
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
                     {p.region} • {p.role}
                   </span>
                 </div>
                 <Badge
                   variant="outline"
-                  className="ml-auto text-[9px] font-black uppercase tracking-tighter border-border/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="ml-auto font-black uppercase tracking-tighter border-border/50   transition-opacity"
                 >
                   View Profile
                 </Badge>
@@ -129,7 +129,7 @@ export function CareTools({ personnel }: CareToolsProps) {
 
           <CommandGroup
             heading={
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
                 Care Actions
               </span>
             }
@@ -167,7 +167,7 @@ export function CareTools({ personnel }: CareToolsProps) {
 
           <CommandGroup
             heading={
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground px-2 py-3 block">
                 System
               </span>
             }

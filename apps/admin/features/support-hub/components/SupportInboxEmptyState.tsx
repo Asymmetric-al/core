@@ -36,7 +36,7 @@ export function SupportInboxEmptyState({
         variant="outline"
         size="sm"
         onClick={onResetFilters}
-        className="mt-5 h-9 gap-2 rounded-xl border-zinc-200 px-4 text-[11px] font-bold uppercase tracking-widest"
+        className="mt-5 h-9 gap-2 rounded-xl border-zinc-200 px-4 font-bold uppercase tracking-widest"
       >
         <RotateCcw className="size-3.5" />
         Reset filters

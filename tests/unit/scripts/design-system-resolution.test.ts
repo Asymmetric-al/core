@@ -77,7 +77,9 @@ for (const relative of [
   "packages/ui/components.json",
   "packages/ui/index.ts",
   "packages/ui/components/shadcn/index.ts",
-  "packages/ui/components/shadcn/button.tsx",
+  "packages/ui/components/shadcn/button.ts",
+  "packages/ui/components/shadcn/button-component.tsx",
+  "packages/ui/components/shadcn/button-variants.ts",
   "packages/ui/components/shadcn/card.tsx",
   "packages/ui/components/shadcn/tooltip.tsx",
   "packages/ui/components/shadcn/dialog.tsx",
@@ -224,7 +226,7 @@ describe("Core component resolution through actual ESLint configurations", () =>
 
   it("allows the actual Button authoring focus, press and CVA implementation", async () => {
     const [result] = await actualLinter("packages/ui").lintFiles([
-      path.join(root, "packages/ui/components/shadcn/button.tsx"),
+      path.join(root, "packages/ui/components/shadcn/button-component.tsx"),
     ]);
     expect(
       result.messages.filter((message) =>

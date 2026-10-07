@@ -124,7 +124,7 @@ describe("React Doctor config contracts", () => {
     });
 
     expect(rawImgFiles).toEqual([
-      "packages/ui/components/shadcn/rich-text-editor/image-view.tsx",
+      "packages/ui/components/shadcn/rich-text-editor/image-node-view.tsx",
     ]);
 
     const imageViewSource = readRepoFile(rawImgFiles[0]);

@@ -32,7 +32,7 @@ export function LegalPageShell({
   title,
 }: LegalPageShellProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background selection:bg-primary/15">
+    <div className="min-h-dvh bg-linear-to-b from-secondary/40 via-background to-background selection:bg-primary/15">
       <div className="container-responsive py-12 sm:py-16 lg:py-20">
         <div className="mx-auto flex max-w-5xl flex-col gap-8 sm:gap-10">
           <header className="flex flex-col gap-6">

@@ -624,7 +624,7 @@ function MethodCard({
           <div className="mb-6 flex items-start justify-between gap-2">
             <div>
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <h2 className="text-2xl font-semibold text-foreground tracking-tighter uppercase">
+                <h2 className="text-2xl font-semibold text-foreground tracking-normal uppercase">
                   {method.bankName || `${method.brand} ••${method.last4}`}
                 </h2>
                 {method.isDefault && <Badge>Default</Badge>}
@@ -741,7 +741,7 @@ function MethodCard({
               </div>
             ) : (
               <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground italic bg-muted/30 p-4 rounded-xl border border-dashed border-border">
-                <div className="p-2 bg-card rounded-lg shadow-sm border border-border">
+                <div className="p-2">
                   <Wallet className="size-3.5 text-muted-foreground" />
                 </div>
                 No active support linked to this method.
@@ -827,13 +827,13 @@ function AddMethodDialog({
                 <CardForm
                   formData={formData}
                   setFormData={onFormDataChange}
-                  isEditing={true}
+                  isEditing
                 />
               ) : (
                 <BankForm
                   formData={formData}
                   setFormData={onFormDataChange}
-                  isEditing={true}
+                  isEditing
                 />
               )}
             </div>
@@ -1012,34 +1012,36 @@ function BulkMoveDialog({
               Support to Transfer
             </p>
             <ul className="flex flex-col gap-2">
-              {pledges
-                .filter((p) => p.paymentMethodId === methodToDelete)
-                .map((pledge) => (
-                  <li
-                    key={pledge.id}
-                    className="text-xs font-semibold uppercase tracking-tight flex items-center justify-between bg-muted p-3 rounded-xl border border-border"
-                  >
-                    <div className="flex items-center gap-3">
-                      {pledge.avatar ? (
-                        <Image
-                          src={pledge.avatar}
-                          width={32}
-                          height={32}
-                          className="size-8 rounded-lg bg-card border border-border"
-                          alt=""
-                        />
-                      ) : (
-                        <div className="size-8 rounded-lg bg-card border border-border flex items-center justify-center text-xs font-semibold uppercase text-muted-foreground">
-                          GH
+              {pledges.flatMap((pledge) =>
+                pledge.paymentMethodId === methodToDelete
+                  ? [
+                      <li
+                        key={pledge.id}
+                        className="text-xs font-semibold uppercase tracking-tight flex items-center justify-between bg-muted p-3 rounded-xl border border-border"
+                      >
+                        <div className="flex items-center gap-3">
+                          {pledge.avatar ? (
+                            <Image
+                              src={pledge.avatar}
+                              width={32}
+                              height={32}
+                              className="size-8 rounded-lg bg-card border border-border"
+                              alt=""
+                            />
+                          ) : (
+                            <div className="size-8 rounded-lg bg-card border border-border flex items-center justify-center text-xs font-semibold uppercase text-muted-foreground">
+                              GH
+                            </div>
+                          )}
+                          <span className="text-foreground">{pledge.name}</span>
                         </div>
-                      )}
-                      <span className="text-foreground">{pledge.name}</span>
-                    </div>
-                    <span className="font-mono font-semibold text-foreground text-xs tabular-nums">
-                      {formatCurrency(pledge.amount)}
-                    </span>
-                  </li>
-                ))}
+                        <span className="font-mono font-semibold text-foreground text-xs tabular-nums">
+                          {formatCurrency(pledge.amount)}
+                        </span>
+                      </li>,
+                    ]
+                  : [],
+              )}
             </ul>
           </div>
 

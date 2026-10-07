@@ -48,7 +48,7 @@ export function FilterBar({
                 placeholder={search.placeholder || "Search..."}
                 value={search.value}
                 onChange={(e) => search.onChange(e.target.value)}
-                className="placeholder:text-muted-foreground h-12 rounded-xl border-border/60 bg-background/60 pr-4 pl-10 font-medium transition-colors focus:bg-background placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-widest"
+                className="placeholder:text-muted-foreground h-12 rounded-xl border-border/60 bg-background/60 pr-4 pl-10 font-medium transition-colors focus:bg-background placeholder:text-xs placeholder:font-bold placeholder:uppercase placeholder:tracking-widest"
               />
             </div>
           )}
@@ -67,30 +67,33 @@ export function FilterBar({
 
       {(activeFilters.length > 0 || onReset) && (
         <div className="flex flex-wrap items-center gap-2">
-          {activeFilters.map((filter) => (
-            <Badge
-              key={filter.label}
-              variant="secondary"
-              className="text-muted-foreground h-7 cursor-default rounded-lg border-none bg-muted px-3 text-[9px] font-bold uppercase tracking-widest transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              {filter.label}
-              <button
-                type="button"
-                onClick={filter.onRemove}
-                aria-label={`Remove ${filter.label} filter`}
-                className="ml-2 transition-colors hover:text-foreground"
+          {activeFilters.map((filter) => {
+            const handleFilterOnRemove = filter.onRemove;
+            return (
+              <Badge
+                key={filter.label}
+                variant="secondary"
+                className="text-muted-foreground h-7 cursor-default rounded-lg border-none bg-muted px-3 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-accent hover:text-accent-foreground"
               >
-                <X className="size-3" />
-              </button>
-            </Badge>
-          ))}
+                {filter.label}
+                <button
+                  type="button"
+                  onClick={handleFilterOnRemove}
+                  aria-label={`Remove ${filter.label} filter`}
+                  className="ml-2 transition-colors hover:text-foreground"
+                >
+                  <X className="size-3" />
+                </button>
+              </Badge>
+            );
+          })}
 
           {onReset && (activeFilters.length > 0 || search?.value) && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onReset}
-              className="text-muted-foreground h-7 px-3 text-[9px] font-black uppercase tracking-widest hover:text-foreground"
+              className="text-muted-foreground h-7 px-3 text-xs font-black uppercase tracking-widest hover:text-foreground"
             >
               Clear all
             </Button>

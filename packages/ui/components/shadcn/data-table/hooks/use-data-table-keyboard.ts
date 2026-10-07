@@ -55,7 +55,7 @@ export function useDataTableKeyboard<TData extends RowData>(
     wrapNavigation = false,
   } = options;
 
-  const [focusedRowIndex, setFocusedRowIndexRaw] = useState<number | null>(
+  const [focusedRowIndexRaw, setFocusedRowIndexRaw] = useState<number | null>(
     null,
   );
   const [focusedCellIndex, setFocusedCellIndex] = useState<number | null>(null);
@@ -69,12 +69,12 @@ export function useDataTableKeyboard<TData extends RowData>(
 
   const validatedFocusedRowIndex = useMemo(() => {
     if (!enabled) return null;
-    if (focusedRowIndex === null) return null;
-    if (focusedRowIndex >= rowCount) {
+    if (focusedRowIndexRaw === null) return null;
+    if (focusedRowIndexRaw >= rowCount) {
       return rowCount > 0 ? rowCount - 1 : null;
     }
-    return focusedRowIndex;
-  }, [enabled, focusedRowIndex, rowCount]);
+    return focusedRowIndexRaw;
+  }, [enabled, focusedRowIndexRaw, rowCount]);
 
   const setFocusedRowIndex = useCallback((index: number | null) => {
     setFocusedRowIndexRaw(index);

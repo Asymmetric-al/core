@@ -64,7 +64,10 @@ describe("useDonationMetrics", () => {
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
-    expect(fetchMock).toHaveBeenCalledWith(metricsUrl(MISSIONARY_A));
+    expect(fetchMock).toHaveBeenCalledWith(
+      metricsUrl(MISSIONARY_A),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
     expect(result.current.error).toBeInstanceOf(Error);
     expect(result.current.error?.message).toBe(
       "Donation metrics are unavailable.",
@@ -158,8 +161,16 @@ describe("useDonationMetrics", () => {
       await lateLimited.promise;
     });
 
-    expect(fetchMock).toHaveBeenNthCalledWith(1, metricsUrl(MISSIONARY_A));
-    expect(fetchMock).toHaveBeenNthCalledWith(2, metricsUrl(MISSIONARY_B));
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      metricsUrl(MISSIONARY_A),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      metricsUrl(MISSIONARY_B),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
     expect(result.current.error).toBeNull();
     expect(result.current.thisMonth.total).toBe(20);
     expect(result.current.isLoading).toBe(false);
@@ -194,7 +205,10 @@ describe("useDonationMetrics", () => {
     );
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(metricsUrl(MISSIONARY_A));
+      expect(fetchMock).toHaveBeenCalledWith(
+        metricsUrl(MISSIONARY_A),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
     });
     await act(async () => {
       await Promise.resolve();
@@ -203,7 +217,10 @@ describe("useDonationMetrics", () => {
     rerender({ missionaryId: MISSIONARY_B });
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(metricsUrl(MISSIONARY_B));
+      expect(fetchMock).toHaveBeenCalledWith(
+        metricsUrl(MISSIONARY_B),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
     });
     await act(async () => {
       await Promise.resolve();
@@ -228,5 +245,35 @@ describe("useDonationMetrics", () => {
     expect(result.current.thisMonth.total).toBe(20);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+});
+
+describe("donation metrics request cancellation", () => {
+  it("aborts replaced and unmounted requests without publishing abort errors", async () => {
+    const signals: Array<AbortSignal | null | undefined> = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+        signals.push(init?.signal);
+        return new Promise<Response>((_resolve, reject) =>
+          init?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          ),
+        );
+      }),
+    );
+    const { result, rerender, unmount } = renderHook(
+      ({ id }) => useDonationMetrics(id),
+      { initialProps: { id: MISSIONARY_A } },
+    );
+    await waitFor(() => expect(signals).toHaveLength(1));
+    expect(signals[0]).toBeInstanceOf(AbortSignal);
+    rerender({ id: MISSIONARY_B });
+    await waitFor(() => expect(signals).toHaveLength(2));
+    expect(signals[0]?.aborted).toBe(true);
+    expect(signals[1]?.aborted).toBe(false);
+    expect(result.current.error).toBeNull();
+    unmount();
+    expect(signals[1]?.aborted).toBe(true);
   });
 });

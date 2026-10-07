@@ -95,13 +95,13 @@ export function TaskRow({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               {task.is_auto_generated && (
-                <Badge className="bg-[oklch(0.205_0.015_265)] text-white border-0 text-[8px] font-black uppercase tracking-[0.2em] h-5">
+                <Badge className="bg-[oklch(0.205_0.015_265)] text-white border-0 text-xs font-black uppercase tracking-[0.2em] h-5">
                   Automated
                 </Badge>
               )}
               <div
                 className={cn(
-                  "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest",
+                  "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-widest",
                   typeConfig.color,
                   "bg-white",
                 )}
@@ -155,14 +155,14 @@ export function TaskRow({
             >
               <DropdownMenuItem
                 onClick={onEdit}
-                className="rounded-xl text-[10px] font-black uppercase tracking-widest py-3 cursor-pointer"
+                className="rounded-xl text-xs font-black uppercase tracking-widest py-3 cursor-pointer"
               >
                 <Pencil className="mr-3 size-4 text-[oklch(0.45_0.008_265)]" />
                 Edit Task
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onComplete}
-                className="rounded-xl text-[10px] font-black uppercase tracking-widest py-3 cursor-pointer"
+                className="rounded-xl text-xs font-black uppercase tracking-widest py-3 cursor-pointer"
               >
                 <CheckCircle2 className="mr-3 size-4 text-[oklch(0.45_0.008_265)]" />
                 {isCompleted ? "Reopen Task" : "Mark Complete"}
@@ -170,7 +170,7 @@ export function TaskRow({
               <DropdownMenuSeparator className="my-2 bg-[oklch(0.965_0.003_265)]" />
               <DropdownMenuItem
                 onClick={onDelete}
-                className="rounded-xl text-[10px] font-black uppercase tracking-widest py-3 text-[oklch(0.55_0.2_25)] focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
+                className="rounded-xl text-xs font-black uppercase tracking-widest py-3 text-[oklch(0.55_0.2_25)] focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
               >
                 <Trash2 className="mr-3 size-4" />
                 Delete Task
@@ -185,7 +185,7 @@ export function TaskRow({
               <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-[oklch(0.985_0.002_265)] border border-[oklch(0.915_0.003_265)] hover:bg-white hover:border-[oklch(0.205_0.015_265)] transition-colors cursor-pointer group/donor">
                 <Avatar className="size-5 border-2 border-white shadow-sm">
                   <AvatarImage src={task.donor.avatar_url || undefined} />
-                  <AvatarFallback className="text-[8px] font-black bg-[oklch(0.915_0.003_265)] text-[oklch(0.45_0.008_265)]">
+                  <AvatarFallback className="text-xs font-black bg-[oklch(0.915_0.003_265)] text-[oklch(0.45_0.008_265)]">
                     {task.donor.name
                       .split(" ")
                       .map((n) => n[0])
@@ -193,7 +193,7 @@ export function TaskRow({
                       .slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-[10px] font-black text-[oklch(0.45_0.008_265)] uppercase tracking-widest group-hover/donor:text-[oklch(0.145_0.015_265)] transition-colors">
+                <span className="text-xs font-black text-[oklch(0.45_0.008_265)] uppercase tracking-widest group-hover/donor:text-[oklch(0.145_0.015_265)] transition-colors">
                   {task.donor.name}
                 </span>
               </div>
@@ -203,7 +203,7 @@ export function TaskRow({
           {dueDateStatus && (
             <div
               className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest shadow-sm",
+                "flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-black uppercase tracking-widest shadow-sm",
                 dueDateStatus.color.includes("rose")
                   ? "bg-rose-50 border-rose-100 text-rose-700"
                   : "bg-[oklch(0.985_0.002_265)] border-[oklch(0.915_0.003_265)] text-[oklch(0.45_0.008_265)]",
@@ -217,7 +217,7 @@ export function TaskRow({
           {task.priority !== "none" && (
             <div
               className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest shadow-sm",
+                "flex items-center gap-2 px-3 py-1.5 rounded-2xl border text-xs font-black uppercase tracking-widest shadow-sm",
                 priorityConfig.badgeColor,
               )}
             >

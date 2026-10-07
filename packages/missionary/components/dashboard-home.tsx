@@ -23,9 +23,17 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { buildMissionaryDashboardView } from "./dashboard-view";
+import {
+  buildMissionaryDashboardView,
+  type DashboardSupportView,
+  type DashboardUpdateView,
+  type DashboardTaskView,
+  type DashboardAlertView,
+} from "./dashboard-view";
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
+
+import type { DateInput } from "@asym/lib/hooks/use-locale-format";
 
 /** Same as demo profile id so metrics API finds the seeded missionary row. */
 const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;
@@ -148,214 +156,27 @@ function DashboardHomeContent({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-6">
           <div className="lg:col-span-7 flex flex-col gap-3 sm:gap-4">
-            <Card>
-              <CardContent className="p-3 sm:p-4">
-                {support?.hasGoal ? (
-                  <>
-                    <div>
-                      <h2 className="text-muted-foreground font-semibold text-xs uppercase tracking-widest mb-1 leading-none">
-                        Monthly Support Goal
-                      </h2>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tighter text-foreground leading-none">
-                          {formatSupportAmount(raisedCents)}
-                        </span>
-                        <span className="text-muted-foreground text-sm sm:text-base font-medium leading-none">
-                          / {formatSupportAmount(goalCents)}
-                        </span>
-                      </div>
-                    </div>
+            <DashboardTasksSection
+              support={support}
+              raisedCents={raisedCents}
+              goalCents={goalCents}
+              percentFunded={percentFunded}
+              remainingCents={remainingCents}
+            />
 
-                    <div className="mt-2.5">
-                      <div className="flex justify-between text-xs mb-1 text-muted-foreground font-semibold leading-none">
-                        <span>{percentFunded}% Funded</span>
-                        <span className="text-muted-foreground">
-                          {formatSupportAmount(remainingCents)} remaining
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                        {/* Animate transform: scaleX (GPU, no layout) instead of width */}
-                        <div
-                          className="size-full origin-left bg-primary transform-(--funding-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                          style={
-                            {
-                              "--funding-progress-transform": `scaleX(${Math.min(percentFunded, 100) / 100})`,
-                            } as React.CSSProperties
-                          }
-                          role="progressbar"
-                          aria-valuenow={Math.max(
-                            0,
-                            Math.min(percentFunded, 100),
-                          )}
-                          aria-valuetext={`${percentFunded}% funded`}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-label="Support funded"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-border">
-                      <div className="flex flex-col gap-0">
-                        <span className="text-muted-foreground text-xs uppercase tracking-wide font-semibold leading-none">
-                          Gifts
-                        </span>
-                        <span className="text-sm sm:text-base font-semibold text-foreground mt-0.5 leading-none">
-                          {support.giftCount}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-0">
-                        <span className="text-muted-foreground text-xs uppercase tracking-wide font-semibold leading-none">
-                          Active Donors
-                        </span>
-                        <span className="text-sm sm:text-base font-semibold text-foreground mt-0.5 leading-none">
-                          {support.activeDonorCount}
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="py-4 text-center">
-                    <h2 className="text-muted-foreground font-semibold text-xs uppercase tracking-widest mb-1 leading-none">
-                      Monthly Support Goal
-                    </h2>
-                    <p className="text-foreground text-sm font-medium mt-1">
-                      No support goal set yet
-                    </p>
-                    <p className="text-muted-foreground text-xs mt-1">
-                      Set a monthly goal to start tracking your support.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-1 flex flex-row items-center justify-between gap-y-0 pt-2.5 px-3 sm:px-4">
-                <div className="flex items-center gap-1.5">
-                  <Activity className="size-3 text-muted-foreground" />
-                  <CardTitle className="text-xs sm:text-sm font-semibold leading-none">
-                    Latest Updates
-                  </CardTitle>
-                </div>
-                {setActiveTab && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="View ministry updates"
-                    onClick={() => setActiveTab("feed")}
-                  >
-                    <ArrowUpRight className="size-3" />
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 sm:px-4 sm:pb-3">
-                {latestUpdates.length === 0 ? (
-                  <p className="sm:col-span-2 text-xs text-muted-foreground text-center py-4">
-                    No ministry updates yet.
-                  </p>
-                ) : (
-                  latestUpdates.slice(0, 2).map((post) => (
-                    <div
-                      key={post.id}
-                      className="group flex gap-2 p-1.5 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors cursor-pointer"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-foreground leading-tight font-medium line-clamp-2">
-                          {post.content}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5 font-semibold uppercase tracking-wider">
-                          {post.createdAt
-                            ? formatDate(post.createdAt)
-                            : "Draft"}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-                {setActiveTab && (
-                  <Button
-                    variant="outline"
-                    className="sm:col-span-2 w-full"
-                    onClick={() => setActiveTab("feed")}
-                  >
-                    Compose New Update
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <DashboardUpdatesSection
+              setActiveTab={setActiveTab}
+              latestUpdates={latestUpdates}
+              formatDate={formatDate}
+            />
           </div>
 
           <div className="lg:col-span-5">
-            <Card>
-              <CardHeader className="pb-1.5 pt-2.5 px-3 sm:px-4 flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xs sm:text-sm font-semibold leading-none">
-                    Tasks & Alerts
-                  </CardTitle>
-                  <Badge variant="secondary">
-                    {pendingTasks.length} Pending
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="flex flex-col">
-                  {alerts.length > 0 && (
-                    <div className="p-1.5 bg-muted/10 flex flex-col gap-1 border-b border-border">
-                      {alerts.map((alert) => (
-                        <div
-                          key={alert.id}
-                          className="flex gap-1.5 items-start bg-muted p-1.5 rounded-md border border-border shadow-sm"
-                        >
-                          <AlertCircle className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
-                          <p className="text-xs font-semibold text-foreground leading-tight">
-                            {alert.text}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="divide-y divide-border">
-                    {pendingTasks.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-6">
-                        No tasks need attention — you&apos;re all caught up.
-                      </p>
-                    ) : (
-                      pendingTasks.slice(0, 4).map((task) => (
-                        <div
-                          key={task.id}
-                          className="group p-2 px-3 sm:px-3.5 hover:bg-muted/50 transition-colors flex items-start gap-2 cursor-pointer touch-target"
-                        >
-                          <Circle className="size-3 text-muted-foreground group-hover:text-muted-foreground mt-0.5 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-foreground truncate tracking-tight leading-none">
-                              {task.title}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
-                              {task.priority === "high" && (
-                                <Badge variant="destructive">Urgent</Badge>
-                              )}
-                              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-                                {task.dueDate
-                                  ? `Due ${formatDate(task.dueDate)}`
-                                  : "No due date"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-                <div className="p-1.5 bg-muted/10 border-t border-border">
-                  <Button variant="ghost" size="sm">
-                    View All Tasks{" "}
-                    <ArrowRight className="size-2 transition-transform group-hover:translate-x-0.5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <DashboardAlertsSection
+              pendingTasks={pendingTasks}
+              alerts={alerts}
+              formatDate={formatDate}
+            />
           </div>
         </div>
       </div>
@@ -403,3 +224,249 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     />
   );
 };
+
+function DashboardTasksSection({
+  support,
+  raisedCents,
+  goalCents,
+  percentFunded,
+  remainingCents,
+}: {
+  support: DashboardSupportView | null;
+  raisedCents: number;
+  goalCents: number;
+  percentFunded: number;
+  remainingCents: number;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-3 sm:p-4">
+        {support?.hasGoal ? (
+          <>
+            <div>
+              <h2 className="text-muted-foreground font-semibold text-xs uppercase tracking-widest mb-1 leading-none">
+                Monthly Support Goal
+              </h2>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tighter text-foreground leading-none">
+                  {formatSupportAmount(raisedCents)}
+                </span>
+                <span className="text-muted-foreground text-sm sm:text-base font-medium leading-none">
+                  / {formatSupportAmount(goalCents)}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-2.5">
+              <div className="flex justify-between text-xs mb-1 text-muted-foreground font-semibold leading-none">
+                <span>{percentFunded}% Funded</span>
+                <span className="text-muted-foreground">
+                  {formatSupportAmount(remainingCents)} remaining
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                {/* Animate transform: scaleX (GPU, no layout) instead of width */}
+                <div
+                  className="size-full origin-left bg-primary transform-(--funding-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                  style={
+                    {
+                      "--funding-progress-transform": `scaleX(${Math.max(0, Math.min(percentFunded, 100)) / 100})`,
+                    } as React.CSSProperties
+                  }
+                  role="progressbar"
+                  aria-valuenow={Math.max(0, Math.min(percentFunded, 100))}
+                  aria-valuetext={`${percentFunded}% funded`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Support funded"
+                />
+              </div>
+            </div>
+
+            <div className="mt-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-border">
+              <div className="flex flex-col gap-0">
+                <span className="text-muted-foreground text-xs uppercase tracking-wide font-semibold leading-none">
+                  Gifts
+                </span>
+                <span className="text-sm sm:text-base font-semibold text-foreground mt-0.5 leading-none">
+                  {support.giftCount}
+                </span>
+              </div>
+              <div className="flex flex-col gap-0">
+                <span className="text-muted-foreground text-xs uppercase tracking-wide font-semibold leading-none">
+                  Active Donors
+                </span>
+                <span className="text-sm sm:text-base font-semibold text-foreground mt-0.5 leading-none">
+                  {support.activeDonorCount}
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="py-4 text-center">
+            <h2 className="text-muted-foreground font-semibold text-xs uppercase tracking-widest mb-1 leading-none">
+              Monthly Support Goal
+            </h2>
+            <p className="text-foreground text-sm font-medium mt-1">
+              No support goal set yet
+            </p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Set a monthly goal to start tracking your support.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function DashboardUpdatesSection({
+  setActiveTab,
+  latestUpdates,
+  formatDate,
+}: {
+  setActiveTab: ((tab: string) => void) | undefined;
+  latestUpdates: DashboardUpdateView[];
+  formatDate: (
+    value: DateInput,
+    options?: Intl.DateTimeFormatOptions,
+  ) => string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-1 flex flex-row items-center justify-between gap-y-0 pt-2.5 px-3 sm:px-4">
+        <div className="flex items-center gap-1.5">
+          <Activity className="size-3 text-muted-foreground" />
+          <CardTitle className="text-xs sm:text-sm font-semibold leading-none">
+            Latest Updates
+          </CardTitle>
+        </div>
+        {setActiveTab && (
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="View ministry updates"
+            onClick={() => setActiveTab("feed")}
+          >
+            <ArrowUpRight className="size-3" />
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 sm:px-4 sm:pb-3">
+        {latestUpdates.length === 0 ? (
+          <p className="sm:col-span-2 text-xs text-muted-foreground text-center py-4">
+            No ministry updates yet.
+          </p>
+        ) : (
+          latestUpdates.slice(0, 2).map((post) => (
+            <div
+              key={post.id}
+              className="group flex gap-2 p-2 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors cursor-pointer"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-foreground leading-tight font-medium line-clamp-2">
+                  {post.content}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5 font-semibold uppercase tracking-wider">
+                  {post.createdAt ? formatDate(post.createdAt) : "Draft"}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+        {setActiveTab && (
+          <Button
+            variant="outline"
+            className="sm:col-span-2 w-full"
+            onClick={() => setActiveTab("feed")}
+          >
+            Compose New Update
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function DashboardAlertsSection({
+  pendingTasks,
+  alerts,
+  formatDate,
+}: {
+  pendingTasks: DashboardTaskView[];
+  alerts: DashboardAlertView[];
+  formatDate: (
+    value: DateInput,
+    options?: Intl.DateTimeFormatOptions,
+  ) => string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-1.5 pt-2.5 px-3 sm:px-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xs sm:text-sm font-semibold leading-none">
+            Tasks & Alerts
+          </CardTitle>
+          <Badge variant="secondary">{pendingTasks.length} Pending</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="flex flex-col">
+          {alerts.length > 0 && (
+            <div className="p-1.5 bg-muted/10 flex flex-col gap-1 border-b border-border">
+              {alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className="flex gap-1.5 items-start bg-muted p-1.5 rounded-md border border-border shadow-sm"
+                >
+                  <AlertCircle className="size-2.5 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-xs font-semibold text-foreground leading-tight">
+                    {alert.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="divide-y divide-border">
+            {pendingTasks.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">
+                No tasks need attention — you&apos;re all caught up.
+              </p>
+            ) : (
+              pendingTasks.slice(0, 4).map((task) => (
+                <div
+                  key={task.id}
+                  className="group p-2 px-3 sm:px-3.5 hover:bg-muted/50 transition-colors flex items-start gap-2 cursor-pointer touch-target"
+                >
+                  <Circle className="size-3 text-muted-foreground group-hover:text-muted-foreground mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate tracking-tight leading-none">
+                      {task.title}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
+                      {task.priority === "high" && (
+                        <Badge variant="destructive">Urgent</Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                        {task.dueDate
+                          ? `Due ${formatDate(task.dueDate)}`
+                          : "No due date"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <div className="p-2 bg-muted/10 border-t border-border">
+          <Button variant="ghost" size="sm">
+            View All Tasks{" "}
+            <ArrowRight className="size-2 transition-transform group-hover:translate-x-0.5" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

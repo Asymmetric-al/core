@@ -38,7 +38,7 @@ export function ConversationCrmLinks({
             href={link.href}
             prefetch={false}
             aria-label={link.description}
-            className="inline-flex items-center gap-1 rounded-md border border-zinc-100 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600 transition-colors hover:border-zinc-200 hover:text-zinc-900"
+            className="inline-flex items-center gap-1 rounded-md border border-zinc-100 bg-zinc-50 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-zinc-600 transition-colors hover:border-zinc-200 hover:text-zinc-900"
           >
             {link.icon}
             {link.label}

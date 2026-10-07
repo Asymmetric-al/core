@@ -13,7 +13,7 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 export default function CheckoutLoading() {
   return (
     <div
-      className="min-h-screen bg-white font-sans pb-32 pt-24"
+      className="min-h-dvh bg-white font-sans pb-32 pt-24"
       role="status"
       aria-busy="true"
       aria-label="Loading your gift"

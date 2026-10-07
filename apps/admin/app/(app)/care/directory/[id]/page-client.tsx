@@ -105,7 +105,7 @@ export default function CareProfilePage() {
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold text-zinc-400 uppercase">
+                <p className="text-xs font-semibold text-zinc-400 uppercase">
                   Last Contact
                 </p>
                 <p className="text-sm font-semibold text-zinc-900">
@@ -113,13 +113,13 @@ export default function CareProfilePage() {
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold text-zinc-400 uppercase">
+                <p className="text-xs font-semibold text-zinc-400 uppercase">
                   Frequency
                 </p>
                 <p className="text-sm font-semibold text-zinc-900">Every 14d</p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold text-zinc-400 uppercase">
+                <p className="text-xs font-semibold text-zinc-400 uppercase">
                   Care Lead
                 </p>
                 <p className="text-sm font-semibold text-zinc-900">
@@ -127,7 +127,7 @@ export default function CareProfilePage() {
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-semibold text-zinc-400 uppercase">
+                <p className="text-xs font-semibold text-zinc-400 uppercase">
                   Support %
                 </p>
                 <p className="text-sm font-semibold text-emerald-600">92%</p>

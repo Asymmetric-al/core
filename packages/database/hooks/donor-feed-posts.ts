@@ -9,7 +9,7 @@ import type { PostWithAuthor } from "../types/database";
  * `RecentUpdate` from `@asym/mock-data` (kept local so this package does not
  * depend on the mock-data package).
  */
-export interface DonorRecentUpdate {
+interface DonorRecentUpdate {
   id: string | number;
   author: string;
   title: string;
@@ -160,9 +160,9 @@ export function postTitle(post: PostWithAuthor, maxLength = 80): string {
 
 /** Image URLs from the post's media (videos excluded). */
 export function postImages(post: PostWithAuthor): string[] {
-  return post.media
-    .filter((item) => item.type === "image")
-    .map((item) => item.url);
+  return post.media.flatMap((item) =>
+    item.type === "image" ? [item.url] : [],
+  );
 }
 
 /**

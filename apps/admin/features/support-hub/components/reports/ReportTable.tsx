@@ -25,9 +25,9 @@ export function ReportTable({ series, className }: ReportTableProps) {
         className,
       )}
     >
-      <table className="w-full text-left text-[12px]">
+      <table className="w-full text-left text-xs">
         <caption className="sr-only">{series.slice} breakdown</caption>
-        <thead className="bg-zinc-50/60 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+        <thead className="bg-zinc-50/60 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           <tr>
             <th className="px-4 py-2">Label</th>
             <th className="px-4 py-2 text-right">Value</th>
