@@ -86,7 +86,7 @@
     "cn": "0.4.0",
     "date-fns": "4.4.0",
     "embla-carousel-react": "^8.6.0",
-    "lucide-react": "1.17.0",
+    "lucide-react": "1.52.0",
     "maplibre-gl": "^6.10.0",
     "motion": "^12.34.2",
     "next": "16.4.0",
