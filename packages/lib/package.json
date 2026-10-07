@@ -61,7 +61,7 @@
     "@sentry/nextjs": "^10.32.1",
     "@stripe/stripe-js": "10.0.0",
     "@supabase/supabase-js": "2.117.3",
-    "html-react-parser": "^5.2.17",
+    "html-react-parser": "6.1.8",
     "isomorphic-dompurify": "4.5.0",
     "lucide-react": "1.52.0",
     "motion": "14.0.0",
