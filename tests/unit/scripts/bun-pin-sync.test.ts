@@ -40,7 +40,7 @@ const verifierSourcePath = path.join(
 
 /** Official stable pin verified from GitHub `bun-v1.4.2` and npm `bun@latest`. */
 const VERIFIED_STABLE_BUN = "1.4.2";
-const PINNED_TURBO = "2.10.0";
+const PINNED_TURBO = "2.11.7";
 
 const WORKFLOW_DIR = path.join(repoRoot, ".github", "workflows");
 
