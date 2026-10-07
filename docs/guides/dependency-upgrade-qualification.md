@@ -59,7 +59,7 @@ force an unsupported major into another package's closure.
 | HTML / telemetry     | DOMPurify wrapper 4.5.0; HTML parser 6.1.8; Sentry 11.5.0; web-vitals 6.2.3                                     |
 | Browser payments     | Stripe React 7.0.0 and Stripe JS 10.0.0                                                                         |
 | AI                   | AI SDK 7.0.131; Eve/Connect remain at the qualified baseline described below                                    |
-| Browser tools        | Playwright test/core 1.63.0; axe 4.13.0; Boneyard 1.10.0; agent-browser 0.38.2                                  |
+| Browser tools        | Playwright test/core 1.64.0; axe 4.13.0; Boneyard 1.10.0; agent-browser 0.38.2                                  |
 | Test/build tools     | Vitest 5.0.3; Vite 8.3.3; React plugin 6.1.2; jsdom 30.1.2; Turbo 2.11.7; lint-staged 17.6.0                    |
 | Lint / scaffold      | TypeScript ESLint 8.71.1; import-x 4.17.1; React hooks 7.1.1; shadcn 4.21.4                                     |
 
