@@ -90,7 +90,7 @@ export function DateCell<TData extends RowData>({
               if (maxDate && date > maxDate) return true;
               return false;
             }}
-            initialFocus
+            autoFocus
           />
         </PopoverContent>
       </Popover>

@@ -263,7 +263,7 @@ function TaskDueDateSection({ form }: { form: TaskFormApi }) {
                   >
                     <Calendar
                       defaultMonth={field.state.value}
-                      initialFocus
+                      autoFocus
                       mode="single"
                       onSelect={(date) => {
                         field.handleChange(date);

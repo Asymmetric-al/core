@@ -270,7 +270,7 @@ function DatePickerButton({
           mode="single"
           selected={value ?? undefined}
           onSelect={(date) => onChange(date ?? null)}
-          initialFocus
+          autoFocus
         />
       </PopoverContent>
     </Popover>
