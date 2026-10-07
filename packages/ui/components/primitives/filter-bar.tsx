@@ -7,7 +7,11 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Badge } from "../shadcn/badge";
 import { Button } from "../shadcn/button";
-import { Input } from "../shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "../shadcn/input-group";
 
 interface FilterBarProps {
   search?: {
@@ -42,14 +46,17 @@ export function FilterBar({
         <div className="flex flex-1 flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto">
           {search && (
             <div className="relative w-full md:w-80">
-              <Search className="text-muted-foreground absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-              <Input
-                aria-label={search.label ?? "Search"}
-                placeholder={search.placeholder || "Search..."}
-                value={search.value}
-                onChange={(e) => search.onChange(e.target.value)}
-                className="placeholder:text-muted-foreground h-12 rounded-xl border-border/60 bg-background/60 pr-4 pl-10 font-medium transition-colors focus:bg-background placeholder:text-xs placeholder:font-bold placeholder:uppercase placeholder:tracking-widest"
-              />
+              <InputGroup>
+                <InputGroupAddon>
+                  <Search aria-hidden="true" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  aria-label={search.label ?? "Search"}
+                  placeholder={search.placeholder || "Search..."}
+                  value={search.value}
+                  onChange={(e) => search.onChange(e.target.value)}
+                />
+              </InputGroup>
             </div>
           )}
 
@@ -59,7 +66,7 @@ export function FilterBar({
         </div>
 
         {actions && (
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+          <div className="flex w-full flex-wrap items-center justify-end gap-3 md:w-auto">
             {actions}
           </div>
         )}
@@ -70,31 +77,24 @@ export function FilterBar({
           {activeFilters.map((filter) => {
             const handleFilterOnRemove = filter.onRemove;
             return (
-              <Badge
-                key={filter.label}
-                variant="secondary"
-                className="text-muted-foreground h-7 cursor-default rounded-lg border-none bg-muted px-3 text-xs font-bold uppercase tracking-widest transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
+              <Badge key={filter.label} variant="secondary">
                 {filter.label}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={handleFilterOnRemove}
                   aria-label={`Remove ${filter.label} filter`}
-                  className="ml-2 transition-colors hover:text-foreground"
+                  className="ml-1"
                 >
                   <X className="size-3" />
-                </button>
+                </Button>
               </Badge>
             );
           })}
 
           {onReset && (activeFilters.length > 0 || search?.value) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onReset}
-              className="text-muted-foreground h-7 px-3 text-xs font-black uppercase tracking-widest hover:text-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={onReset}>
               Clear all
             </Button>
           )}

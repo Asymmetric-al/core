@@ -9,26 +9,14 @@ import { Badge } from "../../badge";
 import type { RowData } from "../tanstack";
 import type { BadgeCellProps, BadgeVariant } from "./types";
 
-const variantStyles: Record<BadgeVariant, string> = {
-  default: "",
-  secondary: "",
-  destructive: "",
-  outline: "",
-  success:
-    "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
-  warning:
-    "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800",
-  info: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
-};
-
 const dotColors: Record<BadgeVariant, string> = {
   default: "bg-primary",
   secondary: "bg-secondary-foreground",
   destructive: "bg-destructive",
   outline: "bg-foreground",
-  success: "bg-emerald-500",
-  warning: "bg-amber-500",
-  info: "bg-blue-500",
+  success: "bg-success",
+  warning: "bg-warning",
+  info: "bg-info",
 };
 
 export function BadgeCell<TData extends RowData>({
@@ -57,22 +45,10 @@ export function BadgeCell<TData extends RowData>({
     );
   }
 
-  const isCustomVariant = ["success", "warning", "info"].includes(
-    resolvedVariant,
-  );
-  const badgeVariant = isCustomVariant ? "outline" : resolvedVariant;
-
   return (
     <Badge
-      variant={
-        badgeVariant as "default" | "secondary" | "destructive" | "outline"
-      }
-      className={cn(
-        "text-xs font-medium px-2 py-0.5",
-        isCustomVariant && variantStyles[resolvedVariant],
-        resolvedOption?.className,
-        className,
-      )}
+      variant={resolvedVariant}
+      className={cn(resolvedOption?.className, className)}
     >
       {showDot && (
         <span

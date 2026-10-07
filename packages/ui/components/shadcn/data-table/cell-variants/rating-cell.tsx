@@ -84,31 +84,34 @@ export function RatingCell<TData extends RowData>({
             disabled={disabled || !isEditing}
             aria-label={`Rate ${star.index + 1} of ${max}`}
             className={cn(
-              "p-0 relative",
+              "relative flex min-h-6 min-w-6 items-center justify-center p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isEditing &&
                 !disabled &&
                 "[@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 transition-transform",
               disabled && "opacity-50",
             )}
           >
-            <StarIcon
-              className={cn(
-                sizeClasses[size],
-                "transition-colors",
-                filled
-                  ? "fill-amber-400 text-amber-400"
-                  : "fill-transparent text-muted-foreground/40",
-              )}
-            />
-            {halfFilled && (
+            <span className={cn("relative block", sizeClasses[size])}>
               <StarIcon
                 className={cn(
                   sizeClasses[size],
-                  "absolute inset-0 fill-amber-400 text-amber-400",
-                  "[clip-path:inset(0_50%_0_0)]",
+                  "transition-colors",
+                  filled
+                    ? "fill-warning text-warning"
+                    : "fill-transparent text-muted-foreground/40",
                 )}
               />
-            )}
+              {halfFilled && (
+                <span className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
+                  <StarIcon
+                    className={cn(
+                      sizeClasses[size],
+                      "fill-warning text-warning",
+                    )}
+                  />
+                </span>
+              )}
+            </span>
           </button>
         );
       })}

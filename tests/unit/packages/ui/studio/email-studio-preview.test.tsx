@@ -60,10 +60,10 @@ describe("@asym/ui EmailStudioPreviewDialog", () => {
     );
 
     const iframe = screen.getByTitle("Email preview") as HTMLIFrameElement;
-    expect(iframe.className).toContain("w-[390px]");
+    expect(iframe.className).toContain("w-97.5");
 
     fireEvent.click(screen.getByRole("button", { name: /desktop preview/i }));
-    expect(iframe.className).toContain("max-w-[760px]");
+    expect(iframe.className).toContain("max-w-190");
 
     rerender(
       <EmailStudioPreviewDialog
@@ -87,7 +87,7 @@ describe("@asym/ui EmailStudioPreviewDialog", () => {
     );
 
     const reopened = screen.getByTitle("Email preview") as HTMLIFrameElement;
-    expect(reopened.className).toContain("max-w-[760px]");
-    expect(reopened.className).not.toContain("w-[390px]");
+    expect(reopened.className).toContain("max-w-190");
+    expect(reopened.className).not.toContain("w-97.5");
   });
 });

@@ -82,7 +82,12 @@ export function PageShell({
           headerClassName,
         )}
       >
-        <div className={cn(density === "compact" ? "space-y-2" : "space-y-3")}>
+        <div
+          className={cn(
+            "min-w-0 flex-1",
+            density === "compact" ? "space-y-2" : "space-y-3",
+          )}
+        >
           {breadcrumbs && (
             <div className={density === "compact" ? "mb-2" : "mb-4"}>
               {breadcrumbs}
@@ -92,8 +97,8 @@ export function PageShell({
           <h1
             className={cn(
               density === "compact"
-                ? "text-3xl font-black tracking-tight text-foreground sm:text-4xl lg:text-5xl"
-                : "text-5xl font-black uppercase tracking-tighter text-foreground lg:text-6xl",
+                ? "text-2xl font-semibold tracking-tight text-foreground wrap-break-word sm:text-3xl lg:text-4xl"
+                : "text-3xl font-bold tracking-tight text-foreground wrap-break-word sm:text-4xl lg:text-5xl",
             )}
           >
             {title}
@@ -119,8 +124,8 @@ export function PageShell({
             transition={actionsMotion.transition}
             className={cn(
               density === "compact"
-                ? "flex flex-wrap items-center gap-2.5"
-                : "flex flex-wrap gap-3",
+                ? "flex w-full flex-wrap items-center gap-2.5 md:w-auto md:shrink-0"
+                : "flex w-full flex-wrap items-center gap-3 md:w-auto md:shrink-0",
             )}
           >
             {actions}

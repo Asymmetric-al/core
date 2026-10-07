@@ -30,22 +30,24 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between pb-4 sm:pb-6",
+        "flex flex-col gap-3 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pb-6",
         className,
       )}
     >
-      <div className="space-y-0.5 sm:space-y-1 min-w-0">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-foreground truncate">
+      <div className="min-w-0 flex-1 space-y-1">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground wrap-break-word sm:text-2xl lg:text-3xl">
           {titleNode}
         </h1>
         {description && (
-          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         )}
       </div>
       {children && (
-        <div className="flex items-center gap-2 shrink-0">{children}</div>
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+          {children}
+        </div>
       )}
     </div>
   );

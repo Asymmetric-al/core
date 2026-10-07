@@ -31,6 +31,8 @@
     "./components/studio/legacy/UnlayerDocumentEditor": "./components/studio/legacy/UnlayerDocumentEditor.tsx",
     "./components/studio/PDFStudioSetupStatus": "./components/studio/PDFStudioSetupStatus.tsx",
     "./components/dashboard": "./components/dashboard/index.ts",
+    "./components/settings": "./components/settings/index.ts",
+    "./components/settings/*": "./components/settings/*.tsx",
     "./components/feed": "./components/feed/index.ts",
     "./components/boneyard-skeleton": "./components/boneyard-skeleton.tsx",
     "./components/brand-logo": "./components/brand-logo.tsx",

@@ -53,38 +53,38 @@ const TASK_TYPE_CONFIG: Record<
   call: {
     label: "Call",
     icon: Phone,
-    color: "text-sky-600",
-    bgColor: "bg-sky-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
   email: {
     label: "Email",
     icon: Mail,
-    color: "text-violet-600",
-    bgColor: "bg-violet-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
   to_do: {
     label: "To-do",
     icon: CheckSquare,
-    color: "text-zinc-600",
-    bgColor: "bg-zinc-100",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
   },
   follow_up: {
     label: "Follow Up",
     icon: UserPlus,
-    color: "text-amber-600",
-    bgColor: "bg-amber-50",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
   },
   thank_you: {
     label: "Thank You",
     icon: Heart,
-    color: "text-pink-600",
-    bgColor: "bg-pink-50",
+    color: "text-success",
+    bgColor: "bg-success/10",
   },
   meeting: {
     label: "Meeting",
     icon: Users,
-    color: "text-teal-600",
-    bgColor: "bg-teal-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
 };
 
@@ -94,47 +94,38 @@ const PRIORITY_CONFIG: Record<
 > = {
   none: {
     label: "None",
-    color: "text-zinc-400",
-    badgeColor: "bg-zinc-100 text-zinc-500 border-zinc-200",
+    color: "text-muted-foreground",
+    badgeColor: "bg-muted text-muted-foreground border-border",
   },
   low: {
     label: "Low",
-    color: "text-sky-500",
-    badgeColor: "bg-sky-50 text-sky-700 border-sky-200",
+    color: "text-info",
+    badgeColor: "bg-info/10 text-info border-info/20",
   },
   medium: {
     label: "Medium",
-    color: "text-amber-500",
-    badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
+    color: "text-warning",
+    badgeColor: "bg-warning/10 text-warning border-warning/20",
   },
   high: {
     label: "High",
-    color: "text-rose-500",
-    badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "text-destructive",
+    badgeColor: "bg-destructive/10 text-destructive border-destructive/20",
   },
 };
 
-const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }> = {
-  not_started: {
-    label: "Not Started",
-    color: "bg-zinc-100 text-zinc-600 border-zinc-200",
-  },
-  in_progress: {
-    label: "In Progress",
-    color: "bg-sky-50 text-sky-700 border-sky-200",
-  },
-  waiting: {
-    label: "Waiting",
-    color: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  completed: {
-    label: "Completed",
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  deferred: {
-    label: "Deferred",
-    color: "bg-zinc-100 text-zinc-500 border-zinc-200",
-  },
+const STATUS_CONFIG: Record<
+  TaskStatus,
+  {
+    label: string;
+    variant: "secondary" | "info" | "warning" | "success";
+  }
+> = {
+  not_started: { label: "Not Started", variant: "secondary" },
+  in_progress: { label: "In Progress", variant: "info" },
+  waiting: { label: "Waiting", variant: "warning" },
+  completed: { label: "Completed", variant: "success" },
+  deferred: { label: "Deferred", variant: "secondary" },
 };
 
 function getDueDateStatus(dueDate: string | null | undefined) {
@@ -146,30 +137,30 @@ function getDueDateStatus(dueDate: string | null | undefined) {
   if (isPast(date) && !isToday(date)) {
     return {
       label: "Overdue",
-      color: "bg-rose-50 text-rose-700 border-rose-200",
+      color: "bg-destructive/10 text-destructive border-destructive/20",
     };
   }
   if (isToday(date)) {
     return {
       label: "Due Today",
-      color: "bg-amber-50 text-amber-700 border-amber-200",
+      color: "bg-warning/10 text-warning border-warning/20",
     };
   }
   if (isTomorrow(date)) {
     return {
       label: "Tomorrow",
-      color: "bg-sky-50 text-sky-700 border-sky-200",
+      color: "bg-info/10 text-info border-info/20",
     };
   }
   if (isThisWeek(date)) {
     return {
       label: format(date, "EEEE"),
-      color: "bg-zinc-100 text-zinc-700 border-zinc-200",
+      color: "bg-muted text-foreground border-border",
     };
   }
   return {
     label: format(date, "MMM d"),
-    color: "bg-zinc-100 text-zinc-700 border-zinc-200",
+    color: "bg-muted text-foreground border-border",
   };
 }
 
@@ -218,31 +209,36 @@ function TaskRowTitle({
         <div className="flex items-center gap-2 flex-wrap">
           <p
             className={cn(
-              "font-bold text-sm tracking-tight",
-              isCompleted ? "line-through text-zinc-400" : "text-zinc-900",
+              "font-semibold text-sm tracking-tight",
+              isCompleted
+                ? "line-through text-muted-foreground"
+                : "text-foreground",
             )}
           >
             {task.title}
           </p>
           {task.priority !== "none" && !isCompleted && (
             <Badge
-              className={cn(
-                "border text-xs font-black uppercase tracking-widest px-1.5 h-4",
-                priorityConfig.badgeColor,
-              )}
+              variant={
+                task.priority === "high"
+                  ? "destructive"
+                  : task.priority === "medium"
+                    ? "warning"
+                    : "info"
+              }
             >
               {priorityConfig.label}
             </Badge>
           )}
           {task.is_auto_generated && !isCompleted && (
-            <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-xs font-black uppercase tracking-widest px-1.5 h-4 gap-1">
+            <Badge variant="info">
               <Sparkles className="size-2.5" />
               Auto
             </Badge>
           )}
         </div>
         {task.description && !isCompleted && (
-          <p className="text-xs font-medium text-zinc-500 mt-1 line-clamp-2">
+          <p className="text-xs font-medium text-muted-foreground mt-1 line-clamp-2">
             {task.description}
           </p>
         )}
@@ -266,10 +262,10 @@ function TaskRowMeta({
     <div className="flex items-center gap-2 mt-3 flex-wrap">
       {task.donor && (
         <Link href={`/donors?selected=${task.donor.id}`}>
-          <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer">
+          <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted border border-border hover:border-border transition-colors cursor-pointer">
             <Avatar className="size-4">
               <AvatarImage src={task.donor.avatar_url || undefined} />
-              <AvatarFallback className="text-xs font-bold bg-zinc-200 text-zinc-600">
+              <AvatarFallback>
                 {task.donor.name
                   .split(" ")
                   .map((n: string) => n[0])
@@ -277,7 +273,7 @@ function TaskRowMeta({
                   .slice(0, 2)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
               {task.donor.name}
             </span>
           </div>
@@ -286,7 +282,7 @@ function TaskRowMeta({
       {dueDateStatus && !isCompleted && (
         <div
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-bold uppercase tracking-wider",
+            "flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-medium",
             dueDateStatus.color,
           )}
         >
@@ -295,19 +291,12 @@ function TaskRowMeta({
         </div>
       )}
       {task.reminder_date && !isCompleted && (
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-bold uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-info/10 border border-info/20 text-info text-xs font-medium">
           <Bell className="size-3" />
           {format(makeDisplayDate(task.reminder_date), "MMM d")}
         </div>
       )}
-      <Badge
-        className={cn(
-          "border text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
-          statusConfig.color,
-        )}
-      >
-        {statusConfig.label}
-      </Badge>
+      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
     </div>
   );
 }
@@ -330,47 +319,30 @@ function TaskRowMenu({
       <DropdownMenuTrigger
         aria-label="Open actions"
         render={
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
-          >
+          <Button variant="ghost" size="icon-sm">
             <MoreHorizontal className="size-4" />
           </Button>
         }
       />
-      <DropdownMenuContent
-        align="end"
-        className="rounded-xl border-zinc-200 p-1.5 shadow-xl min-w-[160px]"
-      >
-        <DropdownMenuItem
-          onClick={onEdit}
-          className="rounded-lg text-xs font-medium py-2 cursor-pointer"
-        >
-          <Pencil className="mr-2 size-3.5 text-zinc-400" />
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onEdit}>
+          <Pencil className="mr-2 size-3.5 text-muted-foreground" />
           Edit Task
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={onComplete}
-          className="rounded-lg text-xs font-medium py-2 cursor-pointer"
-        >
-          <CheckCircle2 className="mr-2 size-3.5 text-zinc-400" />
+        <DropdownMenuItem onClick={onComplete}>
+          <CheckCircle2 className="mr-2 size-3.5 text-muted-foreground" />
           {isCompleted ? "Reopen Task" : "Mark Complete"}
         </DropdownMenuItem>
         {task.donor && (
           <DropdownMenuItem
             render={<Link href={`/donors?selected=${task.donor.id}`} />}
-            className="rounded-lg text-xs font-medium py-2 cursor-pointer"
           >
-            <User className="mr-2 size-3.5 text-zinc-400" />
+            <User className="mr-2 size-3.5 text-muted-foreground" />
             View Partner
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator className="my-1 bg-zinc-100" />
-        <DropdownMenuItem
-          onClick={onDelete}
-          className="rounded-lg text-xs font-medium py-2 text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
-        >
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onDelete} variant="destructive">
           <Trash2 className="mr-2 size-3.5" />
           Delete Task
         </DropdownMenuItem>
@@ -417,11 +389,11 @@ export function TaskRow({
           : { ...transitionStandard, delay: Math.min(index, 6) * 0.03 }
       }
       className={cn(
-        "relative group flex items-start gap-4 p-5 border rounded-2xl",
-        "transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
+        "relative group flex items-start gap-3 rounded-xl border p-4",
+        "transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
         isCompleted
-          ? "bg-zinc-50/50 border-zinc-100"
-          : "bg-white border-zinc-200 hover-lift hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md",
+          ? "bg-muted/50 border-border"
+          : "bg-card border-border hover-lift hover:border-border [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md",
       )}
     >
       <div className="mt-1 relative">
@@ -429,7 +401,6 @@ export function TaskRow({
           aria-label={`Complete ${task.title}`}
           checked={isCompleted}
           onCheckedChange={onComplete}
-          className="size-5 rounded-md border-zinc-300 data-checked:bg-emerald-500 data-checked:border-emerald-500"
         />
       </div>
 

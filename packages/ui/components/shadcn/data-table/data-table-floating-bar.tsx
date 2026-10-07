@@ -1,11 +1,14 @@
 "use client";
 
+import { useIsMobile } from "@asym/lib/hooks/use-mobile";
 import {
   AnimatePresence,
   LazyMotion,
   domAnimation,
   motion as m,
+  useReducedMotion,
 } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import { X, MoreHorizontal, Check } from "lucide-react";
 import * as React from "react";
 
@@ -54,6 +57,8 @@ function DataTableFloatingBarImpl<TData extends RowData>({
   actions,
   className,
 }: DataTableFloatingBarProps<TData>) {
+  const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
   // Focused subscriptions: the memo comparator below keeps parent broadcasts out,
   // so every state slice this chrome reads needs its own subscription.
   const atoms = getTableSliceAtoms(table);
@@ -77,30 +82,35 @@ function DataTableFloatingBarImpl<TData extends RowData>({
   const selectedOriginalRows = selectedRows.map((row) => row.original);
   const allActions = actions ?? [];
   const visibleActions = allActions
-    .filter((action) => !action.hideOnMobile)
-    .slice(0, 2);
-  const overflowActions = allActions.slice(2);
+    .filter((action) => !isMobile || !action.hideOnMobile)
+    .slice(0, isMobile ? 1 : 2);
+  const overflowActions = allActions.filter(
+    (action) => !visibleActions.includes(action),
+  );
   const hasActions = allActions.length > 0;
 
   return (
     <LazyMotion features={domAnimation}>
       <AnimatePresence>
         <m.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          initial={false}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          exit={
+            reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8, scale: 0.98 }
+          }
+          transition={reduceMotion ? { duration: 0 } : transitionStandard}
+          role="toolbar"
+          aria-label="Selected record actions"
           className={cn(
-            "fixed bottom-4 left-1/2 -translate-x-1/2 z-50",
-            "flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5",
-            "bg-foreground text-background",
+            "fixed inset-x-4 bottom-4 z-50 mx-auto w-fit max-w-full",
+            "flex flex-wrap items-center justify-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5",
+            "bg-invert text-invert-foreground",
             "rounded-2xl shadow-2xl",
-            "max-w-[calc(100vw-2rem)]",
             className,
           )}
         >
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center justify-center size-6 rounded-full bg-background/20">
+            <div className="flex items-center justify-center size-6 rounded-full bg-invert-foreground/20">
               <Check className="size-3.5" />
             </div>
             <span className="text-sm font-medium whitespace-nowrap">
@@ -110,29 +120,28 @@ function DataTableFloatingBarImpl<TData extends RowData>({
 
           {hasActions && (
             <>
-              <div className="w-px h-5 bg-background/20 mx-1" />
+              <div className="w-px h-5 bg-invert-foreground/20 mx-1" />
 
-              <div className="flex items-center gap-1">
+              <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
                 {visibleActions.map((action) => (
                   <Button
                     key={action.label}
                     aria-label={action.label}
-                    variant="ghost"
+                    variant={
+                      action.variant === "destructive"
+                        ? "ghost-inverse-destructive"
+                        : "ghost-inverse"
+                    }
                     size="sm"
+                    className="max-w-full"
                     onClick={() => action.onClick(selectedOriginalRows)}
-                    className={cn(
-                      "h-8 px-2 sm:px-3 gap-1.5 rounded-xl",
-                      "text-background hover:bg-background/10 hover:text-background",
-                      action.variant === "destructive" &&
-                        "hover:bg-destructive/20 hover:text-destructive-foreground",
-                    )}
                   >
                     {action.icon && (
                       <action.icon className="size-4" aria-hidden="true" />
                     )}
                     <span
                       className={cn(
-                        "text-sm",
+                        "max-w-40 truncate text-sm",
                         action.icon && "hidden sm:inline",
                       )}
                     >
@@ -146,16 +155,12 @@ function DataTableFloatingBarImpl<TData extends RowData>({
                     <DropdownMenuTrigger
                       aria-label="Open actions"
                       render={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 rounded-xl text-background hover:bg-background/10 hover:text-background"
-                        >
+                        <Button variant="ghost-inverse" size="icon-sm">
                           <MoreHorizontal className="size-4" />
                         </Button>
                       }
                     />
-                    <DropdownMenuContent align="end" className="rounded-xl">
+                    <DropdownMenuContent align="end">
                       {overflowActions.map((action, index) => (
                         <React.Fragment key={action.label}>
                           {action.variant === "destructive" && index > 0 && (
@@ -163,14 +168,16 @@ function DataTableFloatingBarImpl<TData extends RowData>({
                           )}
                           <DropdownMenuItem
                             onClick={() => action.onClick(selectedOriginalRows)}
-                            className={cn(
-                              "rounded-lg gap-2",
-                              action.variant === "destructive" &&
-                                "text-destructive focus:text-destructive",
-                            )}
+                            variant={
+                              action.variant === "destructive"
+                                ? "destructive"
+                                : "default"
+                            }
                           >
                             {action.icon && <action.icon className="size-4" />}
-                            {action.label}
+                            <span className="min-w-0 wrap-break-word">
+                              {action.label}
+                            </span>
                           </DropdownMenuItem>
                         </React.Fragment>
                       ))}
@@ -179,15 +186,14 @@ function DataTableFloatingBarImpl<TData extends RowData>({
                 )}
               </div>
 
-              <div className="w-px h-5 bg-background/20 mx-1" />
+              <div className="w-px h-5 bg-invert-foreground/20 mx-1" />
             </>
           )}
 
           <Button
-            variant="ghost"
-            size="icon"
+            variant="ghost-inverse"
+            size="icon-sm"
             onClick={() => table.toggleAllPageRowsSelected(false)}
-            className="size-8 rounded-xl text-background hover:bg-background/10 hover:text-background shrink-0"
           >
             <X className="size-4" aria-hidden="true" />
             <span className="sr-only">Clear selection</span>

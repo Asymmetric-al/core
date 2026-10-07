@@ -115,12 +115,9 @@ export function SavedFilters({
     <div className={cn("flex items-center gap-2", className)}>
       <Popover>
         <PopoverTrigger
+          aria-label="Saved Views"
           render={
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 gap-2 rounded-xl"
-            >
+            <Button variant="outline" size="default">
               <BookmarkIcon className="size-4" />
               <span className="hidden sm:inline">Saved Views</span>
               {savedFilters.length > 0 && (
@@ -131,7 +128,7 @@ export function SavedFilters({
             </Button>
           }
         />
-        <PopoverContent className="w-72 p-2" align="start">
+        <PopoverContent className="w-72" align="start">
           <div className="space-y-1">
             <div className="flex items-center justify-between px-2 py-1">
               <span className="text-sm font-medium">Saved Views</span>
@@ -141,7 +138,6 @@ export function SavedFilters({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 gap-1 text-xs"
                       disabled={activeCount === 0}
                     >
                       <PlusIcon className="size-3" />
@@ -214,12 +210,10 @@ export function SavedFilters({
                           ref={editNameInputRef}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="h-7 text-sm"
                         />
                         <Button
                           variant="ghost"
-                          size="icon"
-                          className="size-7 shrink-0"
+                          size="icon-sm"
                           onClick={handleUpdate}
                           aria-label="Confirm rename"
                         >
@@ -227,8 +221,7 @@ export function SavedFilters({
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
-                          className="size-7 shrink-0"
+                          size="icon-sm"
                           onClick={handleCancelEdit}
                           aria-label="Cancel rename"
                         >
@@ -262,11 +255,7 @@ export function SavedFilters({
                           <DropdownMenuTrigger
                             aria-label="Open actions"
                             render={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-7 shrink-0  "
-                              >
+                              <Button variant="ghost" size="icon-sm">
                                 <MoreHorizontalIcon className="size-3" />
                               </Button>
                             }
@@ -297,7 +286,7 @@ export function SavedFilters({
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={() => onDeleteFilter(filter.id)}
-                              className="text-destructive"
+                              variant="destructive"
                             >
                               <Trash2Icon className="size-3 mr-2" />
                               Delete
@@ -318,7 +307,7 @@ export function SavedFilters({
                   variant="ghost"
                   size="sm"
                   onClick={() => onApplyFilter(createEmptyFilterState())}
-                  className="w-full h-8 text-xs"
+                  className="w-full"
                 >
                   Clear all filters
                 </Button>
@@ -336,27 +325,51 @@ interface UseSavedFiltersOptions {
   onApply?: (filter: AdvancedFilterState) => void;
 }
 
+const EMPTY_SAVED_FILTERS: SavedFilter[] = [];
+const savedFiltersCache = new Map<
+  string,
+  { raw: string | null; filters: SavedFilter[] }
+>();
+const savedFiltersListeners = new Map<string, Set<() => void>>();
+
 function createLocalStorageSubscribe(key: string) {
   return (callback: () => void) => {
+    const listeners = savedFiltersListeners.get(key) ?? new Set<() => void>();
+    listeners.add(callback);
+    savedFiltersListeners.set(key, listeners);
     const handler = (e: StorageEvent) => {
-      if (e.key === key) callback();
+      if (e.key === key || e.key === null) callback();
     };
     window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
+    return () => {
+      listeners.delete(callback);
+      if (listeners.size === 0) savedFiltersListeners.delete(key);
+      window.removeEventListener("storage", handler);
+    };
   };
 }
 
 function getLocalStorageSnapshot(key: string): SavedFilter[] {
   try {
     const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : [];
+    const cached = savedFiltersCache.get(key);
+    if (cached?.raw === stored) return cached.filters;
+    let filters = EMPTY_SAVED_FILTERS;
+    try {
+      const parsed: unknown = stored ? JSON.parse(stored) : null;
+      if (Array.isArray(parsed)) filters = parsed as SavedFilter[];
+    } catch {
+      // An unreadable saved view does not prevent using the table.
+    }
+    savedFiltersCache.set(key, { raw: stored, filters });
+    return filters;
   } catch {
-    return [];
+    return EMPTY_SAVED_FILTERS;
   }
 }
 
 function getServerSnapshot(): SavedFilter[] {
-  return [];
+  return EMPTY_SAVED_FILTERS;
 }
 
 export function useSavedFilters({
@@ -380,13 +393,13 @@ export function useSavedFilters({
     getSnapshot,
     getServerSnapshot,
   );
-  const [, forceUpdate] = useState(0);
 
   const persistFilters = useCallback(
     (filters: SavedFilter[]) => {
       if (typeof window !== "undefined") {
         localStorage.setItem(fullKey, JSON.stringify(filters));
-        forceUpdate((v) => v + 1);
+        for (const listener of savedFiltersListeners.get(fullKey) ?? [])
+          listener();
       }
     },
     [fullKey],

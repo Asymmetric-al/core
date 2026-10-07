@@ -9,18 +9,24 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@asym/ui/components/shadcn/popover";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectControlLabel,
   SelectItem,
   SelectTrigger,
@@ -64,37 +70,37 @@ const TASK_TYPES: {
     value: "call",
     label: "Call",
     icon: Phone,
-    color: "text-blue-600 bg-blue-50",
+    color: "text-info bg-info/10",
   },
   {
     value: "email",
     label: "Email",
     icon: Mail,
-    color: "text-purple-600 bg-purple-50",
+    color: "text-info bg-info/10",
   },
   {
     value: "to_do",
     label: "To-do",
     icon: CheckSquare,
-    color: "text-zinc-600 bg-zinc-100",
+    color: "text-muted-foreground bg-muted",
   },
   {
     value: "follow_up",
     label: "Follow Up",
     icon: UserPlus,
-    color: "text-orange-600 bg-orange-50",
+    color: "text-warning bg-warning/10",
   },
   {
     value: "thank_you",
     label: "Thank You",
     icon: Heart,
-    color: "text-rose-600 bg-rose-50",
+    color: "text-success bg-success/10",
   },
   {
     value: "meeting",
     label: "Meeting",
     icon: Users,
-    color: "text-emerald-600 bg-emerald-50",
+    color: "text-info bg-info/10",
   },
 ];
 
@@ -111,10 +117,10 @@ const TASK_PRIORITIES: {
   label: string;
   value: TaskPriority;
 }[] = [
-  { value: "none", label: "None", color: "text-zinc-400" },
-  { value: "low", label: "Low", color: "text-blue-500" },
-  { value: "medium", label: "Medium", color: "text-amber-500" },
-  { value: "high", label: "High", color: "text-rose-500" },
+  { value: "none", label: "None", color: "text-muted-foreground" },
+  { value: "low", label: "Low", color: "text-info" },
+  { value: "medium", label: "Medium", color: "text-warning" },
+  { value: "high", label: "High", color: "text-destructive" },
 ];
 
 export interface TaskDialogProps {
@@ -233,9 +239,7 @@ function TaskTitleField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="title">
       {(field) => (
         <field.TextField
-          inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
           label="Task Title *"
-          labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="e.g., Call to thank for donation"
         />
       )}
@@ -265,10 +269,8 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
               }}
               value={field.state.value}
             >
-              <SelectControlLabel className="text-xs font-black uppercase tracking-widest text-zinc-400">
-                Task Type
-              </SelectControlLabel>
-              <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+              <SelectControlLabel>Task Type</SelectControlLabel>
+              <SelectTrigger>
                 <SelectValue placeholder="Select type">
                   {selectedTaskType ? (
                     <div className="flex items-center gap-2">
@@ -285,26 +287,24 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
                   ) : null}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-zinc-100">
-                {TASK_TYPES.map((taskType) => (
-                  <SelectItem
-                    className="rounded-lg"
-                    key={taskType.value}
-                    value={taskType.value}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          "flex size-6 items-center justify-center rounded-lg",
-                          taskType.color,
-                        )}
-                      >
-                        <taskType.icon className="size-3.5" />
+              <SelectContent>
+                <SelectGroup>
+                  {TASK_TYPES.map((taskType) => (
+                    <SelectItem key={taskType.value} value={taskType.value}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            "flex size-6 items-center justify-center rounded-lg",
+                            taskType.color,
+                          )}
+                        >
+                          <taskType.icon className="size-3.5" />
+                        </div>
+                        <span className="font-medium">{taskType.label}</span>
                       </div>
-                      <span className="font-medium">{taskType.label}</span>
-                    </div>
-                  </SelectItem>
-                ))}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -331,25 +331,21 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
             }}
             value={field.state.value}
           >
-            <SelectControlLabel className="text-xs font-black uppercase tracking-widest text-zinc-400">
-              Priority
-            </SelectControlLabel>
-            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+            <SelectControlLabel>Priority</SelectControlLabel>
+            <SelectTrigger>
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-zinc-100">
-              {TASK_PRIORITIES.map((priority) => (
-                <SelectItem
-                  className="rounded-lg"
-                  key={priority.value}
-                  value={priority.value}
-                >
-                  <div className="flex items-center gap-2">
-                    <Flag className={cn("size-4", priority.color)} />
-                    <span className="font-medium">{priority.label}</span>
-                  </div>
-                </SelectItem>
-              ))}
+            <SelectContent>
+              <SelectGroup>
+                {TASK_PRIORITIES.map((priority) => (
+                  <SelectItem key={priority.value} value={priority.value}>
+                    <div className="flex items-center gap-2">
+                      <Flag className={cn("size-4", priority.color)} />
+                      <span className="font-medium">{priority.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -371,49 +367,63 @@ function DatePickerField({
   name: "due_date" | "reminder_date";
   placeholder: string;
 }) {
+  const fieldId = React.useId();
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+
   return (
     <form.Field name={name}>
       {(field) => (
-        <div className="grid gap-2">
-          <span className="text-xs font-black uppercase tracking-widest text-zinc-400">
+        <Field>
+          <FieldLabel id={`${fieldId}-label`} htmlFor={fieldId}>
             {label}
-          </span>
-          <Popover>
-            <PopoverTrigger
-              render={
-                <Button
-                  className={cn(
-                    "h-12 justify-start rounded-xl border-transparent bg-zinc-50 text-left font-medium transition-colors hover:bg-zinc-100",
-                    !field.state.value && "text-zinc-400",
-                  )}
-                  type="button"
-                  variant="outline"
-                >
-                  <Icon className="mr-2 size-4" />
-                  {field.state.value
-                    ? format(field.state.value, "PPP")
-                    : placeholder}
-                  {field.state.value ? (
-                    <X
-                      className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        field.handleChange(null);
-                      }}
-                    />
-                  ) : null}
-                </Button>
-              }
-            />
-            <PopoverContent align="start" className="w-auto rounded-xl p-0">
-              <Calendar
-                mode="single"
-                onSelect={(date) => field.handleChange(date ?? null)}
-                selected={field.state.value ?? undefined}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+          </FieldLabel>
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <Popover>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      ref={triggerRef}
+                      id={fieldId}
+                      aria-labelledby={`${fieldId}-label ${fieldId}-value`}
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Icon aria-hidden data-icon="inline-start" />
+                      <span id={`${fieldId}-value`} className="truncate">
+                        {field.state.value
+                          ? format(field.state.value, "PPP")
+                          : placeholder}
+                      </span>
+                    </Button>
+                  }
+                />
+                <PopoverContent align="start" className="w-auto">
+                  <Calendar
+                    mode="single"
+                    onSelect={(date) => field.handleChange(date ?? null)}
+                    selected={field.state.value ?? undefined}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            {field.state.value ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Clear ${label}`}
+                onClick={() => {
+                  field.handleChange(null);
+                  triggerRef.current?.focus();
+                }}
+              >
+                <X aria-hidden />
+              </Button>
+            ) : null}
+          </div>
+        </Field>
       )}
     </form.Field>
   );
@@ -436,22 +446,18 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
             }}
             value={field.state.value}
           >
-            <SelectControlLabel className="text-xs font-black uppercase tracking-widest text-zinc-400">
-              Status
-            </SelectControlLabel>
-            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+            <SelectControlLabel>Status</SelectControlLabel>
+            <SelectTrigger>
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-zinc-100">
-              {TASK_STATUSES.map((status) => (
-                <SelectItem
-                  className="rounded-lg font-medium"
-                  key={status.value}
-                  value={status.value}
-                >
-                  {status.label}
-                </SelectItem>
-              ))}
+            <SelectContent>
+              <SelectGroup>
+                {TASK_STATUSES.map((status) => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -498,9 +504,7 @@ function TaskDescriptionField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="description">
       {(field) => (
         <field.TextareaField
-          inputClassName="min-h-20 resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
           label="Description"
-          labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Add details about this task..."
         />
       )}
@@ -514,10 +518,7 @@ function TaskNotesField({ form }: { form: MissionaryTaskFormApi }) {
       {(field) => (
         <field.TextareaField
           description="These notes are only visible to you"
-          descriptionClassName="text-xs text-zinc-400"
-          inputClassName="min-h-15 resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
           label="Internal Notes"
-          labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Private notes (not visible to partner)..."
         />
       )}
@@ -628,100 +629,92 @@ export function TaskDialog({
       open={open}
     >
       {trigger ? <DialogTrigger render={trigger} /> : null}
-      <DialogContent className="max-h-[90vh] overflow-hidden rounded-4xl border-zinc-100 p-0 sm:max-w-150">
-        <div className="bg-zinc-900 p-8 text-white">
-          <DialogTitle className="text-2xl font-black tracking-tight">
-            {isEditing ? "Edit Task" : "Create Task"}
-          </DialogTitle>
-          <DialogDescription className="mt-1 text-xs font-bold uppercase tracking-widest text-zinc-400">
+      <DialogContent className="sm:max-w-150" scrollable>
+        <DialogHeader>
+          <DialogTitle>{isEditing ? "Edit Task" : "Create Task"}</DialogTitle>
+          <DialogDescription>
             {isEditing ? "Update task details" : "Add a new follow-up task"}
           </DialogDescription>
-        </div>
+        </DialogHeader>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <FieldGroup>
+            <TaskTitleField form={form} />
 
-        <ScrollArea className="max-h-[calc(90vh-180px)]">
-          <div className="p-8">
-            <form
-              className="space-y-6"
-              onSubmit={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                form.handleSubmit();
-              }}
-            >
-              <TaskTitleField form={form} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TaskTypeSelectField form={form} />
+              <PrioritySelectField form={form} />
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <TaskTypeSelectField form={form} />
-                <PrioritySelectField form={form} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <DatePickerField
-                  form={form}
-                  icon={CalendarIcon}
-                  label="Due Date"
-                  name="due_date"
-                  placeholder="Select date"
-                />
-                <DatePickerField
-                  form={form}
-                  icon={Bell}
-                  label="Reminder Date"
-                  name="reminder_date"
-                  placeholder="Set reminder"
-                />
-              </div>
-
-              <StatusSelectField form={form} />
-
-              <DonorSelectorField
-                donorSearchOpen={donorSearchOpen}
-                donors={donors}
-                selectedPartner={task?.donor}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <DatePickerField
                 form={form}
-                loadingDonors={loadingDonors}
-                onDonorSearchOpenChange={setDonorSearchOpen}
+                icon={CalendarIcon}
+                label="Due Date"
+                name="due_date"
+                placeholder="Select date"
               />
+              <DatePickerField
+                form={form}
+                icon={Bell}
+                label="Reminder Date"
+                name="reminder_date"
+                placeholder="Set reminder"
+              />
+            </div>
 
-              <TaskDescriptionField form={form} />
-              <TaskNotesField form={form} />
+            <StatusSelectField form={form} />
 
-              <div className="flex gap-3 border-t border-zinc-100 pt-4">
-                <Button
-                  className="h-12 flex-1 rounded-xl border-zinc-200 text-xs font-black uppercase tracking-widest"
-                  onClick={handleClose}
-                  type="button"
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
+            <DonorSelectorField
+              donorSearchOpen={donorSearchOpen}
+              donors={donors}
+              selectedPartner={task?.donor}
+              form={form}
+              loadingDonors={loadingDonors}
+              onDonorSearchOpenChange={setDonorSearchOpen}
+            />
 
-                <form.Subscribe
-                  selector={(state) => ({
-                    canSubmit: state.canSubmit,
-                    isSubmitting: state.isSubmitting,
-                  })}
-                >
-                  {({ canSubmit, isSubmitting }) => (
-                    <Button
-                      className="h-12 flex-1 rounded-xl bg-zinc-900 text-xs font-black uppercase tracking-widest text-white hover:bg-zinc-800"
-                      disabled={!canSubmit || isSubmitting}
-                      type="submit"
-                    >
-                      {isSubmitting ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : isEditing ? (
-                        "Update Task"
-                      ) : (
-                        "Create Task"
-                      )}
-                    </Button>
-                  )}
-                </form.Subscribe>
-              </div>
-            </form>
-          </div>
-        </ScrollArea>
+            <TaskDescriptionField form={form} />
+            <TaskNotesField form={form} />
+
+            <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+              <Button onClick={handleClose} type="button" variant="outline">
+                Cancel
+              </Button>
+
+              <form.Subscribe
+                selector={(state) => ({
+                  canSubmit: state.canSubmit,
+                  isSubmitting: state.isSubmitting,
+                })}
+              >
+                {({ canSubmit, isSubmitting }) => (
+                  <Button
+                    disabled={!canSubmit || isSubmitting}
+                    type="submit"
+                    aria-busy={isSubmitting || undefined}
+                  >
+                    {isSubmitting ? (
+                      <Loader2 aria-hidden className="size-4 animate-spin" />
+                    ) : null}
+                    {isSubmitting
+                      ? isEditing
+                        ? "Updating task…"
+                        : "Creating task…"
+                      : isEditing
+                        ? "Update Task"
+                        : "Create Task"}
+                  </Button>
+                )}
+              </form.Subscribe>
+            </div>
+          </FieldGroup>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -44,6 +44,30 @@ it("names the priority selector through SelectControlLabel", () => {
   expect(screen.getByRole("combobox", { name: "Priority" })).toBeTruthy();
 });
 
+it("clears a task date through a named keyboard control without clearing its other date", () => {
+  render(
+    <TaskDialog
+      task={{
+        ...task,
+        due_date: "2026-04-01T10:00:00.000Z",
+        reminder_date: "2026-04-01T09:00:00.000Z",
+      }}
+      open
+      onOpenChange={vi.fn()}
+    />,
+  );
+  const clearDueDate = screen.getByRole("button", { name: "Clear Due Date" });
+  clearDueDate.focus();
+  fireEvent.click(clearDueDate);
+
+  const dueDate = screen.getByRole("button", { name: "Due Date Select date" });
+  expect(document.activeElement).toBe(dueDate);
+  expect(
+    screen.getByRole("button", { name: /Reminder Date April/ }),
+  ).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Clear Due Date" })).toBeNull();
+});
+
 it("offers task view filters directly without requiring a mobile site-navigation panel", () => {
   const onViewChange = vi.fn();
   render(<TaskViewTabs currentView="all" onViewChange={onViewChange} />);
