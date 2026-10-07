@@ -111,6 +111,14 @@ resolved Mobilize status contrast in both themes. The
 [reproduction note](./runtime-reproduction.md) states exact fixture boundaries;
 these checks do not qualify blocked productive providers or every app route.
 
+## Delivery
+
+The ordered stack is [readiness #1970](https://github.com/Asymmetric-al/core/pull/1970),
+[shared UI #1971](https://github.com/Asymmetric-al/core/pull/1971),
+[application UI #1972](https://github.com/Asymmetric-al/core/pull/1972) and
+[evidence #1973](https://github.com/Asymmetric-al/core/pull/1973). All four are attached to the task.
+Hosted CI status remains separate from completed local-stack checks.
+
 ## Rollback
 
 Revert dependent app presentation commits before shared foundations. ReUI skill

@@ -25,4 +25,6 @@
 - [x] 4.1 Complete matching after screenshots and interaction checks for each changed distinct layout/state; record genuine blocked states.
 - [x] 4.2 Review every in-scope disposition and changed shared consumer across apps; close remaining safe material opportunities.
 - [x] 4.3 Run affected suites/builds, design-system/motion/workspace/skill checks, format, check and final ci:preflight; distinguish failures and limits.
-- [ ] 4.4 Validate OpenSpec and mirrors, review provenance/rollback, open ordered coherent PRs and attach every PR; do not merge or deploy.
+- [x] 4.4 Validate OpenSpec and mirrors, review provenance/rollback, open ordered coherent PRs and attach every PR; do not merge or deploy.
+
+Delivery: [readiness #1970](https://github.com/Asymmetric-al/core/pull/1970), [shared foundations #1971](https://github.com/Asymmetric-al/core/pull/1971), [application UI #1972](https://github.com/Asymmetric-al/core/pull/1972), [QA evidence #1973](https://github.com/Asymmetric-al/core/pull/1973). All four PRs are attached to the task. Hosted CI is tracked on each PR; no merge/deployment ran.

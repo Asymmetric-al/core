@@ -131,8 +131,18 @@ entry alone is not reported as a successful live connection.
 ## Delivery and rollback
 
 Four ordered local branches separate ReUI readiness, shared foundations,
-dependent application implementation and companion QA artifacts. Local checks
-are complete; PR publication is the remaining delivery operation.
+dependent application implementation and companion QA artifacts. All four PRs
+are open and attached to the task:
+
+- [ReUI readiness #1970](https://github.com/Asymmetric-al/core/pull/1970) → `develop`.
+- [Shared foundations #1971](https://github.com/Asymmetric-al/core/pull/1971) → readiness.
+- [Application UI #1972](https://github.com/Asymmetric-al/core/pull/1972) → foundations.
+- [Coverage/provenance/evidence #1973](https://github.com/Asymmetric-al/core/pull/1973) → application UI.
+
+Local complete preflight and both initial commit/push hooks passed. Hosted CI
+is tracked separately on each PR; these complete-stack results do not claim
+independent hosted CI for every intermediate tip.
+
 The intended integration base is `develop`. Revert dependent app changes
 before shared foundations; readiness is independent. No automatic merge or
 deployment is authorized. Keep the OpenSpec changes active until accepted and
