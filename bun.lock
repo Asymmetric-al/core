@@ -298,12 +298,12 @@
       "version": "0.1.0",
       "dependencies": {
         "@asym/env": "workspace:*",
-        "@supabase-labs/tanstack-db": "0.0.1",
+        "@supabase-labs/tanstack-db": "0.1.0",
         "@supabase/ssr": "0.12.7",
         "@supabase/supabase-js": "2.117.3",
-        "@tanstack/db": "^0.6.4",
-        "@tanstack/query-db-collection": "^1.0.35",
-        "@tanstack/react-db": "^0.1.82",
+        "@tanstack/db": "^0.12.1",
+        "@tanstack/query-db-collection": "^1.4.0",
+        "@tanstack/react-db": "^0.5.5",
         "@tanstack/react-query": "^5.104.1",
         "@tanstack/react-query-devtools": "^5.104.1",
         "@tanstack/react-table": "9.2.6",
@@ -446,8 +446,8 @@
         "@base-ui/react": "1.8.0",
         "@react-email/editor": "1.5.3",
         "@supabase/supabase-js": "2.117.3",
-        "@tanstack/db": "^0.6.4",
-        "@tanstack/react-db": "^0.1.82",
+        "@tanstack/db": "^0.12.1",
+        "@tanstack/react-db": "^0.5.5",
         "@tanstack/react-form": "1.33.5",
         "@tanstack/react-query": "^5.104.1",
         "@tanstack/react-store": "0.11.2",
@@ -538,6 +538,7 @@
     },
   },
   "patchedDependencies": {
+    "@supabase-labs/tanstack-db@0.1.0": "packages/database/patches/@supabase-labs%2Ftanstack-db@0.1.0.patch",
     "@shadcn/lint@0.2.0": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.0.patch",
   },
   "overrides": {
@@ -552,7 +553,7 @@
     "@payloadcms/richtext-lexical": "4.0.0-internal.1f9ae9a",
     "@payloadcms/storage-vercel-blob": "4.0.0-internal.1f9ae9a",
     "@payloadcms/ui": "4.0.0-internal.1f9ae9a",
-    "@tanstack/db": "0.6.4",
+    "@tanstack/db": "0.12.1",
     "payload": "4.0.0-internal.1f9ae9a",
   },
   "packages": {
@@ -1664,7 +1665,7 @@
 
     "@stripe/stripe-js": ["@stripe/stripe-js@9.8.0", "", {}, "sha512-DHJpol/98VKyojNSYmpkB5vOMnlf87hPe0wPxyaYTNiTMk5QjKMXDfSZLwGctYIXAgAWDFeRABc8lFAj0BELyw=="],
 
-    "@supabase-labs/tanstack-db": ["@supabase-labs/tanstack-db@0.0.1", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@supabase/postgrest-js": "^2.0.0", "@supabase/supabase-js": "^2.0.0", "@tanstack/db": "^0.6.0", "@tanstack/query-core": "^5.0.0", "@tanstack/query-db-collection": "^1.0.0" } }, "sha512-qZy/9BNRB3MwTfNlk5lh17Z5PJHK5DifOfnB+dS3SSpXkM4hOx6+CwW8C2UomFDDG5hcZu8naFpX74w+OBVuXA=="],
+    "@supabase-labs/tanstack-db": ["@supabase-labs/tanstack-db@0.1.0", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@supabase/postgrest-js": "^2.0.0", "@supabase/supabase-js": "^2.74.0", "@tanstack/db": ">=0.6 <1.0", "@tanstack/query-core": "^5.0.0", "@tanstack/query-db-collection": "^1.0.0" } }, "sha512-4KccEP0NsmhwzTUw9g+1izvsLdIWXLIOKFP6ycoK1XI42vgiCAvGseXGllGp/ZPwddt5H15pKFJXoJ4uWskAFw=="],
 
     "@supabase/auth-js": ["@supabase/auth-js@2.117.3", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-XOZV+jllcU2Hzij8SwgM78zl0lOEr6BTjzi2MYkBb39nOAQzb5AelGpMUvVj7lwGSB11JmpAs/FEQroAyFzWEA=="],
 
@@ -1726,9 +1727,9 @@
 
     "@tanstack/create": ["@tanstack/create@0.63.3", "", { "dependencies": { "ejs": "^3.1.10", "execa": "^9.5.2", "ignore": "^7.0.3", "memfs": "^4.17.0", "parse-gitignore": "^2.0.0", "prettier": "^3.5.0", "rimraf": "^6.0.1", "zod": "^3.24.2" } }, "sha512-0Vpf4RjQ8hU6AKki0+0HSgSeiaMbcjHL/GuudmWT/nObibKB2uMrxCpVmUroLvOdHoaHBrOLjbX0nw+stx0Qeg=="],
 
-    "@tanstack/db": ["@tanstack/db@0.6.4", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@tanstack/db-ivm": "0.1.18", "@tanstack/pacer-lite": "^0.2.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-svDkMfYnVM4PrczZ/X0kJ+9e/1KIFyB8sS+K22tgTuPTDG7bAV7ynpBP/acG8Y0xuhQsT/HXziOK4jsy6C7dig=="],
+    "@tanstack/db": ["@tanstack/db@0.12.1", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@tanstack/db-ivm": "0.1.26", "@tanstack/pacer-lite": "^0.2.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-nSLr/NUDdN/rnM66qZaBY0Xl5pKikv2T5aANSNyVN1/NY86Y8erhVRSh9Cm20t1tAZkikqJWfID23S5sejR82w=="],
 
-    "@tanstack/db-ivm": ["@tanstack/db-ivm@0.1.18", "", { "dependencies": { "fractional-indexing": "^3.2.0", "sorted-btree": "^1.8.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-+pZJiRKdoKRM5Epq9T7otD9ZJl82pRFauo7LKuJGrarjVKQ7r+QQlPe3kGdN9LEKSnuNGIWjX9OOY4M8kH4eLw=="],
+    "@tanstack/db-ivm": ["@tanstack/db-ivm@0.1.26", "", { "dependencies": { "fractional-indexing": "^3.2.0", "sorted-btree": "^1.8.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-Td2HbR68RfpMPv4zyMNQk83z/5gTjGl/I1LA/07A26LXMEPGh+hTsNbfPSr5YPZhq6KXX9lDFjDzv3Qz3DjV5w=="],
 
     "@tanstack/devtools": ["@tanstack/devtools@0.15.0", "", { "dependencies": { "@neodrag/core": "3.0.0-next.11", "@neodrag/solid": "3.0.0-next.11", "@solid-primitives/event-listener": "^2.4.3", "@solid-primitives/keyboard": "^1.3.3", "@solid-primitives/resize-observer": "^2.1.3", "@tanstack/devtools-client": "0.0.8", "@tanstack/devtools-event-bus": "0.4.3", "@tanstack/devtools-ui": "0.7.1", "clsx": "^2.1.1", "goober": "^2.1.16", "solid-js": "^1.9.9" }, "bin": { "intent": "./bin/intent.js" } }, "sha512-KyS7Qi82Eq9yG8C+uae3ikAPb+D5rfzVhvOOjXVAHZ/64s6TWJlDWpREw1FrHIYZaI7paErpsExSSKlF5BKA/A=="],
 
@@ -1750,11 +1751,11 @@
 
     "@tanstack/query-core": ["@tanstack/query-core@5.104.1", "", {}, "sha512-TiRghcrGkUTE+M4JBxvpPSpBhxvIzQairw+cksrHYGr+2uwC77yW1SY9nYxnYRYOppvucf8rEg6b5byoz4rTpw=="],
 
-    "@tanstack/query-db-collection": ["@tanstack/query-db-collection@1.0.35", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@tanstack/db": "0.6.4" }, "peerDependencies": { "@tanstack/query-core": "^5.0.0", "typescript": ">=4.7" } }, "sha512-hfVwlkJoVlhJSCZm9B/KdkYvxl9twVrEt3q0IkXSEmblvslE/+vFQ7IoRciKKKBbJb6PoT2tQFD8FhxFvcypLg=="],
+    "@tanstack/query-db-collection": ["@tanstack/query-db-collection@1.4.0", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@tanstack/db": "0.12.1" }, "peerDependencies": { "@tanstack/query-core": "^5.0.0", "typescript": ">=4.7" } }, "sha512-/CfT2VCIJ0vMikfOWP5xE7/0jAcj56gbGT4QReoVMt5QIrVLSwrPYkplguD7Ixj79i7J0MWvubmB8GyaUUco7A=="],
 
     "@tanstack/query-devtools": ["@tanstack/query-devtools@5.104.1", "", { "dependencies": { "@kobalte/core": "^0.13.14", "@solid-primitives/keyed": "^1.5.3", "@solid-primitives/resize-observer": "^2.2.0", "@solid-primitives/storage": "^1.3.11", "@tanstack/match-sorter-utils": "^9.1.2", "@tanstack/query-core": "5.104.1", "clsx": "^2.1.1", "goober": "^2.1.19", "solid-js": "^1.9.15", "solid-transition-group": "^0.2.3", "superjson": "^2.2.6" } }, "sha512-wmXnQbnwEz+SctYMTrwsOWWNHKhCsVgtaliL9E+VI2vx2Xr773d/MpcrbIU1hEOUqC3p7x59swXFUPDLbplT3g=="],
 
-    "@tanstack/react-db": ["@tanstack/react-db@0.1.82", "", { "dependencies": { "@tanstack/db": "0.6.4", "use-sync-external-store": "^1.6.0" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-lQ5igC7Dgb5HwnfwSyKsuHPYo8wdO0HyHSF3ygBvZ8RZ3KTRtdHbYGsphz7iKJKoZhFmBE/hafq0oichY7m7rQ=="],
+    "@tanstack/react-db": ["@tanstack/react-db@0.5.5", "", { "dependencies": { "@tanstack/db": "0.12.1" }, "peerDependencies": { "react": ">=18.0.0" } }, "sha512-zR4cxeJQ8nlSNikrsl0nkG9tNmvW/t32nlMeRpex0AbbkfaW4BLQADpMvBxb9M3AhnW6fO8FGBnyvlrGRS6tgw=="],
 
     "@tanstack/react-devtools": ["@tanstack/react-devtools@0.10.13", "", { "dependencies": { "@tanstack/devtools": "0.15.0" }, "peerDependencies": { "@types/react": ">=16.8", "@types/react-dom": ">=16.8", "react": ">=16.8", "react-dom": ">=16.8" } }, "sha512-r0cdB/14+st2Vxl/1Bodlyq4VC8pf9SykLQDYbGHDc1+V146WQo5B3KlYLkfyxD9Q/6+9NPRQHZyl8fvZVMdRA=="],
 
@@ -4542,8 +4543,6 @@
 
     "@modelcontextprotocol/sdk/express": ["express@5.2.1", "", { "dependencies": { "accepts": "^2.0.0", "body-parser": "^2.2.1", "content-disposition": "^1.0.0", "content-type": "^1.0.5", "cookie": "^0.7.1", "cookie-signature": "^1.2.1", "debug": "^4.4.0", "depd": "^2.0.0", "encodeurl": "^2.0.0", "escape-html": "^1.0.3", "etag": "^1.8.1", "finalhandler": "^2.1.0", "fresh": "^2.0.0", "http-errors": "^2.0.0", "merge-descriptors": "^2.0.0", "mime-types": "^3.0.0", "on-finished": "^2.4.1", "once": "^1.4.0", "parseurl": "^1.3.3", "proxy-addr": "^2.0.7", "qs": "^6.14.0", "range-parser": "^1.2.1", "router": "^2.2.0", "send": "^1.1.0", "serve-static": "^2.2.0", "statuses": "^2.0.1", "type-is": "^2.0.1", "vary": "^1.1.2" } }, "sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw=="],
 
-    "@modelcontextprotocol/sdk/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
-
     "@napi-rs/wasm-runtime/@emnapi/runtime": ["@emnapi/runtime@1.9.2", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-3U4+MIWHImeyu1wnmVygh5WlgfYDtyf0k8AbLhMFxOipihf6nrWC4syIm/SwEeec0mNSafiiNnMJwbza/Is6Lw=="],
 
     "@next/eslint-plugin-next/fast-glob": ["fast-glob@3.3.1", "", { "dependencies": { "@nodelib/fs.stat": "^2.0.2", "@nodelib/fs.walk": "^1.2.3", "glob-parent": "^5.1.2", "merge2": "^1.3.0", "micromatch": "^4.0.4" } }, "sha512-kNFPyjhh5cKjrUltxs+wFx+ZkbRaxxmZ+X0ZU31SOsxCEtP9VPgtq2teZw1DebupL5GmDaNQ6yKMMVcM41iqDg=="],
@@ -4886,8 +4885,6 @@
 
     "@shadcn/registry/type-fest": ["type-fest@4.41.0", "", {}, "sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA=="],
 
-    "@shadcn/registry/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
-
     "@shadscan/cli/playwright-core": ["playwright-core@1.61.1", "", { "bin": { "playwright-core": "cli.js" } }, "sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg=="],
 
     "@shadscan/cli/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
@@ -4895,8 +4892,6 @@
     "@shadscan/cli/zod": ["zod@4.1.13", "", {}, "sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig=="],
 
     "@supabase-labs/tanstack-db/@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
-
-    "@supabase-labs/tanstack-db/@tanstack/query-core": ["@tanstack/query-core@5.99.0", "", {}, "sha512-3Jv3WQG0BCcH7G+7lf/bP8QyBfJOXeY+T08Rin3GZ1bshvwlbPt7NrDHMEzGdKIOmOzvIQmxjk28YEQX60k7pQ=="],
 
     "@supabase-labs/tanstack-db/@supabase/postgrest-js": ["@supabase/postgrest-js@2.103.0", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-rC3sRxYdPZymkp2CZR1MiNQgbOleD01bGsW8VxEKRR5nMkLZ1NgAS1QTQf78Wh30czFyk505ZYr9Od8/mWT2TA=="],
 
@@ -6499,8 +6494,6 @@
     "shadcn/ora/strip-ansi": ["strip-ansi@7.2.0", "", { "dependencies": { "ansi-regex": "^6.2.2" } }, "sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w=="],
 
     "shadcn/ora/strip-ansi/ansi-regex": ["ansi-regex@6.2.2", "", {}, "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg=="],
-
-    "shadcn/zod": ["zod@3.25.76","",{},"sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
   },
 }

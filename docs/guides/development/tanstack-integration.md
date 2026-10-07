@@ -6,23 +6,25 @@ AI agents should pair official TanStack CLI docs/search output with this repo-sp
 
 ## Version Matrix
 
-| Package                          | Version          | Primary workspace(s)                                           | Role                                    |
-| -------------------------------- | ---------------- | -------------------------------------------------------------- | --------------------------------------- |
-| `@tanstack/react-form`           | `1.33.5` (exact) | `packages/ui`, `apps/admin`                                    | Form state and validation               |
-| `@tanstack/react-store`          | `0.11.2` (exact) | `packages/ui`                                                  | Shared Table and Form subscriptions     |
-| `@tanstack/react-query`          | `^5.104.1`       | `packages/database`, apps                                      | Query state and caching                 |
-| `@tanstack/react-table`          | `9.2.6` (exact)  | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 stable)       |
-| `@tanstack/react-table-devtools` | `9.2.5` (exact)  | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
-| `@tanstack/react-devtools`       | `^0.10.13`       | `apps/admin`                                                   | TanStack Devtools shell (hosts plugins) |
-| `@tanstack/react-db`             | `^0.1.82`        | `packages/database`, `packages/ui`                             | React DB bindings                       |
-| `@tanstack/query-db-collection`  | `^1.0.35`        | `packages/database`                                            | Query-backed collections                |
-| `@tanstack/db`                   | `^0.6.4`         | `packages/database`                                            | DB runtime                              |
-| `@supabase-labs/tanstack-db`     | `0.0.1` (exact)  | `packages/database`                                            | Supabase collection adapter             |
-| `@tanstack/react-virtual`        | `^3.14.13`       | `packages/ui`                                                  | Row/list virtualization                 |
-| `@tanstack/cli`                  | `^0.63.1`        | repo root (devDependency)                                      | TanStack docs + tooling                 |
-| `zod`                            | `^4.3.6`         | apps + shared packages                                         | Runtime schema validation               |
+| Package                          | Version                  | Primary workspace(s)                                           | Role                                    |
+| -------------------------------- | ------------------------ | -------------------------------------------------------------- | --------------------------------------- |
+| `@tanstack/react-form`           | `1.33.5` (exact)         | `packages/ui`, `apps/admin`                                    | Form state and validation               |
+| `@tanstack/react-store`          | `0.11.2` (exact)         | `packages/ui`                                                  | Shared Table and Form subscriptions     |
+| `@tanstack/react-query`          | `^5.104.1`               | `packages/database`, apps                                      | Query state and caching                 |
+| `@tanstack/react-table`          | `9.2.6` (exact)          | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 stable)       |
+| `@tanstack/react-table-devtools` | `9.2.5` (exact)          | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
+| `@tanstack/react-devtools`       | `^0.10.13`               | `apps/admin`                                                   | TanStack Devtools shell (hosts plugins) |
+| `@tanstack/react-db`             | `^0.5.5`                 | `packages/database`, `packages/ui`                             | React DB bindings                       |
+| `@tanstack/query-db-collection`  | `^1.4.0`                 | `packages/database`                                            | Query-backed collections                |
+| `@tanstack/db`                   | `^0.12.1`                | `packages/database`                                            | DB runtime                              |
+| `@supabase-labs/tanstack-db`     | `0.1.0` (exact, patched) | `packages/database`                                            | Supabase collection adapter             |
+| `@tanstack/react-virtual`        | `^3.14.13`               | `packages/ui`                                                  | Row/list virtualization                 |
+| `@tanstack/cli`                  | `^0.63.1`                | repo root (devDependency)                                      | TanStack docs + tooling                 |
+| `zod`                            | `^4.3.6`                 | apps + shared packages                                         | Runtime schema validation               |
 
 `@tanstack/react-table` and `@tanstack/react-table-devtools` are pinned **exactly** (no caret) in every workspace that consumes them: the engine boundary and devtools adapter are qualified together. Their published versions differ; the adapter peer range accepts the installed stable v9 engine. Rationale and rollout history live in `docs/guides/architecture/tanstack-table-v9-decisions.md` (ADR-1).
+
+The Supabase adapter has a maintained [Bun compatibility patch](../../../packages/database/patches/README.md), registered in root `patchedDependencies`. It preserves complete join predicates for local `queryOnce`, awaits direct-write acceptance, and handles Realtime failures with one explicit snapshot recovery attempt. Server aggregate queries with joins are rejected before transport because PostgREST embedding cannot generally preserve their predicates and cardinality. Ordinary single-table aggregate queries retain the upstream path. The real-adapter regression suite gates patch removal.
 
 ## Layer Responsibilities
 

@@ -248,7 +248,7 @@
     "@payloadcms/richtext-lexical": "4.0.0-internal.1f9ae9a",
     "@payloadcms/storage-vercel-blob": "4.0.0-internal.1f9ae9a",
     "@payloadcms/ui": "4.0.0-internal.1f9ae9a",
-    "@tanstack/db": "0.6.4",
+    "@tanstack/db": "0.12.1",
     "payload": "4.0.0-internal.1f9ae9a"
   },
   "lint-staged": {
@@ -260,6 +260,7 @@
     ]
   },
   "patchedDependencies": {
-    "@shadcn/lint@0.2.0": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.0.patch"
+    "@shadcn/lint@0.2.0": "tooling/eslint-config/patches/@shadcn%2Flint@0.2.0.patch",
+    "@supabase-labs/tanstack-db@0.1.0": "packages/database/patches/@supabase-labs%2Ftanstack-db@0.1.0.patch"
   }
 }
