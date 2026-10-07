@@ -21,8 +21,11 @@ export function NotificationPreferencesForm() {
   const preferences = useSupportNotificationPreferences();
   const save = useSaveSupportNotificationPreferences();
 
-  const [selectedAgentId, setAgentId] = React.useState<string | null>(null);
-  const agentId = selectedAgentId ?? currentAgentId ?? agents[0]?.id ?? null;
+  const defaultAgentId = currentAgentId ?? agents[0]?.id ?? null;
+  const [agentId, setAgentId] = React.useState<string | null>(defaultAgentId);
+  if (agentId === null && defaultAgentId !== null) {
+    setAgentId(defaultAgentId);
+  }
 
   const existing = agentId ? preferences.for(agentId) : null;
 

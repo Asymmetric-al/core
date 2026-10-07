@@ -94,6 +94,36 @@ describe("AutomationDryRunPreview selection", () => {
     expect(screen.getByText("Rule matches")).toBeTruthy();
   });
 
+  it.each([true, false])(
+    "keeps the default target when a refresh reorders rows (initially loaded: %s)",
+    (initiallyLoaded) => {
+      const receipt = conversation(
+        "conv-1",
+        "Receipt question",
+        "inbox-finance",
+      );
+      const address = conversation("conv-2", "Address change", "inbox-general");
+      hooks.rows = initiallyLoaded ? [receipt, address] : [];
+      const { rerender } = render(<AutomationDryRunPreview rule={rule} />);
+      if (!initiallyLoaded) {
+        hooks.rows = [receipt, address];
+        rerender(<AutomationDryRunPreview rule={rule} />);
+      }
+      expect(
+        screen.getByRole("combobox", { name: "Conversation to test" })
+          .textContent,
+      ).toContain("Receipt question");
+
+      hooks.rows = [address, { ...receipt, subject: "Receipt follow-up" }];
+      rerender(<AutomationDryRunPreview rule={rule} />);
+      expect(
+        screen.getByRole("combobox", { name: "Conversation to test" })
+          .textContent,
+      ).toContain("Receipt follow-up");
+      expect(screen.getByText("Rule matches")).toBeTruthy();
+    },
+  );
+
   it("preserves an explicit choice when rows reload and updates the evaluation when that conversation changes", async () => {
     const receipt = conversation("conv-1", "Receipt question", "inbox-finance");
     const address = conversation("conv-2", "Address change", "inbox-general");

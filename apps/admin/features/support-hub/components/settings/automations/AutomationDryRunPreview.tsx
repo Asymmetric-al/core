@@ -83,10 +83,14 @@ export function AutomationDryRunPreview({
     () => (conversations.data ?? []) as SupportConversation[],
     [conversations.data],
   );
+  const firstConversationId = rows[0]?.id ?? null;
   const [selectedConversationId, setConversationId] = React.useState<
     string | null
-  >(null);
-  const conversationId = selectedConversationId ?? rows[0]?.id ?? "";
+  >(firstConversationId);
+  if (selectedConversationId === null && firstConversationId !== null) {
+    setConversationId(firstConversationId);
+  }
+  const conversationId = selectedConversationId ?? "";
 
   const target = rows.find((row) => row.id === conversationId);
   const result = React.useMemo(() => {

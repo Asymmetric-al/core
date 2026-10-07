@@ -260,6 +260,38 @@ describe("Support Hub settings drafts", () => {
     ).toBe("false");
   });
 
+  it.each([true, false])(
+    "keeps the default agent and their draft when a refresh reorders agents (initially loaded: %s)",
+    (initiallyLoaded) => {
+      const alex = agent("agent-1", "Alex");
+      const blair = agent("agent-2", "Blair");
+      hooks.agents = initiallyLoaded ? [alex, blair] : [];
+      hooks.preferences = [preferences("agent-1"), preferences("agent-2")];
+      const { rerender } = render(<NotificationPreferencesForm />);
+      if (!initiallyLoaded) {
+        hooks.agents = [alex, blair];
+        rerender(<NotificationPreferencesForm />);
+      }
+      expect(
+        screen.getByRole("combobox", { name: "Agent" }).textContent,
+      ).toContain("Alex");
+      const digest = screen.getByRole("switch", { name: "Daily digest" });
+      fireEvent.click(digest);
+
+      hooks.agents = [blair, { ...alex, name: "Alex updated" }];
+      hooks.preferences = hooks.preferences.map((row) => ({ ...row }));
+      rerender(<NotificationPreferencesForm />);
+      expect(
+        screen.getByRole("combobox", { name: "Agent" }).textContent,
+      ).toContain("Alex updated");
+      expect(digest.getAttribute("aria-checked")).toBe("true");
+      fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+      expect(hooks.savePreferences).toHaveBeenCalledWith(
+        expect.objectContaining({ agentId: "agent-1", emailDailyDigest: true }),
+      );
+    },
+  );
+
   it("starts a separate default draft when switching between agents without saved preferences", async () => {
     hooks.agents = [agent("agent-1", "Alex"), agent("agent-2", "Blair")];
     render(<NotificationPreferencesForm />);
