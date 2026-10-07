@@ -42,7 +42,7 @@
     "@payloadcms/richtext-lexical": "4.0.0-internal.1f9ae9a",
     "@payloadcms/storage-vercel-blob": "4.0.0-internal.1f9ae9a",
     "@payloadcms/ui": "4.0.0-internal.1f9ae9a",
-    "@sentry/nextjs": "^10.32.1",
+    "@sentry/nextjs": "11.5.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.3",
     "@tanstack/react-devtools": "^0.10.13",

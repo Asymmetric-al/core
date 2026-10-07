@@ -44,6 +44,11 @@ export default defineConfig({
         rootDir,
         "packages/auth/node_modules/@supabase/ssr",
       ),
+      /** Apps and shared monitoring must resolve to the same SDK instance for local transport and initialization fixtures. */
+      "@sentry/nextjs": path.join(
+        rootDir,
+        "packages/lib/node_modules/@sentry/nextjs",
+      ),
       /** Tests live outside `packages/ui`; pin Sonner so `vi.mock('sonner')` patches the same module as `@asym/ui`. */
       sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
       /** Tests live outside `packages/ui`; pin MapLibre so `vi.mock("maplibre-gl")` patches the same module as the Map primitive. */
