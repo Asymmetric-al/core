@@ -82,8 +82,8 @@
   "dependencies": {
     "@asym/env": "workspace:*",
     "@supabase-labs/tanstack-db": "0.0.1",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.3",
     "@tanstack/db": "^0.6.4",
     "@tanstack/query-db-collection": "^1.0.35",
     "@tanstack/react-db": "^0.1.82",

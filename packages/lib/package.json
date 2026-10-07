@@ -60,7 +60,7 @@
     "@asym/env": "workspace:*",
     "@sentry/nextjs": "^10.32.1",
     "@stripe/stripe-js": "^9.7.0",
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/supabase-js": "2.117.3",
     "html-react-parser": "^5.2.17",
     "isomorphic-dompurify": "^2.36.0",
     "lucide-react": "1.17.0",

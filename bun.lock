@@ -20,7 +20,7 @@
         "@asym/pdf-template-schema": "file:vendor/react-pdf-packages/asym-pdf-template-schema",
         "@asym/ui": "workspace:*",
         "@next/env": "16.4.0",
-        "@supabase/supabase-js": "^2.89.0",
+        "@supabase/supabase-js": "2.117.3",
         "@tailwindcss/typography": "^0.5.19",
         "graphql": "16.12.0",
         "graphql-yoga": "5.17.1",
@@ -104,8 +104,8 @@
         "@payloadcms/storage-vercel-blob": "4.0.0-internal.1f9ae9a",
         "@payloadcms/ui": "4.0.0-internal.1f9ae9a",
         "@sentry/nextjs": "^10.32.1",
-        "@supabase/ssr": "^0.8.0",
-        "@supabase/supabase-js": "^2.89.0",
+        "@supabase/ssr": "0.12.7",
+        "@supabase/supabase-js": "2.117.3",
         "@tanstack/react-devtools": "^0.10.13",
         "@tanstack/react-form": "1.33.5",
         "@tanstack/react-query": "^5.104.1",
@@ -252,7 +252,7 @@
         "@asym/pdf-renderer": "file:../../vendor/react-pdf-packages/asym-pdf-renderer",
         "@asym/pdf-studio-adapter": "file:../../vendor/react-pdf-packages/asym-pdf-studio-adapter",
         "@asym/pdf-template-schema": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema",
-        "@supabase/ssr": "^0.8.0",
+        "@supabase/ssr": "0.12.7",
         "inngest": "4.5.1",
         "next": "16.4.0",
         "server-only": "0.0.1",
@@ -270,8 +270,8 @@
       "dependencies": {
         "@asym/database": "workspace:*",
         "@asym/env": "workspace:*",
-        "@supabase/ssr": "^0.8.0",
-        "@supabase/supabase-js": "^2.89.0",
+        "@supabase/ssr": "0.12.7",
+        "@supabase/supabase-js": "2.117.3",
         "next": "16.4.0",
         "react": "19.3.0",
       },
@@ -299,8 +299,8 @@
       "dependencies": {
         "@asym/env": "workspace:*",
         "@supabase-labs/tanstack-db": "0.0.1",
-        "@supabase/ssr": "^0.8.0",
-        "@supabase/supabase-js": "^2.89.0",
+        "@supabase/ssr": "0.12.7",
+        "@supabase/supabase-js": "2.117.3",
         "@tanstack/db": "^0.6.4",
         "@tanstack/query-db-collection": "^1.0.35",
         "@tanstack/react-db": "^0.1.82",
@@ -364,7 +364,7 @@
         "@asym/auth": "workspace:*",
         "@asym/database": "workspace:*",
         "@asym/lib": "workspace:*",
-        "@supabase/supabase-js": "^2.89.0",
+        "@supabase/supabase-js": "2.117.3",
         "graphql": "16.12.0",
         "graphql-yoga": "5.18.0",
       },
@@ -382,7 +382,7 @@
         "@asym/env": "workspace:*",
         "@sentry/nextjs": "^10.32.1",
         "@stripe/stripe-js": "^9.7.0",
-        "@supabase/supabase-js": "^2.89.0",
+        "@supabase/supabase-js": "2.117.3",
         "html-react-parser": "^5.2.17",
         "isomorphic-dompurify": "^2.36.0",
         "lucide-react": "1.17.0",
@@ -445,7 +445,7 @@
         "@asym/lib": "workspace:*",
         "@base-ui/react": "1.8.0",
         "@react-email/editor": "1.5.3",
-        "@supabase/supabase-js": "^2.89.0",
+        "@supabase/supabase-js": "2.117.3",
         "@tanstack/db": "^0.6.4",
         "@tanstack/react-db": "^0.1.82",
         "@tanstack/react-form": "1.33.5",
@@ -1666,21 +1666,21 @@
 
     "@supabase-labs/tanstack-db": ["@supabase-labs/tanstack-db@0.0.1", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@supabase/postgrest-js": "^2.0.0", "@supabase/supabase-js": "^2.0.0", "@tanstack/db": "^0.6.0", "@tanstack/query-core": "^5.0.0", "@tanstack/query-db-collection": "^1.0.0" } }, "sha512-qZy/9BNRB3MwTfNlk5lh17Z5PJHK5DifOfnB+dS3SSpXkM4hOx6+CwW8C2UomFDDG5hcZu8naFpX74w+OBVuXA=="],
 
-    "@supabase/auth-js": ["@supabase/auth-js@2.103.0", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-6zAanO6c+6gpHOlt5Lb9TlBBkJdZiUWkWCJKAxzkywBDcwaHlLJKXnjQGX6GyVCyKRR1e7sTq4re/yRTH6U/9A=="],
+    "@supabase/auth-js": ["@supabase/auth-js@2.117.3", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-XOZV+jllcU2Hzij8SwgM78zl0lOEr6BTjzi2MYkBb39nOAQzb5AelGpMUvVj7lwGSB11JmpAs/FEQroAyFzWEA=="],
 
-    "@supabase/functions-js": ["@supabase/functions-js@2.103.0", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-YrneV2NjskUkkmkZ2Jt2n3elBgbWzV4Y1M9MM370z2Zd5ZPFqFbY8KIoPwuNjtAGE9YrpKBxnbZqeF07BiN9Og=="],
+    "@supabase/functions-js": ["@supabase/functions-js@2.117.3", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-6GuizbP4N5xWaxEVUsI+UQpJdmMmn0t3sYNpObo9gCAldvM22gFjnYzRVmkHxp5ylU21azEYmiWVwk9iDgCMkQ=="],
 
-    "@supabase/phoenix": ["@supabase/phoenix@0.4.0", "", {}, "sha512-RHSx8bHS02xwfHdAbX5Lpbo6PXbgyf7lTaXTlwtFDPwOIw64NnVRwFAXGojHhjtVYI+PEPNSWwkL90f4agN3bw=="],
+    "@supabase/phoenix": ["@supabase/phoenix@0.4.5", "", {}, "sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw=="],
 
-    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.103.0", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-rC3sRxYdPZymkp2CZR1MiNQgbOleD01bGsW8VxEKRR5nMkLZ1NgAS1QTQf78Wh30czFyk505ZYr9Od8/mWT2TA=="],
+    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.117.3", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-NpyTgullu6tw11ojYKTdZg9HannZ4mu4FUlhc9V5zDXOVllUJzEmuyLM+WWoYF0BurfrRvarimpm3SR8P0Gzfw=="],
 
-    "@supabase/realtime-js": ["@supabase/realtime-js@2.103.0", "", { "dependencies": { "@supabase/phoenix": "^0.4.0", "@types/ws": "^8.18.1", "tslib": "2.8.1", "ws": "^8.18.2" } }, "sha512-gcPtXzZ6izyyBVf2of7K3dEt8CScPJn8VcSlQq6oWL9QoE1kqfQl0oFrOMHd5qrcADewxI7OxxosLB8W4XqtIQ=="],
+    "@supabase/realtime-js": ["@supabase/realtime-js@2.117.3", "", { "dependencies": { "@supabase/phoenix": "0.4.5", "tslib": "2.8.1" } }, "sha512-4W4ISbreRygNXbhwqxeqyuRul8RPx+SF+Hp2IT8wctebQEHSVCULfKatiRiEhmasfoXvYm2AHV4XFsOxhoousA=="],
 
-    "@supabase/ssr": ["@supabase/ssr@0.8.0", "", { "dependencies": { "cookie": "^1.0.2" }, "peerDependencies": { "@supabase/supabase-js": "^2.76.1" } }, "sha512-/PKk8kNFSs8QvvJ2vOww1mF5/c5W8y42duYtXvkOSe+yZKRgTTZywYG2l41pjhNomqESZCpZtXuWmYjFRMV+dw=="],
+    "@supabase/ssr": ["@supabase/ssr@0.12.7", "", { "dependencies": { "cookie": "^1.0.2" }, "peerDependencies": { "@supabase/supabase-js": "^2.114.0" } }, "sha512-wiBtEie1KkRJi9RrZWY3R2imRhX1JY7qMyUCH2z9AUk15gQebNEplM+urbCKamdxaTJLXUU6LlpkJsaxhojCEg=="],
 
-    "@supabase/storage-js": ["@supabase/storage-js@2.103.0", "", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-DHmlvdAXwtOmZNbkIZi4lkobPR3XjIzoOgzoz5duMf6G+sDeY015YrzMJCnqdccuYr7X5x4yYuSwF//RoN2dvQ=="],
+    "@supabase/storage-js": ["@supabase/storage-js@2.117.3", "", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-QhUxFC33Crlw6WDeA4hLADdi1PzjI3c4UJs7ivWHHEnU7ulmCWEZSDaRCuIfmsjUwbHYaIfRNFQNsm+IsGYS6w=="],
 
-    "@supabase/supabase-js": ["@supabase/supabase-js@2.103.0", "", { "dependencies": { "@supabase/auth-js": "2.103.0", "@supabase/functions-js": "2.103.0", "@supabase/postgrest-js": "2.103.0", "@supabase/realtime-js": "2.103.0", "@supabase/storage-js": "2.103.0" } }, "sha512-j/6q5+LtXbR/YOLSLhy7Na74RD1cV2v+KwIIuuqMEjk1JpLEEyu0ynwDHpGoxMncDQl+R5FogaVqZm+85lZvtw=="],
+    "@supabase/supabase-js": ["@supabase/supabase-js@2.117.3", "", { "dependencies": { "@supabase/auth-js": "2.117.3", "@supabase/functions-js": "2.117.3", "@supabase/postgrest-js": "2.117.3", "@supabase/realtime-js": "2.117.3", "@supabase/storage-js": "2.117.3" }, "peerDependencies": { "@opentelemetry/api": ">=1.0.0" }, "optionalPeers": ["@opentelemetry/api"] }, "sha512-K+f8PimXDunPWQ63CKRXaF5pbVPJxmfw5ryAnh0s9S9PkwcuqBjiSpIaqpF7KLDljeYwXIL85ST8QxaO0+XuvA=="],
 
     "@swc/helpers": ["@swc/helpers@0.5.23", "", { "dependencies": { "tslib": "^2.8.0" } }, "sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw=="],
 
@@ -4897,6 +4897,8 @@
     "@supabase-labs/tanstack-db/@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
     "@supabase-labs/tanstack-db/@tanstack/query-core": ["@tanstack/query-core@5.99.0", "", {}, "sha512-3Jv3WQG0BCcH7G+7lf/bP8QyBfJOXeY+T08Rin3GZ1bshvwlbPt7NrDHMEzGdKIOmOzvIQmxjk28YEQX60k7pQ=="],
+
+    "@supabase-labs/tanstack-db/@supabase/postgrest-js": ["@supabase/postgrest-js@2.103.0", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-rC3sRxYdPZymkp2CZR1MiNQgbOleD01bGsW8VxEKRR5nMkLZ1NgAS1QTQf78Wh30czFyk505ZYr9Od8/mWT2TA=="],
 
     "@tailwindcss/oxide-wasm32-wasi/@emnapi/core": ["@emnapi/core@1.9.2", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.1", "tslib": "^2.4.0" }, "bundled": true }, "sha512-UC+ZhH3XtczQYfOlu3lNEkdW/p4dsJ1r/bP7H8+rhao3TTTMO1ATq/4DdIi23XuGoFY+Cz0JmCbdVl0hz9jZcA=="],
 
