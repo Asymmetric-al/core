@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 env:
-  BUN_VERSION: "1.4.0"
-  NODE_VERSION: "24.15.0"
+  BUN_VERSION: "1.4.2"
+  NODE_VERSION: "24.21.0"
 
 concurrency:
   group: ci-integration-${{ github.event.pull_request.number || github.ref }}

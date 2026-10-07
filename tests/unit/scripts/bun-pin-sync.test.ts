@@ -38,8 +38,8 @@ const verifierSourcePath = path.join(
   "bun-version.mjs",
 );
 
-/** Official stable pin verified from GitHub `bun-v1.4.0` and npm `bun@latest`. */
-const VERIFIED_STABLE_BUN = "1.4.0";
+/** Official stable pin verified from GitHub `bun-v1.4.2` and npm `bun@latest`. */
+const VERIFIED_STABLE_BUN = "1.4.2";
 const PINNED_TURBO = "2.10.0";
 
 const WORKFLOW_DIR = path.join(repoRoot, ".github", "workflows");
@@ -450,21 +450,23 @@ describe("workflow setup-bun step ownership", () => {
 describe("bun-version.mjs CLI", () => {
   it("validates workflow pins before dependency installation", () => {
     const { repoRoot, scriptPath } = writeIsolatedVerifier({
-      packageManager: "bun@1.4.0",
-      bunVersion: "1.4.0",
+      packageManager: `bun@${VERIFIED_STABLE_BUN}`,
+      bunVersion: VERIFIED_STABLE_BUN,
     });
     try {
       rmSync(path.join(repoRoot, "node_modules"), {
         recursive: true,
         force: true,
       });
-      writeIsolatedWorkflow(repoRoot, "1.4.0");
+      writeIsolatedWorkflow(repoRoot, VERIFIED_STABLE_BUN);
 
       const result = spawnVerifier(scriptPath);
 
       expect(result.stderr).toBe("");
       expect(result.status).toBe(0);
-      expect(result.stdout).toContain("Bun version OK: bun@1.4.0");
+      expect(result.stdout).toContain(
+        `Bun version OK: bun@${VERIFIED_STABLE_BUN}`,
+      );
     } finally {
       rmSync(repoRoot, { recursive: true, force: true });
     }
@@ -528,8 +530,8 @@ describe("bun-version.mjs CLI", () => {
 
   it("exits 2 when an isolated workflow BUN_VERSION disagrees with the package pin", () => {
     const { repoRoot, scriptPath } = writeIsolatedVerifier({
-      packageManager: "bun@1.4.0",
-      bunVersion: "1.4.0",
+      packageManager: `bun@${VERIFIED_STABLE_BUN}`,
+      bunVersion: VERIFIED_STABLE_BUN,
     });
     try {
       writeIsolatedWorkflow(repoRoot, "9.9.9");

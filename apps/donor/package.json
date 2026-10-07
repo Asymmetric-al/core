@@ -54,7 +54,7 @@
     "@openpolicy/cli": "0.0.17",
     "@openpolicy/core": "0.0.17",
     "@openpolicy/renderers": "0.0.14",
-    "@types/node": "^22.10.5",
+    "@types/node": "24.19.1",
     "@types/pdfkit": "0.17.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
