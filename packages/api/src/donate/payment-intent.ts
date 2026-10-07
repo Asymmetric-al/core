@@ -132,7 +132,7 @@ export async function createDonationPaymentIntent(
       currency: params.currency.toLowerCase(),
       ...(params.customerId ? { customer: params.customerId } : {}),
       ...(paymentMethodTypes
-        ? { allowed_payment_method_types: paymentMethodTypes }
+        ? { payment_method_types: paymentMethodTypes }
         : { automatic_payment_methods: { enabled: true } }),
       metadata: toStripeMetadata(params.metadata),
     },

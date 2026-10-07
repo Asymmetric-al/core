@@ -8,6 +8,6 @@
  * a deliberate prompt to review the API deltas (https://docs.stripe.com/changelog)
  * before advancing the pin.
  *
- * Current value matches `stripe@23.x` (`ApiVersion = "2026-09-30.endive"`).
+ * Current value matches `stripe@22.x` (`ApiVersion = "2026-05-27.dahlia"`).
  */
-export const STRIPE_API_VERSION = "2026-09-30.endive";
+export const STRIPE_API_VERSION = "2026-05-27.dahlia";

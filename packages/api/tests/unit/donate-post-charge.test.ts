@@ -736,7 +736,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
         quoted
           ? {
               amount: amountCents,
-              allowed_payment_method_types: ["us_bank_account"],
+              payment_method_types: ["us_bank_account"],
               metadata: quote,
             }
           : {
@@ -745,9 +745,6 @@ describe("POST /api/donate Gift processing-fee policy", () => {
             },
       );
       if (!quoted) {
-        expect(createPaymentIntent.mock.calls[0]?.[0]).not.toHaveProperty(
-          "allowed_payment_method_types",
-        );
         expect(createPaymentIntent.mock.calls[0]?.[0]).not.toHaveProperty(
           "payment_method_types",
         );

@@ -46,7 +46,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "recharts": "3.10.1",
-    "stripe": "23.0.0"
+    "stripe": "22.2.0"
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",

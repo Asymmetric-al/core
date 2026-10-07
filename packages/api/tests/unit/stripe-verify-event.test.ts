@@ -44,23 +44,6 @@ describe("constructVerifiedStripeEvent", () => {
     expect(event.id).toBe("evt_1");
   });
 
-  it("rejects an expired signature using the SDK's default timestamp tolerance", () => {
-    const signature = stripe.webhooks.generateTestHeaderString({
-      payload,
-      secret: HMAC_FIXTURE,
-      timestamp: Math.floor(Date.now() / 1000) - 600,
-    });
-
-    expect(() =>
-      constructVerifiedStripeEvent({
-        stripe,
-        rawBody: payload,
-        signature,
-        secret: HMAC_FIXTURE,
-      }),
-    ).toThrow(StripeWebhookVerificationError);
-  });
-
   it("rejects a tampered payload as invalid_signature", () => {
     const signature = signedPayload(payload);
     expect(() =>

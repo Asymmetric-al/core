@@ -200,7 +200,7 @@
     "inngest": "^4.22.0",
     "next": "16.4.0",
     "server-only": "0.0.1",
-    "stripe": "23.0.0",
+    "stripe": "22.2.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
