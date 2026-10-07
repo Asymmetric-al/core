@@ -28,7 +28,6 @@ import {
 } from "../../../packages/ui/components/shadcn/dialog";
 import { DataTableFloatingBar } from "../../../packages/ui/components/shadcn/data-table/data-table-floating-bar";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -72,7 +71,6 @@ export function ShadscanContracts() {
   );
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<(typeof people)[number]>(),
     data: people,
     columns,
     initialState: { rowSelection: { "0": true } },

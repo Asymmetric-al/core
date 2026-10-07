@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 import { DataTableToolbarResponsive } from "../../../packages/ui/components/shadcn/data-table/data-table-toolbar-responsive";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -22,7 +21,6 @@ export function ToolbarContracts() {
   const [exports, setExports] = useState(0);
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<Person>(),
     data: people,
     columns,
   });
