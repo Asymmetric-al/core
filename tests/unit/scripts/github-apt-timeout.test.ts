@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import {
   chmodSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -93,6 +94,9 @@ exit "\${status:-0}"`,
   }
 
   return {
+    exists(file: string) {
+      return existsSync(path.join(aptDir, file));
+    },
     read(file: string) {
       return readFileSync(path.join(aptDir, file), "utf8");
     },
@@ -435,9 +439,12 @@ describe("github apt prepares existing Ubuntu sources over HTTPS", () => {
     const fixture = aptFixture({ "sources.list.d/microsoft.sources": sources });
     fixture.run();
 
-    expect(
-      fixture.read("sources.list.d/microsoft.sources.disabled-by-core-ci"),
-    ).toBe(sources);
+    expect({
+      originalExists: fixture.exists("sources.list.d/microsoft.sources"),
+      disabledSources: fixture.read(
+        "sources.list.d/microsoft.sources.disabled-by-core-ci",
+      ),
+    }).toEqual({ originalExists: false, disabledSources: sources });
   });
 
   it("sets only the established Acquire timeout and retry settings", () => {
