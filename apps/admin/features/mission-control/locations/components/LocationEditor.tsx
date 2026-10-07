@@ -106,19 +106,7 @@ export function LocationEditor({
     useUpsertLocation();
   const { data: linkedEntities } = useLinkedEntities();
 
-  const form = useAsymForm({
-    defaultValues: toLocationFormValues(location),
-    validators: {
-      onChange: locationSchema,
-    },
-    onSubmit: async ({ value }) => {
-      await upsertLocation({
-        ...value,
-        linked_id: value.type === "custom" ? null : (value.linked_id ?? null),
-      });
-      onOpenChange(false);
-    },
-  });
+  const form = useLocationEditorForm(location, upsertLocation, onOpenChange);
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -175,145 +163,12 @@ export function LocationEditor({
             </form.AppField>
           </div>
 
-          <form.Field name="type">
-            {(field) => {
-              const showErrors =
-                field.state.meta.isTouched || form.state.submissionAttempts > 0;
-              const errors = toFieldErrors(field.state.meta.errors, showErrors);
+          <LocationTypeField form={form} />
 
-              return (
-                <FieldPrimitive.Root
-                  name={field.name}
-                  dirty={field.state.meta.isDirty}
-                  touched={field.state.meta.isTouched}
-                  invalid={errors.length > 0}
-                  render={<Field data-invalid={errors.length > 0} />}
-                >
-                  <FieldPrimitive.Label
-                    nativeLabel={false}
-                    render={<FieldTitle />}
-                    className="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                  >
-                    Marker Type
-                  </FieldPrimitive.Label>
-                  <FieldContent>
-                    <Select<LocationFormValues["type"]>
-                      items={[
-                        { value: "missionary", label: "Missionary" },
-                        { value: "project", label: "Project" },
-                        { value: "custom", label: "Custom" },
-                      ]}
-                      onOpenChange={(open) => {
-                        if (!open) {
-                          field.handleBlur();
-                        }
-                      }}
-                      onValueChange={(value) => {
-                        if (value !== null) field.handleChange(value);
-                      }}
-                      value={field.state.value}
-                    >
-                      <SelectTrigger
-                        aria-label="Location type"
-                        className="rounded-xl border-zinc-200"
-                      >
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="missionary">Missionary</SelectItem>
-                        <SelectItem value="project">Project</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FieldPrimitive.Error
-                      match={errors.length > 0}
-                      render={<FieldError errors={errors} />}
-                    />
-                  </FieldContent>
-                </FieldPrimitive.Root>
-              );
-            }}
-          </form.Field>
-
-          <form.Subscribe selector={(state) => state.values.type}>
-            {(selectedType) =>
-              selectedType !== "custom" ? (
-                <form.Field name="linked_id">
-                  {(field) => {
-                    const showErrors =
-                      field.state.meta.isTouched ||
-                      form.state.submissionAttempts > 0;
-                    const errors = toFieldErrors(
-                      field.state.meta.errors,
-                      showErrors,
-                    );
-
-                    return (
-                      <FieldPrimitive.Root
-                        name={field.name}
-                        dirty={field.state.meta.isDirty}
-                        touched={field.state.meta.isTouched}
-                        invalid={errors.length > 0}
-                        render={<Field data-invalid={errors.length > 0} />}
-                      >
-                        <FieldPrimitive.Label
-                          nativeLabel={false}
-                          render={<FieldTitle />}
-                          className="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                        >
-                          Link to{" "}
-                          {selectedType === "missionary"
-                            ? "Missionary"
-                            : "Project"}
-                        </FieldPrimitive.Label>
-                        <FieldContent>
-                          <SearchableSelect
-                            items={
-                              selectedType === "missionary"
-                                ? (linkedEntities?.missionaries ?? []).map(
-                                    (missionary) => ({
-                                      value: missionary.id,
-                                      label:
-                                        missionary.full_name?.trim() ||
-                                        missionary.id,
-                                    }),
-                                  )
-                                : [
-                                    {
-                                      value: "__empty",
-                                      label: "No projects found",
-                                      disabled: true,
-                                    },
-                                  ]
-                            }
-                            onOpenChange={(open) => {
-                              if (!open) {
-                                field.handleBlur();
-                              }
-                            }}
-                            onValueChange={(value) => {
-                              if (value === null) return;
-                              field.handleChange(
-                                value === "__empty" ? null : value,
-                              );
-                            }}
-                            value={field.state.value ?? null}
-                            aria-label={`Link to ${selectedType === "missionary" ? "Missionary" : "Project"}`}
-                            className="rounded-xl border-zinc-200"
-                            placeholder={`Select ${selectedType}`}
-                          />
-                          <FieldPrimitive.Error
-                            match={errors.length > 0}
-                            render={<FieldError errors={errors} />}
-                          />
-                        </FieldContent>
-                      </FieldPrimitive.Root>
-                    );
-                  }}
-                </form.Field>
-              ) : null
-            }
-          </form.Subscribe>
+          <LocationLinkedEntityField
+            form={form}
+            linkedEntities={linkedEntities}
+          />
 
           <form.AppField name="summary">
             {(field) => (
@@ -334,10 +189,10 @@ export function LocationEditor({
               >
                 <FieldLabel htmlFor={publishedId} className="flex-1">
                   <div className="space-y-0.5">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-900">
+                    <div className="text-xs font-black uppercase tracking-widest text-zinc-900">
                       Published
                     </div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                    <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">
                       Visible on public map
                     </div>
                   </div>
@@ -367,7 +222,7 @@ export function LocationEditor({
               {({ canSubmit, isSubmitting }) => (
                 <Button
                   focusableWhenDisabled={isSaving || isSubmitting}
-                  className="h-12 w-full rounded-xl bg-zinc-900 text-[11px] font-bold uppercase tracking-widest"
+                  className="h-12 w-full rounded-xl bg-zinc-900 font-bold uppercase tracking-widest"
                   disabled={!canSubmit || isSaving || isSubmitting}
                   type="submit"
                 >
@@ -381,7 +236,7 @@ export function LocationEditor({
 
             {location?.id && onDelete ? (
               <Button
-                className="h-12 w-full rounded-xl border-red-100 text-[11px] font-bold uppercase tracking-widest text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                className="h-12 w-full rounded-xl border-red-100 font-bold uppercase tracking-widest text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                 onClick={() => {
                   if (location.id) {
                     onDelete(location.id);
@@ -398,4 +253,174 @@ export function LocationEditor({
       </SheetContent>
     </Sheet>
   );
+}
+
+function LocationTypeField({
+  form,
+}: {
+  form: ReturnType<typeof useLocationEditorForm>;
+}) {
+  return (
+    <form.Field name="type">
+      {(field) => {
+        const showErrors =
+          field.state.meta.isTouched || form.state.submissionAttempts > 0;
+        const errors = toFieldErrors(field.state.meta.errors, showErrors);
+
+        return (
+          <FieldPrimitive.Root
+            name={field.name}
+            dirty={field.state.meta.isDirty}
+            touched={field.state.meta.isTouched}
+            invalid={errors.length > 0}
+            render={<Field data-invalid={errors.length > 0} />}
+          >
+            <FieldPrimitive.Label
+              nativeLabel={false}
+              render={<FieldTitle />}
+              className="text-xs font-black uppercase tracking-widest text-zinc-400"
+            >
+              Marker Type
+            </FieldPrimitive.Label>
+            <FieldContent>
+              <Select<LocationFormValues["type"]>
+                items={[
+                  { value: "missionary", label: "Missionary" },
+                  { value: "project", label: "Project" },
+                  { value: "custom", label: "Custom" },
+                ]}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    field.handleBlur();
+                  }
+                }}
+                onValueChange={(value) => {
+                  if (value !== null) field.handleChange(value);
+                }}
+                value={field.state.value}
+              >
+                <SelectTrigger
+                  aria-label="Location type"
+                  className="rounded-xl border-zinc-200"
+                >
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="missionary">Missionary</SelectItem>
+                  <SelectItem value="project">Project</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldPrimitive.Error
+                match={errors.length > 0}
+                render={<FieldError errors={errors} />}
+              />
+            </FieldContent>
+          </FieldPrimitive.Root>
+        );
+      }}
+    </form.Field>
+  );
+}
+
+function LocationLinkedEntityField({
+  form,
+  linkedEntities,
+}: {
+  form: ReturnType<typeof useLocationEditorForm>;
+  linkedEntities: ReturnType<typeof useLinkedEntities>["data"];
+}) {
+  return (
+    <form.Subscribe selector={(state) => state.values.type}>
+      {(selectedType) =>
+        selectedType !== "custom" ? (
+          <form.Field name="linked_id">
+            {(field) => {
+              const showErrors =
+                field.state.meta.isTouched || form.state.submissionAttempts > 0;
+              const errors = toFieldErrors(field.state.meta.errors, showErrors);
+
+              return (
+                <FieldPrimitive.Root
+                  name={field.name}
+                  dirty={field.state.meta.isDirty}
+                  touched={field.state.meta.isTouched}
+                  invalid={errors.length > 0}
+                  render={<Field data-invalid={errors.length > 0} />}
+                >
+                  <FieldPrimitive.Label
+                    nativeLabel={false}
+                    render={<FieldTitle />}
+                    className="text-xs font-black uppercase tracking-widest text-zinc-400"
+                  >
+                    Link to{" "}
+                    {selectedType === "missionary" ? "Missionary" : "Project"}
+                  </FieldPrimitive.Label>
+                  <FieldContent>
+                    <SearchableSelect
+                      items={
+                        selectedType === "missionary"
+                          ? (linkedEntities?.missionaries ?? []).map(
+                              (missionary) => ({
+                                value: missionary.id,
+                                label:
+                                  missionary.full_name?.trim() || missionary.id,
+                              }),
+                            )
+                          : [
+                              {
+                                value: "__empty",
+                                label: "No projects found",
+                                disabled: true,
+                              },
+                            ]
+                      }
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          field.handleBlur();
+                        }
+                      }}
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        field.handleChange(value === "__empty" ? null : value);
+                      }}
+                      value={field.state.value ?? null}
+                      aria-label={`Link to ${selectedType === "missionary" ? "Missionary" : "Project"}`}
+                      className="rounded-xl border-zinc-200"
+                      placeholder={`Select ${selectedType}`}
+                    />
+                    <FieldPrimitive.Error
+                      match={errors.length > 0}
+                      render={<FieldError errors={errors} />}
+                    />
+                  </FieldContent>
+                </FieldPrimitive.Root>
+              );
+            }}
+          </form.Field>
+        ) : null
+      }
+    </form.Subscribe>
+  );
+}
+
+function useLocationEditorForm(
+  location: LocationEditorProps["location"],
+  upsertLocation: ReturnType<typeof useUpsertLocation>["mutateAsync"],
+  onOpenChange: LocationEditorProps["onOpenChange"],
+) {
+  const form = useAsymForm({
+    defaultValues: toLocationFormValues(location),
+    validators: {
+      onChange: locationSchema,
+    },
+    onSubmit: async ({ value }) => {
+      await upsertLocation({
+        ...value,
+        linked_id: value.type === "custom" ? null : (value.linked_id ?? null),
+      });
+      onOpenChange(false);
+    },
+  });
+  return form;
 }

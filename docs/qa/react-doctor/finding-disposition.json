@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "reactDoctorVersion": "0.9.17",
+  "baseline": {
+    "origin": "Expanded planning inventory retained from the disposable planning source copy. Private analyzer orchestration was used only for research; no permanent helper depends on it.",
+    "raw": 10185,
+    "obsoleteClassicJsx": 8230,
+    "applicable": 1955
+  },
+  "final": {
+    "origin": "Historical original local cleanup evidence on ffa8126, before current-develop integration. Current PR final audit is recorded separately below.",
+    "raw": 8589,
+    "obsoleteClassicJsx": 8300,
+    "applicable": 289,
+    "reviewedExactExceptions": 289,
+    "strictActionableEvidence": ".reference/react-cleanup-2026-10-06/final-actionable-verified/actionable.json"
+  },
+  "dispositionCounts": {
+    "obsolete-automatic-jsx-policy": 8230,
+    "not-reproduced-in-current-supported-cli-audit": 1655,
+    "exact-context-current-exception": 254,
+    "superseded-context-current-exception": 46
+  },
+  "prIntegration": {
+    "baseCommit": "1e7db7cfe9eb3737d531eca3138cf2676a0cc104",
+    "origin": "Supported public CLI on disposable current PR source, all eight projects complete, no skipped checks, integrity verified.",
+    "raw": 8623,
+    "obsoleteClassicJsx": 8327,
+    "applicable": 296,
+    "reviewedExactExceptions": 296,
+    "actionable": 0,
+    "scannedFiles": 1381,
+    "rawEvidence": "raw-findings.json.gz",
+    "strictEvidence": "audit-summary.json",
+    "exceptionLedger": "exceptions.json",
+    "historicalExceptionsRetained": 289,
+    "newExactExceptions": 7
+  },
+  "baselineFindingLedger": {
+    "artifact": "baseline-findings.json.gz",
+    "encoding": "gzip-compressed UTF-8 JSON",
+    "count": 10185,
+    "sha256": "dfc393e0da6f61c8f3496daec67f634a9f08738ecfd0ef66aa7a8dcd54fd53c4",
+    "scope": "Complete original baseline diagnostics and individual dispositions; preserved as historical evidence, separate from current PR raw inventory."
+  }
+}

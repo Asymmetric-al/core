@@ -196,22 +196,24 @@ export function DeleteNamedViewDialog({
             value={nextDefaultChoice}
             onValueChange={onNextDefaultChoiceChange}
           >
-            {views
-              .filter((candidate) => candidate.id !== view.id)
-              .map((candidate) => (
-                <div
-                  key={candidate.id}
-                  className="flex items-center gap-2 text-sm"
-                >
-                  <RadioGroupItem
-                    value={candidate.id}
-                    id={`next-default-view-${candidate.id}`}
-                  />
-                  <Label htmlFor={`next-default-view-${candidate.id}`}>
-                    Make “{candidate.name}” the default
-                  </Label>
-                </div>
-              ))}
+            {views.flatMap((candidate) =>
+              candidate.id !== view.id
+                ? [
+                    <div
+                      key={candidate.id}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <RadioGroupItem
+                        value={candidate.id}
+                        id={`next-default-view-${candidate.id}`}
+                      />
+                      <Label htmlFor={`next-default-view-${candidate.id}`}>
+                        Make “{candidate.name}” the default
+                      </Label>
+                    </div>,
+                  ]
+                : [],
+            )}
             <div className="flex items-center gap-2 text-sm">
               <RadioGroupItem value="" id="next-default-view-none" />
               <Label htmlFor="next-default-view-none">

@@ -7,7 +7,7 @@ import { inputStyles, inputGroupInputStyles } from "../../lib/input-styles";
 import { cn } from "../../lib/utils";
 
 const Combobox = ComboboxPrimitive.Root;
-const createComboboxItems = ComboboxPrimitive.createItems;
+
 function ComboboxItemIndicator(props: ComboboxPrimitive.ItemIndicator.Props) {
   return (
     <ComboboxPrimitive.ItemIndicator
@@ -127,5 +127,4 @@ export {
   ComboboxItem,
   ComboboxItemIndicator,
   ComboboxEmpty,
-  createComboboxItems,
 };

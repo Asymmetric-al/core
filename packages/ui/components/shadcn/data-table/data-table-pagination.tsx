@@ -140,116 +140,21 @@ function DataTablePaginationImpl<TData extends RowData>({
         )}
       </div>
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
-        <div className="flex items-center gap-2">
-          <Select
-            items={[
-              ...availablePageSizes.map((pageSize) => ({
-                value: `${pageSize}`,
-                label: pageSize,
-              })),
-            ]}
-            value={`${pagination.pageSize}`}
-            onValueChange={(value) => {
-              if (value === null) return;
-              const nextPageSize = Number(value);
-              if (Number.isInteger(nextPageSize) && nextPageSize > 0) {
-                table.setPageSize(nextPageSize);
-              }
-            }}
-            disabled={urlStatePending}
-          >
-            <SelectControlLabel className="text-sm font-medium whitespace-nowrap">
-              Rows per page
-            </SelectControlLabel>
-            <SelectTrigger className="h-9 w-18 rounded-xl">
-              <SelectValue placeholder={pagination.pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top" className="rounded-xl">
-              {availablePageSizes.map((pageSize) => (
-                <SelectItem
-                  key={pageSize}
-                  value={`${pageSize}`}
-                  className="rounded-lg"
-                >
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center justify-center text-sm font-medium whitespace-nowrap">
-          Page {pagination.pageIndex + 1} of {table.getPageCount() || 1}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            aria-label="Go to first page"
-            variant="outline"
-            className="hidden size-9 p-0 lg:flex rounded-xl"
-            onClick={() => {
-              setPendingAction("first");
-              table.setPageIndex(0);
-            }}
-            onFocus={() => setFocusedAction("first")}
-            onBlur={() => setFocusedAction(null)}
-            disabled={urlStatePending || !table.getCanPreviousPage()}
-            focusableWhenDisabled={
-              pendingAction === "first" && focusedAction === "first"
-            }
-          >
-            <ChevronsLeft className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="Go to previous page"
-            variant="outline"
-            className="size-9 p-0 rounded-xl"
-            onClick={() => {
-              setPendingAction("previous");
-              table.previousPage();
-            }}
-            onFocus={() => setFocusedAction("previous")}
-            onBlur={() => setFocusedAction(null)}
-            disabled={urlStatePending || !table.getCanPreviousPage()}
-            focusableWhenDisabled={
-              pendingAction === "previous" && focusedAction === "previous"
-            }
-          >
-            <ChevronLeft className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="Go to next page"
-            variant="outline"
-            className="size-9 p-0 rounded-xl"
-            onClick={() => {
-              setPendingAction("next");
-              table.nextPage();
-            }}
-            onFocus={() => setFocusedAction("next")}
-            onBlur={() => setFocusedAction(null)}
-            disabled={urlStatePending || !table.getCanNextPage()}
-            focusableWhenDisabled={
-              pendingAction === "next" && focusedAction === "next"
-            }
-          >
-            <ChevronRight className="size-4" aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label="Go to last page"
-            variant="outline"
-            className="hidden size-9 p-0 lg:flex rounded-xl"
-            onClick={() => {
-              setPendingAction("last");
-              table.setPageIndex(table.getPageCount() - 1);
-            }}
-            onFocus={() => setFocusedAction("last")}
-            onBlur={() => setFocusedAction(null)}
-            disabled={urlStatePending || !table.getCanNextPage()}
-            focusableWhenDisabled={
-              pendingAction === "last" && focusedAction === "last"
-            }
-          >
-            <ChevronsRight className="size-4" aria-hidden="true" />
-          </Button>
-        </div>
+        <PaginationPageSize
+          availablePageSizes={availablePageSizes}
+          pagination={pagination}
+          table={table}
+          urlStatePending={urlStatePending}
+        />
+        <PaginationPageCount pagination={pagination} table={table} />
+        <PaginationNavigation
+          setPendingAction={setPendingAction}
+          table={table}
+          setFocusedAction={setFocusedAction}
+          urlStatePending={urlStatePending}
+          pendingAction={pendingAction}
+          focusedAction={focusedAction}
+        />
       </div>
     </div>
   );
@@ -277,3 +182,162 @@ const MemoizedDataTablePagination = React.memo(
  */
 export const DataTablePagination =
   MemoizedDataTablePagination as typeof DataTablePaginationImpl;
+
+function PaginationPageSize<TData extends RowData>({
+  availablePageSizes,
+  pagination,
+  table,
+  urlStatePending,
+}: {
+  availablePageSizes: readonly number[];
+  pagination: PaginationState;
+  table: Table<TData>;
+  urlStatePending: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Select
+        items={[
+          ...availablePageSizes.map((pageSize) => ({
+            value: `${pageSize}`,
+            label: pageSize,
+          })),
+        ]}
+        value={`${pagination.pageSize}`}
+        onValueChange={(value) => {
+          if (value === null) return;
+          const nextPageSize = Number(value);
+          if (Number.isInteger(nextPageSize) && nextPageSize > 0) {
+            table.setPageSize(nextPageSize);
+          }
+        }}
+        disabled={urlStatePending}
+      >
+        <SelectControlLabel className="text-sm font-medium whitespace-nowrap">
+          Rows per page
+        </SelectControlLabel>
+        <SelectTrigger className="h-9 w-18 rounded-xl">
+          <SelectValue placeholder={pagination.pageSize} />
+        </SelectTrigger>
+        <SelectContent side="top" className="rounded-xl">
+          {availablePageSizes.map((pageSize) => (
+            <SelectItem
+              key={pageSize}
+              value={`${pageSize}`}
+              className="rounded-lg"
+            >
+              {pageSize}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function PaginationPageCount<TData extends RowData>({
+  pagination,
+  table,
+}: {
+  pagination: PaginationState;
+  table: Table<TData>;
+}) {
+  return (
+    <div className="flex items-center justify-center text-sm font-medium whitespace-nowrap">
+      Page {pagination.pageIndex + 1} of {table.getPageCount() || 1}
+    </div>
+  );
+}
+
+function PaginationNavigation<TData extends RowData>({
+  setPendingAction,
+  table,
+  setFocusedAction,
+  urlStatePending,
+  pendingAction,
+  focusedAction,
+}: {
+  setPendingAction: React.Dispatch<
+    React.SetStateAction<"first" | "previous" | "next" | "last" | null>
+  >;
+  table: Table<TData>;
+  setFocusedAction: React.Dispatch<
+    React.SetStateAction<"first" | "previous" | "next" | "last" | null>
+  >;
+  urlStatePending: boolean;
+  pendingAction: "first" | "previous" | "next" | "last" | null;
+  focusedAction: "first" | "previous" | "next" | "last" | null;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        aria-label="Go to first page"
+        variant="outline"
+        className="hidden size-9 p-0 lg:flex rounded-xl"
+        onClick={() => {
+          setPendingAction("first");
+          table.setPageIndex(0);
+        }}
+        onFocus={() => setFocusedAction("first")}
+        onBlur={() => setFocusedAction(null)}
+        disabled={urlStatePending || !table.getCanPreviousPage()}
+        focusableWhenDisabled={
+          pendingAction === "first" && focusedAction === "first"
+        }
+      >
+        <ChevronsLeft className="size-4" aria-hidden="true" />
+      </Button>
+      <Button
+        aria-label="Go to previous page"
+        variant="outline"
+        className="size-9 p-0 rounded-xl"
+        onClick={() => {
+          setPendingAction("previous");
+          table.previousPage();
+        }}
+        onFocus={() => setFocusedAction("previous")}
+        onBlur={() => setFocusedAction(null)}
+        disabled={urlStatePending || !table.getCanPreviousPage()}
+        focusableWhenDisabled={
+          pendingAction === "previous" && focusedAction === "previous"
+        }
+      >
+        <ChevronLeft className="size-4" aria-hidden="true" />
+      </Button>
+      <Button
+        aria-label="Go to next page"
+        variant="outline"
+        className="size-9 p-0 rounded-xl"
+        onClick={() => {
+          setPendingAction("next");
+          table.nextPage();
+        }}
+        onFocus={() => setFocusedAction("next")}
+        onBlur={() => setFocusedAction(null)}
+        disabled={urlStatePending || !table.getCanNextPage()}
+        focusableWhenDisabled={
+          pendingAction === "next" && focusedAction === "next"
+        }
+      >
+        <ChevronRight className="size-4" aria-hidden="true" />
+      </Button>
+      <Button
+        aria-label="Go to last page"
+        variant="outline"
+        className="hidden size-9 p-0 lg:flex rounded-xl"
+        onClick={() => {
+          setPendingAction("last");
+          table.setPageIndex(table.getPageCount() - 1);
+        }}
+        onFocus={() => setFocusedAction("last")}
+        onBlur={() => setFocusedAction(null)}
+        disabled={urlStatePending || !table.getCanNextPage()}
+        focusableWhenDisabled={
+          pendingAction === "last" && focusedAction === "last"
+        }
+      >
+        <ChevronsRight className="size-4" aria-hidden="true" />
+      </Button>
+    </div>
+  );
+}

@@ -7,17 +7,19 @@ import { Clock3, FileText } from "lucide-react";
 
 import type { CrmNoteRow } from "@asym/database/hooks";
 
+const DATE_TIME_FORMATTER_1 = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return DATE_TIME_FORMATTER_1.format(date);
 }
 
 export function getCrmNoteColumns(): ColumnDef<CrmNoteRow>[] {
@@ -84,7 +86,7 @@ export function getCrmNoteColumns(): ColumnDef<CrmNoteRow>[] {
       cell: () => (
         <Badge
           variant="outline"
-          className="h-5 rounded-md text-[10px] font-semibold uppercase tracking-wide shadow-none"
+          className="h-5 rounded-md font-semibold uppercase tracking-wide shadow-none"
         >
           Saved
         </Badge>

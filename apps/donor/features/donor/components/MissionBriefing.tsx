@@ -31,13 +31,13 @@ export function MissionBriefing({
 
   return (
     <Card className="bg-zinc-900 border-none shadow-xl overflow-hidden relative group rounded-xl">
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/20 to-transparent pointer-events-none" />
-      <div className="absolute top-0 right-0 w-75 h-75 bg-white opacity-[0.02] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-br from-zinc-800/20 to-transparent pointer-events-none" />
+      <div className="absolute top-0 right-0 bg-radial from-white to-transparent opacity-[0.02] rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none size-75" />
       <CardContent className="p-4 sm:p-6 md:p-8 relative z-10">
         <div className="flex items-center justify-between mb-6 sm:mb-8 pb-4 border-b border-white/5">
           <div className="flex items-center gap-2.5">
             <Info className="size-4 text-emerald-400" />
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
               Ministry Impact Summary
             </h3>
           </div>
@@ -54,14 +54,14 @@ export function MissionBriefing({
             >
               <div className="flex items-center gap-3">
                 <div className="size-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[10px] font-semibold text-white uppercase tracking-widest">
+                <span className="text-xs font-semibold text-white uppercase tracking-widest">
                   {item.workerName}
                 </span>
               </div>
               <p className="text-base sm:text-lg text-zinc-300 leading-tight font-semibold tracking-tight">
                 {item.impact}
               </p>
-              <div className="flex items-center gap-4 sm:gap-6 text-[9px] font-semibold text-zinc-600 uppercase tracking-widest flex-wrap">
+              <div className="flex items-center gap-4 sm:gap-6 text-xs font-semibold text-zinc-600 uppercase tracking-widest flex-wrap">
                 <span className="flex items-center gap-2 transition-colors hover:text-zinc-400 cursor-default">
                   <MapPin className="size-3.5" /> {item.location}
                 </span>

@@ -1,6 +1,6 @@
 import type { ColumnFiltersState } from "./tanstack";
 
-export type UrlColumnFiltersParseResult =
+type UrlColumnFiltersParseResult =
   | { ok: true; filters: ColumnFiltersState }
   | { ok: false; filters: ColumnFiltersState; shouldClearParam: boolean };
 

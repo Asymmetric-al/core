@@ -12,7 +12,6 @@ import type {
   SupportReportRequest,
   SupportReportScope,
   SupportReportSeries,
-  SupportReportSlice,
 } from "../types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -592,20 +591,6 @@ export function defaultReportRange(days = 30): SupportReportRange {
   const to = new Date();
   const from = new Date(to.getTime() - days * DAY_MS);
   return { from: from.toISOString(), to: to.toISOString() };
-}
-
-export function weekRange(): SupportReportRange {
-  const to = new Date();
-  const from = new Date(to.getTime() - WEEK_MS);
-  return { from: from.toISOString(), to: to.toISOString() };
-}
-
-export function formatReportRangeLabel(range: SupportReportRange): string {
-  return `${range.from.slice(0, 10)} → ${range.to.slice(0, 10)}`;
-}
-
-export function defaultSliceFor(slice: SupportReportSlice): SupportReportSlice {
-  return slice;
 }
 
 void DAY_MS;

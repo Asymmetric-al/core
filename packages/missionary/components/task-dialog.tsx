@@ -265,7 +265,7 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
               }}
               value={field.state.value}
             >
-              <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              <SelectControlLabel className="text-xs font-black uppercase tracking-widest text-zinc-400">
                 Task Type
               </SelectControlLabel>
               <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
@@ -331,7 +331,7 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
             }}
             value={field.state.value}
           >
-            <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <SelectControlLabel className="text-xs font-black uppercase tracking-widest text-zinc-400">
               Priority
             </SelectControlLabel>
             <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
@@ -375,7 +375,7 @@ function DatePickerField({
     <form.Field name={name}>
       {(field) => (
         <div className="grid gap-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+          <span className="text-xs font-black uppercase tracking-widest text-zinc-400">
             {label}
           </span>
           <Popover>
@@ -436,7 +436,7 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
             }}
             value={field.state.value}
           >
-            <SelectControlLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            <SelectControlLabel className="text-xs font-black uppercase tracking-widest text-zinc-400">
               Status
             </SelectControlLabel>
             <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
@@ -633,7 +633,7 @@ export function TaskDialog({
           <DialogTitle className="text-2xl font-black tracking-tight">
             {isEditing ? "Edit Task" : "Create Task"}
           </DialogTitle>
-          <DialogDescription className="mt-1 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+          <DialogDescription className="mt-1 text-xs font-bold uppercase tracking-widest text-zinc-400">
             {isEditing ? "Update task details" : "Add a new follow-up task"}
           </DialogDescription>
         </div>
@@ -688,7 +688,7 @@ export function TaskDialog({
 
               <div className="flex gap-3 border-t border-zinc-100 pt-4">
                 <Button
-                  className="h-12 flex-1 rounded-xl border-zinc-200 text-[10px] font-black uppercase tracking-widest"
+                  className="h-12 flex-1 rounded-xl border-zinc-200 text-xs font-black uppercase tracking-widest"
                   onClick={handleClose}
                   type="button"
                   variant="outline"
@@ -704,7 +704,7 @@ export function TaskDialog({
                 >
                   {({ canSubmit, isSubmitting }) => (
                     <Button
-                      className="h-12 flex-1 rounded-xl bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-800"
+                      className="h-12 flex-1 rounded-xl bg-zinc-900 text-xs font-black uppercase tracking-widest text-white hover:bg-zinc-800"
                       disabled={!canSubmit || isSubmitting}
                       type="submit"
                     >

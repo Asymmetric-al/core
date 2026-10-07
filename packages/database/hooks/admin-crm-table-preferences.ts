@@ -104,7 +104,7 @@ export function useCrmTablePreferences(tableId: string) {
  * reset, value = replace the whole scope. Callers updating one column/filter
  * field must send the full desired scope, not a field-level merge patch.
  */
-export type CrmViewSettingsSavePatch = CrmTablePreferencePatch;
+type CrmViewSettingsSavePatch = CrmTablePreferencePatch;
 
 async function saveCrmTablePreferencePatch(input: {
   tableId: string;
@@ -174,7 +174,7 @@ export function useSaveCrmViewSettings(tableId: string) {
  * `activeViewId` (named views are personal) and with the nullable delegate
  * list (null clears all delegates).
  */
-export type CrmTenantDefaultSavePatch = CrmTenantDefaultPatch;
+type CrmTenantDefaultSavePatch = CrmTenantDefaultPatch;
 
 async function saveCrmTenantDefault(input: {
   tableId: string;

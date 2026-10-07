@@ -84,9 +84,10 @@ export function normalizePublicCmsLookupValue(value: string | undefined) {
 }
 
 export function normalizePublicCmsPageSlug(segments: readonly string[] = []) {
-  const normalizedSegments = segments
-    .map((segment) => normalizePublicCmsLookupValue(segment))
-    .filter(Boolean);
+  const normalizedSegments = segments.flatMap((segment) => {
+    const mappedValue = normalizePublicCmsLookupValue(segment);
+    return mappedValue ? [mappedValue] : [];
+  });
 
   return normalizedSegments.join("/") || "home";
 }

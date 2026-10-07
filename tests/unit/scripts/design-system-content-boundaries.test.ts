@@ -353,7 +353,7 @@ describe("shared dialog scrolling geometry", () => {
   });
 
   it.each([
-    "components/shadcn/button.tsx",
+    "components/shadcn/button-component.tsx",
     "components/shadcn/custom-dialog.tsx",
   ])("does not grant the dialog viewport value to %s", async (relativeFile) => {
     const messages = await lint(

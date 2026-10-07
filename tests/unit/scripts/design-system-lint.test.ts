@@ -177,7 +177,7 @@ describe("Core design-system lint", () => {
       export const Invalid = () => <div className="bg-zinc-500 hovr:flex p-[13px]" />;
       export const Focus = () => <div className="focus-visible:ring-[3px] press-feedback" />;
     `,
-      { filePath: "packages/ui/components/shadcn/button.tsx" },
+      { filePath: "packages/ui/components/shadcn/button-component.tsx" },
     );
     expect(
       result.messages

@@ -288,7 +288,7 @@ function FilterBuilderContent({
             onOperatorChange={(op) => handleOperatorChange(index, op)}
             onValueChange={(val) => handleValueChange(index, val)}
             onRemove={() => removeCondition(index)}
-            showRemove={true}
+            showRemove
           />
         </div>
       ))}

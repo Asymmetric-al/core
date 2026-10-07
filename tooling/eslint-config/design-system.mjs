@@ -267,7 +267,23 @@ export const primitiveFiles = [
   "toggle-group",
   "tooltip",
   "visually-hidden",
-].map((name) => `components/shadcn/${name}.tsx`);
+].flatMap(primitiveImplementationFiles);
+
+function primitiveImplementationFiles(name) {
+  return [
+    "badge",
+    "button",
+    "button-group",
+    "tabs",
+    "toggle",
+    "navigation-menu",
+  ].includes(name)
+    ? [
+        `components/shadcn/${name}-component.tsx`,
+        `components/shadcn/${name}-variants.ts`,
+      ]
+    : [`components/shadcn/${name}.tsx`];
+}
 
 export function designSystemConfig({
   workspace,
@@ -346,7 +362,7 @@ export function designSystemConfig({
           ...Object.entries(structuralValues).map(([name, allow]) => ({
             name: `core/design-system/structural/${name}`,
             basePath: path.join(rootDir, scope),
-            files: [`components/shadcn/${name}.tsx`],
+            files: primitiveImplementationFiles(name),
             rules: {
               "shadcn/no-arbitrary-values": [
                 "error",

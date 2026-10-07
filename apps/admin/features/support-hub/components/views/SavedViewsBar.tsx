@@ -46,13 +46,13 @@ export function SavedViewsBar() {
       aria-label="Saved views"
       className="flex flex-wrap items-center gap-2"
     >
-      <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
         <Folder className="size-3" />
         Saved views
       </span>
 
       {savedViews.length === 0 ? (
-        <span className="text-[12px] text-zinc-400">
+        <span className="text-xs text-zinc-400">
           No saved views yet, save a filter to find it again.
         </span>
       ) : (
@@ -74,7 +74,7 @@ export function SavedViewsBar() {
         size="sm"
         onClick={() => setIsCreating(true)}
         className={cn(
-          "h-8 gap-1.5 rounded-lg px-2 text-[11px] font-bold uppercase tracking-wider text-zinc-500",
+          "h-8 gap-1.5 rounded-lg px-2 font-bold uppercase tracking-wider text-zinc-500",
           "hover:bg-zinc-100 hover:text-zinc-900",
         )}
       >

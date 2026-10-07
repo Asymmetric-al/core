@@ -86,7 +86,7 @@ export function useConversationComposer({
   const authorAgentId = agentId ?? fallbackAgentId ?? null;
   const resolvedAgent = agent ?? null;
 
-  const [mode, setModeState] = React.useState<ComposerMode>("reply");
+  const [modeState, setModeState] = React.useState<ComposerMode>("reply");
   const [drafts, setDrafts] =
     React.useState<Record<ComposerMode, string>>(EMPTY_DRAFT);
   const [attachmentsByMode, setAttachmentsByMode] = React.useState<
@@ -118,11 +118,11 @@ export function useConversationComposer({
   // by conversation id, so this hook remounts (and its state resets) when the
   // agent switches threads.
 
-  const value = drafts[mode];
-  const attachments = attachmentsByMode[mode];
+  const value = drafts[modeState];
+  const attachments = attachmentsByMode[modeState];
 
   const setValue = (next: string) => {
-    setDrafts((prev) => ({ ...prev, [mode]: next }));
+    setDrafts((prev) => ({ ...prev, [modeState]: next }));
   };
 
   const setMode = (next: ComposerMode) => {
@@ -132,20 +132,20 @@ export function useConversationComposer({
   const addAttachment = (attachment: SupportAttachmentDraft) => {
     setAttachmentsByMode((prev) => ({
       ...prev,
-      [mode]: [...prev[mode], attachment],
+      [modeState]: [...prev[modeState], attachment],
     }));
   };
 
   const removeAttachment = (index: number) => {
     setAttachmentsByMode((prev) => ({
       ...prev,
-      [mode]: prev[mode].filter((_, i) => i !== index),
+      [modeState]: prev[modeState].filter((_, i) => i !== index),
     }));
   };
 
   const reset = () => {
-    setDrafts((prev) => ({ ...prev, [mode]: "" }));
-    setAttachmentsByMode((prev) => ({ ...prev, [mode]: [] }));
+    setDrafts((prev) => ({ ...prev, [modeState]: "" }));
+    setAttachmentsByMode((prev) => ({ ...prev, [modeState]: [] }));
   };
 
   const isDirty = isRichTextPayloadDirty(value) || attachments.length > 0;
@@ -157,12 +157,12 @@ export function useConversationComposer({
     }
     if (!isDirty) {
       toast.info(
-        mode === "reply" ? "Type a reply first." : "Type a note first.",
+        modeState === "reply" ? "Type a reply first." : "Type a note first.",
       );
       return;
     }
 
-    if (mode === "note") {
+    if (modeState === "note") {
       const payload = serializeReplyPayload({
         rawJson: value,
         attachments: [],
@@ -229,7 +229,7 @@ export function useConversationComposer({
   };
 
   const saveDraft = async () => {
-    if (mode !== "reply") {
+    if (modeState !== "reply") {
       toast.info("Drafts are only available for donor replies.");
       return;
     }
@@ -274,7 +274,7 @@ export function useConversationComposer({
   };
 
   return {
-    mode,
+    mode: modeState,
     setMode,
     value,
     setValue,

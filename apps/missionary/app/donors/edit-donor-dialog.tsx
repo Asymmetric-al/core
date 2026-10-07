@@ -53,7 +53,7 @@ export interface EditDonorDialogProps {
 }
 
 const LABEL_CLASS_NAME =
-  "text-[10px] font-semibold uppercase tracking-widest text-zinc-400";
+  "text-xs font-semibold uppercase tracking-widest text-zinc-400";
 
 const FIELD_CLASS_NAME =
   "h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5";
@@ -78,30 +78,7 @@ export function EditDonorDialog({
     [donor],
   );
 
-  const form = useAsymForm({
-    defaultValues: initialValues,
-    validators: {
-      onChange: editDonorSchema,
-    },
-    onSubmit: async ({ value }) => {
-      if (!donor?.id) {
-        toast.error("Select a partner first");
-        return;
-      }
-
-      try {
-        await updateDonor(donor.id, value);
-        toast.success("Partner updated successfully");
-        onOpenChange(false);
-        onSuccess?.();
-      } catch (error: unknown) {
-        console.error("Error updating partner:", error);
-        const message =
-          error instanceof Error ? error.message : "Failed to update partner";
-        toast.error(message);
-      }
-    },
-  });
+  const form = useEditDonorForm(donor, initialValues, onOpenChange, onSuccess);
 
   React.useEffect(() => {
     if (open) {
@@ -144,48 +121,10 @@ export function EditDonorDialog({
             form.handleSubmit();
           }}
         >
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Basic Information
-            </h4>
-            <div className="grid grid-cols-2 gap-4">
-              <form.AppField name="name">
-                {(field) => (
-                  <field.TextField
-                    className="col-span-2"
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Full Name"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="type">
-                {(field) => (
-                  <field.SelectField
-                    label="Type"
-                    labelClassName={LABEL_CLASS_NAME}
-                    options={DONOR_TYPE_OPTIONS}
-                    triggerClassName={FIELD_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="status">
-                {(field) => (
-                  <field.SelectField
-                    label="Status"
-                    labelClassName={LABEL_CLASS_NAME}
-                    options={DONOR_STATUS_OPTIONS}
-                    triggerClassName={FIELD_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-            </div>
-          </div>
+          <EditDonorIdentityFields form={form} />
 
           <div className="space-y-4">
-            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
               Contact Information
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -253,137 +192,9 @@ export function EditDonorDialog({
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Address
-            </h4>
-            <div className="grid grid-cols-2 gap-4">
-              <form.AppField name="street">
-                {(field) => (
-                  <field.TextField
-                    className="col-span-2"
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Street Address"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
+          <EditDonorAddressFields form={form} />
 
-              <form.AppField name="street2">
-                {(field) => (
-                  <field.TextField
-                    className="col-span-2"
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Apt, Suite, etc."
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="city">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="City"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-
-              <div className="grid grid-cols-2 gap-4">
-                <form.AppField name="state">
-                  {(field) => (
-                    <field.TextField
-                      inputClassName={FIELD_CLASS_NAME}
-                      label="State"
-                      labelClassName={LABEL_CLASS_NAME}
-                    />
-                  )}
-                </form.AppField>
-
-                <form.AppField name="zip">
-                  {(field) => (
-                    <field.TextField
-                      inputClassName={FIELD_CLASS_NAME}
-                      label="ZIP"
-                      labelClassName={LABEL_CLASS_NAME}
-                    />
-                  )}
-                </form.AppField>
-              </div>
-
-              <form.AppField name="location">
-                {(field) => (
-                  <field.TextField
-                    className="col-span-2"
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Display Location (e.g. Denver, CO)"
-                    labelClassName={LABEL_CLASS_NAME}
-                    placeholder="City, State"
-                  />
-                )}
-              </form.AppField>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Personal Details
-            </h4>
-            <div className="grid grid-cols-2 gap-4">
-              <form.AppField name="organization">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Organization"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="title">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Title / Role"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="spouse">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Spouse"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="birthday">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Birthday"
-                    labelClassName={LABEL_CLASS_NAME}
-                    type="date"
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="anniversary">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Anniversary"
-                    labelClassName={LABEL_CLASS_NAME}
-                    type="date"
-                  />
-                )}
-              </form.AppField>
-            </div>
-          </div>
+          <EditDonorPersonalFields form={form} />
 
           <form.AppField name="notes">
             {(field) => (
@@ -435,4 +246,233 @@ export function EditDonorDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function EditDonorIdentityFields({
+  form,
+}: {
+  form: ReturnType<typeof useEditDonorForm>;
+}) {
+  return (
+    <div className="space-y-4">
+      <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        Basic Information
+      </h4>
+      <div className="grid grid-cols-2 gap-4">
+        <form.AppField name="name">
+          {(field) => (
+            <field.TextField
+              className="col-span-2"
+              inputClassName={FIELD_CLASS_NAME}
+              label="Full Name"
+              labelClassName={LABEL_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="type">
+          {(field) => (
+            <field.SelectField
+              label="Type"
+              labelClassName={LABEL_CLASS_NAME}
+              options={DONOR_TYPE_OPTIONS}
+              triggerClassName={FIELD_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="status">
+          {(field) => (
+            <field.SelectField
+              label="Status"
+              labelClassName={LABEL_CLASS_NAME}
+              options={DONOR_STATUS_OPTIONS}
+              triggerClassName={FIELD_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+      </div>
+    </div>
+  );
+}
+
+function EditDonorAddressFields({
+  form,
+}: {
+  form: ReturnType<typeof useEditDonorForm>;
+}) {
+  return (
+    <div className="space-y-4">
+      <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        Address
+      </h4>
+      <div className="grid grid-cols-2 gap-4">
+        <form.AppField name="street">
+          {(field) => (
+            <field.TextField
+              className="col-span-2"
+              inputClassName={FIELD_CLASS_NAME}
+              label="Street Address"
+              labelClassName={LABEL_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="street2">
+          {(field) => (
+            <field.TextField
+              className="col-span-2"
+              inputClassName={FIELD_CLASS_NAME}
+              label="Apt, Suite, etc."
+              labelClassName={LABEL_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="city">
+          {(field) => (
+            <field.TextField
+              inputClassName={FIELD_CLASS_NAME}
+              label="City"
+              labelClassName={LABEL_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <div className="grid grid-cols-2 gap-4">
+          <form.AppField name="state">
+            {(field) => (
+              <field.TextField
+                inputClassName={FIELD_CLASS_NAME}
+                label="State"
+                labelClassName={LABEL_CLASS_NAME}
+              />
+            )}
+          </form.AppField>
+
+          <form.AppField name="zip">
+            {(field) => (
+              <field.TextField
+                inputClassName={FIELD_CLASS_NAME}
+                label="ZIP"
+                labelClassName={LABEL_CLASS_NAME}
+              />
+            )}
+          </form.AppField>
+        </div>
+
+        <form.AppField name="location">
+          {(field) => (
+            <field.TextField
+              className="col-span-2"
+              inputClassName={FIELD_CLASS_NAME}
+              label="Display Location (e.g. Denver, CO)"
+              labelClassName={LABEL_CLASS_NAME}
+              placeholder="City, State"
+            />
+          )}
+        </form.AppField>
+      </div>
+    </div>
+  );
+}
+
+function EditDonorPersonalFields({
+  form,
+}: {
+  form: ReturnType<typeof useEditDonorForm>;
+}) {
+  return (
+    <div className="space-y-4">
+      <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        Personal Details
+      </h4>
+      <div className="grid grid-cols-2 gap-4">
+        <form.AppField name="organization">
+          {(field) => (
+            <field.TextField
+              inputClassName={FIELD_CLASS_NAME}
+              label="Organization"
+              labelClassName={LABEL_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="title">
+          {(field) => (
+            <field.TextField
+              inputClassName={FIELD_CLASS_NAME}
+              label="Title / Role"
+              labelClassName={LABEL_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="spouse">
+          {(field) => (
+            <field.TextField
+              inputClassName={FIELD_CLASS_NAME}
+              label="Spouse"
+              labelClassName={LABEL_CLASS_NAME}
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="birthday">
+          {(field) => (
+            <field.TextField
+              inputClassName={FIELD_CLASS_NAME}
+              label="Birthday"
+              labelClassName={LABEL_CLASS_NAME}
+              type="date"
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="anniversary">
+          {(field) => (
+            <field.TextField
+              inputClassName={FIELD_CLASS_NAME}
+              label="Anniversary"
+              labelClassName={LABEL_CLASS_NAME}
+              type="date"
+            />
+          )}
+        </form.AppField>
+      </div>
+    </div>
+  );
+}
+
+function useEditDonorForm(
+  donor: EditableDonor | null,
+  initialValues: EditDonorFormValues,
+  onOpenChange: EditDonorDialogProps["onOpenChange"],
+  onSuccess: EditDonorDialogProps["onSuccess"],
+) {
+  const form = useAsymForm({
+    defaultValues: initialValues,
+    validators: {
+      onChange: editDonorSchema,
+    },
+    onSubmit: async ({ value }) => {
+      if (!donor?.id) {
+        toast.error("Select a partner first");
+        return;
+      }
+
+      try {
+        await updateDonor(donor.id, value);
+        toast.success("Partner updated successfully");
+        onOpenChange(false);
+        onSuccess?.();
+      } catch (error: unknown) {
+        console.error("Error updating partner:", error);
+        const message =
+          error instanceof Error ? error.message : "Failed to update partner";
+        toast.error(message);
+      }
+    },
+  });
+  return form;
 }

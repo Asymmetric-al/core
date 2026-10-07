@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 const emptySubscribe = () => () => {};
 
@@ -171,8 +171,5 @@ const BROWSER_FORMATTERS = createLocaleFormatters(
  */
 export function useLocaleFormat(): LocaleFormatters {
   const hydrated = useIsHydrated();
-  return useMemo(
-    () => (hydrated ? BROWSER_FORMATTERS : SERVER_FORMATTERS),
-    [hydrated],
-  );
+  return hydrated ? BROWSER_FORMATTERS : SERVER_FORMATTERS;
 }

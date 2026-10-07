@@ -125,7 +125,7 @@ export function SlaPolicyForm({
           min={1}
           value={first}
           onChange={(event) => setFirst(Number(event.target.value))}
-          className="max-w-35 font-mono text-[12px]"
+          className="max-w-35 font-mono"
         />
       </SettingsRow>
       <SettingsRow
@@ -139,7 +139,7 @@ export function SlaPolicyForm({
           min={1}
           value={next}
           onChange={(event) => setNext(Number(event.target.value))}
-          className="max-w-35 font-mono text-[12px]"
+          className="max-w-35 font-mono"
         />
       </SettingsRow>
       <SettingsRow
@@ -153,7 +153,7 @@ export function SlaPolicyForm({
           min={1}
           value={resolution}
           onChange={(event) => setResolution(Number(event.target.value))}
-          className="max-w-35 font-mono text-[12px]"
+          className="max-w-35 font-mono"
         />
       </SettingsRow>
       <SettingsRow
@@ -175,7 +175,7 @@ export function SlaPolicyForm({
             setBusinessHoursId(value === "none" ? null : value);
           }}
           aria-label="Business hours"
-          className="h-9 max-w-sm text-[12px]"
+          className="h-9 max-w-sm"
         />
       </SettingsRow>
       <SettingsRow
@@ -188,7 +188,7 @@ export function SlaPolicyForm({
             onCheckedChange={setIsDefault}
             aria-label="Default SLA policy"
           />
-          <span className="text-[12px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {isDefault ? "Default" : "Not default"}
           </span>
         </div>

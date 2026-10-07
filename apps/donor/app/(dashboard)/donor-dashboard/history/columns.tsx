@@ -82,7 +82,7 @@ export const columns: ColumnDef<Transaction>[] = [
               {tx.recipient}
             </div>
             <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <span className="bg-muted px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide">
+              <span className="bg-muted px-1.5 py-0.5 rounded text-xs uppercase font-bold tracking-wide">
                 {tx.type}
               </span>
               <span className="text-muted-foreground/50">•</span>
@@ -104,7 +104,7 @@ export const columns: ColumnDef<Transaction>[] = [
     cell: ({ row }) => (
       <Badge
         variant="secondary"
-        className="text-[10px] uppercase font-semibold tracking-wide shadow-none rounded-lg"
+        className="uppercase font-semibold tracking-wide shadow-none rounded-lg"
       >
         {row.getValue("category")}
       </Badge>
@@ -161,7 +161,7 @@ export const columns: ColumnDef<Transaction>[] = [
         <Badge
           variant="outline"
           className={cn(
-            "text-[10px] uppercase font-semibold tracking-wide pl-1.5 pr-2.5 h-6 gap-1.5 shadow-none rounded-lg border-transparent",
+            "uppercase font-semibold tracking-wide pl-1.5 pr-2.5 h-6 gap-1.5 shadow-none rounded-lg border-transparent",
             STATUS_COLORS[status],
           )}
         >

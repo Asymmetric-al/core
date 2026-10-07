@@ -111,7 +111,7 @@ export function DataTableWrapper<TData extends RowData, TValue>({
           <Button
             onClick={onRetry}
             variant="outline"
-            className="mt-6 h-11 px-6 rounded-xl font-semibold uppercase tracking-[0.2em] text-[10px]"
+            className="mt-6 h-11 px-6 rounded-xl font-semibold uppercase tracking-[0.2em] text-xs"
           >
             <RefreshCcw className="mr-2 size-4" />
             Retry

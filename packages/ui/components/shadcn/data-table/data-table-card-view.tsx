@@ -334,7 +334,7 @@ export function DataTableMobileView<TData extends RowData>({
       tertiaryField={tertiaryField}
       badgeField={badgeField}
       avatarField={avatarField}
-      enableRowSelection={true}
+      enableRowSelection
       onRowClick={onRowClick}
       rowActions={rowActions}
       getRowActionAriaLabel={getRowActionAriaLabel}

@@ -203,7 +203,7 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
                 type="button"
                 variant={filterExpanded ? "secondary" : "outline"}
                 size="sm"
-                className="font-semibold text-[10px] uppercase tracking-wider"
+                className="font-semibold uppercase tracking-wider"
                 onClick={() => void persistFilterExpanded(!filterExpanded)}
               >
                 Columns &amp; filters
@@ -323,5 +323,5 @@ function NativeCollectionTableBridge({
     );
   }
 
-  return <>{InitialTable}</>;
+  return InitialTable;
 }

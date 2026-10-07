@@ -110,6 +110,44 @@ import type {
   VisibilityFilter,
 } from "./feed-model";
 
+const recentActivityPanelActivities = [
+  {
+    action: "Approved post",
+    actor: "Admin User",
+    time: "5m ago",
+    icon: Check,
+    variant: "success" as const,
+  },
+  {
+    action: "Flagged comment",
+    actor: "System",
+    time: "12m ago",
+    icon: Flag,
+    variant: "warning" as const,
+  },
+  {
+    action: "Hidden post",
+    actor: "Admin User",
+    time: "1h ago",
+    icon: EyeOff,
+    variant: "default" as const,
+  },
+  {
+    action: "Deleted comment",
+    actor: "Admin User",
+    time: "2h ago",
+    icon: Trash2,
+    variant: "danger" as const,
+  },
+];
+
+const recentActivityPanelVariantStyles = {
+  default: "bg-muted text-muted-foreground",
+  warning: "bg-amber-100 text-amber-600",
+  danger: "bg-rose-100 text-rose-600",
+  success: "bg-emerald-100 text-emerald-600",
+};
+
 const smoothTransition = {
   duration: 0.25,
   ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
@@ -161,7 +199,7 @@ function StatCard({
         <CardContent className="grid h-full p-4 sm:p-5">
           <div className="flex h-full items-center justify-between">
             <div className="space-y-1.5">
-              <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="text-xs sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {label}
               </p>
               <motion.p
@@ -175,7 +213,7 @@ function StatCard({
               {trend !== undefined && (
                 <p
                   className={cn(
-                    "text-[9px] sm:text-[10px] font-medium flex items-center gap-1",
+                    "text-xs sm:text-xs font-medium flex items-center gap-1",
                     trend > 0
                       ? "text-emerald-600"
                       : trend < 0
@@ -251,7 +289,7 @@ function ModerationQueueDialogs({
           <div className="py-4">
             <Label
               htmlFor="moderation-action-reason"
-              className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
             >
               Reason (optional)
             </Label>
@@ -357,7 +395,7 @@ function ModerationQueueDialogs({
                     <p className="text-xl sm:text-2xl font-semibold text-foreground">
                       {stat.value}
                     </p>
-                    <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-xs sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       {stat.label}
                     </p>
                   </motion.div>
@@ -567,20 +605,20 @@ function AllPostsFeedPostCard({
                       {post.author.name}
                     </span>
                     {post.author.role === "organization" && (
-                      <Badge className="text-[8px] sm:text-[9px] h-5 bg-primary/10 text-primary shrink-0 font-semibold uppercase tracking-wider border-0">
+                      <Badge className="h-5 bg-primary/10 text-primary shrink-0 font-semibold uppercase tracking-wider border-0">
                         Official
                       </Badge>
                     )}
                     <Badge
                       variant="secondary"
-                      className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
+                      className="h-5 shrink-0 font-semibold uppercase tracking-wider"
                     >
                       {post.post_type}
                     </Badge>
                     {post.status === "hidden" && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
+                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <EyeOff className="size-2.5" /> Hidden
                       </Badge>
@@ -588,7 +626,7 @@ function AllPostsFeedPostCard({
                     {post.isFlagged && (
                       <Badge
                         variant="destructive"
-                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
+                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Flag className="size-2.5" /> Flagged
                       </Badge>
@@ -596,20 +634,20 @@ function AllPostsFeedPostCard({
                     {post.isPinned && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
+                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Pin className="size-2.5" /> Pinned
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-muted-foreground font-medium">
+                    <span className="text-xs text-muted-foreground font-medium">
                       <TimeAgo date={post.created_at} shortFormat />
                     </span>
                     {post.author.location && (
                       <>
                         <span className="text-border">•</span>
-                        <span className="text-[10px] text-muted-foreground font-medium hidden xs:inline">
+                        <span className="text-xs text-muted-foreground font-medium hidden xs:inline">
                           {post.author.location}
                         </span>
                       </>
@@ -640,7 +678,7 @@ function AllPostsFeedPostCard({
                     className="w-52 rounded-xl p-1.5"
                   >
                     <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2">
+                      <DropdownMenuLabel className="text-xs uppercase tracking-wider font-semibold text-muted-foreground px-2">
                         Quick Actions
                       </DropdownMenuLabel>
 
@@ -921,7 +959,7 @@ function FlaggedCommentsPanel({
                     transition={springTransition}
                   >
                     <Avatar className="size-8 sm:h-9 sm:w-9 shrink-0 border border-background shadow-sm">
-                      <AvatarFallback className="text-[10px] font-semibold bg-muted">
+                      <AvatarFallback className="text-xs font-semibold bg-muted">
                         {comment.author.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
@@ -931,7 +969,7 @@ function FlaggedCommentsPanel({
                       <span className="font-semibold text-xs text-foreground">
                         {comment.author.name}
                       </span>
-                      <span className="text-[10px] text-muted-foreground font-medium">
+                      <span className="text-xs text-muted-foreground font-medium">
                         <TimeAgo date={comment.created_at} shortFormat />
                       </span>
                     </div>
@@ -946,7 +984,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-[10px] text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "approve")}
                         >
                           <Check className="size-3 mr-1.5" /> Approve
@@ -959,7 +997,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-[10px] text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "delete")}
                         >
                           <Trash2 className="size-3 mr-1.5" /> Delete
@@ -978,47 +1016,9 @@ function FlaggedCommentsPanel({
 }
 
 function RecentActivityPanel() {
-  const activities = [
-    {
-      action: "Approved post",
-      actor: "Admin User",
-      time: "5m ago",
-      icon: Check,
-      variant: "success" as const,
-    },
-    {
-      action: "Flagged comment",
-      actor: "System",
-      time: "12m ago",
-      icon: Flag,
-      variant: "warning" as const,
-    },
-    {
-      action: "Hidden post",
-      actor: "Admin User",
-      time: "1h ago",
-      icon: EyeOff,
-      variant: "default" as const,
-    },
-    {
-      action: "Deleted comment",
-      actor: "Admin User",
-      time: "2h ago",
-      icon: Trash2,
-      variant: "danger" as const,
-    },
-  ];
-
-  const variantStyles = {
-    default: "bg-muted text-muted-foreground",
-    warning: "bg-amber-100 text-amber-600",
-    danger: "bg-rose-100 text-rose-600",
-    success: "bg-emerald-100 text-emerald-600",
-  };
-
   return (
     <div className="space-y-2">
-      {activities.map((item, idx) => (
+      {recentActivityPanelActivities.map((item, idx) => (
         <motion.div
           key={`${item.action}-${item.time}`}
           initial={{ opacity: 0, x: -10 }}
@@ -1032,7 +1032,7 @@ function RecentActivityPanel() {
             transition={springTransition}
             className={cn(
               "size-8 rounded-lg flex items-center justify-center",
-              variantStyles[item.variant],
+              recentActivityPanelVariantStyles[item.variant],
             )}
           >
             <item.icon className="size-4" />
@@ -1041,9 +1041,9 @@ function RecentActivityPanel() {
             <p className="font-medium text-xs text-foreground truncate">
               {item.action}
             </p>
-            <p className="text-[10px] text-muted-foreground">{item.actor}</p>
+            <p className="text-xs text-muted-foreground">{item.actor}</p>
           </div>
-          <span className="text-[10px] text-muted-foreground font-medium shrink-0">
+          <span className="text-xs text-muted-foreground font-medium shrink-0">
             {item.time}
           </span>
         </motion.div>
@@ -1148,7 +1148,7 @@ export function ContentModerationTabsSection({
         <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
           <TabsTrigger
             value="moderation"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
+            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             <ShieldAlert className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             Queue
@@ -1160,7 +1160,7 @@ export function ContentModerationTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 text-[8px] sm:text-[9px] bg-amber-500 text-white font-semibold border-0">
+                  <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 bg-amber-500 text-white font-semibold border-0">
                     {flaggedPosts.length}
                   </Badge>
                 </motion.div>
@@ -1169,7 +1169,7 @@ export function ContentModerationTabsSection({
           </TabsTrigger>
           <TabsTrigger
             value="all"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
+            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             <Globe className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             All Posts
@@ -1214,150 +1214,11 @@ export function ContentModerationTabsSection({
                   </motion.button>
                 )}
               </div>
-              <DropdownMenu>
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <DropdownMenuTrigger
-                    aria-label="Filter posts"
-                    render={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-9 sm:h-10 gap-2 rounded-xl"
-                      >
-                        <Filter className="size-4" />
-                        <span className="hidden sm:inline">Filter</span>
-                      </Button>
-                    }
-                  />
-                </motion.div>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-56 rounded-xl p-1.5"
-                >
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
-                      Visibility
-                    </DropdownMenuLabel>
-                    <DropdownMenuCheckboxItem
-                      checked={filterVisibility === "all"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_visibility",
-                          value: "all",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      All
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={filterVisibility === "public"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_visibility",
-                          value: "public",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      Public
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={filterVisibility === "partners"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_visibility",
-                          value: "partners",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      Partners
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={filterVisibility === "private"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_visibility",
-                          value: "private",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      Private
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
-                      Type
-                    </DropdownMenuLabel>
-                    <DropdownMenuCheckboxItem
-                      checked={filterType === "all"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_type",
-                          value: "all",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      All Types
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={filterType === "update"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_type",
-                          value: "update",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      Updates
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={filterType === "prayer request"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_type",
-                          value: "prayer request",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      Prayer Requests
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={filterType === "story"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_type",
-                          value: "story",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      Stories
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={filterType === "announcement"}
-                      onCheckedChange={() =>
-                        dispatchUi({
-                          type: "set_filter_type",
-                          value: "announcement",
-                        })
-                      }
-                      className="rounded-lg"
-                    >
-                      Announcements
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ModerationFiltersMenu
+                filterVisibility={filterVisibility}
+                dispatchUi={dispatchUi}
+                filterType={filterType}
+              />
               <Select<SortOption>
                 items={[
                   { value: "newest", label: "Newest" },
@@ -1497,7 +1358,7 @@ export function ContentModerationSidebarSection({
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className="rounded-2xl border shadow-sm bg-transparent bg-gradient-to-br from-primary/5 to-primary/10"
+        className="rounded-2xl border shadow-sm bg-transparent bg-linear-to-br from-primary/5 to-primary/10"
       >
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
@@ -1587,7 +1448,7 @@ function ModerationQueuePostCard({
                     </span>
                     <Badge
                       variant="secondary"
-                      className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
+                      className="h-5 shrink-0 font-semibold uppercase tracking-wider"
                     >
                       {post.post_type}
                     </Badge>
@@ -1599,7 +1460,7 @@ function ModerationQueuePostCard({
                       >
                         <Badge
                           variant="destructive"
-                          className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
+                          className="h-5 shrink-0 font-semibold uppercase tracking-wider"
                         >
                           <Flag className="size-2.5" /> Flagged
                         </Badge>
@@ -1608,18 +1469,18 @@ function ModerationQueuePostCard({
                     {post.isPinned && (
                       <Badge
                         variant="outline"
-                        className="text-[8px] sm:text-[9px] h-5 shrink-0 font-semibold uppercase tracking-wider"
+                        className="h-5 shrink-0 font-semibold uppercase tracking-wider"
                       >
                         <Pin className="size-2.5" /> Pinned
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-muted-foreground font-medium">
+                    <span className="text-xs text-muted-foreground font-medium">
                       <TimeAgo date={post.created_at} shortFormat />
                     </span>
                     <span className="text-border">•</span>
-                    <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1 font-medium">
                       {post.visibility === "public" ? (
                         <Globe className="size-3" />
                       ) : post.visibility === "partners" ? (
@@ -1822,5 +1683,156 @@ function ModerationQueuePostCard({
         </CardContent>
       </MotionCard>
     </motion.div>
+  );
+}
+
+function ModerationFiltersMenu({
+  filterVisibility,
+  dispatchUi,
+  filterType,
+}: {
+  filterVisibility: VisibilityFilter;
+  dispatchUi: React.Dispatch<ContentModerationUiAction>;
+  filterType: PostTypeFilter;
+}) {
+  return (
+    <DropdownMenu>
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <DropdownMenuTrigger
+          aria-label="Filter posts"
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 sm:h-10 gap-2 rounded-xl"
+            >
+              <Filter className="size-4" />
+              <span className="hidden sm:inline">Filter</span>
+            </Button>
+          }
+        />
+      </motion.div>
+      <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs uppercase tracking-wider font-semibold px-2">
+            Visibility
+          </DropdownMenuLabel>
+          <DropdownMenuCheckboxItem
+            checked={filterVisibility === "all"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_visibility",
+                value: "all",
+              })
+            }
+            className="rounded-lg"
+          >
+            All
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterVisibility === "public"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_visibility",
+                value: "public",
+              })
+            }
+            className="rounded-lg"
+          >
+            Public
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterVisibility === "partners"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_visibility",
+                value: "partners",
+              })
+            }
+            className="rounded-lg"
+          >
+            Partners
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterVisibility === "private"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_visibility",
+                value: "private",
+              })
+            }
+            className="rounded-lg"
+          >
+            Private
+          </DropdownMenuCheckboxItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs uppercase tracking-wider font-semibold px-2">
+            Type
+          </DropdownMenuLabel>
+          <DropdownMenuCheckboxItem
+            checked={filterType === "all"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_type",
+                value: "all",
+              })
+            }
+            className="rounded-lg"
+          >
+            All Types
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterType === "update"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_type",
+                value: "update",
+              })
+            }
+            className="rounded-lg"
+          >
+            Updates
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterType === "prayer request"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_type",
+                value: "prayer request",
+              })
+            }
+            className="rounded-lg"
+          >
+            Prayer Requests
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterType === "story"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_type",
+                value: "story",
+              })
+            }
+            className="rounded-lg"
+          >
+            Stories
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterType === "announcement"}
+            onCheckedChange={() =>
+              dispatchUi({
+                type: "set_filter_type",
+                value: "announcement",
+              })
+            }
+            className="rounded-lg"
+          >
+            Announcements
+          </DropdownMenuCheckboxItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

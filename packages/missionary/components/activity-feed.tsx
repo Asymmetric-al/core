@@ -34,7 +34,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
             <Sparkles className="size-4.5" />
           </div>
           <div>
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
               Live Updates
             </CardTitle>
             <p className="text-lg font-bold text-zinc-900 tracking-tighter">
@@ -46,7 +46,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
           href="/donors"
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
-            "h-8 px-3 rounded-md text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50",
+            "h-8 px-3 rounded-md text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50",
           )}
         >
           Full Log <ArrowUpRight className="ml-1 size-3" />
@@ -75,12 +75,12 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
                     {activity.donor}
                   </p>
                   {activity.isNew && (
-                    <Badge className="bg-emerald-500 text-white border-none text-[8px] font-black uppercase tracking-widest px-1.5 h-3.5 rounded">
+                    <Badge className="bg-emerald-500 text-white border-none text-xs font-black uppercase tracking-widest px-1.5 h-3.5 rounded">
                       NEW
                     </Badge>
                   )}
                 </div>
-                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
                   {activity.type === "gift" ? "Strategic Gift" : "Sustaining"} ·{" "}
                   {activity.date}
                 </p>

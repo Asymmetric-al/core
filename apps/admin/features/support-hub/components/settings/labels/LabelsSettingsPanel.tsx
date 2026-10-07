@@ -86,11 +86,11 @@ export function LabelsSettingsPanel() {
                   )}
                 />
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-[13px] font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-zinc-900">
                     {label.name}
                   </span>
                   {label.description ? (
-                    <span className="truncate text-[11px] text-zinc-500">
+                    <span className="truncate text-xs text-zinc-500">
                       {label.description}
                     </span>
                   ) : null}

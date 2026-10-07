@@ -53,10 +53,10 @@ export function DonorDashboardMainBody() {
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6 pb-6 border-b border-zinc-100">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-zinc-900 tracking-tighter flex items-center gap-2 sm:gap-3 flex-wrap">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-zinc-900 tracking-normal flex items-center gap-2 sm:gap-3 flex-wrap">
             <Greeting />, {displayName}.
           </h1>
-          <p className="text-zinc-400 font-semibold uppercase tracking-widest text-[10px] mt-1.5">
+          <p className="text-zinc-400 font-semibold uppercase tracking-widest text-xs mt-1.5">
             Thank you for your partnership.
           </p>
         </div>
@@ -65,7 +65,7 @@ export function DonorDashboardMainBody() {
             href="/donor-dashboard/history"
             className={cn(
               buttonVariants({ variant: "outline" }),
-              "flex-1 sm:flex-none h-9 rounded-lg border-border text-muted-foreground font-semibold uppercase tracking-widest text-[10px] bg-background hover:bg-muted hover:text-foreground shadow-sm",
+              "flex-1 sm:flex-none h-9 rounded-lg border-border text-muted-foreground font-semibold uppercase tracking-widest text-xs bg-background hover:bg-muted hover:text-foreground shadow-sm",
             )}
           >
             <FileText
@@ -104,30 +104,30 @@ export function DonorDashboardMainBody() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-8">
-          <div className="relative overflow-hidden rounded-xl bg-zinc-900 text-white shadow-xl h-87.5 lg:h-100 flex flex-col justify-end group cursor-pointer border border-white/5">
+          <div className="relative overflow-hidden rounded-xl bg-zinc-900 text-white shadow-sm h-87.5 lg:h-100 flex flex-col justify-end group cursor-pointer border border-white/5">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90" />
+            <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90" />
 
             <div className="relative z-10 p-6 md:p-10 space-y-4 text-left">
               <div className="flex items-center gap-3 mb-1 flex-wrap">
-                <Badge className="bg-zinc-900 hover:bg-zinc-800 text-white border-none shadow-sm text-[9px] h-5 rounded-md uppercase font-semibold tracking-widest">
+                <Badge className="bg-zinc-900 hover:bg-zinc-800 text-white border-none shadow-sm h-5 rounded-md uppercase font-semibold tracking-widest">
                   FIELD UPDATE
                 </Badge>
-                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">
                   Chiang Mai, Thailand
                 </span>
               </div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tighter text-balance leading-tight">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-normal text-balance leading-tight">
                 The school year begins in Chiang Mai.
               </h2>
-              <p className="text-zinc-400 max-w-xl text-sm font-medium leading-relaxed uppercase tracking-tight line-clamp-2">
+              <p className="text-zinc-400 max-w-xl text-sm font-medium leading-relaxed tracking-tight line-clamp-2">
                 Thanks to monthly partners, 50 children received uniforms and
                 books this week.
               </p>
               <div className="pt-2">
                 <Link
                   href="/donor-dashboard/feed"
-                  className="inline-flex items-center px-6 py-2.5 rounded-lg bg-white text-zinc-900 font-semibold text-[10px] uppercase tracking-widest hover:bg-zinc-100 transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-xl touch-target"
+                  className="inline-flex items-center px-6 py-2.5 rounded-lg bg-white text-zinc-900 font-semibold text-xs uppercase tracking-widest hover:bg-zinc-100 transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-xl touch-target"
                 >
                   Read Full Update <ArrowRight className="ml-2 size-3.5" />
                 </Link>
@@ -140,12 +140,12 @@ export function DonorDashboardMainBody() {
           <Card className="border-zinc-100 shadow-sm flex flex-col overflow-hidden bg-white text-left rounded-xl">
             <CardHeader className="p-5 pb-4 border-b border-zinc-50 bg-zinc-50/20">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <CardTitle className="text-xs font-semibold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                   <Rss className="size-3.5" /> Ministry Updates
                 </CardTitle>
                 <Link
                   href="/donor-dashboard/feed"
-                  className="text-[10px] font-semibold text-zinc-900 uppercase tracking-widest hover:underline"
+                  className="text-xs font-semibold text-zinc-900 uppercase tracking-widest hover:underline"
                 >
                   View All
                 </Link>
@@ -165,11 +165,11 @@ export function DonorDashboardMainBody() {
                   ))}
                 </div>
               ) : feedQuery.error ? (
-                <p className="p-8 text-center text-[10px] font-semibold text-destructive uppercase tracking-widest">
+                <p className="p-8 text-center text-xs font-semibold text-destructive uppercase tracking-widest">
                   Updates couldn&apos;t load right now.
                 </p>
               ) : recentUpdates.length === 0 ? (
-                <p className="p-8 text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                <p className="p-8 text-center text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                   No ministry updates yet.
                 </p>
               ) : (
@@ -197,14 +197,14 @@ export function DonorDashboardMainBody() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline mb-0.5 gap-2">
-                          <span className="text-[11px] font-semibold text-zinc-900 dark:text-foreground truncate tracking-tight uppercase">
+                          <span className="text-xs font-semibold text-zinc-900 dark:text-foreground truncate tracking-tight uppercase">
                             {update.author}
                           </span>
-                          <span className="text-[9px] font-semibold text-zinc-300 dark:text-muted-foreground uppercase tracking-widest whitespace-nowrap shrink-0">
+                          <span className="text-xs font-semibold text-zinc-300 dark:text-muted-foreground uppercase tracking-widest whitespace-nowrap shrink-0">
                             {update.time}
                           </span>
                         </div>
-                        <p className="text-[10px] font-semibold text-zinc-500 dark:text-muted-foreground line-clamp-2 leading-snug uppercase tracking-tight">
+                        <p className="text-xs font-semibold text-zinc-500 dark:text-muted-foreground line-clamp-2 leading-snug uppercase tracking-tight">
                           {update.title}
                         </p>
                       </div>
@@ -218,7 +218,7 @@ export function DonorDashboardMainBody() {
               href="/donor-dashboard/feed"
               className={cn(
                 buttonVariants({ variant: "ghost" }),
-                "w-full h-10 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50/30 hover:bg-zinc-100 hover:text-zinc-900 rounded-none border-t border-zinc-50 touch-target",
+                "w-full h-10 text-xs font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50/30 hover:bg-zinc-100 hover:text-zinc-900 rounded-none border-t border-zinc-50 touch-target",
               )}
             >
               View All Ministry Updates

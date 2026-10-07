@@ -17,7 +17,7 @@ export type SupportShortcutAction =
   | "openSnoozeMenu"
   | "closeOverlay";
 
-export interface SupportShortcutEntry {
+interface SupportShortcutEntry {
   action: SupportShortcutAction;
   /** Human label rendered in the palette footer. */
   label: string;

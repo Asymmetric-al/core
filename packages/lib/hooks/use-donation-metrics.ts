@@ -176,6 +176,7 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
     }
 
     let isMounted = true;
+    const controller = new AbortController();
 
     const fetchDonations = async () => {
       try {
@@ -184,6 +185,7 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
 
         const response = await fetch(
           `/api/missionaries/${missionaryId}/metrics`,
+          { signal: controller.signal },
         );
 
         if (!isMounted) return;
@@ -221,6 +223,7 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
   }, [missionaryId]);
 

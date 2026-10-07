@@ -6,8 +6,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import * as React from "react";
 
-import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
 import { useNotifyingState } from "./use-notifying-state";
+import { createEmptyFilterState } from "../filters/types";
+import { createAdvancedFilterFn } from "../filters/use-advanced-filter";
 import {
   type ColumnFiltersState,
   type SortingState,
@@ -252,37 +253,4 @@ export function useDataTableWithLiveQuery<
     clearSelection,
     refetch,
   };
-}
-
-interface UseDataTableWithSupabaseOptions<TData extends RowData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  tableName: string;
-  select?: string;
-  initialState?: {
-    pagination?: PaginationState;
-    sorting?: SortingState;
-    columnFilters?: ColumnFiltersState;
-    columnVisibility?: VisibilityState;
-    rowSelection?: RowSelectionState;
-    advancedFilter?: AdvancedFilterState;
-  };
-  advancedFilterFields?: FilterFieldDefinition[];
-  enableRowSelection?: boolean;
-  enableSorting?: boolean;
-  enableFiltering?: boolean;
-  enablePagination?: boolean;
-  pageSize?: number;
-  getRowId?: (row: TData) => string;
-  realtimeEnabled?: boolean;
-  realtimeEvent?: "INSERT" | "UPDATE" | "DELETE" | "*";
-}
-
-export function useDataTableWithSupabase<
-  TData extends RowData,
-  TValue = unknown,
->(_options: UseDataTableWithSupabaseOptions<TData, TValue>) {
-  console.warn(
-    "useDataTableWithSupabase is deprecated. Use useDataTableWithLiveQuery with TanStack DB collections instead.",
-  );
-  return null;
 }

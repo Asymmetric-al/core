@@ -4,7 +4,7 @@ import { NativeCollectionListView } from "../../collections/shared/list-workspac
 
 import type { NativeCollectionListViewProps } from "../../collections/shared/list-workspace/NativeCollectionListView";
 
-export type PageTemplatesNativeListViewProps = Omit<
+type PageTemplatesNativeListViewProps = Omit<
   NativeCollectionListViewProps,
   "collectionSlug"
 >;

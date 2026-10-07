@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
@@ -133,27 +133,32 @@
         },
         {
           "path": "package.json",
-          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
+          "sha256": "82243389b73753048c60dc692351371727974be9d8de0fd7a62bd52f8a4be60c"
         }
       ]
     },
     {
       "project": "apps/admin",
       "rule": "async-action-pending-state",
-      "evidenceFingerprint": "d60c53edf1123b21364b2d1e72d9f6dfa18fab8acac8a092d309664fbae48c4f",
+      "evidenceFingerprint": "727a8a3ad7b4cbe15930c4a7c3777ee4f1dfe0aece6e5c41eaf7f03557fadcf7",
       "classification": "scanner-limitation",
-      "rationale": "The scanner follows the pending prop into the read-only LaunchReadinessStatusGrid and treats that display component as a trigger. Actual mutation controls stay disabled, reject duplicate activation and expose a visible, unblocked status announcement. The deferred-mutation test proves pending feedback and duplicate prevention on the real rendered action.",
+      "rationale": "The exact reported useMutation is a controller owner. Its isPending state reaches private Add, editor Save, category and delete controls; the same parent renders a stable visible polite/atomic Saving/Saved region. Existing destructive Alert reports failure; onSuccess updates the cache and clears only intended successful drafts/intents. Deferred real-component tests verify POST pending feedback, disabled repeat activation, success/failure drafts, and one DELETE with the captured version. The scanner does not follow the controller object through extracted controls. Reconsider if a control stops consuming pending, feedback leaves this owner or mutation/intent ownership changes. Eight actual Chromium cases additionally verify keyboard pending focus, repeat activation, failures, light/dark, narrow/wide layout, reduced motion and axe through synthetic transport.",
       "verificationTests": [
-        "tests/unit/apps/admin/app/eve-launch-readiness-panel.test.tsx"
+        "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
+        "tests/e2e/react-cleanup-memory.spec.ts"
       ],
       "proof": [
         {
-          "path": "apps/admin/app/(app)/admin/eve/launch-readiness-panel.tsx",
-          "sha256": "419171911037236ce6cd44f8bbefcb1b2e5f425355dbabc339707b6c9ec3b5f2"
+          "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
+          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
         },
         {
-          "path": "tests/unit/apps/admin/app/eve-launch-readiness-panel.test.tsx",
-          "sha256": "f9c7259ee8f45ca5c5f6749aa98951128a0521c7ef136c2363ad94b62e6385bc"
+          "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
+          "sha256": "1c64675fb99f5c7635cb0bbb9f2ce54fa6335c8f2108a180b2e753b3212cbedc"
+        },
+        {
+          "path": "tests/e2e/react-cleanup-memory.spec.ts",
+          "sha256": "4529cb8ddbb340667084c5a8d11306411da8488b028cbe695f88686b7861890f"
         }
       ]
     },
@@ -199,7 +204,7 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "456cf69f3e2670def57e31da67554ee456a7e8f63270a4706f864c296a3856ed"
+          "sha256": "b7a6b703ee717afda03e5f7365bf65d009d9cf8a83f7965ad6207d1755cb7e4b"
         },
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
@@ -235,7 +240,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "339f640ecba65227106cda81eafaa3029ed6aa06e25c3776f197a57a32a51fb4"
+          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
@@ -243,7 +248,7 @@
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "e05c7836d6b2a273a773c8f2bb420b412d37c772cd7f8b534a9f626a950390e4"
+          "sha256": "1c64675fb99f5c7635cb0bbb9f2ce54fa6335c8f2108a180b2e753b3212cbedc"
         }
       ]
     },
@@ -259,7 +264,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
-          "sha256": "f5a57670542ce5b7ddb058ab288199165e5d1cbb1c241e22d1104bec265707b4"
+          "sha256": "7f30cfca4c961606ab8cb4bc05d20bbd7a0d09739e10a6f30a81300e55266fbe"
         },
         {
           "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
@@ -279,11 +284,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/admin-memory-panel.tsx",
-          "sha256": "339f640ecba65227106cda81eafaa3029ed6aa06e25c3776f197a57a32a51fb4"
+          "sha256": "4ceec1bde3be5b2f30e23ada08e45914555e0119a484d7c0bc768ce7433fef6e"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-admin-memory-concurrency.test.tsx",
-          "sha256": "e05c7836d6b2a273a773c8f2bb420b412d37c772cd7f8b534a9f626a950390e4"
+          "sha256": "1c64675fb99f5c7635cb0bbb9f2ce54fa6335c8f2108a180b2e753b3212cbedc"
         }
       ]
     },
@@ -300,7 +305,7 @@
       "proof": [
         {
           "path": "apps/admin/app/global-error.tsx",
-          "sha256": "82026709464391d8f0c14f791cbf4829a646f68f42ab58bb5c8c76eca59d9d29"
+          "sha256": "a334837d2c72246747dbe1f409e397c7b33aba520685b811f98fc359d1f7feb6"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -325,7 +330,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
-          "sha256": "7dda62c4dfc6a7dac72810ca0e421ede3b72b8004cea8acae1387d7d5090874f"
+          "sha256": "925806b893cb71b14f0d4dae90e98844a5896c1768b6d4b23cf5989c0e7f57dd"
         },
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/use-resend-forms.ts",
@@ -357,7 +362,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
-          "sha256": "efd424e6e2f8a82c932e18a02ced2b04285eaec24bf289ca56d7035f5aec68b9"
+          "sha256": "0f43820fe80cb6da37b13805ddaf484f1341ffdd12daaf08fe0eebf68dbfaf10"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -381,11 +386,11 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "456cf69f3e2670def57e31da67554ee456a7e8f63270a4706f864c296a3856ed"
+          "sha256": "b7a6b703ee717afda03e5f7365bf65d009d9cf8a83f7965ad6207d1755cb7e4b"
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
-          "sha256": "d79354ed18ed16839ccac6ad55a2cfe24354734336e7f85a043e7a9dfb9984fc"
+          "sha256": "f31fe6fd7a89e45513a93da23cccbfdc8132e76948063b9467bbabd00a692eb2"
         },
         {
           "path": "tests/unit/apps/admin/mc-shell-navigation-names.test.tsx",
@@ -429,7 +434,7 @@
         },
         {
           "path": "apps/admin/app/global-not-found.tsx",
-          "sha256": "df86630a4c91ad52cdd90c218f1c67c66e490aa4f832c3cff12edbfd11078c4c"
+          "sha256": "ab4bf62b3a174b1c1f433d61689b5edaafe7f481e3b1a508637f3a0a73a272fb"
         },
         {
           "path": "apps/admin/package.json",
@@ -473,11 +478,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "d96f2c1ba8a7c5e138024603c5fb776d1b75763874431f7efd98ca817280324d"
+          "sha256": "c827425685353814b726e26b2f7a168441fe8f4a57afcd0743f920371e989143"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "b9f14aef6236293ad69f322bd85ecc1bd79df73168f290746648de6451d08b6c"
+          "sha256": "6d6da8a339e0c825dbf05b9f8deae658a44853a8ff9b24f12c902d4f5fe8525f"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -543,7 +548,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/page-client.tsx",
-          "sha256": "0e97272319830b85b5dd0fab19faf4eebf6be44d8eb1388bf1765576b18e32e7"
+          "sha256": "bdd41318f50e267ef0a25c3d73a0a1081407841c517bb285b988c4b314f46513"
         },
         {
           "path": "tests/unit/apps/admin/app/eve-governance-confirmation-stability.test.tsx",
@@ -592,7 +597,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -620,7 +625,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -665,7 +670,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "6fa44309ba1a076af2547a27169556e0e0b90ba908f286b479311cc1b69d5347"
+          "sha256": "5198556967ee79c4e17a51ad79123159d4f772d3964dcbbfe606ac2ff8c128e4"
         },
         {
           "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
@@ -711,7 +716,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "6fa44309ba1a076af2547a27169556e0e0b90ba908f286b479311cc1b69d5347"
+          "sha256": "5198556967ee79c4e17a51ad79123159d4f772d3964dcbbfe606ac2ff8c128e4"
         },
         {
           "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
@@ -753,7 +758,7 @@
       "proof": [
         {
           "path": "apps/donor/app/global-error.tsx",
-          "sha256": "5fd6b2693eab98c022cf7bfa133e7c75d54d548ed6a5f276ec49107a2b46608e"
+          "sha256": "163498786a116348afd1d81d72f90e82edb5ec7c5e38234e3a1f2ce433d8a8ce"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -775,7 +780,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/workers/[id]/giving-widget.tsx",
-          "sha256": "1c12af755755aaa7744135a05cb7567ac6f60768dc717aa9cc30dd5b80b20af3"
+          "sha256": "b12f3c7ef073ebd47093c94b17d425d469d6e8a7a748daad0e59397031bfda32"
         },
         {
           "path": "tests/unit/apps/donor/giving-widget.test.tsx",
@@ -796,11 +801,15 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx",
-          "sha256": "10e0beda6c3269dc081587ccc725b3fd9c7bc48877d9b09104b3560a2f3487d9"
+          "sha256": "53931258a2dd3a9930bfb982b3131db235c67eec50e0fdda77f127e329cd22e1"
         },
         {
-          "path": "packages/ui/components/shadcn/button.tsx",
-          "sha256": "9c6b180fafd69f4dc1361dd141a2b6378bb7ff2a71ba7d7a9ce8a93ab1e48034"
+          "path": "packages/ui/components/shadcn/button.ts",
+          "sha256": "6f25835348ce22fcafa48af585b48d1664e84854c30baa92eb01581c26e1dff4"
+        },
+        {
+          "path": "packages/ui/components/shadcn/button-component.tsx",
+          "sha256": "04599b0e93621d62c3c43d6636bd6253d6b5576eb4b160f41a1e211a9e5426c0"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -829,7 +838,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-          "sha256": "9cef190c24011b8a9ff5db7adb29092ac9c332abb01c31f5e9abfd2c53b58471"
+          "sha256": "cfd34cfaa902b1c81a31ddac9f5de1b251752ba2c2e2e3948a52b72948d2e41d"
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
@@ -858,7 +867,7 @@
       "proof": [
         {
           "path": "apps/donor/app/global-not-found.tsx",
-          "sha256": "b00011d6e63e44f90351be2764476b4d6997126413cdaa5cbfac6f2fb8b82e27"
+          "sha256": "736b8092e78fdfcc9ead3fdef59ab6e894e1aed96ea1827ff291301627195031"
         },
         {
           "path": "apps/donor/next.config.ts",
@@ -914,11 +923,11 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
-          "sha256": "3d718bfb6a7da106f37776436ea2bd2ec513cedb7b74fe8b1e34a5fabe945d30"
+          "sha256": "b19e2d2fc84635dcdbb6055d999aff8775236e1be312a33b313afe0c0f59b759"
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
-          "sha256": "c7829ca7cb086cb1862140f276bb735a9c6880432ec61e88ccb273f276a69dfa"
+          "sha256": "504ad53a099596620906b6559699c5a26efe0fb05e0807dfc63b54eb6238142b"
         },
         {
           "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",
@@ -938,7 +947,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "6fa44309ba1a076af2547a27169556e0e0b90ba908f286b479311cc1b69d5347"
+          "sha256": "5198556967ee79c4e17a51ad79123159d4f772d3964dcbbfe606ac2ff8c128e4"
         },
         {
           "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
@@ -983,7 +992,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1011,7 +1020,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1186,7 +1195,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/global-error.tsx",
-          "sha256": "5e7172045874ed891fc2008992728457abd448bbed1e0dd880d96770b0bac8e5"
+          "sha256": "7e7593bcb944952cdb9b9ff6076d5d31db38a1129f842b57ca67f28abd80ce8f"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -1211,15 +1220,15 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "dd7dae958001168306327bb697ae0c7154acf3af53fa3d9bd3992504dc1aa554"
+          "sha256": "6e6f2c5cf84c591a20c1d23030014c6184a35e3c0eb8638902ed69537b3034d0"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "cdf73383346573ea14cb2e580bc3075e7ab6547e03784cea670fc9ee20c83c4d"
+          "sha256": "824aadb268eb298d2d2ffca6881f528536341d7c8d10ac891943b0e1caa20e6c"
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
-          "sha256": "a2f956d94656e5369ce276233bcc9d52a1b2694e0e01f1851488218e3baabc55"
+          "sha256": "0514c9488a5cdaeb8ea7b84379474d641991ccd6a6f24a9e3801d6c26bdcf6bc"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
@@ -1248,11 +1257,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "dd7dae958001168306327bb697ae0c7154acf3af53fa3d9bd3992504dc1aa554"
+          "sha256": "6e6f2c5cf84c591a20c1d23030014c6184a35e3c0eb8638902ed69537b3034d0"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "cdf73383346573ea14cb2e580bc3075e7ab6547e03784cea670fc9ee20c83c4d"
+          "sha256": "824aadb268eb298d2d2ffca6881f528536341d7c8d10ac891943b0e1caa20e6c"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
@@ -1272,7 +1281,7 @@
       "project": "apps/missionary",
       "rule": "icon-buttons-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "Flagged action Button is rendered by a labeled DropdownMenuTrigger. The actual keyboard-hidden task action issue was separately repaired with group-focus-within visibility outside Button ownership; completed delete is explicitly named. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action. Current actual DonorTasks DOM tests also verify the active action trigger and completed delete names, confirmation focus, cancellation and deferred duplicate prevention.",
+      "rationale": "Flagged action Button is rendered by a labeled DropdownMenuTrigger. The actual keyboard-hidden task action issue was separately repaired by keeping its action controls always visible outside Button ownership; completed delete is explicitly named. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction. The exact caller is source-reviewed; the shared Trigger/Button bridge's executable name propagation and activation are proved in shadscan-trigger-name.test.tsx. This is not a claim of rendering every caller or every conditional action. Current actual DonorTasks DOM tests also verify the active action trigger and completed delete names, confirmation focus, cancellation and deferred duplicate prevention.",
       "verificationTests": [
         "tests/unit/packages/ui/shadscan-readiness.test.tsx",
         "tests/unit/packages/ui/shadscan-trigger-name.test.tsx",
@@ -1282,11 +1291,15 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "58bd926f2d55c06f94cc26417b3a33fb4cc41359b0fdd930cea0a2440a2086ec"
+          "sha256": "a8f0ba30c0c8cf44b83a3995a6bfa98cd343da1c900194cad58b3e423e530fd4"
         },
         {
-          "path": "packages/ui/components/shadcn/button.tsx",
-          "sha256": "9c6b180fafd69f4dc1361dd141a2b6378bb7ff2a71ba7d7a9ce8a93ab1e48034"
+          "path": "packages/ui/components/shadcn/button.ts",
+          "sha256": "6f25835348ce22fcafa48af585b48d1664e84854c30baa92eb01581c26e1dff4"
+        },
+        {
+          "path": "packages/ui/components/shadcn/button-component.tsx",
+          "sha256": "04599b0e93621d62c3c43d6636bd6253d6b5576eb4b160f41a1e211a9e5426c0"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -1355,11 +1368,11 @@
         },
         {
           "path": "apps/missionary/components/app-sidebar.tsx",
-          "sha256": "c5a0e5aef478ea2711bea35e20a67545e936e3427f13d271ffb0c0cd248e98ba"
+          "sha256": "8c494f62cb01f3d92b23db09b3a17c0359fda4dc7fb068ea93108908bee7f6ca"
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
-          "sha256": "d79354ed18ed16839ccac6ad55a2cfe24354734336e7f85a043e7a9dfb9984fc"
+          "sha256": "f31fe6fd7a89e45513a93da23cccbfdc8132e76948063b9467bbabd00a692eb2"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx",
@@ -1380,7 +1393,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/global-not-found.tsx",
-          "sha256": "517bcdfe041a0b7dc8a219e0eaed2af02191ab5426ccf08e7f96a13bc6ac6505"
+          "sha256": "cfb1c2b066920cf93456acb0ba70eb345637d3e2897b25bc2678eed9c7696a52"
         },
         {
           "path": "apps/missionary/next.config.ts",
@@ -1454,11 +1467,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/analytics/page-client.tsx",
-          "sha256": "b12ebb36ff7f00eaf7c620a0ed37e867ba2e6c04f29cbfe02ee0b0c7ea62b72a"
+          "sha256": "fd682bf3d792a23fe570e8d722a2de2c62b96e9d42c76644d7c1edf40764087c"
         },
         {
           "path": "packages/ui/components/primitives/chart-wrappers.tsx",
-          "sha256": "83e61aea206674ce738762de8f2adf2c5dfd4792f4d1c91b5a281e775d209945"
+          "sha256": "13094c8025000a666595a20701082f5464c86ae8d58b53d35c3c72d641d34f46"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
@@ -1531,7 +1544,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1559,7 +1572,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1732,7 +1745,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
-          "sha256": "9898e9dff27d86165deddc471ec808a6fbac14f8c73f7fafa8504b0466313de5"
+          "sha256": "416bfde8a46c575e9f8491e1054722fd58a04d7f80e397d19284eb86246ceff4"
         },
         {
           "path": "packages/database/hooks/admin-crm-detail.ts",
@@ -2063,7 +2076,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2080,7 +2093,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2096,7 +2109,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-dialog.tsx",
-          "sha256": "365ffa1089ac48ccd41f4f91ccab2a30efc6546dec13e3c88c9bf08e967eab13"
+          "sha256": "efe6ae40ec6db5df8dc18cf71cde915fa3167b734f25d8c600b5e385c3ba2852"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
@@ -2120,7 +2133,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/tasks/task-details-sheet.tsx",
-          "sha256": "007172e5df6eebd3cac802ac50ab33731785972405eca2b0c42304bb9cc52c2d"
+          "sha256": "cea8d811cf290fcd4e6e633e332f2b1948efe5db45ca6de904073616fe34c0b0"
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
@@ -2141,7 +2154,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2158,7 +2171,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2176,15 +2189,19 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-kanban-board.tsx",
-          "sha256": "1d379117a3453e2d7b3fbf756cb4274950ef8a54d3e1b882fe2798d7a071ea66"
+          "sha256": "d7006c27b444165f322002dd74ef5f6a25a7068ace273dd1f680c1bda9754557"
         },
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "bb7722acb6740e69d94a03f17ac404b9362a17e330a47c839c515dab45e5bacf"
+          "sha256": "3d7f03ed604372d0e7ba3890a3ec10555f672d04e5bf849c213a5eb1f1654e60"
         },
         {
-          "path": "packages/ui/components/shadcn/button.tsx",
-          "sha256": "9c6b180fafd69f4dc1361dd141a2b6378bb7ff2a71ba7d7a9ce8a93ab1e48034"
+          "path": "packages/ui/components/shadcn/button.ts",
+          "sha256": "6f25835348ce22fcafa48af585b48d1664e84854c30baa92eb01581c26e1dff4"
+        },
+        {
+          "path": "packages/ui/components/shadcn/button-component.tsx",
+          "sha256": "04599b0e93621d62c3c43d6636bd6253d6b5576eb4b160f41a1e211a9e5426c0"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2216,7 +2233,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "bb7722acb6740e69d94a03f17ac404b9362a17e330a47c839c515dab45e5bacf"
+          "sha256": "3d7f03ed604372d0e7ba3890a3ec10555f672d04e5bf849c213a5eb1f1654e60"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2241,7 +2258,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2278,7 +2295,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2295,7 +2312,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2312,7 +2329,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2329,7 +2346,7 @@
         },
         {
           "path": "packages/missionary/package.json",
-          "sha256": "50172f0cc9be170d28f4d01fba409ea82b1351e26e9a61457c5ad7003b9783d5"
+          "sha256": "f9a186507a6e5a8710a6a5f541f9dada75de9ac2199a5cb30b9cf7e6b2a9d2c4"
         }
       ]
     },
@@ -2346,7 +2363,7 @@
       "proof": [
         {
           "path": "packages/ui/components/auth/FullLoginCard.tsx",
-          "sha256": "510f3f8c0f492d9f0663b16de1ac73e9786a9982754120d723abe0786a7aa46d"
+          "sha256": "a298db5739d06418acbe33e5cd827a4b518a1d25bc17ee43a3a6c998b85868ff"
         },
         {
           "path": "packages/ui/components/auth/auth-primitives.tsx",
@@ -2375,7 +2392,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         }
       ]
     },
@@ -2392,7 +2409,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         }
       ]
     },
@@ -2408,7 +2425,7 @@
       "proof": [
         {
           "path": "packages/ui/components/primitives/image-cropper.tsx",
-          "sha256": "e70ed5b2fef8f9d297e917236b8f6e59cb321408ad51c0d6df5162b3faa61859"
+          "sha256": "0c7030843e92d62cfa8cf8d64ac43f7485e4c018cdc7325ab21dfcb47810503a"
         },
         {
           "path": "packages/ui/components/shadcn/slider.tsx",
@@ -2432,7 +2449,7 @@
       "proof": [
         {
           "path": "packages/ui/components/auth/LoginScreen.tsx",
-          "sha256": "9ecbfc5b9ce93c58cdb16ed9849507d3a4f90223da1876844dd4c389babf755b"
+          "sha256": "739c65e0dabd8309cf75db84c9ba2993e5cd5391479652287a3d8ea894d2a8a8"
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
@@ -2453,7 +2470,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         }
       ]
     },
@@ -2470,7 +2487,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         }
       ]
     },
@@ -2522,13 +2539,14 @@
       "project": "packages/ui",
       "rule": "forms-have-labels",
       "classification": "scanner-limitation",
-      "rationale": "AuthInput is a caller-labeled primitive; actual auth screens name Email/Password. TanStack inputs/textareas receive FieldShell context and labels. TextCell editors now receive derived Edit column label via commonProps spread; actual numeric/text/multiline editor tests verify names. Scanner sees the spread but cannot resolve it. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
+      "rationale": "The exact remaining AuthInput, TanStack field and InputGroup controls are typed shared native-input boundaries. Auth callers supply names; TanStack FieldShell supplies associated labels/IDs/error context; InputGroup forwards all native props including caller labels/IDs. Actual auth-screen, field-context and input-group DOM tests verify rendered names and event forwarding. Concrete table search, scalar/range filters, saved-view renaming and editable-cell missing names are fixed explicitly and are outside this exception. Reconsider if a wrapper drops native label/ref props or an actual caller lacks its required name.",
       "verificationTests": [
         "tests/unit/packages/ui/auth-screen-pending.test.tsx",
         "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
-        "tests/unit/packages/ui/shadscan-editable-cells.test.tsx"
+        "tests/unit/packages/ui/shadscan-editable-cells.test.tsx",
+        "tests/unit/packages/ui/filter-input-names.test.tsx"
       ],
-      "evidenceFingerprint": "6a51c0fc253775bc4af40bdbf2431c70abc33260029c555693a7748704070f1d",
+      "evidenceFingerprint": "d1b411f7a847e5f45706b444f368a39c4fd2de011d359b177df0ae8419362309",
       "proof": [
         {
           "path": "packages/ui/components/auth/auth-primitives.tsx",
@@ -2544,7 +2562,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/data-table/cell-variants/text-cell.tsx",
-          "sha256": "e2fb659b9d636a178f5d5d90747db722bc16cb46ba19842c9e3a9ce89294f20b"
+          "sha256": "de3d640b385c105404f671e7fa4537b12b079c160357ca122b1983d31e104c17"
         },
         {
           "path": "tests/unit/packages/ui/auth-screen-pending.test.tsx",
@@ -2557,6 +2575,14 @@
         {
           "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
           "sha256": "e2b0f8614a8f9bb00887c7f750d35414bc1712dec029f690f17b3a6c1c32feda"
+        },
+        {
+          "path": "packages/ui/components/shadcn/input-group.tsx",
+          "sha256": "da29a691092c1b973a468eade0b3ae1826ff4661938c5e6a454c61efbddf144f"
+        },
+        {
+          "path": "tests/unit/packages/ui/filter-input-names.test.tsx",
+          "sha256": "dc7ad2c51253c8bdd3b44d9f2c34ddb4bd3b3729abef2318c1d8e181994e0d7f"
         }
       ]
     },
@@ -2655,7 +2681,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         }
       ]
     },
@@ -2671,7 +2697,7 @@
       "proof": [
         {
           "path": "packages/ui/components/primitives/chart-wrappers.tsx",
-          "sha256": "83e61aea206674ce738762de8f2adf2c5dfd4792f4d1c91b5a281e775d209945"
+          "sha256": "13094c8025000a666595a20701082f5464c86ae8d58b53d35c3c72d641d34f46"
         },
         {
           "path": "packages/ui/components/shadcn/data-table/data-table-body.tsx",
@@ -2704,7 +2730,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         }
       ]
     },
@@ -2721,7 +2747,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "bb59dd7c9929b048c81556145b0243302395b97487590ad39ac0f36e12499e70"
+          "sha256": "53d657a24d8dc5dfd5edcde9312a2e844872e104609dce0ac0513a4525d657d7"
         }
       ]
     },
@@ -2738,7 +2764,7 @@
       "proof": [
         {
           "path": "packages/ui/components/ministry-update/comments-dialog.tsx",
-          "sha256": "b9247379a07998d560237cadda53880ece30c35b70d91665617e93fe6bd2e48a"
+          "sha256": "b0addf3499b4ef44aee6b28b3c639ff80012c2814c255e4f276050c1c736f142"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",

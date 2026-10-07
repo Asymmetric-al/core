@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(
   fileURLToPath(
     new URL(
-      "../../../../packages/ui/components/shadcn/rich-text-editor/image-view.tsx",
+      "../../../../packages/ui/components/shadcn/rich-text-editor/image-node-view.tsx",
       import.meta.url,
     ),
   ),

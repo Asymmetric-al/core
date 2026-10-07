@@ -64,7 +64,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
       <div className="flex items-center gap-3 py-1">
         <Avatar className="size-9 border border-border/50 shadow-sm ring-2 ring-background">
           <AvatarImage src={row.original.avatarUrl} />
-          <AvatarFallback className="text-[10px] font-black bg-primary text-primary-foreground">
+          <AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
             {row.original.initials}
           </AvatarFallback>
         </Avatar>
@@ -72,7 +72,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
           <span className="font-bold text-sm text-primary truncate tracking-tight">
             {row.original.name}
           </span>
-          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest truncate">
+          <span className="text-xs text-muted-foreground font-black uppercase tracking-widest truncate">
             {row.original.role}
           </span>
         </div>
@@ -90,7 +90,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Globe className="size-3 text-muted-foreground/60" />
-        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
           {row.original.region}
         </span>
       </div>
@@ -112,7 +112,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
         <Badge
           variant="outline"
           className={cn(
-            "text-[10px] font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
+            "font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
             priority === "Critical"
               ? "bg-destructive text-destructive-foreground"
               : priority === "High"
@@ -141,7 +141,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
         <Badge
           variant="outline"
           className={cn(
-            "text-[10px] font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
+            "font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
             status === "Healthy"
               ? "bg-emerald-500/10 text-emerald-600"
               : status === "At Risk"
@@ -173,7 +173,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
       return (
         <span
           className={cn(
-            "text-[11px] font-bold uppercase tracking-wider tabular-nums",
+            "text-xs font-bold uppercase tracking-wider tabular-nums",
             days > 30 ? "text-destructive" : "text-muted-foreground",
           )}
         >
@@ -191,7 +191,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
       <DataTableColumnHeader column={column} title="Last Update" />
     ),
     cell: ({ row }) => (
-      <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider tabular-nums">
+      <div className="text-xs text-muted-foreground font-bold uppercase tracking-wider tabular-nums">
         {makeDisplayDate(row.original.lastCheckIn).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",

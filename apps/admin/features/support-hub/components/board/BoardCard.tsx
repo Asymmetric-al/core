@@ -83,7 +83,7 @@ function BoardCardHeader({
   nowIso: string;
 }) {
   return (
-    <header className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+    <header className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5 truncate">
         {isUnread ? (
           <span
@@ -117,7 +117,7 @@ function BoardCardAssignee({
           src={conversation.assignee.avatarUrl ?? undefined}
           alt={conversation.assignee.name}
         />
-        <AvatarFallback className="text-[10px] font-semibold">
+        <AvatarFallback className="text-xs font-semibold">
           {conversation.assignee.name.charAt(0)}
         </AvatarFallback>
       </Avatar>
@@ -158,7 +158,7 @@ function BoardCardFooter({
           <Badge
             variant="outline"
             className={cn(
-              "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider",
+              "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
               conversation.priority === "urgent"
                 ? "border-rose-200 bg-rose-50 text-rose-700"
                 : "border-amber-200 bg-amber-50 text-amber-700",
@@ -171,7 +171,7 @@ function BoardCardFooter({
           <LabelChip key={label.id} label={label} />
         ))}
         {conversation.labels.length > 2 ? (
-          <span className="text-[10px] font-semibold text-muted-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">
             +{conversation.labels.length - 2}
           </span>
         ) : null}
@@ -254,7 +254,7 @@ export function BoardCard({
           nowIso={nowIso}
         />
 
-        <p className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">
+        <p className="line-clamp-2 text-xs font-medium leading-snug text-foreground">
           {conversation.subject}
         </p>
 
@@ -273,7 +273,7 @@ function LabelChip({ label }: { label: SupportLabel }) {
   return (
     <span
       className={cn(
-        "inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold ring-1 ring-inset",
+        "inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-xs font-semibold ring-1 ring-inset",
         LABEL_TONE_CLASSES[label.tone],
       )}
     >

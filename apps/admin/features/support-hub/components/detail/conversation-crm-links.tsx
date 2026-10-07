@@ -2,7 +2,7 @@ import { Building2, Heart, Receipt, Sparkles, UserPlus } from "lucide-react";
 
 import type { SupportContactRef } from "../../types";
 
-export interface ConversationCrmLink {
+interface ConversationCrmLink {
   key: string;
   label: string;
   href: string;

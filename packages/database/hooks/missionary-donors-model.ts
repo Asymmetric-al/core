@@ -336,41 +336,48 @@ export function buildMissionaryDonorRows(
   }
 
   return donors
-    .filter((donor) => donor.missionary_id === missionaryId)
-    .map((donor) => ({
-      id: donor.id,
-      name: donor.name ?? donor.email ?? "Unnamed donor",
-      initials: createInitials(donor.name ?? donor.email),
-      type: normalizeDonorType(donor.type),
-      status: normalizeDonorStatus(donor.status),
-      total_given: donor.total_given ?? 0,
-      last_gift_date: donor.last_gift_date,
-      last_gift_amount: donor.last_gift_amount ?? null,
-      frequency: normalizeFrequency(donor.frequency),
-      email: donor.email ?? "",
-      phone: donor.phone ?? "",
-      mobile: donor.mobile ?? undefined,
-      work_phone: donor.work_phone ?? undefined,
-      preferred_contact: normalizePreferredContact(donor.preferred_contact),
-      avatar_url: donor.avatar_url ?? undefined,
-      location: donor.location ?? "",
-      address: normalizeDonorAddress(donor.address),
-      work_address: donor.work_address
-        ? normalizeDonorAddress(donor.work_address)
-        : undefined,
-      website: donor.website ?? undefined,
-      organization: donor.organization ?? undefined,
-      title: donor.title ?? undefined,
-      joined_date: donor.joined_date ?? donor.created_at,
-      birthday: donor.birthday ?? undefined,
-      anniversary: donor.anniversary ?? undefined,
-      spouse: donor.spouse ?? undefined,
-      notes: donor.notes ?? undefined,
-      tags: donor.tags ?? [],
-      score: donor.score ?? 0,
-      activities: activitiesByDonor.get(donor.id) ?? [],
-      recurring_donations: pledgesByDonor.get(donor.id) ?? [],
-      has_active_pledge: donor.has_active_pledge ?? false,
-    }))
+    .flatMap((donor) =>
+      donor.missionary_id === missionaryId
+        ? [
+            {
+              id: donor.id,
+              name: donor.name ?? donor.email ?? "Unnamed donor",
+              initials: createInitials(donor.name ?? donor.email),
+              type: normalizeDonorType(donor.type),
+              status: normalizeDonorStatus(donor.status),
+              total_given: donor.total_given ?? 0,
+              last_gift_date: donor.last_gift_date,
+              last_gift_amount: donor.last_gift_amount ?? null,
+              frequency: normalizeFrequency(donor.frequency),
+              email: donor.email ?? "",
+              phone: donor.phone ?? "",
+              mobile: donor.mobile ?? undefined,
+              work_phone: donor.work_phone ?? undefined,
+              preferred_contact: normalizePreferredContact(
+                donor.preferred_contact,
+              ),
+              avatar_url: donor.avatar_url ?? undefined,
+              location: donor.location ?? "",
+              address: normalizeDonorAddress(donor.address),
+              work_address: donor.work_address
+                ? normalizeDonorAddress(donor.work_address)
+                : undefined,
+              website: donor.website ?? undefined,
+              organization: donor.organization ?? undefined,
+              title: donor.title ?? undefined,
+              joined_date: donor.joined_date ?? donor.created_at,
+              birthday: donor.birthday ?? undefined,
+              anniversary: donor.anniversary ?? undefined,
+              spouse: donor.spouse ?? undefined,
+              notes: donor.notes ?? undefined,
+              tags: donor.tags ?? [],
+              score: donor.score ?? 0,
+              activities: activitiesByDonor.get(donor.id) ?? [],
+              recurring_donations: pledgesByDonor.get(donor.id) ?? [],
+              has_active_pledge: donor.has_active_pledge ?? false,
+            },
+          ]
+        : [],
+    )
     .sort((left, right) => left.name.localeCompare(right.name));
 }

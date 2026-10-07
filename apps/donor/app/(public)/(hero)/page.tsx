@@ -17,7 +17,7 @@ export const metadata: Metadata = pageMetadata.home;
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 selection:bg-zinc-900/10 selection:text-zinc-900">
+    <div className="flex flex-col min-h-dvh bg-zinc-50 selection:bg-zinc-900/10 selection:text-zinc-900">
       <DonateActionJsonLd />
       <HomeHero />
       <LiveTicker />

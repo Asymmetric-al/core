@@ -14,9 +14,6 @@ import type {
   PublicCmsReadCachePolicy,
 } from "@asym/lib/cms/public-page";
 
-/** @deprecated Use `PublicCmsPage` from `@asym/lib/cms/public-page` */
-export type CmsPage = PublicCmsPage;
-
 export function buildPublicCmsPagePath(slugSegments: string[]) {
   return buildPublicCmsReadPath({ kind: "page", slugSegments });
 }
@@ -45,7 +42,7 @@ async function getForwardedHost(hostOverride?: string) {
 
 type PublicCmsUpdate = Record<string, unknown>;
 
-export type PublicCmsUpdatesReadResult =
+type PublicCmsUpdatesReadResult =
   | {
       status: "found";
       statusCode: 200;
@@ -118,16 +115,7 @@ export async function fetchPublishedCmsPageResult(
   );
 }
 
-export async function fetchPublishedCmsPage(
-  slugSegments: string[],
-  hostOverride?: string,
-) {
-  const result = await fetchPublishedCmsPageResult(slugSegments, hostOverride);
-
-  return result.status === "found" ? result.page : null;
-}
-
-export type PublishedCmsPageRouteState =
+type PublishedCmsPageRouteState =
   | {
       status: "found";
       page: PublicCmsPage;
@@ -204,18 +192,6 @@ export async function fetchPublishedCmsUpdatesResult(
   };
 }
 
-export async function fetchPublishedMissionaryGivingPage(
-  missionaryId: string,
-  hostOverride?: string,
-) {
-  const result = await fetchPublishedMissionaryGivingPageResult(
-    missionaryId,
-    hostOverride,
-  );
-
-  return result.status === "found" ? result.page : null;
-}
-
 export async function fetchPublishedMissionaryGivingPageResult(
   missionaryId: string,
   hostOverride?: string,
@@ -224,15 +200,6 @@ export async function fetchPublishedMissionaryGivingPageResult(
     { kind: "missionary-giving-page", missionaryId },
     hostOverride,
   );
-}
-
-export async function fetchPublishedProjectPage(
-  slug: string,
-  hostOverride?: string,
-) {
-  const result = await fetchPublishedProjectPageResult(slug, hostOverride);
-
-  return result.status === "found" ? result.page : null;
 }
 
 export async function fetchPublishedProjectPageResult(

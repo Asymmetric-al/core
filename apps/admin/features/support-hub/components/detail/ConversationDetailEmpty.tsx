@@ -13,10 +13,10 @@ export function ConversationDetailEmpty() {
         <MessageSquare className="size-5 text-zinc-300" />
       </div>
       <div>
-        <p className="text-[13px] font-semibold text-zinc-900">
+        <p className="text-xs font-semibold text-zinc-900">
           Pick a conversation
         </p>
-        <p className="mt-1 max-w-xs text-[12px] text-zinc-500">
+        <p className="mt-1 max-w-xs text-xs text-zinc-500">
           Select any board card or table row to read the email thread, leave an
           internal note, or reply to the donor.
         </p>

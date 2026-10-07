@@ -37,7 +37,7 @@ export function AttachmentChips({
         sizeBytes: file.size,
         // No real upload pipeline yet; we keep the file ref in URL form so a
         // later phase can swap this for a Resend / Supabase Storage upload.
-        blobRef: `local:${file.name}`,
+        blobRef: `local:${crypto.randomUUID()}:${file.name}`,
       });
     }
   };
@@ -67,9 +67,9 @@ export function AttachmentChips({
       />
       {attachments.map((attachment, index) => (
         <span
-          key={`${attachment.filename}-${index}`}
+          key={attachment.blobRef}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700",
+            "inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs font-medium text-zinc-700",
           )}
         >
           <Paperclip className="size-3 text-zinc-400" />

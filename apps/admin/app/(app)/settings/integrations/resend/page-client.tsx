@@ -178,96 +178,11 @@ export default function ResendSettingsPage() {
     },
   });
 
-  useEffect(() => {
-    let isActive = true;
-
-    async function hydrateConnectionState() {
-      try {
-        const response = await fetchWithSupabaseAuth("/api/email/connect", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        const data =
-          (await response.json()) as ResendConnectionStateResponse & {
-            error?: string;
-          };
-
-        if (!isActive) {
-          return;
-        }
-
-        if (!response.ok) {
-          setConnection((prev) => ({
-            ...prev,
-            status: "error",
-            error: data.error || "Failed to load Resend connection status",
-          }));
-          return;
-        }
-
-        connectForm.reset({
-          apiKey: "",
-          fromEmail: data.defaultFromEmail ?? "",
-          fromName: data.defaultFromName ?? "",
-          replyToEmail: data.replyToEmail ?? "",
-        });
-
-        if (!data.connected) {
-          setConnection({
-            status: "disconnected",
-            sendReady: data.sendReady,
-            hasValidationMetadata: false,
-            persisted: data.persisted ?? true,
-            validatedAt: undefined,
-            senderIdentities: [],
-            domainAuthentication: [],
-            deliverabilityScore: 0,
-            warnings: data.warnings || [],
-            error: data.error,
-          });
-          return;
-        }
-
-        setConnection({
-          status: "connected",
-          sendReady: data.sendReady,
-          hasValidationMetadata:
-            data.senderIdentities !== undefined ||
-            data.domainAuthentication !== undefined ||
-            data.deliverabilityScore !== undefined,
-          persisted: data.persisted ?? true,
-          apiKeyHint: data.apiKeyHint ?? undefined,
-          validatedAt: data.validatedAt,
-          senderIdentities: data.senderIdentities || [],
-          domainAuthentication: data.domainAuthentication || [],
-          deliverabilityScore: data.deliverabilityScore || 0,
-          warnings: data.warnings || [],
-          error: data.error,
-        });
-      } catch {
-        if (!isActive) {
-          return;
-        }
-
-        setConnection((prev) => ({
-          ...prev,
-          status: "error",
-          error: "Failed to load Resend connection status.",
-        }));
-      } finally {
-        if (isActive) {
-          setIsHydratingConnection(false);
-        }
-      }
-    }
-
-    hydrateConnectionState();
-
-    return () => {
-      isActive = false;
-    };
-  }, [connectForm]);
+  useResendConnectionHydration({
+    setConnection,
+    connectForm,
+    setIsHydratingConnection,
+  });
 
   const handleDisconnect = async () => {
     try {
@@ -365,4 +280,107 @@ export default function ResendSettingsPage() {
       />
     </div>
   );
+}
+
+function useResendConnectionHydration({
+  setConnection,
+  connectForm,
+  setIsHydratingConnection,
+}: {
+  setConnection: React.Dispatch<React.SetStateAction<ConnectionState>>;
+  connectForm: ReturnType<typeof useResendConnectForm>;
+  setIsHydratingConnection: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  useEffect(() => {
+    let isActive = true;
+
+    async function hydrateConnectionState() {
+      try {
+        const response = await fetchWithSupabaseAuth("/api/email/connect", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const data =
+          (await response.json()) as ResendConnectionStateResponse & {
+            error?: string;
+          };
+
+        if (!isActive) {
+          return;
+        }
+
+        if (!response.ok) {
+          setConnection((prev) => ({
+            ...prev,
+            status: "error",
+            error: data.error || "Failed to load Resend connection status",
+          }));
+          return;
+        }
+
+        connectForm.reset({
+          apiKey: "",
+          fromEmail: data.defaultFromEmail ?? "",
+          fromName: data.defaultFromName ?? "",
+          replyToEmail: data.replyToEmail ?? "",
+        });
+
+        if (!data.connected) {
+          setConnection({
+            status: "disconnected",
+            sendReady: data.sendReady,
+            hasValidationMetadata: false,
+            persisted: data.persisted ?? true,
+            validatedAt: undefined,
+            senderIdentities: [],
+            domainAuthentication: [],
+            deliverabilityScore: 0,
+            warnings: data.warnings || [],
+            error: data.error,
+          });
+          return;
+        }
+
+        setConnection({
+          status: "connected",
+          sendReady: data.sendReady,
+          hasValidationMetadata:
+            data.senderIdentities !== undefined ||
+            data.domainAuthentication !== undefined ||
+            data.deliverabilityScore !== undefined,
+          persisted: data.persisted ?? true,
+          apiKeyHint: data.apiKeyHint ?? undefined,
+          validatedAt: data.validatedAt,
+          senderIdentities: data.senderIdentities || [],
+          domainAuthentication: data.domainAuthentication || [],
+          deliverabilityScore: data.deliverabilityScore || 0,
+          warnings: data.warnings || [],
+          error: data.error,
+        });
+      } catch {
+        if (!isActive) {
+          return;
+        }
+
+        setConnection((prev) => ({
+          ...prev,
+          status: "error",
+          error: "Failed to load Resend connection status.",
+        }));
+      } finally {
+        if (isActive) {
+          setIsHydratingConnection(false);
+        }
+      }
+    }
+
+    hydrateConnectionState();
+
+    return () => {
+      isActive = false;
+    };
+  }, [connectForm, setConnection, setIsHydratingConnection]);
+
+  return {};
 }

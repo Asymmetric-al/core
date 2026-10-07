@@ -121,12 +121,12 @@ export const SuggestionList = React.forwardRef<
       )}
     >
       {heading ? (
-        <p className="border-b border-border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="border-b border-border px-3 py-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
           {heading}
         </p>
       ) : null}
       {items.length === 0 ? (
-        <p className="p-3 text-[12px] text-muted-foreground">{emptyHint}</p>
+        <p className="p-3 text-xs text-muted-foreground">{emptyHint}</p>
       ) : (
         <ul
           ref={viewportRef}
@@ -153,21 +153,23 @@ export const SuggestionList = React.forwardRef<
                       ? "bg-accent text-accent-foreground"
                       : "text-popover-foreground hover:bg-accent",
                   )}
+                  // Keep the editor selection intact until Tiptap inserts the item.
+                  onMouseDown={(event) => event.preventDefault()}
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => select(index)}
                 >
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-[13px] font-medium">
+                    <span className="truncate text-xs font-medium">
                       {item.label}
                     </span>
                     {item.description ? (
-                      <span className="truncate text-[11px] text-popover-foreground">
+                      <span className="truncate text-xs text-popover-foreground">
                         {item.description}
                       </span>
                     ) : null}
                   </div>
                   {item.hint ? (
-                    <span className="ml-2 inline-flex items-center rounded-md border border-border bg-popover px-1.5 py-0.5 font-mono text-[10px] text-popover-foreground">
+                    <span className="ml-2 inline-flex items-center rounded-md border border-border bg-popover px-1.5 py-0.5 font-mono text-xs text-popover-foreground">
                       {item.hint}
                     </span>
                   ) : null}

@@ -31,6 +31,21 @@ import { TASK_TYPE_CONFIG, PRIORITY_CONFIG } from "./task-config";
 
 import type { Task } from "../../types";
 
+const taskTableGetDueDateLabel = (date?: string | null) => {
+  if (!date) return { label: "No date", color: "text-muted-foreground" };
+  const d = new Date(date);
+  if (isToday(d))
+    return { label: "Today", color: "text-amber-600 font-semibold" };
+  if (isTomorrow(d))
+    return { label: "Tomorrow", color: "text-foreground font-medium" };
+  if (isPast(d))
+    return {
+      label: format(d, "MMM d"),
+      color: "text-destructive font-semibold",
+    };
+  return { label: format(d, "MMM d"), color: "text-muted-foreground" };
+};
+
 const EMPTY_CELL_VALUE = "N/A";
 
 interface TaskTableProps {
@@ -63,25 +78,13 @@ export function TaskTable({
     [selectedTaskIds],
   );
 
-  const getDueDateLabel = (date?: string | null) => {
-    if (!date) return { label: "No date", color: "text-muted-foreground" };
-    const d = new Date(date);
-    if (isToday(d))
-      return { label: "Today", color: "text-amber-600 font-semibold" };
-    if (isTomorrow(d))
-      return { label: "Tomorrow", color: "text-foreground font-medium" };
-    if (isPast(d))
-      return {
-        label: format(d, "MMM d"),
-        color: "text-destructive font-semibold",
-      };
-    return { label: format(d, "MMM d"), color: "text-muted-foreground" };
-  };
-
   return (
     <div className="w-full bg-card rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-200">
+        <table
+          aria-label="Tasks"
+          className="w-full text-left border-collapse min-w-200"
+        >
           <thead>
             <tr className="border-b border-border bg-muted/30">
               <th className="w-14 p-4">
@@ -110,7 +113,9 @@ export function TaskTable({
               <th className="p-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Partner
               </th>
-              <th className="w-14 p-4"></th>
+              <th className="w-14 p-4">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -120,7 +125,7 @@ export function TaskTable({
                 const isCompleted = task.status === "completed";
                 const typeConfig = TASK_TYPE_CONFIG[task.task_type];
                 const priorityConfig = PRIORITY_CONFIG[task.priority];
-                const dueDateInfo = getDueDateLabel(task.due_date);
+                const dueDateInfo = taskTableGetDueDateLabel(task.due_date);
 
                 return (
                   <motion.tr
@@ -153,7 +158,7 @@ export function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task);
                           }}
-                          className="flex-shrink-0 press-feedback"
+                          className="shrink-0 press-feedback"
                           aria-label={
                             isCompleted
                               ? "Mark as incomplete"
@@ -182,7 +187,7 @@ export function TaskTable({
                             <typeConfig.icon
                               className={cn("size-3", typeConfig.color)}
                             />
-                            <span className="text-[11px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               {typeConfig.label}
                             </span>
                           </div>
@@ -193,7 +198,7 @@ export function TaskTable({
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-[10px] font-medium capitalize",
+                          "text-xs font-medium capitalize",
                           task.status === "not_started" &&
                             "bg-muted text-muted-foreground",
                           task.status === "in_progress" &&
@@ -245,7 +250,7 @@ export function TaskTable({
                             <AvatarImage
                               src={task.donor.avatar_url || undefined}
                             />
-                            <AvatarFallback className="text-[10px] font-medium bg-muted">
+                            <AvatarFallback className="text-xs font-medium bg-muted">
                               {task.donor.name
                                 .split(" ")
                                 .map((n) => n[0])
@@ -271,7 +276,7 @@ export function TaskTable({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="size-8 transition-opacity"
                             >
                               <MoreHorizontal className="size-4" />
                             </Button>

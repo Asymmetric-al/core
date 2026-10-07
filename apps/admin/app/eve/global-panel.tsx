@@ -52,6 +52,8 @@ function EveConversation() {
     }
   }
 
+  const handleAgentReset = agent.reset;
+  const handleAgentStop = agent.stop;
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
@@ -96,8 +98,7 @@ function EveConversation() {
             ) : null}
             {agent.data.messages.map((item) => {
               const text = item.parts
-                .filter((part) => part.type === "text")
-                .map((part) => part.text)
+                .flatMap((part) => (part.type === "text" ? [part.text] : []))
                 .join("");
               if (!text) {
                 return null;
@@ -151,14 +152,18 @@ function EveConversation() {
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={agent.reset}
+                onClick={handleAgentReset}
                 disabled={busy}
                 aria-label="Start a new Eve session"
               >
                 <RotateCcw aria-hidden="true" className="size-4" />
               </Button>
               {busy ? (
-                <Button type="button" variant="outline" onClick={agent.stop}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAgentStop}
+                >
                   <Square aria-hidden="true" className="size-4" />
                   Detach
                 </Button>

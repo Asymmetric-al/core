@@ -28,11 +28,11 @@ export type NativeDocumentPrimaryState = {
   tone: NativeDocumentStateTone;
 };
 
-export type NativeDocumentStateItem = NativeDocumentPrimaryState & {
+type NativeDocumentStateItem = NativeDocumentPrimaryState & {
   id: "autosave" | "editing" | "preview" | "publication";
 };
 
-export type NativeDocumentStateItemsInput = NativeDocumentPrimaryStateInput & {
+type NativeDocumentStateItemsInput = NativeDocumentPrimaryStateInput & {
   hasPublishedDoc: boolean;
   previewSupported: boolean;
   previewURL: string | null;

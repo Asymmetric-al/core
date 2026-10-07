@@ -79,7 +79,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
   const label = getWebStudioPreviewCollectionLabel(collection);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-dvh bg-background text-foreground">
       <header className="border-border border-b bg-card px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
@@ -136,12 +136,16 @@ function renderPreviewLayout(layout: unknown, pageId: string): ReactNode {
     return null;
   }
 
-  const renderedBlocks = layout
-    .filter(isPreviewBlock)
-    .map((block, index) =>
-      renderPreviewBlock(block, `${pageId}-layout-${index}`),
-    )
-    .filter(Boolean);
+  const renderedBlocks: ReactNode[] = [];
+  let previewBlockIndex = 0;
+  for (const block of layout) {
+    if (!isPreviewBlock(block)) continue;
+    const rendered = renderPreviewBlock(
+      block,
+      `${pageId}-layout-${previewBlockIndex++}`,
+    );
+    if (rendered) renderedBlocks.push(rendered);
+  }
 
   return renderedBlocks.length ? (
     <div className="space-y-4">{renderedBlocks}</div>

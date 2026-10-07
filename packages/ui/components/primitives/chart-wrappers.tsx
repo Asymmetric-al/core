@@ -159,7 +159,7 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
             style={{ "--legend-color": item.color } as React.CSSProperties}
           />
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
               {item.label}
             </span>
             {item.value !== undefined && (
@@ -178,8 +178,8 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="bg-popover text-popover-foreground border-border/70 min-w-30 rounded-lg border p-3 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-      <p className="text-muted-foreground border-border/50 mb-2 border-b pb-1.5 text-[10px] font-semibold uppercase tracking-wider">
+    <div className="bg-popover text-popover-foreground border-border/70 min-w-30 rounded-lg border p-3 shadow-sm animate-in fade-in zoom-in-95 duration-200">
+      <p className="text-muted-foreground border-border/50 mb-2 border-b pb-1.5 text-xs font-semibold uppercase tracking-wider">
         {label}
       </p>
       <div className="space-y-1.5">
@@ -197,7 +197,7 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
                   } as React.CSSProperties
                 }
               />
-              <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-tight">
+              <span className="text-muted-foreground text-xs font-semibold uppercase tracking-tight">
                 {item.name}
               </span>
             </div>
@@ -270,7 +270,7 @@ function KpiTileDeltaBadge({
     <Badge
       variant="secondary"
       className={cn(
-        "h-5 px-1.5 text-[10px] font-semibold border-none",
+        "h-5 px-1.5 text-xs font-semibold border-none",
         kpiDeltaBadgeClass(delta.trend),
       )}
     >
@@ -306,7 +306,7 @@ export function KpiTile({
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {label}
             </p>
             <div className="flex items-baseline gap-2">

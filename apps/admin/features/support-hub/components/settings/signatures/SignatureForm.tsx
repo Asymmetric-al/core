@@ -110,7 +110,7 @@ export function SignatureForm({
             setOwnerAgentId(value === "workspace" ? null : value);
           }}
           aria-label="Owner"
-          className="h-9 max-w-sm text-[12px]"
+          className="h-9 max-w-sm"
         />
       </SettingsRow>
       <SettingsRow
@@ -121,7 +121,7 @@ export function SignatureForm({
           value={bodyText}
           onChange={(event) => setBodyText(event.target.value)}
           rows={6}
-          className="font-mono text-[12px]"
+          className="font-mono"
           placeholder={"Name\nTitle\nemail@example.org"}
         />
       </SettingsRow>
@@ -135,7 +135,7 @@ export function SignatureForm({
             onCheckedChange={setIsDefault}
             aria-label="Default signature"
           />
-          <span className="text-[12px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {isDefault ? "Default" : "Not default"}
           </span>
         </div>
@@ -154,10 +154,10 @@ export function SignatureForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+        <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           Preview
         </Label>
-        <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-3 font-mono text-[12px] text-zinc-700">
+        <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-3 font-mono text-xs text-zinc-700">
           {bodyText.split("\n").map((line, index) => (
             <span key={index} className="block">
               {line.length === 0 ? "\u00A0" : line}

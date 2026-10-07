@@ -34,18 +34,7 @@ import {
   Star,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { lazy, Suspense, useMemo, useState } from "react";
 
 import { QuickActionsRow } from "./quick-actions-row";
 import { TileCard } from "./tile-card";
@@ -54,7 +43,13 @@ import { getIcon } from "../icon-map";
 import { DynamicIcon } from "../icons";
 
 import type { DashboardStats } from "@asym/api/reads/dashboard-stats";
-import type { Tile } from "@asym/lib/mission-control/types";
+import type { Tile, Role, Workflow } from "@asym/lib/mission-control/types";
+
+const NUMBER_FORMATTER_1 = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
 
 type MissionControlHomeProps = {
   dashboardMissionaryId?: string | null;
@@ -96,22 +91,6 @@ const DASHBOARD_GUIDE_ITEMS = [
     value: "Role-aware modules",
     detail: "Your tools and quick actions follow your Mission Control role.",
   },
-];
-
-const MINISTRY_HEALTH_TREND = [
-  { month: "Jan", giving: 64, engagement: 58, care: 72 },
-  { month: "Feb", giving: 68, engagement: 62, care: 70 },
-  { month: "Mar", giving: 71, engagement: 66, care: 76 },
-  { month: "Apr", giving: 74, engagement: 69, care: 73 },
-  { month: "May", giving: 79, engagement: 72, care: 78 },
-  { month: "Jun", giving: 83, engagement: 76, care: 81 },
-];
-
-const MINISTRY_HEALTH_MIX = [
-  { area: "Giving", healthy: 83, watch: 12, risk: 5 },
-  { area: "People", healthy: 76, watch: 18, risk: 6 },
-  { area: "Care", healthy: 81, watch: 14, risk: 5 },
-  { area: "Events", healthy: 69, watch: 22, risk: 9 },
 ];
 
 const WIDGET_LIBRARY = [
@@ -172,11 +151,7 @@ function buildOverviewMetrics(stats: DashboardStats | null): OverviewMetric[] {
     {
       id: "revenue",
       label: "Revenue this month",
-      value: new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }).format(stats.revenueThisMonth),
+      value: NUMBER_FORMATTER_1.format(stats.revenueThisMonth),
       context: "Settled gifts since month start",
       tone: "success",
     },
@@ -217,7 +192,7 @@ function TileSummaryCard({ tile }: { tile: Tile }) {
             </div>
             <Badge
               variant="outline"
-              className="h-5 rounded-md bg-background px-1.5 text-[10px] font-semibold text-muted-foreground"
+              className="h-5 rounded-md bg-background px-1.5 font-semibold text-muted-foreground"
             >
               {classifyTile(tile)}
             </Badge>
@@ -262,486 +237,20 @@ export function MissionControlHome({
 
   return (
     <div className="relative isolate min-h-full px-4 pb-16 pt-5 sm:px-6 lg:px-7">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-zinc-50 via-background to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-linear-to-b from-zinc-50 via-background to-transparent" />
 
       <div className="relative space-y-6">
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
-          <Card className="overflow-hidden border-zinc-900 bg-zinc-950 text-white shadow-xl">
-            <CardContent className="relative p-5 sm:p-6">
-              <div className="pointer-events-none absolute right-0 top-0 size-64 translate-x-1/3 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
-              <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-3xl space-y-3">
-                  <Badge className="h-6 border-white/10 bg-white/10 font-semibold text-zinc-100 hover:bg-white/10">
-                    Mission Control dashboard
-                  </Badge>
-                  <div className="space-y-2">
-                    <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
-                      Start here. See the whole ministry picture.
-                    </h1>
-                    <p className="max-w-2xl text-sm font-medium leading-6 text-zinc-300">
-                      A command-center view for attention, money, people,
-                      mobilization, events, support, and admin readiness.
-                    </p>
-                  </div>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-3 lg:w-115">
-                  {DASHBOARD_GUIDE_ITEMS.map((item) => (
-                    <div
-                      key={item.label}
-                      className="rounded-2xl border border-white/10 bg-white/[0.06] p-3"
-                    >
-                      <p className="text-xs font-medium text-zinc-400">
-                        {item.label}
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-white">
-                        {item.value}
-                      </p>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-400">
-                        {item.detail}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <MissionControlReadiness
+          visibleTiles={visibleTiles}
+          showAllTools={showAllTools}
+          setShowAllTools={setShowAllTools}
+          allTiles={allTiles}
+          role={role}
+        />
 
-          <Card className="border-border bg-card shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Settings2 className="size-4 text-muted-foreground" />
-                Customizable workspace
-              </CardTitle>
-              <CardDescription>
-                Role-aware modules now form the starting map for daily work.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-border bg-muted/20 p-3">
-                  <p className="text-2xl font-semibold tabular-nums">
-                    {visibleTiles.length}
-                  </p>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    enabled modules
-                  </p>
-                </div>
-                <div className="rounded-xl border border-border bg-muted/20 p-3">
-                  <p className="text-2xl font-semibold tabular-nums">
-                    {TILES.length}
-                  </p>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    available tools
-                  </p>
-                </div>
-              </div>
-              <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
-                <DialogTrigger
-                  render={
-                    <Button className="h-10 w-full rounded-xl bg-zinc-900 font-semibold text-white hover:bg-zinc-800">
-                      <LayoutGrid className="mr-2 size-4" />
-                      Customize modules
-                    </Button>
-                  }
-                />
-                <DialogContent className="max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle>Mission Control tools</DialogTitle>
-                    <DialogDescription>
-                      Complete list of tools and whether your current role can
-                      access them.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {allTiles.map((tile) => {
-                      const Icon = getIcon(tile.icon);
-                      const hasAccess = tile.roles.includes(role);
-                      return (
-                        <div
-                          key={tile.id}
-                          className={cn(
-                            "flex items-start gap-3 rounded-2xl border p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
-                            hasAccess
-                              ? "border-border bg-card shadow-sm hover:border-zinc-300"
-                              : "border-border/60 bg-muted/30 opacity-70",
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "flex size-9 items-center justify-center rounded-xl border",
-                              hasAccess
-                                ? "border-border bg-muted/30 text-foreground"
-                                : "border-border/60 bg-muted text-muted-foreground",
-                            )}
-                          >
-                            <Icon className="size-4" />
-                          </div>
-                          <div className="min-w-0 flex-1 space-y-1">
-                            <p className="text-sm font-semibold text-foreground">
-                              {tile.title}
-                            </p>
-                            <Badge
-                              variant="secondary"
-                              className={cn(
-                                "h-5 px-1.5 text-[10px] font-semibold",
-                                hasAccess
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-zinc-100 text-zinc-500",
-                              )}
-                            >
-                              {hasAccess ? "Available" : "Locked"}
-                            </Badge>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        </section>
+        <MissionControlMetrics overviewMetrics={overviewMetrics} />
 
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="grid gap-3 sm:grid-cols-3">
-            {overviewMetrics.map((metric) => (
-              <Card key={metric.id} className="border-border bg-card shadow-sm">
-                <CardContent className="flex items-start justify-between gap-4 p-4">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {metric.label}
-                    </p>
-                    <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
-                      {metric.value}
-                    </p>
-                    <p className="mt-1 text-xs font-medium leading-5 text-muted-foreground">
-                      {metric.context}
-                    </p>
-                  </div>
-                  <div
-                    className={cn(
-                      "flex size-9 items-center justify-center rounded-xl border",
-                      getMetricToneClass(metric.tone),
-                    )}
-                  >
-                    {metric.tone === "success" ? (
-                      <CheckCircle2 className="size-4" />
-                    ) : metric.tone === "warning" ? (
-                      <AlertTriangle className="size-4" />
-                    ) : (
-                      <BarChart3 className="size-4" />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="border-border bg-card shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Clock3 className="size-4 text-amber-600" />
-                Priority scan
-              </CardTitle>
-              <CardDescription>
-                Use the first minute to decide where attention goes.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                {
-                  label: "Support and care",
-                  detail: "Review people-facing risk before routine work.",
-                  tone: "text-rose-600 bg-rose-50 border-rose-100",
-                },
-                {
-                  label: "Giving and reports",
-                  detail: "Check settled giving and operational signals.",
-                  tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
-                },
-                {
-                  label: "Pipeline and events",
-                  detail: "Move candidates, sessions, and tasks forward.",
-                  tone: "text-blue-700 bg-blue-50 border-blue-100",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="flex gap-3 rounded-xl border border-border bg-background p-3"
-                >
-                  <div
-                    className={cn(
-                      "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg border",
-                      item.tone,
-                    )}
-                  >
-                    <Star className="size-3" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {item.label}
-                    </p>
-                    <p className="text-xs leading-5 text-muted-foreground">
-                      {item.detail}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="space-y-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">
-                Ministry health widgets
-              </h2>
-              <p className="text-sm font-medium text-muted-foreground">
-                Two snapshot charts are pinned by default; teams can tune this
-                area by role and season.
-              </p>
-            </div>
-            <Dialog>
-              <DialogTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    className="h-10 rounded-xl border-zinc-200 bg-white font-semibold hover:bg-zinc-50"
-                  >
-                    <LayoutGrid className="mr-2 size-4" />
-                    Preview widgets
-                  </Button>
-                }
-              />
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Widget library preview</DialogTitle>
-                  <DialogDescription>
-                    Choose the views that matter for your role. This preview
-                    keeps customization visual-only until saved layouts are
-                    wired to user preferences.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-3 py-4 sm:grid-cols-2">
-                  {WIDGET_LIBRARY.map((widget) => (
-                    <div
-                      key={widget}
-                      className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
-                    >
-                      <GripVertical className="size-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {widget}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Available as a future dashboard preference
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
-            <Card className="border-border bg-card shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">
-                  Ministry health trend
-                </CardTitle>
-                <CardDescription>
-                  Demo snapshot data showing how giving, engagement, and care
-                  can share one six-month view.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-72 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={MINISTRY_HEALTH_TREND}
-                      margin={{ top: 8, right: 16, bottom: 4, left: -16 }}
-                    >
-                      <CartesianGrid
-                        vertical={false}
-                        stroke="var(--border)"
-                        strokeDasharray="3 3"
-                      />
-                      <XAxis
-                        dataKey="month"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        width={34}
-                        domain={[0, 100]}
-                        tickFormatter={(value: number) => `${value}%`}
-                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                      />
-                      <Tooltip
-                        cursor={{ stroke: "var(--border)" }}
-                        contentStyle={{
-                          borderRadius: "12px",
-                          border: "1px solid var(--border)",
-                          background: "var(--card)",
-                          color: "var(--foreground)",
-                          boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
-                        }}
-                        formatter={(value, name) =>
-                          typeof value === "number"
-                            ? [`${value}%`, name ?? ""]
-                            : null
-                        }
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="giving"
-                        name="Giving"
-                        stroke="var(--chart-1)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="engagement"
-                        name="Engagement"
-                        stroke="var(--chart-2)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="care"
-                        name="Care"
-                        stroke="var(--chart-5)"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {[
-                    ["Giving", "bg-[var(--chart-1)]/10 text-foreground"],
-                    ["Engagement", "bg-[var(--chart-2)]/10 text-foreground"],
-                    ["Care", "bg-[var(--chart-5)]/10 text-foreground"],
-                  ].map(([label, className]) => (
-                    <Badge
-                      key={label}
-                      className={cn(
-                        "border-none text-xs font-semibold hover:bg-current/10",
-                        className,
-                      )}
-                    >
-                      {label}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border bg-card shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Health distribution</CardTitle>
-                <CardDescription>
-                  Demo snapshot bands for the core ministry system; wire to
-                  source-of-truth data before treating as live health.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-72 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={MINISTRY_HEALTH_MIX}
-                      layout="vertical"
-                      margin={{ top: 8, right: 16, bottom: 4, left: 12 }}
-                    >
-                      <CartesianGrid
-                        horizontal={false}
-                        stroke="var(--border)"
-                        strokeDasharray="3 3"
-                      />
-                      <XAxis
-                        type="number"
-                        domain={[0, 100]}
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(value: number) => `${value}%`}
-                        tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                      />
-                      <YAxis
-                        type="category"
-                        dataKey="area"
-                        width={78}
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 11, fill: "var(--foreground)" }}
-                      />
-                      <Tooltip
-                        cursor={{ fill: "var(--muted)" }}
-                        contentStyle={{
-                          borderRadius: "12px",
-                          border: "1px solid var(--border)",
-                          background: "var(--card)",
-                          color: "var(--foreground)",
-                          boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
-                        }}
-                        formatter={(value, name) =>
-                          typeof value === "number"
-                            ? [`${value}%`, name ?? ""]
-                            : null
-                        }
-                      />
-                      <Bar
-                        dataKey="healthy"
-                        name="Healthy"
-                        stackId="health"
-                        fill="var(--chart-2)"
-                        radius={[4, 0, 0, 4]}
-                      />
-                      <Bar
-                        dataKey="watch"
-                        name="Watch"
-                        stackId="health"
-                        fill="var(--chart-4)"
-                      />
-                      <Bar
-                        dataKey="risk"
-                        name="Risk"
-                        stackId="health"
-                        fill="var(--chart-5)"
-                        radius={[0, 4, 4, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  {[
-                    ["Healthy", "text-foreground", "Stable"],
-                    ["Watch", "text-foreground", "Follow up"],
-                    ["Risk", "text-foreground", "Act now"],
-                  ].map(([label, className, helper]) => (
-                    <div
-                      key={label}
-                      className="rounded-xl border border-border bg-muted/20 p-2"
-                    >
-                      <p className={cn("text-xs font-semibold", className)}>
-                        {label}
-                      </p>
-                      <p className="text-[10px] font-medium text-muted-foreground">
-                        {helper}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        <MissionControlWorkflows />
 
         <section className="space-y-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -777,58 +286,469 @@ export function MissionControlHome({
           </div>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">
-                Enabled tools
-              </h2>
-              <p className="text-sm font-medium text-muted-foreground">
-                Full module cards remain below for deeper navigation and quick
-                actions.
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {visibleTiles.map((tile) => (
-                <TileCard key={tile.id} tile={tile} />
-              ))}
-            </div>
-          </div>
-
-          <Card className="h-fit border-border bg-card shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Sparkles className="size-4 text-purple-600" />
-                Suggested workflows
-              </CardTitle>
-              <CardDescription>
-                Cross-module flows that explain what the dashboard connects.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {topWorkflows.map((workflow) => (
-                <Link
-                  key={workflow.id}
-                  href={resolveMissionControlHref(workflow.route)}
-                  className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-zinc-300 hover:bg-muted/30"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {workflow.title}
-                    </p>
-                    <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
-                      {workflow.description}
-                    </p>
-                  </div>
-                  <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:translate-x-0.5 group-hover:text-foreground" />
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
-        </section>
+        <MissionControlResources
+          visibleTiles={visibleTiles}
+          topWorkflows={topWorkflows}
+        />
 
         <WorkflowsPanel />
       </div>
     </div>
   );
 }
+
+function MissionControlReadiness({
+  visibleTiles,
+  showAllTools,
+  setShowAllTools,
+  allTiles,
+  role,
+}: {
+  visibleTiles: Tile[];
+  showAllTools: boolean;
+  setShowAllTools: React.Dispatch<React.SetStateAction<boolean>>;
+  allTiles: Tile[];
+  role: Role;
+}) {
+  return (
+    <section className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
+      <Card className="overflow-hidden border-zinc-900 bg-zinc-950 text-white shadow-xl">
+        <CardContent className="relative p-5 sm:p-6">
+          <div className="pointer-events-none absolute right-0 top-0 size-64 translate-x-1/3 -translate-y-1/2 rounded-full bg-radial from-white/10 to-transparent" />
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl space-y-3">
+              <Badge className="h-6 border-white/10 bg-white/10 font-semibold text-zinc-100 hover:bg-white/10">
+                Mission Control dashboard
+              </Badge>
+              <div className="space-y-2">
+                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                  Start here. See the whole ministry picture.
+                </h1>
+                <p className="max-w-2xl text-sm font-medium leading-6 text-zinc-300">
+                  A command-center view for attention, money, people,
+                  mobilization, events, support, and admin readiness.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 lg:w-115">
+              {DASHBOARD_GUIDE_ITEMS.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-white/10 bg-white/[0.06] p-3"
+                >
+                  <p className="text-xs font-medium text-zinc-400">
+                    {item.label}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-white">
+                    {item.value}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-400">
+                    {item.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Settings2 className="size-4 text-muted-foreground" />
+            Customizable workspace
+          </CardTitle>
+          <CardDescription>
+            Role-aware modules now form the starting map for daily work.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-border bg-muted/20 p-3">
+              <p className="text-2xl font-semibold tabular-nums">
+                {visibleTiles.length}
+              </p>
+              <p className="text-xs font-medium text-muted-foreground">
+                enabled modules
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-muted/20 p-3">
+              <p className="text-2xl font-semibold tabular-nums">
+                {TILES.length}
+              </p>
+              <p className="text-xs font-medium text-muted-foreground">
+                available tools
+              </p>
+            </div>
+          </div>
+          <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
+            <DialogTrigger
+              render={
+                <Button className="h-10 w-full rounded-xl bg-zinc-900 font-semibold text-white hover:bg-zinc-800">
+                  <LayoutGrid className="mr-2 size-4" />
+                  Customize modules
+                </Button>
+              }
+            />
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Mission Control tools</DialogTitle>
+                <DialogDescription>
+                  Complete list of tools and whether your current role can
+                  access them.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-3 py-4 sm:grid-cols-2 lg:grid-cols-3">
+                {allTiles.map((tile) => {
+                  const Icon = getIcon(tile.icon);
+                  const hasAccess = tile.roles.includes(role);
+                  return (
+                    <div
+                      key={tile.id}
+                      className={cn(
+                        "flex items-start gap-3 rounded-2xl border p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
+                        hasAccess
+                          ? "border-border bg-card shadow-sm hover:border-zinc-300"
+                          : "border-border/60 bg-muted/30 opacity-70",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex size-9 items-center justify-center rounded-xl border",
+                          hasAccess
+                            ? "border-border bg-muted/30 text-foreground"
+                            : "border-border/60 bg-muted text-muted-foreground",
+                        )}
+                      >
+                        <Icon className="size-4" />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="text-sm font-semibold text-foreground">
+                          {tile.title}
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "h-5 px-1.5 font-semibold",
+                            hasAccess
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-zinc-100 text-zinc-500",
+                          )}
+                        >
+                          {hasAccess ? "Available" : "Locked"}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+
+function MissionControlMetrics({
+  overviewMetrics,
+}: {
+  overviewMetrics: OverviewMetric[];
+}) {
+  return (
+    <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-3 sm:grid-cols-3">
+        {overviewMetrics.map((metric) => (
+          <Card key={metric.id} className="border-border bg-card shadow-sm">
+            <CardContent className="flex items-start justify-between gap-4 p-4">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {metric.label}
+                </p>
+                <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+                  {metric.value}
+                </p>
+                <p className="mt-1 text-xs font-medium leading-5 text-muted-foreground">
+                  {metric.context}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  "flex size-9 items-center justify-center rounded-xl border",
+                  getMetricToneClass(metric.tone),
+                )}
+              >
+                {metric.tone === "success" ? (
+                  <CheckCircle2 className="size-4" />
+                ) : metric.tone === "warning" ? (
+                  <AlertTriangle className="size-4" />
+                ) : (
+                  <BarChart3 className="size-4" />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Clock3 className="size-4 text-amber-600" />
+            Priority scan
+          </CardTitle>
+          <CardDescription>
+            Use the first minute to decide where attention goes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {[
+            {
+              label: "Support and care",
+              detail: "Review people-facing risk before routine work.",
+              tone: "text-rose-600 bg-rose-50 border-rose-100",
+            },
+            {
+              label: "Giving and reports",
+              detail: "Check settled giving and operational signals.",
+              tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
+            },
+            {
+              label: "Pipeline and events",
+              detail: "Move candidates, sessions, and tasks forward.",
+              tone: "text-blue-700 bg-blue-50 border-blue-100",
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="flex gap-3 rounded-xl border border-border bg-background p-3"
+            >
+              <div
+                className={cn(
+                  "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-lg border",
+                  item.tone,
+                )}
+              >
+                <Star className="size-3" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {item.label}
+                </p>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  {item.detail}
+                </p>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+
+function MissionControlWorkflows() {
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Ministry health widgets
+          </h2>
+          <p className="text-sm font-medium text-muted-foreground">
+            Two snapshot charts are pinned by default; teams can tune this area
+            by role and season.
+          </p>
+        </div>
+        <Dialog>
+          <DialogTrigger
+            render={
+              <Button
+                variant="outline"
+                className="h-10 rounded-xl border-zinc-200 bg-white font-semibold hover:bg-zinc-50"
+              >
+                <LayoutGrid className="mr-2 size-4" />
+                Preview widgets
+              </Button>
+            }
+          />
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Widget library preview</DialogTitle>
+              <DialogDescription>
+                Choose the views that matter for your role. This preview keeps
+                customization visual-only until saved layouts are wired to user
+                preferences.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3 py-4 sm:grid-cols-2">
+              {WIDGET_LIBRARY.map((widget) => (
+                <div
+                  key={widget}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
+                >
+                  <GripVertical className="size-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {widget}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Available as a future dashboard preference
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
+        <Card className="border-border bg-card shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Ministry health trend</CardTitle>
+            <CardDescription>
+              Demo snapshot data showing how giving, engagement, and care can
+              share one six-month view.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72 w-full">
+              <Suspense
+                fallback={<div aria-hidden className="size-full bg-muted/30" />}
+              >
+                <MinistryHealthTrendChart />
+              </Suspense>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                ["Giving", "bg-[var(--chart-1)]/10 text-foreground"],
+                ["Engagement", "bg-[var(--chart-2)]/10 text-foreground"],
+                ["Care", "bg-[var(--chart-5)]/10 text-foreground"],
+              ].map(([label, className]) => (
+                <Badge
+                  key={label}
+                  className={cn(
+                    "border-none text-xs font-semibold hover:bg-current/10",
+                    className,
+                  )}
+                >
+                  {label}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border bg-card shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Health distribution</CardTitle>
+            <CardDescription>
+              Demo snapshot bands for the core ministry system; wire to
+              source-of-truth data before treating as live health.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72 w-full">
+              <Suspense
+                fallback={<div aria-hidden className="size-full bg-muted/30" />}
+              >
+                <MinistryHealthMixChart />
+              </Suspense>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              {[
+                ["Healthy", "text-foreground", "Stable"],
+                ["Watch", "text-foreground", "Follow up"],
+                ["Risk", "text-foreground", "Act now"],
+              ].map(([label, className, helper]) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-border bg-muted/20 p-2"
+                >
+                  <p className={cn("text-xs font-semibold", className)}>
+                    {label}
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {helper}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  );
+}
+
+function MissionControlResources({
+  visibleTiles,
+  topWorkflows,
+}: {
+  visibleTiles: Tile[];
+  topWorkflows: Workflow[];
+}) {
+  return (
+    <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Enabled tools
+          </h2>
+          <p className="text-sm font-medium text-muted-foreground">
+            Full module cards remain below for deeper navigation and quick
+            actions.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {visibleTiles.map((tile) => (
+            <TileCard key={tile.id} tile={tile} />
+          ))}
+        </div>
+      </div>
+
+      <Card className="h-fit border-border bg-card shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="size-4 text-purple-600" />
+            Suggested workflows
+          </CardTitle>
+          <CardDescription>
+            Cross-module flows that explain what the dashboard connects.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {topWorkflows.map((workflow) => (
+            <Link
+              key={workflow.id}
+              href={resolveMissionControlHref(workflow.route)}
+              className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-zinc-300 hover:bg-muted/30"
+            >
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {workflow.title}
+                </p>
+                <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+                  {workflow.description}
+                </p>
+              </div>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:translate-x-0.5 group-hover:text-foreground" />
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+
+const MinistryHealthTrendChart = lazy(() =>
+  import("./mission-control-chart-views").then((module) => ({
+    default: module.MinistryHealthTrendChart,
+  })),
+);
+const MinistryHealthMixChart = lazy(() =>
+  import("./mission-control-chart-views").then((module) => ({
+    default: module.MinistryHealthMixChart,
+  })),
+);

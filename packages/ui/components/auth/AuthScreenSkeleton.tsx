@@ -13,7 +13,7 @@ import { Skeleton } from "../shadcn/skeleton";
 export function AuthScreenSkeleton({ label }: { label: string }) {
   return (
     <main
-      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted px-4 py-8"
+      className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-muted px-4 py-8"
       aria-busy="true"
     >
       {/*

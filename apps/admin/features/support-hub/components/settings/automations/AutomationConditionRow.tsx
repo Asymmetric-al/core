@@ -52,10 +52,7 @@ export function AutomationConditionRow({
           if (value !== null) handleKindChange(value);
         }}
       >
-        <SelectTrigger
-          aria-label="Condition type"
-          className="h-8 min-w-50 text-[12px]"
-        >
+        <SelectTrigger aria-label="Condition type" className="h-8 min-w-50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -80,7 +77,7 @@ export function AutomationConditionRow({
             onChange({ kind: "inbox_is", inboxId: value });
           }}
           aria-label="Condition inbox"
-          className="h-8 min-w-50 text-[12px]"
+          className="h-8 min-w-50"
           placeholder="Pick an inbox"
         />
       ) : null}
@@ -98,7 +95,7 @@ export function AutomationConditionRow({
             onChange({ kind: "label_includes", labelId: value });
           }}
           aria-label="Condition label"
-          className="h-8 min-w-50 text-[12px]"
+          className="h-8 min-w-50"
           placeholder="Pick a label"
         />
       ) : null}
@@ -110,7 +107,7 @@ export function AutomationConditionRow({
             onChange({ kind: "from_domain_equals", domain: event.target.value })
           }
           placeholder="example.org"
-          className="h-8 min-w-50 font-mono text-[12px]"
+          className="h-8 min-w-50 font-mono"
         />
       ) : null}
 
@@ -128,7 +125,7 @@ export function AutomationConditionRow({
             }
             aria-label={condition.kind}
           />
-          <span className="text-[11px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {condition.value ? "true" : "false"}
           </span>
         </div>
@@ -145,7 +142,7 @@ export function AutomationConditionRow({
             } as SupportAutomationCondition)
           }
           placeholder="keyword"
-          className="h-8 min-w-50 text-[12px]"
+          className="h-8 min-w-50"
         />
       ) : null}
 

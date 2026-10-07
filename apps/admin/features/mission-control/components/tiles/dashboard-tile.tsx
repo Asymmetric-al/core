@@ -42,14 +42,14 @@ export function DashboardTile({
       </div>
 
       <div className="mt-6 flex items-center justify-between border-t border-zinc-50 pt-4 transition-colors group-hover:border-zinc-100">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 transition-colors group-hover:text-zinc-900">
+        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400 transition-colors group-hover:text-zinc-900">
           Access Module
         </span>
         <ArrowUpRight className="size-4 text-zinc-300 transition-colors group-hover:text-zinc-900" />
       </div>
 
       {/* Subtle background glow on hover */}
-      <div className="absolute -bottom-24 -right-24 size-48 rounded-full bg-zinc-100 opacity-0 blur-3xl transition-opacity group-hover:opacity-50" />
+      <div className="absolute -bottom-24 -right-24 size-48 rounded-full bg-radial from-zinc-100 to-transparent opacity-0 transition-opacity group-hover:opacity-50" />
     </Link>
   );
 }

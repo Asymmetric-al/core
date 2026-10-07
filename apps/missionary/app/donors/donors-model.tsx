@@ -21,6 +21,12 @@ import {
 import type { ActivityType, GiftType, RecurringStatus } from "./donor-types";
 import type { ElementType } from "react";
 
+const NUMBER_FORMATTER_1 = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+});
+
 export type {
   Activity,
   ActivityType,
@@ -97,11 +103,7 @@ export const AVAILABLE_TAGS = [
 export function formatCurrency(value: number | null | undefined) {
   if (value === null || value === undefined) return "$0";
 
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-  }).format(value);
+  return NUMBER_FORMATTER_1.format(value);
 }
 
 export function getStatusColor(status: string) {

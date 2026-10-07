@@ -77,7 +77,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
           aria-label="Labels"
           render={<Button variant="outline" size="sm" />}
           className={cn(
-            "h-10 gap-2 rounded-xl border-border bg-background px-3 text-[13px] font-medium text-foreground",
+            "h-10 gap-2 rounded-xl border-border bg-background px-3 text-xs font-medium text-foreground",
             activeCount > 0 && "border-input",
           )}
         >
@@ -86,7 +86,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
           {activeCount > 0 && (
             <Badge
               variant="secondary"
-              className="h-5 min-w-[1.25rem] justify-center rounded-md border-transparent bg-primary px-1.5 text-[11px] font-semibold tabular-nums text-primary-foreground"
+              className="h-5 min-w-[1.25rem] justify-center rounded-md border-transparent bg-primary px-1.5 font-semibold tabular-nums text-primary-foreground"
             >
               {activeCount}
             </Badge>
@@ -112,7 +112,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                     <Check className="size-3" />
                   </ComboboxItemIndicator>
                 </span>
-                <span className="flex-1 text-[13px] text-foreground">
+                <span className="flex-1 text-xs text-foreground">
                   {label.name}
                 </span>
               </ComboboxItem>

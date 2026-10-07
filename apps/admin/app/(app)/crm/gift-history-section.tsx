@@ -31,40 +31,76 @@ export function GiftHistorySection({
 }: GiftHistorySectionProps) {
   const giftHistory = useGiftHistoryViewController({ detail });
 
+  const handleGiftHistoryApplyNamedView = giftHistory.applyNamedView;
+  const handleGiftHistoryOpenCreateViewDialog =
+    giftHistory.openCreateViewDialog;
+  const handleGiftHistoryOpenRenameViewDialog =
+    giftHistory.openRenameViewDialog;
+  const handleGiftHistoryOpenDuplicateViewDialog =
+    giftHistory.openDuplicateViewDialog;
+  const handleGiftHistorySetDefaultView = giftHistory.setDefaultView;
+  const handleGiftHistoryOpenDeleteViewDialog =
+    giftHistory.openDeleteViewDialog;
+  const handleGiftHistorySaveViewSettings = giftHistory.saveViewSettings;
+  const handleGiftHistoryRequestViewSettingsReset =
+    giftHistory.requestViewSettingsReset;
+  const handleGiftHistoryRequestSetTenantDefault =
+    giftHistory.requestSetTenantDefault;
+  const handleGiftHistoryPinRowAction = giftHistory.pinRowAction;
+  const handleGiftHistoryRunInlineOperation = giftHistory.runInlineOperation;
+  const handleGiftHistoryCloseInlineOperation =
+    giftHistory.closeInlineOperation;
+  const handleGiftHistoryClosePendingReset = giftHistory.closePendingReset;
+  const handleGiftHistoryConfirmPendingReset = giftHistory.confirmPendingReset;
+  const handleGiftHistoryClosePendingTenantDefault =
+    giftHistory.closePendingTenantDefault;
+  const handleGiftHistoryConfirmSetTenantDefault =
+    giftHistory.confirmSetTenantDefault;
+  const handleGiftHistoryCloseViewNameDialog = giftHistory.closeViewNameDialog;
+  const handleGiftHistorySubmitViewNameDialog =
+    giftHistory.submitViewNameDialog;
+  const handleGiftHistorySetViewNameInput = giftHistory.setViewNameInput;
+  const handleGiftHistoryCloseDeleteViewDialog =
+    giftHistory.closeDeleteViewDialog;
+  const handleGiftHistoryConfirmDeleteView = giftHistory.confirmDeleteView;
+  const handleGiftHistorySetNextDefaultChoice =
+    giftHistory.setNextDefaultChoice;
   return (
     <>
       {detail?.giftHistory.length ? (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Gift history
             </h3>
             <div className="flex items-center gap-1">
-              <Badge variant="secondary" className="text-[10px]">
+              <Badge variant="secondary" className="">
                 {giftHistory.giftRows.length}
               </Badge>
               {detail.giftHistoryTruncated ? (
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="">
                   First 100 shown
                 </Badge>
               ) : null}
               <GiftHistoryViewSwitcher
                 views={giftHistory.namedViews}
                 activeViewId={giftHistory.activeViewId}
-                onApplyView={giftHistory.applyNamedView}
-                onSaveCurrentAs={giftHistory.openCreateViewDialog}
-                onRename={giftHistory.openRenameViewDialog}
-                onDuplicate={giftHistory.openDuplicateViewDialog}
-                onSetDefault={giftHistory.setDefaultView}
-                onResetToSaved={giftHistory.applyNamedView}
-                onDelete={giftHistory.openDeleteViewDialog}
+                onApplyView={handleGiftHistoryApplyNamedView}
+                onSaveCurrentAs={handleGiftHistoryOpenCreateViewDialog}
+                onRename={handleGiftHistoryOpenRenameViewDialog}
+                onDuplicate={handleGiftHistoryOpenDuplicateViewDialog}
+                onSetDefault={handleGiftHistorySetDefaultView}
+                onResetToSaved={handleGiftHistoryApplyNamedView}
+                onDelete={handleGiftHistoryOpenDeleteViewDialog}
               />
               <GiftHistoryViewSettingsMenu
                 settings={giftHistory.viewSettings}
                 canManageTenantDefaults={giftHistory.canManageTenantDefaults}
-                onPatch={giftHistory.saveViewSettings}
-                onRequestReset={giftHistory.requestViewSettingsReset}
-                onRequestSetTenantDefault={giftHistory.requestSetTenantDefault}
+                onPatch={handleGiftHistorySaveViewSettings}
+                onRequestReset={handleGiftHistoryRequestViewSettingsReset}
+                onRequestSetTenantDefault={
+                  handleGiftHistoryRequestSetTenantDefault
+                }
               />
             </div>
           </div>
@@ -76,8 +112,8 @@ export function GiftHistorySection({
           <GiftHistoryRows
             giftRows={giftHistory.giftRows}
             onOpenGift={onOpenGift}
-            onPinRowAction={giftHistory.pinRowAction}
-            onRunOperation={giftHistory.runInlineOperation}
+            onPinRowAction={handleGiftHistoryPinRowAction}
+            onRunOperation={handleGiftHistoryRunInlineOperation}
             tablePreferences={giftHistory.tablePreferences}
             viewSettings={giftHistory.viewSettings}
           />
@@ -90,7 +126,7 @@ export function GiftHistorySection({
 
       <ContributionOperationShell
         open={giftHistory.inlineOperation !== null}
-        onClose={giftHistory.closeInlineOperation}
+        onClose={handleGiftHistoryCloseInlineOperation}
         operation={giftHistory.inlineOperation?.operation ?? null}
         donationId={giftHistory.inlineOperation?.donationId ?? null}
         sourceSurface="donor_crm_record"
@@ -104,29 +140,29 @@ export function GiftHistorySection({
       />
       <ViewSettingsResetDialog
         description={giftHistory.resetPreview?.description}
-        onCancel={giftHistory.closePendingReset}
-        onConfirm={giftHistory.confirmPendingReset}
+        onCancel={handleGiftHistoryClosePendingReset}
+        onConfirm={handleGiftHistoryConfirmPendingReset}
       />
       <SetTenantDefaultDialog
         open={giftHistory.pendingTenantDefault}
         isSaving={giftHistory.saveTenantDefaultPending}
-        onCancel={giftHistory.closePendingTenantDefault}
-        onConfirm={giftHistory.confirmSetTenantDefault}
+        onCancel={handleGiftHistoryClosePendingTenantDefault}
+        onConfirm={handleGiftHistoryConfirmSetTenantDefault}
       />
       <NamedViewNameDialog
         state={giftHistory.viewNameDialog}
         value={giftHistory.viewNameInput}
-        onCancel={giftHistory.closeViewNameDialog}
-        onSubmit={giftHistory.submitViewNameDialog}
-        onValueChange={giftHistory.setViewNameInput}
+        onCancel={handleGiftHistoryCloseViewNameDialog}
+        onSubmit={handleGiftHistorySubmitViewNameDialog}
+        onValueChange={handleGiftHistorySetViewNameInput}
       />
       <DeleteNamedViewDialog
         view={giftHistory.deleteViewDialog}
         views={giftHistory.namedViews}
         nextDefaultChoice={giftHistory.nextDefaultChoice}
-        onCancel={giftHistory.closeDeleteViewDialog}
-        onConfirm={giftHistory.confirmDeleteView}
-        onNextDefaultChoiceChange={giftHistory.setNextDefaultChoice}
+        onCancel={handleGiftHistoryCloseDeleteViewDialog}
+        onConfirm={handleGiftHistoryConfirmDeleteView}
+        onNextDefaultChoiceChange={handleGiftHistorySetNextDefaultChoice}
       />
     </>
   );

@@ -55,6 +55,11 @@ vi.mock("@asym/lib/motion", async () => {
             omitMotionProps(props),
             children,
           ),
+      button: ({
+        children,
+        ...props
+      }: React.PropsWithChildren<Record<string, unknown>>) =>
+        ReactModule.createElement("button", omitMotionProps(props), children),
       div: ({
         children,
         ...props
@@ -207,4 +212,25 @@ it("keeps prerequisite-disabled actions out of the tab order", () => {
   expect(
     screen.getByRole("button", { name: "Publish", exact: true }),
   ).toHaveProperty("disabled", true);
+});
+
+it("names the attached-media removal action and preserves the remaining order", () => {
+  const first = { url: "/test-first.png", type: "image" as const };
+  const second = { url: "/test-second.png", type: "image" as const };
+  const setSelectedMedia = vi.fn();
+  render(
+    <PostComposerActions
+      {...baseProps}
+      selectedMedia={[first, second]}
+      setSelectedMedia={setSelectedMedia}
+      handlePost={vi.fn()}
+    />,
+  );
+  fireEvent.click(
+    screen.getAllByRole("button", { name: "Remove attached media" })[0]!,
+  );
+  const update = setSelectedMedia.mock.calls[0]![0] as (
+    items: (typeof first)[],
+  ) => (typeof first)[];
+  expect(update([first, second])).toEqual([second]);
 });

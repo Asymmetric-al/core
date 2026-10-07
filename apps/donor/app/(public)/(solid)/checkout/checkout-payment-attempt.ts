@@ -14,7 +14,7 @@ export type PaymentAttemptState = {
   successSnapshot: unknown;
 };
 
-export type PaymentAttemptRefs<TState extends PaymentAttemptState> = {
+type PaymentAttemptRefs<TState extends PaymentAttemptState> = {
   activePaymentAttemptRef: { current: PaymentAttempt | null };
   checkoutStateRef: { current: TState };
   currentRequestFingerprintRef: { current: string };

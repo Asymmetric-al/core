@@ -52,7 +52,7 @@ export function ConversationPriorityMenu({
             type="button"
             variant="ghost"
             size="sm"
-            className="rounded-lg px-2 text-[11px] font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
+            className="rounded-lg px-2 font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
             aria-label={`Priority: ${PRIORITY_LABELS[conversation.priority]}`}
           >
             <Flag className={cn("size-3.5", tone)} />
@@ -62,7 +62,7 @@ export function ConversationPriorityMenu({
       />
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+          <DropdownMenuLabel className="text-xs uppercase tracking-widest text-zinc-400">
             Priority
           </DropdownMenuLabel>
 
@@ -76,7 +76,7 @@ export function ConversationPriorityMenu({
                   priority,
                 })
               }
-              className="gap-2 text-[12px]"
+              className="gap-2 text-xs"
             >
               <Check
                 className={cn(

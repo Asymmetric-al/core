@@ -26,6 +26,47 @@ import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 
+const aboutValuesValues = [
+  {
+    icon: Target,
+    title: "Precision",
+    text: "We target specific, verified needs identified by local field leaders with zero delay.",
+  },
+  {
+    icon: Users,
+    title: "Partnership",
+    text: "We don't deploy staff; we deploy resources to the local heroes already on the ground.",
+  },
+  {
+    icon: Shield,
+    title: "Integrity",
+    text: "Radical transparency is our default. You track every cent from pledge to payload.",
+  },
+  {
+    icon: Heart,
+    title: "Dignity",
+    text: "We serve humans, not metrics. Every interaction is rooted in mutual respect.",
+  },
+];
+
+const aboutLeadershipTeam = [
+  {
+    name: "Dr. Elena Rostova",
+    role: "Executive Director",
+    img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&fit=crop",
+  },
+  {
+    name: "Marcus Chen",
+    role: "Director of Field Ops",
+    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&fit=crop",
+  },
+  {
+    name: "Sarah O'Connell",
+    role: "Head of Finance",
+    img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&fit=crop",
+  },
+];
+
 function useSectionEntranceDisabled() {
   const reduceMotion = useReducedMotion();
   const withinRouteLayer = useWithinViewTransitionRouteLayer();
@@ -39,8 +80,8 @@ export function AboutHero() {
     <LazyMotion features={domAnimation}>
       <section className="dark relative pt-48 pb-64 overflow-hidden isolate bg-background text-foreground">
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
-          <div className="absolute top-0 right-0 size-250 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 size-200 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute top-0 right-0 size-250 bg-radial from-primary/10 to-transparent rounded-full" />
+          <div className="absolute bottom-0 left-0 size-200 bg-radial from-accent/10 to-transparent rounded-full" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
@@ -53,7 +94,7 @@ export function AboutHero() {
             </m.div>
 
             <m.div {...propsHeroEntrance(disableEntrance, STAGGER_TIGHT)}>
-              <h1 className="text-5xl sm:text-6xl md:text-8xl xl:text-9xl font-semibold tracking-tighter text-foreground leading-none font-display text-balance wrap-anywhere">
+              <h1 className="text-5xl sm:text-6xl md:text-8xl xl:text-9xl font-semibold tracking-normal text-foreground leading-none font-display text-balance wrap-anywhere">
                 Engineered <br />
                 <span>Restoration.</span>
               </h1>
@@ -92,10 +133,10 @@ export function AboutBelief() {
               className="flex flex-col gap-12"
             >
               <div className="flex flex-col gap-6">
-                <span className="text-muted-foreground font-semibold tracking-widest uppercase text-xs">
+                <span className="text-muted-foreground font-semibold text-xs">
                   Our Thesis
                 </span>
-                <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-semibold tracking-tighter text-foreground leading-none font-display wrap-anywhere">
+                <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-semibold tracking-normal text-foreground leading-none font-display wrap-anywhere">
                   Hope as <br />
                   <span className="text-muted-foreground">Infrastructure.</span>
                 </h2>
@@ -126,7 +167,7 @@ export function AboutBelief() {
               {...propsScaleFadeInView(disableEntrance)}
               className="relative"
             >
-              <div className="aspect-square bg-card rounded-3xl p-8 flex items-center justify-center border border-border shadow-xl overflow-hidden relative group">
+              <div className="aspect-square bg-card rounded-3xl p-8 flex items-center justify-center border border-border shadow-sm overflow-hidden relative group">
                 <div className="absolute inset-0 opacity-20 pointer-events-none grayscale [@media(hover:hover)_and_(pointer:fine)]:group-hover:grayscale-0 transition duration-500 ease-out">
                   <Image
                     src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=2000"
@@ -137,7 +178,7 @@ export function AboutBelief() {
                   />
                 </div>
                 <div className="relative z-10 text-center flex flex-col gap-4">
-                  <div className="size-16 bg-background rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-border">
+                  <div className="size-16 bg-background rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-border">
                     <Globe className="size-8 text-foreground" />
                   </div>
                   <p className="text-3xl font-semibold font-display text-foreground tracking-tighter">
@@ -160,46 +201,23 @@ export function AboutBelief() {
 export function AboutValues() {
   const disableEntrance = useSectionEntranceDisabled();
 
-  const values = [
-    {
-      icon: Target,
-      title: "Precision",
-      text: "We target specific, verified needs identified by local field leaders with zero delay.",
-    },
-    {
-      icon: Users,
-      title: "Partnership",
-      text: "We don't deploy staff; we deploy resources to the local heroes already on the ground.",
-    },
-    {
-      icon: Shield,
-      title: "Integrity",
-      text: "Radical transparency is our default. You track every cent from pledge to payload.",
-    },
-    {
-      icon: Heart,
-      title: "Dignity",
-      text: "We serve humans, not metrics. Every interaction is rooted in mutual respect.",
-    },
-  ];
-
   return (
     <LazyMotion features={domAnimation}>
       <section className="py-40 bg-muted">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-end mb-32 gap-12">
             <div className="flex flex-col gap-6">
-              <span className="text-foreground font-semibold tracking-widest uppercase text-xs">
+              <span className="text-foreground font-semibold text-xs">
                 The Protocol
               </span>
-              <h2 className="text-4xl sm:text-6xl md:text-8xl font-semibold tracking-tighter text-foreground leading-none font-display wrap-anywhere">
+              <h2 className="text-4xl sm:text-6xl md:text-8xl font-semibold tracking-normal text-foreground leading-none font-display wrap-anywhere">
                 Operational <br />
                 <span className="text-muted-foreground">Principles.</span>
               </h2>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {values.map((item, idx) => (
+            {aboutValuesValues.map((item, idx) => (
               <m.div
                 key={item.title}
                 initial={
@@ -244,39 +262,21 @@ export function AboutValues() {
 export function AboutLeadership() {
   const disableEntrance = useSectionEntranceDisabled();
 
-  const team = [
-    {
-      name: "Dr. Elena Rostova",
-      role: "Executive Director",
-      img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&fit=crop",
-    },
-    {
-      name: "Marcus Chen",
-      role: "Director of Field Ops",
-      img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&fit=crop",
-    },
-    {
-      name: "Sarah O'Connell",
-      role: "Head of Finance",
-      img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&fit=crop",
-    },
-  ];
-
   return (
     <LazyMotion features={domAnimation}>
       <section className="py-40 bg-background">
         <div className="container mx-auto px-6">
           <div className="text-center mb-32 flex flex-col gap-6">
-            <span className="text-muted-foreground font-semibold tracking-widest uppercase text-xs">
+            <span className="text-muted-foreground font-semibold text-xs">
               The Board
             </span>
-            <h2 className="text-4xl sm:text-6xl md:text-7xl xl:text-8xl font-semibold tracking-tighter text-foreground leading-none font-display text-balance wrap-anywhere">
+            <h2 className="text-4xl sm:text-6xl md:text-7xl xl:text-8xl font-semibold tracking-normal text-foreground leading-none font-display text-balance wrap-anywhere">
               Trustees of Hope.
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-            {team.map((person, i) => (
+            {aboutLeadershipTeam.map((person, i) => (
               <m.div
                 key={person.name}
                 initial={
@@ -307,7 +307,7 @@ export function AboutLeadership() {
                   <h3 className="text-2xl font-semibold text-foreground font-display [@media(hover:hover)_and_(pointer:fine)]:group-hover:text-primary transition-colors duration-200 ease-out">
                     {person.name}
                   </h3>
-                  <p className="text-muted-foreground font-semibold text-xs uppercase tracking-widest">
+                  <p className="text-muted-foreground font-semibold text-xs">
                     {person.role}
                   </p>
                 </div>
@@ -327,7 +327,7 @@ export function AboutCTA() {
     <LazyMotion features={domAnimation}>
       <section className="dark py-60 bg-background text-foreground relative overflow-hidden text-center">
         <div className="absolute inset-0 opacity-40 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-300 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-300 bg-radial from-primary/10 to-transparent rounded-full" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10 max-w-5xl">
@@ -337,7 +337,7 @@ export function AboutCTA() {
               duration: DURATION_SLOW,
             })}
           >
-            <h2 className="text-5xl sm:text-6xl md:text-8xl font-semibold text-foreground tracking-tighter mb-8 leading-none font-display wrap-anywhere">
+            <h2 className="text-5xl sm:text-6xl md:text-8xl font-semibold text-foreground tracking-normal mb-8 leading-none font-display wrap-anywhere">
               Join the <br />
               <span className="text-muted-foreground">Method.</span>
             </h2>

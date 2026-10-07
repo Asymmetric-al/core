@@ -50,13 +50,13 @@ const bodySchema = z.discriminatedUnion("targetCollection", [
   z.object({
     targetCollection: z.literal(MISSIONARY_GIVING_PAGES_SLUG),
     templateId: z.string().min(1),
-    missionaryId: z.string().uuid(),
+    missionaryId: z.uuid(),
     tenantId: z.string().optional(),
   }),
   z.object({
     targetCollection: z.literal(PROJECT_PAGES_SLUG),
     templateId: z.string().min(1),
-    fundId: z.string().uuid(),
+    fundId: z.uuid(),
     tenantId: z.string().optional(),
   }),
   z.object({

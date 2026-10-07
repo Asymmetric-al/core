@@ -166,7 +166,11 @@
     "verify:phase25-spec": "bun docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs",
     "verify:phase24-authority": "node scripts/verify/phase24-authority.mjs",
     "verify:openspec-deltas": "node scripts/verify/openspec-delta-compatibility.mjs && bun run verify:phase24-authority",
-    "verify:program-roadmap": "python3 docs/prds/program-roadmap/tools/render-phases.py --check && python3 docs/prds/program-roadmap/tools/verify.py && python3 docs/prds/program-roadmap/tools/verify-extensions.py && python3 docs/prds/workflow-studio/tools/render.py --check && python3 docs/prds/workflow-studio/tools/verify.py && node docs/prds/web-studio-hybrid/tools/verify-package.mjs"
+    "verify:program-roadmap": "python3 docs/prds/program-roadmap/tools/render-phases.py --check && python3 docs/prds/program-roadmap/tools/verify.py && python3 docs/prds/program-roadmap/tools/verify-extensions.py && python3 docs/prds/workflow-studio/tools/render.py --check && python3 docs/prds/workflow-studio/tools/verify.py && node docs/prds/web-studio-hybrid/tools/verify-package.mjs",
+    "react-doctor:audit": "node scripts/react-doctor-audit.mjs",
+    "react-doctor:raw": "node scripts/react-doctor-audit.mjs --raw",
+    "react-doctor:check": "node scripts/react-doctor-audit.mjs --check",
+    "test:react-cleanup": "playwright test --config=tests/e2e/playwright-isolated.config.ts"
   },
   "dependencies": {
     "@asym/api": "workspace:*",
@@ -226,7 +230,7 @@
     "husky": "^9.1.7",
     "jsdom": "30.1.2",
     "lint-staged": "17.6.0",
-    "prettier": "3.9.9",
+    "prettier": "3.8.2",
     "playwright-core": "1.59.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",

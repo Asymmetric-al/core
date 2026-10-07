@@ -121,18 +121,18 @@ function SupportConversationMobileCard({
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[13px] font-medium text-zinc-900">
+        <span className="truncate text-xs font-medium text-zinc-900">
           {conversation.externalContactName ??
             conversation.externalContactEmail}
         </span>
-        <span className="font-mono text-[11px] tabular-nums text-zinc-400">
+        <span className="font-mono text-xs tabular-nums text-zinc-400">
           {formatRelative(conversation.lastMessageAt, nowIso)}
         </span>
       </div>
-      <p className="line-clamp-2 text-[13px] text-zinc-700">
+      <p className="line-clamp-2 text-xs text-zinc-700">
         {conversation.subject}
       </p>
-      <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+      <div className="flex items-center gap-2 text-xs text-zinc-500">
         <span className="capitalize">{conversation.status}</span>
         <span aria-hidden>·</span>
         <span className="capitalize">{conversation.priority}</span>

@@ -64,12 +64,6 @@ import type {
   SharedContributionCrmPostStatus,
 } from "@asym/database/types";
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
-
 /* ------------------------------------------------------------------ */
 /*  Status dot colors — accent colors for semantic meaning              */
 /* ------------------------------------------------------------------ */
@@ -128,7 +122,7 @@ function DetailField({
 }) {
   return (
     <div className="space-y-1">
-      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
         {label}
       </p>
       <p
@@ -376,7 +370,7 @@ export function ContributionDetailSheet({
   receiptDelivery,
   onDecided,
 }: ContributionDetailSheetProps) {
-  const { formatDate } = useLocaleFormat();
+  const { formatDate, formatDateTime } = useLocaleFormat();
   const open = isOpen ?? Boolean(contribution);
   const donorDisplayName = contribution
     ? contribution.isAnonymous
@@ -419,6 +413,1035 @@ export function ContributionDetailSheet({
     : (donorName ?? "Unknown");
   const stagedGiftId = contribution.stagedGiftId;
 
+  const {
+    crmPostStateHasSignal,
+    canRetryCrmScope,
+    parentRetryScope,
+    parentRetryActionPending,
+    pendingActionMatches,
+    designationRetryGuidanceShownInActions,
+    missingStagedGiftWorkflow,
+    canSendReceipt,
+    receiptActionPending,
+    canApproveGift,
+    approveActionPending,
+    canRetryGift,
+    stagedRetryActionPending,
+    showRefundAction,
+    canRefund,
+    visibleBlockedEntries,
+    showRecurringSection,
+    isOneTimeGiftWithAgreement,
+  } = getContributionDetailWorkflow(contribution, {
+    actionAvailability,
+    crmPostState,
+    onRefund,
+    onRetryCrmPost,
+    recurring,
+    pendingAction,
+  });
+
+  const handleCopyTxn = async () => {
+    const tid = contribution.transactionId;
+    if (!tid) {
+      toast.error("No transaction ID to copy");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(tid);
+      toast.success("Transaction ID copied to clipboard");
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
+  };
+
+  return (
+    <ContributionDetailSheetFrame
+      donorDisplayName={resolvedDonorDisplayName}
+      onClose={onClose}
+      open={open}
+    >
+      <div className="p-6 space-y-8">
+        {/* ---- Donor + Status ---- */}
+        <ContributionDonorSummary
+          donorAvatar={donorAvatar}
+          resolvedDonorDisplayName={resolvedDonorDisplayName}
+          isAnonymous={isAnonymous}
+          donorEmail={donorEmail}
+          contribution={contribution}
+        />
+
+        <Separator />
+
+        {/* ---- Details grid ---- */}
+        <ContributionDetailsGrid
+          formatDate={formatDate}
+          contribution={contribution}
+          designations={designations}
+          crmPostStateHasSignal={crmPostStateHasSignal}
+        />
+
+        {/* ---- Designations (ADR-CD-008 / ADR-CD-011) ---- */}
+        <ContributionDesignationsSection designations={designations} />
+
+        {/* ---- Historical CRM post state (ADR-CD-012) ---- */}
+        <ContributionCrmPostingSection
+          crmPostState={crmPostState}
+          crmPostStateHasSignal={crmPostStateHasSignal}
+          canRetryCrmScope={canRetryCrmScope}
+          parentRetryScope={parentRetryScope}
+          parentRetryActionPending={parentRetryActionPending}
+          isActionPending={isActionPending}
+          stagedGiftId={stagedGiftId}
+          onRetryCrmPost={onRetryCrmPost}
+          contribution={contribution}
+          designations={designations}
+          pendingActionMatches={pendingActionMatches}
+          designationRetryGuidanceShownInActions={
+            designationRetryGuidanceShownInActions
+          }
+        />
+
+        {/* ---- Notes ---- */}
+        <ContributionNotesSection contribution={contribution} />
+
+        <Separator />
+
+        {/* ---- Actions ---- */}
+        <ContributionActionsSection
+          missingStagedGiftWorkflow={missingStagedGiftWorkflow}
+          handleCopyTxn={handleCopyTxn}
+          canSendReceipt={canSendReceipt}
+          receiptActionPending={receiptActionPending}
+          stagedGiftId={stagedGiftId}
+          isActionPending={isActionPending}
+          onSendReceipt={onSendReceipt}
+          contribution={contribution}
+          canApproveGift={canApproveGift}
+          approveActionPending={approveActionPending}
+          onApproveStagedGift={onApproveStagedGift}
+          canRetryGift={canRetryGift}
+          stagedRetryActionPending={stagedRetryActionPending}
+          onRetryStagedGift={onRetryStagedGift}
+          showRefundAction={showRefundAction}
+          canRefund={canRefund}
+          onRefund={onRefund}
+          visibleBlockedEntries={visibleBlockedEntries}
+        />
+
+        {/* ---- Correction approvals (AL-263) ---- */}
+        <ContributionCorrectionSection
+          correctionRequests={correctionRequests}
+          receiptDelivery={receiptDelivery}
+          onDecided={onDecided}
+        />
+
+        {/* ---- Recurring agreement context (ADR-CD-007) ---- */}
+        <ContributionRecurringSection
+          recurring={recurring}
+          showRecurringSection={showRecurringSection}
+          isOneTimeGiftWithAgreement={isOneTimeGiftWithAgreement}
+          formatDate={formatDate}
+        />
+
+        {/* ---- Provider proof (ADR-CD-014, role-gated) ---- */}
+        <ContributionProviderSection providerProof={providerProof} />
+
+        {/* ---- Metadata ---- */}
+        <ContributionMetadataSection
+          formatDateTime={formatDateTime}
+          contribution={contribution}
+        />
+      </div>
+    </ContributionDetailSheetFrame>
+  );
+}
+
+function ContributionDonorSummary({
+  donorAvatar,
+  resolvedDonorDisplayName,
+  isAnonymous,
+  donorEmail,
+  contribution,
+}: {
+  donorAvatar: Contribution["donorAvatar"];
+  resolvedDonorDisplayName: string;
+  isAnonymous: Contribution["isAnonymous"];
+  donorEmail: Contribution["donorEmail"];
+  contribution: Contribution;
+}) {
+  return (
+    <>
+      <div className="flex items-start gap-4">
+        <Avatar className="size-16 border-4 border-background shadow-sm">
+          <AvatarImage
+            src={donorAvatar ?? undefined}
+            alt={resolvedDonorDisplayName}
+          />
+          <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
+            {isAnonymous ? "?" : getInitials(resolvedDonorDisplayName)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 space-y-1 pt-1">
+          <h3 className="text-2xl font-semibold text-foreground tracking-tight">
+            {isAnonymous ? "Anonymous Donor" : resolvedDonorDisplayName}
+          </h3>
+          {!isAnonymous && donorEmail && (
+            <p className="text-sm text-muted-foreground font-medium">
+              {donorEmail}
+            </p>
+          )}
+          <div className="flex items-center gap-2 pt-2">
+            <Badge
+              variant="outline"
+              className="h-5 font-semibold uppercase tracking-wider shadow-none"
+            >
+              <span
+                className={cn(
+                  "size-1.5 shrink-0 rounded-full mr-1.5",
+                  statusDotColor[contribution.status],
+                )}
+              />
+              {contribution.status}
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="h-5 font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
+            >
+              {contribution.type}
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* ---- Amount display ---- */}
+      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">
+          Amount
+        </p>
+        <p className="text-3xl font-semibold font-mono tabular-nums text-foreground tracking-tight">
+          {formatSharedContributionAmount(
+            contribution.shared.amountCents,
+            contribution.shared.currencyCode,
+          )}
+        </p>
+      </div>
+    </>
+  );
+}
+
+function ContributionDetailsGrid({
+  formatDate,
+  contribution,
+  designations,
+  crmPostStateHasSignal,
+}: {
+  formatDate: ReturnType<typeof useLocaleFormat>["formatDate"];
+  contribution: Contribution;
+  designations: ContributionDetailSheetProps["designations"];
+  crmPostStateHasSignal: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-6">
+      <DetailField label="Date">
+        {formatDate(contribution.date, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}
+      </DetailField>
+
+      <DetailField label="Payment Method">
+        {contribution.paymentMethod}
+      </DetailField>
+
+      <DetailField label="Source">{contribution.source}</DetailField>
+
+      {!designations && (
+        <DetailField label="Fund">
+          <span>{contribution.fundName}</span>
+          <span className="block font-mono text-xs text-muted-foreground">
+            {contribution.fundCode}
+          </span>
+        </DetailField>
+      )}
+
+      <DetailField label="Transaction ID" mono>
+        {contribution.transactionId}
+      </DetailField>
+
+      <DetailField label="Receipt">
+        <span className="flex items-center gap-2">
+          <span
+            className={cn(
+              "size-2 shrink-0 rounded-full",
+              contribution.receiptSent
+                ? "bg-emerald-500"
+                : "bg-muted-foreground/40",
+            )}
+          />
+          {contribution.receiptSent ? "Sent" : "Pending"}
+        </span>
+      </DetailField>
+
+      {contribution.stagedGiftStatus && (
+        <DetailField label="Review">
+          <span className="flex items-center gap-2">
+            <span
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                contribution.stagedGiftStatus === "posted"
+                  ? "bg-emerald-500"
+                  : contribution.stagedGiftStatus === "failed"
+                    ? "bg-destructive"
+                    : "bg-amber-500",
+              )}
+            />
+            {contribution.stagedGiftStatus.replace(/_/g, " ")}
+          </span>
+        </DetailField>
+      )}
+
+      {contribution.crmPostStatus && !crmPostStateHasSignal && (
+        <DetailField label="CRM post status">
+          {contribution.crmPostStatus.replace(/_/g, " ")}
+        </DetailField>
+      )}
+
+      {contribution.missionaryName && (
+        <DetailField label="Missionary">
+          {contribution.missionaryName}
+        </DetailField>
+      )}
+    </div>
+  );
+}
+
+function ContributionDesignationsSection({
+  designations,
+}: {
+  designations: ContributionDetailSheetProps["designations"];
+}) {
+  return (
+    designations && (
+      <>
+        <Separator />
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Designations
+          </p>
+          {!designations.reconcilesToGiftAmount && (
+            <Alert className="bg-muted/40">
+              <AlertDescription>
+                <p className="text-xs">
+                  Designation lines do not reconcile to the gift amount. Review
+                  the designation set before relying on these allocations.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+          <ul className="space-y-2">
+            {designations.lines.map((line) => {
+              const hasContext = Boolean(
+                line.memo || line.restriction || line.missionaryName,
+              );
+
+              return (
+                <li
+                  key={line.id}
+                  className="rounded-lg border border-border bg-card"
+                >
+                  <details className="group">
+                    <summary
+                      className={cn(
+                        "flex items-center justify-between gap-3 p-3",
+                        hasContext
+                          ? "cursor-pointer list-none"
+                          : "pointer-events-none list-none",
+                      )}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          {line.fundName}
+                        </span>
+                        <span className="block text-xs uppercase tracking-wider text-muted-foreground">
+                          {FUND_TYPE_LABELS[line.fundType]}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold font-mono tabular-nums text-foreground">
+                        {formatSharedContributionAmount(
+                          line.amountCents,
+                          line.currencyCode,
+                        )}
+                      </span>
+                    </summary>
+                    {hasContext && (
+                      <div className="space-y-1 border-t border-border px-3 py-2">
+                        {line.missionaryName && (
+                          <p className="text-xs text-muted-foreground">
+                            Supports{" "}
+                            <span className="font-medium text-foreground">
+                              {line.missionaryName}
+                            </span>
+                          </p>
+                        )}
+                        {line.memo && (
+                          <p className="text-xs text-muted-foreground">
+                            Donor memo: “{line.memo}”
+                          </p>
+                        )}
+                        {line.restriction && (
+                          <p className="text-xs text-muted-foreground">
+                            Restriction: {line.restriction}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </details>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </>
+    )
+  );
+}
+
+function ContributionCrmPostingSection({
+  crmPostState,
+  crmPostStateHasSignal,
+  canRetryCrmScope,
+  parentRetryScope,
+  parentRetryActionPending,
+  isActionPending,
+  stagedGiftId,
+  onRetryCrmPost,
+  contribution,
+  designations,
+  pendingActionMatches,
+  designationRetryGuidanceShownInActions,
+}: {
+  crmPostState: ContributionDetailSheetProps["crmPostState"];
+  crmPostStateHasSignal: boolean;
+  canRetryCrmScope: boolean;
+  parentRetryScope: CrmPostFailedScope | null;
+  parentRetryActionPending: boolean;
+  isActionPending: boolean;
+  stagedGiftId: Contribution["stagedGiftId"];
+  onRetryCrmPost: ContributionDetailSheetProps["onRetryCrmPost"];
+  contribution: Contribution;
+  designations: ContributionDetailSheetProps["designations"];
+  pendingActionMatches: (
+    actionType: ContributionDetailPendingAction["actionType"],
+    scope?: CrmPostFailedScope,
+  ) => boolean;
+  designationRetryGuidanceShownInActions: boolean;
+}) {
+  return (
+    crmPostState &&
+    crmPostStateHasSignal && (
+      <>
+        <Separator />
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Historical CRM posting
+          </p>
+          {crmPostState.adapterLimitation && (
+            <Alert className="bg-muted/40">
+              <AlertDescription>
+                <p className="text-xs">{crmPostState.adapterLimitation}</p>
+              </AlertDescription>
+            </Alert>
+          )}
+          <ul className="space-y-2">
+            <li className="space-y-2 rounded-lg border border-border bg-card p-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-foreground">
+                    Parent gift record
+                  </span>
+                  {crmPostState.parent.twentyRecordId && (
+                    <span className="block truncate font-mono text-xs text-muted-foreground">
+                      {crmPostState.parent.twentyRecordId}
+                    </span>
+                  )}
+                </span>
+                <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
+                  <span
+                    className={cn(
+                      "size-2 shrink-0 rounded-full",
+                      crmPostStatusDotColor(crmPostState.parent.status),
+                    )}
+                  />
+                  {crmPostStatusLabel(crmPostState.parent.status)}
+                </span>
+              </div>
+              {isCrmPostFailure(crmPostState.parent.status) &&
+                crmPostState.parent.lastError && (
+                  <p className="text-xs text-destructive">
+                    {crmPostState.parent.lastError}
+                  </p>
+                )}
+              {canRetryCrmScope && parentRetryScope && (
+                <Button
+                  focusableWhenDisabled={parentRetryActionPending}
+                  variant="outline"
+                  size="sm"
+                  disabled={isActionPending}
+                  tabIndex={workflowActionTabIndex(
+                    isActionPending,
+                    parentRetryActionPending,
+                  )}
+                  className="gap-2 rounded-xl font-semibold uppercase tracking-widest"
+                  onClick={() =>
+                    stagedGiftId &&
+                    onRetryCrmPost?.(
+                      parentRetryScope,
+                      stagedGiftId,
+                      contribution.id,
+                    )
+                  }
+                >
+                  <RefreshCcw className="size-3.5" aria-hidden />
+                  Retry parent record
+                </Button>
+              )}
+            </li>
+            {crmPostState.designationRecords.map((record, index) => {
+              const allocationId = record.allocationId;
+              const line = allocationId
+                ? (designations?.lines.find(
+                    (candidate) => candidate.id === allocationId,
+                  ) ?? null)
+                : null;
+              const lineLabel =
+                line?.fundName ??
+                (allocationId
+                  ? `Designation ${allocationId}`
+                  : "Designation line");
+              const retryScope = crmPostState.failedScopes.find(
+                (scope) =>
+                  scope.scope === "designation" &&
+                  scope.allocationId === allocationId,
+              );
+              const lineRetryActionPending = retryScope
+                ? pendingActionMatches("retry_staged_gift", retryScope)
+                : false;
+
+              return (
+                <li
+                  key={allocationId ?? `designation-record-${index}`}
+                  className="space-y-2 rounded-lg border border-border bg-card p-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-foreground">
+                        {lineLabel}
+                      </span>
+                      {record.twentyRecordId && (
+                        <span className="block truncate font-mono text-xs text-muted-foreground">
+                          {record.twentyRecordId}
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
+                      <span
+                        className={cn(
+                          "size-2 shrink-0 rounded-full",
+                          crmPostStatusDotColor(record.status),
+                        )}
+                      />
+                      {crmPostStatusLabel(record.status)}
+                    </span>
+                  </div>
+                  {isCrmPostFailure(record.status) && record.lastError && (
+                    <p className="text-xs text-destructive">
+                      {record.lastError}
+                    </p>
+                  )}
+                  {retryScope &&
+                    !designationRetryGuidanceShownInActions &&
+                    !isContributionRouteCrmRetryScopeSupported(
+                      "designation",
+                    ) && (
+                      <div role="note" className="space-y-1 p-2">
+                        <p className="text-xs font-medium text-foreground">
+                          {CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP}
+                        </p>
+                      </div>
+                    )}
+                  {canRetryCrmScope &&
+                    retryScope &&
+                    allocationId &&
+                    isContributionRouteCrmRetryScopeSupported(
+                      "designation",
+                    ) && (
+                      <Button
+                        focusableWhenDisabled={lineRetryActionPending}
+                        variant="outline"
+                        size="sm"
+                        disabled={isActionPending}
+                        tabIndex={workflowActionTabIndex(
+                          isActionPending,
+                          lineRetryActionPending,
+                        )}
+                        className="gap-2 rounded-xl font-semibold uppercase tracking-widest"
+                        onClick={() =>
+                          stagedGiftId &&
+                          onRetryCrmPost?.(
+                            { scope: "designation", allocationId },
+                            stagedGiftId,
+                            contribution.id,
+                          )
+                        }
+                      >
+                        <RefreshCcw className="size-3.5" aria-hidden />
+                        Retry this line
+                      </Button>
+                    )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </>
+    )
+  );
+}
+
+function ContributionNotesSection({
+  contribution,
+}: {
+  contribution: Contribution;
+}) {
+  return (
+    <>
+      {contribution.notes && (
+        <>
+          <Separator />
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Notes
+            </p>
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                {contribution.notes}
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+
+      {contribution.stagedGiftReviewReason && (
+        <>
+          <Separator />
+          <div className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Review reason
+            </p>
+            <Alert className="bg-muted/40">
+              <AlertDescription>
+                <p className="text-sm font-medium">
+                  {contribution.stagedGiftReviewReason.replace(/,/g, ", ")}
+                </p>
+              </AlertDescription>
+            </Alert>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+function ContributionActionsSection({
+  missingStagedGiftWorkflow,
+  handleCopyTxn,
+  canSendReceipt,
+  receiptActionPending,
+  stagedGiftId,
+  isActionPending,
+  onSendReceipt,
+  contribution,
+  canApproveGift,
+  approveActionPending,
+  onApproveStagedGift,
+  canRetryGift,
+  stagedRetryActionPending,
+  onRetryStagedGift,
+  showRefundAction,
+  canRefund,
+  onRefund,
+  visibleBlockedEntries,
+}: {
+  missingStagedGiftWorkflow: boolean;
+  handleCopyTxn: () => Promise<void>;
+  canSendReceipt: boolean;
+  receiptActionPending: boolean;
+  stagedGiftId: Contribution["stagedGiftId"];
+  isActionPending: boolean;
+  onSendReceipt: ContributionDetailSheetProps["onSendReceipt"];
+  contribution: Contribution;
+  canApproveGift: boolean | string | null | undefined;
+  approveActionPending: boolean;
+  onApproveStagedGift: ContributionDetailSheetProps["onApproveStagedGift"];
+  canRetryGift: boolean;
+  stagedRetryActionPending: boolean;
+  onRetryStagedGift: ContributionDetailSheetProps["onRetryStagedGift"];
+  showRefundAction: boolean;
+  canRefund: boolean;
+  onRefund: ContributionDetailSheetProps["onRefund"];
+  visibleBlockedEntries: ContributionActionAvailability[];
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+        Actions
+      </p>
+
+      {missingStagedGiftWorkflow && (
+        <div
+          role="note"
+          className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
+        >
+          <p className="text-sm font-medium text-foreground">
+            This gift has no staged gift workflow record, so finance workflow
+            actions are unavailable.
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            The donation is valid and shown read-only. Import or create a staged
+            gift to run finance workflow actions for it.
+          </p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 rounded-xl font-semibold uppercase tracking-widest h-9"
+          onClick={handleCopyTxn}
+        >
+          <Copy className="size-3.5" />
+          Copy Transaction ID
+        </Button>
+        {canSendReceipt && (
+          <Button
+            focusableWhenDisabled={receiptActionPending}
+            variant="outline"
+            size="sm"
+            className="gap-2 rounded-xl font-semibold uppercase tracking-widest h-9"
+            disabled={!stagedGiftId || isActionPending}
+            tabIndex={workflowActionTabIndex(
+              isActionPending,
+              receiptActionPending,
+            )}
+            onClick={() =>
+              stagedGiftId && onSendReceipt?.(stagedGiftId, contribution.id)
+            }
+          >
+            <Receipt className="size-3.5" />
+            Send Receipt
+          </Button>
+        )}
+        {canApproveGift && (
+          <Button
+            focusableWhenDisabled={approveActionPending}
+            variant="outline"
+            size="sm"
+            disabled={isActionPending}
+            tabIndex={workflowActionTabIndex(
+              isActionPending,
+              approveActionPending,
+            )}
+            className="gap-2 rounded-xl font-bold uppercase tracking-widest h-9"
+            onClick={() =>
+              stagedGiftId &&
+              onApproveStagedGift?.(stagedGiftId, contribution.id)
+            }
+          >
+            <CheckCircle2 className="size-3.5" />
+            Approve/Post
+          </Button>
+        )}
+        {canRetryGift && (
+          <Button
+            focusableWhenDisabled={stagedRetryActionPending}
+            variant="outline"
+            size="sm"
+            disabled={isActionPending}
+            tabIndex={workflowActionTabIndex(
+              isActionPending,
+              stagedRetryActionPending,
+            )}
+            className="gap-2 rounded-xl font-bold uppercase tracking-widest h-9"
+            onClick={() =>
+              stagedGiftId && onRetryStagedGift?.(stagedGiftId, contribution.id)
+            }
+          >
+            <RefreshCcw className="size-3.5" />
+            Retry Posting
+          </Button>
+        )}
+        {showRefundAction && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!canRefund || isActionPending}
+            tabIndex={isActionPending ? -1 : undefined}
+            className="gap-2 rounded-xl font-semibold uppercase tracking-widest h-9"
+            onClick={() => onRefund?.(contribution.id)}
+          >
+            <Undo2 className="size-3.5" />
+            Refund Gift
+          </Button>
+        )}
+      </div>
+
+      {visibleBlockedEntries.length > 0 && (
+        <ul className="space-y-1.5">
+          {visibleBlockedEntries.map((entry) => (
+            <li
+              key={entry.actionType}
+              className="text-xs text-muted-foreground leading-relaxed"
+            >
+              <span className="font-medium text-foreground">
+                {contributionActionName(entry.actionType)}:
+              </span>{" "}
+              {entry.blockedReason}
+              {entry.nextStep ? ` ${entry.nextStep}` : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ContributionCorrectionSection({
+  correctionRequests,
+  receiptDelivery,
+  onDecided,
+}: {
+  correctionRequests: ContributionDetailSheetProps["correctionRequests"];
+  receiptDelivery: ContributionDetailSheetProps["receiptDelivery"];
+  onDecided: ContributionDetailSheetProps["onDecided"];
+}) {
+  return (
+    correctionRequests &&
+    correctionRequests.length > 0 && (
+      <CorrectionApprovalPanel
+        correctionRequests={correctionRequests}
+        receiptDelivery={receiptDelivery}
+        onDecided={onDecided}
+      />
+    )
+  );
+}
+
+function ContributionRecurringSection({
+  recurring,
+  showRecurringSection,
+  isOneTimeGiftWithAgreement,
+  formatDate,
+}: {
+  recurring: ContributionDetailSheetProps["recurring"];
+  showRecurringSection: boolean;
+  isOneTimeGiftWithAgreement: boolean;
+  formatDate: ReturnType<typeof useLocaleFormat>["formatDate"];
+}) {
+  return (
+    recurring &&
+    showRecurringSection && (
+      <>
+        <Separator />
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Recurring giving
+          </p>
+          {isOneTimeGiftWithAgreement && (
+            <p className="text-xs text-muted-foreground">
+              This gift is linked to a recurring agreement.
+            </p>
+          )}
+          {recurring.providerRecurrenceWithoutAgreement && (
+            <Alert className="bg-muted/40">
+              <AlertDescription>
+                <p className="text-xs">
+                  The payment provider reports this gift as recurring, but no
+                  internal recurring agreement is linked. Review and link the
+                  recurring agreement to close this reconciliation gap.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+          {recurring.agreement && (
+            <div className="rounded-lg border border-border bg-card p-3 space-y-1">
+              <p className="text-sm font-semibold text-foreground">
+                {formatSharedContributionAmount(
+                  recurring.agreement.amountCents,
+                  recurring.agreement.currencyCode,
+                )}{" "}
+                {recurring.agreement.frequency ?? "recurring"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {recurring.agreement.fundName ?? "General Fund"}
+                {recurring.agreement.missionaryName
+                  ? ` · ${recurring.agreement.missionaryName}`
+                  : null}
+                {" · "}
+                {recurring.agreement.status ?? "active"}
+                {recurring.agreement.nextExpectedGiftAt
+                  ? ` · Next expected ${formatDate(
+                      recurring.agreement.nextExpectedGiftAt,
+                      {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      },
+                    )}`
+                  : null}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Gifts under this agreement:{" "}
+                {recurring.agreement.linkedGiftCount}
+                {recurring.agreement.lastLinkedGiftAt
+                  ? ` · Last gift ${formatDate(
+                      recurring.agreement.lastLinkedGiftAt,
+                      {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      },
+                    )}`
+                  : null}
+              </p>
+              {recurring.agreement.stripeSubscriptionId && (
+                <p className="text-xs font-mono text-muted-foreground">
+                  Stripe evidence: {recurring.agreement.stripeSubscriptionId}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </>
+    )
+  );
+}
+
+function ContributionProviderSection({
+  providerProof,
+}: {
+  providerProof: ContributionDetailSheetProps["providerProof"];
+}) {
+  return (
+    providerProof && (
+      <>
+        <Separator />
+        <details className="rounded-lg border border-border bg-card">
+          <summary className="cursor-pointer list-none p-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Provider proof
+          </summary>
+          <div className="space-y-2 border-t border-border p-3">
+            <DetailField label="Payment intent" mono>
+              {providerProof.paymentIntentId ?? "—"}
+            </DetailField>
+            <DetailField label="Charge" mono>
+              {providerProof.chargeId ?? "—"}
+            </DetailField>
+            {providerProof.refundIds.length > 0 && (
+              <DetailField label="Refund IDs" mono>
+                {providerProof.refundIds.join(", ")}
+              </DetailField>
+            )}
+            <div className="flex flex-wrap gap-3 pt-1">
+              {providerProof.dashboardUrls.paymentIntent && (
+                <a
+                  href={providerProof.dashboardUrls.paymentIntent}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium text-foreground underline underline-offset-2"
+                >
+                  Open payment in Stripe
+                </a>
+              )}
+              {providerProof.dashboardUrls.charge && (
+                <a
+                  href={providerProof.dashboardUrls.charge}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium text-foreground underline underline-offset-2"
+                >
+                  Open charge in Stripe
+                </a>
+              )}
+            </div>
+          </div>
+        </details>
+      </>
+    )
+  );
+}
+
+function ContributionMetadataSection({
+  formatDateTime,
+  contribution,
+}: {
+  formatDateTime: ReturnType<typeof useLocaleFormat>["formatDateTime"];
+  contribution: Contribution;
+}) {
+  return (
+    <div className="pt-2 space-y-1">
+      <p className="text-xs text-muted-foreground font-semibold">
+        Created{" "}
+        {formatDateTime(contribution.createdAt, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })}
+      </p>
+      {contribution.updatedAt !== contribution.createdAt && (
+        <p className="text-xs text-muted-foreground font-semibold">
+          Updated{" "}
+          {formatDateTime(contribution.updatedAt, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function getContributionDetailWorkflow(
+  contribution: Contribution,
+  {
+    actionAvailability,
+    crmPostState,
+    onRefund,
+    onRetryCrmPost,
+    recurring,
+    pendingAction,
+  }: Pick<
+    ContributionDetailSheetProps,
+    | "actionAvailability"
+    | "crmPostState"
+    | "onRefund"
+    | "onRetryCrmPost"
+    | "recurring"
+    | "pendingAction"
+  >,
+) {
+  const stagedGiftId = contribution.stagedGiftId;
   const availabilityByAction = actionAvailability
     ? new Map(actionAvailability.map((entry) => [entry.actionType, entry]))
     : null;
@@ -565,737 +1588,31 @@ export function ContributionDetailSheet({
     recurring && !recurring.isRecurring && hasAgreementLink,
   );
 
-  const handleCopyTxn = async () => {
-    const tid = contribution.transactionId;
-    if (!tid) {
-      toast.error("No transaction ID to copy");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(tid);
-      toast.success("Transaction ID copied to clipboard");
-    } catch {
-      toast.error("Could not copy to clipboard");
-    }
+  return {
+    crmPostStateHasSignal,
+    canRetryCrmScope,
+    parentRetryScope,
+    parentRetryActionPending,
+    pendingActionMatches,
+    designationRetryGuidanceShownInActions,
+    missingStagedGiftWorkflow,
+    canSendReceipt,
+    receiptActionPending,
+    canApproveGift,
+    approveActionPending,
+    canRetryGift,
+    stagedRetryActionPending,
+    showRefundAction,
+    canRefund,
+    visibleBlockedEntries,
+    showRecurringSection,
+    isOneTimeGiftWithAgreement,
   };
+}
 
-  return (
-    <ContributionDetailSheetFrame
-      donorDisplayName={resolvedDonorDisplayName}
-      onClose={onClose}
-      open={open}
-    >
-      <div className="p-6 space-y-8">
-        {/* ---- Donor + Status ---- */}
-        <div className="flex items-start gap-4">
-          <Avatar className="size-16 border-4 border-background shadow-sm">
-            <AvatarImage
-              src={donorAvatar ?? undefined}
-              alt={resolvedDonorDisplayName}
-            />
-            <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
-              {isAnonymous ? "?" : getInitials(resolvedDonorDisplayName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-1 pt-1">
-            <h3 className="text-2xl font-semibold text-foreground tracking-tight">
-              {isAnonymous ? "Anonymous Donor" : resolvedDonorDisplayName}
-            </h3>
-            {!isAnonymous && donorEmail && (
-              <p className="text-sm text-muted-foreground font-medium">
-                {donorEmail}
-              </p>
-            )}
-            <div className="flex items-center gap-2 pt-2">
-              <Badge
-                variant="outline"
-                className="h-5 text-[10px] font-semibold uppercase tracking-wider shadow-none"
-              >
-                <span
-                  className={cn(
-                    "size-1.5 shrink-0 rounded-full mr-1.5",
-                    statusDotColor[contribution.status],
-                  )}
-                />
-                {contribution.status}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="h-5 text-[10px] font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
-              >
-                {contribution.type}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* ---- Amount display ---- */}
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">
-            Amount
-          </p>
-          <p className="text-3xl font-semibold font-mono tabular-nums text-foreground tracking-tight">
-            {formatSharedContributionAmount(
-              contribution.shared.amountCents,
-              contribution.shared.currencyCode,
-            )}
-          </p>
-        </div>
-
-        <Separator />
-
-        {/* ---- Details grid ---- */}
-        <div className="grid grid-cols-2 gap-6">
-          <DetailField label="Date">
-            {formatDate(contribution.date, {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </DetailField>
-
-          <DetailField label="Payment Method">
-            {contribution.paymentMethod}
-          </DetailField>
-
-          <DetailField label="Source">{contribution.source}</DetailField>
-
-          {!designations && (
-            <DetailField label="Fund">
-              <span>{contribution.fundName}</span>
-              <span className="block font-mono text-xs text-muted-foreground">
-                {contribution.fundCode}
-              </span>
-            </DetailField>
-          )}
-
-          <DetailField label="Transaction ID" mono>
-            {contribution.transactionId}
-          </DetailField>
-
-          <DetailField label="Receipt">
-            <span className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "size-2 shrink-0 rounded-full",
-                  contribution.receiptSent
-                    ? "bg-emerald-500"
-                    : "bg-muted-foreground/40",
-                )}
-              />
-              {contribution.receiptSent ? "Sent" : "Pending"}
-            </span>
-          </DetailField>
-
-          {contribution.stagedGiftStatus && (
-            <DetailField label="Review">
-              <span className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "size-2 shrink-0 rounded-full",
-                    contribution.stagedGiftStatus === "posted"
-                      ? "bg-emerald-500"
-                      : contribution.stagedGiftStatus === "failed"
-                        ? "bg-destructive"
-                        : "bg-amber-500",
-                  )}
-                />
-                {contribution.stagedGiftStatus.replace(/_/g, " ")}
-              </span>
-            </DetailField>
-          )}
-
-          {contribution.crmPostStatus && !crmPostStateHasSignal && (
-            <DetailField label="CRM post status">
-              {contribution.crmPostStatus.replace(/_/g, " ")}
-            </DetailField>
-          )}
-
-          {contribution.missionaryName && (
-            <DetailField label="Missionary">
-              {contribution.missionaryName}
-            </DetailField>
-          )}
-        </div>
-
-        {/* ---- Designations (ADR-CD-008 / ADR-CD-011) ---- */}
-        {designations && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Designations
-              </p>
-              {!designations.reconcilesToGiftAmount && (
-                <Alert className="bg-muted/40">
-                  <AlertDescription>
-                    <p className="text-xs">
-                      Designation lines do not reconcile to the gift amount.
-                      Review the designation set before relying on these
-                      allocations.
-                    </p>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <ul className="space-y-2">
-                {designations.lines.map((line) => {
-                  const hasContext = Boolean(
-                    line.memo || line.restriction || line.missionaryName,
-                  );
-
-                  return (
-                    <li
-                      key={line.id}
-                      className="rounded-lg border border-border bg-card"
-                    >
-                      <details className="group">
-                        <summary
-                          className={cn(
-                            "flex items-center justify-between gap-3 p-3",
-                            hasContext
-                              ? "cursor-pointer list-none"
-                              : "pointer-events-none list-none",
-                          )}
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-semibold text-foreground">
-                              {line.fundName}
-                            </span>
-                            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
-                              {FUND_TYPE_LABELS[line.fundType]}
-                            </span>
-                          </span>
-                          <span className="shrink-0 text-sm font-semibold font-mono tabular-nums text-foreground">
-                            {formatSharedContributionAmount(
-                              line.amountCents,
-                              line.currencyCode,
-                            )}
-                          </span>
-                        </summary>
-                        {hasContext && (
-                          <div className="space-y-1 border-t border-border px-3 py-2">
-                            {line.missionaryName && (
-                              <p className="text-xs text-muted-foreground">
-                                Supports{" "}
-                                <span className="font-medium text-foreground">
-                                  {line.missionaryName}
-                                </span>
-                              </p>
-                            )}
-                            {line.memo && (
-                              <p className="text-xs text-muted-foreground">
-                                Donor memo: “{line.memo}”
-                              </p>
-                            )}
-                            {line.restriction && (
-                              <p className="text-xs text-muted-foreground">
-                                Restriction: {line.restriction}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </details>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </>
-        )}
-
-        {/* ---- Historical CRM post state (ADR-CD-012) ---- */}
-        {crmPostState && crmPostStateHasSignal && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Historical CRM posting
-              </p>
-              {crmPostState.adapterLimitation && (
-                <Alert className="bg-muted/40">
-                  <AlertDescription>
-                    <p className="text-xs">{crmPostState.adapterLimitation}</p>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <ul className="space-y-2">
-                <li className="space-y-2 rounded-lg border border-border bg-card p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="min-w-0">
-                      <span className="block text-sm font-semibold text-foreground">
-                        Parent gift record
-                      </span>
-                      {crmPostState.parent.twentyRecordId && (
-                        <span className="block truncate font-mono text-[10px] text-muted-foreground">
-                          {crmPostState.parent.twentyRecordId}
-                        </span>
-                      )}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
-                      <span
-                        className={cn(
-                          "size-2 shrink-0 rounded-full",
-                          crmPostStatusDotColor(crmPostState.parent.status),
-                        )}
-                      />
-                      {crmPostStatusLabel(crmPostState.parent.status)}
-                    </span>
-                  </div>
-                  {isCrmPostFailure(crmPostState.parent.status) &&
-                    crmPostState.parent.lastError && (
-                      <p className="text-xs text-destructive">
-                        {crmPostState.parent.lastError}
-                      </p>
-                    )}
-                  {canRetryCrmScope && parentRetryScope && (
-                    <Button
-                      focusableWhenDisabled={parentRetryActionPending}
-                      variant="outline"
-                      size="sm"
-                      disabled={isActionPending}
-                      tabIndex={
-                        isActionPending && !parentRetryActionPending
-                          ? -1
-                          : undefined
-                      }
-                      className="gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
-                      onClick={() =>
-                        stagedGiftId &&
-                        onRetryCrmPost?.(
-                          parentRetryScope,
-                          stagedGiftId,
-                          contribution.id,
-                        )
-                      }
-                    >
-                      <RefreshCcw className="size-3.5" aria-hidden />
-                      Retry parent record
-                    </Button>
-                  )}
-                </li>
-                {crmPostState.designationRecords.map((record, index) => {
-                  const allocationId = record.allocationId;
-                  const line = allocationId
-                    ? (designations?.lines.find(
-                        (candidate) => candidate.id === allocationId,
-                      ) ?? null)
-                    : null;
-                  const lineLabel =
-                    line?.fundName ??
-                    (allocationId
-                      ? `Designation ${allocationId}`
-                      : "Designation line");
-                  const retryScope = crmPostState.failedScopes.find(
-                    (scope) =>
-                      scope.scope === "designation" &&
-                      scope.allocationId === allocationId,
-                  );
-                  const lineRetryActionPending = retryScope
-                    ? pendingActionMatches("retry_staged_gift", retryScope)
-                    : false;
-
-                  return (
-                    <li
-                      key={allocationId ?? `designation-record-${index}`}
-                      className="space-y-2 rounded-lg border border-border bg-card p-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-foreground">
-                            {lineLabel}
-                          </span>
-                          {record.twentyRecordId && (
-                            <span className="block truncate font-mono text-[10px] text-muted-foreground">
-                              {record.twentyRecordId}
-                            </span>
-                          )}
-                        </span>
-                        <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
-                          <span
-                            className={cn(
-                              "size-2 shrink-0 rounded-full",
-                              crmPostStatusDotColor(record.status),
-                            )}
-                          />
-                          {crmPostStatusLabel(record.status)}
-                        </span>
-                      </div>
-                      {isCrmPostFailure(record.status) && record.lastError && (
-                        <p className="text-xs text-destructive">
-                          {record.lastError}
-                        </p>
-                      )}
-                      {retryScope &&
-                        !designationRetryGuidanceShownInActions &&
-                        !isContributionRouteCrmRetryScopeSupported(
-                          "designation",
-                        ) && (
-                          <div
-                            role="note"
-                            className="space-y-1 rounded-md border border-border bg-muted/30 p-2"
-                          >
-                            <p className="text-xs font-medium text-foreground">
-                              {CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP}
-                            </p>
-                          </div>
-                        )}
-                      {canRetryCrmScope &&
-                        retryScope &&
-                        allocationId &&
-                        isContributionRouteCrmRetryScopeSupported(
-                          "designation",
-                        ) && (
-                          <Button
-                            focusableWhenDisabled={lineRetryActionPending}
-                            variant="outline"
-                            size="sm"
-                            disabled={isActionPending}
-                            tabIndex={
-                              isActionPending && !lineRetryActionPending
-                                ? -1
-                                : undefined
-                            }
-                            className="gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
-                            onClick={() =>
-                              stagedGiftId &&
-                              onRetryCrmPost?.(
-                                { scope: "designation", allocationId },
-                                stagedGiftId,
-                                contribution.id,
-                              )
-                            }
-                          >
-                            <RefreshCcw className="size-3.5" aria-hidden />
-                            Retry this line
-                          </Button>
-                        )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </>
-        )}
-
-        {/* ---- Notes ---- */}
-        {contribution.notes && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Notes
-              </p>
-              <div className="rounded-lg border border-border bg-muted/30 p-4">
-                <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                  {contribution.notes}
-                </p>
-              </div>
-            </div>
-          </>
-        )}
-
-        {contribution.stagedGiftReviewReason && (
-          <>
-            <Separator />
-            <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Review reason
-              </p>
-              <Alert className="bg-muted/40">
-                <AlertDescription>
-                  <p className="text-sm font-medium">
-                    {contribution.stagedGiftReviewReason.replace(/,/g, ", ")}
-                  </p>
-                </AlertDescription>
-              </Alert>
-            </div>
-          </>
-        )}
-
-        <Separator />
-
-        {/* ---- Actions ---- */}
-        <div className="space-y-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Actions
-          </p>
-
-          {missingStagedGiftWorkflow && (
-            <div
-              role="note"
-              className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
-            >
-              <p className="text-sm font-medium text-foreground">
-                This gift has no staged gift workflow record, so finance
-                workflow actions are unavailable.
-              </p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                The donation is valid and shown read-only. Import or create a
-                staged gift to run finance workflow actions for it.
-              </p>
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
-              onClick={handleCopyTxn}
-            >
-              <Copy className="size-3.5" />
-              Copy Transaction ID
-            </Button>
-            {canSendReceipt && (
-              <Button
-                focusableWhenDisabled={receiptActionPending}
-                variant="outline"
-                size="sm"
-                className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
-                disabled={!stagedGiftId || isActionPending}
-                tabIndex={
-                  isActionPending && !receiptActionPending ? -1 : undefined
-                }
-                onClick={() =>
-                  stagedGiftId && onSendReceipt?.(stagedGiftId, contribution.id)
-                }
-              >
-                <Receipt className="size-3.5" />
-                Send Receipt
-              </Button>
-            )}
-            {canApproveGift && (
-              <Button
-                focusableWhenDisabled={approveActionPending}
-                variant="outline"
-                size="sm"
-                disabled={isActionPending}
-                tabIndex={
-                  isActionPending && !approveActionPending ? -1 : undefined
-                }
-                className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
-                onClick={() =>
-                  stagedGiftId &&
-                  onApproveStagedGift?.(stagedGiftId, contribution.id)
-                }
-              >
-                <CheckCircle2 className="size-3.5" />
-                Approve/Post
-              </Button>
-            )}
-            {canRetryGift && (
-              <Button
-                focusableWhenDisabled={stagedRetryActionPending}
-                variant="outline"
-                size="sm"
-                disabled={isActionPending}
-                tabIndex={
-                  isActionPending && !stagedRetryActionPending ? -1 : undefined
-                }
-                className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
-                onClick={() =>
-                  stagedGiftId &&
-                  onRetryStagedGift?.(stagedGiftId, contribution.id)
-                }
-              >
-                <RefreshCcw className="size-3.5" />
-                Retry Posting
-              </Button>
-            )}
-            {showRefundAction && (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!canRefund || isActionPending}
-                tabIndex={isActionPending ? -1 : undefined}
-                className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
-                onClick={() => onRefund?.(contribution.id)}
-              >
-                <Undo2 className="size-3.5" />
-                Refund Gift
-              </Button>
-            )}
-          </div>
-
-          {visibleBlockedEntries.length > 0 && (
-            <ul className="space-y-1.5">
-              {visibleBlockedEntries.map((entry) => (
-                <li
-                  key={entry.actionType}
-                  className="text-xs text-muted-foreground leading-relaxed"
-                >
-                  <span className="font-medium text-foreground">
-                    {contributionActionName(entry.actionType)}:
-                  </span>{" "}
-                  {entry.blockedReason}
-                  {entry.nextStep ? ` ${entry.nextStep}` : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* ---- Correction approvals (AL-263) ---- */}
-        {correctionRequests && correctionRequests.length > 0 && (
-          <CorrectionApprovalPanel
-            correctionRequests={correctionRequests}
-            receiptDelivery={receiptDelivery}
-            onDecided={onDecided}
-          />
-        )}
-
-        {/* ---- Recurring agreement context (ADR-CD-007) ---- */}
-        {recurring && showRecurringSection && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Recurring giving
-              </p>
-              {isOneTimeGiftWithAgreement && (
-                <p className="text-xs text-muted-foreground">
-                  This gift is linked to a recurring agreement.
-                </p>
-              )}
-              {recurring.providerRecurrenceWithoutAgreement && (
-                <Alert className="bg-muted/40">
-                  <AlertDescription>
-                    <p className="text-xs">
-                      The payment provider reports this gift as recurring, but
-                      no internal recurring agreement is linked. Review and link
-                      the recurring agreement to close this reconciliation gap.
-                    </p>
-                  </AlertDescription>
-                </Alert>
-              )}
-              {recurring.agreement && (
-                <div className="rounded-lg border border-border bg-card p-3 space-y-1">
-                  <p className="text-sm font-semibold text-foreground">
-                    {formatSharedContributionAmount(
-                      recurring.agreement.amountCents,
-                      recurring.agreement.currencyCode,
-                    )}{" "}
-                    {recurring.agreement.frequency ?? "recurring"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {recurring.agreement.fundName ?? "General Fund"}
-                    {recurring.agreement.missionaryName
-                      ? ` · ${recurring.agreement.missionaryName}`
-                      : null}
-                    {" · "}
-                    {recurring.agreement.status ?? "active"}
-                    {recurring.agreement.nextExpectedGiftAt
-                      ? ` · Next expected ${makeDisplayDate(
-                          recurring.agreement.nextExpectedGiftAt,
-                        ).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}`
-                      : null}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Gifts under this agreement:{" "}
-                    {recurring.agreement.linkedGiftCount}
-                    {recurring.agreement.lastLinkedGiftAt
-                      ? ` · Last gift ${makeDisplayDate(
-                          recurring.agreement.lastLinkedGiftAt,
-                        ).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}`
-                      : null}
-                  </p>
-                  {recurring.agreement.stripeSubscriptionId && (
-                    <p className="text-[10px] font-mono text-muted-foreground">
-                      Stripe evidence:{" "}
-                      {recurring.agreement.stripeSubscriptionId}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* ---- Provider proof (ADR-CD-014, role-gated) ---- */}
-        {providerProof && (
-          <>
-            <Separator />
-            <details className="rounded-lg border border-border bg-card">
-              <summary className="cursor-pointer list-none p-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Provider proof
-              </summary>
-              <div className="space-y-2 border-t border-border px-3 py-3">
-                <DetailField label="Payment intent" mono>
-                  {providerProof.paymentIntentId ?? "—"}
-                </DetailField>
-                <DetailField label="Charge" mono>
-                  {providerProof.chargeId ?? "—"}
-                </DetailField>
-                {providerProof.refundIds.length > 0 && (
-                  <DetailField label="Refund IDs" mono>
-                    {providerProof.refundIds.join(", ")}
-                  </DetailField>
-                )}
-                <div className="flex flex-wrap gap-3 pt-1">
-                  {providerProof.dashboardUrls.paymentIntent && (
-                    <a
-                      href={providerProof.dashboardUrls.paymentIntent}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs font-medium text-foreground underline underline-offset-2"
-                    >
-                      Open payment in Stripe
-                    </a>
-                  )}
-                  {providerProof.dashboardUrls.charge && (
-                    <a
-                      href={providerProof.dashboardUrls.charge}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs font-medium text-foreground underline underline-offset-2"
-                    >
-                      Open charge in Stripe
-                    </a>
-                  )}
-                </div>
-              </div>
-            </details>
-          </>
-        )}
-
-        {/* ---- Metadata ---- */}
-        <div className="pt-2 space-y-1">
-          <p className="text-[10px] text-muted-foreground font-semibold">
-            Created{" "}
-            {makeDisplayDate(contribution.createdAt).toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-          </p>
-          {contribution.updatedAt !== contribution.createdAt && (
-            <p className="text-[10px] text-muted-foreground font-semibold">
-              Updated{" "}
-              {makeDisplayDate(contribution.updatedAt).toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </p>
-          )}
-        </div>
-      </div>
-    </ContributionDetailSheetFrame>
-  );
+function workflowActionTabIndex(
+  isActionPending: boolean,
+  isInitiator: boolean,
+) {
+  return isActionPending && !isInitiator ? -1 : undefined;
 }

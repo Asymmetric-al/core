@@ -2,5 +2,13 @@ import { TablePageFallback } from "@/components/table-page-fallback";
 import { CRM_PAGE_META } from "@/components/table-page-meta";
 
 export default function Loading() {
-  return <TablePageFallback {...CRM_PAGE_META} columnCount={7} rowCount={8} />;
+  return (
+    <TablePageFallback
+      title={CRM_PAGE_META.title}
+      description={CRM_PAGE_META.description}
+      density={CRM_PAGE_META.density}
+      columnCount={7}
+      rowCount={8}
+    />
+  );
 }

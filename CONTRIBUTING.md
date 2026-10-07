@@ -44,6 +44,12 @@ without repairing it. Setup does not start an issue trial.
 - **UI audit:** `bun run verify:shadscan` uses the locked scanner across all three
   apps. CI and pre-commit require honest app floors and current reviewed evidence;
   see the [Shadscan guide](docs/guides/development/shadscan.md).
+- **React diagnostics:** `bun run react-doctor:check` enforces the pinned,
+  all-applicable-rule local profile across eight targets. Preserve the raw
+  inventory and exact source/test-bound exceptions; advisory helper exits do not
+  prove acceptance. Use `bun run test:react-cleanup` for isolated component
+  keyboard/axe checks and disclose its synthetic/provider limits. See the
+  [React Doctor guide](docs/guides/development/react-doctor.md).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Mission Control in Cursor Cloud:** `bun run setup:mission-control:cloud && bun run dev:mission-control` (writes gitignored dev placeholders only).
 - **Access:** organization members developing Core need Write or higher access;

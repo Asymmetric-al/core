@@ -20,7 +20,7 @@ export type WebStudioPreviewDocument = {
   title?: unknown;
 };
 
-export type WebStudioPreviewModel = {
+type WebStudioPreviewModel = {
   content?: unknown;
   id: string;
   layout?: unknown;

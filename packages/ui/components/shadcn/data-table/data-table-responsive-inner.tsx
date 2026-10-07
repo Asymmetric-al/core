@@ -278,7 +278,8 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
     stickyHeader = false,
   } = config;
 
-  const [preferredViewMode, setViewMode] = React.useState(defaultViewMode);
+  const [preferredViewMode, setPreferredViewMode] =
+    React.useState(defaultViewMode);
   const isMobile = useMediaQuery(`(max-width: ${mobileBreakpoint - 1}px)`);
   // Narrow viewports always render cards; derive the coercion instead of
   // writing it back into state so the user's table preference survives a
@@ -445,7 +446,7 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
         enableViewToggle={enableViewToggle}
         isMobile={isMobile}
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={setPreferredViewMode}
         urlStatePending={tableState.isUrlStatePending}
       />
 

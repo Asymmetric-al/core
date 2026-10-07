@@ -48,7 +48,7 @@ export function selectGivingTrend(
   });
 }
 
-export type GivingTrendState = "loading" | "error" | "empty" | "ready";
+type GivingTrendState = "loading" | "error" | "empty" | "ready";
 
 /**
  * Derives which UI state the Giving Trends card should render.

@@ -36,7 +36,7 @@ export function SettingsToolbar({
     >
       <span
         className={cn(
-          "inline-flex items-center gap-2 text-[11px] font-medium",
+          "inline-flex items-center gap-2 text-xs font-medium",
           isDirty ? "text-amber-700" : "text-zinc-500",
         )}
       >
@@ -59,7 +59,7 @@ export function SettingsToolbar({
           size="sm"
           disabled={!isDirty || isSaving}
           onClick={onCancel}
-          className="rounded-lg text-[11px]"
+          className="rounded-lg"
         >
           Discard
         </Button>
@@ -69,7 +69,7 @@ export function SettingsToolbar({
           size="sm"
           disabled={!isDirty || isSaving}
           onClick={onSave}
-          className="rounded-lg text-[11px] font-black uppercase tracking-wider"
+          className="rounded-lg font-black uppercase tracking-wider"
         >
           {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : null}
           Save changes

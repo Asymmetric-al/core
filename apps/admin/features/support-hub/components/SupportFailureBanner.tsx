@@ -39,10 +39,10 @@ export function SupportFailureBanner() {
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
         <div>
-          <p className="text-[12px] font-semibold uppercase tracking-wider">
+          <p className="text-xs font-semibold uppercase tracking-wider">
             {labelForKind(failure.kind)} failed
           </p>
-          <p className="mt-0.5 text-[12px]">{failure.message}</p>
+          <p className="mt-0.5 text-xs">{failure.message}</p>
         </div>
       </div>
       <div className="flex items-center gap-1">
@@ -53,7 +53,7 @@ export function SupportFailureBanner() {
           onClick={() => void handleRetry()}
           disabled={retrying}
           focusableWhenDisabled={retrying}
-          className="rounded-lg text-[11px] font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100"
+          className="rounded-lg font-bold uppercase tracking-wider text-amber-900 hover:bg-amber-100"
         >
           <RefreshCw
             className={retrying ? "size-3.5 animate-spin" : "size-3.5"}

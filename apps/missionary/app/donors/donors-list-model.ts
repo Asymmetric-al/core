@@ -4,7 +4,7 @@ import type { Donor } from "./donor-types";
 
 export type SortOption = "name" | "last_gift" | "total_given" | "joined_date";
 
-export interface DonorListFilters {
+interface DonorListFilters {
   searchTerm: string;
   statusFilter: string;
   tagFilter: string[];

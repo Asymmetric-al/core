@@ -54,7 +54,7 @@ export function ConversationHeader({
   return (
     <header className="flex flex-col gap-3 border-b border-zinc-100 bg-white px-4 py-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+        <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
           Inbox
           <span aria-hidden className="text-zinc-300">
             /
@@ -75,7 +75,7 @@ export function ConversationHeader({
                 status: "resolved",
               })
             }
-            className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
+            className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 font-bold uppercase tracking-wider text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
           >
             <Check className="size-3.5" />
             {isResolved ? "Resolved" : "Resolve"}
@@ -98,7 +98,7 @@ export function ConversationHeader({
           {conversation.subject}
         </h2>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="font-mono text-[11px] tabular-nums text-zinc-400">
+          <span className="font-mono text-xs tabular-nums text-zinc-400">
             {formatRelative(conversation.lastMessageAt, nowIso)}
           </span>
           <ConversationSlaChip conversation={conversation} />
@@ -132,7 +132,7 @@ function LabelChip({ label }: { label: SupportLabel }) {
     <Badge
       variant="outline"
       className={cn(
-        "h-6 rounded-md px-2 text-[10px] font-semibold uppercase tracking-wider ring-1 ring-inset",
+        "h-6 rounded-md px-2 font-semibold uppercase tracking-wider ring-1 ring-inset",
         LABEL_TONE_CLASSES[label.tone],
       )}
     >

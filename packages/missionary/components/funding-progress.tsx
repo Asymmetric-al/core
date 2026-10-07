@@ -62,7 +62,7 @@ export function FundingProgress({
               className="size-full origin-left bg-primary transform-(--funding-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
               style={
                 {
-                  "--funding-progress-transform": `scaleX(${Math.min(percentFunded, 100) / 100})`,
+                  "--funding-progress-transform": `scaleX(${Math.max(0, Math.min(percentFunded, 100)) / 100})`,
                 } as React.CSSProperties
               }
             />

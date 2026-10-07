@@ -31,7 +31,7 @@ interface EvePageContextInput {
   } | null;
 }
 
-export interface EvePageContext {
+interface EvePageContext {
   organization: {
     id: string;
     name: string;

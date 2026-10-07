@@ -78,7 +78,7 @@ export function createDonorColumns(
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider text-muted-foreground">
+                <span className="text-xs truncate max-w-[100px] font-medium uppercase tracking-wider text-muted-foreground">
                   {donor.location || "Unknown"}
                 </span>
                 <span className="text-xs font-semibold text-foreground">
@@ -176,7 +176,7 @@ export function createGivingHistoryColumns(): ColumnDef<Activity>[] {
       cell: ({ row }) => (
         <Badge
           className={cn(
-            "font-semibold rounded-full text-[9px] uppercase tracking-widest border-0",
+            "font-semibold rounded-full uppercase tracking-widest border-0",
             row.original.status === "Failed"
               ? "bg-destructive/10 text-destructive"
               : "bg-primary/10 text-primary",

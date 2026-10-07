@@ -57,7 +57,7 @@ function readChromeDerivedTableInputs<TData extends RowData>(
   };
 }
 
-export type DataTableChromeAction = {
+type DataTableChromeAction = {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   onClick: (rows: RowData[]) => void;

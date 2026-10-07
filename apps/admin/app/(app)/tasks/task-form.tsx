@@ -21,9 +21,26 @@ interface TaskFormProps {
   onSave: (task: Partial<Task>) => void;
 }
 
-export function TaskForm(props: TaskFormProps) {
-  const formInstanceKey = `${props.task?.id ?? "new"}:${props.open ? "open" : "closed"}`;
-  return <TaskFormInner key={formInstanceKey} {...props} />;
+export function TaskForm({
+  open,
+  task,
+  staffMembers,
+  linkedEntities,
+  onClose: handleTaskClose,
+  onSave: handleTaskSave,
+}: TaskFormProps) {
+  const formInstanceKey = `${task?.id ?? "new"}:${open ? "open" : "closed"}`;
+  return (
+    <TaskFormInner
+      key={formInstanceKey}
+      open={open}
+      task={task}
+      staffMembers={staffMembers}
+      linkedEntities={linkedEntities}
+      onClose={handleTaskClose}
+      onSave={handleTaskSave}
+    />
+  );
 }
 
 function TaskFormInner({

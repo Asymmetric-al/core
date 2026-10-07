@@ -56,7 +56,9 @@ export function StatCard({
 
   return (
     <motion.div
-      {...motionProps}
+      initial={motionProps.initial}
+      animate={motionProps.animate}
+      transition={motionProps.transition}
       className="rounded-2xl border border-zinc-100 bg-white px-5 py-4 shadow-sm"
     >
       <div className="flex items-center gap-2">
@@ -64,7 +66,7 @@ export function StatCard({
           aria-hidden
           className={cn("h-1.5 w-1.5 rounded-full", TONE_DOT_CLASSES[tone])}
         />
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
           {label}
         </span>
       </div>

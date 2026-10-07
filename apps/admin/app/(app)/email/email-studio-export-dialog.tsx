@@ -84,7 +84,7 @@ export function EmailStudioExportDialog({
               <code>{exportedHtml.slice(0, 3000)}</code>
             </pre>
             {exportedHtml.length > 3000 ? (
-              <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-muted/80 to-transparent p-3 text-center text-xs text-muted-foreground">
+              <div className="absolute right-0 bottom-0 left-0 bg-linear-to-t from-muted/80 to-transparent p-3 text-center text-xs text-muted-foreground">
                 <Layers className="mr-1 inline size-3" />
                 Showing first 3,000 characters of{" "}
                 {exportedHtml.length.toLocaleString()} total

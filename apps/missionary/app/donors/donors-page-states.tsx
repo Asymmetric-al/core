@@ -48,7 +48,9 @@ export function ErrorState({
 }) {
   return (
     <motion.div
-      {...fadeInUp}
+      initial={fadeInUp.initial}
+      animate={fadeInUp.animate}
+      exit={fadeInUp.exit}
       transition={smoothTransition}
       className="flex flex-col items-center justify-center h-64 text-center p-6 gap-4"
     >
@@ -62,7 +64,7 @@ export function ErrorState({
           variant="outline"
           size="sm"
           onClick={onRetry}
-          className="h-9 rounded-2xl border-border bg-card text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+          className="h-9 rounded-2xl border-border bg-card font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
         >
           <RefreshCw data-icon="inline-start" />
           Try Again

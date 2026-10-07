@@ -35,7 +35,7 @@ export function SavedViewItem({
   return (
     <div
       className={cn(
-        "inline-flex h-8 items-center gap-1 rounded-lg border bg-white px-1 text-[12px] font-medium",
+        "inline-flex h-8 items-center gap-1 rounded-lg border bg-white px-1 text-xs font-medium",
         isActive
           ? "border-zinc-900 text-zinc-900 shadow-sm"
           : "border-zinc-200 text-zinc-600 hover:border-zinc-300",
@@ -71,7 +71,7 @@ export function SavedViewItem({
             onClick={() => {
               onRename();
             }}
-            className="text-[12px]"
+            className="text-xs"
           >
             <Pencil className="size-3.5 text-zinc-500" />
             Rename / scope
@@ -82,7 +82,7 @@ export function SavedViewItem({
             onClick={() => {
               onDelete();
             }}
-            className="text-[12px] text-rose-600 focus:text-rose-600"
+            className="text-xs text-rose-600 focus:text-rose-600"
           >
             <Trash2 className="size-3.5" />
             Delete

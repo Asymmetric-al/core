@@ -17,7 +17,7 @@ const PROFILE_CHANGE_FIELDS = [
 
 type ProfileChangeField = (typeof PROFILE_CHANGE_FIELDS)[number];
 
-export type ProfileComparable = Record<ProfileChangeField, string>;
+type ProfileComparable = Record<ProfileChangeField, string>;
 
 export function hasProfileChanges(
   currentProfile: ProfileComparable,

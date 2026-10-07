@@ -1047,7 +1047,7 @@ function EventsSpeakersTab({
                     <Badge
                       variant="outline"
                       className={cn(
-                        "h-5 px-1.5 text-[10px] font-semibold shadow-none",
+                        "h-5 px-1.5 font-semibold shadow-none",
                         getStatusColor(speaker.status),
                       )}
                     >
@@ -1127,7 +1127,7 @@ function EventsAttendeesTab() {
           <div className="flex items-center gap-3 py-1">
             <Avatar className="size-8">
               <AvatarImage src={row.original.avatar} />
-              <AvatarFallback className="text-[10px] bg-zinc-100 font-semibold">
+              <AvatarFallback className="text-xs bg-zinc-100 font-semibold">
                 {getInitials(row.original.name)}
               </AvatarFallback>
             </Avatar>
@@ -1135,12 +1135,12 @@ function EventsAttendeesTab() {
               <div className="text-sm font-semibold text-zinc-900">
                 {row.original.name}{" "}
                 {row.original.isVip && (
-                  <Badge className="ml-1 h-4 bg-amber-100 text-amber-700 hover:bg-amber-100 text-[8px] uppercase tracking-tighter px-1 border-none shadow-none">
+                  <Badge className="ml-1 h-4 bg-amber-100 text-amber-700 hover:bg-amber-100 uppercase tracking-tighter px-1 border-none shadow-none">
                     VIP
                   </Badge>
                 )}
               </div>
-              <div className="text-[10px] text-zinc-500 font-medium">
+              <div className="text-xs text-zinc-500 font-medium">
                 {row.original.email}
               </div>
             </div>
@@ -1162,7 +1162,7 @@ function EventsAttendeesTab() {
           <Badge
             variant="outline"
             className={cn(
-              "h-5 text-[10px] font-semibold shadow-none",
+              "h-5 font-semibold shadow-none",
               getAttendeeStatusColor(row.original.status),
             )}
           >
@@ -1262,7 +1262,7 @@ function EventsAttendeesTab() {
 
 export default function EventsPage() {
   const [activeView, setActiveView] = useState<EventsView>("dashboard");
-  const [event, _setEvent] = useState<ConferenceEvent>(INITIAL_EVENTS[0]!);
+  const event: ConferenceEvent = INITIAL_EVENTS[0]!;
   // Route VT owns the entrance when active; only animate on plain mounts.
   const withinRouteVt = useWithinViewTransitionRouteLayer();
 
