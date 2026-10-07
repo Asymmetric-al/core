@@ -95,7 +95,7 @@
     "react-day-picker": "^9.14.0",
     "react-easy-crop": "^5.5.6",
     "react-email-editor": "^1.7.11",
-    "react-resizable-panels": "^4",
+    "react-resizable-panels": "4.14.2",
     "recharts": "2.15.4",
     "sonner": "2.0.8"
   },
