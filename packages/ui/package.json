@@ -60,7 +60,7 @@
     "@asym/database": "workspace:*",
     "@asym/lib": "workspace:*",
     "@base-ui/react": "1.8.0",
-    "@react-email/editor": "1.5.3",
+    "@react-email/editor": "1.7.12",
     "@supabase/supabase-js": "2.117.3",
     "@tanstack/db": "^0.12.1",
     "@tanstack/react-db": "^0.5.5",
