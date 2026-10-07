@@ -1,5 +1,17 @@
 # Quality gates (security, accessibility, scroll)
 
+<!-- BEGIN:core-reui-overlay -->
+
+## Core usage
+
+The ReUI checklist supplements Core's TDD, frontend, testing, data-access,
+and design-system gates. For user-visible changes, verify keyboard/focus,
+responsive states, contrast, and reduced motion in the running app. Call
+`get_audit_checklist` when MCP is available; if unavailable, use this local gate
+and the Core rulebooks and report that live checklist verification is missing.
+
+<!-- END:core-reui-overlay -->
+
 These are the **done gate**, not a nice-to-have: before you call any ReUI work finished, call the MCP `get_audit_checklist` tool and pass every item below (plus the craft bar in [craft.md](./craft.md)). Then typecheck and lint.
 
 ## Security

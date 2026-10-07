@@ -14,7 +14,11 @@
     },
     "reui": {
       "type": "http",
-      "url": "https://mcp.reui.io"
+      "url": "https://mcp.reui.io",
+      "headers": {
+        "Authorization": "Bearer ${REUI_LICENSE_KEY}",
+        "X-Reui-Style": "base-maia"
+      }
     }
   }
 }

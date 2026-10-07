@@ -18,6 +18,17 @@
 
 ###
 
+# ReUI Pro: export REUI_LICENSE_KEY in the agent's process environment.
+# Codex reads the variable by name; ${REUI_LICENSE_KEY} is not TOML interpolation.
+# For browser OAuth instead, omit bearer_token_env_var and run codex mcp login reui.
+# See docs/guides/development/reui.md for registry installation and verification.
+# [mcp_servers.reui]
+# url = "https://mcp.reui.io"
+# bearer_token_env_var = "REUI_LICENSE_KEY"
+# http_headers = { "X-Reui-Style" = "base-maia" }
+
+###
+
 # [mcp_servers.tanstack]
 # command = "bunx"
 # args = ["@tanstack/cli", "mcp"]

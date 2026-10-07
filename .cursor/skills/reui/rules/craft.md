@@ -1,5 +1,18 @@
 # Craft: make ReUI UI exceptional, not generic
 
+<!-- BEGIN:core-reui-overlay -->
+
+## Core usage
+
+Preserve Core's existing Maia design language and motion tokens. On the
+current Pro account, use `lucide-react` for icons; the upstream Motion Icons
+recommendation applies only if Ultimate access is explicitly available.
+Follow Core's reduced-motion, touch-hover, and shared timing rules in
+`docs/ai/rules/frontend.md`, rather than introducing literal timings from the
+generic examples below.
+
+<!-- END:core-reui-overlay -->
+
 ReUI items ship senior-designer quality. Your adaptation has to hold that bar, so the result reads like a real product surface a team would keep - not a wireframe an AI generated. Use these alongside the reuse rules in [adapting.md](./adapting.md).
 
 ## Have a point of view

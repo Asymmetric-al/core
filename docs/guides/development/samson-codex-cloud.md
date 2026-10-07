@@ -72,6 +72,13 @@ No model API key or production credentials are installed. Optional Mission
 Control sandbox setup remains separate and proves no live database or money
 correctness.
 
+ReUI UI work uses the repository's MCP entry with `X-Reui-Style: base-maia`.
+Supply `REUI_LICENSE_KEY` through the runtime secret environment before starting
+the agent; MCP clients do not automatically load the registry CLI's `.env.local`.
+The native-role installer preserves MCP settings and does not install this secret.
+Restart or reconnect the client after changing MCP configuration or credentials,
+then follow [ReUI setup and verification](reui.md) to verify Pro access.
+
 ## Roles and delivery
 
 | Role    | Model         | Reasoning | Assigned access                                              |
