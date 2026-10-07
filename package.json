@@ -186,8 +186,8 @@
     "@next/env": "16.4.0",
     "@supabase/supabase-js": "2.117.3",
     "@tailwindcss/typography": "^0.5.19",
-    "graphql": "16.12.0",
-    "graphql-yoga": "5.17.1",
+    "graphql": "16.14.2",
+    "graphql-yoga": "5.24.2",
     "next": "16.4.0",
     "require-in-the-middle": "^8.0.1",
     "sharp": "^0.35.5"

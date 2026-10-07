@@ -24,8 +24,8 @@
     "@asym/database": "workspace:*",
     "@asym/lib": "workspace:*",
     "@supabase/supabase-js": "2.117.3",
-    "graphql": "16.12.0",
-    "graphql-yoga": "5.18.0"
+    "graphql": "16.14.2",
+    "graphql-yoga": "5.24.2"
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",
