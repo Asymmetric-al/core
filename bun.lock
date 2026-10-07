@@ -482,7 +482,7 @@
         "nuqs": "2.10.1",
         "react-day-picker": "10.0.2",
         "react-easy-crop": "6.2.4",
-        "react-email-editor": "^1.7.11",
+        "react-email-editor": "2.1.3",
         "react-resizable-panels": "4.14.2",
         "recharts": "3.10.1",
         "sonner": "2.0.8",
@@ -2051,7 +2051,7 @@
 
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.0.2", "", { "os": "win32", "cpu": "x64" }, "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g=="],
 
-    "@unlayer/types": ["@unlayer/types@1.400.0", "", {}, "sha512-UMnI3h9OBSpwZw5IB/RPA4QAmKigKyipZ0ZmbtnzkuYQA/ZHQ20wbWMXH/wCeomHvTSbLBnzTPhx+nFMbI97kw=="],
+    "@unlayer/types": ["@unlayer/types@1.516.0", "", {}, "sha512-wvZP9emj/fr27b2ehU1PQS8GfbYUIqUVB+5GwhNOT/t3XgOW0hdWaJh8uPZAp0LmDfg0aHdageY6yJpRTIO4LA=="],
 
     "@unrs/resolver-binding-android-arm-eabi": ["@unrs/resolver-binding-android-arm-eabi@1.11.1", "", { "os": "android", "cpu": "arm" }, "sha512-ppLRUgHVaGRWUx0R0Ut06Mjo9gBaBkg3v/8AxusGLhsIotbBLuRk51rAzqLC8gq6NyyAojEXglNjzf6R948DNw=="],
 
@@ -3707,7 +3707,7 @@
 
     "react-email": ["react-email@6.11.1", "", { "dependencies": { "@babel/parser": "7.29.2", "@babel/traverse": "7.29.0", "@react-email/render": ">=2.1.0", "chokidar": "^5.0.0", "commander": "^13.0.0", "conf": "^15.0.2", "css-tree": "3.2.1", "debounce": "^2.0.0", "esbuild": "^0.28.0", "glob": "^13.0.6", "jiti": "2.6.1", "log-symbols": "^7.0.0", "marked": "^15.0.12", "mime-types": "^3.0.0", "normalize-path": "^3.0.0", "nypm": "0.6.6", "picospinner": "^3.0.0", "prismjs": "^1.30.0", "prompts": "2.4.2", "socket.io": "^4.8.1", "tailwindcss": "^4.1.18", "tsconfig-paths": "4.2.0" }, "peerDependencies": { "react": "^18.0 || ^19.0 || ^19.0.0-rc", "react-dom": "^18.0 || ^19.0 || ^19.0.0-rc" }, "bin": { "email": "./dist/cli/index.mjs" } }, "sha512-9ckYTQFQD059UdA1nOm0O9sA7UbqFfJ9TngbEKEbwkEoaMWwWyHx8stCvAdhBVysmRLKkpafQ5mjHz09afayiQ=="],
 
-    "react-email-editor": ["react-email-editor@1.8.0", "", { "dependencies": { "@unlayer/types": "latest" }, "peerDependencies": { "react": ">=15" } }, "sha512-wauG/fES4k3VueIYVvsnxL+6+AAOw8oG3r1QlQclnC2aErpsjJSDmYgQRmDBhkts0QTKJf4uPiXOd3OxPv50OA=="],
+    "react-email-editor": ["react-email-editor@2.1.3", "", { "dependencies": { "@unlayer/types": "^1.448.0" }, "peerDependencies": { "react": ">=16.8" } }, "sha512-HiDkLjwbVexp58wfmceCsVfX7N/nu6yk8+1KPWtIYlH7ks87RTNxX4HgMKWyXZFpXczNZ7J4Tzgt1ZezNWKFJg=="],
 
     "react-error-boundary": ["react-error-boundary@6.1.1", "", { "peerDependencies": { "react": "^18.0.0 || ^19.0.0" } }, "sha512-BrYwPOdXi5mqkk5lw+Uvt0ThHx32rCt3BkukS4X23A2AIWDPSGX6iaWTc0y9TU/mHDA/6qOSGel+B2ERkOvD1w=="],
 
