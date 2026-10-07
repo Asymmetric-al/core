@@ -1,26 +1,28 @@
 # TanStack Integration Guide
 
-This guide documents the project-standard integration for TanStack Query v5, Table v9 (beta), DB, and Virtual v3 in this Next.js 16.3.3 monorepo.
+This guide documents the project-standard integration for TanStack Query v5, Table v9, DB, and Virtual v3 in this Next.js 16 monorepo.
 
-AI agents should pair official TanStack CLI docs/search output with this repo-specific guide. TanStack Intent skills apply only when the current `npx --yes @tanstack/intent@latest list` output returns a matching package; for Query/Table/Router surfaces not returned by Intent, keep using `tanstack doc`, `tanstack search-docs`, this guide, and the virtual foundation guide below. For Table specifically, see [v9 doc sources](#v9-doc-sources) first — tanstack.com still serves v8 docs.
+AI agents should pair official TanStack CLI docs/search output with this repo-specific guide. TanStack Intent skills apply only when the current `npx --yes @tanstack/intent@latest list` output returns a matching package; for Query/Table/Router surfaces not returned by Intent, keep using `tanstack doc`, `tanstack search-docs`, this guide, and the virtual foundation guide below. For Table specifically, see [v9 doc sources](#v9-doc-sources) first and verify their version against the installed package.
 
 ## Version Matrix
 
-| Package                          | Version                | Primary workspace(s)                                           | Role                                    |
-| -------------------------------- | ---------------------- | -------------------------------------------------------------- | --------------------------------------- |
-| `@tanstack/react-query`          | `^5.96.2`              | `packages/database`, apps                                      | Query state and caching                 |
-| `@tanstack/react-table`          | `9.0.0-beta.9` (exact) | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 beta)         |
-| `@tanstack/react-table-devtools` | `9.0.0-beta.9` (exact) | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
-| `@tanstack/react-devtools`       | `^0.10.5`              | `apps/admin`                                                   | TanStack Devtools shell (hosts plugins) |
-| `@tanstack/react-db`             | `^0.1.82`              | `packages/database`, `packages/ui`                             | React DB bindings                       |
-| `@tanstack/query-db-collection`  | `^1.0.35`              | `packages/database`                                            | Query-backed collections                |
-| `@tanstack/db`                   | `^0.6.4`               | `packages/database`                                            | DB runtime                              |
-| `@supabase-labs/tanstack-db`     | `0.0.1` (exact)        | `packages/database`                                            | Supabase collection adapter             |
-| `@tanstack/react-virtual`        | `^3.13.23`             | `packages/ui`                                                  | Row/list virtualization                 |
-| `@tanstack/cli`                  | `^0.63.1`              | repo root (devDependency)                                      | TanStack docs + tooling                 |
-| `zod`                            | `^4.3.6`               | apps + shared packages                                         | Runtime schema validation               |
+| Package                          | Version          | Primary workspace(s)                                           | Role                                    |
+| -------------------------------- | ---------------- | -------------------------------------------------------------- | --------------------------------------- |
+| `@tanstack/react-form`           | `1.33.5` (exact) | `packages/ui`, `apps/admin`                                    | Form state and validation               |
+| `@tanstack/react-store`          | `0.11.2` (exact) | `packages/ui`                                                  | Shared Table and Form subscriptions     |
+| `@tanstack/react-query`          | `^5.104.1`       | `packages/database`, apps                                      | Query state and caching                 |
+| `@tanstack/react-table`          | `9.2.6` (exact)  | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 stable)       |
+| `@tanstack/react-table-devtools` | `9.2.5` (exact)  | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
+| `@tanstack/react-devtools`       | `^0.10.13`       | `apps/admin`                                                   | TanStack Devtools shell (hosts plugins) |
+| `@tanstack/react-db`             | `^0.1.82`        | `packages/database`, `packages/ui`                             | React DB bindings                       |
+| `@tanstack/query-db-collection`  | `^1.0.35`        | `packages/database`                                            | Query-backed collections                |
+| `@tanstack/db`                   | `^0.6.4`         | `packages/database`                                            | DB runtime                              |
+| `@supabase-labs/tanstack-db`     | `0.0.1` (exact)  | `packages/database`                                            | Supabase collection adapter             |
+| `@tanstack/react-virtual`        | `^3.14.13`       | `packages/ui`                                                  | Row/list virtualization                 |
+| `@tanstack/cli`                  | `^0.63.1`        | repo root (devDependency)                                      | TanStack docs + tooling                 |
+| `zod`                            | `^4.3.6`         | apps + shared packages                                         | Runtime schema validation               |
 
-`@tanstack/react-table` and `@tanstack/react-table-devtools` are pinned **exactly** (no caret) in every workspace that consumes them: beta-to-beta releases can include breaking changes, and the exact pin keeps those from arriving silently through a version range. Rationale and rollout history live in `docs/guides/architecture/tanstack-table-v9-decisions.md` (ADR-1).
+`@tanstack/react-table` and `@tanstack/react-table-devtools` are pinned **exactly** (no caret) in every workspace that consumes them: the engine boundary and devtools adapter are qualified together. Their published versions differ; the adapter peer range accepts the installed stable v9 engine. Rationale and rollout history live in `docs/guides/architecture/tanstack-table-v9-decisions.md` (ADR-1).
 
 ## Layer Responsibilities
 
@@ -44,7 +46,7 @@ AI agents should pair official TanStack CLI docs/search output with this repo-sp
 
 ## TanStack Table v9
 
-The shared table layer runs `@tanstack/react-table@9.0.0-beta.9`. The migration kept the public component API stable; the engine-facing changes are concentrated in one boundary module.
+The shared table layer runs `@tanstack/react-table@9.2.6`. The migration kept the public component API stable; the engine-facing changes are concentrated in one boundary module.
 
 ### Boundary module (the only engine import)
 
@@ -60,24 +62,20 @@ The boundary exports everything consumers need:
 
 - **`dataTableFeatures`** — the one explicit `tableFeatures({...})` set (10 features: column faceting, filtering, pinning, resizing, sizing, visibility, global filtering, row pagination, selection, sorting). v9 features are opt-in plugins; `stockFeatures` and `useLegacyTable` are deliberately not used (ADR-2). Adding a capability (e.g. grouping) means adding the feature here — a reviewed boundary change.
 - **`SharedTableFeatures`** — `typeof dataTableFeatures`, the feature generic bound into all shared types.
-- **`createDataTableRowModels({ filtering, sorting, pagination, faceting })`** — the shared row-model bundle for the v9 `rowModels` option; each flag registers the matching client-side row model (all default `true`).
+- **Row-model slots** — `dataTableFeatures` registers filtering, sorting, pagination and faceting factories, plus `filterFns` and `sortFns`. Per-instance `manualFiltering`, `manualSorting` and `manualPagination` skip client processing; DataGrid always skips pagination and enables filtering for search independently of column filters.
 - **`useTable`, `flexRender`, `useSelector`** — the React entry points. `useSelector` is re-exported from `@tanstack/react-store` (a direct dependency, matching the store version `@tanstack/react-table` itself uses); import it from the boundary, not from the package.
 - **v8-named type aliases pre-bound to `SharedTableFeatures`** — `ColumnDef<TData, TValue>`, `Table<TData>`, `Row`, `Cell`, `Column`, `Header`, `HeaderGroup`, `TableOptions`, plus `VisibilityState` (the v8 name for v9's `ColumnVisibilityState`). v9 added `TFeatures` as the first generic parameter on most types; the aliases absorb it so consumer signatures keep the v8 shape, and raw `TFeatures` generics appear nowhere in app code (ADR-4).
 
-> **Beta.10 upgrade note:** `createDataTableRowModels` and every
-> `useTable({ rowModels: ... })` call site are intentionally tied to the pinned
-> `9.0.0-beta.9` option shape. TanStack Table `9.0.0-beta.10` moved row-model
-> factories into `tableFeatures(...)` slots (`filteredRowModel`,
-> `sortedRowModel`, `paginatedRowModel`, etc.). Do not bump past beta.9 without
-> migrating `dataTableFeatures`, `createDataTableRowModels`, and the direct
-> `useTable` call sites together.
+> **Stable v9 option shape:** row-model factories belong in `tableFeatures(...)`.
+> The former `rowModels` table option and `createDataTableRowModels` helper
+> were removed in the stable migration.
 
 ### Building a new table on v9
 
 - **Default: use the shared components.** `DataTable` / `DataTableResponsive` (and `DataGrid` for editable grids) are the family entry points; their public props did not change in the v9 migration (`columns`, `data`, `state`, `initialState`, `urlState`, `getRowId`, `config`, …).
 - Type columns with `ColumnDef<TData, TValue>` imported from the boundary, never from `@tanstack/react-table`.
-- For server-mode tables set `config.manualPagination` / `manualSorting` / `manualFiltering`; the shared components derive the row-model flags from them automatically (`filtering: !manualFiltering`, etc. in `data-table-body.tsx`).
-- **Direct `useTable` call sites are rare** (per ADR-4 app code consumes the shared components). If you genuinely need one, pass `features: dataTableFeatures` and `rowModels: createDataTableRowModels({...})`, and make the flags mirror the table's `manual*` flags. The core row model is automatic in v9; only filtered/sorted/paginated/faceted models are registered explicitly.
+- For server-mode tables set `config.manualPagination` / `manualSorting` / `manualFiltering`; the shared components forward these options to skip the corresponding client processing stage.
+- **Direct `useTable` call sites are rare** (per ADR-4 app code consumes the shared components). If you genuinely need one, pass `features: dataTableFeatures` and set `manual*` options explicitly when client processing is disabled. The core row model is automatic; the shared feature slots provide filtered/sorted/paginated/faceted models.
 
 > **Warning — v9 fails silently on missing row models.** When a row model is not registered, v9 skips that processing stage instead of throwing: the sorted model falls back to the unsorted model, faceted counts return an empty `Map`, and so on. A wrong flag pairing presents as a data bug ("sorting does nothing"), not an error. Registering a model alongside a `manual*` flag is harmless — the runtime checks the manual flag first — so when in doubt, register the model.
 
@@ -116,7 +114,7 @@ The shared pattern (see `packages/ui/components/shadcn/data-table/data-table-chr
 - `DataTable`, `DataTableResponsive`, and `DataGrid` accept an optional **`devtoolsKey`** prop (`DataTableWrapper` forwards it), and `useDataTableWithLiveQuery` accepts the same option. It becomes the table's `key` option — its devtools identity — and gates registration via `useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) })`. Omit it (the default) and the table stays unregistered.
 - The host shell is mounted **dev-only** in the admin app: `AdminTanStackDevtools` (`apps/admin/app/_providers/tanstack-devtools.tsx`) renders `<TanStackDevtools plugins={[tableDevtoolsPlugin()]} />` from `@tanstack/react-devtools` + `@tanstack/react-table-devtools` and returns `null` in production builds; it is wired into `apps/admin/app/layout.tsx`.
 - The adapter's default `.` entry exports no-ops whenever `NODE_ENV !== "development"`, so registration is skipped outside development and `devtoolsKey` values can stay in committed code. Beware the package's `./production` entry: it is the opposite — an always-enabled opt-in that exports the real panel/plugin/hook — so never import it expecting a no-op.
-- The beta engine requires the **`@beta`-tagged adapter**: `@tanstack/react-table-devtools` is pinned to the same `9.0.0-beta.9` as the engine. The `latest`-tagged adapter targets v8 instances and cannot read v9's Store-backed state.
+- Stable v9 uses `@tanstack/react-table-devtools@9.2.5` with `@tanstack/react-table@9.2.6`. The adapter targets the v9 Store-backed state through its `@tanstack/table-core: ^9.0.0` peer range. The shell resolves its own compatible devtools closure; do not force matching numeric versions across the packages.
 
 ### Testing expectations
 
@@ -126,12 +124,13 @@ The shared pattern (see `packages/ui/components/shadcn/data-table/data-table-chr
 
 ### v9 doc sources
 
-tanstack.com Table docs and `tanstack search-docs --library table` still index **v8** content. v9 truth for this repo is:
+Verify examples against the exact stable version before applying them:
 
-- the [`TanStack/table` `beta` branch](https://github.com/TanStack/table/tree/beta) (the repo's default branch; v9 docs under `docs/`, including the migration guide), and
-- the installed package typings under `node_modules` for the exact pinned beta.
+- the installed `@tanstack/react-table` / `@tanstack/table-core` typings and shipped skills, and
+- the official [v9 migration guide](https://tanstack.com/table/latest/docs/framework/react/guide/migrating) and [row-model guide](https://tanstack.com/table/latest/docs/guide/row-models).
 
-Treat v8 docs as migration context only. See the **"TanStack Table v9 (beta) source verification"** rule in `AGENTS.md` and `docs/guides/architecture/tanstack-table-v9-decisions.md` before trusting any Table doc.
+The architecture ADR retains the history of the beta adoption. Current stable
+API truth is the committed dependency version and its published package.
 
 ## Collection Ownership
 

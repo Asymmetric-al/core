@@ -16,7 +16,6 @@ import {
   type RowSelectionState,
   type Table,
   type VisibilityState,
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
   type ColumnDef,
@@ -183,13 +182,10 @@ export function useDataTableWithLiveQuery<
 
   const tableOptions: TableOptions<TData> = {
     features: dataTableFeatures,
-    // The core row model is automatic in v9; disabled flags skip the matching
-    // client-side row model just like the v8 `get*RowModel: undefined` paths.
-    rowModels: createDataTableRowModels<TData>({
-      filtering: enableFiltering,
-      pagination: enablePagination,
-      sorting: enableSorting,
-    }),
+    // Keep disabled client processing skipped with the shared row-model slots.
+    manualFiltering: !enableFiltering,
+    manualSorting: !enableSorting,
+    manualPagination: !enablePagination,
     data: filteredData,
     // Columns with heterogeneous TValue collapse to `unknown` for the engine,
     // mirroring v8's `ColumnDef<TData, any>[]` table option.

@@ -15,7 +15,6 @@ import { Button } from "../../../../packages/ui/components/shadcn/button";
 import { Checkbox } from "../../../../packages/ui/components/shadcn/checkbox";
 import { SelectCell } from "../../../../packages/ui/components/shadcn/data-table/cell-variants/select-cell";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -273,7 +272,6 @@ function SelectCellFixture({
 }) {
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<PlanRow>(),
     data: planData,
     columns: planColumns,
   });
