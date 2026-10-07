@@ -237,6 +237,182 @@ describe("shadcn upstream review gate", () => {
     ]);
   });
 
+  describe("bounded public registry retries", () => {
+    const readOnlyArgs = ["add", "button", "--dry-run"];
+    const publicFailure = (status: number) =>
+      "Failed to fetch from registry (" +
+      status +
+      "): https://ui.shadcn.com/r/styles/base-maia/button.json\n";
+
+    function failingCli({
+      failures = 1,
+      message = publicFailure(503),
+      exitCode = 1,
+      firstDelayMs = 0,
+      laterDelayMs = 0,
+      paddingBytes = 0,
+    } = {}) {
+      const input = installedCliFixture();
+      const marker = path.join(input.root, "attempts.json");
+      writeFileSync(
+        path.join(input.packageDirectory, "dist/index.js"),
+        [
+          "const fs = require('node:fs');",
+          "const marker = " + JSON.stringify(marker) + ";",
+          "const attempts = fs.existsSync(marker) ? JSON.parse(fs.readFileSync(marker, 'utf8')) : [];",
+          "attempts.push(process.argv.slice(2));",
+          "fs.writeFileSync(marker, JSON.stringify(attempts));",
+          "const failed = attempts.length <= " + failures + ";",
+          "setTimeout(() => {",
+          "process.stdout.write('x'.repeat(" +
+            paddingBytes +
+            ") + String.fromCharCode(10));",
+          "process.stdout.write(failed ? " +
+            JSON.stringify(message) +
+            " : " +
+            JSON.stringify(preview("button")) +
+            ", () => process.exit(failed ? " +
+            exitCode +
+            " : 0));",
+          "}, attempts.length === 1 ? " +
+            firstDelayMs +
+            " : " +
+            laterDelayMs +
+            ");",
+        ].join("\n"),
+      );
+      return {
+        ...input,
+        command: process.execPath,
+        attempts: () => JSON.parse(readFileSync(marker, "utf8")) as string[][],
+      };
+    }
+
+    it.each([502, 503, 504])(
+      "retries a public HTTP%s once using identical read-only arguments",
+      async (status) => {
+        const input = failingCli({
+          message: publicFailure(status) + "opaque-test-provider-token\n",
+        });
+        const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const output = await createCliRunner(input)(readOnlyArgs);
+        expect(parseDryRun(output, "button", input.root)).toEqual(
+          parseDryRun(preview("button"), "button", input.root),
+        );
+        expect(input.attempts()).toEqual([readOnlyArgs, readOnlyArgs]);
+        expect(warning).toHaveBeenCalledTimes(1);
+        expect(String(warning.mock.calls)).toContain("HTTP " + status);
+        expect(String(warning.mock.calls)).not.toContain(
+          "opaque-test-provider-token",
+        );
+        expect(existsSync(input.installerMarker)).toBe(false);
+      },
+    );
+
+    it("snapshots the read-only command before a caller can mutate its arguments", async () => {
+      const input = failingCli();
+      const args = [...readOnlyArgs];
+      vi.spyOn(console, "warn").mockImplementation(() => {
+        args.pop();
+      });
+      await createCliRunner(input)(args);
+      expect(args).toEqual(["add", "button"]);
+      expect(input.attempts()).toEqual([readOnlyArgs, readOnlyArgs]);
+    });
+
+    it("fails persistent public 503 after exactly three attempts", async () => {
+      const input = failingCli({ failures: 10 });
+      const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+      await expect(createCliRunner(input)(readOnlyArgs)).rejects.toThrow(
+        "public registry HTTP 503 after 3 attempts",
+      );
+      expect(input.attempts()).toEqual([
+        readOnlyArgs,
+        readOnlyArgs,
+        readOnlyArgs,
+      ]);
+      expect(warning).toHaveBeenCalledTimes(2);
+    });
+
+    it.each([
+      { message: publicFailure(401), exitCode: 1, args: readOnlyArgs },
+      { message: publicFailure(429), exitCode: 1, args: readOnlyArgs },
+      { message: publicFailure(500), exitCode: 1, args: readOnlyArgs },
+      {
+        message: publicFailure(503).replace(
+          "ui.shadcn.com",
+          "registry.npmjs.org",
+        ),
+        exitCode: 1,
+        args: readOnlyArgs,
+      },
+      {
+        message: publicFailure(503).replace(
+          "ui.shadcn.com",
+          "ui.shadcn.com.evil.invalid",
+        ),
+        exitCode: 1,
+        args: readOnlyArgs,
+      },
+      {
+        message: publicFailure(503).replace(
+          ".json",
+          ".json?token=opaque-test-token",
+        ),
+        exitCode: 1,
+        args: readOnlyArgs,
+      },
+      {
+        message: publicFailure(503) + "certificate has expired\n",
+        exitCode: 1,
+        args: readOnlyArgs,
+      },
+      {
+        message: publicFailure(503) + publicFailure(401),
+        exitCode: 1,
+        args: readOnlyArgs,
+      },
+      { message: "certificate has expired\n", exitCode: 1, args: readOnlyArgs },
+      { message: publicFailure(503), exitCode: 2, args: readOnlyArgs },
+      { message: publicFailure(503), exitCode: 1, args: ["add", "button"] },
+    ])(
+      "does not retry nontransient/nonpublic errors or mutation arguments: %j",
+      async ({ message, exitCode, args }) => {
+        const input = failingCli({ message, exitCode, failures: 10 });
+        const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+        await expect(createCliRunner(input)(args)).rejects.toThrow(
+          "shadcn CLI coverage failed (exit " + exitCode + ")",
+        );
+        expect(input.attempts()).toEqual([args]);
+        expect(warning).not.toHaveBeenCalled();
+      },
+    );
+
+    it("keeps the original total timeout across child attempts and backoff", async () => {
+      const input = failingCli({
+        failures: 10,
+        firstDelayMs: 180,
+        laterDelayMs: 1000,
+      });
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      const started = performance.now();
+      await expect(
+        createCliRunner({ ...input, timeoutMs: 500 })(readOnlyArgs),
+      ).rejects.toThrow("shadcn CLI coverage timed out");
+      expect(performance.now() - started).toBeLessThan(750);
+      expect(input.attempts()).toEqual([readOnlyArgs, readOnlyArgs]);
+    });
+
+    it("keeps the 4MB output cap cumulative across failed and successful attempts", async () => {
+      const input = failingCli({ paddingBytes: 2_100_000 });
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      await expect(createCliRunner(input)(readOnlyArgs)).rejects.toThrow(
+        "shadcn CLI coverage exceeded the output limit",
+      );
+      expect(input.attempts()).toEqual([readOnlyArgs, readOnlyArgs]);
+    });
+  });
+
   it("uses the current Node executable for concurrent read-only CLI processes", async () => {
     const directory = mkdtempSync(path.join(tmpdir(), "core-shadcn-runtime-"));
     temporaryDirectories.push(directory);

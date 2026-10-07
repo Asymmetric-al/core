@@ -2629,7 +2629,7 @@
     },
     {
       "path": "tests/unit/scripts/shadcn-upstream-review.test.ts",
-      "sha256": "184e875d5300ba66e46d9a439bc769894f7ded8dc1fcf448d98c9f4e07dcc591"
+      "sha256": "5ef4bf8df24ec9ebbe6671e042ec899b28d3b465e80b5cc6492155daa2836357"
     }
   ],
   "sourceMappings": [

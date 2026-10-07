@@ -431,53 +431,118 @@ export function createCliRunner({
   environment.COLUMNS = "80";
   return (args) =>
     new Promise((resolve, reject) => {
-      const child = spawn(command, [...cliPrefix, ...args], {
-        cwd,
-        env: environment,
-        shell: false,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-      let stdout = "";
+      // A retry repeats only known read-only registry requests. The same
+      // installed entry, arguments, total deadline and cumulative output cap
+      // apply to every attempt; failed output is never accepted as coverage.
+      const cliArgs = [...args];
+      const argv = [...cliPrefix, ...cliArgs];
+      const readOnly =
+        (cliArgs.length === 2 &&
+          cliArgs[0] === "info" &&
+          cliArgs[1] === "--json") ||
+        (cliArgs[0] === "add" &&
+          /^[a-z][a-z0-9-]*$/.test(cliArgs[1] ?? "") &&
+          ((cliArgs.length === 3 && cliArgs[2] === "--dry-run") ||
+            (cliArgs.length === 4 && cliArgs[2] === "--diff")));
+      let child;
       let bytes = 0;
+      let attempts = 0;
       let terminationError;
       let forceKill;
+      let backoff;
+      let settled = false;
+      const settle = (error, output) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        clearTimeout(forceKill);
+        clearTimeout(backoff);
+        if (error) reject(error);
+        else resolve(output);
+      };
       const terminate = (error) => {
-        if (terminationError) return;
+        if (terminationError || settled) return;
         terminationError = error;
         clearTimeout(timeout);
-        child.kill();
-        forceKill = setTimeout(() => child.kill("SIGKILL"), 1000);
+        clearTimeout(backoff);
+        if (child) {
+          child.kill();
+          forceKill = setTimeout(() => child?.kill("SIGKILL"), 1000);
+        } else settle(error);
       };
       const timeout = setTimeout(() => {
         terminate(new Error("shadcn CLI coverage timed out"));
       }, timeoutMs);
-      // Settle after close so source views outlive every CLI reader, including
-      // a process that takes time to exit after receiving termination.
-      child.stderr.resume();
-      child.stdout.on("data", (chunk) => {
-        bytes += chunk.length;
-        if (bytes > 4_000_000) {
-          terminate(new Error("shadcn CLI coverage exceeded the output limit"));
-        } else if (!terminationError) stdout += chunk;
-      });
-      child.on("error", () => {
-        const error = new Error("Unable to start the pinned shadcn CLI");
-        if (child.pid === undefined) {
-          clearTimeout(timeout);
+      const launch = () => {
+        if (settled) return;
+        attempts += 1;
+        let stdout = "";
+        child = spawn(command, argv, {
+          cwd,
+          env: environment,
+          shell: false,
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+        // Settle after close so source views outlive every CLI reader,
+        // including delayed termination. Drain stderr without disclosing it.
+        child.stderr.resume();
+        child.stdout.on("data", (chunk) => {
+          bytes += chunk.length;
+          if (bytes > 4_000_000) {
+            terminate(
+              new Error("shadcn CLI coverage exceeded the output limit"),
+            );
+          } else if (!terminationError) stdout += chunk;
+        });
+        child.on("error", () => {
+          const error = new Error("Unable to start the pinned shadcn CLI");
+          if (child.pid === undefined) settle(error);
+          else terminate(error);
+        });
+        child.on("close", (code) => {
           clearTimeout(forceKill);
-          reject(error);
-        } else terminate(error);
-      });
-      child.on("close", (code) => {
-        clearTimeout(timeout);
-        clearTimeout(forceKill);
-        if (terminationError) reject(terminationError);
-        else if (code !== 0)
-          reject(
-            new Error(`shadcn CLI coverage failed (exit ${code ?? "unknown"})`),
-          );
-        else resolve(stdout);
-      });
+          child = undefined;
+          if (terminationError) settle(terminationError);
+          else if (code === 0) settle(undefined, stdout);
+          else {
+            const output = stripVTControlCharacters(stdout).replace(
+              /\r\n/g,
+              "\n",
+            );
+            const registryErrors =
+              output.match(/^Failed to fetch from registry.*$/gm) ?? [];
+            // Contradictory registry or TLS diagnostics fail closed. Only one
+            // unambiguous anonymous public transient error may be retried.
+            const transient =
+              code === 1 &&
+              readOnly &&
+              registryErrors.length === 1 &&
+              !/\b(?:TLS|SSL|certificates?|self[- ]signed|unable to verify|ERR_TLS_[A-Z_]+|CERT_[A-Z_]+|UNABLE_TO_VERIFY_[A-Z_]+)\b/i.test(
+                output,
+              )
+                ? registryErrors[0].match(
+                    /^Failed to fetch from registry \((502|503|504)\): https:\/\/ui\.shadcn\.com\/r\/[A-Za-z0-9._/-]+$/,
+                  )
+                : undefined;
+            if (transient && attempts < 3) {
+              console.warn(
+                `[shadcn-diff] public registry HTTP ${transient[1]}; retry ${attempts + 1}/3 within the existing CLI coverage deadline.`,
+              );
+              backoff = setTimeout(launch, 100 * attempts);
+            } else {
+              const cause = transient
+                ? `; public registry HTTP ${transient[1]} after ${attempts} attempts`
+                : "";
+              settle(
+                new Error(
+                  `shadcn CLI coverage failed (exit ${code ?? "unknown"}${cause})`,
+                ),
+              );
+            }
+          }
+        });
+      };
+      launch();
     });
 }
 
