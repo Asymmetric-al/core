@@ -197,7 +197,7 @@
     "@asym/pdf-studio-adapter": "file:../../vendor/react-pdf-packages/asym-pdf-studio-adapter",
     "@asym/pdf-template-schema": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema",
     "@supabase/ssr": "0.12.7",
-    "inngest": "4.5.1",
+    "inngest": "^4.22.0",
     "next": "16.4.0",
     "server-only": "0.0.1",
     "stripe": "23.0.0",
