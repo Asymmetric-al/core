@@ -151,10 +151,13 @@ export default function MissionControlCRM() {
     routeDonorRow,
     selectedRecordSnapshot,
   ]);
-  // A deep-linked donor can resolve after the first render. Remember each
-  // resolved selection before its row disappears, with URL identity as the
-  // guard so a different donor never inherits the snapshot.
-  if (selectedRecord && selectedRecordSnapshot?.id !== selectedRecord.id) {
+  // Keep the latest resolved values before a row disappears. These records
+  // contain only serializable values; comparing those values also prevents
+  // the allocating converters from triggering repeated render updates.
+  if (
+    selectedRecord &&
+    JSON.stringify(selectedRecordSnapshot) !== JSON.stringify(selectedRecord)
+  ) {
     setSelectedRecordSnapshot(selectedRecord);
   }
 

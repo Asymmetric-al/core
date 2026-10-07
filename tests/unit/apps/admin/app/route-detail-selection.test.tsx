@@ -1,7 +1,13 @@
 /** @vitest-environment jsdom */
 
 import { QueryProvider } from "@asym/database/providers";
-import { act, cleanup, fireEvent, render } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  within,
+} from "@testing-library/react";
 import {
   afterEach,
   beforeAll,
@@ -12,7 +18,7 @@ import {
   vi,
 } from "vitest";
 
-import type { CrmGridRow } from "@asym/database/types";
+import type { CrmDonorDetailResponse, CrmGridRow } from "@asym/database/types";
 import type { ComponentType, ReactNode } from "react";
 
 let ContributionsPage: ComponentType;
@@ -109,7 +115,8 @@ vi.mock("../../../../../apps/admin/app/(app)/crm/columns", () => ({
 vi.mock("../../../../../apps/admin/app/(app)/crm/detail-drawer", () => ({
   DetailDrawer: ({ contact }: { contact: CrmGridRow }) => (
     <div role="dialog" aria-label="Donor details">
-      {contact.displayName}
+      <span>{contact.displayName}</span>
+      <span>{contact.email}</span>
     </div>
   ),
 }));
@@ -311,5 +318,122 @@ describe("route-owned detail selection", () => {
     expect(
       view.getByRole("dialog", { name: "Donor details" }).textContent,
     ).toBe("Alice Donor");
+  });
+
+  it.each(["loading", "failed"])(
+    "keeps refreshed grid values after filtering hides the donor and detail is %s",
+    (detailState) => {
+      route.pathname = "/crm";
+      route.search = "donor=donor-a";
+      const view = render(<MissionControlCRM />, { wrapper: QueryProvider });
+      const grid = queries.grid.mock.results.at(-1)!.value;
+      const refreshedRow = {
+        ...donorRow,
+        displayName: "Alice Updated",
+        email: "alice.updated@example.test",
+      };
+
+      queries.grid.mockReturnValue({ ...grid, rows: [refreshedRow] });
+      view.rerender(<MissionControlCRM />);
+      let drawer = within(view.getByRole("dialog", { name: "Donor details" }));
+      expect(drawer.getByText("Alice Updated")).toBeTruthy();
+      expect(drawer.getByText("alice.updated@example.test")).toBeTruthy();
+
+      queries.grid.mockReturnValue({ ...grid, rows: [] });
+      queries.detail.mockReturnValue({
+        data: undefined,
+        isPending: detailState === "loading",
+        isError: detailState === "failed",
+      });
+      view.rerender(<MissionControlCRM />);
+      drawer = within(view.getByRole("dialog", { name: "Donor details" }));
+      expect(drawer.getByText("Alice Updated")).toBeTruthy();
+      expect(drawer.getByText("alice.updated@example.test")).toBeTruthy();
+      expect(drawer.queryByText("Alice Donor")).toBeNull();
+    },
+  );
+
+  it("keeps refreshed canonical detail values when the next detail read fails", () => {
+    route.pathname = "/crm";
+    route.search = "donor=donor-a";
+    const view = render(<MissionControlCRM />, { wrapper: QueryProvider });
+    queries.grid.mockReturnValue({
+      ...queries.grid.mock.results.at(-1)!.value,
+      rows: [],
+    });
+    const detail: CrmDonorDetailResponse = {
+      donor: {
+        id: "donor-a",
+        name: "Alice Detail",
+        title: null,
+        email: "alice.detail@example.test",
+        phone: null,
+        organization: null,
+        location: null,
+        status: "active",
+        type: "individual",
+        profileId: null,
+        missionaryId: null,
+        notesPreview: null,
+        tags: [],
+        avatarUrl: null,
+        createdAt: null,
+        updatedAt: null,
+      },
+      giftHistory: [],
+      giftHistoryTruncated: false,
+      timeline: [],
+      duplicateWarnings: [],
+      support: {
+        lifetimeGivingCents: 0,
+        lastGiftAt: null,
+        activeRecurringCommitments: 0,
+        lapsedCommitments: 0,
+        atRiskCommitments: 0,
+        byFund: [],
+        byMissionary: [],
+      },
+      privacy: {
+        roleGate: "staff",
+        restrictedNotesVisible: false,
+        missionaryContactDataExposed: false,
+      },
+      reconciliation: {
+        crmWriteMode: "disabled",
+        platformPaymentTruth: true,
+      },
+    };
+    queries.detail.mockReturnValue({ data: detail, isPending: false });
+    view.rerender(<MissionControlCRM />);
+    expect(view.getByText("Alice Detail")).toBeTruthy();
+
+    const refreshedDetail = {
+      ...detail,
+      donor: {
+        ...detail.donor,
+        name: "Alice Canonical Updated",
+        email: "alice.canonical.updated@example.test",
+      },
+    };
+    queries.detail.mockReturnValue({ data: refreshedDetail, isPending: false });
+    view.rerender(<MissionControlCRM />);
+    expect(view.getByText("Alice Canonical Updated")).toBeTruthy();
+
+    // A fresh response object with unchanged values must settle without
+    // repeatedly updating the snapshot as the converter allocates records.
+    queries.detail.mockReturnValue({
+      data: { ...refreshedDetail, donor: { ...refreshedDetail.donor } },
+      isPending: false,
+    });
+    view.rerender(<MissionControlCRM />);
+
+    queries.detail.mockReturnValue({ data: undefined, isError: true });
+    view.rerender(<MissionControlCRM />);
+    const drawer = within(view.getByRole("dialog", { name: "Donor details" }));
+    expect(drawer.getByText("Alice Canonical Updated")).toBeTruthy();
+    expect(
+      drawer.getByText("alice.canonical.updated@example.test"),
+    ).toBeTruthy();
+    expect(drawer.queryByText("Alice Detail")).toBeNull();
   });
 });
