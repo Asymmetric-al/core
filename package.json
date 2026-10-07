@@ -225,7 +225,7 @@
     "glob": "^13.0.6",
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
-    "lint-staged": "^16.2.7",
+    "lint-staged": "17.6.0",
     "prettier": "3.9.9",
     "playwright-core": "1.59.1",
     "react": "19.3.0",
