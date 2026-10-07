@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -5,6 +6,7 @@ import {
   mergeDonationPaymentIntentMetadata,
   pickGiftProcessingFeeMetadata,
 } from "../../src/donate/payment-intent";
+import { STRIPE_API_VERSION } from "../../src/stripe/api-version";
 
 /**
  * TDD — server-side PaymentIntent leg of the donate flow (money path).
@@ -94,7 +96,8 @@ describe("createDonationPaymentIntent", () => {
       paymentMethodTypes: ["card"],
     });
     const [body] = create.mock.calls[0]!;
-    expect(body.payment_method_types).toEqual(["card"]);
+    expect(body.allowed_payment_method_types).toEqual(["card"]);
+    expect(body.payment_method_types).toBeUndefined();
     expect(body.automatic_payment_methods).toBeUndefined();
   });
 
@@ -105,7 +108,8 @@ describe("createDonationPaymentIntent", () => {
       paymentMethodTypes: ["us_bank_account"],
     });
     const [body] = create.mock.calls[0]!;
-    expect(body.payment_method_types).toEqual(["us_bank_account"]);
+    expect(body.allowed_payment_method_types).toEqual(["us_bank_account"]);
+    expect(body.payment_method_types).toBeUndefined();
     expect(body.automatic_payment_methods).toBeUndefined();
   });
 
@@ -119,6 +123,62 @@ describe("createDonationPaymentIntent", () => {
     ).rejects.toThrow();
     expect(create).not.toHaveBeenCalled();
   });
+
+  it.each(["card", "us_bank_account"] as const)(
+    "serializes the %s allowlist and idempotency key through the Endive SDK without a provider call",
+    async (method) => {
+      const requests: {
+        url: string;
+        body: URLSearchParams;
+        headers: Headers;
+      }[] = [];
+      const fakeFetch: typeof fetch = async (input, init) => {
+        requests.push({
+          url: String(input),
+          body: new URLSearchParams(String(init?.body)),
+          headers: new Headers(init?.headers),
+        });
+        return new Response(
+          JSON.stringify({
+            id: "pi_fixture",
+            object: "payment_intent",
+            client_secret: "cs_fixture",
+            status: "requires_payment_method",
+            amount: 5000,
+            currency: "usd",
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        );
+      };
+      const stripe = new Stripe("sk_test_fixture", {
+        apiVersion: STRIPE_API_VERSION,
+        httpClient: Stripe.createFetchHttpClient(fakeFetch),
+        maxNetworkRetries: 0,
+        telemetry: false,
+      });
+
+      const result = await createDonationPaymentIntent(stripe, {
+        ...baseParams,
+        paymentMethodTypes: [method],
+      });
+
+      expect(requests).toHaveLength(1);
+      expect(requests[0]?.url).toBe(
+        "https://api.stripe.com/v1/payment_intents",
+      );
+      expect(requests[0]?.headers.get("Stripe-Version")).toBe(
+        "2026-09-30.endive",
+      );
+      expect(requests[0]?.headers.get("Idempotency-Key")).toBe(
+        "idem-key-1:payment_intent",
+      );
+      expect(requests[0]?.body.get("allowed_payment_method_types[0]")).toBe(
+        method,
+      );
+      expect(requests[0]?.body.has("payment_method_types[0]")).toBe(false);
+      expect(result.paymentIntentId).toBe("pi_fixture");
+    },
+  );
 });
 
 describe("pickGiftProcessingFeeMetadata", () => {
