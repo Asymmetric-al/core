@@ -40,7 +40,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "recharts": "^2.15.4",
-    "sonner": "^2.0.7",
+    "sonner": "2.0.8",
     "zod": "^4.6.5"
   },
   "devDependencies": {

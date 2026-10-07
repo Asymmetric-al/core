@@ -67,7 +67,7 @@
     "motion": "^12.34.2",
     "next": "16.4.0",
     "react": "19.3.0",
-    "sonner": "^2.0.7",
+    "sonner": "2.0.8",
     "web-vitals": "^4.2.4"
   },
   "devDependencies": {
