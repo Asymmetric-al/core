@@ -159,8 +159,8 @@
         "@openpolicy/react": "0.0.17",
         "@openpolicy/sdk": "0.0.17",
         "@sentry/nextjs": "^10.32.1",
-        "@stripe/react-stripe-js": "^6.5.0",
-        "@stripe/stripe-js": "^9.7.0",
+        "@stripe/react-stripe-js": "7.0.0",
+        "@stripe/stripe-js": "10.0.0",
         "@tanstack/react-query": "^5.104.1",
         "@tanstack/react-table": "9.2.6",
         "boneyard-js": "^1.8.1",
@@ -381,7 +381,7 @@
         "@asym/database": "workspace:*",
         "@asym/env": "workspace:*",
         "@sentry/nextjs": "^10.32.1",
-        "@stripe/stripe-js": "^9.7.0",
+        "@stripe/stripe-js": "10.0.0",
         "@supabase/supabase-js": "2.117.3",
         "html-react-parser": "^5.2.17",
         "isomorphic-dompurify": "^2.36.0",
@@ -1661,9 +1661,9 @@
 
     "@standard-schema/spec": ["@standard-schema/spec@1.0.0", "", {}, "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="],
 
-    "@stripe/react-stripe-js": ["@stripe/react-stripe-js@6.6.0", "", { "dependencies": { "prop-types": "^15.7.2" }, "peerDependencies": { "@stripe/stripe-js": ">=9.5.0 <10.0.0", "react": ">=16.8.0 <20.0.0", "react-dom": ">=16.8.0 <20.0.0" } }, "sha512-utODPiu2/JGjCnh5BX1M1F2uyjCwDKum4Bo8CeWdTCNOlzM0980YadzBMe7YoIwjfu3uadX4PMe3L2SderejqA=="],
+    "@stripe/react-stripe-js": ["@stripe/react-stripe-js@7.0.0", "", { "dependencies": { "prop-types": "^15.7.2" }, "peerDependencies": { "@stripe/stripe-js": ">=10.0.0 <11.0.0", "react": ">=16.8.0 <20.0.0", "react-dom": ">=16.8.0 <20.0.0" } }, "sha512-wKw6YM0p/IpGj7hcwdJL7UAb7s0hlO8kLJIXn0CezewYILQ8j/A7j55EHuHHjF6dV+cr4yZhbhg4QLRjovfM4A=="],
 
-    "@stripe/stripe-js": ["@stripe/stripe-js@9.8.0", "", {}, "sha512-DHJpol/98VKyojNSYmpkB5vOMnlf87hPe0wPxyaYTNiTMk5QjKMXDfSZLwGctYIXAgAWDFeRABc8lFAj0BELyw=="],
+    "@stripe/stripe-js": ["@stripe/stripe-js@10.0.0", "", {}, "sha512-y5LKFTtnz1ciM+IQfrDfHcpjGlsm5Ao4onaUn4scurI/B6rNhrmV+ScTPDo+3Ges5oF8ol4tBkBAIZyVXVBIXw=="],
 
     "@supabase-labs/tanstack-db": ["@supabase-labs/tanstack-db@0.1.0", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@supabase/postgrest-js": "^2.0.0", "@supabase/supabase-js": "^2.74.0", "@tanstack/db": ">=0.6 <1.0", "@tanstack/query-core": "^5.0.0", "@tanstack/query-db-collection": "^1.0.0" } }, "sha512-4KccEP0NsmhwzTUw9g+1izvsLdIWXLIOKFP6ycoK1XI42vgiCAvGseXGllGp/ZPwddt5H15pKFJXoJ4uWskAFw=="],
 
