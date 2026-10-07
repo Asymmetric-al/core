@@ -136,19 +136,13 @@ function SaveViewForm({
           >
             <div className="flex items-center gap-2">
               <RadioGroupItem value="personal" id="scope-personal" />
-              <Label
-                htmlFor="scope-personal"
-                className="text-[12px] font-medium"
-              >
+              <Label htmlFor="scope-personal" className="text-xs font-medium">
                 Just me
               </Label>
             </div>
             <div className="flex items-center gap-2">
               <RadioGroupItem value="workspace" id="scope-workspace" />
-              <Label
-                htmlFor="scope-workspace"
-                className="text-[12px] font-medium"
-              >
+              <Label htmlFor="scope-workspace" className="text-xs font-medium">
                 Whole workspace
               </Label>
             </div>

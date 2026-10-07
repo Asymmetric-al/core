@@ -213,7 +213,9 @@ export function getWebStudioCollectionConfig(
 export function getEnabledWebStudioCollections() {
   return (
     Object.keys(WEB_STUDIO_COLLECTION_CONFIGS) as WebStudioCollectionSlug[]
-  )
-    .filter((slug) => isNativeCollectionWebStudioEnabled(slug))
-    .map((slug) => WEB_STUDIO_COLLECTION_CONFIGS[slug]);
+  ).flatMap((slug) =>
+    isNativeCollectionWebStudioEnabled(slug)
+      ? [WEB_STUDIO_COLLECTION_CONFIGS[slug]]
+      : [],
+  );
 }

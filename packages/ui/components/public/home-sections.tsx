@@ -81,7 +81,7 @@ export function LiveTicker() {
             className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-zinc-900"
           >
             <span
-              className="size-1.5 rounded-full bg-zinc-900 shadow-[0_0_8px_rgba(0,0,0,0.2)]"
+              className="size-1.5 rounded-full bg-zinc-900 shadow-sm shadow-foreground/20"
               aria-hidden="true"
             />
             <span>{activity.text}</span>
@@ -109,7 +109,7 @@ export function HomeMission() {
       className="py-24 md:py-40 bg-white relative overflow-hidden"
     >
       <div
-        className="absolute top-0 right-0 w-200 h-200 bg-zinc-50 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 -z-10"
+        className="absolute top-0 right-0 bg-radial from-zinc-50 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 -z-10 size-200"
         aria-hidden="true"
       />
 
@@ -117,12 +117,12 @@ export function HomeMission() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center">
           <div className="space-y-12">
             <header className="space-y-6">
-              <span className="text-zinc-900 font-semibold tracking-[0.3em] uppercase text-xs">
+              <span className="text-zinc-900 font-semibold text-xs">
                 Our Protocol
               </span>
               <h2
                 id="mission-heading"
-                className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 leading-[0.85] font-syne"
+                className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-normal text-zinc-950 leading-[0.85] font-syne"
               >
                 Precision <br />
                 <span className="text-zinc-700">Philanthropy.</span>
@@ -185,7 +185,7 @@ export function HomeMission() {
           </div>
 
           <figure className="relative lg:ml-auto group size-full">
-            <div className="relative z-10 h-105 sm:h-130 lg:h-160 w-full rounded-3xl overflow-hidden bg-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
+            <div className="relative z-10 h-105 sm:h-130 lg:h-160 w-full rounded-3xl overflow-hidden bg-zinc-100 shadow-2xl shadow-foreground/10">
               <Image
                 src={MISSION_IMAGE}
                 alt="Field workers providing humanitarian aid in communities"
@@ -198,7 +198,7 @@ export function HomeMission() {
               <div className="absolute inset-0 to-transparent" />
 
               <figcaption className="absolute bottom-0 left-0 p-8 text-white">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/50 mb-2">
+                <p className="text-xs font-semibold text-white/50 mb-2">
                   Live Deployment
                 </p>
                 <p className="text-3xl font-semibold font-syne tracking-tight">
@@ -208,12 +208,12 @@ export function HomeMission() {
               </figcaption>
             </div>
 
-            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-zinc-100 max-w-50 hidden xl:block">
+            <div className="absolute z-20 -top-6 -right-6 bg-white p-6 rounded-2xl shadow-sm border border-zinc-100 max-w-50 hidden xl:block">
               <Sparkles
                 className="size-5 text-zinc-400 mb-3"
                 aria-hidden="true"
               />
-              <blockquote className="text-xs font-semibold text-zinc-900 leading-tight">
+              <blockquote className="text-xs font-semibold text-zinc-900 leading-relaxed">
                 &quot;Our fastest deployment yet. Resources reached the field in{" "}
                 <span className="text-zinc-900">under 4 hours</span>.&quot;
               </blockquote>
@@ -223,10 +223,10 @@ export function HomeMission() {
                   aria-hidden="true"
                 />
                 <div>
-                  <cite className="text-[9px] font-semibold uppercase tracking-wider text-zinc-900 not-italic">
+                  <cite className="text-xs font-semibold uppercase tracking-wider text-zinc-900 not-italic">
                     Dr. Elias H.
                   </cite>
-                  <p className="text-[9px] text-zinc-600">Field Lead</p>
+                  <p className="text-xs text-zinc-600">Field Lead</p>
                 </div>
               </footer>
             </div>
@@ -256,12 +256,12 @@ export function HomeStats() {
       <div className="container mx-auto px-6 relative z-10">
         <header className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-32 gap-12">
           <div className="space-y-6">
-            <span className="text-zinc-400 font-semibold tracking-[0.4em] uppercase text-xs">
+            <span className="text-zinc-400 font-semibold text-xs">
               The Ledger
             </span>
             <h2
               id="stats-heading"
-              className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-tighter font-syne"
+              className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-normal font-syne"
             >
               Global <br />
               Impact Score.
@@ -373,7 +373,7 @@ export function HomeFeatured() {
             </span>
             <h2
               id="featured-heading"
-              className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 font-syne"
+              className="text-5xl sm:text-6xl md:text-8xl font-semibold tracking-normal text-zinc-950 font-syne"
             >
               Current Priorities.
             </h2>
@@ -406,12 +406,12 @@ export function HomeFeatured() {
                       quality={75}
                     />
                     <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
-                    <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
+                    <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
                       {item.raised} Deployed
                     </div>
 
                     <div className="absolute bottom-8 left-8 right-8">
-                      <div className="flex items-center gap-2 text-[9px] font-semibold text-white/70 uppercase tracking-[0.2em] mb-3">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-white/70 uppercase tracking-[0.2em] mb-3">
                         <Globe className="size-3" aria-hidden="true" />{" "}
                         {item.loc}
                       </div>
@@ -442,7 +442,7 @@ export function HomeFeatured() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center text-[10px] font-semibold text-zinc-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
+                  <div className="flex items-center text-xs font-semibold text-zinc-900 -translate-x-2 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
                     Join the Mission{" "}
                     <ArrowRight className="size-3 ml-2" aria-hidden="true" />
                   </div>
@@ -478,14 +478,14 @@ export function HomeCTA() {
         className="absolute inset-0 opacity-40 pointer-events-none"
         aria-hidden="true"
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-300 h-300 bg-zinc-600/30 rounded-full blur-[200px]" />
-        <div className="absolute top-0 right-0 w-200 h-200 bg-zinc-600/20 rounded-full blur-[180px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial from-zinc-600/30 to-transparent rounded-full size-300" />
+        <div className="absolute top-0 right-0 size-200 bg-radial from-zinc-600/20 to-transparent rounded-full" />
       </div>
 
       <div className="container mx-auto px-6 relative z-10 max-w-5xl">
         <h2
           id="cta-heading"
-          className="text-5xl sm:text-6xl md:text-8xl font-semibold text-white tracking-tighter mb-8 leading-[0.8] font-syne"
+          className="text-5xl sm:text-6xl md:text-8xl font-semibold text-white tracking-normal mb-8 leading-[0.8] font-syne"
         >
           Be the <br />
           <span className="text-white">response.</span>

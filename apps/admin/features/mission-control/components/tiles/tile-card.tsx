@@ -30,7 +30,8 @@ export function TileCard({ tile }: TileCardProps) {
           </div>
           <Link
             href={resolveMissionControlHref(tile.route)}
-            className="flex size-8 items-center justify-center rounded-full bg-zinc-50 text-zinc-400 opacity-0 transition-[opacity,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:bg-zinc-100 hover:text-zinc-900 group-hover:opacity-100 pointer-events-auto"
+            aria-label={`Open ${tile.title}`}
+            className="flex size-8 items-center justify-center rounded-full bg-zinc-50 text-zinc-400  transition-[opacity,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:bg-zinc-100 hover:text-zinc-900  pointer-events-auto"
           >
             <ChevronRight className="size-4" />
           </Link>
@@ -44,7 +45,7 @@ export function TileCard({ tile }: TileCardProps) {
       </CardHeader>
       <CardContent className="relative z-10 flex flex-1 flex-col gap-5 p-6 pt-0 pointer-events-none">
         <div className="flex-1">
-          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2.5">
+          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2.5">
             Features
           </p>
           <p className="text-sm font-medium text-zinc-600 leading-relaxed">

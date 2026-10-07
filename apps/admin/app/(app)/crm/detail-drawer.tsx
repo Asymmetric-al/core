@@ -158,16 +158,13 @@ function DetailDrawerIdentity({
           />
         </p>
         <div className="flex flex-wrap gap-2 pt-2">
-          <Badge
-            variant="outline"
-            className="text-[10px] font-semibold uppercase"
-          >
+          <Badge variant="outline" className="font-semibold uppercase">
             {contact.lifecycleStatus ?? "Unknown status"}
           </Badge>
           <Badge
             variant="outline"
             className={cn(
-              "text-[10px] font-semibold uppercase border shadow-none",
+              "font-semibold uppercase border shadow-none",
               PORTAL_BADGE_CLASS[contact.portalAccessLabel],
             )}
           >
@@ -177,7 +174,7 @@ function DetailDrawerIdentity({
           </Badge>
           <Badge
             variant="secondary"
-            className="h-5 text-[10px] font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
+            className="h-5 font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
           >
             {formatCurrency(contact.lifetimeGiving)}
           </Badge>
@@ -206,12 +203,12 @@ function DetailDrawerSummary({
           aria-live="polite"
           className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4"
         >
-          <div className="flex items-center gap-2 text-foreground font-semibold text-[10px] uppercase tracking-[0.2em]">
+          <div className="flex items-center gap-2 text-foreground font-semibold text-xs uppercase tracking-[0.2em]">
             <FileText className="size-3.5 text-muted-foreground" /> Highlights
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                 Type
               </span>
               <p className="text-sm font-semibold text-foreground">
@@ -219,7 +216,7 @@ function DetailDrawerSummary({
               </p>
             </div>
             <div>
-              <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                 Notes
               </span>
               <p className="text-xs text-muted-foreground leading-relaxed font-medium">
@@ -227,7 +224,7 @@ function DetailDrawerSummary({
               </p>
             </div>
             <div>
-              <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                 Next step
               </span>
               <p className="text-xs text-foreground font-semibold">
@@ -289,7 +286,7 @@ function DetailDrawerNoteComposer({
         </div>
         <Button
           size="sm"
-          className="h-7 px-4 text-[10px] font-semibold uppercase tracking-wider"
+          className="h-7 px-4 font-semibold uppercase tracking-wider"
           disabled={isSaving || !noteBody.trim()}
           onClick={onSave}
         >
@@ -334,7 +331,7 @@ function DetailDrawerTimeline({
               <span className="text-xs font-semibold text-foreground">
                 {act.title}
               </span>
-              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">
                 {formatDate(act.occurredAt)}
               </span>
             </div>
@@ -375,7 +372,7 @@ function DetailDrawerProperties({
     >
       <div className="space-y-6">
         <div className="space-y-1">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Email
           </p>
           <p className="text-sm font-semibold text-foreground truncate hover:text-primary cursor-pointer">
@@ -383,7 +380,7 @@ function DetailDrawerProperties({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Phone
           </p>
           <p className="text-sm font-semibold text-foreground">
@@ -391,7 +388,7 @@ function DetailDrawerProperties({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Location
           </p>
           <p className="text-sm font-semibold text-foreground">
@@ -401,7 +398,7 @@ function DetailDrawerProperties({
       </div>
       <div className="space-y-6">
         <div className="space-y-1">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Assigned missionary
           </p>
           <p className="text-sm font-semibold text-foreground">
@@ -409,7 +406,7 @@ function DetailDrawerProperties({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Support status
           </p>
           <div className="space-y-1 text-sm font-semibold text-foreground">
@@ -426,7 +423,7 @@ function DetailDrawerProperties({
           </div>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Privacy
           </p>
           <p className="text-xs font-medium text-muted-foreground">
@@ -436,7 +433,7 @@ function DetailDrawerProperties({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Tags
           </p>
           <div className="flex flex-wrap gap-1 mt-1">
@@ -449,7 +446,7 @@ function DetailDrawerProperties({
                 <Badge
                   key={t}
                   variant="secondary"
-                  className="text-[9px] px-1.5 h-4 bg-muted text-muted-foreground border-none shadow-none"
+                  className="px-1.5 h-4 bg-muted text-muted-foreground border-none shadow-none"
                 >
                   {t}
                 </Badge>
@@ -507,7 +504,7 @@ function DetailDrawerActivityTab({
 
       {duplicateWarnings.length > 0 ? (
         <Alert>
-          <AlertTitle className="text-[10px] font-semibold uppercase tracking-[0.18em]">
+          <AlertTitle className="text-xs font-semibold uppercase tracking-[0.18em]">
             Duplicate warning
           </AlertTitle>
           <AlertDescription className="mt-2 space-y-2 text-xs">
@@ -622,71 +619,69 @@ export function DetailDrawer({
   };
 
   return (
-    <>
-      <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
-          <SheetTitle className="sr-only">
-            {display}, CRM record details
-          </SheetTitle>
-          <SheetDescription className="sr-only">
-            Constituent summary, activity, and properties for this CRM record.
-          </SheetDescription>
-          <DetailDrawerHeader
-            display={display}
-            isAnalyzing={isAnalyzing}
-            onClose={onClose}
-            onSummarize={() => void summarizeContact()}
-          />
+    <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
+        <SheetTitle className="sr-only">
+          {display}, CRM record details
+        </SheetTitle>
+        <SheetDescription className="sr-only">
+          Constituent summary, activity, and properties for this CRM record.
+        </SheetDescription>
+        <DetailDrawerHeader
+          display={display}
+          isAnalyzing={isAnalyzing}
+          onClose={onClose}
+          onSummarize={() => void summarizeContact()}
+        />
 
-          <ScrollArea className="flex-1">
-            <div className="p-6 space-y-8">
-              <DetailDrawerIdentity contact={contact} display={display} />
-              <DetailDrawerSummary summary={summary} />
+        <ScrollArea className="flex-1">
+          <div className="p-6 space-y-8">
+            <DetailDrawerIdentity contact={contact} display={display} />
+            <DetailDrawerSummary summary={summary} />
 
-              <Tabs defaultValue="activity">
-                <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
-                  <TabsTrigger
-                    value="activity"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
-                  >
-                    Activity
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="properties"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
-                  >
-                    Properties
-                  </TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="activity">
+              <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
+                <TabsTrigger
+                  value="activity"
+                  className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                >
+                  Activity
+                </TabsTrigger>
+                <TabsTrigger
+                  value="properties"
+                  className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                >
+                  Properties
+                </TabsTrigger>
+              </TabsList>
 
-                <DetailDrawerActivityTab
-                  detail={detail}
-                  formatDate={formatDate}
-                  isDetailLoading={detailQuery.isLoading}
-                  isSavingNote={createNoteMutation.isPending}
-                  noteBody={noteBody}
-                  noteFieldId={noteFieldId}
-                  onNoteBodyChange={setNoteBody}
-                  onOpenGift={onOpenGift}
-                  onRefreshGifts={async () => {
-                    const refreshed = await detailQuery.refetch();
-                    if (refreshed.isError) {
-                      throw refreshed.error instanceof Error
-                        ? refreshed.error
-                        : new Error("Could not refresh the CRM gift history.");
-                    }
-                    onRowRefresh?.();
-                  }}
-                  onSaveNote={() => void saveNote()}
-                  timeline={timeline}
-                />
+              <DetailDrawerActivityTab
+                detail={detail}
+                formatDate={formatDate}
+                isDetailLoading={detailQuery.isLoading}
+                isSavingNote={createNoteMutation.isPending}
+                noteBody={noteBody}
+                noteFieldId={noteFieldId}
+                onNoteBodyChange={setNoteBody}
+                onOpenGift={onOpenGift}
+                onRefreshGifts={async () => {
+                  const refreshed = await detailQuery.refetch();
+                  if (refreshed.isError) {
+                    throw refreshed.error instanceof Error
+                      ? refreshed.error
+                      : new Error("Could not refresh the CRM gift history.");
+                  }
+                  onRowRefresh?.();
+                }}
+                onSaveNote={() => void saveNote()}
+                timeline={timeline}
+              />
 
-                <DetailDrawerProperties contact={contact} detail={detail} />
-              </Tabs>
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-    </>
+              <DetailDrawerProperties contact={contact} detail={detail} />
+            </Tabs>
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 }

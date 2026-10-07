@@ -13,7 +13,7 @@ export type SecurityDialogState = {
   autoApproval: boolean;
 };
 
-export type SecurityOption = {
+type SecurityOption = {
   level: SecurityLevel;
   icon: ElementType;
   title: string;

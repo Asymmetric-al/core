@@ -29,6 +29,10 @@ export function DonorsPageActivityDialogs() {
   const { selected: selectedDonor } = view.donors;
   const { noteComposer, tagEditor, editDialog } = view;
   const { refreshDonors } = view.actions;
+  const handleNoteComposerClose = noteComposer.close;
+  const handleNoteComposerSave = noteComposer.save;
+  const handleTagEditorClose = tagEditor.close;
+  const handleTagEditorSave = tagEditor.save;
   return (
     <>
       <Dialog
@@ -78,13 +82,13 @@ export function DonorsPageActivityDialogs() {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={noteComposer.close}
+              onClick={handleNoteComposerClose}
               className="h-10 px-6 rounded-xl border-border"
             >
               Cancel
             </Button>
             <Button
-              onClick={noteComposer.save}
+              onClick={handleNoteComposerSave}
               disabled={!noteComposer.noteInput.trim() || noteComposer.isSaving}
               className="h-10 px-6 rounded-xl"
             >
@@ -139,13 +143,13 @@ export function DonorsPageActivityDialogs() {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={tagEditor.close}
+              onClick={handleTagEditorClose}
               className="h-10 px-6 rounded-xl border-border"
             >
               Cancel
             </Button>
             <Button
-              onClick={tagEditor.save}
+              onClick={handleTagEditorSave}
               disabled={tagEditor.isSaving}
               className="h-10 px-6 rounded-xl"
             >

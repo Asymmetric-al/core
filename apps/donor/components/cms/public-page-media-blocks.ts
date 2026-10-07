@@ -5,7 +5,7 @@ import type {
   SerializedPublicMediaFeatureBlock,
 } from "@asym/api/cms/public";
 
-export type MediaBearingBlock =
+type MediaBearingBlock =
   | { kind: "hero-image"; key: string; block: SerializedPublicHeroBlock }
   | {
       kind: "media-figure";

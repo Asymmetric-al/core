@@ -164,6 +164,270 @@ export const LegacyUnlayerEmailEditor = forwardRef<
   },
   ref,
 ) {
+  const {
+    emailEditorRef,
+    setLoadingState,
+    designLoadedRef,
+    setReadyEditor,
+    readyEditor,
+    isMounted,
+    stableEditorId,
+    studioConfig,
+    accountConfig,
+    mergedAppearance,
+    mergedMergeTags,
+    loadingLabel,
+    LoadingIcon,
+    resolvedProjectId,
+    loadingState,
+  } = useLegacyUnlayerController({
+    editorId,
+    mode,
+    projectIdProp,
+    appearance,
+    mergeTags,
+    onExport,
+    onSave,
+    ref,
+  });
+
+  const handleEditorLoad: EmailEditorProps["onLoad"] = useCallback(() => {
+    setLoadingState("loading");
+    onLoad?.();
+  }, [onLoad, setLoadingState]);
+
+  const handleEditorReady: EmailEditorProps["onReady"] = useCallback(
+    (unlayer: UnlayerEditorInstance) => {
+      if (!designLoadedRef.current) {
+        const designToLoad = initialDesign || DEFAULT_BLANK_DESIGN;
+        unlayer.loadDesign(designToLoad as never);
+        designLoadedRef.current = true;
+      }
+
+      setReadyEditor(unlayer);
+      setLoadingState("ready");
+      onReady?.(studioConfig);
+    },
+    [
+      designLoadedRef,
+      initialDesign,
+      onReady,
+      setLoadingState,
+      setReadyEditor,
+      studioConfig,
+    ],
+  );
+
+  // Subscribe to design changes as an effect so the listener is detached on
+  // unmount and re-bound when the callback prop changes (the previous
+  // onReady-time listener kept the first `onDesignUpdate` forever). Unlayer
+  // detaches listeners by type only, so the cleanup is complete even though
+  // the linter looks for a handler-based removeEventListener pair.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
+  useEffect(() => {
+    if (!readyEditor) return;
+
+    readyEditor.addEventListener(
+      "design:updated",
+      (data: { design: UnlayerDesignJSON }) => {
+        onDesignUpdate?.(data.design);
+      },
+    );
+
+    return () => {
+      readyEditor.removeEventListener("design:updated");
+    };
+  }, [readyEditor, onDesignUpdate]);
+
+  const editorOptions: UnlayerOptions = useMemo(
+    () => ({
+      projectId: resolvedProjectId,
+      displayMode: mode,
+      locale,
+      appearance: mergedAppearance,
+      mergeTags: mergedMergeTags,
+      version: "latest",
+      user: user
+        ? {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          }
+        : undefined,
+      features: {
+        audit: studioConfig.features.audit,
+        preview: studioConfig.features.preview,
+        imageEditor: studioConfig.features.imageEditor,
+        undoRedo: studioConfig.features.undoRedo,
+        stockImages: {
+          enabled: studioConfig.features.stockImages,
+          safeSearch: true,
+        },
+        userUploads: studioConfig.features.userUploads,
+      },
+      tools: {
+        button: {
+          enabled: true,
+          properties: {
+            borderRadius: { value: "6px" },
+            buttonColors: {
+              editor: {
+                data: {
+                  colors: [
+                    studioConfig.brand.accentColor,
+                    "#16a34a",
+                    "#dc2626",
+                    "#7c3aed",
+                    "#0d9488",
+                    "#ea580c",
+                    studioConfig.brand.primaryColor,
+                  ],
+                },
+              },
+            },
+          },
+        },
+        text: { enabled: true },
+        image: { enabled: true },
+        divider: { enabled: true },
+        social: { enabled: true },
+        video: { enabled: true },
+        menu: { enabled: true },
+        html: { enabled: true },
+        heading: { enabled: true },
+        timer: { enabled: true },
+      },
+      editor: {
+        minRows: 1,
+        maxRows: 500,
+        confirmOnDelete: true,
+      },
+      customCSS: customCSS || [],
+      customJS: customJS || [],
+    }),
+    [
+      resolvedProjectId,
+      mode,
+      locale,
+      mergedAppearance,
+      mergedMergeTags,
+      user,
+      studioConfig,
+      customCSS,
+      customJS,
+    ],
+  );
+
+  if (!isMounted) {
+    return (
+      <div
+        className={cn(
+          "unlayer-editor-wrapper flex flex-col items-center justify-center",
+          className,
+        )}
+      >
+        <div className="flex flex-col items-center gap-6 max-w-xs text-center">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl animate-pulse" />
+            <div className="relative p-4 rounded-2xl bg-primary/10 border border-primary/20">
+              <LoadingIcon className="size-8 text-primary" />
+            </div>
+          </div>
+          <div className="space-y-2 w-full">
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="size-4 animate-spin text-primary" />
+              <span className="text-sm font-medium text-foreground">
+                Initializing {loadingLabel} editor…
+              </span>
+            </div>
+            <Progress
+              aria-label={`Loading ${loadingLabel} editor`}
+              value={null}
+              className="h-1.5 w-48"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("unlayer-editor-wrapper", className)}>
+      {loadingState !== "ready" && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm transition-opacity duration-300">
+          <div className="flex flex-col items-center gap-6 max-w-xs text-center">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl animate-pulse" />
+              <div className="relative p-4 rounded-2xl bg-primary/10 border border-primary/20">
+                <LoadingIcon className="size-8 text-primary" />
+              </div>
+            </div>
+
+            <div className="space-y-2 w-full">
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin text-primary" />
+                <span className="text-sm font-medium text-foreground">
+                  {loadingState === "mounting"
+                    ? `Preparing ${loadingLabel} editor…`
+                    : "Loading components…"}
+                </span>
+              </div>
+              <Progress
+                aria-label={`Loading ${loadingLabel} editor`}
+                value={null}
+                className="h-1.5 w-48"
+              />
+            </div>
+
+            {!accountConfig.isConfigured && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-2 rounded-full">
+                <span className="size-1.5 rounded-full bg-amber-500" />
+                Free mode - Limited features
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <EmailEditor
+        ref={emailEditorRef}
+        editorId={stableEditorId}
+        onLoad={handleEditorLoad}
+        onReady={handleEditorReady}
+        options={editorOptions as EmailEditorProps["options"]}
+        style={{
+          width: "100%",
+          opacity: loadingState === "ready" ? 1 : 0,
+          transition: "opacity 0.3s ease-in-out",
+        }}
+      />
+    </div>
+  );
+});
+
+export default LegacyUnlayerEmailEditor;
+
+function useLegacyUnlayerController({
+  editorId,
+  mode,
+  projectIdProp,
+  appearance,
+  mergeTags,
+  onExport,
+  onSave,
+  ref,
+}: {
+  editorId: string | undefined;
+  mode: "email" | "web" | "popup" | "document";
+  projectIdProp: number | undefined;
+  appearance: Partial<UnlayerAppearance> | undefined;
+  mergeTags: UnlayerMergeTags | undefined;
+  onExport: ((data: UnlayerExportHTML) => void) | undefined;
+  onSave:
+    | ((data: { design: UnlayerDesignJSON; html: string }) => void)
+    | undefined;
+  ref: React.ForwardedRef<LegacyUnlayerEditorHandle>;
+}) {
   const emailEditorRef = useRef<EditorRef>(null);
   const [loadingState, setLoadingState] = useState<
     "mounting" | "loading" | "ready"
@@ -383,211 +647,21 @@ export const LegacyUnlayerEmailEditor = forwardRef<
     ],
   );
 
-  const handleEditorLoad: EmailEditorProps["onLoad"] = useCallback(() => {
-    setLoadingState("loading");
-    onLoad?.();
-  }, [onLoad]);
-
-  const handleEditorReady: EmailEditorProps["onReady"] = useCallback(
-    (unlayer: UnlayerEditorInstance) => {
-      if (!designLoadedRef.current) {
-        const designToLoad = initialDesign || DEFAULT_BLANK_DESIGN;
-        unlayer.loadDesign(designToLoad as never);
-        designLoadedRef.current = true;
-      }
-
-      setReadyEditor(unlayer);
-      setLoadingState("ready");
-      onReady?.(studioConfig);
-    },
-    [initialDesign, onReady, studioConfig],
-  );
-
-  // Subscribe to design changes as an effect so the listener is detached on
-  // unmount and re-bound when the callback prop changes (the previous
-  // onReady-time listener kept the first `onDesignUpdate` forever). Unlayer
-  // detaches listeners by type only, so the cleanup is complete even though
-  // the linter looks for a handler-based removeEventListener pair.
-  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
-  useEffect(() => {
-    if (!readyEditor) return;
-
-    readyEditor.addEventListener(
-      "design:updated",
-      (data: { design: UnlayerDesignJSON }) => {
-        onDesignUpdate?.(data.design);
-      },
-    );
-
-    return () => {
-      readyEditor.removeEventListener("design:updated");
-    };
-  }, [readyEditor, onDesignUpdate]);
-
-  const editorOptions: UnlayerOptions = useMemo(
-    () => ({
-      projectId: resolvedProjectId,
-      displayMode: mode,
-      locale,
-      appearance: mergedAppearance,
-      mergeTags: mergedMergeTags,
-      version: "latest",
-      user: user
-        ? {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-          }
-        : undefined,
-      features: {
-        audit: studioConfig.features.audit,
-        preview: studioConfig.features.preview,
-        imageEditor: studioConfig.features.imageEditor,
-        undoRedo: studioConfig.features.undoRedo,
-        stockImages: {
-          enabled: studioConfig.features.stockImages,
-          safeSearch: true,
-        },
-        userUploads: studioConfig.features.userUploads,
-      },
-      tools: {
-        button: {
-          enabled: true,
-          properties: {
-            borderRadius: { value: "6px" },
-            buttonColors: {
-              editor: {
-                data: {
-                  colors: [
-                    studioConfig.brand.accentColor,
-                    "#16a34a",
-                    "#dc2626",
-                    "#7c3aed",
-                    "#0d9488",
-                    "#ea580c",
-                    studioConfig.brand.primaryColor,
-                  ],
-                },
-              },
-            },
-          },
-        },
-        text: { enabled: true },
-        image: { enabled: true },
-        divider: { enabled: true },
-        social: { enabled: true },
-        video: { enabled: true },
-        menu: { enabled: true },
-        html: { enabled: true },
-        heading: { enabled: true },
-        timer: { enabled: true },
-      },
-      editor: {
-        minRows: 1,
-        maxRows: 500,
-        confirmOnDelete: true,
-      },
-      customCSS: customCSS || [],
-      customJS: customJS || [],
-    }),
-    [
-      resolvedProjectId,
-      mode,
-      locale,
-      mergedAppearance,
-      mergedMergeTags,
-      user,
-      studioConfig,
-      customCSS,
-      customJS,
-    ],
-  );
-
-  if (!isMounted) {
-    return (
-      <div
-        className={cn(
-          "unlayer-editor-wrapper flex flex-col items-center justify-center",
-          className,
-        )}
-      >
-        <div className="flex flex-col items-center gap-6 max-w-xs text-center">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl animate-pulse" />
-            <div className="relative p-4 rounded-2xl bg-primary/10 border border-primary/20">
-              <LoadingIcon className="size-8 text-primary" />
-            </div>
-          </div>
-          <div className="space-y-2 w-full">
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="size-4 animate-spin text-primary" />
-              <span className="text-sm font-medium text-foreground">
-                Initializing {loadingLabel} editor…
-              </span>
-            </div>
-            <Progress
-              aria-label={`Loading ${loadingLabel} editor`}
-              value={null}
-              className="h-1.5 w-48"
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn("unlayer-editor-wrapper", className)}>
-      {loadingState !== "ready" && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm transition-opacity duration-300">
-          <div className="flex flex-col items-center gap-6 max-w-xs text-center">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl animate-pulse" />
-              <div className="relative p-4 rounded-2xl bg-primary/10 border border-primary/20">
-                <LoadingIcon className="size-8 text-primary" />
-              </div>
-            </div>
-
-            <div className="space-y-2 w-full">
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className="size-4 animate-spin text-primary" />
-                <span className="text-sm font-medium text-foreground">
-                  {loadingState === "mounting"
-                    ? `Preparing ${loadingLabel} editor…`
-                    : "Loading components…"}
-                </span>
-              </div>
-              <Progress
-                aria-label={`Loading ${loadingLabel} editor`}
-                value={null}
-                className="h-1.5 w-48"
-              />
-            </div>
-
-            {!accountConfig.isConfigured && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-2 rounded-full">
-                <span className="size-1.5 rounded-full bg-amber-500" />
-                Free mode - Limited features
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <EmailEditor
-        ref={emailEditorRef}
-        editorId={stableEditorId}
-        onLoad={handleEditorLoad}
-        onReady={handleEditorReady}
-        options={editorOptions as EmailEditorProps["options"]}
-        style={{
-          width: "100%",
-          opacity: loadingState === "ready" ? 1 : 0,
-          transition: "opacity 0.3s ease-in-out",
-        }}
-      />
-    </div>
-  );
-});
-
-export default LegacyUnlayerEmailEditor;
+  return {
+    emailEditorRef,
+    setLoadingState,
+    designLoadedRef,
+    setReadyEditor,
+    readyEditor,
+    isMounted,
+    stableEditorId,
+    studioConfig,
+    accountConfig,
+    mergedAppearance,
+    mergedMergeTags,
+    loadingLabel,
+    LoadingIcon,
+    resolvedProjectId,
+    loadingState,
+  };
+}

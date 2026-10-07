@@ -48,7 +48,7 @@ export default function AboutPage() {
 
           <div className="space-y-4">
             <div>
-              <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
+              <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
                 Source for this deployment
               </div>
               <a
@@ -68,7 +68,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
+              <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
                 License
               </div>
               <p className="text-zinc-700 text-sm mt-1">
@@ -86,7 +86,7 @@ export default function AboutPage() {
             </div>
 
             <div>
-              <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-widest">
+              <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
                 Warranty
               </div>
               <p className="text-zinc-700 text-sm mt-1">

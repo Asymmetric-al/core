@@ -10,8 +10,7 @@ export const DONOR_DASHBOARD_BOOTSTRAP_KEY = [
 
 export const DONOR_DASHBOARD_BOOTSTRAP_READY = { ready: true } as const;
 
-export type DonorDashboardBootstrapResult =
-  typeof DONOR_DASHBOARD_BOOTSTRAP_READY;
+type DonorDashboardBootstrapResult = typeof DONOR_DASHBOARD_BOOTSTRAP_READY;
 
 /**
  * Short async gate so Boneyard can show a real loading phase without setTimeout in the page.

@@ -3,13 +3,6 @@ import { resolvePublicCmsCtaHref } from "@asym/lib/cms/public-page";
 import type { SerializedPublicMedia } from "@asym/api/cms/public";
 import type { PublicCmsPage } from "@asym/lib/cms/public-page";
 
-/**
- * Normalizes Payload documents for **public** `pages` JSON responses.
- * Additive fields (`layout`, `pageType`, …) must stay backward compatible for `apps/donor/lib/cms/client.ts`.
- */
-/** @deprecated Use `PublicCmsPage` from `@asym/lib/cms/public-page` */
-export type PublicCmsPagePayload = PublicCmsPage;
-
 export function serializePublishedPageLike(
   doc: Record<string, unknown>,
 ): PublicCmsPage {
@@ -52,9 +45,10 @@ function serializePublicLayout(
     return value;
   }
 
-  return value
-    .map((block) => serializePublicBlock(block, pageContext))
-    .filter(Boolean);
+  return value.flatMap((block) => {
+    const mappedValue = serializePublicBlock(block, pageContext);
+    return mappedValue ? [mappedValue] : [];
+  });
 }
 
 function serializePublicBlock(
@@ -118,7 +112,10 @@ function serializePublicBlock(
         ...base,
         heading: readOptionalString(block.heading),
         items: Array.isArray(block.items)
-          ? block.items.map(serializeQuestionAnswer).filter(Boolean)
+          ? block.items.flatMap((item) => {
+              const serialized = serializeQuestionAnswer(item);
+              return serialized ? [serialized] : [];
+            })
           : [],
       };
     case "impact-stats":
@@ -126,7 +123,10 @@ function serializePublicBlock(
         ...base,
         heading: readOptionalString(block.heading),
         items: Array.isArray(block.items)
-          ? block.items.map(serializeStat).filter(Boolean)
+          ? block.items.flatMap((item) => {
+              const serialized = serializeStat(item);
+              return serialized ? [serialized] : [];
+            })
           : [],
       };
     case "testimonial":

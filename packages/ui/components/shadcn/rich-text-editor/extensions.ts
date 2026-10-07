@@ -41,7 +41,7 @@ function createStarterKit({ openOnClick }: { openOnClick: boolean }) {
   });
 }
 
-export interface CreateDefaultExtensionsOptions {
+interface CreateDefaultExtensionsOptions {
   /** Shown for body paragraphs when using the Placeholder extension. */
   placeholder?: string;
 }

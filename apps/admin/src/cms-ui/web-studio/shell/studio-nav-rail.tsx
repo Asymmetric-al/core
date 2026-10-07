@@ -174,7 +174,7 @@ function StudioNavRailHeader({
   return (
     <div className="flex items-center justify-between gap-1 border-border border-b p-2">
       {!collapsed ? (
-        <span className="px-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wide">
+        <span className="px-2 font-semibold text-xs text-muted-foreground uppercase tracking-wide">
           Studio
         </span>
       ) : (
@@ -219,7 +219,7 @@ function StudioNavRailRecentDocs({
 }) {
   return (
     <div className="border-border border-t px-2 py-3">
-      <div className="mb-2 flex items-center gap-2 px-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-wide">
+      <div className="mb-2 flex items-center gap-2 px-2 text-muted-foreground text-xs font-semibold uppercase tracking-wide">
         <Clock3 className="size-3.5" />
         Recent
       </div>

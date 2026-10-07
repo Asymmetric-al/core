@@ -88,18 +88,18 @@ export function AutomationRuleList() {
                   <Zap className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-[13px] font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-zinc-900">
                     {rule.name}
-                    <span className="ml-2 inline-flex h-4 items-center rounded-md bg-zinc-100 px-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-500">
+                    <span className="ml-2 inline-flex h-4 items-center rounded-md bg-zinc-100 px-1.5 text-xs font-black uppercase tracking-wider text-zinc-500">
                       {rule.trigger.replace(/_/g, " ")}
                     </span>
                   </span>
                   {rule.description ? (
-                    <span className="text-[11px] text-zinc-500">
+                    <span className="text-xs text-zinc-500">
                       {rule.description}
                     </span>
                   ) : null}
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">
+                  <span className="text-xs uppercase tracking-[0.2em] text-zinc-400">
                     {rule.conditions.length} conditions · {rule.actions.length}{" "}
                     actions
                   </span>
@@ -110,7 +110,7 @@ export function AutomationRuleList() {
                     onCheckedChange={(value) => void handleToggle(rule, value)}
                     aria-label={`Toggle ${rule.name}`}
                   />
-                  <span className="text-[11px] text-zinc-500">
+                  <span className="text-xs text-zinc-500">
                     {rule.enabled ? "On" : "Off"}
                   </span>
                 </div>

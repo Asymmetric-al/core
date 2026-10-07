@@ -59,7 +59,7 @@ export function AppSidebar({
             </div>
           )}
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-[13px] font-semibold text-zinc-900 leading-tight tracking-tight">
+            <span className="text-xs font-semibold text-zinc-900 leading-tight tracking-tight">
               {tenantName}
             </span>
           </div>
@@ -67,7 +67,7 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent className="px-2">
         <SidebarGroup className="p-0">
-          <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 px-2 mb-1 h-6">
+          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wide text-zinc-400 px-2 mb-1 h-6">
             Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -100,7 +100,7 @@ export function AppSidebar({
                           isActive ? "text-zinc-700" : "text-zinc-400",
                         )}
                       />
-                      <span className="text-[13px] truncate">{item.title}</span>
+                      <span className="text-xs truncate">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -120,10 +120,10 @@ export function AppSidebar({
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="text-[13px] font-medium text-zinc-900 truncate leading-tight">
+            <span className="text-xs font-medium text-zinc-900 truncate leading-tight">
               User Name
             </span>
-            <span className="text-[11px] text-zinc-500 truncate capitalize">
+            <span className="text-xs text-zinc-500 truncate capitalize">
               {role}
             </span>
           </div>

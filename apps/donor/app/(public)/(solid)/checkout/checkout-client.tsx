@@ -1,5 +1,8 @@
 "use client";
 
+// Match the app refs correctness rule when shared root lint runs this file.
+/* eslint react-hooks/refs: "error" */
+
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
@@ -369,7 +372,7 @@ function SummaryCard({
   total,
 }: SummaryCardProps) {
   return (
-    <div className="bg-card rounded-3xl border border-border shadow-xl overflow-hidden sticky top-32">
+    <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden sticky top-32">
       <div className="p-8 bg-muted/50 border-b border-border">
         <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-widest mb-6">
           Contribution Summary
@@ -380,9 +383,7 @@ function SummaryCard({
             <AvatarFallback>GH</AvatarFallback>
           </Avatar>
           <div className="min-w-0 space-y-1 wrap-anywhere">
-            <p className="text-xs font-semibold text-foreground uppercase tracking-widest">
-              Supporting
-            </p>
+            <p className="text-xs font-semibold text-foreground">Supporting</p>
             <p className="text-xl font-semibold text-foreground font-display leading-tight">
               {worker?.title || "General Mission Fund"}
             </p>
@@ -421,7 +422,7 @@ function SummaryCard({
 
         <div className="flex justify-between items-end pt-2">
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+            <span className="text-xs font-semibold text-muted-foreground">
               Amount Due Today
             </span>
             <span className="block text-3xl font-semibold text-foreground font-display tracking-tighter">
@@ -502,7 +503,7 @@ function SuccessView({
   workerTitle: string;
 }) {
   return (
-    <div className="min-h-screen bg-muted flex items-center justify-center p-6">
+    <div className="min-h-dvh bg-muted flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -510,8 +511,8 @@ function SuccessView({
       >
         <div className="bg-primary px-6 py-12 sm:px-12 sm:pt-24 sm:pb-32 text-primary-foreground relative overflow-hidden">
           <div className="absolute inset-0 opacity-20" aria-hidden="true">
-            <div className="absolute top-0 right-0 size-64 bg-muted-foreground rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 size-64 bg-muted-foreground rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 size-64 bg-radial from-muted-foreground to-transparent rounded-full" />
+            <div className="absolute bottom-0 left-0 size-64 bg-radial from-muted-foreground to-transparent rounded-full" />
           </div>
 
           <motion.div
@@ -527,17 +528,17 @@ function SuccessView({
             />
           </motion.div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold mb-4 font-display tracking-tighter">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold mb-4 font-display tracking-normal">
             Contribution Confirmed.
           </h1>
-          <p className="text-primary-foreground/80 font-semibold text-xs uppercase tracking-widest">
+          <p className="text-primary-foreground/80 font-semibold text-xs">
             Thank you for your support
           </p>
         </div>
 
         <div className="px-6 py-10 sm:px-16 sm:py-20 space-y-12">
           <div className="space-y-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+            <p className="text-xs font-semibold text-muted-foreground">
               Total Contribution
             </p>
             <p className="text-4xl sm:text-7xl font-semibold text-foreground font-display tracking-tighter tabular-nums wrap-anywhere">
@@ -620,10 +621,10 @@ function ConfigStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
+        <span className="text-xs font-semibold text-foreground">
           Set Up Support
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
           Your Gift.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -633,7 +634,7 @@ function ConfigStep({
 
       <div className="space-y-8">
         <div className="rounded-4xl border border-border bg-muted p-6">
-          <p className="text-xs font-semibold text-foreground/80 uppercase tracking-widest">
+          <p className="text-xs font-semibold text-foreground/80">
             Contribution Frequency
           </p>
           <p className="mt-2 font-semibold text-foreground font-display">
@@ -642,7 +643,7 @@ function ConfigStep({
         </div>
 
         <fieldset className="space-y-6">
-          <legend className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+          <legend className="text-xs font-semibold text-muted-foreground">
             Support Amount
           </legend>
           <RadioGroup
@@ -757,10 +758,10 @@ function DetailsStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
+        <span className="text-xs font-semibold text-foreground">
           Donor Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
           Your Details.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -867,10 +868,10 @@ function PaymentStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
+        <span className="text-xs font-semibold text-foreground">
           Payment Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
           Secure Payment.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -926,7 +927,7 @@ function PaymentStep({
                 className="space-y-8"
               >
                 <div className="space-y-3" data-testid="stripe-card-panel">
-                  <p className="text-xs font-semibold text-foreground/80 uppercase tracking-widest pl-2">
+                  <p className="text-xs font-semibold text-foreground/80 pl-2">
                     Card Details
                   </p>
                   {mode === "live" ? (
@@ -1033,7 +1034,7 @@ function PaymentStep({
             aria-hidden="true"
           />
           <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-foreground dark:text-foreground">
+            <p className="text-xs font-semibold text-foreground dark:text-foreground">
               Test mode — card capture disabled
             </p>
             <p className="text-sm font-medium leading-relaxed text-foreground/80 dark:text-foreground/80">
@@ -1127,10 +1128,10 @@ function CheckoutConfigurationError({ message }: { message: string | null }) {
   return (
     <div className="space-y-12">
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground uppercase tracking-widest">
+        <span className="text-xs font-semibold text-foreground">
           Payment Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
           Secure Payment.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -1184,9 +1185,9 @@ function resolveCheckoutSummaryWorkerTitle({
 
 function CheckoutMissingTargetState() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-dvh flex items-center justify-center bg-white">
       <div className="text-center space-y-6">
-        <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-xl">
+        <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-sm">
           <Activity className="size-8 text-zinc-300" />
         </div>
         <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
@@ -1334,7 +1335,7 @@ function CheckoutActiveFlow({
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-32 pt-24 selection:bg-zinc-900/10">
+    <div className="min-h-dvh bg-white font-sans pb-32 pt-24 selection:bg-zinc-900/10">
       <div className="container mx-auto px-6 max-w-7xl">
         <StepIndicator currentStep={step} />
 
@@ -1383,284 +1384,138 @@ function CheckoutActiveFlow({
   );
 }
 
-function CheckoutContent({
+function CheckoutContent(props: Parameters<typeof useCheckoutModel>[0]) {
+  const model = useCheckoutModel(props);
+  if (model.view === "missing_target") return <CheckoutMissingTargetState />;
+  if (model.view === "success")
+    return (
+      <SuccessView
+        donorInfo={model.success.donorInfo}
+        mode={model.success.mode}
+        total={model.success.total}
+        workerTitle={model.success.workerTitle}
+      />
+    );
+  return <CheckoutFlowView flow={model.flow} />;
+}
+
+function CheckoutFlowView({
+  flow,
+}: {
+  flow: Extract<
+    ReturnType<typeof useCheckoutModel>,
+    { view: "active" }
+  >["flow"];
+}) {
+  const {
+    onAmountSelect: handleAmountSelect,
+    onBack: handleBack,
+    onCoverFeesChange: handleCoverFeesChange,
+    onCustomAmountChange: handleCustomAmountChange,
+    onDonorInfoChange: handleDonorInfoChange,
+    onNext: handleNext,
+  } = flow;
+  return (
+    <CheckoutActiveFlow
+      amount={flow.amount}
+      calculatedFees={flow.calculatedFees}
+      coverFees={flow.coverFees}
+      customAmount={flow.customAmount}
+      donorInfo={flow.donorInfo}
+      frequency={flow.frequency}
+      hasGeneralGivingTarget={flow.hasGeneralGivingTarget}
+      missionaryId={flow.missionaryId}
+      onAmountSelect={handleAmountSelect}
+      onBack={handleBack}
+      onCoverFeesChange={handleCoverFeesChange}
+      onCustomAmountChange={handleCustomAmountChange}
+      onDonorInfoChange={handleDonorInfoChange}
+      onNext={handleNext}
+      paymentPane={flow.paymentPane}
+      step={flow.step}
+      total={flow.total}
+      worker={flow.worker}
+    />
+  );
+}
+
+export function CheckoutPageClient({
   searchParams,
   stripeOverride,
 }: {
-  searchParams: CheckoutSearchParams;
+  searchParams: CheckoutPageSearchParams;
   stripeOverride?: CheckoutStripeOverride;
 }) {
-  const workerId = searchParams.workerId;
-  const missionaryId = searchParams.missionaryId;
-  const initialAmount = searchParams.amount;
-  const worker = workerId ? getFieldWorkerById(workerId) : null;
-  const fundId = searchParams.fundId;
-  const hasGeneralGivingTarget = isGeneralCheckoutAlias(searchParams.fundLabel);
-  const hasGivingTarget = Boolean(
-    missionaryId || fundId || hasGeneralGivingTarget,
+  const normalizedSearchParams = normalizeCheckoutSearchParams(searchParams);
+  return (
+    <CheckoutContent
+      searchParams={normalizedSearchParams}
+      stripeOverride={stripeOverride}
+    />
   );
-  const [runtimeConfig, setRuntimeConfig] = useState<CheckoutRuntimeConfig>(
-    () =>
-      stripeOverride
-        ? createReadyRuntimeConfig(stripeOverride.publishableKey)
-        : LOADING_RUNTIME_CONFIG,
-  );
-  const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
-    amount: initialAmount ? Number(initialAmount) : 100,
-    coverFees: false,
-    customAmount: "",
-    donation: null,
-    donorInfo: {
-      email: "",
-      firstName: "",
-      lastName: "",
-    },
-    endDate: "",
-    error: null,
-    frequency: "one-time",
-    hasEndDate: false,
-    idempotencyFingerprint: null,
-    idempotencyKey: null,
-    isProcessing: false,
-    paymentAttemptId: null,
-    paymentMethod: "card",
-    postalCode: "",
-    startDate: "",
-    step: "config",
-    successSnapshot: null,
-  }));
-  const {
-    amount,
-    coverFees,
-    customAmount,
-    donation,
-    donorInfo,
-    endDate,
-    error,
-    frequency,
-    hasEndDate,
-    isProcessing,
-    paymentMethod,
-    postalCode,
-    startDate,
-    step,
-    successSnapshot,
-  } = checkoutState;
-  const checkoutStateRef = useRef(checkoutState);
-  const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
-  const paymentAttemptIdRef = useRef(0);
-  const runtimeConfigAbortRef = useRef<AbortController | null>(null);
-  const runtimeConfigRequestedRef = useRef(false);
-  const setStep = (value: Step) =>
-    setCheckoutState((prev) => ({ ...prev, step: value }));
-  const setAmount = (value: number) =>
-    setCheckoutState((prev) => ({ ...prev, amount: value }));
-  const setCustomAmount = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, customAmount: value }));
-  const setCoverFees = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, coverFees: value }));
-  const setPaymentMethod = (value: PaymentMethod) =>
-    setCheckoutState((prev) =>
-      prev.isProcessing ? prev : { ...prev, paymentMethod: value },
-    );
-  const setDonorInfo = (value: DonorInfo) =>
-    setCheckoutState((prev) => ({ ...prev, donorInfo: value }));
-  const setPostalCode = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, postalCode: value }));
+}
 
-  const feeQuote = useMemo(
-    () =>
-      quoteGuestGivingCheckoutFees({
-        giftAmount: amount,
-        coverFees,
-        paymentMethod,
-      }),
-    [amount, coverFees, paymentMethod],
-  );
-  const calculatedFees = feeQuote.coverAmount;
-  const total = feeQuote.chargedAmount;
-  const mountedPublishableKey = resolveMountedPublishableKey(
-    runtimeConfig,
-    stripeOverride,
-  );
-  const checkoutMode =
-    stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
-  const mountedPublishableKeyRef = useRef(mountedPublishableKey);
-  const currentRequestFingerprint = useMemo(
-    () =>
-      buildCheckoutRequestFingerprint({
-        amount,
-        coverFees,
-        currency: "usd",
-        donorEmail: donorInfo.email,
-        donorFirstName: donorInfo.firstName,
-        donorLastName: donorInfo.lastName,
-        endDate: hasEndDate ? endDate : "",
-        frequency,
-        fundId,
-        missionaryId,
-        paymentMethod,
-        postalCode,
-        startDate,
-      }),
-    [
-      amount,
-      coverFees,
-      donorInfo.email,
-      donorInfo.firstName,
-      donorInfo.lastName,
-      endDate,
-      frequency,
-      fundId,
-      hasEndDate,
-      missionaryId,
-      paymentMethod,
-      postalCode,
-      startDate,
-    ],
-  );
-  const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
-
-  // Starts (or restarts) the tenant config request. State is written only in
-  // the promise callback, so the mount effect below performs no synchronous
-  // state update; `loadCheckoutRuntimeConfig` adds the loading transition for
-  // user-initiated retries.
-  const requestRuntimeConfig = () => {
-    runtimeConfigRequestedRef.current = true;
-    runtimeConfigAbortRef.current?.abort();
-    const abortController = new AbortController();
-    runtimeConfigAbortRef.current = abortController;
-
-    void fetchCheckoutRuntimeConfig(abortController.signal).then((next) => {
-      if (runtimeConfigAbortRef.current !== abortController) {
-        return;
-      }
-      if (next) {
-        setRuntimeConfig(next);
-      }
-    });
-  };
-
-  const loadCheckoutRuntimeConfig = () => {
-    if (stripeOverride) {
-      setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
-      return;
-    }
-
-    if (
-      runtimeConfigRequestedRef.current &&
-      runtimeConfig.status === "loading"
-    ) {
-      return;
-    }
-
-    setRuntimeConfig(LOADING_RUNTIME_CONFIG);
-    requestRuntimeConfig();
-  };
-
-  useEffect(() => {
-    // Overrides start in the ready state already (see the initializer).
-    if (stripeOverride) {
-      return;
-    }
-
-    requestRuntimeConfig();
-
-    return () => {
-      // The aborted request leaves `runtimeConfig` stuck on "loading"; clear
-      // the request flag so a re-run of this effect (StrictMode/Activity
-      // remounts) can start a fresh fetch instead of deadlocking on the
-      // in-flight guard.
-      runtimeConfigRequestedRef.current = false;
-      runtimeConfigAbortRef.current?.abort();
-    };
-  }, [stripeOverride]);
-
-  useLayoutEffect(() => {
-    synchronizePaymentAttemptState(checkoutState, {
-      activePaymentAttemptRef,
-      checkoutStateRef,
-    });
-    currentRequestFingerprintRef.current = currentRequestFingerprint;
-  }, [checkoutState, currentRequestFingerprint]);
-
-  useLayoutEffect(() => {
-    mountedPublishableKeyRef.current = mountedPublishableKey;
-  }, [mountedPublishableKey]);
-
-  useEffect(() => {
-    if (step === "success" && donation && successSnapshot)
-      window.scrollTo(0, 0);
-  }, [step, donation, successSnapshot]);
-
-  const paymentAttemptRefs = {
-    activePaymentAttemptRef,
-    checkoutStateRef,
-    currentRequestFingerprintRef,
-    setCheckoutState,
-  };
-
-  const isPaymentAttemptActive = (attempt: PaymentAttempt) =>
-    isCurrentPaymentAttemptIdentity(
-      attempt,
-      activePaymentAttemptRef.current,
-      currentRequestFingerprintRef.current,
-    );
-
-  const commitPaymentAttemptState = (
+function createCheckoutPaymentSubmission({
+  activePaymentAttemptRef,
+  checkoutStateRef,
+  hasGivingTarget,
+  setCheckoutState,
+  paymentMethod,
+  stripeOverride,
+  checkoutMode,
+  mountedPublishableKey,
+  setRuntimeConfig,
+  currentRequestFingerprint,
+  donorInfo,
+  total,
+  worker,
+  paymentAttemptIdRef,
+  checkoutState,
+  currentRequestFingerprintRef,
+  amount,
+  coverFees,
+  missionaryId,
+  fundId,
+  isPaymentAttemptActive,
+  exitStalePaymentAttempt,
+  postalCode,
+  mountedPublishableKeyRef,
+  commitPaymentAttemptState,
+  commitSuccessfulOriginalPaymentAttempt,
+}: {
+  activePaymentAttemptRef: React.RefObject<PaymentAttempt | null>;
+  checkoutStateRef: React.RefObject<CheckoutState>;
+  hasGivingTarget: boolean;
+  setCheckoutState: React.Dispatch<React.SetStateAction<CheckoutState>>;
+  paymentMethod: CheckoutPaymentMethod;
+  stripeOverride: CheckoutStripeOverride | undefined;
+  checkoutMode: CheckoutMode;
+  mountedPublishableKey: string | null;
+  setRuntimeConfig: React.Dispatch<React.SetStateAction<CheckoutRuntimeConfig>>;
+  currentRequestFingerprint: string;
+  donorInfo: DonorInfo;
+  total: number;
+  worker: ReturnType<typeof getFieldWorkerById> | null;
+  paymentAttemptIdRef: React.RefObject<number>;
+  checkoutState: CheckoutState;
+  currentRequestFingerprintRef: React.RefObject<string>;
+  amount: number;
+  coverFees: boolean;
+  missionaryId: string | null;
+  fundId: string | null;
+  isPaymentAttemptActive: (attempt: PaymentAttempt) => boolean;
+  exitStalePaymentAttempt: (attempt: PaymentAttempt) => boolean;
+  postalCode: string;
+  mountedPublishableKeyRef: React.RefObject<string | null>;
+  commitPaymentAttemptState: (
     attempt: PaymentAttempt,
     updater: (prev: CheckoutState) => CheckoutState,
-  ) => commitPaymentAttemptSnapshot(attempt, updater, paymentAttemptRefs);
-
-  const commitSuccessfulOriginalPaymentAttempt = (
+  ) => boolean;
+  commitSuccessfulOriginalPaymentAttempt: (
     attempt: PaymentAttempt,
     donation: ServerDonation,
-  ) =>
-    commitSuccessfulOriginalPaymentSnapshot(
-      attempt,
-      donation,
-      paymentAttemptRefs,
-    );
-
-  const exitStalePaymentAttempt = (attempt: PaymentAttempt) =>
-    exitStalePaymentSnapshot(attempt, paymentAttemptRefs);
-
-  const handleAmountSelect = (val: number) => {
-    setAmount(val);
-    setCustomAmount("");
-  };
-
-  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (val === "" || /^\d*\.?\d{0,2}$/.test(val)) {
-      setCustomAmount(val);
-      if (val && !isNaN(parseFloat(val))) {
-        setAmount(parseFloat(val));
-      } else if (val === "") {
-        setAmount(0);
-      }
-    }
-  };
-
-  const handleNext = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (step === "config") setStep("details");
-    else if (step === "details") {
-      loadCheckoutRuntimeConfig();
-      setStep("payment");
-    }
-  };
-
-  const handleBack = () => {
-    if (isProcessing) {
-      return;
-    }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (step === "details") setStep("config");
-    else if (step === "payment") setStep("details");
-  };
-
+  ) => boolean;
+}) {
   const handlePayment = async (
     stripe: Stripe | null,
     elements: StripeElements | null,
@@ -1948,41 +1803,363 @@ function CheckoutContent({
     }
   };
 
+  return { handlePayment };
+}
+
+function useCheckoutRuntimeConfiguration(
+  stripeOverride: CheckoutStripeOverride | undefined,
+) {
+  const [runtimeConfig, setRuntimeConfig] = useState<CheckoutRuntimeConfig>(
+    () =>
+      stripeOverride
+        ? createReadyRuntimeConfig(stripeOverride.publishableKey)
+        : LOADING_RUNTIME_CONFIG,
+  );
+  const runtimeConfigAbortRef = useRef<AbortController | null>(null);
+  const runtimeConfigRequestedRef = useRef(false);
+  // Starts (or restarts) the tenant config request. State is written only in
+  // the promise callback, so the mount effect below performs no synchronous
+  // state update; `loadCheckoutRuntimeConfig` adds the loading transition for
+  // user-initiated retries.
+  const requestRuntimeConfig = () => {
+    runtimeConfigRequestedRef.current = true;
+    runtimeConfigAbortRef.current?.abort();
+    const abortController = new AbortController();
+    runtimeConfigAbortRef.current = abortController;
+
+    void fetchCheckoutRuntimeConfig(abortController.signal).then((next) => {
+      if (runtimeConfigAbortRef.current !== abortController) {
+        return;
+      }
+      if (next) {
+        setRuntimeConfig(next);
+      }
+    });
+  };
+
+  const loadCheckoutRuntimeConfig = () => {
+    if (stripeOverride) {
+      setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
+      return;
+    }
+
+    if (
+      runtimeConfigRequestedRef.current &&
+      runtimeConfig.status === "loading"
+    ) {
+      return;
+    }
+
+    setRuntimeConfig(LOADING_RUNTIME_CONFIG);
+    requestRuntimeConfig();
+  };
+
+  useEffect(() => {
+    // Overrides start in the ready state already (see the initializer).
+    if (stripeOverride) {
+      return;
+    }
+
+    requestRuntimeConfig();
+
+    return () => {
+      // The aborted request leaves `runtimeConfig` stuck on "loading"; clear
+      // the request flag so a re-run of this effect (StrictMode/Activity
+      // remounts) can start a fresh fetch instead of deadlocking on the
+      // in-flight guard.
+      runtimeConfigRequestedRef.current = false;
+      runtimeConfigAbortRef.current?.abort();
+    };
+  }, [stripeOverride]);
+
+  return { runtimeConfig, setRuntimeConfig, loadCheckoutRuntimeConfig };
+}
+
+function useCheckoutModel({
+  searchParams,
+  stripeOverride,
+}: {
+  searchParams: CheckoutSearchParams;
+  stripeOverride?: CheckoutStripeOverride;
+}) {
+  const workerId = searchParams.workerId;
+  const missionaryId = searchParams.missionaryId;
+  const initialAmount = searchParams.amount;
+  const worker = workerId ? getFieldWorkerById(workerId) : null;
+  const fundId = searchParams.fundId;
+  const hasGeneralGivingTarget = isGeneralCheckoutAlias(searchParams.fundLabel);
+  const hasGivingTarget = Boolean(
+    missionaryId || fundId || hasGeneralGivingTarget,
+  );
+  const { runtimeConfig, setRuntimeConfig, loadCheckoutRuntimeConfig } =
+    useCheckoutRuntimeConfiguration(stripeOverride);
+  const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
+    amount: initialAmount ? Number(initialAmount) : 100,
+    coverFees: false,
+    customAmount: "",
+    donation: null,
+    donorInfo: {
+      email: "",
+      firstName: "",
+      lastName: "",
+    },
+    endDate: "",
+    error: null,
+    frequency: "one-time",
+    hasEndDate: false,
+    idempotencyFingerprint: null,
+    idempotencyKey: null,
+    isProcessing: false,
+    paymentAttemptId: null,
+    paymentMethod: "card",
+    postalCode: "",
+    startDate: "",
+    step: "config",
+    successSnapshot: null,
+  }));
+  const {
+    amount,
+    coverFees,
+    customAmount,
+    donation,
+    donorInfo,
+    endDate,
+    error,
+    frequency,
+    hasEndDate,
+    isProcessing,
+    paymentMethod,
+    postalCode,
+    startDate,
+    step,
+    successSnapshot,
+  } = checkoutState;
+  const checkoutStateRef = useRef(checkoutState);
+  const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
+  const paymentAttemptIdRef = useRef(0);
+  const setStep = (value: Step) =>
+    setCheckoutState((prev) => ({ ...prev, step: value }));
+  const setAmount = (value: number) =>
+    setCheckoutState((prev) => ({ ...prev, amount: value }));
+  const setCustomAmount = (value: string) =>
+    setCheckoutState((prev) => ({ ...prev, customAmount: value }));
+  const setCoverFees = (value: boolean) =>
+    setCheckoutState((prev) => ({ ...prev, coverFees: value }));
+  const setPaymentMethod = (value: PaymentMethod) =>
+    setCheckoutState((prev) =>
+      prev.isProcessing ? prev : { ...prev, paymentMethod: value },
+    );
+  const setDonorInfo = (value: DonorInfo) =>
+    setCheckoutState((prev) => ({ ...prev, donorInfo: value }));
+  const setPostalCode = (value: string) =>
+    setCheckoutState((prev) => ({ ...prev, postalCode: value }));
+
+  const feeQuote = useMemo(
+    () =>
+      quoteGuestGivingCheckoutFees({
+        giftAmount: amount,
+        coverFees,
+        paymentMethod,
+      }),
+    [amount, coverFees, paymentMethod],
+  );
+  const calculatedFees = feeQuote.coverAmount;
+  const total = feeQuote.chargedAmount;
+  const mountedPublishableKey = resolveMountedPublishableKey(
+    runtimeConfig,
+    stripeOverride,
+  );
+  const checkoutMode =
+    stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
+  const mountedPublishableKeyRef = useRef(mountedPublishableKey);
+  const currentRequestFingerprint = useMemo(
+    () =>
+      buildCheckoutRequestFingerprint({
+        amount,
+        coverFees,
+        currency: "usd",
+        donorEmail: donorInfo.email,
+        donorFirstName: donorInfo.firstName,
+        donorLastName: donorInfo.lastName,
+        endDate: hasEndDate ? endDate : "",
+        frequency,
+        fundId,
+        missionaryId,
+        paymentMethod,
+        postalCode,
+        startDate,
+      }),
+    [
+      amount,
+      coverFees,
+      donorInfo.email,
+      donorInfo.firstName,
+      donorInfo.lastName,
+      endDate,
+      frequency,
+      fundId,
+      hasEndDate,
+      missionaryId,
+      paymentMethod,
+      postalCode,
+      startDate,
+    ],
+  );
+  const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
+
+  useLayoutEffect(() => {
+    synchronizePaymentAttemptState(checkoutState, {
+      activePaymentAttemptRef,
+      checkoutStateRef,
+    });
+    currentRequestFingerprintRef.current = currentRequestFingerprint;
+  }, [checkoutState, currentRequestFingerprint]);
+
+  useLayoutEffect(() => {
+    mountedPublishableKeyRef.current = mountedPublishableKey;
+  }, [mountedPublishableKey]);
+
+  useEffect(() => {
+    if (step === "success" && donation && successSnapshot)
+      window.scrollTo(0, 0);
+  }, [step, donation, successSnapshot]);
+
+  const paymentAttemptRefs = {
+    activePaymentAttemptRef,
+    checkoutStateRef,
+    currentRequestFingerprintRef,
+    setCheckoutState,
+  };
+
+  const isPaymentAttemptActive = (attempt: PaymentAttempt) =>
+    isCurrentPaymentAttemptIdentity(
+      attempt,
+      activePaymentAttemptRef.current,
+      currentRequestFingerprintRef.current,
+    );
+
+  const commitPaymentAttemptState = (
+    attempt: PaymentAttempt,
+    updater: (prev: CheckoutState) => CheckoutState,
+  ) => commitPaymentAttemptSnapshot(attempt, updater, paymentAttemptRefs);
+
+  const commitSuccessfulOriginalPaymentAttempt = (
+    attempt: PaymentAttempt,
+    donation: ServerDonation,
+  ) =>
+    commitSuccessfulOriginalPaymentSnapshot(
+      attempt,
+      donation,
+      paymentAttemptRefs,
+    );
+
+  const exitStalePaymentAttempt = (attempt: PaymentAttempt) =>
+    exitStalePaymentSnapshot(attempt, paymentAttemptRefs);
+
+  const handleAmountSelect = (val: number) => {
+    setAmount(val);
+    setCustomAmount("");
+  };
+
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val === "" || /^\d*\.?\d{0,2}$/.test(val)) {
+      setCustomAmount(val);
+      if (val && !isNaN(parseFloat(val))) {
+        setAmount(parseFloat(val));
+      } else if (val === "") {
+        setAmount(0);
+      }
+    }
+  };
+
+  const handleNext = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (step === "config") setStep("details");
+    else if (step === "details") {
+      loadCheckoutRuntimeConfig();
+      setStep("payment");
+    }
+  };
+
+  const handleBack = () => {
+    if (isProcessing) {
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (step === "details") setStep("config");
+    else if (step === "payment") setStep("details");
+  };
+
+  // This factory only captures refs; its returned async payment event handler reads them.
+  // eslint-disable-next-line react-hooks/refs -- AL-1958: This pure factory captures refs; only its returned payment event handler reads or writes them.
+  const { handlePayment } = createCheckoutPaymentSubmission({
+    activePaymentAttemptRef,
+    checkoutStateRef,
+    hasGivingTarget,
+    setCheckoutState,
+    paymentMethod,
+    stripeOverride,
+    checkoutMode,
+    mountedPublishableKey,
+    setRuntimeConfig,
+    currentRequestFingerprint,
+    donorInfo,
+    total,
+    worker,
+    paymentAttemptIdRef,
+    checkoutState,
+    currentRequestFingerprintRef,
+    amount,
+    coverFees,
+    missionaryId,
+    fundId,
+    isPaymentAttemptActive,
+    exitStalePaymentAttempt,
+    postalCode,
+    mountedPublishableKeyRef,
+    commitPaymentAttemptState,
+    commitSuccessfulOriginalPaymentAttempt,
+  });
+
   if (step !== "success" && !hasGivingTarget) {
-    return <CheckoutMissingTargetState />;
+    return { view: "missing_target" as const };
   }
 
   // Success renders ONLY when Stripe confirmation has accepted the initialized
   // donation and the attempt has the immutable values that should be confirmed.
   // If either is missing, fall through rather than showing an unbacked receipt.
   if (step === "success" && donation && successSnapshot) {
-    return (
-      <SuccessView
-        donorInfo={successSnapshot.donorInfo}
-        mode={checkoutMode}
-        total={successSnapshot.total}
-        workerTitle={successSnapshot.workerTitle}
-      />
-    );
+    return {
+      view: "success" as const,
+      success: {
+        donorInfo: successSnapshot.donorInfo,
+        mode: checkoutMode,
+        total: successSnapshot.total,
+        workerTitle: successSnapshot.workerTitle,
+      },
+    };
   }
 
-  return (
-    <CheckoutActiveFlow
-      amount={amount}
-      calculatedFees={calculatedFees}
-      coverFees={coverFees}
-      customAmount={customAmount}
-      donorInfo={donorInfo}
-      frequency={frequency}
-      hasGeneralGivingTarget={hasGeneralGivingTarget}
-      missionaryId={missionaryId}
-      onAmountSelect={handleAmountSelect}
-      onBack={handleBack}
-      onCoverFeesChange={setCoverFees}
-      onCustomAmountChange={handleCustomAmountChange}
-      onDonorInfoChange={(patch) => setDonorInfo({ ...donorInfo, ...patch })}
-      onNext={handleNext}
-      paymentPane={
+  return {
+    view: "active" as const,
+    flow: {
+      amount: amount,
+      calculatedFees: calculatedFees,
+      coverFees: coverFees,
+      customAmount: customAmount,
+      donorInfo: donorInfo,
+      frequency: frequency,
+      hasGeneralGivingTarget: hasGeneralGivingTarget,
+      missionaryId: missionaryId,
+      onAmountSelect: handleAmountSelect,
+      onBack: handleBack,
+      onCoverFeesChange: setCoverFees,
+      onCustomAmountChange: handleCustomAmountChange,
+      onDonorInfoChange: (patch) => setDonorInfo({ ...donorInfo, ...patch }),
+      onNext: handleNext,
+      paymentPane: (
         <CheckoutPaymentPane
           checkoutMode={checkoutMode}
           error={error}
@@ -1997,26 +2174,10 @@ function CheckoutContent({
           stripeOverride={stripeOverride}
           total={total}
         />
-      }
-      step={step}
-      total={total}
-      worker={worker ?? null}
-    />
-  );
-}
-
-export function CheckoutPageClient({
-  searchParams,
-  stripeOverride,
-}: {
-  searchParams: CheckoutPageSearchParams;
-  stripeOverride?: CheckoutStripeOverride;
-}) {
-  const normalizedSearchParams = normalizeCheckoutSearchParams(searchParams);
-  return (
-    <CheckoutContent
-      searchParams={normalizedSearchParams}
-      stripeOverride={stripeOverride}
-    />
-  );
+      ),
+      step: step,
+      total: total,
+      worker: worker ?? null,
+    } satisfies React.ComponentProps<typeof CheckoutActiveFlow>,
+  };
 }

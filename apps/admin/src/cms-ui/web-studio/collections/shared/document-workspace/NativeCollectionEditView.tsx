@@ -56,6 +56,13 @@ import type {
 } from "../../config";
 import type { DocumentViewClientProps } from "payload";
 
+const nativeDocumentStateStripIconMap = {
+  autosave: Clock3,
+  editing: Loader2,
+  preview: Eye,
+  publication: ShieldCheck,
+} as const;
+
 function warnPreferenceDev(context: string, error: unknown) {
   if (process.env.NODE_ENV === "development") {
     console.warn(`[Web Studio] ${context}`, error);
@@ -482,21 +489,18 @@ function NativeCollectionEditHeader({
           {heading}
         </h1>
         {showSlugChip && slugOrIdentifier ? (
-          <Badge
-            variant="secondary"
-            className="font-mono text-[10px] uppercase"
-          >
+          <Badge variant="secondary" className="font-mono uppercase">
             {slugOrIdentifier}
           </Badge>
         ) : null}
-        <Badge variant="outline" className="text-[10px] uppercase">
+        <Badge variant="outline" className="uppercase">
           {statusLabel}
         </Badge>
         <Badge
           variant={
             primaryState?.tone === "danger" ? "destructive" : "secondary"
           }
-          className="text-[10px] uppercase"
+          className="uppercase"
         >
           {primaryState?.label}
         </Badge>
@@ -611,9 +615,7 @@ function NativeCollectionInspector({
 }) {
   return (
     <aside className="mt-6 hidden rounded-lg border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block">
-      <p className="mb-2 font-semibold text-foreground uppercase tracking-wide">
-        Inspector
-      </p>
+      <p className="mb-2 font-semibold text-foreground">Inspector</p>
       <p>
         Document fields remain on Payload&apos;s document form engine while Web
         Studio owns the surrounding workspace and action framing.
@@ -917,13 +919,6 @@ function NativeDocumentStateStrip({
 }: {
   items: ReturnType<typeof buildNativeDocumentStateItems>;
 }) {
-  const iconMap = {
-    autosave: Clock3,
-    editing: Loader2,
-    preview: Eye,
-    publication: ShieldCheck,
-  } as const;
-
   return (
     <section
       aria-label="Document state"
@@ -939,7 +934,7 @@ function NativeDocumentStateStrip({
                 ? LockKeyhole
                 : item.tone === "success"
                   ? CheckCircle2
-                  : iconMap[item.id];
+                  : nativeDocumentStateStripIconMap[item.id];
 
         return (
           <div
@@ -949,11 +944,11 @@ function NativeDocumentStateStrip({
               stateToneClass[item.tone],
             )}
           >
-            <p className="flex items-center gap-2 font-semibold text-[10px] uppercase tracking-wide">
+            <p className="flex items-center gap-2 font-semibold text-xs uppercase tracking-wide">
               <Icon className="size-3.5 shrink-0" />
               <span className="truncate">{item.label}</span>
             </p>
-            <p className="mt-1 line-clamp-2 text-[11px] leading-snug">
+            <p className="mt-1 line-clamp-2 text-xs leading-snug">
               {item.description}
             </p>
           </div>

@@ -1,7 +1,10 @@
 "use client";
 
 import { EVE_ADMIN_MEMORY_CATEGORIES } from "@asym/api/eve/admin-memory";
-import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
+import {
+  useLocaleFormat,
+  type DateInput,
+} from "@asym/lib/hooks/use-locale-format";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Alert,
@@ -40,9 +43,15 @@ import {
 } from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { Brain, History, Search, ShieldBan } from "lucide-react";
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
 import type {
   EveAdminMemoryAdminView,
@@ -257,364 +266,508 @@ export function EveAdminMemoryPanel() {
 
   return (
     <section className="space-y-6" aria-labelledby="eve-memory-title">
-      <Card>
-        <CardHeader>
-          <CardTitle id="eve-memory-title" className="flex items-center gap-2">
-            <Brain aria-hidden="true" className="size-5" />
-            Private admin memory
-          </CardTitle>
-          <CardDescription>
-            Human-controlled advisory context for your preferences, project
-            context, and decisions. It is not connected to autonomous runtime
-            context.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <Alert>
-            <ShieldBan aria-hidden="true" className="size-4" />
-            <AlertTitle>Sensitive data is never memory</AlertTitle>
-            <AlertDescription>
-              Secrets, credentials, payment data, private keys, one-time codes,
-              donor or customer PII, and sensitive tenant facts are rejected
-              before storage. Rejected values are not copied into audit logs.
-            </AlertDescription>
+      <MemoryProfileSection
+        mutation={mutation}
+        title={title}
+        setTitle={setTitle}
+        category={category}
+        setCategory={setCategory}
+        content={content}
+        setContent={setContent}
+      />
+
+      <p
+        aria-live="polite"
+        aria-atomic="true"
+        className={
+          mutation.isIdle || mutation.isError
+            ? "sr-only"
+            : "text-sm text-muted-foreground"
+        }
+      >
+        {mutation.isPending
+          ? "Saving private memory change…"
+          : mutation.isSuccess
+            ? "Private memory change saved."
+            : ""}
+      </p>
+
+      <MemoryCategorySettings query={query} mutation={mutation} />
+
+      <MemoryEntriesSection
+        queryText={queryText}
+        setQueryText={setQueryText}
+        setShowDeleted={setShowDeleted}
+        showDeleted={showDeleted}
+        query={query}
+        entries={entries}
+        editingIntent={editingIntent}
+        mutation={mutation}
+        setEditingIntent={setEditingIntent}
+        formatDateTime={formatDateTime}
+        setDeleteIntent={setDeleteIntent}
+        deleteIntent={deleteIntent}
+      />
+
+      <MemoryControlsSection query={query} formatDateTime={formatDateTime} />
+    </section>
+  );
+}
+
+function MemoryProfileSection({
+  mutation,
+  title,
+  setTitle,
+  category,
+  setCategory,
+  content,
+  setContent,
+}: {
+  mutation: UseMutationResult<
+    ResponseBody,
+    Error,
+    Mutation | undefined,
+    unknown
+  >;
+  title: string;
+  setTitle: Dispatch<SetStateAction<string>>;
+  category: "preference" | "project_context" | "decision";
+  setCategory: Dispatch<
+    SetStateAction<"preference" | "project_context" | "decision">
+  >;
+  content: string;
+  setContent: Dispatch<SetStateAction<string>>;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle id="eve-memory-title" className="flex items-center gap-2">
+          <Brain aria-hidden="true" className="size-5" />
+          Private admin memory
+        </CardTitle>
+        <CardDescription>
+          Human-controlled advisory context for your preferences, project
+          context, and decisions. It is not connected to autonomous runtime
+          context.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <Alert>
+          <ShieldBan aria-hidden="true" className="size-4" />
+          <AlertTitle>Sensitive data is never memory</AlertTitle>
+          <AlertDescription>
+            Secrets, credentials, payment data, private keys, one-time codes,
+            donor or customer PII, and sensitive tenant facts are rejected
+            before storage. Rejected values are not copied into audit logs.
+          </AlertDescription>
+        </Alert>
+        {mutation.error ? (
+          <Alert variant="destructive">
+            <AlertTitle>Memory was not changed</AlertTitle>
+            <AlertDescription>{mutation.error.message}</AlertDescription>
           </Alert>
-          {mutation.error ? (
-            <Alert variant="destructive">
-              <AlertTitle>Memory was not changed</AlertTitle>
-              <AlertDescription>{mutation.error.message}</AlertDescription>
-            </Alert>
-          ) : null}
-          <div className="grid gap-4 md:grid-cols-[1fr_14rem]">
-            <div>
-              <Label htmlFor="new-memory-title">Title</Label>
-              <Input
-                id="new-memory-title"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                maxLength={120}
-              />
-            </div>
-            <div>
-              <Select<EveAdminMemoryCategory>
-                items={LABELS}
-                value={category}
-                onValueChange={(value) => {
-                  if (value !== null) setCategory(value);
-                }}
-              >
-                <SelectControlLabel>Category</SelectControlLabel>
-                <SelectTrigger id="new-memory-category" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {LABELS[value]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        ) : null}
+        <div className="grid gap-4 md:grid-cols-[1fr_14rem]">
+          <div>
+            <Label htmlFor="new-memory-title">Title</Label>
+            <Input
+              id="new-memory-title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              maxLength={120}
+            />
           </div>
           <div>
-            <Label htmlFor="new-memory-content">Advisory context</Label>
-            <Textarea
-              id="new-memory-content"
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              maxLength={4000}
-              rows={4}
+            <Select<EveAdminMemoryCategory>
+              items={LABELS}
+              value={category}
+              onValueChange={(value) => {
+                if (value !== null) setCategory(value);
+              }}
+            >
+              <SelectControlLabel>Category</SelectControlLabel>
+              <SelectTrigger id="new-memory-category" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {LABELS[value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="new-memory-content">Advisory context</Label>
+          <Textarea
+            id="new-memory-content"
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            maxLength={4000}
+            rows={4}
+          />
+        </div>
+        <Button
+          focusableWhenDisabled={
+            mutation.isPending && mutation.variables?.method === "POST"
+          }
+          disabled={mutation.isPending || !title.trim() || !content.trim()}
+          onClick={() =>
+            mutation.mutate({
+              method: "POST",
+              body: { title, content, category },
+            })
+          }
+        >
+          Add private memory
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MemoryCategorySettings({
+  query,
+  mutation,
+}: {
+  query: UseQueryResult<ResponseBody, Error>;
+  mutation: UseMutationResult<
+    ResponseBody,
+    Error,
+    Mutation | undefined,
+    unknown
+  >;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Automatic save controls</CardTitle>
+        <CardDescription>
+          Category controls are ready, but every automatic save also remains
+          fail-closed behind Eve’s disabled release gate. Disabling a category
+          retains existing entries and history.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-3 md:grid-cols-3">
+        {(query.data?.settings ?? []).map((setting) => (
+          <div
+            key={setting.category}
+            className="flex items-center justify-between rounded-lg border p-3"
+          >
+            <div>
+              <p className="text-sm font-medium">{LABELS[setting.category]}</p>
+              <p className="text-xs text-muted-foreground">
+                {setting.autoSaveEnabled
+                  ? "Allowed by category"
+                  : "Disabled by you"}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant={setting.autoSaveEnabled ? "outline" : "secondary"}
+              focusableWhenDisabled={
+                mutation.isPending &&
+                mutation.variables?.method === "PATCH" &&
+                mutation.variables.body.action === "set_auto_save" &&
+                mutation.variables.body.category === setting.category
+              }
+              disabled={mutation.isPending}
+              onClick={() =>
+                mutation.mutate({
+                  method: "PATCH",
+                  body: {
+                    action: "set_auto_save",
+                    category: setting.category,
+                    enabled: !setting.autoSaveEnabled,
+                  },
+                })
+              }
+            >
+              {setting.autoSaveEnabled ? "Disable" : "Enable"}
+            </Button>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function MemoryEntriesSection({
+  queryText,
+  setQueryText,
+  setShowDeleted,
+  showDeleted,
+  query,
+  entries,
+  editingIntent,
+  mutation,
+  setEditingIntent,
+  formatDateTime,
+  setDeleteIntent,
+  deleteIntent,
+}: {
+  queryText: string;
+  setQueryText: Dispatch<SetStateAction<string>>;
+  setShowDeleted: Dispatch<SetStateAction<boolean>>;
+  showDeleted: boolean;
+  query: UseQueryResult<ResponseBody, Error>;
+  entries: EveAdminMemoryEntry[];
+  editingIntent: EntryMutationIntent | undefined;
+  mutation: UseMutationResult<
+    ResponseBody,
+    Error,
+    Mutation | undefined,
+    unknown
+  >;
+  setEditingIntent: Dispatch<SetStateAction<EntryMutationIntent | undefined>>;
+  formatDateTime: (
+    value: DateInput,
+    options?: Intl.DateTimeFormatOptions,
+  ) => string;
+  setDeleteIntent: Dispatch<SetStateAction<EntryMutationIntent | undefined>>;
+  deleteIntent: EntryMutationIntent | undefined;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Current memory</CardTitle>
+        <CardDescription>
+          Search, inspect, edit, or delete your private entries. Deleted rows
+          remain visible during their separate retention window.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search
+              aria-hidden="true"
+              className="absolute left-3 top-2.5 size-4 text-muted-foreground"
+            />
+            <Label className="sr-only" htmlFor="memory-search">
+              Search private memory
+            </Label>
+            <Input
+              id="memory-search"
+              className="pl-9"
+              value={queryText}
+              onChange={(event) => setQueryText(event.target.value)}
+              placeholder="Search title or context"
             />
           </div>
           <Button
-            focusableWhenDisabled={
-              mutation.isPending && mutation.variables?.method === "POST"
-            }
-            disabled={mutation.isPending || !title.trim() || !content.trim()}
-            onClick={() =>
-              mutation.mutate({
-                method: "POST",
-                body: { title, content, category },
-              })
-            }
+            variant="outline"
+            onClick={() => setShowDeleted((value) => !value)}
           >
-            Add private memory
+            {showDeleted ? "Hide deleted" : "Show deleted"}
           </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Automatic save controls</CardTitle>
-          <CardDescription>
-            Category controls are ready, but every automatic save also remains
-            fail-closed behind Eve’s disabled release gate. Disabling a category
-            retains existing entries and history.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3">
-          {(query.data?.settings ?? []).map((setting) => (
-            <div
-              key={setting.category}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              <div>
-                <p className="text-sm font-medium">
-                  {LABELS[setting.category]}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {setting.autoSaveEnabled
-                    ? "Allowed by category"
-                    : "Disabled by you"}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant={setting.autoSaveEnabled ? "outline" : "secondary"}
-                focusableWhenDisabled={
-                  mutation.isPending &&
-                  mutation.variables?.method === "PATCH" &&
-                  mutation.variables.body.action === "set_auto_save" &&
-                  mutation.variables.body.category === setting.category
-                }
-                disabled={mutation.isPending}
-                onClick={() =>
-                  mutation.mutate({
-                    method: "PATCH",
-                    body: {
-                      action: "set_auto_save",
-                      category: setting.category,
-                      enabled: !setting.autoSaveEnabled,
-                    },
-                  })
-                }
-              >
-                {setting.autoSaveEnabled ? "Disable" : "Enable"}
-              </Button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Current memory</CardTitle>
-          <CardDescription>
-            Search, inspect, edit, or delete your private entries. Deleted rows
-            remain visible during their separate retention window.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1">
-              <Search
-                aria-hidden="true"
-                className="absolute left-3 top-2.5 size-4 text-muted-foreground"
-              />
-              <Label className="sr-only" htmlFor="memory-search">
-                Search private memory
-              </Label>
-              <Input
-                id="memory-search"
-                className="pl-9"
-                value={queryText}
-                onChange={(event) => setQueryText(event.target.value)}
-                placeholder="Search title or context"
-              />
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleted((value) => !value)}
-            >
-              {showDeleted ? "Hide deleted" : "Show deleted"}
-            </Button>
+        </div>
+        {query.isLoading ? (
+          <div role="status" className="space-y-2">
+            <span className="sr-only">Loading private memory…</span>
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
           </div>
-          {query.isLoading ? (
-            <div role="status" className="space-y-2">
-              <span className="sr-only">Loading private memory…</span>
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
-          ) : null}
-          {query.error ? (
-            <Alert variant="destructive">
-              <AlertTitle>Memory unavailable</AlertTitle>
-              <AlertDescription>{query.error.message}</AlertDescription>
-            </Alert>
-          ) : null}
-          {!query.isLoading && entries.length === 0 ? (
-            <p
-              role="status"
-              className="py-8 text-center text-sm text-muted-foreground"
-            >
-              No matching private memory.
-            </p>
-          ) : null}
-          <ul className="divide-y">
-            {entries.map((entry) => (
-              <li key={entry.id} className="space-y-3 py-4">
-                {editingIntent?.entryId === entry.id ? (
-                  <EntryEditor
-                    entry={entry}
-                    pending={mutation.isPending}
-                    saving={
-                      mutation.isPending &&
-                      mutation.variables?.method === "PATCH" &&
-                      mutation.variables.body.action === "edit" &&
-                      mutation.variables.body.entryId === entry.id
-                    }
-                    onCancel={() => setEditingIntent(undefined)}
-                    onSave={(values) =>
-                      mutation.mutate({
-                        method: "PATCH",
-                        body: {
-                          action: "edit",
-                          entryId: editingIntent.entryId,
-                          expectedVersion: editingIntent.expectedVersion,
-                          ...values,
-                        },
-                      })
-                    }
-                  />
-                ) : (
-                  <>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{entry.title}</p>
-                          <Badge variant="outline">
-                            {LABELS[entry.category]}
-                          </Badge>
-                          {entry.isDeleted ? (
-                            <Badge variant="destructive">Deleted</Badge>
-                          ) : null}
-                        </div>
-                        <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
-                          {entry.content}
-                        </p>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          Version {entry.version} ·{" "}
-                          {entry.source.replace("_", " ")} ·{" "}
-                          {formatDateTime(entry.updatedAt, TIMESTAMP_FORMAT)}
-                        </p>
-                      </div>
-                      {!entry.isDeleted ? (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              setEditingIntent({
-                                entryId: entry.id,
-                                expectedVersion: entry.version,
-                              })
-                            }
-                          >
-                            Edit
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger
-                              onClick={() =>
-                                setDeleteIntent({
-                                  entryId: entry.id,
-                                  expectedVersion: entry.version,
-                                })
-                              }
-                              render={
-                                <Button size="sm" variant="destructive">
-                                  Delete
-                                </Button>
-                              }
-                            />
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Delete “{entry.title}”?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  The current entry will be marked deleted
-                                  immediately. Its immutable versions remain
-                                  inspectable under the separate memory-history
-                                  retention policy.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel
-                                  onClick={() => setDeleteIntent(undefined)}
-                                >
-                                  Cancel
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  variant="destructive"
-                                  onClick={() => {
-                                    if (deleteIntent?.entryId !== entry.id) {
-                                      return;
-                                    }
-                                    mutation.mutate({
-                                      method: "DELETE",
-                                      body: {
-                                        entryId: deleteIntent.entryId,
-                                        expectedVersion:
-                                          deleteIntent.expectedVersion,
-                                      },
-                                    });
-                                  }}
-                                >
-                                  Confirm delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+        ) : null}
+        {query.error ? (
+          <Alert variant="destructive">
+            <AlertTitle>Memory unavailable</AlertTitle>
+            <AlertDescription>{query.error.message}</AlertDescription>
+          </Alert>
+        ) : null}
+        {!query.isLoading && entries.length === 0 ? (
+          <p
+            role="status"
+            className="py-8 text-center text-sm text-muted-foreground"
+          >
+            No matching private memory.
+          </p>
+        ) : null}
+        <ul className="divide-y">
+          {entries.map((entry) => (
+            <li key={entry.id} className="space-y-3 py-4">
+              {editingIntent?.entryId === entry.id ? (
+                <EntryEditor
+                  entry={entry}
+                  pending={mutation.isPending}
+                  saving={
+                    mutation.isPending &&
+                    mutation.variables?.method === "PATCH" &&
+                    mutation.variables.body.action === "edit" &&
+                    mutation.variables.body.entryId === entry.id
+                  }
+                  onCancel={() => setEditingIntent(undefined)}
+                  onSave={(values) =>
+                    mutation.mutate({
+                      method: "PATCH",
+                      body: {
+                        action: "edit",
+                        entryId: editingIntent.entryId,
+                        expectedVersion: editingIntent.expectedVersion,
+                        ...values,
+                      },
+                    })
+                  }
+                />
+              ) : (
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{entry.title}</p>
+                      <Badge variant="outline">{LABELS[entry.category]}</Badge>
+                      {entry.isDeleted ? (
+                        <Badge variant="destructive">Deleted</Badge>
                       ) : null}
                     </div>
-                  </>
-                )}
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                      {entry.content}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Version {entry.version} · {entry.source.replace("_", " ")}{" "}
+                      · {formatDateTime(entry.updatedAt, TIMESTAMP_FORMAT)}
+                    </p>
+                  </div>
+                  {!entry.isDeleted ? (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          setEditingIntent({
+                            entryId: entry.id,
+                            expectedVersion: entry.version,
+                          })
+                        }
+                      >
+                        Edit
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            setDeleteIntent({
+                              entryId: entry.id,
+                              expectedVersion: entry.version,
+                            })
+                          }
+                          render={
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              focusableWhenDisabled={
+                                mutation.isPending &&
+                                mutation.variables?.method === "DELETE" &&
+                                mutation.variables.body.entryId === entry.id
+                              }
+                            >
+                              Delete
+                            </Button>
+                          }
+                        />
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete “{entry.title}”?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              The current entry will be marked deleted
+                              immediately. Its immutable versions remain
+                              inspectable under the separate memory-history
+                              retention policy.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel
+                              onClick={() => setDeleteIntent(undefined)}
+                            >
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              variant="destructive"
+                              disabled={mutation.isPending}
+                              onClick={() => {
+                                if (
+                                  mutation.isPending ||
+                                  deleteIntent?.entryId !== entry.id
+                                ) {
+                                  return;
+                                }
+                                mutation.mutate({
+                                  method: "DELETE",
+                                  body: {
+                                    entryId: deleteIntent.entryId,
+                                    expectedVersion:
+                                      deleteIntent.expectedVersion,
+                                  },
+                                });
+                              }}
+                            >
+                              Confirm delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MemoryControlsSection({
+  query,
+  formatDateTime,
+}: {
+  query: UseQueryResult<ResponseBody, Error>;
+  formatDateTime: (
+    value: DateInput,
+    options?: Intl.DateTimeFormatOptions,
+  ) => string;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <History aria-hidden="true" className="size-5" />
+          Immutable history
+        </CardTitle>
+        <CardDescription>
+          Created, edited, and deleted versions are recorded separately from run
+          logs so the retention policy can evolve independently.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {(query.data?.history.length ?? 0) === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No memory history yet.
+          </p>
+        ) : (
+          <ul className="divide-y">
+            {query.data?.history.map((record) => (
+              <li key={record.id} className="py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-medium">{record.title}</p>
+                  <Badge variant="outline">v{record.version}</Badge>
+                  <Badge variant="secondary">{record.action}</Badge>
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+                  {record.content}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {LABELS[record.category]} ·{" "}
+                  {formatDateTime(record.changedAt, TIMESTAMP_FORMAT)}
+                </p>
               </li>
             ))}
           </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History aria-hidden="true" className="size-5" />
-            Immutable history
-          </CardTitle>
-          <CardDescription>
-            Created, edited, and deleted versions are recorded separately from
-            run logs so the retention policy can evolve independently.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(query.data?.history.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No memory history yet.
-            </p>
-          ) : (
-            <ul className="divide-y">
-              {query.data?.history.map((record) => (
-                <li key={record.id} className="py-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-medium">{record.title}</p>
-                    <Badge variant="outline">v{record.version}</Badge>
-                    <Badge variant="secondary">{record.action}</Badge>
-                  </div>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
-                    {record.content}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {LABELS[record.category]} ·{" "}
-                    {formatDateTime(record.changedAt, TIMESTAMP_FORMAT)}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </section>
+        )}
+      </CardContent>
+    </Card>
   );
 }

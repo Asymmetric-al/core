@@ -64,7 +64,7 @@ export function GiftHistoryRows({
                 </p>
               ) : null}
               {viewSettings.columns.statusLine ? (
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
                   {SHARED_RECEIPT_STATUS_LABELS[shared.receiptStatus]} /{" "}
                   {shared.crmPostStatus
                     ? SHARED_CRM_POST_STATUS_LABELS[shared.crmPostStatus]

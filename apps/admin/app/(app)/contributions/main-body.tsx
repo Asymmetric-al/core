@@ -60,6 +60,14 @@ import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 import type { Contribution, ContributionStatus } from "./types";
 import type { MissionControlNeedsAttentionGroup } from "@asym/database/hooks";
 
+const contributionsMainBodyHandleBulkDelete = (_rows: Contribution[]) => {
+  toast.info("Bulk delete coming soon.");
+};
+
+const contributionsPageActionsHandleExport = () => {
+  toast.info("Export coming soon.");
+};
+
 function formatSelectedContributionCount(count: number): string {
   return `${count} selected contribution${count === 1 ? "" : "s"}`;
 }
@@ -113,7 +121,7 @@ function StatCard({
         <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">
           {value}
         </span>
-        <span className="mt-1 text-[10px] font-semibold uppercase text-muted-foreground">
+        <span className="mt-1 text-xs font-semibold uppercase text-muted-foreground">
           {label}
         </span>
       </div>
@@ -316,10 +324,6 @@ export function ContributionsMainBody({
     })),
   ];
 
-  const handleBulkDelete = (_rows: Contribution[]) => {
-    toast.info("Bulk delete coming soon.");
-  };
-
   const handleBulkReceipt = useCallback((rows: Contribution[]) => {
     if (rows.length === 0) {
       return;
@@ -481,142 +485,16 @@ export function ContributionsMainBody({
         <StatCard label="Recurring" value={stats.recurringCount} index={3} />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...smoothTransition, delay: 0.3 }}
-      >
-        <DataTableResponsive
-          columns={columns}
-          data={data}
-          devtoolsKey="admin-contributions"
-          filterFields={filterFields}
-          searchKey="donorName"
-          searchPlaceholder="Search by donor name or email..."
-          isLoading={isLoading}
-          config={{
-            enableRowSelection: true,
-            enableColumnVisibility: true,
-            enablePagination: true,
-            enableFilters: true,
-            enableSorting: true,
-            enableViewToggle: true,
-            enableKeyboardNavigation: true,
-          }}
-          initialState={{
-            columnVisibility: {
-              transactionId: false,
-              source: false,
-              // Filter-only columns behind the shared filter chips stay
-              // hidden; they exist purely to evaluate shared filters.
-              ...hubSharedFilterColumnVisibility,
-            },
-          }}
-          onRowClick={(row) => onSelectContribution(row.original)}
-          floatingBarActions={[
-            {
-              label: "Send Receipts",
-              icon: Receipt,
-              onClick: handleBulkReceipt,
-            },
-            {
-              label: "Delete",
-              icon: Trash2,
-              onClick: handleBulkDelete,
-              variant: "destructive",
-            },
-          ]}
-          mobileCardConfig={{
-            primaryField: "donorName",
-            secondaryField: "fundName",
-            badgeField: "status",
-            renderCard: (row) => {
-              const contribution = row.original;
-              const donorLabel =
-                contribution.isAnonymous === true
-                  ? "Anonymous"
-                  : (contribution.donorName ?? contribution.donorEmail);
-              const avatarSrc = contribution.donorAvatar ?? undefined;
-
-              return (
-                <button
-                  type="button"
-                  onClick={() => onSelectContribution(contribution)}
-                  className="w-full p-4 cursor-pointer space-y-3 text-left"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="size-10 border border-border">
-                        {!contribution.isAnonymous && avatarSrc ? (
-                          <AvatarImage src={avatarSrc} alt={donorLabel} />
-                        ) : null}
-                        <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-                          {contribution.isAnonymous
-                            ? "?"
-                            : getInitials(donorLabel)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="text-sm font-semibold text-foreground">
-                          {donorLabel}
-                        </div>
-                        <div className="text-xs text-muted-foreground font-medium">
-                          {contribution.fundName}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={cn(
-                          "size-2 shrink-0 rounded-full",
-                          statusDotColor[contribution.status] ??
-                            "bg-muted-foreground",
-                        )}
-                      />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">
-                        {statusShortLabel[contribution.status]}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(contribution.date, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <span className="font-mono font-semibold tabular-nums tracking-tight">
-                      {formatSharedContributionAmount(
-                        contribution.shared.amountCents,
-                        contribution.shared.currencyCode,
-                      )}
-                    </span>
-                  </div>
-                </button>
-              );
-            },
-          }}
-          emptyState={
-            <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 py-32 text-center">
-              <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-lg border border-border bg-card shadow-sm">
-                <DollarSign className="size-10 text-muted-foreground/40" />
-              </div>
-              <h3 className="text-2xl font-semibold text-foreground tracking-tight">
-                No contributions found
-              </h3>
-              <p className="text-sm text-muted-foreground mt-2 font-medium">
-                Get started by recording your first contribution or importing
-                from another source.
-              </p>
-              <Button className="mt-8 h-12 px-8 font-semibold uppercase tracking-widest text-[10px]">
-                <Plus className="mr-2 size-4" />
-                Add Contribution
-              </Button>
-            </div>
-          }
-        />
-      </motion.div>
+      <ContributionResultsTable
+        formatDate={formatDate}
+        columns={columns}
+        data={data}
+        filterFields={filterFields}
+        isLoading={isLoading}
+        onSelectContribution={onSelectContribution}
+        handleBulkReceipt={handleBulkReceipt}
+        handleBulkDelete={contributionsMainBodyHandleBulkDelete}
+      />
     </div>
   );
 }
@@ -631,16 +509,12 @@ export function ContributionsPageActions({
   const canShowOfflineGiftEntry =
     OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED && canManageContributions;
 
-  const handleExport = () => {
-    toast.info("Export coming soon.");
-  };
-
   return (
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        className="h-11 font-semibold uppercase tracking-widest text-[10px] transition-colors"
-        onClick={handleExport}
+        className="h-11 font-semibold uppercase tracking-widest transition-colors"
+        onClick={contributionsPageActionsHandleExport}
       >
         <Download className="size-4" />
         Export
@@ -648,7 +522,7 @@ export function ContributionsPageActions({
       {canShowOfflineGiftEntry ? (
         <>
           <Button
-            className="h-11 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg"
+            className="h-11 px-6 font-semibold uppercase tracking-widest shadow-lg"
             onClick={() => setOfflineEntryOpen(true)}
           >
             <HandCoins className="size-4" />
@@ -667,5 +541,164 @@ export function ContributionsPageActions({
         </>
       ) : null}
     </div>
+  );
+}
+
+function ContributionResultsTable({
+  formatDate,
+  columns,
+  data,
+  filterFields,
+  isLoading,
+  onSelectContribution,
+  handleBulkReceipt,
+  handleBulkDelete,
+}: {
+  formatDate: ReturnType<typeof useLocaleFormat>["formatDate"];
+  columns: ReturnType<typeof getContributionColumns>;
+  data: Contribution[];
+  filterFields: DataTableFilterField<Contribution>[];
+  isLoading: boolean;
+  onSelectContribution: (c: Contribution) => void;
+  handleBulkReceipt: (rows: Contribution[]) => void;
+  handleBulkDelete: (_rows: Contribution[]) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...smoothTransition, delay: 0.3 }}
+    >
+      <DataTableResponsive
+        columns={columns}
+        data={data}
+        devtoolsKey="admin-contributions"
+        filterFields={filterFields}
+        searchKey="donorName"
+        searchPlaceholder="Search by donor name or email..."
+        isLoading={isLoading}
+        config={{
+          enableRowSelection: true,
+          enableColumnVisibility: true,
+          enablePagination: true,
+          enableFilters: true,
+          enableSorting: true,
+          enableViewToggle: true,
+          enableKeyboardNavigation: true,
+        }}
+        initialState={{
+          columnVisibility: {
+            transactionId: false,
+            source: false,
+            // Filter-only columns behind the shared filter chips stay
+            // hidden; they exist purely to evaluate shared filters.
+            ...hubSharedFilterColumnVisibility,
+          },
+        }}
+        onRowClick={(row) => onSelectContribution(row.original)}
+        floatingBarActions={[
+          {
+            label: "Send Receipts",
+            icon: Receipt,
+            onClick: handleBulkReceipt,
+          },
+          {
+            label: "Delete",
+            icon: Trash2,
+            onClick: handleBulkDelete,
+            variant: "destructive",
+          },
+        ]}
+        mobileCardConfig={{
+          primaryField: "donorName",
+          secondaryField: "fundName",
+          badgeField: "status",
+          renderCard: (row) => {
+            const contribution = row.original;
+            const donorLabel =
+              contribution.isAnonymous === true
+                ? "Anonymous"
+                : (contribution.donorName ?? contribution.donorEmail);
+            const avatarSrc = contribution.donorAvatar ?? undefined;
+
+            return (
+              <button
+                type="button"
+                onClick={() => onSelectContribution(contribution)}
+                className="w-full p-4 cursor-pointer space-y-3 text-left"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="size-10 border border-border">
+                      {!contribution.isAnonymous && avatarSrc ? (
+                        <AvatarImage src={avatarSrc} alt={donorLabel} />
+                      ) : null}
+                      <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+                        {contribution.isAnonymous
+                          ? "?"
+                          : getInitials(donorLabel)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">
+                        {donorLabel}
+                      </div>
+                      <div className="text-xs text-muted-foreground font-medium">
+                        {contribution.fundName}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={cn(
+                        "size-2 shrink-0 rounded-full",
+                        statusDotColor[contribution.status] ??
+                          "bg-muted-foreground",
+                      )}
+                    />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                      {statusShortLabel[contribution.status]}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-xs text-muted-foreground">
+                    {formatDate(contribution.date, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <span className="font-mono font-semibold tabular-nums tracking-tight">
+                    {formatSharedContributionAmount(
+                      contribution.shared.amountCents,
+                      contribution.shared.currencyCode,
+                    )}
+                  </span>
+                </div>
+              </button>
+            );
+          },
+        }}
+        emptyState={
+          <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 py-32 text-center">
+            <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-lg border border-border bg-card shadow-sm">
+              <DollarSign className="size-10 text-muted-foreground/40" />
+            </div>
+            <h3 className="text-2xl font-semibold text-foreground tracking-tight">
+              No contributions found
+            </h3>
+            <p className="text-sm text-muted-foreground mt-2 font-medium">
+              Get started by recording your first contribution or importing from
+              another source.
+            </p>
+            <Button className="mt-8 h-12 px-8 font-semibold uppercase tracking-widest">
+              <Plus className="mr-2 size-4" />
+              Add Contribution
+            </Button>
+          </div>
+        }
+      />
+    </motion.div>
   );
 }

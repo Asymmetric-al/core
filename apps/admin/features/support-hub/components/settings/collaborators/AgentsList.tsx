@@ -18,7 +18,7 @@ export function AgentsList() {
       description="Team members with access to donor care conversations. Roles are managed in Mission Control settings."
     >
       {agents.length === 0 ? (
-        <p className="text-[12px] text-zinc-500">No collaborators yet.</p>
+        <p className="text-xs text-zinc-500">No collaborators yet.</p>
       ) : (
         <ul className="flex flex-col divide-y divide-zinc-100">
           {agents.map((agent) => (
@@ -36,10 +36,10 @@ export function AgentsList() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="text-[13px] font-semibold text-zinc-900">
+                <span className="text-xs font-semibold text-zinc-900">
                   {agent.name}
                 </span>
-                <span className="text-[11px] text-zinc-500">
+                <span className="text-xs text-zinc-500">
                   {agent.title ?? "Support team member"} · {agent.email}
                 </span>
               </div>

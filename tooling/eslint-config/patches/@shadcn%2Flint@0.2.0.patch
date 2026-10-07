@@ -1,7 +1,8 @@
 diff --git a/dist/index.js b/dist/index.js
+index a5d432a5df93daf340ec62d64a12bb34fd64b0b7..fd6a3f63785b850c00055762c508ec10b3e448e3 100644
 --- a/dist/index.js
 +++ b/dist/index.js
-@@ -2551,9 +2551,11 @@
+@@ -2551,9 +2551,11 @@ function importNameOf(imported, root, property) {
  	};
  }
  function componentFromImport(index, binding, importedName, patterns) {
@@ -15,7 +16,7 @@ diff --git a/dist/index.js b/dist/index.js
  		if (!NODE_MODULES.test(binding.file) || indexed) {
  			const file = indexed ?? binding.file;
  			return {
-@@ -4812,6 +4814,8 @@
+@@ -4812,6 +4814,8 @@ function checkEntries(entries, groupIds, classifier, fromFile) {
  		if (classifier.groupOf(entry)) continue;
  		const known = fromFile ? knownClassesFor(fromFile) : null;
  		if (known?.utilities.has(entry) || known?.classes.has(entry)) continue;
@@ -24,3 +25,22 @@ diff --git a/dist/index.js b/dist/index.js
  		const hint = /^[A-Za-z][A-Za-z0-9]*$/.test(entry) ? didYouMean(entry, [
  			...CATEGORIES,
  			"layout",
+@@ -6219,6 +6223,18 @@ function variantDefinitionsOf(file) {
+ function definitionFor(file, component) {
+ 	const expected = component.charAt(0).toLowerCase() + component.slice(1) + "Variants";
+ 	const definitions = variantDefinitionsOf(file);
++	const local = definitions.find((d) => d.name === expected) ?? definitions.find((d) => d.name === component && d.source === "props");
++	if (local) return local;
++	// A refresh-safe component may import its CVA factory from a utility.
++	// Resolve only the exact, named variant factory and refresh its own file
++	// cache; never guess axes from an unrelated import or stale component mtime.
++	for (const imported of moduleOf(file)?.imports.values() ?? []) {
++		if (imported.name !== expected || !imported.spec.startsWith(".")) continue;
++		const target = resolveFrom(file, imported.spec);
++		const binding = target ? exportsOf(target).get(imported.name) : null;
++		const definition = binding ? variantDefinitionsOf(binding.file).find((d) => d.name === binding.name && d.source === "factory") : null;
++		if (definition) return definition;
++	}
+ 	if (!definitions.length) {
+ 		const barrel = isSfc(file) ? barrelOf(path.dirname(file)) : null;
+ 		if (!barrel) return null;

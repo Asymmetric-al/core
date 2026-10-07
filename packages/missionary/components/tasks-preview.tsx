@@ -30,7 +30,7 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
             <CheckSquare className="size-4.5" />
           </div>
           <div>
-            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest text-zinc-400 leading-none mb-1">
               Queue
             </CardTitle>
             <p className="text-lg font-bold text-zinc-900 tracking-tighter">
@@ -57,10 +57,10 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
                 className={`mt-1.5 size-1.5 shrink-0 rounded-full ${task.priority === "high" ? "bg-rose-500" : "bg-amber-500"}`}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-zinc-900 uppercase tracking-tight leading-snug">
+                <p className="text-xs font-bold text-zinc-900 uppercase tracking-tight leading-snug">
                   {task.title}
                 </p>
-                <div className="mt-1 flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-zinc-400">
+                <div className="mt-1 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400">
                   <Clock className="size-3" />
                   <span>Due {task.dueDate}</span>
                 </div>
@@ -73,7 +73,7 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
             href="/tasks"
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
-              "h-8 w-full rounded-md border-zinc-200 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 shadow-sm",
+              "h-8 w-full rounded-md border-zinc-200 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 shadow-sm",
             )}
           >
             Enterprise Task Manager

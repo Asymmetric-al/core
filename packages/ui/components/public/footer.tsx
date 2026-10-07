@@ -182,7 +182,7 @@ export function Footer() {
                     >
                       {link.label}
                       {link.badge && (
-                        <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-white/50">
+                        <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded text-white/50">
                           {link.badge}
                         </span>
                       )}
@@ -225,13 +225,13 @@ export function Footer() {
             href="https://asymmetric.al/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors touch-target"
+            className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors touch-target"
           >
             Made with{" "}
             <HeartIcon className="size-3 text-rose-500 fill-current" /> by
             Asymmetric.al
           </a>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-xs font-semibold uppercase tracking-widest text-zinc-400">
             {legalLinks.map((link) => (
               <Link
                 key={link.label}

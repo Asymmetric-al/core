@@ -45,7 +45,7 @@ export function ConversationAssigneeMenu({
             type="button"
             variant="ghost"
             size="sm"
-            className="gap-2 rounded-lg px-2 text-[12px] text-zinc-700"
+            className="gap-2 rounded-lg px-2 text-zinc-700"
             aria-label={
               assignee ? `Assigned to ${assignee.name}` : "Unassigned"
             }
@@ -56,7 +56,7 @@ export function ConversationAssigneeMenu({
                   src={assignee.avatarUrl ?? undefined}
                   alt={assignee.name}
                 />
-                <AvatarFallback className="text-[10px] font-semibold">
+                <AvatarFallback className="text-xs font-semibold">
                   {assignee.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -65,7 +65,7 @@ export function ConversationAssigneeMenu({
                 <UserRound className="size-3" />
               </span>
             )}
-            <span className="truncate text-[12px]">
+            <span className="truncate text-xs">
               {assignee?.name ?? "Unassigned"}
             </span>
           </Button>
@@ -73,7 +73,7 @@ export function ConversationAssigneeMenu({
       />
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+          <DropdownMenuLabel className="text-xs uppercase tracking-widest text-zinc-400">
             Assign conversation
           </DropdownMenuLabel>
 
@@ -86,7 +86,7 @@ export function ConversationAssigneeMenu({
                   assigneeAgentId: currentAgentId,
                 })
               }
-              className="gap-2 text-[12px]"
+              className="gap-2 text-xs"
             >
               <UserCheck className="size-3.5 text-zinc-500" />
               Assign to me
@@ -99,7 +99,7 @@ export function ConversationAssigneeMenu({
                 assigneeAgentId: null,
               })
             }
-            className="gap-2 text-[12px]"
+            className="gap-2 text-xs"
           >
             <UserMinus className="size-3.5 text-zinc-500" />
             Unassign
@@ -116,7 +116,7 @@ export function ConversationAssigneeMenu({
                     assigneeAgentId: agent.id,
                   })
                 }
-                className="gap-2 text-[12px]"
+                className="gap-2 text-xs"
               >
                 <Check
                   className={cn(
@@ -129,7 +129,7 @@ export function ConversationAssigneeMenu({
                     src={agent.avatarUrl ?? undefined}
                     alt={agent.name}
                   />
-                  <AvatarFallback className="text-[10px] font-semibold">
+                  <AvatarFallback className="text-xs font-semibold">
                     {agent.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>

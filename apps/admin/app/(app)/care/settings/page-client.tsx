@@ -118,7 +118,7 @@ function RegionalLocalizationCard() {
           <div className="space-y-2 text-left">
             <Label
               htmlFor="region"
-              className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 px-1"
+              className="text-xs font-semibold uppercase tracking-wider text-zinc-400 px-1"
             >
               Default Region
             </Label>
@@ -148,7 +148,7 @@ function RegionalLocalizationCard() {
           <div className="space-y-2 text-left">
             <Label
               htmlFor="timezone"
-              className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 px-1"
+              className="text-xs font-semibold uppercase tracking-wider text-zinc-400 px-1"
             >
               My Timezone
             </Label>
@@ -219,7 +219,7 @@ function ConnectedServicesCard() {
             {service.readonly ? (
               <Badge
                 variant="secondary"
-                className="text-[10px] font-semibold uppercase tracking-widest bg-zinc-100 text-zinc-500 border-none"
+                className="font-semibold uppercase tracking-widest bg-zinc-100 text-zinc-500 border-none"
               >
                 System Link
               </Badge>
@@ -228,7 +228,7 @@ function ConnectedServicesCard() {
                 variant={service.connected ? "outline" : "default"}
                 size="sm"
                 className={cn(
-                  "h-8 text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg",
+                  "h-8 font-semibold uppercase tracking-widest px-4 rounded-lg",
                   service.connected
                     ? "border-zinc-200 text-zinc-500 hover:text-zinc-900"
                     : "bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200/50",
@@ -349,7 +349,7 @@ function ModuleInfoCard() {
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="text-zinc-500 font-medium">Status</span>
-            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] h-5 font-semibold shadow-none">
+            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 h-5 font-semibold shadow-none">
               Active
             </Badge>
           </div>

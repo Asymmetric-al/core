@@ -239,7 +239,7 @@ export default function AdminPage() {
                 {SECURITY_TIPS.map((tip) => (
                   <div key={tip.id} className="flex items-start gap-3">
                     <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 shadow-sm">
-                      <span className="text-[10px] font-bold">{tip.order}</span>
+                      <span className="text-xs font-bold">{tip.order}</span>
                     </div>
                     <span className="text-sm text-zinc-600">{tip.text}</span>
                   </div>

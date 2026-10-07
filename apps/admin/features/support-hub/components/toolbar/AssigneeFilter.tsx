@@ -44,7 +44,7 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
           <span className="flex items-center gap-2">
             <Avatar className="size-5">
               <AvatarImage src={agent.avatarUrl ?? undefined} alt="" />
-              <AvatarFallback className="text-[10px]">
+              <AvatarFallback className="text-xs">
                 {agent.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
@@ -63,7 +63,7 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
       value={selectValue}
       onValueChange={handleChange}
       aria-label="Assignee filter"
-      className="h-10 w-45 rounded-xl border-zinc-200 bg-white text-[13px] font-medium text-zinc-700"
+      className="h-10 w-45 rounded-xl border-zinc-200 bg-white font-medium text-zinc-700"
       placeholder="Any assignee"
     />
   );

@@ -36,12 +36,12 @@ export function SettingsRow({
           <FieldPrimitive.Label
             nativeLabel={false}
             render={<div />}
-            className="text-[12px] font-semibold text-foreground"
+            className="text-xs font-semibold text-foreground"
           >
             {label}
           </FieldPrimitive.Label>
           {description ? (
-            <FieldPrimitive.Description className="text-[11px] text-muted-foreground">
+            <FieldPrimitive.Description className="text-xs text-muted-foreground">
               {description}
             </FieldPrimitive.Description>
           ) : null}
@@ -53,13 +53,9 @@ export function SettingsRow({
   return (
     <div className={rowClassName}>
       <label htmlFor={htmlFor} className="flex flex-col gap-1">
-        <span className="text-[12px] font-semibold text-foreground">
-          {label}
-        </span>
+        <span className="text-xs font-semibold text-foreground">{label}</span>
         {description ? (
-          <span className="text-[11px] text-muted-foreground">
-            {description}
-          </span>
+          <span className="text-xs text-muted-foreground">{description}</span>
         ) : null}
       </label>
       <div className="flex flex-col gap-2">{children}</div>

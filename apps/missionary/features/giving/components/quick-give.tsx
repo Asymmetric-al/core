@@ -187,7 +187,7 @@ export function QuickGive({
         <div className={cn("flex items-center", config.gap)}>
           <DollarSign
             className={cn(
-              "flex-shrink-0 transition-colors duration-150",
+              "shrink-0 transition-colors duration-150",
               config.icon,
               isFocused || displayValue
                 ? "text-foreground"
@@ -228,7 +228,7 @@ export function QuickGive({
               animate={{ opacity: 1, scale: 1, x: 0 }}
               exit={{ opacity: 0, scale: 0.9, x: -10 }}
               transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
-              className="flex-shrink-0"
+              className="shrink-0"
             >
               <MotionButton
                 type="button"
@@ -256,7 +256,7 @@ export function QuickGive({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "flex-shrink-0 select-none font-semibold text-muted-foreground/40 uppercase tracking-wide",
+                "shrink-0 select-none font-semibold text-muted-foreground/40 uppercase tracking-wide",
                 config.currencyLabel,
               )}
             >

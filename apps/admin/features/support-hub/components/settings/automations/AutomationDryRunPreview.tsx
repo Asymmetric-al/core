@@ -32,8 +32,8 @@ function AutomationDryRunResult({
       <span
         className={
           result.matches
-            ? "inline-flex items-center gap-2 rounded-md bg-emerald-50 px-2 py-1 text-[12px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"
-            : "inline-flex items-center gap-2 rounded-md bg-muted px-2 py-1 text-[12px] font-semibold text-foreground"
+            ? "inline-flex items-center gap-2 rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"
+            : "inline-flex items-center gap-2 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-foreground"
         }
       >
         {result.matches ? (
@@ -47,7 +47,7 @@ function AutomationDryRunResult({
       {result.reasons.length > 0 ? (
         <ul className="flex flex-col gap-1">
           {result.reasons.map((reason, index) => (
-            <li key={index} className="text-[11px] text-muted-foreground">
+            <li key={index} className="text-xs text-muted-foreground">
               • {reason}
             </li>
           ))}
@@ -56,7 +56,7 @@ function AutomationDryRunResult({
 
       {result.matches && result.plannedActions.length > 0 ? (
         <div className="space-y-1">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
             Planned actions
           </span>
           <MacroPreviewLine actions={result.plannedActions} />
@@ -64,7 +64,7 @@ function AutomationDryRunResult({
       ) : null}
 
       {result.unsupportedActions.length > 0 ? (
-        <p className="text-[11px] text-amber-700">
+        <p className="text-xs text-amber-700">
           {result.unsupportedActions
             .map((action: SupportAutomationAction) => action.kind)
             .join(", ")}{" "}
@@ -99,7 +99,7 @@ export function AutomationDryRunPreview({
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+        <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
           <FlaskConical className="size-3.5" />
           Dry run
         </span>
@@ -112,7 +112,7 @@ export function AutomationDryRunPreview({
             const next = rows[Math.floor(Math.random() * rows.length)];
             if (next) setConversationId(next.id);
           }}
-          className="h-7 gap-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider"
+          className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
         >
           Pick another
         </Button>
@@ -128,12 +128,12 @@ export function AutomationDryRunPreview({
         }}
         disabled={rows.length === 0}
         aria-label="Conversation to test"
-        className="h-9 text-[12px]"
+        className="h-9"
         placeholder="Choose a conversation to test"
       />
 
       {!target ? (
-        <p className="text-[12px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Open the inbox to seed conversations, then come back to dry-run this
           rule.
         </p>

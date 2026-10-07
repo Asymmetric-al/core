@@ -23,7 +23,7 @@ const runtimeProperties = [
   // ResizeObserver/user-resized image geometry and pointer-relative ripple origin.
   [
     "packages/ui",
-    "components/shadcn/rich-text-editor/image-view.tsx",
+    "components/shadcn/rich-text-editor/image-node-view.tsx",
     ["width"],
   ],
   ["packages/ui", "components/primitives/ripple-button.tsx", ["top", "left"]],
@@ -70,7 +70,7 @@ const externalClasses = [
   // tiptap.css is imported by rich-text-editor.tsx and rich-text-viewer.tsx.
   [
     "packages/ui",
-    "components/shadcn/rich-text-editor/image-view.tsx",
+    "components/shadcn/rich-text-editor/image-node-view.tsx",
     ["image-resizable", "image-selected"],
   ],
 ];

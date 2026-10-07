@@ -1,3 +1,7 @@
+const NUMBER_FORMATTER_1 = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
 /**
  * Formats a number as USD currency.
  *
@@ -8,10 +12,7 @@
  * formatCurrency(1234.5) // "$1,234.50"
  */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
+  return NUMBER_FORMATTER_1.format(amount);
 }
 
 /**

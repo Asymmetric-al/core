@@ -97,333 +97,551 @@ export function DonorsPageRoster() {
               )}
             </CardTitle>
             <div className="flex gap-1">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Sort partners"
-                      className="size-8 text-muted-foreground hover:text-foreground rounded-lg"
-                    >
-                      <ArrowDownUp data-icon="inline-start" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent
-                  align="end"
-                  className="w-48 rounded-xl border-border shadow-xl"
-                >
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Sort By
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-muted" />
-                    {[
-                      { value: "last_gift", label: "Last Gift Date" },
-                      { value: "total_given", label: "Total Given" },
-                      { value: "name", label: "Name" },
-                      { value: "joined_date", label: "Partner Since" },
-                    ].map((opt) => (
-                      <DropdownMenuCheckboxItem
-                        key={opt.value}
-                        checked={sortBy === opt.value}
-                        onCheckedChange={() =>
-                          setSortBy(opt.value as SortOption)
-                        }
-                        className="text-xs font-medium"
-                      >
-                        {opt.label}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                    <DropdownMenuSeparator className="bg-muted" />
-                    <DropdownMenuCheckboxItem
-                      checked={sortAsc}
-                      onCheckedChange={toggleSortAsc}
-                      className="text-xs font-medium"
-                    >
-                      Ascending
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Filter partners"
-                      className={cn(
-                        "size-8 rounded-lg",
-                        hasActiveFilters
-                          ? "text-primary bg-accent"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      <Filter data-icon="inline-start" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent
-                  align="end"
-                  className="w-56 rounded-xl border-border shadow-xl max-h-[400px] overflow-y-auto"
-                >
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Filter by Status
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-muted" />
-                    {[
-                      "All",
-                      "Active",
-                      "New",
-                      "Lapsed",
-                      "At Risk",
-                      "Needs Attention",
-                    ].map((s) => (
-                      <DropdownMenuCheckboxItem
-                        key={s}
-                        checked={statusFilter === s}
-                        onCheckedChange={() => setStatusFilter(s)}
-                        className="text-xs font-medium"
-                      >
-                        {s}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator className="bg-muted" />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Filter by Recurring
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-muted" />
-                    {["All", "Active", "Inactive"].map((p) => (
-                      <DropdownMenuCheckboxItem
-                        key={p}
-                        checked={pledgeFilter === p}
-                        onCheckedChange={() => setPledgeFilter(p)}
-                        className="text-xs font-medium"
-                      >
-                        {p === "Active"
-                          ? "Has Recurring"
-                          : p === "Inactive"
-                            ? "No Recurring"
-                            : "All"}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator className="bg-muted" />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Filter by Tag
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-muted" />
-                    {AVAILABLE_TAGS.map((tag) => (
-                      <DropdownMenuCheckboxItem
-                        key={tag.id}
-                        checked={tagFilter.includes(tag.id)}
-                        onCheckedChange={() => toggleFilterTag(tag.id)}
-                        className="text-xs font-medium"
-                      >
-                        {tag.label}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuGroup>
-                  {hasActiveFilters && (
-                    <>
-                      <DropdownMenuSeparator className="bg-muted" />
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={clearAllFilters}>
-                          Clear All Filters
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <DonorRosterSorting
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                sortAsc={sortAsc}
+                toggleSortAsc={toggleSortAsc}
+              />
+              <DonorRosterFilterMenu
+                hasActiveFilters={hasActiveFilters}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                pledgeFilter={pledgeFilter}
+                setPledgeFilter={setPledgeFilter}
+                tagFilter={tagFilter}
+                toggleFilterTag={toggleFilterTag}
+                clearAllFilters={clearAllFilters}
+              />
             </div>
           </div>
-          <Field>
-            <FieldLabel htmlFor="partners-search" className="sr-only">
-              Search partners
-            </FieldLabel>
-            <InputGroup className="h-10 rounded-xl bg-muted border-border">
-              <InputGroupInput
-                id="partners-search"
-                placeholder="Search partners..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <InputGroupAddon align="inline-start">
-                <Search className="size-4 text-muted-foreground" />
-              </InputGroupAddon>
-            </InputGroup>
-          </Field>
-          <AnimatePresence mode="popLayout">
-            {hasActiveFilters && (
-              <motion.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                className="flex flex-wrap gap-1.5 overflow-hidden"
-              >
-                {statusFilter !== "All" && (
-                  <motion.div layout {...scaleIn} transition={springTransition}>
-                    <Badge
-                      variant="outline"
-                      className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-muted text-muted-foreground border-border"
-                    >
-                      {statusFilter}
-                      <button
-                        type="button"
-                        aria-label={`Clear ${statusFilter} status filter`}
-                        onClick={() => setStatusFilter("All")}
-                        className="ml-1 hover:text-foreground"
-                      >
-                        <X className="size-2.5" />
-                      </button>
-                    </Badge>
-                  </motion.div>
-                )}
-                {pledgeFilter !== "All" && (
-                  <motion.div layout {...scaleIn} transition={springTransition}>
-                    <Badge
-                      variant="outline"
-                      className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-accent text-primary border-border"
-                    >
-                      {pledgeFilter === "Active" ? "Recurring" : "No Recurring"}
-                      <button
-                        type="button"
-                        aria-label="Clear recurring filter"
-                        onClick={() => setPledgeFilter("All")}
-                        className="ml-1 hover:text-primary"
-                      >
-                        <X className="size-2.5" />
-                      </button>
-                    </Badge>
-                  </motion.div>
-                )}
-                {tagFilter.map((tag) => (
-                  <motion.div
-                    key={tag}
-                    layout
-                    {...scaleIn}
-                    transition={springTransition}
-                  >
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                        getTagStyle(tag),
-                      )}
-                    >
-                      {getTagLabel(tag)}
-                      <button
-                        type="button"
-                        aria-label={`Clear ${getTagLabel(tag)} tag filter`}
-                        onClick={() => removeFilterTag(tag)}
-                        className="ml-1"
-                      >
-                        <X className="size-2.5" />
-                      </button>
-                    </Badge>
-                  </motion.div>
-                ))}
-                <motion.button
-                  type="button"
-                  layout
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={clearAllFilters}
-                  className="text-[9px] font-semibold uppercase tracking-widest text-destructive hover:text-destructive px-2"
-                >
-                  Clear All
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <DonorRosterSearch
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
+          <DonorRosterActiveFilters
+            hasActiveFilters={hasActiveFilters}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            pledgeFilter={pledgeFilter}
+            setPledgeFilter={setPledgeFilter}
+            tagFilter={tagFilter}
+            removeFilterTag={removeFilterTag}
+            clearAllFilters={clearAllFilters}
+          />
         </CardHeader>
 
-        <div className="flex-1 min-h-0">
-          {error ? (
-            <ErrorState message={error} onRetry={refreshDonors} />
-          ) : isLoading ? (
-            <DonorListSkeleton />
-          ) : filteredDonors.length === 0 ? (
-            <Empty className="h-64 border-none">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Search />
-                </EmptyMedia>
-                <EmptyTitle className="text-sm">No partners found</EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? "Try adjusting your filters"
-                    : "Add your first partner to get started"}
-                </EmptyDescription>
-              </EmptyHeader>
-              {hasActiveFilters ? (
-                <EmptyContent>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearAllFilters}
-                    className="h-8 rounded-xl text-xs"
-                  >
-                    Clear Filters
-                  </Button>
-                </EmptyContent>
-              ) : null}
-            </Empty>
-          ) : (
-            <DataTableResponsive
-              columns={donorColumns}
-              data={filteredDonors}
-              config={{
-                enableRowSelection: false,
-                enableColumnVisibility: true,
-                enablePagination: false,
-                manualPagination: true,
-                enableFilters: false,
-                enableSorting: false,
-                virtualization: {
-                  enabled: true,
-                  estimateSize: 88,
-                  overscan: 10,
-                  containerHeight: 640,
-                },
-              }}
-              mobileCardConfig={{
-                primaryField: "name",
-                secondaryField: "location",
-                badgeField: "status",
-              }}
-              onRowClick={(row) => selectById(row.original.id)}
-            />
-          )}
-        </div>
-        {hasMoreDonors && !error && !isLoading && (
-          <div className="border-t border-border p-3 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadMoreDonors}
-              disabled={isLoadingMoreDonors}
-              className="w-full h-9 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
-            >
-              {isLoadingMoreDonors ? (
-                <>
-                  <Spinner data-icon="inline-start" />
-                  Loading partners
-                </>
-              ) : (
-                "Load more partners"
-              )}
-            </Button>
-          </div>
-        )}
+        <DonorRosterResults
+          error={error}
+          refreshDonors={refreshDonors}
+          isLoading={isLoading}
+          filteredDonors={filteredDonors}
+          hasActiveFilters={hasActiveFilters}
+          clearAllFilters={clearAllFilters}
+          donorColumns={donorColumns}
+          selectById={selectById}
+        />
+        <DonorRosterLoadMore
+          hasMoreDonors={hasMoreDonors}
+          error={error}
+          isLoading={isLoading}
+          loadMoreDonors={loadMoreDonors}
+          isLoadingMoreDonors={isLoadingMoreDonors}
+        />
       </Card>
     </motion.div>
+  );
+}
+
+function DonorRosterSorting({
+  sortBy,
+  setSortBy,
+  sortAsc,
+  toggleSortAsc,
+}: {
+  sortBy: ReturnType<typeof useDonorsPageViewFields>["sorting"]["sortBy"];
+  setSortBy: ReturnType<typeof useDonorsPageViewFields>["sorting"]["setSortBy"];
+  sortAsc: ReturnType<typeof useDonorsPageViewFields>["sorting"]["sortAsc"];
+  toggleSortAsc: ReturnType<
+    typeof useDonorsPageViewFields
+  >["sorting"]["toggleSortAsc"];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Sort partners"
+            className="size-8 text-muted-foreground hover:text-foreground rounded-lg"
+          >
+            <ArrowDownUp data-icon="inline-start" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent
+        align="end"
+        className="w-48 rounded-xl border-border shadow-xl"
+      >
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Sort By
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-muted" />
+          {[
+            { value: "last_gift", label: "Last Gift Date" },
+            { value: "total_given", label: "Total Given" },
+            { value: "name", label: "Name" },
+            { value: "joined_date", label: "Partner Since" },
+          ].map((opt) => (
+            <DropdownMenuCheckboxItem
+              key={opt.value}
+              checked={sortBy === opt.value}
+              onCheckedChange={() => setSortBy(opt.value as SortOption)}
+              className="text-xs font-medium"
+            >
+              {opt.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuCheckboxItem
+            checked={sortAsc}
+            onCheckedChange={toggleSortAsc}
+            className="text-xs font-medium"
+          >
+            Ascending
+          </DropdownMenuCheckboxItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function DonorRosterFilterMenu({
+  hasActiveFilters,
+  statusFilter,
+  setStatusFilter,
+  pledgeFilter,
+  setPledgeFilter,
+  tagFilter,
+  toggleFilterTag,
+  clearAllFilters,
+}: {
+  hasActiveFilters: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["hasActiveFilters"];
+  statusFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["statusFilter"];
+  setStatusFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["setStatusFilter"];
+  pledgeFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["pledgeFilter"];
+  setPledgeFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["setPledgeFilter"];
+  tagFilter: ReturnType<typeof useDonorsPageViewFields>["filters"]["tagFilter"];
+  toggleFilterTag: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["toggleTag"];
+  clearAllFilters: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["clearAll"];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Filter partners"
+            className={cn(
+              "size-8 rounded-lg",
+              hasActiveFilters
+                ? "text-primary bg-accent"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Filter data-icon="inline-start" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent
+        align="end"
+        className="w-56 rounded-xl border-border shadow-xl max-h-[400px] overflow-y-auto"
+      >
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Filter by Status
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-muted" />
+          {["All", "Active", "New", "Lapsed", "At Risk", "Needs Attention"].map(
+            (s) => (
+              <DropdownMenuCheckboxItem
+                key={s}
+                checked={statusFilter === s}
+                onCheckedChange={() => setStatusFilter(s)}
+                className="text-xs font-medium"
+              >
+                {s}
+              </DropdownMenuCheckboxItem>
+            ),
+          )}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator className="bg-muted" />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Filter by Recurring
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-muted" />
+          {["All", "Active", "Inactive"].map((p) => (
+            <DropdownMenuCheckboxItem
+              key={p}
+              checked={pledgeFilter === p}
+              onCheckedChange={() => setPledgeFilter(p)}
+              className="text-xs font-medium"
+            >
+              {p === "Active"
+                ? "Has Recurring"
+                : p === "Inactive"
+                  ? "No Recurring"
+                  : "All"}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator className="bg-muted" />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Filter by Tag
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-muted" />
+          {AVAILABLE_TAGS.map((tag) => (
+            <DropdownMenuCheckboxItem
+              key={tag.id}
+              checked={tagFilter.includes(tag.id)}
+              onCheckedChange={() => toggleFilterTag(tag.id)}
+              className="text-xs font-medium"
+            >
+              {tag.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuGroup>
+        {hasActiveFilters && (
+          <>
+            <DropdownMenuSeparator className="bg-muted" />
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={clearAllFilters}>
+                Clear All Filters
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function DonorRosterSearch({
+  searchTerm,
+  setSearchTerm,
+}: {
+  searchTerm: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["searchTerm"];
+  setSearchTerm: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["setSearchTerm"];
+}) {
+  return (
+    <Field>
+      <FieldLabel htmlFor="partners-search" className="sr-only">
+        Search partners
+      </FieldLabel>
+      <InputGroup className="h-10 rounded-xl bg-muted border-border">
+        <InputGroupInput
+          id="partners-search"
+          placeholder="Search partners..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <InputGroupAddon align="inline-start">
+          <Search className="size-4 text-muted-foreground" />
+        </InputGroupAddon>
+      </InputGroup>
+    </Field>
+  );
+}
+
+function DonorRosterActiveFilters({
+  hasActiveFilters,
+  statusFilter,
+  setStatusFilter,
+  pledgeFilter,
+  setPledgeFilter,
+  tagFilter,
+  removeFilterTag,
+  clearAllFilters,
+}: {
+  hasActiveFilters: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["hasActiveFilters"];
+  statusFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["statusFilter"];
+  setStatusFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["setStatusFilter"];
+  pledgeFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["pledgeFilter"];
+  setPledgeFilter: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["setPledgeFilter"];
+  tagFilter: ReturnType<typeof useDonorsPageViewFields>["filters"]["tagFilter"];
+  removeFilterTag: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["removeTag"];
+  clearAllFilters: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["clearAll"];
+}) {
+  return (
+    <AnimatePresence mode="popLayout">
+      {hasActiveFilters && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          className="flex flex-wrap gap-1.5 overflow-hidden"
+        >
+          {statusFilter !== "All" && (
+            <motion.div
+              layout
+              initial={scaleIn.initial}
+              animate={scaleIn.animate}
+              exit={scaleIn.exit}
+              transition={springTransition}
+            >
+              <Badge
+                variant="outline"
+                className="font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-muted text-muted-foreground border-border"
+              >
+                {statusFilter}
+                <button
+                  type="button"
+                  aria-label={`Clear ${statusFilter} status filter`}
+                  onClick={() => setStatusFilter("All")}
+                  className="ml-1 hover:text-foreground"
+                >
+                  <X className="size-2.5" />
+                </button>
+              </Badge>
+            </motion.div>
+          )}
+          {pledgeFilter !== "All" && (
+            <motion.div
+              layout
+              initial={scaleIn.initial}
+              animate={scaleIn.animate}
+              exit={scaleIn.exit}
+              transition={springTransition}
+            >
+              <Badge
+                variant="outline"
+                className="font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-accent text-primary border-border"
+              >
+                {pledgeFilter === "Active" ? "Recurring" : "No Recurring"}
+                <button
+                  type="button"
+                  aria-label="Clear recurring filter"
+                  onClick={() => setPledgeFilter("All")}
+                  className="ml-1 hover:text-primary"
+                >
+                  <X className="size-2.5" />
+                </button>
+              </Badge>
+            </motion.div>
+          )}
+          {tagFilter.map((tag) => (
+            <motion.div
+              key={tag}
+              layout
+              initial={scaleIn.initial}
+              animate={scaleIn.animate}
+              exit={scaleIn.exit}
+              transition={springTransition}
+            >
+              <Badge
+                variant="outline"
+                className={cn(
+                  "font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
+                  getTagStyle(tag),
+                )}
+              >
+                {getTagLabel(tag)}
+                <button
+                  type="button"
+                  aria-label={`Clear ${getTagLabel(tag)} tag filter`}
+                  onClick={() => removeFilterTag(tag)}
+                  className="ml-1"
+                >
+                  <X className="size-2.5" />
+                </button>
+              </Badge>
+            </motion.div>
+          ))}
+          <motion.button
+            type="button"
+            layout
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={clearAllFilters}
+            className="text-xs font-semibold uppercase tracking-widest text-destructive hover:text-destructive px-2"
+          >
+            Clear All
+          </motion.button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function DonorRosterResults({
+  error,
+  refreshDonors,
+  isLoading,
+  filteredDonors,
+  hasActiveFilters,
+  clearAllFilters,
+  donorColumns,
+  selectById,
+}: {
+  error: ReturnType<typeof useDonorsPageViewFields>["status"]["error"];
+  refreshDonors: ReturnType<
+    typeof useDonorsPageViewFields
+  >["actions"]["refreshDonors"];
+  isLoading: ReturnType<typeof useDonorsPageViewFields>["status"]["isLoading"];
+  filteredDonors: ReturnType<
+    typeof useDonorsPageViewFields
+  >["donors"]["filtered"];
+  hasActiveFilters: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["hasActiveFilters"];
+  clearAllFilters: ReturnType<
+    typeof useDonorsPageViewFields
+  >["filters"]["clearAll"];
+  donorColumns: ReturnType<typeof createDonorColumns>;
+  selectById: ReturnType<
+    typeof useDonorsPageViewFields
+  >["donors"]["selectById"];
+}) {
+  return (
+    <div className="flex-1 min-h-0">
+      {error ? (
+        <ErrorState message={error} onRetry={refreshDonors} />
+      ) : isLoading ? (
+        <DonorListSkeleton />
+      ) : filteredDonors.length === 0 ? (
+        <Empty className="h-64 border-none">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Search />
+            </EmptyMedia>
+            <EmptyTitle className="text-sm">No partners found</EmptyTitle>
+            <EmptyDescription>
+              {hasActiveFilters
+                ? "Try adjusting your filters"
+                : "Add your first partner to get started"}
+            </EmptyDescription>
+          </EmptyHeader>
+          {hasActiveFilters ? (
+            <EmptyContent>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-8 rounded-xl text-xs"
+              >
+                Clear Filters
+              </Button>
+            </EmptyContent>
+          ) : null}
+        </Empty>
+      ) : (
+        <DataTableResponsive
+          columns={donorColumns}
+          data={filteredDonors}
+          config={{
+            enableRowSelection: false,
+            enableColumnVisibility: true,
+            enablePagination: false,
+            manualPagination: true,
+            enableFilters: false,
+            enableSorting: false,
+            virtualization: {
+              enabled: true,
+              estimateSize: 88,
+              overscan: 10,
+              containerHeight: 640,
+            },
+          }}
+          mobileCardConfig={{
+            primaryField: "name",
+            secondaryField: "location",
+            badgeField: "status",
+          }}
+          onRowClick={(row) => selectById(row.original.id)}
+        />
+      )}
+    </div>
+  );
+}
+
+function DonorRosterLoadMore({
+  hasMoreDonors,
+  error,
+  isLoading,
+  loadMoreDonors,
+  isLoadingMoreDonors,
+}: {
+  hasMoreDonors: ReturnType<
+    typeof useDonorsPageViewFields
+  >["donors"]["hasMore"];
+  error: ReturnType<typeof useDonorsPageViewFields>["status"]["error"];
+  isLoading: ReturnType<typeof useDonorsPageViewFields>["status"]["isLoading"];
+  loadMoreDonors: ReturnType<
+    typeof useDonorsPageViewFields
+  >["donors"]["loadMore"];
+  isLoadingMoreDonors: ReturnType<
+    typeof useDonorsPageViewFields
+  >["donors"]["isLoadingMore"];
+}) {
+  return (
+    hasMoreDonors &&
+    !error &&
+    !isLoading && (
+      <div className="border-t border-border p-3 shrink-0">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={loadMoreDonors}
+          disabled={isLoadingMoreDonors}
+          className="w-full h-9 rounded-xl font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+        >
+          {isLoadingMoreDonors ? (
+            <>
+              <Spinner data-icon="inline-start" />
+              Loading partners
+            </>
+          ) : (
+            "Load more partners"
+          )}
+        </Button>
+      </div>
+    )
   );
 }

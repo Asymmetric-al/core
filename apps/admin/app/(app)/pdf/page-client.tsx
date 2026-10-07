@@ -490,7 +490,7 @@ function PDFStudioHeaderSection({
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
 
-        <div className="hidden lg:flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium uppercase text-muted-foreground">
+        <div className="hidden lg:flex items-center gap-1 rounded-md border text-xs font-medium uppercase text-muted-foreground p-2">
           <FileCode className="size-3" />
           {engine === "asym_pdf_document_builder" ? "Native" : "Unlayer"}
         </div>
@@ -509,7 +509,7 @@ function PDFStudioHeaderSection({
                       disabled={!isEditorReady || isExporting}
                     >
                       {isExporting ? (
-                        <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        <span className="size-3.5 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" />
                       ) : (
                         <Download className="size-3.5" />
                       )}
@@ -772,7 +772,7 @@ function PDFSaveDialogSection({
               placeholder="Brief description of this template's purpose…"
               className="h-20 resize-none text-sm"
             />
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               A brief description helps team members understand when to use this
               template.
             </p>
@@ -788,7 +788,7 @@ function PDFSaveDialogSection({
           >
             {isSaving ? (
               <>
-                <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                <span className="size-4 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
                 Saving…
               </>
             ) : (
@@ -840,7 +840,7 @@ function PDFExportDialogSection({
               ? "Copy or download the native document source."
               : "Copy or download the generated HTML code for your document template."}
             {studioConfig?.export.cleanupCss && (
-              <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] font-medium">
+              <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-medium">
                 <Sparkles className="size-3" />
                 Optimized
               </span>
@@ -940,7 +940,7 @@ function PDFTemplatePickerDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="rounded-lg bg-violet-500/10 p-2">
-              <FolderOpen className="h-4 w-4 text-violet-600" />
+              <FolderOpen className="text-violet-600 size-4" />
             </div>
             Open PDF template
           </DialogTitle>
@@ -951,7 +951,7 @@ function PDFTemplatePickerDialog({
         <div className="max-h-105 overflow-y-auto py-2">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="animate-spin rounded-full border-2 border-current border-t-transparent size-4" />
               Loading templates…
             </div>
           ) : templates.length === 0 ? (
@@ -964,7 +964,7 @@ function PDFTemplatePickerDialog({
                 <button
                   key={template.id}
                   type="button"
-                  className="flex w-full items-center justify-between rounded-md border bg-background p-3 text-left transition-colors hover:bg-muted"
+                  className="flex w-full items-center justify-between rounded-md border bg-background px-4 py-3 text-left transition-colors hover:bg-muted"
                   onClick={() => onSelect(template)}
                 >
                   <div className="min-w-0">
@@ -980,7 +980,7 @@ function PDFTemplatePickerDialog({
                       · {template.status}
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
                 </button>
               ))}
             </div>
@@ -1032,7 +1032,7 @@ function NativePdfDocumentBuilderSection({
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {preview.status === "loading" && (
-              <span className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="size-3 motion-safe:animate-spin rounded-full border-2 border-current border-t-transparent" />
             )}
             {preview.status}
           </div>

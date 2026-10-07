@@ -284,7 +284,7 @@ export const ReactEmailEditor = forwardRef<
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm">
           <div className="flex w-56 flex-col items-center gap-5 text-center">
             <div className="rounded-xl border border-primary/20 bg-primary/10 p-4 text-primary">
-              <Mail className="h-8 w-8" />
+              <Mail className="size-8" />
             </div>
             <div
               aria-label="Loading email editor"
@@ -293,7 +293,7 @@ export const ReactEmailEditor = forwardRef<
               role="status"
             >
               <div className="flex items-center justify-center gap-2 text-sm font-medium">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <Loader2 className="animate-spin text-primary size-4" />
                 Loading email editor…
               </div>
               <Progress

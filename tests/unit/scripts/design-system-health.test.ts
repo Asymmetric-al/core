@@ -49,7 +49,9 @@ async function createFixture({
     "packages/ui/package.json",
     "packages/ui/components.json",
     "packages/ui/styles/globals.css",
-    "packages/ui/components/shadcn/button.tsx",
+    "packages/ui/components/shadcn/button.ts",
+    "packages/ui/components/shadcn/button-component.tsx",
+    "packages/ui/components/shadcn/button-variants.ts",
     "packages/ui/lib/utils.ts",
   ]) {
     await copyFile(
@@ -112,13 +114,19 @@ async function createFixture({
   );
   if (brokenButton) {
     await writeFile(
-      path.join(fixtureRoot, "packages/ui/components/shadcn/button.tsx"),
+      path.join(
+        fixtureRoot,
+        "packages/ui/components/shadcn/button-component.tsx",
+      ),
       'export const Button = "button";\n',
     );
   }
   if (missingButton) {
     await rm(
-      path.join(fixtureRoot, "packages/ui/components/shadcn/button.tsx"),
+      path.join(
+        fixtureRoot,
+        "packages/ui/components/shadcn/button-component.tsx",
+      ),
     );
   }
   const moduleUrl = pathToFileURL(
@@ -179,6 +187,30 @@ describe("design-system health", () => {
     });
   }, 120_000);
 
+  it("discovers imported variants and fails closed after their helper changes", async () => {
+    const fixtureRoot = await createFixture();
+    await expect(
+      verifyDesignSystemHealth({
+        rootDir: fixtureRoot,
+        workspace: "apps/donor",
+      }),
+    ).resolves.toMatchObject({ workspaces: [{ workspace: "apps/donor" }] });
+    await writeFile(
+      path.join(
+        fixtureRoot,
+        "packages/ui/components/shadcn/button-variants.ts",
+      ),
+      'export const buttonVariants = () => "";\n',
+    );
+    // The upstream file-stat cache has a documented one-second TTL.
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    await expect(
+      verifyDesignSystemHealth({
+        rootDir: fixtureRoot,
+        workspace: "apps/donor",
+      }),
+    ).rejects.toThrow(/Button|definition/i);
+  }, 120_000);
   it("rejects a missing theme import instead of accepting fallback analysis", async () => {
     const fixtureRoot = await createFixture({ brokenTheme: true });
     await expect(

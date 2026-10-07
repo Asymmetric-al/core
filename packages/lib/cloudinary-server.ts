@@ -53,14 +53,14 @@ export function generateCloudinarySignature(
   // Construct signature string: "key1=value1&key2=value2...apiSecret"
   const signatureString =
     sortedKeys
-      .filter(
-        (key) =>
-          !UNSIGNED_UPLOAD_KEYS.has(key) &&
-          signatureParams[key] !== undefined &&
-          signatureParams[key] !== null &&
-          signatureParams[key] !== "",
+      .flatMap((key) =>
+        !UNSIGNED_UPLOAD_KEYS.has(key) &&
+        signatureParams[key] !== undefined &&
+        signatureParams[key] !== null &&
+        signatureParams[key] !== ""
+          ? [`${key}=${String(signatureParams[key])}`]
+          : [],
       )
-      .map((key) => `${key}=${String(signatureParams[key])}`)
       .join("&") + apiSecret;
 
   // Cloudinary validates SHA-1 and SHA-256 digests interchangeably

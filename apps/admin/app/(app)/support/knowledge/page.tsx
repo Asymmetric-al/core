@@ -12,6 +12,10 @@ import Link from "next/link";
 import { supportHubDemoModel } from "../support-hub.data";
 import { supportHubRoutes } from "../support-hub.routes";
 
+const DATE_TIME_FORMATTER_1 = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+});
+
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
     ? new globalThis.Date()
@@ -65,9 +69,7 @@ export default async function SupportKnowledgePage({
               <CardTitle>{entry.title}</CardTitle>
               <CardDescription>
                 {entry.category} · Updated{" "}
-                {new Intl.DateTimeFormat("en", {
-                  dateStyle: "medium",
-                }).format(makeDisplayDate(entry.updatedAt))}
+                {DATE_TIME_FORMATTER_1.format(makeDisplayDate(entry.updatedAt))}
               </CardDescription>
             </CardHeader>
             <CardContent>

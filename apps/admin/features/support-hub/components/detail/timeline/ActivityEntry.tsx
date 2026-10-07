@@ -21,9 +21,7 @@ export function ActivityEntry({ message }: ActivityEntryProps) {
   const nowIso = useSupportNow();
   return (
     <li
-      className={cn(
-        "flex items-center gap-2 px-1 py-1 text-[12px] text-zinc-500",
-      )}
+      className={cn("flex items-center gap-2 px-1 py-1 text-xs text-zinc-500")}
       aria-label="Activity entry"
     >
       <span className="flex size-5 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
@@ -33,7 +31,7 @@ export function ActivityEntry({ message }: ActivityEntryProps) {
         <span className="font-medium text-zinc-700">{message.author.name}</span>{" "}
         {message.body.text || "updated this conversation."}
       </span>
-      <span className="font-mono text-[11px] tabular-nums text-zinc-400">
+      <span className="font-mono text-xs tabular-nums text-zinc-400">
         {formatRelative(message.postedAt, nowIso)}
       </span>
     </li>

@@ -32,6 +32,7 @@ export function FilterTextInput({
 }: FilterValueInputProps) {
   return (
     <Input
+      aria-label={field.label}
       type="text"
       value={(value as string) ?? ""}
       onChange={(e) => onChange(e.target.value)}
@@ -58,6 +59,7 @@ export function FilterNumberInput({
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <Input
+          aria-label={`${field.label} minimum`}
           type="number"
           value={rangeValue?.min ?? ""}
           onChange={(e) =>
@@ -74,6 +76,7 @@ export function FilterNumberInput({
         />
         <span className="text-sm text-muted-foreground">and</span>
         <Input
+          aria-label={`${field.label} maximum`}
           type="number"
           value={rangeValue?.max ?? ""}
           onChange={(e) =>
@@ -94,6 +97,7 @@ export function FilterNumberInput({
 
   return (
     <Input
+      aria-label={field.label}
       type="number"
       value={(value as number) ?? ""}
       onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
@@ -129,6 +133,7 @@ export function FilterCurrencyInput({
             {symbol}
           </span>
           <Input
+            aria-label={`${field.label} minimum`}
             type="number"
             value={rangeValue?.min ?? ""}
             onChange={(e) =>
@@ -149,6 +154,7 @@ export function FilterCurrencyInput({
             {symbol}
           </span>
           <Input
+            aria-label={`${field.label} maximum`}
             type="number"
             value={rangeValue?.max ?? ""}
             onChange={(e) =>
@@ -173,6 +179,7 @@ export function FilterCurrencyInput({
         {symbol}
       </span>
       <Input
+        aria-label={field.label}
         type="number"
         value={(value as number) ?? ""}
         onChange={(e) =>

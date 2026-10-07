@@ -153,7 +153,7 @@ export function ResendPageHeader({ isConnected }: ResendPageHeaderProps) {
     <div className="flex items-start justify-between">
       <div>
         <div className="mb-2 flex items-center gap-3">
-          <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 text-white shadow-lg shadow-blue-500/25">
+          <div className="rounded-xl bg-linear-to-br from-blue-500 to-blue-600 p-2.5 text-white shadow-lg shadow-blue-500/25">
             <Mail className="size-6" />
           </div>
           <h1 className="text-2xl font-semibold text-zinc-900">
@@ -191,7 +191,7 @@ export function ResendConnectedView({
 
   return (
     <div className="space-y-6">
-      <Card className="border-emerald-200 bg-transparent bg-gradient-to-br from-emerald-50/50 to-white">
+      <Card className="border-emerald-200 bg-transparent bg-linear-to-br from-emerald-50/50 to-white">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>

@@ -6,7 +6,9 @@ const reactDoctorRunner = "bunx";
 // Do not add `--bun` here: react-doctor spawns its rule engine over Node IPC
 // and calls `child.channel.unref()`, which Bun's ChildProcess lacks. Forcing
 // the Bun runtime makes every target fail before any rule executes.
-const baseArgs = ["react-doctor@latest"];
+export const REACT_DOCTOR_VERSION = "0.9.17";
+const baseArgs = [`react-doctor@${REACT_DOCTOR_VERSION}`];
+const offlineArgs = ["--no-score", "--no-supply-chain", "--no-telemetry"];
 
 export const REACT_DOCTOR_TARGETS = Object.freeze([
   "apps/admin",
@@ -20,13 +22,24 @@ export const REACT_DOCTOR_TARGETS = Object.freeze([
 ]);
 
 export function createReactDoctorCommand(target, extraArgs = []) {
+  if (
+    extraArgs.some((arg) =>
+      /^(?:--score|--supply-chain|--share)(?:=|$)/.test(arg),
+    )
+  ) {
+    throw new Error(
+      "Core's React Doctor audit is offline; remote modes are unavailable.",
+    );
+  }
+  const normalizedArgs = normalizeReactDoctorArgs(extraArgs);
   return {
     command: reactDoctorRunner,
     args: [
       ...baseArgs,
       target,
       "--verbose",
-      ...normalizeReactDoctorArgs(extraArgs),
+      ...normalizedArgs,
+      ...offlineArgs.filter((arg) => !normalizedArgs.includes(arg)),
     ],
   };
 }
@@ -87,6 +100,17 @@ export function runReactDoctorTargets({
   cwd = process.cwd(),
   spawn = spawnSync,
 } = {}) {
+  if (
+    extraArgs.some(
+      (arg) =>
+        arg === "--no-respect-inline-disables" ||
+        arg === "--respect-inline-disables=false",
+    )
+  ) {
+    throw new Error(
+      "Source-rewriting audit flags require the disposable snapshot runner: scripts/react-doctor-audit.mjs.",
+    );
+  }
   for (const target of targets) {
     const command = createReactDoctorCommand(target, extraArgs);
     const spawnCommand = createSpawnCommand(command);

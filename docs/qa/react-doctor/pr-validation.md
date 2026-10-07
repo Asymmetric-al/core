@@ -1,0 +1,45 @@
+# AL-1958: React cleanup PR validation
+
+This report qualifies the React cleanup after integrating it onto current `develop` commit `1e7db7cfe9eb3737d531eca3138cf2676a0cc104`. The original implementation report and planning inventory are historical evidence from `ffa8126`; their counts do not certify this newer base.
+
+## Change and scope
+
+The cleanup repairs lifecycle cancellation, response parsing, accessible control names and keyboard ownership; extracts private contribution, donor, task and composer sections; centralizes contribution queries and removes the overlay/operation import cycle; normalizes compact typography against the existing scale; uses selected-option Sets; and separates shared component implementations from utilities through compatible TypeScript entrypoints. It preserves financial calculations, revisions, idempotency, sequential mutations, permissions, numeric editing drafts, Base UI/base-maia, public package imports and existing View Transition ownership.
+
+The supported public React Doctor CLI is pinned to 0.9.17. The disposable-source runner enables every applicable default/optional source rule, checks all eight projects, retains unsuppressed evidence, validates exact exceptions and rejects every unexcepted warning or error. React Doctor scoring, sharing, telemetry and supply-chain modes remain disabled. Source and snapshot integrity guards reject concurrent changes. No permanent helper depends on a private analyzer API.
+
+The PR adds reproducible audit/fixture scripts, a guide and canonical React Doctor skill plus its three generated agent mirrors. Earlier environment, MCP, broad skills-catalog and paid-skill modernization remain in the original dirty checkout and are outside this React PR. No credential, local environment file, provider configuration or product Eve catalog is published here.
+
+## Current evidence
+
+| Check                   | Result                                                                                                            |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| React Doctor raw        | 8,623 diagnostics: 8,327 obsolete classic-JSX checks and 296 applicable findings                                  |
+| Strict actionable audit | **0 warnings/errors**, 296 exact reviewed exceptions                                                              |
+| Target coverage         | All eight complete, 1,381 files, no skipped checks                                                                |
+| Unit suite              | 6,420 passed, four existing skips; coverage enabled with four workers                                             |
+| Chromium fixtures       | 81 passed; keyboard/focus, narrow widths, light/dark, reduced motion and axe; includes eight pending-memory cases |
+| Workspace typecheck     | 15/15 passed                                                                                                      |
+| Builds                  | Shared packages and all three applications passed                                                                 |
+| Shadscan raw            | 48/100, matching the clean current-base baseline; apps 43/59/47, all existing floors preserved                    |
+| Dependency resolutions  | All 2,880 existing package resolutions unchanged; frozen Bun install passed                                       |
+
+The complete `VITEST_MAX_WORKERS=4 bun run ci:preflight` passed, including formatting, skill/spec checks, lint, data/workspace/lock/ESLint/shadcn guards, Shadscan, typecheck, shared/app builds and the coverage-enabled full unit suite. Final staged hooks and hosted CI results are recorded in the PR check runs; local success does not assert hosted CI completion.
+
+## Integration decisions and exception review
+
+All 23 three-way conflict sites were reconciled against current shipped source and tests. Current date-only locale formatting, accessible announcements, permitted navigation search, unavailable-action removal, task deletion confirmation/focus recovery, public skip-link behavior and the mobile map Sheet owner were retained. Regression checks caught and repaired lost editable-cell labels and an obsolete required suggestion-renderer prop. Donor tag selection now uses its existing keyed draft model, with a test-first five-case regression fixture including delayed data arrival. Final cross-scanner review additionally repaired actual table search, scalar/range filter and saved-view rename names, plus private-memory mutation announcements and pending delete protection. Regression tests cover focus, update payloads, numeric drafts, captured versions, duplicate activation and failed-draft preservation. Existing memory error presentation is retained as a single alert.
+
+All 289 original exact exceptions were consumed one-to-one against current findings. Seven narrow records were added: three suggestion callback rules whose sole callback changes editor DOM ARIA rather than React parent state; one Base UI FAQ panel forwarding contract; one task-list capture handler that only remembers native button focus; and two shipped application theme declarations retained for the current app-level scanner capability contract. Actual next-themes imports stay in shared UI. Reconsider the last two when Shadscan resolves workspace-owned theme dependencies. The form keeps its actual contact email constraints beside its owning form, while the other private sections remain extracted.
+
+Three diagnostic contexts changed through current-base markup: the skip link retains its absolute focus overlay, and the chart error/empty surfaces retain their exact globally reduced-motion-controlled animation classes while preserving added live-region roles. Supporting source/test hashes are refreshed only after contract review. Shadscan retains 117 exact classification scopes. Two replacement scopes were independently reviewed after fixing real memory/filter defects; compatible Button source proofs follow the new entrypoint and implementation. Native lint keeps one payment-factory refs exception with the compiler check explicitly enabled under both root and app contexts. CRM attachment export resolves the native-navigation URL against the current origin and needs no waiver. Native design debt counts are retained or pruned, never increased. The upstream-component guard now supports the seven split TypeScript public seams through explicit schema3 mappings and exact physical source views. Its complete 53-component/54-diff inventory and dependency previews are retained; all 87 direct sources, including 14 additional public/utility modules, are independently covered. No upstream styles or APIs are overwritten. A process-close regression protects source-copy cleanup after CLI timeout.
+
+## Evidence files and verification limits
+
+[Audit summary](audit-summary.json), [complete raw inventory](raw-findings.json.gz), [source integrity manifests](source-integrity.json.gz), [exact exceptions](exceptions.json), [native exception](native-exceptions.json), [historical finding disposition plus PR integration](finding-disposition.json), [complete 10,185-record baseline ledger](baseline-findings.json.gz), and [current PR source manifest](pr-files.json) retain machine-readable evidence. The upstream-component guard adds 21 regression cases; all 116 of its tests pass. The gzip files contain UTF-8 JSON; for example, `gzip -dc docs/qa/react-doctor/raw-findings.json.gz` reads the full inventory. Fresh runs use the guide commands and empty output directories.
+
+The browser fixtures render real repository components with synthetic transport, map and framework boundaries. They exercise failed submission, stale revision, refund limits and successful-operation/failed-refresh behavior, but do not certify authenticated whole-page, real map-provider, payment-provider or production flows. Four existing live/provider-dependent unit cases remain skipped. Core's existing custom coverage provider emits `totalScripts: 0`, so this coverage-enabled run does not supply measured line/branch coverage. React Doctor does not provide a numeric score or dependency-security certification. Shadscan is the separate repository-mandated local gate and remains at its baseline score.
+
+The publication hook additionally exposed inherited checkout-local Git variables in two new disposable-repository tests. The inventories and fixture commands now clear those variables before selecting their explicit repository, following Git's hook contract. Fifteen focused cases pass with a simulated inherited pre-push environment, including two additional regressions; the fixture checks also assert that repository configuration stays unchanged. The repeated pre-push full suite provides the final publication result.
+
+The original working tree and its preexisting changes are preserved. Publication is authorized by the user's later PR request; merging and production release are outside scope.

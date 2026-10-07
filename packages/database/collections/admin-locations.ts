@@ -22,7 +22,7 @@ const _linkedEntitiesSchema = z.object({
 });
 
 const locationSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   tenant_id: z.string().min(1),
   title: z.string().min(1),
   lat: z.number(),

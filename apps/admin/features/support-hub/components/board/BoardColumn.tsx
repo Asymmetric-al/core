@@ -60,22 +60,22 @@ export function BoardColumn({
       <header className="mb-2 flex items-center justify-between gap-2">
         <span className="flex items-center gap-2">
           <span aria-hidden className={cn("size-2 rounded-full", tone.dot)} />
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-700">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-700">
             {label}
           </h3>
           <Badge
             variant="secondary"
-            className="h-5 min-w-[1.5rem] rounded-md bg-white text-[11px] font-semibold tabular-nums text-zinc-700"
+            className="h-5 min-w-[1.5rem] rounded-md bg-white font-semibold tabular-nums text-zinc-700"
           >
             {count}
           </Badge>
         </span>
       </header>
-      <p className="mb-3 hidden text-[11px] text-zinc-500 lg:block">
+      <p className="mb-3 hidden text-xs text-zinc-500 lg:block">
         {description}
       </p>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
-        {React.Children.count(children) === 0 ? (
+        {count === 0 ? (
           <div
             className={cn(
               "flex flex-1 items-center justify-center rounded-xl border border-dashed text-xs text-zinc-400",

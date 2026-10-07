@@ -80,7 +80,7 @@ export function AppShell({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-zinc-50/50">
+    <div className="flex min-h-dvh bg-zinc-50/50">
       {/* Sidebar for Desktop */}
       <aside className="hidden lg:flex w-72 flex-col fixed inset-y-0 border-r border-zinc-200 bg-white">
         <div className="flex h-16 items-center px-6 border-b border-zinc-100">
@@ -120,7 +120,7 @@ export function AppShell({
           <div className="rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
             <div className="flex items-center gap-3">
               <Avatar className="size-9 border border-white shadow-sm">
-                <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
+                <AvatarFallback className="bg-white text-xs font-bold text-zinc-400">
                   AD
                 </AvatarFallback>
               </Avatar>
@@ -128,9 +128,7 @@ export function AppShell({
                 <p className="text-xs font-bold text-zinc-900 truncate">
                   Admin User
                 </p>
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                  Global Admin
-                </p>
+                <p className="text-xs font-bold text-zinc-400">Global Admin</p>
               </div>
               <Button
                 variant="ghost"
@@ -197,7 +195,7 @@ export function AppShell({
               </SheetContent>
             </Sheet>
 
-            <nav className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+            <nav className="hidden sm:flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
               <Link href="/" className="hover:text-zinc-900 transition-colors">
                 Mission Control
               </Link>
@@ -229,7 +227,7 @@ export function AppShell({
                 type="text"
                 aria-label="Search command center"
                 placeholder="Search command center..."
-                className="h-9 w-64 pl-10 pr-4 text-[11px] font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-[background-color,box-shadow]"
+                className="h-9 w-64 pl-10 pr-4 text-sm font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-[background-color,box-shadow]"
               />
             </div>
 
@@ -251,7 +249,7 @@ export function AppShell({
                     className="rounded-xl border border-zinc-200 bg-white overflow-hidden"
                   >
                     <Avatar className="size-full rounded-none">
-                      <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
+                      <AvatarFallback className="bg-white text-xs font-bold text-zinc-400">
                         AD
                       </AvatarFallback>
                     </Avatar>
@@ -267,7 +265,7 @@ export function AppShell({
                     <p className="text-xs font-bold text-zinc-900 uppercase tracking-widest">
                       Admin Account
                     </p>
-                    <p className="text-[10px] text-zinc-400 font-medium">
+                    <p className="text-xs text-zinc-400 font-medium">
                       admin@asymmetric.al
                     </p>
                   </DropdownMenuLabel>

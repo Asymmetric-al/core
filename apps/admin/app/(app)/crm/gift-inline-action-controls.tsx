@@ -106,18 +106,16 @@ export function GiftInlineActionControls({
   const categories = Object.keys(
     OPERATION_CATEGORY_LABELS,
   ) as OperationCategory[];
-  const groups = categories
-    .map((category) => ({
-      category,
-      items: entries.flatMap((entry) => {
-        const definition = OPERATION_DEFINITIONS[entry.actionType];
-        if (!definition || definition.category !== category) {
-          return [];
-        }
-        return [{ definition, entry }];
-      }),
-    }))
-    .filter((group) => group.items.length > 0);
+  const groups = categories.flatMap((category) => {
+    const items = entries.flatMap((entry) => {
+      const definition = OPERATION_DEFINITIONS[entry.actionType];
+      if (!definition || definition.category !== category) {
+        return [];
+      }
+      return [{ definition, entry }];
+    });
+    return items.length ? [{ category, items }] : [];
+  });
 
   return (
     <div className="flex shrink-0 items-center gap-1">
@@ -157,7 +155,7 @@ export function GiftInlineActionControls({
           {groups.map((group, index) => (
             <DropdownMenuGroup key={group.category}>
               {index > 0 ? <DropdownMenuSeparator /> : null}
-              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {OPERATION_CATEGORY_LABELS[group.category]}
               </DropdownMenuLabel>
               {group.items.map(({ definition, entry }) => (

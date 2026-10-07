@@ -62,7 +62,7 @@ export function ConversationLabelMenu({
             variant="outline"
             size="sm"
             className={cn(
-              "h-8 gap-2 rounded-lg border-zinc-200 bg-white px-2.5 text-[11px] font-medium text-zinc-700",
+              "h-8 gap-2 rounded-lg border-zinc-200 bg-white px-2.5 font-medium text-zinc-700",
               compact && "px-2",
             )}
             aria-label="Edit labels"
@@ -74,7 +74,7 @@ export function ConversationLabelMenu({
                 {conversation.labels.length > 0 ? (
                   <Badge
                     variant="secondary"
-                    className="ml-1 h-4 min-w-[1rem] rounded-md bg-zinc-900 px-1 text-[10px] font-semibold text-white"
+                    className="ml-1 h-4 min-w-[1rem] rounded-md bg-zinc-900 px-1 font-semibold text-white"
                   >
                     {conversation.labels.length}
                   </Badge>
@@ -131,7 +131,7 @@ function LabelChip({ label }: { label: SupportLabel }) {
   return (
     <span
       className={cn(
-        "inline-flex h-5 items-center rounded-md px-1.5 text-[10px] font-semibold ring-1 ring-inset",
+        "inline-flex h-5 items-center rounded-md px-1.5 text-xs font-semibold ring-1 ring-inset",
         LABEL_TONE_CLASSES[label.tone],
       )}
     >

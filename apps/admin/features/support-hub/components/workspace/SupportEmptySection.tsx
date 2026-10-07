@@ -35,9 +35,9 @@ export function SupportEmptySection({
         </span>
       ) : null}
       <div className="space-y-1">
-        <p className="text-[13px] font-semibold text-zinc-800">{title}</p>
+        <p className="text-xs font-semibold text-zinc-800">{title}</p>
         {description ? (
-          <p className="mx-auto max-w-md text-[12px] text-zinc-500">
+          <p className="mx-auto max-w-md text-xs text-zinc-500">
             {description}
           </p>
         ) : null}

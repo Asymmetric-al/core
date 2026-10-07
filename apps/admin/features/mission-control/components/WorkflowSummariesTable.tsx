@@ -83,7 +83,7 @@ export function WorkflowSummariesTable({
           Workflow run summaries for this organization
         </caption>
         <thead>
-          <tr className="border-b border-zinc-100 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+          <tr className="border-b border-zinc-100 text-xs font-semibold uppercase tracking-wider text-zinc-500">
             <th scope="col" className="px-4 py-3">
               Workflow
             </th>
@@ -113,15 +113,15 @@ export function WorkflowSummariesTable({
                   <div className="font-medium text-zinc-900">
                     {summary.workflowName}
                   </div>
-                  <div className="text-[11px] text-zinc-500">
+                  <div className="text-xs text-zinc-500">
                     {summary.productArea}
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="font-mono text-[11px] text-zinc-600">
+                  <div className="font-mono text-xs text-zinc-600">
                     {summary.subjectType}
                   </div>
-                  <div className="max-w-45 truncate font-mono text-[11px] text-zinc-400">
+                  <div className="max-w-45 truncate font-mono text-xs text-zinc-400">
                     {summary.subjectId}
                   </div>
                 </td>
@@ -129,31 +129,31 @@ export function WorkflowSummariesTable({
                   <Badge
                     variant="outline"
                     className={cn(
-                      "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider",
+                      "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
                       config.tone,
                     )}
                   >
                     {config.label}
                   </Badge>
                   {summary.lastErrorCode ? (
-                    <div className="mt-1 font-mono text-[10px] text-zinc-400">
+                    <div className="mt-1 font-mono text-xs text-zinc-400">
                       {summary.lastErrorCode}
                     </div>
                   ) : null}
                 </td>
-                <td className="px-4 py-3 font-mono text-[12px] tabular-nums text-zinc-600">
+                <td className="px-4 py-3 font-mono text-xs tabular-nums text-zinc-600">
                   {summary.attempts}
                 </td>
                 <td className="px-4 py-3">
                   {summary.notification.level === "urgent" ? (
                     <Badge
                       variant="outline"
-                      className="h-5 rounded-md border-rose-200 bg-rose-50 px-1.5 text-[10px] font-bold uppercase tracking-wider text-rose-700"
+                      className="h-5 rounded-md border-rose-200 bg-rose-50 px-1.5 font-bold uppercase tracking-wider text-rose-700"
                     >
                       Urgent
                     </Badge>
                   ) : (
-                    <span className="text-[11px] text-zinc-400">Visible</span>
+                    <span className="text-xs text-zinc-400">Visible</span>
                   )}
                 </td>
               </tr>

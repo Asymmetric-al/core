@@ -11,7 +11,7 @@ const PARTNER_FREQUENCY_VALUES = [
 
 export const partnerSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+  email: z.email("Invalid email address"),
   phone: z.string(),
   type: z.enum(PARTNER_TYPE_VALUES),
   frequency: z.enum(PARTNER_FREQUENCY_VALUES),

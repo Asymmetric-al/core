@@ -49,6 +49,11 @@ vi.mock("@asym/lib/motion", async () => {
             omitMotionProps(props),
             children,
           ),
+      button: ({
+        children,
+        ...props
+      }: React.PropsWithChildren<Record<string, unknown>>) =>
+        ReactModule.createElement("button", omitMotionProps(props), children),
       div: ({
         children,
         ...props
@@ -167,4 +172,19 @@ it("keeps only draft focusable during a pending draft save", () => {
     "disabled",
     true,
   );
+});
+
+it("names the attached-media removal action and retains its payload", () => {
+  const item = { url: "/test-attachment.png", type: "image" };
+  const onRemoveMedia = vi.fn();
+  renderActions({
+    selectedMedia: [item],
+    isPublishing: false,
+    isDisabled: false,
+    onRemoveMedia,
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Remove attached media" }),
+  );
+  expect(onRemoveMedia).toHaveBeenCalledExactlyOnceWith(item);
 });

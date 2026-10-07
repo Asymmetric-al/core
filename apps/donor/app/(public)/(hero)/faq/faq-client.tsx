@@ -229,11 +229,11 @@ export function FAQPageClient() {
   }, [searchQuery, activeCategory]);
 
   return (
-    <div className="bg-zinc-50 min-h-screen pt-20 pb-32">
+    <div className="bg-zinc-50 min-h-dvh pt-20 pb-32">
       <section className="bg-white border-b border-zinc-200 pb-16 pt-12 relative overflow-hidden">
         <div className="absolute top-0 left-0 size-full overflow-hidden pointer-events-none opacity-[0.03]">
-          <div className="absolute -top-20 -right-20 size-96 bg-blue-600 rounded-full blur-3xl" />
-          <div className="absolute top-40 -left-20 size-72 bg-emerald-500 rounded-full blur-3xl" />
+          <div className="absolute -top-20 -right-20 size-96 bg-radial from-blue-600 to-transparent rounded-full" />
+          <div className="absolute top-40 -left-20 size-72 bg-radial from-emerald-500 to-transparent rounded-full" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10 text-center max-w-3xl">
@@ -247,7 +247,7 @@ export function FAQPageClient() {
                 <HelpCircle className="size-6" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-zinc-900 mb-6">
+            <h1 className="text-4xl md:text-6xl font-semibold tracking-normal text-zinc-900 mb-6">
               How can we help?
             </h1>
             <p className="text-xl text-zinc-500 font-light mb-10 text-balance">
@@ -257,7 +257,7 @@ export function FAQPageClient() {
 
             <div className="relative max-w-lg mx-auto group">
               <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white rounded-full shadow-xl shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100">
+              <div className="relative bg-white rounded-full shadow-sm shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100">
                 <Search className="ml-4 size-5 text-zinc-400" />
                 <Input
                   aria-label="Search frequently asked questions"
@@ -374,7 +374,7 @@ export function FAQPageClient() {
               backgroundSize: "32px 32px",
             }}
           />
-          <div className="absolute -top-24 -left-24 size-64 bg-blue-600 rounded-full blur-[100px] opacity-50" />
+          <div className="absolute -top-24 -left-24 size-64 bg-radial from-blue-600 to-transparent rounded-full opacity-50" />
 
           <div className="relative z-10 text-center md:text-left">
             <h2 className="text-3xl font-semibold mb-3 tracking-tight">

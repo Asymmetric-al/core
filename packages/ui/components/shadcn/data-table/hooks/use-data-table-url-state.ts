@@ -65,9 +65,9 @@ function filtersToString(filters: ColumnFiltersState): string {
 }
 
 function visibilityToString(visibility: VisibilityState): string {
-  const hidden = Object.entries(visibility)
-    .filter(([, visible]) => !visible)
-    .map(([key]) => key);
+  const hidden = Object.entries(visibility).flatMap(([key, visible]) =>
+    visible ? [] : [key],
+  );
   return hidden.length > 0 ? hidden.join(",") : "";
 }
 

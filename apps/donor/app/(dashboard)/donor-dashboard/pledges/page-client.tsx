@@ -69,17 +69,14 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
               <p className="font-semibold text-foreground truncate">
                 {pledge.recipientName}
               </p>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {pledge.recipientCategory}
               </p>
             </div>
           </div>
           <Badge
             variant="outline"
-            className={cn(
-              "shrink-0 text-[10px] uppercase",
-              statusClasses(pledge.status),
-            )}
+            className={cn("shrink-0 uppercase", statusClasses(pledge.status))}
           >
             {pledge.status}
           </Badge>
@@ -100,7 +97,7 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
         </div>
 
         {pledge.paymentMethodLabel ? (
-          <p className="text-[11px] text-muted-foreground truncate">
+          <p className="text-xs text-muted-foreground truncate">
             {pledge.paymentMethodLabel}
           </p>
         ) : null}
@@ -124,7 +121,7 @@ function PledgesHeader({
         <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight uppercase">
           Recurring Pledges
         </h1>
-        <p className="text-muted-foreground mt-2 font-semibold uppercase tracking-widest text-[10px]">
+        <p className="text-muted-foreground mt-2 font-semibold uppercase tracking-widest text-xs">
           Manage your ongoing commitments and impact.
         </p>
       </div>
@@ -132,7 +129,7 @@ function PledgesHeader({
         onClick={onManage}
         disabled={managing}
         focusableWhenDisabled={managing && isInitiator}
-        className="h-12 px-6 rounded-lg font-semibold uppercase tracking-widest text-[10px]"
+        className="h-12 px-6 rounded-lg font-semibold uppercase tracking-widest"
       >
         {managing && isInitiator ? (
           <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />

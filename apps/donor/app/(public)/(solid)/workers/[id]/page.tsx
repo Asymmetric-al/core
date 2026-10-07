@@ -113,7 +113,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
           </time>
           <Badge
             variant="secondary"
-            className="py-0 text-[10px] bg-zinc-100 text-zinc-600 border-none"
+            className="py-0 bg-zinc-100 text-zinc-600 border-none"
           >
             {update.type}
           </Badge>
@@ -181,8 +181,8 @@ async function UpdatesContent({ workerTitle }: { workerTitle: string }) {
           </h3>
           <p className="text-zinc-500 text-sm mt-1 flex items-center gap-2">
             <span className="relative flex size-2" aria-hidden="true">
-              <span className="animate-ping absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full size-2 bg-emerald-500" />
             </span>
             Updates posted directly by {workerTitle}
           </p>
@@ -309,7 +309,7 @@ export default async function WorkerProfilePage({ params }: PageProps) {
       />
 
       <div
-        className="min-h-screen bg-zinc-50 font-sans pt-16"
+        className="min-h-dvh bg-zinc-50 font-sans pt-16"
         data-testid="worker-profile-route-shell"
       >
         <div className="bg-white border-b border-zinc-100">

@@ -39,6 +39,7 @@ import {
 import React, { useEffect, useMemo, useReducer, useState } from "react";
 
 import { columns } from "./columns";
+import { getHistoryYearOptions } from "./history-year-options";
 
 // --- Types ---
 interface Transaction {
@@ -81,17 +82,14 @@ type HistoryFiltersAction =
 
 type MonthlyGivingPoint = { month: string; amount: number };
 
-const CURRENT_YEAR = new Date().getFullYear();
-const HISTORY_YEAR_OPTIONS = Array.from({ length: 5 }, (_, index) =>
-  String(CURRENT_YEAR - index),
-);
-
-const DEFAULT_HISTORY_FILTERS: HistoryFiltersState = {
-  searchTerm: "",
-  yearFilter: String(CURRENT_YEAR),
-  typeFilter: "All",
-  statusFilter: "All",
-};
+function createDefaultHistoryFilters(): HistoryFiltersState {
+  return {
+    searchTerm: "",
+    yearFilter: getHistoryYearOptions()[0]!,
+    typeFilter: "All",
+    statusFilter: "All",
+  };
+}
 
 // --- Helpers ---
 function historyFiltersReducer(
@@ -199,13 +197,14 @@ function HistoryPageHeader({
   yearFilter: string;
   onYearFilterChange: (value: string) => void;
 }) {
+  const historyYearOptions = getHistoryYearOptions();
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left">
       <div>
         <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight uppercase">
           Giving History
         </h1>
-        <p className="text-zinc-500 mt-2 text-lg font-semibold uppercase tracking-widest text-[10px]">
+        <p className="text-zinc-500 mt-2 text-lg font-semibold text-xs">
           Your complete record of impact and tax-deductible contributions.
         </p>
       </div>
@@ -213,7 +212,7 @@ function HistoryPageHeader({
         <div className="relative w-35">
           <Select
             items={[
-              ...HISTORY_YEAR_OPTIONS.map((year) => ({
+              ...historyYearOptions.map((year) => ({
                 value: year,
                 label: year,
               })),
@@ -234,7 +233,7 @@ function HistoryPageHeader({
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
-              {HISTORY_YEAR_OPTIONS.map((year) => (
+              {historyYearOptions.map((year) => (
                 <SelectItem key={year} value={year}>
                   {year}
                 </SelectItem>
@@ -246,7 +245,7 @@ function HistoryPageHeader({
           href={`/api/donor/statements/${yearFilter}`}
           className={cn(
             buttonVariants(),
-            "bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg",
+            "bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-xs h-10 px-6 rounded-lg",
           )}
         >
           <DownloadCloud className="mr-2 size-4" /> Download Statement
@@ -276,14 +275,14 @@ function HistoryStatsColumn({
   return (
     <div className="lg:col-span-1 space-y-6">
       <Card className="bg-zinc-950 text-white border-none shadow-2xl overflow-hidden relative group rounded-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-950 z-0" />
+        <div className="absolute inset-0 bg-linear-to-br from-zinc-900 to-zinc-950 z-0" />
         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
           <TrendingUp className="size-40 text-emerald-400" />
         </div>
 
         <CardContent className="p-8 relative z-10 text-left">
           <div className="flex items-center justify-between mb-6">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-md">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-md">
               Total Giving {yearFilter}
             </span>
             <DollarSign className="size-5 text-emerald-400" />
@@ -291,7 +290,7 @@ function HistoryStatsColumn({
           <div className="text-5xl font-semibold tracking-tighter mb-2">
             {formatCurrency(totalGiven)}
           </div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500 mb-8">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-8">
             100% Tax Deductible
           </p>
 
@@ -314,7 +313,7 @@ function HistoryStatsColumn({
             <div className="text-2xl font-semibold text-zinc-900">
               {receiptCount}
             </div>
-            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mt-1">
+            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mt-1">
               Receipts
             </p>
           </CardContent>
@@ -327,7 +326,7 @@ function HistoryStatsColumn({
             <div className="text-2xl font-semibold text-zinc-900">
               {filteredTransactionCount}
             </div>
-            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mt-1">
+            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mt-1">
               Total Gifts
             </p>
           </CardContent>
@@ -370,7 +369,7 @@ function HistoryFiltersToolbar({
             render={
               <Button
                 variant="outline"
-                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest rounded-lg"
+                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm font-semibold uppercase tracking-widest rounded-lg"
               >
                 <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
                 {typeFilter !== "All" && (
@@ -383,7 +382,7 @@ function HistoryFiltersToolbar({
           />
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
                 Filter by Type
               </DropdownMenuLabel>
 
@@ -418,7 +417,7 @@ function HistoryFiltersToolbar({
             render={
               <Button
                 variant="outline"
-                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest rounded-lg"
+                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm font-semibold uppercase tracking-widest rounded-lg"
               >
                 Status{" "}
                 {statusFilter !== "All" && (
@@ -431,7 +430,7 @@ function HistoryFiltersToolbar({
           />
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
                 Filter by Status
               </DropdownMenuLabel>
 
@@ -507,7 +506,7 @@ function HistoryTransactionsCard({
             <p className="font-semibold text-zinc-900 uppercase tracking-tighter">
               No transactions found
             </p>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mt-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mt-1">
               Try adjusting the current filters.
             </p>
           </div>
@@ -523,7 +522,8 @@ export default function DonorHistoryPage() {
   const withinRouteVt = useWithinViewTransitionRouteLayer();
   const [filters, dispatchFilters] = useReducer(
     historyFiltersReducer,
-    DEFAULT_HISTORY_FILTERS,
+    undefined,
+    createDefaultHistoryFilters,
   );
   const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
     null,

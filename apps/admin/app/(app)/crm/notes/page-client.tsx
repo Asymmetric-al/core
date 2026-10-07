@@ -108,7 +108,7 @@ export default function CrmNotesPageClient() {
               <Badge
                 variant="outline"
                 className={cn(
-                  "h-6 rounded-md text-[10px] font-semibold uppercase tracking-wide shadow-none",
+                  "h-6 rounded-md font-semibold uppercase tracking-wide shadow-none",
                   configured
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                     : "border-amber-200 bg-amber-50 text-amber-700",
@@ -119,7 +119,7 @@ export default function CrmNotesPageClient() {
               {rollback ? (
                 <Badge
                   variant="outline"
-                  className="h-6 rounded-md text-[10px] font-semibold uppercase tracking-wide shadow-none"
+                  className="h-6 rounded-md font-semibold uppercase tracking-wide shadow-none"
                 >
                   Rollback: {rollback.existingCrmPath}
                 </Badge>
@@ -213,10 +213,7 @@ export default function CrmNotesPageClient() {
                           {note.bodyPreview}
                         </p>
                       </div>
-                      <Badge
-                        variant="outline"
-                        className="rounded-md text-[9px]"
-                      >
+                      <Badge variant="outline" className="rounded-md">
                         {note.source}
                       </Badge>
                     </div>

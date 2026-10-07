@@ -38,7 +38,7 @@ const BarChartContent = dynamic(
     function BarChartInner({ series }: { series: SupportReportSeries }) {
       if (series.buckets.length === 0) {
         return (
-          <div className="flex h-70 items-center justify-center text-[12px] text-zinc-400">
+          <div className="flex h-70 items-center justify-center text-xs text-zinc-400">
             No activity in the selected window.
           </div>
         );
@@ -95,11 +95,11 @@ export function ReportBarChart({
   return (
     <Card className="rounded-2xl border-zinc-100 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
+        <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           {title}
         </CardTitle>
         {description ? (
-          <CardDescription className="text-[12px] text-zinc-500">
+          <CardDescription className="text-xs text-zinc-500">
             {description}
           </CardDescription>
         ) : null}

@@ -9,6 +9,23 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import React from "react";
 
+const healthHeatmapGetColor = (intensity: number) => {
+  switch (intensity) {
+    case 0:
+      return "bg-zinc-100 dark:bg-zinc-800";
+    case 1:
+      return "bg-emerald-200 dark:bg-emerald-900/40";
+    case 2:
+      return "bg-emerald-400 dark:bg-emerald-700";
+    case 3:
+      return "bg-emerald-600 dark:bg-emerald-500";
+    case 4:
+      return "bg-emerald-800 dark:bg-emerald-300";
+    default:
+      return "bg-zinc-100";
+  }
+};
+
 interface HeatmapProps {
   data: { date: string; intensity: number; type: string }[];
   days?: number;
@@ -21,23 +38,6 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
     d.setDate(d.getDate() - (days - 1 - i));
     return d.toISOString().split("T")[0];
   });
-
-  const getColor = (intensity: number) => {
-    switch (intensity) {
-      case 0:
-        return "bg-zinc-100 dark:bg-zinc-800";
-      case 1:
-        return "bg-emerald-200 dark:bg-emerald-900/40";
-      case 2:
-        return "bg-emerald-400 dark:bg-emerald-700";
-      case 3:
-        return "bg-emerald-600 dark:bg-emerald-500";
-      case 4:
-        return "bg-emerald-800 dark:bg-emerald-300";
-      default:
-        return "bg-zinc-100";
-    }
-  };
 
   return (
     <TooltipProvider>
@@ -59,12 +59,12 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
                 aria-label={label}
                 className={cn(
                   "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-zinc-400 focus-visible:ring-1 focus-visible:ring-zinc-400 focus-visible:outline-none",
-                  getColor(intensity),
+                  healthHeatmapGetColor(intensity),
                 )}
               />
               <TooltipContent side="top">
                 <p className="text-xs font-medium">{date}</p>
-                <p className="text-[10px] text-zinc-500">
+                <p className="text-xs text-zinc-500">
                   {intensity > 0
                     ? `${entry?.type} intensity: ${intensity}`
                     : "No activity logged"}

@@ -190,7 +190,13 @@ function AutomationStatsRow({
           key={stat.label}
           {...propsHeroEntrance(reduceMotion, index * STAGGER_TIGHT, 12)}
         >
-          <StatCard {...stat} />
+          <StatCard
+            label={stat.label}
+            value={stat.value}
+            sublabel={stat.sublabel}
+            icon={stat.icon}
+            valueClassName={stat.valueClassName}
+          />
         </motion.div>
       ))}
     </div>

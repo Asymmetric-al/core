@@ -283,7 +283,7 @@ export function ImageCropper({
         <div className="border-border/70 bg-background shrink-0 space-y-4 border-t p-4 sm:space-y-6 sm:p-6">
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-3 sm:gap-4">
-              <ZoomOut className="text-muted-foreground size-4 flex-shrink-0" />
+              <ZoomOut className="text-muted-foreground size-4 shrink-0" />
               <Slider
                 thumbProps={{
                   "aria-label": "Zoom",
@@ -301,11 +301,11 @@ export function ImageCropper({
                 }}
                 className="flex-1"
               />
-              <ZoomIn className="text-muted-foreground size-4 flex-shrink-0" />
+              <ZoomIn className="text-muted-foreground size-4 shrink-0" />
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4">
-              <RotateCw className="text-muted-foreground size-4 flex-shrink-0" />
+              <RotateCw className="text-muted-foreground size-4 shrink-0" />
               <Slider
                 thumbProps={{
                   "aria-label": "Rotation",
@@ -323,7 +323,7 @@ export function ImageCropper({
                 }}
                 className="flex-1"
               />
-              <span className="text-muted-foreground w-8 text-right text-[10px] font-bold">
+              <span className="text-muted-foreground w-8 text-right text-xs font-bold">
                 {state.rotation}&deg;
               </span>
             </div>
@@ -335,7 +335,7 @@ export function ImageCropper({
               variant="outline"
               onClick={handleCancel}
               disabled={state.isProcessing}
-              className="border-border h-9 flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest sm:h-10 sm:flex-none"
+              className="border-border h-9 flex-1 rounded-lg text-xs font-black uppercase tracking-widest sm:h-10 sm:flex-none"
             >
               Cancel
             </Button>
@@ -345,7 +345,7 @@ export function ImageCropper({
               disabled={state.isProcessing || !state.croppedAreaPixels}
               focusableWhenDisabled={state.isProcessing}
               aria-labelledby={saveLabelId}
-              className="bg-primary text-primary-foreground h-9 min-w-25 flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 sm:h-10 sm:min-w-30 sm:flex-none"
+              className="bg-primary text-primary-foreground h-9 min-w-25 flex-1 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-primary/90 sm:h-10 sm:min-w-30 sm:flex-none"
             >
               {state.isProcessing ? (
                 <>

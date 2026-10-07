@@ -8,12 +8,13 @@ import { toast } from "sonner";
 
 import { useSaveSupportMacro } from "../../../hooks/use-support-mutations";
 import { MacroPreviewLine } from "../../macros/MacroPreviewLine";
+import { createDraftRows } from "../draft-rows";
 import { SettingsPanel } from "../SettingsPanel";
 import { SettingsRow } from "../SettingsRow";
 import { SettingsToolbar } from "../SettingsToolbar";
 import { MacroActionEditor } from "./MacroActionEditor";
 
-import type { SupportMacro, SupportMacroAction } from "../../../types";
+import type { SupportMacro } from "../../../types";
 
 interface MacroFormProps {
   macro?: SupportMacro | null;
@@ -28,8 +29,12 @@ export function MacroForm({ macro, onSaved, onCancel }: MacroFormProps) {
   const [description, setDescription] = React.useState(
     macro?.description ?? "",
   );
-  const [actions, setActions] = React.useState<SupportMacroAction[]>(
-    macro?.actions ?? [],
+  const [actionRows, setActionRows] = React.useState(() =>
+    createDraftRows(macro?.actions ?? []),
+  );
+  const actions = React.useMemo(
+    () => actionRows.map((row) => row.value),
+    [actionRows],
   );
 
   const isDirty = React.useMemo(
@@ -92,7 +97,7 @@ export function MacroForm({ macro, onSaved, onCancel }: MacroFormProps) {
       <SettingsRow label="Preview">
         <MacroPreviewLine actions={actions} />
       </SettingsRow>
-      <MacroActionEditor actions={actions} onChange={setActions} />
+      <MacroActionEditor rows={actionRows} onChange={setActionRows} />
 
       <div className="flex items-center justify-end gap-2">
         <Button

@@ -27,7 +27,7 @@ describe("ui package high-complexity extraction contracts", () => {
     expect(kpiTile).not.toContain('TrendingUp className="mr-1 size-3"');
   });
 
-  it("keeps ImageUploadCustomTrigger on clone-props helpers", () => {
+  it("keeps the custom image trigger delegated to clone-props helpers", () => {
     const helpers = readRepoFile(
       "packages/ui/components/primitives/image-upload-helpers.ts",
     );
@@ -43,11 +43,15 @@ describe("ui package high-complexity extraction contracts", () => {
       source.indexOf("function ImageUploadCustomTrigger("),
       source.indexOf("function ImageUploadDefaultContent("),
     );
-    expect(trigger).toContain("isImageUploadButtonLike(");
-    expect(trigger).toContain("imageUploadClonedTriggerProps(");
-    expect(trigger).toContain("React.cloneElement(");
-    expect(trigger).not.toContain("composeEventHandlers(");
-    expect(trigger).not.toContain("resolveButtonTriggerType(");
+    expect(trigger).toContain("cloneImageUploadTrigger(");
+    const clone = source.slice(
+      source.indexOf("function cloneImageUploadTrigger("),
+    );
+    expect(clone).toContain("isImageUploadButtonLike(");
+    expect(clone).toContain("imageUploadClonedTriggerProps(");
+    expect(clone).toContain("React.cloneElement(");
+    expect(clone).not.toContain("composeEventHandlers(");
+    expect(clone).not.toContain("resolveButtonTriggerType(");
   });
 
   it("keeps MotionPreset variants on a non-React builder", () => {

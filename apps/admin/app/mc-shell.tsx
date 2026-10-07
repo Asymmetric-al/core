@@ -139,7 +139,7 @@ function NavSection({
   return (
     <SidebarGroup className="p-0">
       {label && (
-        <SidebarGroupLabel className="mb-1 h-6 px-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+        <SidebarGroupLabel className="mb-1 h-6 px-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
           {label}
         </SidebarGroupLabel>
       )}
@@ -179,9 +179,7 @@ function NavSection({
                               isActive ? "text-zinc-800" : "text-zinc-500",
                             )}
                           />
-                          <span className="text-[13px] truncate">
-                            {item.title}
-                          </span>
+                          <span className="text-xs truncate">{item.title}</span>
                           <ChevronRight className="ml-auto size-3.5 text-zinc-500 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       }
@@ -202,7 +200,7 @@ function NavSection({
                                     : "text-zinc-600 hover:text-zinc-950",
                                 )}
                               >
-                                <span className="text-[13px] truncate">
+                                <span className="text-xs truncate">
                                   {sub.title}
                                 </span>
                               </SidebarMenuSubButton>
@@ -242,7 +240,7 @@ function NavSection({
                       isActive ? "text-zinc-800" : "text-zinc-500",
                     )}
                   />
-                  <span className="text-[13px] truncate">{item.title}</span>
+                  <span className="text-xs truncate">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
@@ -275,10 +273,10 @@ function UserFooter() {
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-          <span className="text-[13px] font-medium text-zinc-900 truncate leading-tight">
+          <span className="text-xs font-medium text-zinc-900 truncate leading-tight">
             {user?.name || "User Name"}
           </span>
-          <span className="text-[11px] text-zinc-500 truncate">Missionary</span>
+          <span className="text-xs text-zinc-500 truncate">Missionary</span>
         </div>
       </div>
     </SidebarFooter>
@@ -303,10 +301,10 @@ function AppSidebar() {
             G
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-[13px] font-semibold text-zinc-900 leading-tight tracking-tight">
+            <span className="text-xs font-semibold text-zinc-900 leading-tight tracking-tight">
               Give Hope
             </span>
-            <span className="text-[10px] leading-tight text-zinc-500">
+            <span className="text-xs leading-tight text-zinc-500">
               Mission Control
             </span>
           </div>
@@ -336,6 +334,7 @@ function AppSidebar() {
 function AppHeader() {
   const { user, signOut, role } = useMC();
   const router = useRouter();
+  const handleNavigate = router.push;
   const handleSignOut = () => {
     void signOut();
   };
@@ -348,7 +347,7 @@ function AppHeader() {
           <Separator orientation="vertical" className="h-4 hidden sm:block" />
           <MissionControlNavigationSearch
             role={role}
-            onNavigate={router.push}
+            onNavigate={handleNavigate}
           />
         </div>
         <div className="flex items-center gap-1">
@@ -404,7 +403,7 @@ function AppHeader() {
                       "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
                     }
                   />
-                  <AvatarFallback className="text-[10px] rounded-lg font-semibold">
+                  <AvatarFallback className="text-xs rounded-lg font-semibold">
                     {user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>

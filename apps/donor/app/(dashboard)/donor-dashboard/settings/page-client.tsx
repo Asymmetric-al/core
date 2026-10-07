@@ -188,7 +188,7 @@ function ProfileAvatarCard({
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center   transition-opacity">
                 <Camera className="text-white size-6" />
               </div>
             </div>
@@ -198,7 +198,7 @@ function ProfileAvatarCard({
               <h4 className="font-semibold text-foreground uppercase tracking-tight">
                 Profile Photo
               </h4>
-              <p className="text-[10px] font-semibold text-muted-foreground mt-1 uppercase tracking-widest">
+              <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-widest">
                 JPG, GIF or PNG. Large files auto-optimized.
               </p>
             </div>
@@ -211,7 +211,7 @@ function ProfileAvatarCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 text-[10px] font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
+                  className="h-8 font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
                 >
                   Upload New
                 </Button>
@@ -220,7 +220,7 @@ function ProfileAvatarCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onAvatarUrlChange("")}
-                className="text-destructive h-8 text-[10px] font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
+                className="text-destructive h-8 font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
               >
                 Remove
               </Button>
@@ -253,7 +253,7 @@ function ProfilePersonalInfoCard({
         <CardTitle className="text-lg uppercase font-semibold tracking-tight">
           Personal Information
         </CardTitle>
-        <CardDescription className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <CardDescription className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Update your identity and contact details.
         </CardDescription>
       </CardHeader>
@@ -262,7 +262,7 @@ function ProfilePersonalInfoCard({
           <div className="space-y-2">
             <Label
               htmlFor="firstName"
-              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
             >
               First Name
             </Label>
@@ -279,7 +279,7 @@ function ProfilePersonalInfoCard({
           <div className="space-y-2">
             <Label
               htmlFor="lastName"
-              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
             >
               Last Name
             </Label>
@@ -299,7 +299,7 @@ function ProfilePersonalInfoCard({
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
             >
               Email Address
             </Label>
@@ -315,14 +315,14 @@ function ProfilePersonalInfoCard({
                 className="pl-9 h-10 rounded-lg"
               />
             </div>
-            <p id="email-note" className="text-[10px] text-muted-foreground">
+            <p id="email-note" className="text-xs text-muted-foreground">
               Contact support to change your email.
             </p>
           </div>
           <div className="space-y-2">
             <Label
               htmlFor="phone"
-              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
             >
               Phone Number
             </Label>
@@ -350,11 +350,11 @@ function ProfilePersonalInfoCard({
           <div className="flex items-center gap-2">
             <Label
               htmlFor="address"
-              className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
             >
               Street Address
             </Label>
-            <Badge variant="secondary" className="text-[9px] uppercase">
+            <Badge variant="secondary" className="uppercase">
               Coming soon
             </Badge>
           </div>
@@ -387,7 +387,7 @@ function ProfilePersonalInfoCard({
               aria-label="Postal code"
             />
           </div>
-          <p id="address-note" className="text-[10px] text-muted-foreground">
+          <p id="address-note" className="text-xs text-muted-foreground">
             {COMING_SOON}
           </p>
         </fieldset>
@@ -399,7 +399,7 @@ function ProfilePersonalInfoCard({
         <p
           role={errorMessage ? "alert" : undefined}
           className={cn(
-            "text-[10px] font-semibold uppercase tracking-widest",
+            "text-xs font-semibold uppercase tracking-widest",
             errorMessage ? "text-destructive" : "text-muted-foreground",
           )}
         >
@@ -411,7 +411,7 @@ function ProfilePersonalInfoCard({
             disabled={saving}
             focusableWhenDisabled={saving}
             className={cn(
-              "min-w-[120px] transition-colors w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+              "min-w-[120px] transition-colors w-full sm:w-auto h-9 font-semibold uppercase tracking-widest rounded-lg px-6",
               success && "bg-emerald-600 hover:bg-emerald-700",
             )}
           >
@@ -639,7 +639,7 @@ const NotificationsTab = () => {
             <CardTitle className="text-lg uppercase font-semibold tracking-tight">
               Notification Preferences
             </CardTitle>
-            <CardDescription className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+            <CardDescription className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
               Customize how you want to hear from us.
             </CardDescription>
           </div>
@@ -682,13 +682,13 @@ const NotificationsTab = () => {
                           {item.recommended && (
                             <Badge
                               variant="secondary"
-                              className="bg-zinc-100 text-zinc-900 border-zinc-200 text-[8px] h-4 px-1.5 font-semibold uppercase tracking-widest"
+                              className="bg-zinc-100 text-zinc-900 border-zinc-200 h-4 px-1.5 font-semibold uppercase tracking-widest"
                             >
                               Recommended
                             </Badge>
                           )}
                         </div>
-                        <p className="text-[10px] font-semibold uppercase tracking-tight text-zinc-400 leading-relaxed max-w-md">
+                        <p className="text-xs font-semibold uppercase tracking-tight text-zinc-400 leading-relaxed max-w-md">
                           {item.desc}
                         </p>
                       </div>
@@ -708,7 +708,7 @@ const NotificationsTab = () => {
       </CardContent>
 
       <CardFooter className="bg-zinc-50/50 border-t border-zinc-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <p className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400 italic flex items-center gap-2 text-center sm:text-left">
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 italic flex items-center gap-2 text-center sm:text-left">
           <AlertTriangle className="size-3 text-amber-500" />
           System alerts cannot be disabled.
         </p>
@@ -718,7 +718,7 @@ const NotificationsTab = () => {
           onClick={handleSave}
           disabled={loading || success}
           className={cn(
-            "min-w-35 shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto text-[10px] uppercase tracking-widest rounded-lg px-6",
+            "min-w-35 shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto uppercase tracking-widest rounded-lg px-6",
             success
               ? "bg-emerald-600 hover:bg-emerald-700"
               : "bg-zinc-900 hover:bg-zinc-800",
@@ -797,7 +797,7 @@ const SecurityTab = () => {
               <CardTitle className="text-lg flex items-center gap-2 font-semibold uppercase tracking-tight">
                 <Lock className="size-4 text-zinc-400" /> Login & Password
               </CardTitle>
-              <CardDescription className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+              <CardDescription className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
                 Manage your password to keep your account secure.
               </CardDescription>
             </div>
@@ -824,12 +824,12 @@ const SecurityTab = () => {
                     <History className="size-3.5" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-[10px] font-semibold uppercase tracking-widest text-zinc-900">
+                    <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-900">
                       Forgot your password?
                     </h4>
                     <Button
                       variant="link"
-                      className="text-zinc-500 font-semibold p-0 h-auto text-[10px] uppercase tracking-widest hover:text-zinc-900"
+                      className="text-zinc-500 font-semibold p-0 h-auto uppercase tracking-widest hover:text-zinc-900"
                     >
                       Reset via Email
                     </Button>
@@ -864,10 +864,10 @@ const SecurityTab = () => {
                   />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-300">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-zinc-300">
                     Strength
                   </span>
-                  <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-500">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                     {strengthScore >= 4
                       ? "Strong"
                       : strengthScore >= 2
@@ -900,7 +900,7 @@ const SecurityTab = () => {
               passwords.new !== passwords.confirm
             }
             className={cn(
-              "min-w-35 h-9 shadow-sm transition-colors w-full sm:w-auto text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+              "min-w-35 h-9 shadow-sm transition-colors w-full sm:w-auto font-semibold uppercase tracking-widest rounded-lg px-6",
               success
                 ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-zinc-900 hover:bg-zinc-800",
@@ -931,17 +931,17 @@ const SecurityTab = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-tight text-zinc-500 leading-relaxed mb-4">
+            <p className="text-xs font-semibold tracking-tight text-zinc-500 leading-relaxed mb-4">
               Secure your account by requiring a verification code when signing
               in.
             </p>
             <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100 shadow-inner">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-900">
+              <span className="text-xs font-semibold uppercase tracking-widest text-zinc-900">
                 Status
               </span>
               <Badge
                 variant="outline"
-                className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400 border-zinc-200"
+                className="font-semibold uppercase tracking-widest text-zinc-400 border-zinc-200"
               >
                 Disabled
               </Badge>
@@ -950,7 +950,7 @@ const SecurityTab = () => {
           <CardFooter className="pt-0 pb-4">
             <Button
               variant="outline"
-              className="w-full text-[10px] font-semibold uppercase tracking-widest rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
+              className="w-full font-semibold uppercase tracking-widest rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
             >
               Configure 2FA
             </Button>
@@ -972,7 +972,7 @@ const SecurityTab = () => {
                 <p className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
                   Macbook Pro
                 </p>
-                <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest">
+                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">
                   San Francisco • Active now
                 </p>
               </div>
@@ -982,7 +982,7 @@ const SecurityTab = () => {
           <CardFooter className="pt-0 pb-4">
             <Button
               variant="ghost"
-              className="w-full text-[10px] font-semibold uppercase tracking-widest text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
+              className="w-full font-semibold uppercase tracking-widest text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
             >
               Sign out other devices
             </Button>
@@ -1010,7 +1010,7 @@ export default function DonorSettingsPage() {
         <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight uppercase">
           Settings
         </h1>
-        <p className="text-zinc-500 text-lg font-semibold uppercase tracking-widest text-[10px]">
+        <p className="text-zinc-500 text-lg font-semibold uppercase tracking-widest text-xs">
           Manage your profile and preferences.
         </p>
       </div>
@@ -1025,7 +1025,7 @@ export default function DonorSettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-[10px] font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-35 lg:w-full",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-35 lg:w-full",
                     activeTab === tab.id
                       ? "bg-zinc-900 text-white shadow-md shadow-zinc-200"
                       : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900",

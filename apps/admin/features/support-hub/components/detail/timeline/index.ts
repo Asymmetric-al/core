@@ -4,7 +4,6 @@ export { EmptyTimeline } from "./EmptyTimeline";
 export {
   classifyMessage,
   mergeTimeline,
-  type TimelineEntry,
   type TimelineEntryKind,
 } from "./merge-timeline";
 export { PrivateNote } from "./PrivateNote";

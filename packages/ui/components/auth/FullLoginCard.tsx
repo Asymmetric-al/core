@@ -127,7 +127,7 @@ export function FullLoginCard({
             <div className="space-y-3">
               <div className="relative py-1">
                 <AuthSeparator />
-                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-[11px] text-muted-foreground">
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
                   or use demo access
                 </span>
               </div>

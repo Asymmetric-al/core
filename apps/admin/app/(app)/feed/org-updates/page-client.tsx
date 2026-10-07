@@ -266,7 +266,7 @@ function FeedSettingsSheet({
                       </span>
                       <Badge
                         variant="secondary"
-                        className="text-[9px] h-4 px-1.5 font-semibold"
+                        className="h-4 px-1.5 font-semibold"
                       >
                         Default
                       </Badge>
@@ -405,25 +405,25 @@ function PostCard({
                 </h3>
                 <Badge
                   variant="secondary"
-                  className="font-semibold text-[9px] uppercase tracking-wider"
+                  className="font-semibold uppercase tracking-wider"
                 >
                   {post.post_type}
                 </Badge>
                 {post.isPinned && (
                   <Badge
                     variant="outline"
-                    className="text-[9px] font-semibold uppercase tracking-wider"
+                    className="font-semibold uppercase tracking-wider"
                   >
                     <Pin className="size-2.5" /> Pinned
                   </Badge>
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                   <TimeAgo date={post.created_at} />
                 </span>
                 <span className="text-border">•</span>
-                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
                   {post.visibility === "public" ? (
                     <Globe className="size-3" />
                   ) : post.visibility === "partners" ? (
@@ -567,11 +567,11 @@ function DraftCard({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Badge
                 variant="secondary"
-                className="font-semibold text-[9px] uppercase tracking-wider"
+                className="font-semibold uppercase tracking-wider"
               >
                 Draft • {draft.post_type}
               </Badge>
-              <span className="text-[10px] text-muted-foreground font-medium">
+              <span className="text-xs text-muted-foreground font-medium">
                 Saved <TimeAgo date={draft.created_at} />
               </span>
             </div>
@@ -589,7 +589,7 @@ function DraftCard({
             >
               <Button
                 onClick={onEdit}
-                className="w-full sm:h-10 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl font-semibold"
+                className="w-full sm:h-10 sm:px-6 uppercase tracking-wider rounded-xl font-semibold"
               >
                 <ExternalLink className="size-3.5 mr-2" />
                 <span className="hidden sm:inline">Edit & Publish</span>
@@ -604,7 +604,7 @@ function DraftCard({
               <Button
                 variant="ghost"
                 onClick={onDelete}
-                className="w-full sm:h-10 text-destructive hover:bg-destructive/10 font-semibold text-[10px] uppercase tracking-wider rounded-xl"
+                className="w-full sm:h-10 text-destructive hover:bg-destructive/10 font-semibold uppercase tracking-wider rounded-xl"
               >
                 <Trash2 className="size-3.5 mr-2" />
                 Delete
@@ -750,7 +750,7 @@ function ComposeCardTypeSelector({
             variant={postType === type ? "default" : "outline"}
             onClick={() => onSetType(type)}
             className={cn(
-              "px-3 sm:px-5 py-2 h-8 sm:h-9 text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold rounded-xl",
+              "px-3 sm:px-5 py-2 h-8 sm:h-9 uppercase tracking-wider font-semibold rounded-xl",
               postType === type && "shadow-md",
             )}
           >
@@ -771,7 +771,7 @@ function ComposeCardTypeSelector({
               variant="ghost"
               size="sm"
               onClick={onCancelEdit}
-              className="ml-auto text-destructive font-semibold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+              className="ml-auto text-destructive font-semibold uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
             >
               Cancel Edit
             </Button>
@@ -835,10 +835,12 @@ export function ComposeCardActions({
                   className="size-14 sm:h-16 sm:w-16 object-cover rounded-lg border shadow-sm"
                 />
                 <motion.button
+                  type="button"
+                  aria-label="Remove attached media"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => onRemoveMedia(item)}
-                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
+                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5   transition-opacity shadow-sm"
                 >
                   <X className="size-3" />
                 </motion.button>
@@ -856,7 +858,7 @@ export function ComposeCardActions({
             size="sm"
             disabled={isUploading}
             onClick={onAddMedia}
-            className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+            className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
           >
             {isUploading ? (
               <Loader2 className="size-3 animate-spin" />
@@ -875,7 +877,7 @@ export function ComposeCardActions({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+                  className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
                 >
                   {visibility === "public" ? (
                     <Globe className="size-3" />
@@ -898,19 +900,19 @@ export function ComposeCardActions({
           >
             <DropdownMenuItem
               onClick={() => onSetVisibility("public")}
-              className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-medium text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
               <Globe className="size-3.5 text-muted-foreground" /> Public
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onSetVisibility("partners")}
-              className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-medium text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
               <Users className="size-3.5 text-muted-foreground" /> Partners Only
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onSetVisibility("private")}
-              className="font-medium text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+              className="font-medium text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
             >
               <Lock className="size-3.5 text-muted-foreground" /> Private
             </DropdownMenuItem>
@@ -927,7 +929,7 @@ export function ComposeCardActions({
             size="sm"
             disabled={isDisabled}
             focusableWhenDisabled={pendingAction === "draft"}
-            className="px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+            className="px-2.5 sm:px-4 uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -945,7 +947,7 @@ export function ComposeCardActions({
             size="sm"
             disabled={isDisabled}
             focusableWhenDisabled={pendingAction === "publish"}
-            className="sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
+            className="sm:px-5 uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (
               <Loader2 className="size-3 animate-spin" />
@@ -1277,13 +1279,13 @@ function OrgUpdatesTabsSection({
         <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
           <TabsTrigger
             value="published"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             Published
           </TabsTrigger>
           <TabsTrigger
             value="draft"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
           >
             Drafts
             <AnimatePresence>
@@ -1294,7 +1296,7 @@ function OrgUpdatesTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="border-none h-4 px-1 text-[8px] font-semibold">
+                  <Badge className="border-none h-4 px-1 font-semibold">
                     {drafts.length}
                   </Badge>
                 </motion.div>
@@ -1307,7 +1309,7 @@ function OrgUpdatesTabsSection({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+          className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground"
         >
           <Clock className="size-3.5" />
           {lastSynced ? `Last synced: ${lastSynced}` : "Syncing…"}
@@ -1480,7 +1482,7 @@ export default function OrgUpdatesPage() {
               href="/feed"
               className={cn(
                 buttonVariants({ variant: "outline" }),
-                "h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50",
+                "h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-xs shadow-sm hover:bg-zinc-50",
               )}
             >
               <Eye className="mr-2 size-4" />
@@ -1488,7 +1490,7 @@ export default function OrgUpdatesPage() {
             </Link>
             <Button
               variant="outline"
-              className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
+              className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest shadow-sm hover:bg-zinc-50"
               onClick={() =>
                 dispatchUi({ type: "set_settings_open", value: true })
               }

@@ -227,7 +227,7 @@ function TaskRowTitle({
           {task.priority !== "none" && !isCompleted && (
             <Badge
               className={cn(
-                "border text-[9px] font-black uppercase tracking-widest px-1.5 h-4",
+                "border text-xs font-black uppercase tracking-widest px-1.5 h-4",
                 priorityConfig.badgeColor,
               )}
             >
@@ -235,7 +235,7 @@ function TaskRowTitle({
             </Badge>
           )}
           {task.is_auto_generated && !isCompleted && (
-            <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-[9px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
+            <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-xs font-black uppercase tracking-widest px-1.5 h-4 gap-1">
               <Sparkles className="size-2.5" />
               Auto
             </Badge>
@@ -269,7 +269,7 @@ function TaskRowMeta({
           <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer">
             <Avatar className="size-4">
               <AvatarImage src={task.donor.avatar_url || undefined} />
-              <AvatarFallback className="text-[8px] font-bold bg-zinc-200 text-zinc-600">
+              <AvatarFallback className="text-xs font-bold bg-zinc-200 text-zinc-600">
                 {task.donor.name
                   .split(" ")
                   .map((n: string) => n[0])
@@ -277,7 +277,7 @@ function TaskRowMeta({
                   .slice(0, 2)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">
+            <span className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
               {task.donor.name}
             </span>
           </div>
@@ -286,7 +286,7 @@ function TaskRowMeta({
       {dueDateStatus && !isCompleted && (
         <div
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider",
+            "flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs font-bold uppercase tracking-wider",
             dueDateStatus.color,
           )}
         >
@@ -295,14 +295,14 @@ function TaskRowMeta({
         </div>
       )}
       {task.reminder_date && !isCompleted && (
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-bold uppercase tracking-wider">
           <Bell className="size-3" />
           {format(makeDisplayDate(task.reminder_date), "MMM d")}
         </div>
       )}
       <Badge
         className={cn(
-          "border text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
+          "border text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
           statusConfig.color,
         )}
       >

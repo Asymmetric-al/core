@@ -47,15 +47,12 @@ export function BusinessHoursForm({
   onCancel,
 }: BusinessHoursFormProps) {
   const saveHours = useSaveSupportBusinessHours();
-  const [name, setName] = React.useState(
-    hours?.name ?? "Standard support hours",
+  const [draft, dispatch] = React.useReducer(
+    reduceBusinessHoursDraft,
+    hours,
+    createBusinessHoursDraft,
   );
-  const [timezone, setTimezone] = React.useState(hours?.timezone ?? "UTC");
-  const [schedule, setSchedule] = React.useState(
-    hours?.weeklySchedule ?? defaultSchedule(),
-  );
-  const [holidays, setHolidays] = React.useState(hours?.holidays ?? []);
-  const [isDefault, setIsDefault] = React.useState(hours?.isDefault ?? false);
+  const { name, timezone, schedule, holidays, isDefault } = draft;
 
   const isDirty = React.useMemo(
     () =>
@@ -100,7 +97,9 @@ export function BusinessHoursForm({
         <Input
           id="biz-name"
           value={name}
-          onChange={(event) => setName(event.target.value)}
+          onChange={(event) =>
+            dispatch({ type: "name", value: event.target.value })
+          }
           maxLength={60}
         />
       </SettingsRow>
@@ -108,13 +107,15 @@ export function BusinessHoursForm({
         <Input
           id="biz-tz"
           value={timezone}
-          onChange={(event) => setTimezone(event.target.value)}
+          onChange={(event) =>
+            dispatch({ type: "timezone", value: event.target.value })
+          }
           placeholder="America/Chicago"
           maxLength={60}
         />
       </SettingsRow>
       <div className="rounded-xl border border-zinc-100">
-        <div className="border-b border-zinc-100 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+        <div className="border-b border-zinc-100 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
           Weekly schedule
         </div>
         <ul className="flex flex-col divide-y divide-zinc-100">
@@ -132,15 +133,16 @@ export function BusinessHoursForm({
                 key={day}
                 className="flex flex-wrap items-center gap-3 px-3 py-2"
               >
-                <span className="w-24 text-[12px] font-medium capitalize text-zinc-700">
+                <span className="w-24 text-xs font-medium capitalize text-zinc-700">
                   {day}
                 </span>
                 <Switch
                   checked={entry.enabled}
                   onCheckedChange={(value) =>
-                    setSchedule((prev) =>
-                      upsertDay(prev, day, { enabled: value }),
-                    )
+                    dispatch({
+                      type: "schedule",
+                      value: (prev) => upsertDay(prev, day, { enabled: value }),
+                    })
                   }
                   aria-label={`Toggle ${day}`}
                 />
@@ -149,23 +151,27 @@ export function BusinessHoursForm({
                   value={entry.openTime}
                   disabled={!entry.enabled}
                   onChange={(event) =>
-                    setSchedule((prev) =>
-                      upsertDay(prev, day, { openTime: event.target.value }),
-                    )
+                    dispatch({
+                      type: "schedule",
+                      value: (prev) =>
+                        upsertDay(prev, day, { openTime: event.target.value }),
+                    })
                   }
-                  className="h-8 w-27.5 font-mono text-[12px]"
+                  className="h-8 w-27.5 font-mono"
                 />
-                <span className="text-[12px] text-zinc-400">→</span>
+                <span className="text-xs text-zinc-400">→</span>
                 <Input
                   type="time"
                   value={entry.closeTime}
                   disabled={!entry.enabled}
                   onChange={(event) =>
-                    setSchedule((prev) =>
-                      upsertDay(prev, day, { closeTime: event.target.value }),
-                    )
+                    dispatch({
+                      type: "schedule",
+                      value: (prev) =>
+                        upsertDay(prev, day, { closeTime: event.target.value }),
+                    })
                   }
-                  className="h-8 w-27.5 font-mono text-[12px]"
+                  className="h-8 w-27.5 font-mono"
                 />
               </li>
             );
@@ -175,7 +181,7 @@ export function BusinessHoursForm({
 
       <div className="rounded-xl border border-zinc-100">
         <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-2">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+          <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
             Holidays
           </span>
           <Button
@@ -183,23 +189,26 @@ export function BusinessHoursForm({
             variant="ghost"
             size="sm"
             onClick={() =>
-              setHolidays((prev) => [
-                ...prev,
-                {
-                  id: `holiday-${makeDisplayTimestamp()}`,
-                  date: makeDisplayDate().toISOString(),
-                  label: "New holiday",
-                },
-              ])
+              dispatch({
+                type: "holidays",
+                value: (prev) => [
+                  ...prev,
+                  {
+                    id: `holiday-${makeDisplayTimestamp()}`,
+                    date: makeDisplayDate().toISOString(),
+                    label: "New holiday",
+                  },
+                ],
+              })
             }
-            className="h-7 gap-1 rounded-lg px-2 text-[10px] font-bold uppercase tracking-wider"
+            className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
           >
             <Plus className="size-3" />
             Add
           </Button>
         </div>
         {holidays.length === 0 ? (
-          <p className="p-3 text-[12px] text-zinc-500">
+          <p className="p-3 text-xs text-zinc-500">
             No holidays set, business hours apply year-round.
           </p>
         ) : (
@@ -216,33 +225,40 @@ export function BusinessHoursForm({
                     const iso = makeDisplayDate(
                       `${event.target.value}T00:00:00.000Z`,
                     ).toISOString();
-                    setHolidays((prev) =>
-                      prev.map((row, i) =>
-                        i === index ? { ...row, date: iso } : row,
-                      ),
-                    );
+                    dispatch({
+                      type: "holidays",
+                      value: (prev) =>
+                        prev.map((row, i) =>
+                          i === index ? { ...row, date: iso } : row,
+                        ),
+                    });
                   }}
-                  className="h-8 w-40 font-mono text-[12px]"
+                  className="h-8 w-40 font-mono"
                 />
                 <Input
                   value={holiday.label}
                   onChange={(event) =>
-                    setHolidays((prev) =>
-                      prev.map((row, i) =>
-                        i === index
-                          ? { ...row, label: event.target.value }
-                          : row,
-                      ),
-                    )
+                    dispatch({
+                      type: "holidays",
+                      value: (prev) =>
+                        prev.map((row, i) =>
+                          i === index
+                            ? { ...row, label: event.target.value }
+                            : row,
+                        ),
+                    })
                   }
-                  className="h-8 min-w-50 text-[12px]"
+                  className="h-8 min-w-50"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() =>
-                    setHolidays((prev) => prev.filter((_, i) => i !== index))
+                    dispatch({
+                      type: "holidays",
+                      value: (prev) => prev.filter((_, i) => i !== index),
+                    })
                   }
                   aria-label="Remove holiday"
                   className="size-7 text-rose-500 hover:bg-rose-50"
@@ -262,10 +278,10 @@ export function BusinessHoursForm({
         <div className="flex items-center gap-2">
           <Switch
             checked={isDefault}
-            onCheckedChange={setIsDefault}
+            onCheckedChange={(value) => dispatch({ type: "isDefault", value })}
             aria-label="Default business hours"
           />
-          <span className="text-[12px] text-zinc-500">
+          <span className="text-xs text-zinc-500">
             {isDefault ? "Default" : "Not default"}
           </span>
         </div>
@@ -286,7 +302,7 @@ export function BusinessHoursForm({
         ) : (
           <span />
         )}
-        <Label className="inline-flex items-center gap-2 text-[11px] text-zinc-500">
+        <Label className="inline-flex items-center gap-2 text-xs text-zinc-500">
           Times use 24-hour format.
         </Label>
       </div>
@@ -295,21 +311,7 @@ export function BusinessHoursForm({
         isDirty={isDirty}
         isSaving={saveHours.isPending}
         onSave={handleSave}
-        onCancel={() => {
-          if (hours) {
-            setName(hours.name);
-            setTimezone(hours.timezone);
-            setSchedule(hours.weeklySchedule);
-            setHolidays(hours.holidays);
-            setIsDefault(hours.isDefault);
-          } else {
-            setName("Standard support hours");
-            setTimezone("UTC");
-            setSchedule(defaultSchedule());
-            setHolidays([]);
-            setIsDefault(false);
-          }
-        }}
+        onCancel={() => dispatch({ type: "reset", hours })}
       />
     </SettingsPanel>
   );
@@ -345,4 +347,67 @@ function upsertDay(
   return schedule.map((entry) =>
     entry.day === day ? { ...entry, ...patch } : entry,
   );
+}
+
+type BusinessHoursDraft = {
+  name: string;
+  timezone: string;
+  schedule: SupportBusinessHours["weeklySchedule"];
+  holidays: SupportBusinessHours["holidays"];
+  isDefault: boolean;
+};
+type BusinessHoursDraftAction =
+  | { type: "reset"; hours?: SupportBusinessHours | null }
+  | {
+      [Key in keyof BusinessHoursDraft]: {
+        type: Key;
+        value: React.SetStateAction<BusinessHoursDraft[Key]>;
+      };
+    }[keyof BusinessHoursDraft];
+function createBusinessHoursDraft(
+  hours?: SupportBusinessHours | null,
+): BusinessHoursDraft {
+  return {
+    name: hours?.name ?? "Standard support hours",
+    timezone: hours?.timezone ?? "UTC",
+    schedule: hours?.weeklySchedule ?? defaultSchedule(),
+    holidays: hours?.holidays ?? [],
+    isDefault: hours?.isDefault ?? false,
+  };
+}
+function applyDraftValue<T>(current: T, next: React.SetStateAction<T>): T {
+  return typeof next === "function"
+    ? (next as (previous: T) => T)(current)
+    : next;
+}
+function reduceBusinessHoursDraft(
+  state: BusinessHoursDraft,
+  action: BusinessHoursDraftAction,
+): BusinessHoursDraft {
+  switch (action.type) {
+    case "reset":
+      return createBusinessHoursDraft(action.hours);
+    case "name":
+      return { ...state, name: applyDraftValue(state.name, action.value) };
+    case "timezone":
+      return {
+        ...state,
+        timezone: applyDraftValue(state.timezone, action.value),
+      };
+    case "schedule":
+      return {
+        ...state,
+        schedule: applyDraftValue(state.schedule, action.value),
+      };
+    case "holidays":
+      return {
+        ...state,
+        holidays: applyDraftValue(state.holidays, action.value),
+      };
+    case "isDefault":
+      return {
+        ...state,
+        isDefault: applyDraftValue(state.isDefault, action.value),
+      };
+  }
 }

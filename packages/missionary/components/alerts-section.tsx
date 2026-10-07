@@ -28,7 +28,7 @@ export function AlertsSection({ alerts }: AlertsSectionProps) {
           <div className="flex size-9 items-center justify-center rounded-lg bg-rose-50 text-rose-600 border border-rose-100/50">
             <AlertCircle className="size-4.5" />
           </div>
-          <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+          <CardTitle className="text-xs font-bold uppercase tracking-widest text-zinc-400">
             Tactical Alerts
           </CardTitle>
         </div>
@@ -51,12 +51,12 @@ export function AlertsSection({ alerts }: AlertsSectionProps) {
                         : "bg-rose-500"
                   }`}
                 />
-                <span className="text-[11px] font-bold text-zinc-900 uppercase tracking-tight">
+                <span className="text-xs font-bold text-zinc-900 uppercase tracking-tight">
                   {alert.label}
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <Badge className="bg-zinc-100 text-zinc-900 border-none font-bold text-[9px] h-4.5 px-1.5 rounded-md">
+                <Badge className="bg-zinc-100 text-zinc-900 border-none font-bold text-xs h-4.5 px-1.5 rounded-md">
                   {alert.count}
                 </Badge>
                 <ChevronRight className="size-3.5 text-zinc-300 group-hover:text-zinc-900 transition-colors" />

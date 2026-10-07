@@ -66,7 +66,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
       <ComboboxTrigger
         aria-label={title ?? "Filter"}
         render={<Button variant="outline" size="sm" />}
-        className="h-9 rounded-xl border-dashed border-border/70 bg-background px-3 shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50"
+        className="h-9 rounded-xl border-dashed border-border/70 bg-background px-3 hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50"
       >
         <PlusCircle className="mr-2 size-4" />
         {title}
@@ -88,17 +88,19 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
                   {selectedValues.size} selected
                 </Badge>
               ) : (
-                options
-                  .filter((option) => selectedValues.has(option.value))
-                  .map((option) => (
-                    <Badge
-                      variant="secondary"
-                      key={option.value}
-                      className="rounded-lg px-1.5 font-normal"
-                    >
-                      {option.label}
-                    </Badge>
-                  ))
+                options.flatMap((option) =>
+                  selectedValues.has(option.value)
+                    ? [
+                        <Badge
+                          variant="secondary"
+                          key={option.value}
+                          className="rounded-lg px-1.5 font-normal"
+                        >
+                          {option.label}
+                        </Badge>,
+                      ]
+                    : [],
+                )
               )}
             </div>
           </>
@@ -106,7 +108,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
       </ComboboxTrigger>
       <ComboboxContent
         aria-label={title ?? "Filter"}
-        className="w-56 border border-border/60 p-0 shadow-xl"
+        className="w-56 p-0"
         sideOffset={8}
       >
         <InputGroup className="m-2 mb-0 h-10 w-auto rounded-xl border-2 border-border/70 bg-background shadow-none">
@@ -134,7 +136,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
               )}
               <span>{option.label}</span>
               {facets?.get(option.value) && (
-                <span className="ml-auto min-w-6 text-right font-mono text-[11px] font-medium text-muted-foreground/80">
+                <span className="ml-auto min-w-6 text-right font-mono text-xs font-medium text-muted-foreground/80">
                   {facets.get(option.value)}
                 </span>
               )}

@@ -25,7 +25,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
   return (
     <Card className="border-zinc-100 bg-white shadow-sm rounded-xl">
       <CardHeader className="p-5 pb-3 border-b border-zinc-50">
-        <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+        <CardTitle className="text-xs font-bold uppercase tracking-widest text-zinc-400">
           Control Center
         </CardTitle>
       </CardHeader>
@@ -41,7 +41,7 @@ export function QuickActions({ actions }: QuickActionsProps) {
             >
               <action.icon className={`h-4.5 w-4.5 ${action.iconColor}`} />
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 group-hover:text-zinc-900 transition-colors">
+            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 group-hover:text-zinc-900 transition-colors">
               {action.label}
             </span>
           </Link>

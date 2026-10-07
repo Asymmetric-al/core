@@ -38,10 +38,8 @@ export function ConversationContactSidecar({
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-semibold text-zinc-900">
-          {name}
-        </p>
-        <p className="truncate text-[11px] text-zinc-500">
+        <p className="truncate text-xs font-semibold text-zinc-900">{name}</p>
+        <p className="truncate text-xs text-zinc-500">
           <Mail className="mr-1 inline size-3 align-[-2px] text-zinc-400" />
           {conversation.externalContactEmail}
         </p>

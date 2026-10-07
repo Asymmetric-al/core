@@ -52,7 +52,7 @@ export function EmailStudioMergeTagMenu({
             className=""
             disabled={disabled}
           >
-            <Braces className="h-3.5 w-3.5" />
+            <Braces className="size-3.5" />
             Merge tag
           </Button>
         }
@@ -62,7 +62,7 @@ export function EmailStudioMergeTagMenu({
           <DropdownMenuLabel>Insert merge tag</DropdownMenuLabel>
           <div className="px-2 pb-2">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-2.5 top-2.5 text-muted-foreground size-3.5" />
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}

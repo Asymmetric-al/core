@@ -2,6 +2,13 @@ import { spawn } from "node:child_process";
 import { createHash, X509Certificate } from "node:crypto";
 import {
   closeSync,
+  copyFileSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
   constants,
   fstatSync,
   openSync,
@@ -11,6 +18,7 @@ import {
   realpathSync,
   statSync,
 } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { stripVTControlCharacters } from "node:util";
@@ -44,6 +52,33 @@ export const SHADCN_REQUIRED_SUPPORTING_SOURCES = Object.freeze([
   "packages/ui/lib/utils.ts",
   "packages/ui/styles/globals.css",
 ]);
+// These seven public seams intentionally separate React implementations from
+// CVA utilities. The editable baseline cannot omit or redirect their modules.
+export const SHADCN_SOURCE_MAPPINGS = Object.freeze(
+  [
+    "badge",
+    "button",
+    "button-group",
+    "combobox",
+    "navigation-menu",
+    "tabs",
+    "toggle",
+  ].map((name) =>
+    Object.freeze({
+      name,
+      registryPath: `components/shadcn/${name}.tsx`,
+      entrypoint: `components/shadcn/${name}.ts`,
+      implementation: `components/shadcn/${name}-component.tsx`,
+      support: `components/shadcn/${name}-variants.ts`,
+    }),
+  ),
+);
+export const SHADCN_MAPPED_SUPPORTING_SOURCES = Object.freeze(
+  SHADCN_SOURCE_MAPPINGS.flatMap(({ entrypoint, support }) =>
+    [entrypoint, support].map((file) => `packages/ui/${file}`),
+  ).sort(),
+);
+
 const UI_DIRECTORY = "packages/ui";
 const COMPONENT_DIRECTORY = "components/shadcn";
 const PREVIEW_END = "└ Run without --dry-run to apply.";
@@ -362,7 +397,12 @@ export function createCliRunner({
   root = fileURLToPath(new URL("../..", import.meta.url)),
   command = process.execPath,
   prefix,
+  timeoutMs = 120_000,
 }) {
+  requireCondition(
+    Number.isSafeInteger(timeoutMs) && timeoutMs > 0 && timeoutMs <= 120_000,
+    "Invalid shadcn CLI coverage timeout",
+  );
   // Execute the frozen project dependency; parallel registry reads must not
   // race a package installer or depend on an undeclared global/cache CLI.
   const cliPrefix = prefix ?? [installedCliEntry(root)];
@@ -399,26 +439,40 @@ export function createCliRunner({
       });
       let stdout = "";
       let bytes = 0;
-      const timeout = setTimeout(() => {
+      let terminationError;
+      let forceKill;
+      const terminate = (error) => {
+        if (terminationError) return;
+        terminationError = error;
+        clearTimeout(timeout);
         child.kill();
-        reject(new Error("shadcn CLI coverage timed out"));
-      }, 120_000);
-      // Do not echo registry/config details or inherit provider credentials.
+        forceKill = setTimeout(() => child.kill("SIGKILL"), 1000);
+      };
+      const timeout = setTimeout(() => {
+        terminate(new Error("shadcn CLI coverage timed out"));
+      }, timeoutMs);
+      // Settle after close so source views outlive every CLI reader, including
+      // a process that takes time to exit after receiving termination.
       child.stderr.resume();
       child.stdout.on("data", (chunk) => {
         bytes += chunk.length;
         if (bytes > 4_000_000) {
-          child.kill();
-          reject(new Error("shadcn CLI coverage exceeded the output limit"));
-        } else stdout += chunk;
+          terminate(new Error("shadcn CLI coverage exceeded the output limit"));
+        } else if (!terminationError) stdout += chunk;
       });
       child.on("error", () => {
-        clearTimeout(timeout);
-        reject(new Error("Unable to start the pinned shadcn CLI"));
+        const error = new Error("Unable to start the pinned shadcn CLI");
+        if (child.pid === undefined) {
+          clearTimeout(timeout);
+          clearTimeout(forceKill);
+          reject(error);
+        } else terminate(error);
       });
       child.on("close", (code) => {
         clearTimeout(timeout);
-        if (code !== 0)
+        clearTimeout(forceKill);
+        if (terminationError) reject(terminationError);
+        else if (code !== 0)
           reject(
             new Error(`shadcn CLI coverage failed (exit ${code ?? "unknown"})`),
           );
@@ -529,13 +583,16 @@ function verifyReviewProofs(root, baseline) {
   }
 }
 
-export async function runUpstreamReview({
+async function runUpstreamReviewInView({
   root,
   baseline,
-  runCli = createCliRunner({ root, cwd: path.join(root, UI_DIRECTORY) }),
+  runCli,
+  previewRoot = root,
+  mappings = [],
 }) {
   requireCondition(
-    baseline?.schemaVersion === 2 && baseline.cliVersion === SHADCN_CLI_VERSION,
+    [2, 3].includes(baseline?.schemaVersion) &&
+      baseline.cliVersion === SHADCN_CLI_VERSION,
     "Unsupported shadcn version or baseline coverage",
   );
   const version = normalizePreview(await runCli(["--version"])).trim();
@@ -576,8 +633,13 @@ export async function runUpstreamReview({
     .filter((entry) => entry.isFile() && /\.(tsx?|jsx?)$/.test(entry.name))
     .map((entry) => `${COMPONENT_DIRECTORY}/${entry.name}`)
     .sort();
+  const sourceByRegistry = new Map(
+    mappings.map((mapping) => [mapping.registryPath, mapping.implementation]),
+  );
   const stock = components.map(
-    (component) => `${COMPONENT_DIRECTORY}/${component}.tsx`,
+    (component) =>
+      sourceByRegistry.get(`${COMPONENT_DIRECTORY}/${component}.tsx`) ??
+      `${COMPONENT_DIRECTORY}/${component}.tsx`,
   );
   requireCondition(
     stock.every((file) => direct.includes(file)),
@@ -616,7 +678,10 @@ export async function runUpstreamReview({
       baseline.protectedSources?.map((entry) => entry.path),
       "supporting source",
     ),
-    SHADCN_REQUIRED_SUPPORTING_SOURCES,
+    [
+      ...SHADCN_REQUIRED_SUPPORTING_SOURCES,
+      ...(baseline.schemaVersion === 3 ? SHADCN_MAPPED_SUPPORTING_SOURCES : []),
+    ].sort(),
     "Supporting source coverage",
   );
   verifyReviewProofs(root, baseline);
@@ -635,7 +700,11 @@ export async function runUpstreamReview({
       `Local adapter ${entry.path}`,
     );
   const previews = await mapTwo(components, async (component) =>
-    parseDryRun(await runCli(["add", component, "--dry-run"]), component, root),
+    parseDryRun(
+      await runCli(["add", component, "--dry-run"]),
+      component,
+      previewRoot,
+    ),
   );
   compare(
     previews,
@@ -674,7 +743,9 @@ export async function runUpstreamReview({
       `Diff owners for ${entry.path}`,
     );
     compare(
-      sourceHash(readSource(root, `${UI_DIRECTORY}/${entry.path}`)),
+      sourceHash(
+        readSource(root, `${UI_DIRECTORY}/${entry.localPath ?? entry.path}`),
+      ),
       entry.localSha256,
       `Local source ${entry.path}`,
     );
@@ -685,7 +756,7 @@ export async function runUpstreamReview({
       entry.path,
     ]);
     compare(
-      parseFileDiff(diff, entry.diffComponent, entry.path, root),
+      parseFileDiff(diff, entry.diffComponent, entry.path, previewRoot),
       entry.diffSha256,
       `Upstream diff ${entry.path}`,
     );
@@ -696,6 +767,183 @@ export async function runUpstreamReview({
     localAdapters: localOnly.length,
     toolkitDirectories: baseline.excludedDirectories.length,
   };
+}
+
+export function validateSourceMappings(root, baseline) {
+  requireCondition(
+    [2, 3].includes(baseline?.schemaVersion) &&
+      baseline.cliVersion === SHADCN_CLI_VERSION,
+    "Unsupported shadcn version or baseline coverage",
+  );
+  if (baseline.schemaVersion === 2) {
+    requireCondition(
+      !SHADCN_SOURCE_MAPPINGS.some((mapping) =>
+        [mapping.entrypoint, mapping.implementation, mapping.support].some(
+          (file) => existsSync(path.join(root, UI_DIRECTORY, file)),
+        ),
+      ),
+      "Legacy baseline cannot omit split component upstream coverage",
+    );
+    requireCondition(
+      !baseline.sourceMappings?.length,
+      "Legacy baseline cannot declare split component mappings",
+    );
+    requireCondition(
+      baseline.files.every((entry) => entry.localPath === undefined),
+      "Legacy baseline cannot redirect canonical component sources",
+    );
+    return [];
+  }
+  compare(
+    baseline.sourceMappings,
+    SHADCN_SOURCE_MAPPINGS,
+    "Split component mapping coverage",
+  );
+  const exports = parseJson(
+    readSource(root, `${UI_DIRECTORY}/package.json`),
+    "UI package",
+  ).exports;
+  for (const mapping of SHADCN_SOURCE_MAPPINGS) {
+    requireCondition(
+      baseline.components.some((entry) => entry.name === mapping.name),
+      `Mapped component omitted: ${mapping.name}`,
+    );
+    requireCondition(
+      !existsSync(path.join(root, UI_DIRECTORY, mapping.registryPath)),
+      `Ambiguous canonical component source: ${mapping.registryPath}`,
+    );
+    compare(
+      exports?.[`./components/shadcn/${mapping.name}`],
+      `./${mapping.entrypoint}`,
+      `Public component export ${mapping.name}`,
+    );
+    for (const file of [
+      mapping.entrypoint,
+      mapping.implementation,
+      mapping.support,
+    ]) {
+      try {
+        readSource(root, `${UI_DIRECTORY}/${file}`);
+      } catch {
+        throw new Error(`Missing split component source: ${file}`);
+      }
+    }
+  }
+  for (const file of baseline.files) {
+    const mapping = SHADCN_SOURCE_MAPPINGS.find(
+      (entry) => entry.registryPath === file.path,
+    );
+    compare(
+      file.localPath,
+      mapping?.implementation ?? file.path,
+      `Canonical source mapping ${file.path}`,
+    );
+  }
+  return SHADCN_SOURCE_MAPPINGS;
+}
+
+export function createUpstreamSourceView(root, mappings) {
+  const view = mkdtempSync(path.join(os.tmpdir(), "core-shadcn-source-"));
+  const dispose = () => rmSync(view, { recursive: true, force: true });
+  try {
+    const copy = (source, target) => {
+      const metadata = lstatSync(source);
+      requireCondition(
+        !metadata.isSymbolicLink(),
+        "UI source view cannot copy source symlinks",
+      );
+      if (metadata.isDirectory()) {
+        mkdirSync(target, { recursive: true });
+        for (const entry of readdirSync(source)) {
+          if (
+            entry.startsWith(".env") ||
+            [
+              "node_modules",
+              ".next",
+              "dist",
+              "coverage",
+              "private",
+              "secrets",
+              "credentials",
+            ].includes(entry)
+          )
+            continue;
+          copy(path.join(source, entry), path.join(target, entry));
+        }
+      } else if (metadata.isFile()) {
+        mkdirSync(path.dirname(target), { recursive: true });
+        copyFileSync(source, target);
+      }
+    };
+    for (const file of [
+      "package.json",
+      "bun.lock",
+      "tsconfig.json",
+      "tsconfig.base.json",
+    ])
+      if (existsSync(path.join(root, file)))
+        copy(path.join(root, file), path.join(view, file));
+    const ui = path.join(root, UI_DIRECTORY),
+      copiedUi = path.join(view, UI_DIRECTORY);
+    for (const file of [
+      "package.json",
+      "components.json",
+      "tsconfig.json",
+      "components",
+      "lib",
+      "hooks",
+      "styles",
+    ])
+      if (existsSync(path.join(ui, file)))
+        copy(path.join(ui, file), path.join(copiedUi, file));
+    for (const directory of ["", UI_DIRECTORY]) {
+      const modules = path.join(root, directory, "node_modules");
+      if (existsSync(modules)) {
+        const target = path.join(view, directory, "node_modules");
+        mkdirSync(path.dirname(target), { recursive: true });
+        symlinkSync(
+          modules,
+          target,
+          process.platform === "win32" ? "junction" : "dir",
+        );
+      }
+    }
+    for (const mapping of mappings) {
+      const canonical = path.join(copiedUi, mapping.registryPath);
+      requireCondition(
+        !existsSync(canonical),
+        `Ambiguous projected source: ${mapping.registryPath}`,
+      );
+      copy(path.join(ui, mapping.implementation), canonical);
+    }
+    return { root: view, cwd: copiedUi, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
+}
+
+export async function runUpstreamReview({ root, baseline, runCli }) {
+  const mappings = validateSourceMappings(root, baseline);
+  let view;
+  try {
+    if (mappings.length) view = createUpstreamSourceView(root, mappings);
+    const runner =
+      runCli ??
+      createCliRunner({
+        root,
+        cwd: view?.cwd ?? path.join(root, UI_DIRECTORY),
+      });
+    return await runUpstreamReviewInView({
+      root,
+      baseline,
+      runCli: runner,
+      previewRoot: view?.root ?? root,
+      mappings,
+    });
+  } finally {
+    view?.dispose();
+  }
 }
 
 async function main() {

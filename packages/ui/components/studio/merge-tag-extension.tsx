@@ -3,11 +3,6 @@ import { mergeAttributes } from "@tiptap/core";
 
 export const MERGE_TAG_NODE_NAME = "mergeTag";
 
-export interface MergeTagNodeAttributes {
-  key: string;
-  label?: string | null;
-}
-
 function normalizeKey(value: unknown): string {
   return typeof value === "string" && value.trim() ? value.trim() : "unknown";
 }

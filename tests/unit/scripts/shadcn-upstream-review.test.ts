@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -16,6 +17,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   createCliRunner,
+  createUpstreamSourceView,
+  validateSourceMappings,
+  SHADCN_SOURCE_MAPPINGS,
+  SHADCN_MAPPED_SUPPORTING_SOURCES,
   normalizePreview,
   parseDryRun,
   parseFileDiff,
@@ -1185,4 +1190,320 @@ G1IJUv6oiGF/MvWCr84REVgc1j78xomGANJIu2hN7bnD1nEMON6em8IfnDOUtynV
       },
     );
   });
+});
+
+function splitFixture() {
+  const input = fixture();
+  const write = (file: string, content: string) => {
+    const target = path.join(input.root, file);
+    mkdirSync(path.dirname(target), { recursive: true });
+    writeFileSync(target, content);
+  };
+  const hash = (file: string) =>
+    sourceHash(readFileSync(path.join(input.root, file), "utf8"));
+  const sourceMappings = structuredClone(SHADCN_SOURCE_MAPPINGS);
+  const exports: Record<string, string> = {};
+  for (const mapping of sourceMappings) {
+    rmSync(path.join(input.root, "packages/ui", mapping.registryPath), {
+      force: true,
+    });
+    write(
+      `packages/ui/${mapping.entrypoint}`,
+      `export { Split } from "./${mapping.name}-component";\n`,
+    );
+    write(
+      `packages/ui/${mapping.implementation}`,
+      "export const Split = 'Core';\n",
+    );
+    write(`packages/ui/${mapping.support}`, "export const style = 'Core';\n");
+    exports[`./components/shadcn/${mapping.name}`] = `./${mapping.entrypoint}`;
+  }
+  write("packages/ui/package.json", JSON.stringify({ exports }));
+  const names = [
+    ...new Set([
+      ...input.baseline.components.map((x) => x.name),
+      ...sourceMappings.map((x) => x.name),
+    ]),
+  ].sort();
+  const review = {
+    reason: input.baseline.files[0].reason,
+    proofs: input.baseline.files[0].proofs,
+  };
+  const previews = Object.fromEntries(
+    names.map((name) => [
+      name,
+      preview(
+        name,
+        name === "dialog"
+          ? ["components/shadcn/button.tsx", "components/shadcn/dialog.tsx"]
+          : undefined,
+      ),
+    ]),
+  );
+  const files = names.map((name) => {
+    const registryPath = `components/shadcn/${name}.tsx`;
+    const mapping = sourceMappings.find((x) => x.name === name);
+    const localPath = mapping?.implementation ?? registryPath;
+    return {
+      path: registryPath,
+      localPath,
+      diffComponent: name,
+      owners: name === "button" ? ["button", "dialog"] : [name],
+      localSha256: hash(`packages/ui/${localPath}`),
+      diffSha256: parseFileDiff(diff(name), name, registryPath, input.root),
+      ...review,
+    };
+  });
+  const baseline = {
+    ...input.baseline,
+    schemaVersion: 3,
+    sourceMappings,
+    components: names.map((name) =>
+      parseDryRun(previews[name], name, input.root),
+    ),
+    files,
+    localOnly: [
+      "components/shadcn/toolbar.tsx",
+      ...sourceMappings.flatMap((x) => [x.entrypoint, x.support]),
+    ]
+      .sort()
+      .map((file) => ({
+        path: file,
+        localSha256: hash(`packages/ui/${file}`),
+        ...review,
+      })),
+    protectedSources: [
+      ...SHADCN_REQUIRED_SUPPORTING_SOURCES,
+      ...SHADCN_MAPPED_SUPPORTING_SOURCES,
+    ]
+      .sort()
+      .map((file) => ({ path: file, localSha256: hash(file), ...review })),
+  };
+  const runCli = vi.fn(async (args: string[]) => {
+    if (args[0] === "--version") return SHADCN_CLI_VERSION;
+    if (args[0] === "info")
+      return JSON.stringify({
+        config: { base: "base", style: "base-maia" },
+        components: names,
+      });
+    if (args[2] === "--dry-run") return previews[args[1]];
+    if (args[2] === "--diff") return diff(args[1], args[3]);
+    throw new Error("Unexpected CLI mutation");
+  });
+  return { ...input, baseline, runCli, sourceMappings };
+}
+
+function sourceViewNames() {
+  return readdirSync(tmpdir())
+    .filter((name) => name.startsWith("core-shadcn-source-"))
+    .sort();
+}
+
+describe("split TypeScript public component review", () => {
+  it("reviews the complete canonical inventory and all facade/variant modules", async () => {
+    const input = splitFixture();
+    await expect(runUpstreamReview(input)).resolves.toEqual({
+      components: 8,
+      files: 8,
+      localAdapters: 15,
+      toolkitDirectories: 1,
+    });
+  });
+  it.each(["entrypoint", "implementation", "support"] as const)(
+    "rejects a missing mapped %s",
+    async (kind) => {
+      const input = splitFixture();
+      rmSync(
+        path.join(input.root, "packages/ui", input.sourceMappings[0][kind]),
+      );
+      await expect(runUpstreamReview(input)).rejects.toThrow(
+        /Missing split component source/,
+      );
+    },
+  );
+  it.each(["entrypoint", "implementation", "support"] as const)(
+    "rejects independently changed %s bytes",
+    async (kind) => {
+      const input = splitFixture();
+      writeFileSync(
+        path.join(input.root, "packages/ui", input.sourceMappings[0][kind]),
+        "unreviewed source\n",
+      );
+      await expect(runUpstreamReview(input)).rejects.toThrow(/changed/);
+    },
+  );
+  it.each(["missing", "duplicate", "unknown", "redirected"])(
+    "rejects %s mapping coverage",
+    async (kind) => {
+      const input = splitFixture();
+      if (kind === "missing") input.baseline.sourceMappings.pop();
+      if (kind === "duplicate")
+        input.baseline.sourceMappings[0] = input.baseline.sourceMappings[1];
+      if (kind === "unknown") input.baseline.sourceMappings[0].name = "unknown";
+      if (kind === "redirected")
+        input.baseline.sourceMappings[0].implementation = "../other.tsx";
+      await expect(runUpstreamReview(input)).rejects.toThrow(
+        /mapping coverage/,
+      );
+    },
+  );
+  it("rejects package export redirection", async () => {
+    const input = splitFixture();
+    const manifest = path.join(input.root, "packages/ui/package.json");
+    const value = JSON.parse(readFileSync(manifest, "utf8"));
+    value.exports["./components/shadcn/button"] =
+      "./components/shadcn/button-component.tsx";
+    writeFileSync(manifest, JSON.stringify(value));
+    await expect(runUpstreamReview(input)).rejects.toThrow(
+      /Public component export button/,
+    );
+  });
+  it("rejects a competing canonical .tsx beside the public .ts entrypoint", async () => {
+    const input = splitFixture();
+    writeFileSync(
+      path.join(
+        input.root,
+        "packages/ui",
+        input.sourceMappings[0].registryPath,
+      ),
+      "ambiguous\n",
+    );
+    await expect(runUpstreamReview(input)).rejects.toThrow(
+      /Ambiguous canonical/,
+    );
+  });
+  it.each(["ts", "tsx"])(
+    "rejects an unreviewed extra direct .%s source",
+    async (ext) => {
+      const input = splitFixture();
+      writeFileSync(
+        path.join(input.root, `packages/ui/components/shadcn/extra.${ext}`),
+        "extra\n",
+      );
+      await expect(runUpstreamReview(input)).rejects.toThrow(
+        /Local adapter coverage/,
+      );
+    },
+  );
+  it("rejects omitting a mapped component from canonical inventory", async () => {
+    const input = splitFixture();
+    input.baseline.components = input.baseline.components.filter(
+      (x) => x.name !== "button",
+    );
+    await expect(runUpstreamReview(input)).rejects.toThrow(
+      /Mapped component omitted: button/,
+    );
+  });
+  it("keeps projected canonical bytes exact and leaves source/index untouched", () => {
+    const input = splitFixture();
+    mkdirSync(path.join(input.root, ".git"));
+    writeFileSync(path.join(input.root, ".git/index"), "owned index\n");
+    const before = input.sourceMappings.map((m) =>
+      readFileSync(
+        path.join(input.root, "packages/ui", m.implementation),
+        "utf8",
+      ),
+    );
+    const view = createUpstreamSourceView(
+      input.root,
+      validateSourceMappings(input.root, input.baseline),
+    );
+    try {
+      for (const [i, m] of input.sourceMappings.entries())
+        expect(readFileSync(path.join(view.cwd, m.registryPath), "utf8")).toBe(
+          before[i],
+        );
+      expect(existsSync(path.join(view.root, ".git"))).toBe(false);
+      expect(readFileSync(path.join(input.root, ".git/index"), "utf8")).toBe(
+        "owned index\n",
+      );
+      for (const [i, m] of input.sourceMappings.entries()) {
+        expect(
+          readFileSync(
+            path.join(input.root, "packages/ui", m.implementation),
+            "utf8",
+          ),
+        ).toBe(before[i]);
+        expect(
+          existsSync(path.join(input.root, "packages/ui", m.registryPath)),
+        ).toBe(false);
+      }
+    } finally {
+      view.dispose();
+    }
+    expect(existsSync(view.root)).toBe(false);
+  });
+  it("cleans a failed source view only after both in-flight preview reads finish", async () => {
+    const input = splitFixture(),
+      original = input.runCli.getMockImplementation()!,
+      before = sourceViewNames();
+    let active = 0;
+    input.runCli.mockImplementation(async (args) => {
+      if (args[2] !== "--dry-run") return original(args);
+      active++;
+      await new Promise((resolve) =>
+        setTimeout(resolve, args[1] === "badge" ? 2 : 8),
+      );
+      active--;
+      if (args[1] === "badge") throw new Error("preview failed");
+      return original(args);
+    });
+    await expect(runUpstreamReview(input)).rejects.toThrow(/preview failed/);
+    expect(active).toBe(0);
+    expect(sourceViewNames()).toEqual(before);
+  });
+  it("does not permit legacy baselines to redirect source hashes", async () => {
+    const input = fixture();
+    Reflect.set(
+      input.baseline.files[0],
+      "localPath",
+      "components/shadcn/toolbar.tsx",
+    );
+    await expect(runUpstreamReview(input)).rejects.toThrow(
+      /Legacy baseline cannot redirect/,
+    );
+  });
+});
+
+it.skipIf(process.platform === "win32")(
+  "waits for delayed CLI process close before source-view cleanup",
+  async () => {
+    const input = splitFixture(),
+      view = createUpstreamSourceView(input.root, input.sourceMappings);
+    const marker = path.join(input.root, "exited.json"),
+      script = path.join(input.root, "delayed-cli.cjs");
+    const canonical = path.join(view.cwd, input.sourceMappings[0].registryPath);
+    writeFileSync(
+      script,
+      `const fs=require('node:fs');process.on('SIGTERM',()=>setTimeout(()=>{fs.writeFileSync(process.argv[3],JSON.stringify({readable:fs.existsSync(process.argv[2])}));process.exit(0)},50));setInterval(()=>{},1000);`,
+    );
+    const run = createCliRunner({
+      cwd: view.cwd,
+      root: input.root,
+      prefix: [script, canonical, marker],
+      timeoutMs: 1000,
+    });
+    try {
+      await expect(run([])).rejects.toThrow("shadcn CLI coverage timed out");
+    } finally {
+      view.dispose();
+    }
+    expect(JSON.parse(readFileSync(marker, "utf8"))).toEqual({
+      readable: true,
+    });
+    expect(existsSync(view.root)).toBe(false);
+  },
+);
+
+it("rejects downgrading a split source tree to a reduced legacy registry inventory", async () => {
+  const input = splitFixture();
+  const baseline = { ...input.baseline, schemaVersion: 2 };
+  Reflect.deleteProperty(baseline, "sourceMappings");
+  for (const file of baseline.files) Reflect.deleteProperty(file, "localPath");
+  baseline.components = baseline.components.filter(
+    (x) => !SHADCN_SOURCE_MAPPINGS.some((m) => m.name === x.name),
+  );
+  await expect(runUpstreamReview({ ...input, baseline })).rejects.toThrow(
+    /Legacy baseline cannot omit split component upstream coverage/,
+  );
 });

@@ -164,10 +164,10 @@ function ConversationNotFound({ onClose }: ConversationNotFoundProps) {
       <div className="flex size-12 items-center justify-center rounded-2xl bg-rose-50 ring-1 ring-rose-100">
         <MessageSquareWarning className="size-5 text-rose-400" />
       </div>
-      <p className="text-[13px] font-semibold text-zinc-900">
+      <p className="text-xs font-semibold text-zinc-900">
         Conversation not found
       </p>
-      <p className="max-w-xs text-[12px] text-zinc-500">
+      <p className="max-w-xs text-xs text-zinc-500">
         It may have been resolved or removed. Head back to the inbox to pick
         another conversation.
       </p>

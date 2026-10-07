@@ -93,7 +93,7 @@ export function CannedResponseForm({
           onChange={(event) => setShortCode(event.target.value)}
           maxLength={40}
           placeholder="receipt"
-          className="font-mono text-[12px]"
+          className="font-mono"
         />
       </SettingsRow>
       <SettingsRow
@@ -104,7 +104,7 @@ export function CannedResponseForm({
           value={bodyText}
           onChange={(event) => setBodyText(event.target.value)}
           rows={8}
-          className="text-[12px]"
+          className=""
         />
       </SettingsRow>
       <SettingsRow label="Merge variables">
@@ -112,7 +112,7 @@ export function CannedResponseForm({
           {SUPPORTED_MERGE_VARIABLES.map((token) => (
             <li
               key={token}
-              className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500"
+              className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-xs text-zinc-500"
             >
               {token}
             </li>

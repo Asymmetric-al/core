@@ -31,9 +31,9 @@ export function SettingsPanel({
     >
       <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h2 className="text-[13px] font-semibold text-zinc-900">{title}</h2>
+          <h2 className="text-xs font-semibold text-zinc-900">{title}</h2>
           {description ? (
-            <p className="text-[12px] text-zinc-500">{description}</p>
+            <p className="text-xs text-zinc-500">{description}</p>
           ) : null}
         </div>
         {actions ? (

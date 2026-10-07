@@ -32,7 +32,9 @@ beforeAll(async () => {
 });
 
 vi.mock("@asym/ui/components/shadcn/alert", () => ({
-  Alert: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+  Alert: ({ children }: React.PropsWithChildren) => (
+    <div role="alert">{children}</div>
+  ),
   AlertDescription: ({ children }: React.PropsWithChildren) => (
     <p>{children}</p>
   ),
@@ -64,11 +66,13 @@ vi.mock("@asym/ui/components/shadcn/alert-dialog", () => ({
   ),
   AlertDialogTrigger: ({
     onClick,
+    disabled,
     render: trigger,
   }: {
     onClick?: React.MouseEventHandler<HTMLButtonElement>;
+    disabled?: boolean;
     render: React.ReactElement<React.ButtonHTMLAttributes<HTMLButtonElement>>;
-  }) => React.cloneElement(trigger, { onClick }),
+  }) => React.cloneElement(trigger, { onClick, disabled }),
 }));
 
 vi.mock("@asym/ui/components/shadcn/badge", () => ({
@@ -347,4 +351,91 @@ describe("Eve admin-memory category controls", () => {
       }),
     );
   });
+});
+
+it.each(["success", "failure"] as const)(
+  "announces a pending memory mutation and its %s without losing the draft",
+  async (outcome) => {
+    let finishMutation: (value: {
+      ok: boolean;
+      json: () => Promise<unknown>;
+    }) => void = () => {};
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) =>
+      init?.method
+        ? new Promise<{ ok: boolean; json: () => Promise<unknown> }>(
+            (resolve) => {
+              finishMutation = resolve;
+            },
+          )
+        : Promise.resolve(response(createView(1))),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+    await screen.findByRole("button", { name: "Edit" });
+    fireEvent.change(screen.getByLabelText("Title"), {
+      target: { value: "Project convention" },
+    });
+    fireEvent.change(screen.getByLabelText("Advisory context"), {
+      target: { value: "Use the shared design system." },
+    });
+    const add = screen.getByRole("button", { name: "Add private memory" });
+    fireEvent.click(add);
+    const status = await screen.findByText("Saving private memory change…");
+    expect(status.closest('[aria-busy="true"]')).toBeNull();
+    expect(status.getAttribute("aria-live")).toBe("polite");
+    expect(add.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(add);
+    expect(getMutationBodies(fetchMock)).toHaveLength(1);
+    await act(async () =>
+      finishMutation(
+        outcome === "success"
+          ? response(createView(2))
+          : { ok: false, json: async () => ({ error: "Memory save failed" }) },
+      ),
+    );
+    if (outcome === "success") {
+      await screen.findByText("Private memory change saved.");
+      expect((screen.getByLabelText("Title") as HTMLInputElement).value).toBe(
+        "",
+      );
+    } else {
+      const error = await screen.findByText("Memory save failed");
+      expect(error.closest('[role="alert"]')).not.toBeNull();
+      expect(screen.getAllByText("Memory save failed")).toHaveLength(1);
+      expect((screen.getByLabelText("Title") as HTMLInputElement).value).toBe(
+        "Project convention",
+      );
+      expect(add.hasAttribute("disabled")).toBe(false);
+    }
+  },
+);
+
+it("blocks duplicate delete requests while preserving the captured version", async () => {
+  let finishDelete: (value: ReturnType<typeof response>) => void = () => {};
+  const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) =>
+    init?.method
+      ? new Promise<ReturnType<typeof response>>((resolve) => {
+          finishDelete = resolve;
+        })
+      : Promise.resolve(response(createView(1))),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  renderPanel();
+  const trigger = await screen.findByRole("button", { name: "Delete" });
+  fireEvent.click(trigger);
+  const confirm = screen.getByRole("button", { name: "Confirm delete" });
+  fireEvent.click(confirm);
+  await screen.findByText("Saving private memory change…");
+  expect(confirm.hasAttribute("disabled")).toBe(true);
+  expect(trigger.hasAttribute("disabled")).toBe(true);
+  fireEvent.click(confirm);
+  fireEvent.click(trigger);
+  expect(getMutationBodies(fetchMock)).toEqual([
+    { entryId: "entry-1", expectedVersion: 1 },
+  ]);
+  await act(async () =>
+    finishDelete(response({ ...createView(2), entries: [] })),
+  );
+  await screen.findByText("Private memory change saved.");
+  expect(screen.queryByRole("button", { name: "Delete" })).toBeNull();
 });

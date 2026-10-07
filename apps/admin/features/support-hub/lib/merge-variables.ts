@@ -31,9 +31,6 @@ export const SUPPORTED_MERGE_VARIABLES = [
   "{{agent.title}}",
 ] as const;
 
-export type SupportMergeVariableToken =
-  (typeof SUPPORTED_MERGE_VARIABLES)[number];
-
 const TOKEN_PATTERN = /\{\{\s*([\w.]+)\s*\}\}/g;
 
 /**

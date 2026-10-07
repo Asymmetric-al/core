@@ -70,13 +70,13 @@ export function FinancialsPageClient() {
   }, []);
 
   return (
-    <div className="bg-zinc-50 min-h-screen pt-20">
+    <div className="bg-zinc-50 min-h-dvh pt-20">
       <section className="bg-white py-24 border-b border-zinc-200">
         <div className="container mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold uppercase tracking-widest mb-6 border border-emerald-100">
             <ShieldCheck className="size-4" /> Radical Transparency
           </div>
-          <h1 className="text-5xl md:text-6xl font-semibold tracking-tighter text-zinc-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-semibold tracking-normal text-zinc-900 mb-6">
             Financial Integrity
           </h1>
           <p className="text-xl md:text-2xl text-zinc-500 max-w-3xl mx-auto font-light leading-relaxed text-balance">
@@ -89,7 +89,7 @@ export function FinancialsPageClient() {
       <section className="py-24 container mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <Card className="shadow-2xl shadow-zinc-200/50 border-none overflow-hidden rounded-3xl bg-white relative">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 via-zinc-500 to-zinc-300" />
+            <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-emerald-500 via-zinc-500 to-zinc-300" />
             <CardHeader className="pt-8 px-8 pb-2">
               <CardTitle className="text-2xl font-semibold text-zinc-900">
                 Expense Allocation

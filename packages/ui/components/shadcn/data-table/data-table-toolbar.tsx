@@ -70,6 +70,7 @@ export function DataTableToolbar<TData extends RowData>({
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
+              aria-label={searchPlaceholder}
               placeholder={searchPlaceholder}
               value={
                 (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""

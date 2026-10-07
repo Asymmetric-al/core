@@ -43,6 +43,23 @@ import {
   type OfflineGiftFormValues,
 } from "./offline-gift-form-model";
 
+const modeToggleOptions: {
+  mode: OfflineGiftFormValues["donorMode"];
+  label: string;
+  hint: string;
+}[] = [
+  {
+    mode: "known",
+    label: "Known donor",
+    hint: "Staff has the donor's identity",
+  },
+  {
+    mode: "unknown_offline",
+    label: "Unknown / anonymous",
+    hint: "Cash gift with no donor",
+  },
+];
+
 const LABEL_CLASS =
   "text-[9px] font-bold uppercase tracking-widest text-muted-foreground";
 
@@ -373,23 +390,6 @@ function ModeToggle({
   value: OfflineGiftFormValues["donorMode"];
   onChange: (mode: OfflineGiftFormValues["donorMode"]) => void;
 }) {
-  const options: {
-    mode: OfflineGiftFormValues["donorMode"];
-    label: string;
-    hint: string;
-  }[] = [
-    {
-      mode: "known",
-      label: "Known donor",
-      hint: "Staff has the donor's identity",
-    },
-    {
-      mode: "unknown_offline",
-      label: "Unknown / anonymous",
-      hint: "Cash gift with no donor",
-    },
-  ];
-
   return (
     <fieldset>
       <legend className={cn(LABEL_CLASS, "mb-2")}>Donor</legend>
@@ -403,7 +403,7 @@ function ModeToggle({
         spacing={2}
         className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2"
       >
-        {options.map((option) => {
+        {modeToggleOptions.map((option) => {
           const active = option.mode === value;
           return (
             <ToggleGroupItem
@@ -732,8 +732,12 @@ function OfflineGiftEntrySuccess({
         <Button onClick={onAddAnother} type="button" variant="outline">
           Enter another
         </Button>
-        <Button onClick={onClose} type="button">
-          Done
+        <Button
+          aria-label="Close gift confirmation"
+          onClick={onClose}
+          type="button"
+        >
+          Close
         </Button>
       </DialogFooter>
     </div>

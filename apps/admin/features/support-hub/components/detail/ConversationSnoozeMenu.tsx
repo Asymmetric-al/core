@@ -57,7 +57,7 @@ export function ConversationSnoozeMenu({
             type="button"
             variant="outline"
             size="sm"
-            className="rounded-lg border-zinc-200 px-2.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
+            className="rounded-lg border-zinc-200 px-2.5 font-bold uppercase tracking-wider text-zinc-600"
             aria-label="Snooze conversation"
           >
             {isSnoozed ? (
@@ -71,7 +71,7 @@ export function ConversationSnoozeMenu({
       />
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+          <DropdownMenuLabel className="text-xs uppercase tracking-widest text-zinc-400">
             Snooze until
           </DropdownMenuLabel>
 
@@ -87,7 +87,7 @@ export function ConversationSnoozeMenu({
                   ).toISOString(),
                 })
               }
-              className="text-[12px]"
+              className="text-xs"
             >
               {option.label}
             </DropdownMenuItem>
@@ -99,7 +99,7 @@ export function ConversationSnoozeMenu({
                 onClick={() =>
                   unsnooze.mutate({ conversationId: conversation.id })
                 }
-                className="text-[12px] text-zinc-700"
+                className="text-xs text-zinc-700"
               >
                 Wake up now
               </DropdownMenuItem>

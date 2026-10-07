@@ -64,7 +64,7 @@ export function GiftHistoryViewSettingsMenu({
       />
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Columns
           </DropdownMenuLabel>
           <DropdownMenuCheckboxItem
@@ -90,7 +90,7 @@ export function GiftHistoryViewSettingsMenu({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Sort
           </DropdownMenuLabel>
           <DropdownMenuRadioGroup
@@ -122,7 +122,7 @@ export function GiftHistoryViewSettingsMenu({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Filter
           </DropdownMenuLabel>
           <DropdownMenuRadioGroup
@@ -150,7 +150,7 @@ export function GiftHistoryViewSettingsMenu({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Issues
           </DropdownMenuLabel>
           <DropdownMenuRadioGroup
@@ -198,7 +198,7 @@ export function GiftHistoryViewSettingsMenu({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Tenant default
               </DropdownMenuLabel>
               <DropdownMenuItem onClick={onRequestSetTenantDefault}>
