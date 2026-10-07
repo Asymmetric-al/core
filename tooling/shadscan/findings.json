@@ -433,7 +433,7 @@
         },
         {
           "path": "apps/admin/package.json",
-          "sha256": "c8653c652d09a07d1ee714168ded8ae6a65b7046a3d8bd861c57d25da2712310"
+          "sha256": "6c693d8e4e0b868b0c819505b2a6cccd033b31ba4593b93cf8a36857b55ba49e"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -592,7 +592,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -620,7 +620,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -983,7 +983,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1011,7 +1011,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1531,7 +1531,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1559,7 +1559,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -2375,7 +2375,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         }
       ]
     },
@@ -2392,7 +2392,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         }
       ]
     },
@@ -2453,7 +2453,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         }
       ]
     },
@@ -2470,7 +2470,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         }
       ]
     },
@@ -2655,7 +2655,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         }
       ]
     },
@@ -2704,7 +2704,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         }
       ]
     },
@@ -2721,7 +2721,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "2c662bdab0341cbf14c287c5e53c3419610f81668cb5701ed98d67b6a06ff280"
+          "sha256": "9454cfd0ba7e64d136794954e8b9567ea0b5850840b4fceb9f0312fbd54a082b"
         }
       ]
     },
