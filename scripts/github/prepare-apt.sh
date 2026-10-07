@@ -30,11 +30,12 @@ done
 # unreachable, `apt-get update` can still fetch InRelease from
 # archive.ubuntu.com, then hang on Azure Packages indexes until GNU timeout
 # (lint/typecheck exit 124 after 180s + retry). Pin Ubuntu sources to
-# archive.ubuntu.com / security.ubuntu.com so CI never contacts Azure.
+# archive.ubuntu.com / security.ubuntu.com over HTTPS so CI never contacts
+# Azure or relies on port 80, which can time out on runner networks.
 if [[ -f /etc/apt/apt-mirrors.txt ]]; then
   sudo tee /etc/apt/apt-mirrors.txt >/dev/null <<'EOF'
-http://archive.ubuntu.com/ubuntu/
-http://security.ubuntu.com/ubuntu/
+https://archive.ubuntu.com/ubuntu/
+https://security.ubuntu.com/ubuntu/
 EOF
 fi
 
@@ -47,9 +48,11 @@ for source_file in \
   fi
 
   sudo sed -i \
-    -e "s|mirror+file:/etc/apt/apt-mirrors.txt|http://archive.ubuntu.com/ubuntu|g" \
-    -e "s|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g" \
-    -e "s|https://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g" \
+    -e "s|mirror+file:/etc/apt/apt-mirrors.txt|https://archive.ubuntu.com/ubuntu|g" \
+    -e "s|http://azure\.archive\.ubuntu\.com/ubuntu|https://archive.ubuntu.com/ubuntu|g" \
+    -e "s|https://azure\.archive\.ubuntu\.com/ubuntu|https://archive.ubuntu.com/ubuntu|g" \
+    -e "s|http://archive\.ubuntu\.com/ubuntu|https://archive.ubuntu.com/ubuntu|g" \
+    -e "s|http://security\.ubuntu\.com/ubuntu|https://security.ubuntu.com/ubuntu|g" \
     "$source_file"
 done
 
