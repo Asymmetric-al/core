@@ -25,7 +25,7 @@ import { stripVTControlCharacters } from "node:util";
 
 // The deprecated `shadcn diff` can skip Base UI files and report no updates.
 // A complete reviewed preview preserves Core customizations, not byte parity.
-export const SHADCN_CLI_VERSION = "4.21.1";
+export const SHADCN_CLI_VERSION = "4.21.4";
 export const SHADCN_REVIEW_BASELINE =
   "tooling/shadcn/upstream-review-baseline.json";
 // Supporting implementations are required independently of the editable review

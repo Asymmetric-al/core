@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "cliVersion": "4.21.1",
+  "cliVersion": "4.21.4",
   "meaning": "Complete reviewed official previews and local customizations are unchanged. This is not stock byte parity, a scanner score exemption, or authorization to overwrite shared components.",
   "normalization": "Source and preview hashes normalize CRLF to LF; previews remove ANSI and replace checkout root paths. Source/trailing whitespace and every explicit diff hunk remain significant.",
   "config": {
@@ -828,8 +828,8 @@
       "path": "components/shadcn/calendar.tsx",
       "diffComponent": "calendar",
       "owners": ["calendar"],
-      "localSha256": "7f5913e74f556ce3e21d64afac9e3cd349b6f0b556d2a562ec52210c5a9cce2e",
-      "diffSha256": "56b733036f87dbca43417778a881a9adeb1b1a638ed8484e2298c92653fc82e2",
+      "localSha256": "89fff5ac8d321105508af3c41c7356aab945001e33f7e377a8af61a06cf6d084",
+      "diffSha256": "17088a54990abb89f107dbad6f314bdcba45fda2933542233dcd6e2bf53e96a3",
       "reason": "Preserve current react-day-picker selection/navigation and locale public seam; upstream adds/changes locale and control presentation requiring targeted calendar adoption.",
       "proofs": [
         "packages/ui/components/shadcn/calendar.tsx",
@@ -867,8 +867,8 @@
       "path": "components/shadcn/chart.tsx",
       "diffComponent": "chart",
       "owners": ["chart"],
-      "localSha256": "ea11f025810ad339335429a22e8727c047a4c5f691f2041873d21df38a720e95",
-      "diffSha256": "20b1d09fcda89eb5e27d62cfddb7d5e9ae63a6d1a3013b81d9fd3e7368e77cc0",
+      "localSha256": "1c9526135c949f284f943316b1db3ba25f6d30fed20fc87c8b7e7c0fc8dfe870",
+      "diffSha256": "4daf79d13b2afd2cba9b884acb132eef567f839d076043a0067a48183503848a",
       "reason": "Preserve Core ChartConfig and tooltip public types/formatting with current Recharts; upstream rewrites tooltip/config types and presentation, requiring typed consumer review.",
       "proofs": [
         "packages/ui/components/shadcn/chart.tsx",
@@ -2257,7 +2257,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/calendar.tsx",
-      "sha256": "7f5913e74f556ce3e21d64afac9e3cd349b6f0b556d2a562ec52210c5a9cce2e"
+      "sha256": "89fff5ac8d321105508af3c41c7356aab945001e33f7e377a8af61a06cf6d084"
     },
     {
       "path": "packages/ui/components/shadcn/card.tsx",
@@ -2273,7 +2273,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/chart.tsx",
-      "sha256": "ea11f025810ad339335429a22e8727c047a4c5f691f2041873d21df38a720e95"
+      "sha256": "1c9526135c949f284f943316b1db3ba25f6d30fed20fc87c8b7e7c0fc8dfe870"
     },
     {
       "path": "packages/ui/components/shadcn/checkbox.tsx",
@@ -2585,7 +2585,7 @@
     },
     {
       "path": "tests/unit/packages/ui/base-ui-select-nullability.test.tsx",
-      "sha256": "7830f819fedbe577b905cf4ccc98b26c71d856f1d0a22530cb52a84c3132569f"
+      "sha256": "64c087a7b007e33810d81aadf1892afa1697816116373d0fdba0f59225cb8922"
     },
     {
       "path": "tests/unit/packages/ui/components/shadcn/data-table-behavior.test.tsx",
@@ -2597,11 +2597,11 @@
     },
     {
       "path": "tests/unit/packages/ui/components/shadcn/rich-text-editor/rich-text-editor.test.tsx",
-      "sha256": "427be03c3fb81a9407713aadfb6e974864fcfdfeeb094e5149b3d6f054b3591c"
+      "sha256": "f696946049c0597a948c91fefc3d5de4966183ae35225cc8375be1f72fc09868"
     },
     {
       "path": "tests/unit/packages/ui/data-grid-search-filtering.test.tsx",
-      "sha256": "7f73110c0cdf3a9887e54f512cfb02ade34071e98bfdc8308ae15153bd45f9d4"
+      "sha256": "8f1cc403a428944d61eaeb01f24090fd2399421a2ad5e16fc7e1d1a63d2afb86"
     },
     {
       "path": "tests/unit/packages/ui/drawer-swipe-direction.test.ts",
@@ -2629,7 +2629,7 @@
     },
     {
       "path": "tests/unit/scripts/shadcn-upstream-review.test.ts",
-      "sha256": "4ded9cdf18e3a3a066320ba2ebbbc070ab444f01fa4a7c21607244ead07feef4"
+      "sha256": "184e875d5300ba66e46d9a439bc769894f7ded8dc1fcf448d98c9f4e07dcc591"
     }
   ],
   "sourceMappings": [
