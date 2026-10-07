@@ -1,0 +1,108 @@
+[
+  {
+    "contract": "DataGrid search actual results, clear restores fixture, semantic header names",
+    "passed": true
+  },
+  {
+    "contract": "Mobilize all5 stage text contrast and Deployed/Vetting distinction",
+    "theme": "light",
+    "passed": true,
+    "styles": [
+      {
+        "stage": "Applied",
+        "foreground": "oklch(0.205 0.015 265)",
+        "background": "oklch(0.965 0.003 265)",
+        "resolvedForeground": [20, 23, 30],
+        "resolvedBackground": [242, 243, 245],
+        "contrast": 16.15
+      },
+      {
+        "stage": "Vetting",
+        "foreground": "oklch(0.47 0.13 250)",
+        "background": "oklab(0.47 -0.0444626 -0.12216 / 0.1)",
+        "resolvedForeground": [6, 93, 160],
+        "resolvedBackground": [230, 238, 245],
+        "contrast": 5.81
+      },
+      {
+        "stage": "Training",
+        "foreground": "oklch(0.46 0.1 70)",
+        "background": "oklab(0.46 0.034202 0.0939693 / 0.1)",
+        "resolvedForeground": [123, 76, 0],
+        "resolvedBackground": [241, 237, 229],
+        "contrast": 6.25
+      },
+      {
+        "stage": "Ready",
+        "foreground": "oklch(0.47 0.13 150)",
+        "background": "oklab(0.47 -0.112583 0.065 / 0.1)",
+        "resolvedForeground": [0, 110, 48],
+        "resolvedBackground": [229, 240, 234],
+        "contrast": 5.49
+      },
+      {
+        "stage": "Deployed",
+        "foreground": "oklch(0.985 0.002 265)",
+        "background": "oklch(0.205 0.015 265)",
+        "resolvedForeground": [249, 250, 251],
+        "resolvedBackground": [20, 23, 30],
+        "contrast": 17.16
+      }
+    ]
+  },
+  {
+    "contract": "Mobilize all5 stage text contrast and Deployed/Vetting distinction",
+    "theme": "dark",
+    "passed": true,
+    "styles": [
+      {
+        "stage": "Applied",
+        "foreground": "oklch(0.94 0.002 265)",
+        "background": "oklch(0.24 0.01 265)",
+        "resolvedForeground": [234, 235, 236],
+        "resolvedBackground": [29, 31, 36],
+        "contrast": 13.81
+      },
+      {
+        "stage": "Vetting",
+        "foreground": "oklch(0.76 0.11 250)",
+        "background": "oklab(0.76 -0.0376222 -0.103366 / 0.1)",
+        "resolvedForeground": [121, 182, 244],
+        "resolvedBackground": [25, 35, 45],
+        "contrast": 7.43
+      },
+      {
+        "stage": "Training",
+        "foreground": "oklch(0.8 0.13 85)",
+        "background": "oklab(0.8 0.0113303 0.129505 / 0.1)",
+        "resolvedForeground": [228, 183, 80],
+        "resolvedBackground": [36, 35, 28],
+        "contrast": 8.4
+      },
+      {
+        "stage": "Ready",
+        "foreground": "oklch(0.76 0.13 150)",
+        "background": "oklab(0.76 -0.112583 0.065 / 0.1)",
+        "resolvedForeground": [111, 200, 132],
+        "resolvedBackground": [24, 36, 33],
+        "contrast": 7.82
+      },
+      {
+        "stage": "Deployed",
+        "foreground": "oklch(0.205 0.015 265)",
+        "background": "oklch(0.94 0.002 265)",
+        "resolvedForeground": [20, 23, 30],
+        "resolvedBackground": [234, 235, 236],
+        "contrast": 15.02
+      }
+    ]
+  },
+  {
+    "contract": "Narrow CMS navigation opens by keyboard, named links reachable, Escape restores focus",
+    "passed": true
+  },
+  {
+    "contract": "Scrollable PDF settings keyboard copy announces success and clipboard receives setting",
+    "passed": true
+  }
+]

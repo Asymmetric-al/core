@@ -1,0 +1,153 @@
+{
+  "status": "Listed actual current component fixture layout/selection/confirmation/request/pending and Giving rail slices closed; productive provider availability unverified.",
+  "reviewer": "ui_delivery_evidence",
+  "observed_at_utc": "2026-10-07T22:07:35.022213+00:00",
+  "scope": "Corrected original/current Giving1440/390 plus original/current narrow Contributions/Support row selection, real receipt confirmation/held pending, and existing Support bulk request.",
+  "counts": {
+    "full_image_views": 13,
+    "after_images": 9,
+    "before_images": 4,
+    "limit": "Supplemental states may overlap other reviewer artifacts; no aggregate repository visual coverage claim."
+  },
+  "records": [
+    {
+      "file": "before/shared-missionary-giving-wide.png",
+      "sha256": "bb1d5c74399d3eee9f8e5c7a92ff6c903efaf3ddcb49e748150edb8e62127faf",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [1440, 1000],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "after/shared-missionary-giving-wide.png",
+      "sha256": "c058d23835ce55c3c0b732a76ea2f3552c20ff203086c0b7fc44505485f826e8",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [1440, 1000],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability.",
+      "matching_before": "before/shared-missionary-giving-wide.png"
+    },
+    {
+      "file": "before/shared-missionary-giving-narrow.png",
+      "sha256": "8842ee808dbd639511100c4f946ac75d4d579ce5e79d26861ec7a8df4f63c7ee",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1099],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "after/shared-missionary-giving-narrow.png",
+      "sha256": "7834e809001590f6ce286a7605c1cbb96f968d24ed4a53666b6cb8d010101ab7",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1341],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability.",
+      "matching_before": "before/shared-missionary-giving-narrow.png"
+    },
+    {
+      "file": "before/shared-contribution-mobile-narrow.png",
+      "sha256": "a53f78b1a2639f14064a439ebd88650995bc111ab69f8bc717a74d93e57bab83",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1001],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "after/shared-contribution-mobile-narrow.png",
+      "sha256": "9600081db901e38f5e2267d409b839645cebe2dde1c7a0120b6ef77732055664",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1001],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability.",
+      "matching_before": "before/shared-contribution-mobile-narrow.png"
+    },
+    {
+      "file": "after/shared-contribution-mobile-selected-narrow.png",
+      "sha256": "8506101a7ea9290baea473e2804e028713e448d16aca8004e957928da7dfb514",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1017],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "after/shared-contribution-receipt-confirm-narrow.png",
+      "sha256": "92a15eb6bfc440259bae97b694e883df681369c83fbe54eb051a80f8bf8667e2",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1017],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "after/shared-contribution-receipt-pending-narrow.png",
+      "sha256": "8b6f3898c1bbce4d276287ffcffcb8ddda57ab8cad71714c133ce52e652b318f",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1017],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "before/shared-support-mobile-selection-narrow.png",
+      "sha256": "6bdcfba26d7c5a0084cd83714df6bf609d5f1fa48c69af6c7b81973b34ca5b5f",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1001],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "after/shared-support-mobile-selection-narrow.png",
+      "sha256": "6c92bc0f1c36051e0170b52ef469683bb565dd7a5e34fad8f214578c7225bc3a",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1001],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability.",
+      "matching_before": "before/shared-support-mobile-selection-narrow.png"
+    },
+    {
+      "file": "after/shared-support-mobile-row-selected-narrow.png",
+      "sha256": "a1b0777b46a555118e6e0ee38b835a8ff549e502a45b3cdde6af18328a6de0a7",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1017],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    },
+    {
+      "file": "after/shared-support-mobile-bulk-resolved-narrow.png",
+      "sha256": "bad70e9f03871acb99bec995f8d1324a102823a1bbc53b6a203c760f6914d4c1",
+      "indexed_sha256_matches": true,
+      "image_dimensions": [390, 1017],
+      "review_level": "full image viewed by ui_delivery_evidence",
+      "source": "Actual component fixture with explicit synthetic inputs and local read/auth/HTTP boundaries; not productive application availability."
+    }
+  ],
+  "findings": [
+    {
+      "surface": "Missionary Giving",
+      "result": "Original narrow shows two blank cards; current narrow exposes Date/Type/Method/Amount/Status for both gift inputs and retains exact current formatted values, while desktop table values remain. Bodies visible at opacity1.",
+      "fidelity": "Initial temporary fixture omitted real MotionProvider and yielded invisible animated body; that capture was discarded/overwritten. Runtime recaptured both original/current with real MotionProvider and opacity1 guard. Only current indexed hashes are accepted.",
+      "focused_rail_browser": "Actual rebuilt fixture keyboard focus/ArrowLeft/ArrowRight revealed Giving: railScrollLeft0→14, Givingright387.36→373.36 againstrail373 (0.36px rounding,≤1px tolerance). Document390, pageScroll0→0; Base UI manual selection preserved. Runtime metrics and independent owner/cross pixel review remain separately attributed."
+    },
+    {
+      "surface": "Contributions",
+      "result": "Shared controlled Checkboxes appear beside separate donor/open content. Both selected rows expose existing floating bulk action, real confirmation shows correct selected/ready counts, and held pending displays disabled Starting batch/Cancel. No visible overflow or accidental record-open action in these current fixtures.",
+      "behavior_authority": "Runtime after-mobile-selection.json verifies Checkbox selection does not open record and exact existing two-row resend_receipt payload after confirmation. Local held promise only; no live email/receipt."
+    },
+    {
+      "surface": "Support",
+      "result": "Shared controlled Checkboxes appear beside separate conversation/detail controls. Selection exposes existing bulk action, with first-row detail/open state remaining distinct.",
+      "behavior_authority": "Runtime after-mobile-selection.json records only selected original conversation PATCH through a local memory HTTP adapter.",
+      "limit": "Fixture list remains bound to its original Open row after recorded PATCH; this establishes request identity/dispatch, not productive realtime status convergence."
+    }
+  ],
+  "metadata_refs": [
+    "after-index.json#/metadata/after-missionary-giving.json",
+    "before-index.json#/metadata/baseline-missionary-giving.json",
+    "after-index.json#/metadata/after-mobile-selection.json",
+    "before-index.json#/metadata/baseline-mobile-selection.json",
+    "after-index.json#/metadata/after-giving-rail-keyboard.json"
+  ],
+  "general_limits": [
+    "Source and focused public-seam tests remain separately attributed. No hosted provider mutations or productive data availability proved.",
+    "Image document heights differ when content changes; record actual image dimensions and runtime viewport metadata rather than implying equal full-page heights.",
+    "Earlier settled chart review retains width/data/state but expanded capture viewport height to avoid Recharts restart on full-page resize; those captures are separately qualified."
+  ]
+}

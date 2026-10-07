@@ -1,0 +1,45 @@
+{
+  "beforeFiles": 359,
+  "afterFiles": 273,
+  "beforeCount": 10611,
+  "afterCount": 4867,
+  "reviewedReducedEntries": 376,
+  "newOrIncreasedEntries": 0,
+  "removedResolvedCounts": 5744,
+  "sourceChangeJoin": "Every reduced entry maps to an actually changed source file and after is strictly less than before. Native prune followed source review; final aggregate gate results belong verification.md.",
+  "policy": "No rule, exception allowlist, enforcement floor or unsupported suppression was added or widened. Retained accepted debt remains enforced.",
+  "byRule": {
+    "shadcn/no-arbitrary-values": {
+      "entries": 70,
+      "before": 212,
+      "after": 21
+    },
+    "shadcn/no-raw-colors": {
+      "entries": 171,
+      "before": 2466,
+      "after": 2
+    },
+    "shadcn/no-restyle": {
+      "entries": 114,
+      "before": 4472,
+      "after": 1434
+    },
+    "shadcn/require-static-classes": {
+      "entries": 17,
+      "before": 26,
+      "after": 2
+    },
+    "shadcn/no-unknown-classes": {
+      "entries": 3,
+      "before": 25,
+      "after": 0
+    },
+    "shadcn/no-inline-styles": {
+      "entries": 1,
+      "before": 2,
+      "after": 0
+    }
+  },
+  "exactLedger": "tooling/eslint-config/suppressions.json",
+  "finalNativePruneConfirmation": "Final source-stable lint:ui --prune-suppressions exited 0 with these exact unchanged totals and per-rule reductions. Each reduced entry joins an actually changed source. This record does not imply final all-repository lint/preflight success."
+}

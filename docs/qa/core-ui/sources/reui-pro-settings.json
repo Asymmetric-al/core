@@ -1,0 +1,99 @@
+{
+  "license": "Commercial ReUI Pro source, not MIT. Owner explicitly confirmed a separate agreement covers public AGPL source distribution and contributors; the agreement was not independently reviewed.",
+  "permission_record": "docs/guides/development/reui-source-license.md",
+  "contract": {
+    "style": "base-maia",
+    "base": "@base-ui/react1.8.0",
+    "tab_breakpoint": "lg1024",
+    "maia_geometry": "Existing Tabs/Card/Table owner defaults preserved",
+    "dependencies_added": [],
+    "demo_data_imported": false
+  },
+  "sources": [
+    {
+      "source_file": "settings-7/account-settings.tsx (commercial source hash in reui-pro-research.json)",
+      "source_sha256": "857150c8ecf673f36b84be5771817321ac6abe9d9624ca7210515156caabbf61",
+      "source_component": "AccountSettings/SettingsNavigation",
+      "derived_file": "packages/ui/components/settings/settings-layout.tsx",
+      "derived_sha256": "439ea950986413ca334a494f44428b70614455f5664f8da46837a82aba46ea4f",
+      "adaptation": "Retain responsive rail and controlled tabs; use Core useIsDesktop lg1024, caller-owned TabsContent, existing Maia Tabs default geometry. Remove vendor app data/header/panels and all primitive appearance overrides.",
+      "current_source_hash_verified": true
+    },
+    {
+      "source_file": "settings-7/settings-card.tsx (commercial source hash in reui-pro-research.json)",
+      "source_sha256": "6358f4ece0e4edd29965f47124e82925ac3ac4421bd98b088d459f6ded03359a",
+      "source_component": "SettingsCard",
+      "derived_file": "packages/ui/components/settings/settings-card.tsx",
+      "derived_sha256": "d66f41e9487bef7dbedaf3c91d4eeff4465dfed1d49c9beaf36fe010b60a9997",
+      "adaptation": "Retain header/content/optional footer composition; use ReactNode slots and original Core default Maia Card geometry, native wrapped footer. Remove gap0/p0/cardappearance fork and styling forwarding APIs.",
+      "current_source_hash_verified": true
+    },
+    {
+      "source_file": "settings-11/notification-preferences.tsx (commercial source hash in reui-pro-research.json)",
+      "source_sha256": "66d1ad091745e6c90695f91e09350794a77d0c074772eb76b583bf21092eee0b",
+      "source_component": "NotificationPreferences/NotificationSection/NotificationTableRow",
+      "derived_file": "packages/ui/components/settings/notification-preferences-matrix.tsx",
+      "derived_sha256": "4113cbf3083d3fa7d04074de9ccb471ffa0056d1d04f7c13ab6a43cee3d04941",
+      "adaptation": "Retain notification rows and centered per-channel controls; add native scope/caption naming and wrap descriptions. Preserve caller-controlled switches/icons/descriptions instead of vendor defaultCheckBoxes/demo tabgroups.",
+      "current_source_hash_verified": true
+    }
+  ],
+  "exports": [
+    "SettingsLayout",
+    "SettingsCard",
+    "NotificationPreferencesMatrix",
+    "SettingsLayoutProps",
+    "SettingsTab",
+    "SettingsCardProps",
+    "NotificationChannel",
+    "NotificationPreferenceRow",
+    "NotificationPreferencesMatrixProps"
+  ],
+  "public_import": "@asym/ui/components/settings",
+  "consumer_files": [
+    "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
+    "apps/missionary/app/settings/page-client.tsx"
+  ],
+  "checks": {
+    "focused_public_tests": {
+      "result": "passed",
+      "files": 1,
+      "tests": 4,
+      "log": "local-only diagnostic pro-settings-shared-green.log"
+    },
+    "new_public_export_red": {
+      "result": "new settings export absent before implementation; module resolution failed, no behavior tests executed",
+      "log": "local-only diagnostic pro-settings-shared-red.log"
+    },
+    "matrix_actual_app_red_green": "Missionary owner recorded original settings page missing named preference table RED and retains actual controlled toggle/save tests; see app ledger.",
+    "canonical_typecheck": {
+      "command": "bun run typecheck",
+      "cwd": "packages/ui",
+      "result": "passed after final source/category variants",
+      "typescript": "5.9.3",
+      "log": "local-only diagnostic pro-settings-canonical-typecheck-final.log"
+    },
+    "raw_lint": {
+      "result": "passed, four shared modules0findings/0warnings",
+      "log": "local-only diagnostic pro-settings-shared-lint.json"
+    },
+    "full_shared_units": {
+      "result": "passed",
+      "log": "local-only diagnostic shared-ui-unit-suite-pro-final.log",
+      "files": 103,
+      "tests": 461,
+      "duration_seconds": 95.34
+    },
+    "browser": "Actual donor/missionary existing settings before screenshots captured; final licensed composition app after recapture requested from runtime owner.",
+    "test_lint": {
+      "result": "passed,0errors/0warnings",
+      "log": "local-only diagnostic pro-settings-test-lint.log"
+    }
+  },
+  "adaptation_risks": [
+    "No new forms/state stack; donor TabId guard and existing panel mounting stay in caller.",
+    "Notification controls stay caller-owned with exact aria-labels, checked state, IDs,dirty/save hooks.",
+    "Horizontal scroll is contained by existing Table wrapper; settings nav horizontal belowlg, vertical atlg.",
+    "Commercial attribution is explicit; no credentials or private agreement material copied."
+  ]
+}

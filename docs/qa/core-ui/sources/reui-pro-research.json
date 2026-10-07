@@ -1,0 +1,843 @@
+{
+  "schemaVersion": 1,
+  "style": "base-maia",
+  "primitiveBase": "Base UI via current @asym/ui wrappers",
+  "license": {
+    "kind": "commercial ReUI Pro, not MIT",
+    "copyright": "Keenthemes",
+    "permissionRecord": "docs/guides/development/reui-source-license.md",
+    "evidence": "Repository owner explicitly confirmed a separate agreement covering public AGPL source distribution and contributors. Agreement document was not supplied or independently inspected.",
+    "accountVsRights": "Working Pro entitlement/registry authentication is separate from this owner-confirmed distribution permission."
+  },
+  "registryContentIdentity": "Exact SHA256 identifies mutable live registry payload and individual source bytes; no claim of identity with a public repository HEAD.",
+  "items": [
+    {
+      "name": "settings-7",
+      "url": "https://reui.io/r/styles/base-maia/settings-7.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "6bf3d5b1a9c6dd6c5dc1ecfef5b3debc7d89f518ddf3da7f614087b260f7466e",
+      "dependencies": ["cn"],
+      "registryDependencies": [
+        "@reui/alert",
+        "@reui/badge",
+        "@reui/use-file-upload",
+        "@reui/alert",
+        "avatar",
+        "@reui/badge",
+        "button",
+        "card",
+        "field",
+        "input",
+        "input-group",
+        "item",
+        "select",
+        "switch",
+        "tabs",
+        "textarea",
+        "use-mobile"
+      ],
+      "files": [
+        {
+          "path": "page.tsx",
+          "target": "components/blocks/settings-7/page.tsx",
+          "length": 233,
+          "sha256": "0838c443c136c54fac20da005fd052c42351e708c4ffe0e1526ee550da9af2b8",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "account-settings.tsx",
+          "target": "components/blocks/settings-7/components/account-settings.tsx",
+          "length": 3363,
+          "sha256": "857150c8ecf673f36b84be5771817321ac6abe9d9624ca7210515156caabbf61",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "billing-tab.tsx",
+          "target": "components/blocks/settings-7/components/billing-tab.tsx",
+          "length": 5816,
+          "sha256": "fa95966ba33ca5611aae743d16747960bb521a1f15da409a593ab24b71f531f4",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "data.tsx",
+          "target": "components/blocks/settings-7/components/data.tsx",
+          "length": 5393,
+          "sha256": "efc460579b46cb33c6bcb09f295f7d2464f0572037670148f574b1f36b818de3",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "notifications-tab.tsx",
+          "target": "components/blocks/settings-7/components/notifications-tab.tsx",
+          "length": 7849,
+          "sha256": "d10259bfe889359a7003c1ce4464fe786abedfe5fd6b3781826404c56a6c7035",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "profile-avatar-upload.tsx",
+          "target": "components/blocks/settings-7/components/profile-avatar-upload.tsx",
+          "length": 3517,
+          "sha256": "59b4212c0c8da8f72bcbacd9afe3ce488a9641cca196310454f2faf77a9d388f",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "profile-tab.tsx",
+          "target": "components/blocks/settings-7/components/profile-tab.tsx",
+          "length": 7377,
+          "sha256": "7337098da30a059e6f59a29357ff948e855b825c0e06515d1aed83f51aebe778",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "security-tab.tsx",
+          "target": "components/blocks/settings-7/components/security-tab.tsx",
+          "length": 9130,
+          "sha256": "c52fa48001384834d35173bc2c130512f8b9a7d882df56c9840490716f7ee23d",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "setting-row.tsx",
+          "target": "components/blocks/settings-7/components/setting-row.tsx",
+          "length": 1436,
+          "sha256": "92ce6e3cfb3889a33d9a7254ae0c66fe1e4011a4e3fec4e0b21662c1ea4fd88f",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "settings-card.tsx",
+          "target": "components/blocks/settings-7/components/settings-card.tsx",
+          "length": 1186,
+          "sha256": "6358f4ece0e4edd29965f47124e82925ac3ac4421bd98b088d459f6ded03359a",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "settings-field-group.tsx",
+          "target": "components/blocks/settings-7/components/settings-field-group.tsx",
+          "length": 841,
+          "sha256": "b08031ae72cee02c80bd8f50fcd80d30aab5d1d2a1fc8dd80c746c0cb5b45ab1",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "utils.ts",
+          "target": "components/blocks/settings-7/components/utils.ts",
+          "length": 474,
+          "sha256": "292d70e66dade7a5420c5a0fe05fb99ed33e7cb553e0f5da4de0c3fb9ac4865d",
+          "competingPrimitive": false,
+          "formStack": false
+        }
+      ]
+    },
+    {
+      "name": "settings-11",
+      "url": "https://reui.io/r/styles/base-maia/settings-11.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "c42a085a5091b8d12fba6005491a223be1824077959228d0b4d0f3c2fe1a54f8",
+      "dependencies": [],
+      "registryDependencies": ["checkbox", "table", "tabs"],
+      "files": [
+        {
+          "path": "page.tsx",
+          "target": "components/blocks/settings-11/page.tsx",
+          "length": 257,
+          "sha256": "0fa9367dd98a86cb0088fe238d3b871f617cde5d936df6f8b341e083230d6aed",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "data.tsx",
+          "target": "components/blocks/settings-11/components/data.tsx",
+          "length": 5882,
+          "sha256": "9776bfd6f2a82b055479a9cd1adba32b1359786118fbfad9f6f9865abf0abdfd",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "notification-preferences.tsx",
+          "target": "components/blocks/settings-11/components/notification-preferences.tsx",
+          "length": 2643,
+          "sha256": "66d1ad091745e6c90695f91e09350794a77d0c074772eb76b583bf21092eee0b",
+          "competingPrimitive": false,
+          "formStack": false
+        }
+      ]
+    },
+    {
+      "name": "app-shell-18",
+      "url": "https://reui.io/r/styles/base-maia/app-shell-18.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "sha256": "24ebebc5e498644999ff74fe6482c3e4a3e2ccbcac1c9a8fe0c05c579ba79481",
+      "dependencies": ["cn", "next-themes"],
+      "registryDependencies": [
+        "@reui/badge",
+        "avatar",
+        "@reui/badge",
+        "button",
+        "dialog",
+        "dropdown-menu",
+        "field",
+        "input",
+        "item",
+        "kbd",
+        "progress",
+        "separator",
+        "sheet",
+        "sidebar",
+        "textarea"
+      ],
+      "files": [
+        {
+          "path": "page.tsx",
+          "target": "components/blocks/app-shell-18/page.tsx",
+          "length": 99,
+          "sha256": "717aa472704c84aebdb295db3f726598355dc903069ea89fe9d0a7238f043138",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "add-tag.tsx",
+          "target": "components/blocks/app-shell-18/components/add-tag.tsx",
+          "length": 2599,
+          "sha256": "e27799a2dc52ac89194737a4cfdd059e5034ddd2be6f0b4d3a9b1cca092c76b2",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "ai-assistant.tsx",
+          "target": "components/blocks/app-shell-18/components/ai-assistant.tsx",
+          "length": 10794,
+          "sha256": "0d552f838c3294565408b840d1a9f0037a2866783a7bf0c84ca9fa41df902426",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "app-shell.tsx",
+          "target": "components/blocks/app-shell-18/components/app-shell.tsx",
+          "length": 199,
+          "sha256": "555092f6d4afea396c02cbc2983732d2dac6d7cd1b0a6d015557ae6ed6ee5d9c",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "app-sidebar.tsx",
+          "target": "components/blocks/app-shell-18/components/app-sidebar.tsx",
+          "length": 1679,
+          "sha256": "f1d8461cfe70f51ee5a94003ba593ef91ae4d09213ccf61897682df16b6fd734",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "data.tsx",
+          "target": "components/blocks/app-shell-18/components/data.tsx",
+          "length": 5137,
+          "sha256": "a3c6260b2292e5ba06092ae27c31ef002a8286ee50bae5d61a4323a0fb58a867",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "focus-card.tsx",
+          "target": "components/blocks/app-shell-18/components/focus-card.tsx",
+          "length": 1254,
+          "sha256": "b81a3c59e5e6e5353046664861633b4e48e48d575afa63a3745c9ab9981f03b9",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "logo.tsx",
+          "target": "components/blocks/app-shell-18/components/logo.tsx",
+          "length": 1697,
+          "sha256": "0ee092e3e30c61c0e3e69bb8beb8dfd9906e148555416b58dd1020bf0d735d1e",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "main-content.tsx",
+          "target": "components/blocks/app-shell-18/components/main-content.tsx",
+          "length": 2972,
+          "sha256": "2658cc388b319c547cfdaf2bbb113b5ad2a3a1af8aebabdb16baa0301f600bf5",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "mobile-header.tsx",
+          "target": "components/blocks/app-shell-18/components/mobile-header.tsx",
+          "length": 1293,
+          "sha256": "eaafa78d8408e00c4aec128dab918ac7277af2b771096d59d70aa3cac44653ae",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "nav-lists.tsx",
+          "target": "components/blocks/app-shell-18/components/nav-lists.tsx",
+          "length": 2253,
+          "sha256": "ecf173ba33183b1f3fa97bcd8e6c10fd315e3507b41dc5bfe7663d8eac474dca",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "nav-user.tsx",
+          "target": "components/blocks/app-shell-18/components/nav-user.tsx",
+          "length": 8346,
+          "sha256": "2d54b839fb38eff552b92c979a7b5bd7b2efb97350b4aaf09c8e0ff136b611ba",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "new-task.tsx",
+          "target": "components/blocks/app-shell-18/components/new-task.tsx",
+          "length": 2091,
+          "sha256": "f6e07dfe388b406480a4bff28f462d018e989b2aaaf6722a003bf88a8886339a",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "sidebar-shell.tsx",
+          "target": "components/blocks/app-shell-18/components/sidebar-shell.tsx",
+          "length": 1781,
+          "sha256": "40a31bc543e8fd83a3944c52f7812ee8909f504073889ceb13540142f29105a0",
+          "competingPrimitive": false,
+          "formStack": false
+        },
+        {
+          "path": "sidebar-tags.tsx",
+          "target": "components/blocks/app-shell-18/components/sidebar-tags.tsx",
+          "length": 2127,
+          "sha256": "61ad9c83a8ec79c64a87720340a0f2401d92119c53b3982bcd638ad421b2e9da",
+          "competingPrimitive": false,
+          "formStack": false
+        }
+      ]
+    }
+  ],
+  "derivationRecord": "docs/qa/core-ui/sources/reui-pro-settings.json",
+  "consumerRecord": {
+    "donor": {
+      "file": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
+      "settingsCards": 6,
+      "reused": ["SettingsLayout", "SettingsCard"],
+      "retained": "Existing tab guards/panel mounting, profile values/exact patches/errors/retry/pending and boolean notification/security prototypes."
+    },
+    "missionary": {
+      "file": "apps/missionary/app/settings/page-client.tsx",
+      "settingsCards": 5,
+      "reused": ["SettingsCard", "NotificationPreferencesMatrix"],
+      "retained": "Six existing notification categories and controlled inApp/email/sms Switch names/values, local Save/dirty behavior and unfinished integration/account settings."
+    }
+  },
+  "mcpDiscovery": [
+    {
+      "tool": "get_block",
+      "arguments": {
+        "name": "settings-7"
+      },
+      "result": {
+        "name": "settings-7",
+        "type": "block",
+        "title": "Account settings page with side-tab navigation for profile, security, notifications, and billing",
+        "description": "Tabbed account settings shell with a side tab rail. Profile with avatar upload, two-step verification, active sessions, delete account, and billing plans. ReUI Alert and Badge with shadcn Tabs, Card, Field, Input, Select, Switch, Item, Avatar.",
+        "group": "application",
+        "category": "settings",
+        "free": false,
+        "requiredPlan": "pro",
+        "surface": "card",
+        "install": "npx shadcn@latest add @reui/settings-7",
+        "docsUrl": "https://reui.io/blocks/application/settings/settings-7?ref=mcp",
+        "previewUrl": "https://reui.io/preview/base/settings-7?ref=mcp",
+        "thumbnail": "https://reui.io/thumbnails/blocks/settings-7-light.webp",
+        "componentsUsed": ["alert", "badge"],
+        "registryDependencies": [
+          "@reui/alert",
+          "@reui/badge",
+          "@reui/use-file-upload",
+          "avatar",
+          "button",
+          "card",
+          "field",
+          "input",
+          "input-group",
+          "item",
+          "select",
+          "switch",
+          "tabs",
+          "textarea",
+          "use-mobile"
+        ],
+        "dependencies": ["cn"],
+        "thumbnailDark": "https://reui.io/thumbnails/blocks/settings-7-dark.webp",
+        "componentDigests": {
+          "alert": "`Alert` > `AlertTitle` (+ `AlertDescription` / `AlertAction`). shadcn-compatible; `variant`: default|destructive|info|success|warning|invert (non-default use ReUI extended color tokens the install adds).",
+          "badge": "Text child; shadcn-compatible. `variant` (solid, `-outline`, `-light` per color), `size` xs..xl, `radius` default|full. Prefer Badge variants over raw color classes for statuses."
+        },
+        "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+      }
+    },
+    {
+      "tool": "get_block",
+      "arguments": {
+        "name": "app-shell-18"
+      },
+      "result": {
+        "name": "app-shell-18",
+        "type": "block",
+        "title": "Task workspace app shell with collapsible floating sidebar and a toggleable AI chat assistant panel",
+        "description": "Three-panel to-do shell: floating Sidebar with task lists, count Badges, color tags and a Progress focus card, plus a toggleable AI chat panel (in-flow at desktop, Sheet on mobile). Built on ReUI Badge, shadcn Sidebar, Dialog, DropdownMenu.",
+        "group": "application",
+        "category": "app-shell",
+        "free": false,
+        "requiredPlan": "pro",
+        "surface": "none",
+        "install": "npx shadcn@latest add @reui/app-shell-18",
+        "docsUrl": "https://reui.io/blocks/application/app-shell/app-shell-18?ref=mcp",
+        "previewUrl": "https://reui.io/preview/base/app-shell-18?ref=mcp",
+        "thumbnail": "https://reui.io/thumbnails/blocks/app-shell-18-light.webp",
+        "componentsUsed": ["badge"],
+        "registryDependencies": [
+          "@reui/badge",
+          "avatar",
+          "button",
+          "dialog",
+          "dropdown-menu",
+          "field",
+          "input",
+          "item",
+          "kbd",
+          "progress",
+          "separator",
+          "sheet",
+          "sidebar",
+          "textarea"
+        ],
+        "dependencies": ["cn", "next-themes"],
+        "thumbnailDark": "https://reui.io/thumbnails/blocks/app-shell-18-dark.webp",
+        "componentDigests": {
+          "badge": "Text child; shadcn-compatible. `variant` (solid, `-outline`, `-light` per color), `size` xs..xl, `radius` default|full. Prefer Badge variants over raw color classes for statuses."
+        },
+        "next": "Show the user this item as a markdown image from `thumbnail`, linked to `previewUrl`, before installing it."
+      }
+    },
+    {
+      "tool": "search",
+      "arguments": {
+        "query": "Statistics cards for operational dashboard with real count values and clickable category filters, calm Base UI Maia cards",
+        "type": "block",
+        "category": "stats",
+        "free": false,
+        "surface": "card",
+        "limit": 6
+      },
+      "result": {
+        "query": "Statistics cards for operational dashboard with real count values and clickable category filters, calm Base UI Maia cards",
+        "plan": "pro",
+        "intent": {
+          "type": "block",
+          "components": ["filters"],
+          "categories": ["card", "dashboard", "filters", "base"],
+          "features": ["filters"]
+        },
+        "count": 4,
+        "results": [
+          {
+            "name": "stats-15",
+            "type": "block",
+            "title": "Three color-filled hero stat cards with metric, summary, and dark CTA action bar",
+            "description": "Three full-bleed colored metric cards, each with an icon, large KPI value, title, summary line, and a dark bottom CTA bar with a sliding arrow. Built on ReUI Card. For dashboards, KPI highlights, and stats callouts.",
+            "group": "application",
+            "category": "stats",
+            "free": false,
+            "requiredPlan": "pro",
+            "surface": "card",
+            "install": "npx shadcn@latest add @reui/stats-15",
+            "docsUrl": "https://reui.io/blocks/application/stats/stats-15?ref=mcp",
+            "previewUrl": "https://reui.io/preview/base/stats-15?ref=mcp",
+            "thumbnail": "https://reui.io/thumbnails/blocks/stats-15-light.webp",
+            "registryDependencies": ["card"],
+            "dependencies": ["cn"],
+            "score": 100,
+            "termCoverage": 0.35,
+            "whyMatch": ["is a block", "category: stats"],
+            "missedTerms": [
+              "statistics",
+              "operational",
+              "real",
+              "count",
+              "clickable",
+              "category",
+              "filters",
+              "calm",
+              "base",
+              "ui",
+              "maia"
+            ]
+          },
+          {
+            "name": "stats-2",
+            "type": "block",
+            "title": "Color-block KPI stat cards with delta badge, vs-last-month row, and overflow menu",
+            "description": "Four KPI metric cards on solid color backgrounds with delta arrow badge, vs-last-month comparison, and per-card overflow menu. Built with ReUI Badge, shadcn Card, Button, DropdownMenu. Dashboard stats, KPI tiles, scorecard.",
+            "group": "application",
+            "category": "stats",
+            "free": false,
+            "requiredPlan": "pro",
+            "surface": "card",
+            "install": "npx shadcn@latest add @reui/stats-2",
+            "docsUrl": "https://reui.io/blocks/application/stats/stats-2?ref=mcp",
+            "previewUrl": "https://reui.io/preview/base/stats-2?ref=mcp",
+            "thumbnail": "https://reui.io/thumbnails/blocks/stats-2-light.webp",
+            "componentsUsed": ["badge"],
+            "registryDependencies": [
+              "@reui/badge",
+              "button",
+              "card",
+              "dropdown-menu"
+            ],
+            "dependencies": ["cn"],
+            "score": 95,
+            "termCoverage": 0.29,
+            "whyMatch": ["is a block", "category: stats"],
+            "missedTerms": [
+              "statistics",
+              "operational",
+              "real",
+              "count",
+              "values",
+              "clickable",
+              "category",
+              "filters",
+              "calm",
+              "base",
+              "ui",
+              "maia"
+            ]
+          },
+          {
+            "name": "stats-5",
+            "type": "block",
+            "title": "Dark balance stat card with segmented multi-currency allocation bar and topup action",
+            "description": "Wallet balance card with total amount, positive percent change, and a color-coded segmented bar splitting holdings by currency (USD, GBP, EUR) plus a Topup button. Uses shadcn Card and Button. For finance dashboards, crypto and banking apps.",
+            "group": "application",
+            "category": "stats",
+            "free": false,
+            "requiredPlan": "pro",
+            "surface": "card",
+            "install": "npx shadcn@latest add @reui/stats-5",
+            "docsUrl": "https://reui.io/blocks/application/stats/stats-5?ref=mcp",
+            "previewUrl": "https://reui.io/preview/base/stats-5?ref=mcp",
+            "thumbnail": "https://reui.io/thumbnails/blocks/stats-5-light.webp",
+            "registryDependencies": ["button", "card"],
+            "dependencies": ["cn"],
+            "score": 46,
+            "termCoverage": 0.29,
+            "whyMatch": ["is a block", "category: stats"],
+            "missedTerms": [
+              "statistics",
+              "operational",
+              "real",
+              "count",
+              "values",
+              "clickable",
+              "category",
+              "filters",
+              "calm",
+              "base",
+              "ui",
+              "maia"
+            ]
+          },
+          {
+            "name": "stats-3",
+            "type": "block",
+            "title": "Subscription stats card with plan-tier segmented bar and expiring-soon renewal list",
+            "description": "Subscription metrics card: revenue and subscriber counts, a stacked Free/Pro/Enterprise tier bar with legend, and an Expiring Soon list with plan badges, days left, and renew links. ReUI Badge, shadcn Card, Select, Tooltip. For SaaS billing.",
+            "group": "application",
+            "category": "stats",
+            "free": false,
+            "requiredPlan": "pro",
+            "surface": "card",
+            "install": "npx shadcn@latest add @reui/stats-3",
+            "docsUrl": "https://reui.io/blocks/application/stats/stats-3?ref=mcp",
+            "previewUrl": "https://reui.io/preview/base/stats-3?ref=mcp",
+            "thumbnail": "https://reui.io/thumbnails/blocks/stats-3-light.webp",
+            "componentsUsed": ["badge"],
+            "registryDependencies": [
+              "@reui/badge",
+              "card",
+              "select",
+              "separator",
+              "tooltip"
+            ],
+            "score": 45,
+            "termCoverage": 0.29,
+            "whyMatch": ["is a block", "category: stats"],
+            "missedTerms": [
+              "statistics",
+              "operational",
+              "dashboard",
+              "real",
+              "values",
+              "clickable",
+              "category",
+              "filters",
+              "calm",
+              "base",
+              "ui",
+              "maia"
+            ]
+          }
+        ],
+        "weakMatch": true,
+        "unmatchedTerms": [
+          "statistics",
+          "operational",
+          "real",
+          "count",
+          "clickable",
+          "category",
+          "filters",
+          "calm",
+          "base",
+          "ui",
+          "maia"
+        ],
+        "weakMatchNote": "The top result misses more of the query than it matches (missing: statistics, operational, real, count, clickable, category, filters, calm, base, ui, maia), and none of the top results mention: statistics, operational, real, count, clickable, category, filters, calm, base, ui, maia. Re-search with the words the registry uses (list_block_categories shows them), or compose the page from components rather than forcing this match.",
+        "componentDigests": {
+          "badge": "Text child; shadcn-compatible. `variant` (solid, `-outline`, `-light` per color), `size` xs..xl, `radius` default|full. Prefer Badge variants over raw color classes for statuses."
+        },
+        "unlock": {
+          "plan": "ultimate",
+          "what": "Motion Icons in search and search_icons",
+          "url": "https://reui.io/pricing?utm_content=context&ref=mcp"
+        },
+        "upgrade": "Motion Icons need an Ultimate license: https://reui.io/pricing?utm_content=context&ref=mcp",
+        "next": "Show the user the top 2 or 3 results as markdown images from `thumbnail`, linked to `previewUrl`, so they can pick by eye. Then install via the result's `install` command and read APIs with get_component."
+      }
+    },
+    {
+      "tool": "search",
+      "arguments": {
+        "query": "Notification preferences settings matrix email in app SMS toggles accessible responsive account settings",
+        "type": "block",
+        "category": "settings",
+        "free": false,
+        "surface": "card",
+        "limit": 6
+      },
+      "result": {
+        "query": "Notification preferences settings matrix email in app SMS toggles accessible responsive account settings",
+        "plan": "pro",
+        "intent": {
+          "type": "block",
+          "components": [],
+          "categories": ["notifications", "settings", "toggle"],
+          "features": ["responsive"]
+        },
+        "count": 3,
+        "results": [
+          {
+            "name": "settings-11",
+            "type": "block",
+            "title": "Notification preferences settings with tabbed channel matrix table for Email, Slack, and In-app",
+            "description": "Notification settings grouping events under Projects, Messages, Reports, and System tabs, each a table with per-row Email/Slack/In-app checkboxes. Uses ReUI Tabs (line), Table, Checkbox. For alert preferences and channel opt-in.",
+            "group": "application",
+            "category": "settings",
+            "free": false,
+            "requiredPlan": "pro",
+            "surface": "none",
+            "install": "npx shadcn@latest add @reui/settings-11",
+            "docsUrl": "https://reui.io/blocks/application/settings/settings-11?ref=mcp",
+            "previewUrl": "https://reui.io/preview/base/settings-11?ref=mcp",
+            "thumbnail": "https://reui.io/thumbnails/blocks/settings-11-light.webp",
+            "registryDependencies": ["checkbox", "table", "tabs"],
+            "score": 100,
+            "termCoverage": 0.67,
+            "whyMatch": ["is a block", "category: settings"],
+            "missedTerms": ["sms", "accessible", "responsive", "account"]
+          },
+          {
+            "name": "settings-12",
+            "type": "block",
+            "title": "Notification settings page with per-channel delivery modes and collapsible auto-follow toggles",
+            "description": "Notification preferences page: per-channel delivery-mode Selects for inbox, email, browser, and mobile, Slack, Zoom, and Google Meet connect rows, plus a collapsible auto-follow section. Uses ReUI Badge with shadcn Card, Select, Switch, Collapsible.",
+            "group": "application",
+            "category": "settings",
+            "free": false,
+            "requiredPlan": "pro",
+            "surface": "card",
+            "install": "npx shadcn@latest add @reui/settings-12",
+            "docsUrl": "https://reui.io/blocks/application/settings/settings-12?ref=mcp",
+            "previewUrl": "https://reui.io/preview/base/settings-12?ref=mcp",
+            "thumbnail": "https://reui.io/thumbnails/blocks/settings-12-light.webp",
+            "componentsUsed": ["badge"],
+            "registryDependencies": [
+              "@reui/badge",
+              "button",
+              "card",
+              "collapsible",
+              "field",
+              "item",
+              "select",
+              "separator",
+              "switch"
+            ],
+            "dependencies": ["cn", "sonner"],
+            "score": 99,
+            "termCoverage": 0.42,
+            "whyMatch": ["is a block", "category: settings"],
+            "missedTerms": [
+              "matrix",
+              "app",
+              "sms",
+              "accessible",
+              "responsive",
+              "account"
+            ]
+          },
+          {
+            "name": "settings-7",
+            "type": "block",
+            "title": "Account settings page with side-tab navigation for profile, security, notifications, and billing",
+            "description": "Tabbed account settings shell with a side tab rail. Profile with avatar upload, two-step verification, active sessions, delete account, and billing plans. ReUI Alert and Badge with shadcn Tabs, Card, Field, Input, Select, Switch, Item, Avatar.",
+            "group": "application",
+            "category": "settings",
+            "free": false,
+            "requiredPlan": "pro",
+            "surface": "card",
+            "install": "npx shadcn@latest add @reui/settings-7",
+            "docsUrl": "https://reui.io/blocks/application/settings/settings-7?ref=mcp",
+            "previewUrl": "https://reui.io/preview/base/settings-7?ref=mcp",
+            "thumbnail": "https://reui.io/thumbnails/blocks/settings-7-light.webp",
+            "componentsUsed": ["alert", "badge"],
+            "registryDependencies": [
+              "@reui/alert",
+              "@reui/badge",
+              "@reui/use-file-upload",
+              "avatar",
+              "button",
+              "card",
+              "field",
+              "input",
+              "input-group",
+              "item",
+              "select",
+              "switch",
+              "tabs",
+              "textarea",
+              "use-mobile"
+            ],
+            "dependencies": ["cn"],
+            "score": 94,
+            "termCoverage": 0.42,
+            "whyMatch": ["is a block", "category: settings"],
+            "missedTerms": [
+              "matrix",
+              "email",
+              "app",
+              "sms",
+              "accessible",
+              "responsive"
+            ]
+          }
+        ],
+        "componentDigests": {
+          "badge": "Text child; shadcn-compatible. `variant` (solid, `-outline`, `-light` per color), `size` xs..xl, `radius` default|full. Prefer Badge variants over raw color classes for statuses.",
+          "alert": "`Alert` > `AlertTitle` (+ `AlertDescription` / `AlertAction`). shadcn-compatible; `variant`: default|destructive|info|success|warning|invert (non-default use ReUI extended color tokens the install adds)."
+        },
+        "unlock": {
+          "plan": "ultimate",
+          "what": "Motion Icons in search and search_icons",
+          "url": "https://reui.io/pricing?utm_content=context&ref=mcp"
+        },
+        "upgrade": "Motion Icons need an Ultimate license: https://reui.io/pricing?utm_content=context&ref=mcp",
+        "next": "Show the user the top 2 or 3 results as markdown images from `thumbnail`, linked to `previewUrl`, so they can pick by eye. Then install via the result's `install` command and read APIs with get_component."
+      }
+    }
+  ],
+  "mcpInstallCommands": [
+    {
+      "tool": "get_install_command",
+      "arguments": {
+        "item": "settings-7",
+        "packageManager": "bun"
+      },
+      "result": {
+        "item": "settings-7",
+        "found": true,
+        "type": "block",
+        "free": false,
+        "requiredPlan": "pro",
+        "command": "bunx --bun shadcn@latest add @reui/settings-7",
+        "previewUrl": "https://reui.io/preview/base/settings-7?ref=mcp",
+        "docsUrl": "https://reui.io/blocks/application/settings/settings-7?ref=mcp",
+        "thumbnail": "https://reui.io/thumbnails/blocks/settings-7-light.webp",
+        "note": "This command is correct and the preview is public. Running it needs REUI_LICENSE_KEY in .env.local and the @reui registry in components.json (pro plan)."
+      }
+    },
+    {
+      "tool": "get_install_command",
+      "arguments": {
+        "item": "settings-11",
+        "packageManager": "bun"
+      },
+      "result": {
+        "item": "settings-11",
+        "found": true,
+        "type": "block",
+        "free": false,
+        "requiredPlan": "pro",
+        "command": "bunx --bun shadcn@latest add @reui/settings-11",
+        "previewUrl": "https://reui.io/preview/base/settings-11?ref=mcp",
+        "docsUrl": "https://reui.io/blocks/application/settings/settings-11?ref=mcp",
+        "thumbnail": "https://reui.io/thumbnails/blocks/settings-11-light.webp",
+        "note": "This command is correct and the preview is public. Running it needs REUI_LICENSE_KEY in .env.local and the @reui registry in components.json (pro plan)."
+      }
+    }
+  ],
+  "mcpUsageValidation": [
+    {
+      "tool": "validate_usage",
+      "arguments": {
+        "items": ["settings-7", "settings-11"]
+      },
+      "result": {
+        "ok": true,
+        "items": [
+          {
+            "name": "settings-7",
+            "exists": true,
+            "type": "block",
+            "free": false,
+            "requiredPlan": "pro"
+          },
+          {
+            "name": "settings-11",
+            "exists": true,
+            "type": "block",
+            "free": false,
+            "requiredPlan": "pro"
+          }
+        ],
+        "note": "Checked against the indexed API docs. notDocumented = the name appears nowhere in the component's documented API, so stop and read it. documented = the name appears in those docs, which is evidence and not proof it is a prop of this component; a `reason` is the docs saying outright that it is not one. Read the api from get_component before writing anything you have not seen in it."
+      }
+    }
+  ],
+  "mcpPreviews": [
+    {
+      "name": "settings-7",
+      "type": "block",
+      "title": "Account settings page with side-tab navigation for profile, security, notifications, and billing",
+      "themeServed": "light",
+      "previewUrl": "https://reui.io/preview/base/settings-7?ref=mcp",
+      "docsUrl": "https://reui.io/blocks/application/settings/settings-7?ref=mcp",
+      "thumbnail": "https://reui.io/thumbnails/blocks/settings-7-light.webp"
+    }
+  ],
+  "sourceDecisions": {
+    "settings-7": "Accepted account-settings responsive controlled rail and SettingsCard anatomy; shared defaults replace vendor appearance overrides, demo tabs/data/engines/hooks omitted.",
+    "settings-11": "Accepted notification row/channel table structure; caller-owned controlled Switches retain exact IDs/values/names and Save behavior; no vendor uncontrolled Checkbox or demo channel data.",
+    "app-shell-18": "Actual commercial source fetched and reviewed; retain Core shell because importing task demo/AI panel/new next-themes composition would weaken Core forced-light/provider/tenant/routing boundaries. Existing admin Eve/Web Studio and missionary shell remain coherently improved through their current owners."
+  },
+  "verificationLimit": "Owner-focused tests and source/type checks pass as recorded; actual app settings after recapture and final aggregate verification remain runtime/root-owned. Pro source validation does not prove behavior or productive provider availability."
+}

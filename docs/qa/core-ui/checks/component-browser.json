@@ -1,0 +1,18 @@
+{
+  "command": "UI_AUDIT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium node node_modules/@playwright/test/cli.js test --config docs/qa/core-ui/component-check.config.mts",
+  "runtime": "Node 24.19.0, Playwright Test 1.59.1, system Chromium /usr/bin/chromium",
+  "scope": "Eight existing browser suites mounting actual first-party component fixtures; network blocked. No productive app, provider or CMS availability claim.",
+  "after": {
+    "exitCode": 0,
+    "passed": 62,
+    "duration": "2.8m",
+    "log": "checks/component-browser-after.log",
+    "logSha256": "45fecee97dcf9ce8f83c6bbefd6030d42e539e237817d7b14d4653a16736a0b4"
+  },
+  "before": {
+    "passed": 62,
+    "log": "checks/component-browser-before.log",
+    "logSha256": "9e75e246d40218c29cb6040d567bc9c127aaeb2755caeb66151f989dd206b34c"
+  },
+  "configCorrection": "Initial .ts supplementary config failed collection before tests due to import.meta CJS/ESM mismatch in Playwright. Explicit .mts fixes module loading; suite assertions unchanged."
+}

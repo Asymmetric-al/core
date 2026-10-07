@@ -1,0 +1,22 @@
+{
+  "reui": {
+    "command": "bun run verify:reui --live",
+    "exitCode": 0,
+    "resultLines": [
+      "[reui] PASS canonical ReUI skill and all mirrors",
+      "[reui] PASS Base UI/base-maia authenticated registry",
+      "[reui] PASS Codex, Claude, and Cursor MCP auth/style forwarding",
+      "[reui] PASS authenticated MCP tools and Pro plan",
+      "[reui] PASS Pro block discovery and Base UI component API",
+      "[reui] PASS paid Base UI registry source retrieval"
+    ],
+    "completeLocalLogSha256": "dc7ba78eb734e640f421676940bdd474c645e7d04f671a0ab6e88ca729e8698d"
+  },
+  "motion": {
+    "command": "bun run check:motion",
+    "exitCode": 0,
+    "resultLines": ["motion guard: clean (2063 files scanned)"],
+    "completeLocalLogSha256": "c39d693a1ae19d071ca4a8889a6dbf77decbdfb1b3c50a1b3b0684d49e28e249"
+  },
+  "scope": "Post-upstream integration. ReUI checks MCP/Pro entitlement separately from paid registry retrieval; current chat native MCP tool handles require client reload/reconnect. Motion scanned2063files."
+}

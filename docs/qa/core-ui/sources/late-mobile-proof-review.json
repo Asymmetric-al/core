@@ -1,0 +1,24 @@
+{
+  "method": "Root explicitly reconstructed each prior reviewed source, matched its existing proof hash, inspected the minimal final delta and refreshed only the same existing references. No policy, proof coverage, enforcement floor or classification changes.",
+  "reviews": [
+    {
+      "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
+      "reviewedPriorSha256": "5638be472e489ec5bb8bb79255eab8d6a1038c2dbd5da8f53d83bbcb672639fe",
+      "finalSha256": "699b779d527d1eb7d7e8d6188500ee3697d560e343be22f76c81aaac2b769ec5",
+      "exactDelta": "One w-full class expands the existing preset radio to its grid cell; value handlers, names, step navigation, payment and narrow progress/Sheet contracts unchanged.",
+      "priorBytesReconstructedAndHashMatched": true,
+      "references": 1,
+      "policyChanges": 0
+    },
+    {
+      "path": "apps/missionary/components/app-shell.tsx",
+      "reviewedPriorSha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799",
+      "finalSha256": "4f1653e47453eae914275307deeec61efce230dd57ebdbfb8d1e665145ba83da",
+      "exactDelta": "One SidebarInset flex class list adds min-w-0 and reorders unchanged classes; role/tenant/sidebar/header, route-transition context, protected navigation and child/footer/provider lifetimes unchanged.",
+      "priorBytesReconstructedAndHashMatched": true,
+      "references": 3,
+      "policyChanges": 0
+    }
+  ],
+  "limit": "This review records source identity and preserved contracts; normal final enforcement results and aggregate gate/build claims are root-owned."
+}

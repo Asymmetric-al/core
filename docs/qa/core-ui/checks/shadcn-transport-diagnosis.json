@@ -1,0 +1,18 @@
+{
+  "gate": "verify:shadcn-diff",
+  "verifiedArgs": ["info", "--json"],
+  "cliVersion": "4.21.1",
+  "nodeVersion": "v24.19.0",
+  "reproductions": 2,
+  "stderrEmpty": true,
+  "cause": "HTTP 503 from https://ui.shadcn.com/r/index.json via existing approved Envoy transport; upstream connection failure before headers",
+  "independentPublicRequest": {
+    "status": 503,
+    "contentType": "text/plain"
+  },
+  "noRepositoryEdits": true,
+  "noCredentialQueries": true,
+  "noTlsOrProxyOverrides": true,
+  "noFurtherFullRetries": true,
+  "status": "not-verified-external-transport-failure"
+}

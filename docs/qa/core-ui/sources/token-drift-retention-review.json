@@ -1,0 +1,197 @@
+{
+  "method": "Read-only diagnostic uses the current official verifier scan/allowlist functions with full output instead of its80-hit display limit, plus fresh exact path/symbol imports and existing route consumer ledgers. Verifier/policy/source unchanged.",
+  "current_scanned_files": 744,
+  "raw_palette_hits": 284,
+  "reportable_hits": 275,
+  "reportable_source_files": 15,
+  "earlier_log_note": "Earlier saved gate log scanned735files; current post-integration official command and matching full diagnostic scan744. Raw284/reportable275 totals are unchanged. Root owns final command log/result.",
+  "disposition": "All15 reportable source files are dormant/alternate exported modules with no discovered active first-party product consumer; retain with explicit reasons. No reachable neutral palette opportunity remains at this scan seam.",
+  "limits": "Report-only verifier exits0; it is not a token-free or per-file visual pass. Static reachability includes exact path/symbol/barrel checks, not hypothetical external consumers or all CSS color forms. Productive/provider and captured runtime epochs remain separately qualified.",
+  "records": [
+    {
+      "path": "apps/admin/app/web-studio/web-studio-sections.tsx",
+      "reportable_hits": 75,
+      "current_source_sha256": "c9a30ee9d914fe36af43bdbd9b47090dabc964d99f76761f0c7531a07fa2a6c2",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Retain dormant/alternate exported source: fresh exact symbol/path import search and original route graph find no active first-party product consumer. Definition/barrel-only exports do not establish a visible surface; preserve existing contracts without opportunistic rewrite or removal.",
+      "source_detail": "inventory/admin.json#/components/14"
+    },
+    {
+      "path": "apps/admin/components/dashboard/activity-item.tsx",
+      "reportable_hits": 9,
+      "current_source_sha256": "ed5a41d3ce24ee6dc7f7a7947e94795b1e829de8b65ec6ab1d2e32fe169183e5",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Retain dormant/alternate exported source: fresh exact symbol/path import search and original route graph find no active first-party product consumer. Definition/barrel-only exports do not establish a visible surface; preserve existing contracts without opportunistic rewrite or removal.",
+      "source_detail": "inventory/admin.json#/components/173"
+    },
+    {
+      "path": "apps/admin/components/dashboard/stat-card.tsx",
+      "reportable_hits": 5,
+      "current_source_sha256": "dbb41260e9ad1c7e1982c5a1777a202f21ea017942fda9e89c15b03fe3d6ba69",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Retain dormant/alternate exported source: fresh exact symbol/path import search and original route graph find no active first-party product consumer. Definition/barrel-only exports do not establish a visible surface; preserve existing contracts without opportunistic rewrite or removal.",
+      "source_detail": "inventory/admin.json#/components/175"
+    },
+    {
+      "path": "apps/admin/components/dashboard/task-item.tsx",
+      "reportable_hits": 5,
+      "current_source_sha256": "edaa6289df79a81f4a149cf7659bc200761cf61611067c2f0e46c6dbccf00b4f",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Retain dormant/alternate exported source: fresh exact symbol/path import search and original route graph find no active first-party product consumer. Definition/barrel-only exports do not establish a visible surface; preserve existing contracts without opportunistic rewrite or removal.",
+      "source_detail": "inventory/admin.json#/components/176"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx",
+      "reportable_hits": 1,
+      "current_source_sha256": "50553db5de37426db9aaf2bf4e6f683fc9d4e9cf05f7bc6a70d605bf2748029a",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Retain dormant/alternate exported source: fresh exact symbol/path import search and original route graph find no active first-party product consumer. Definition/barrel-only exports do not establish a visible surface; preserve existing contracts without opportunistic rewrite or removal.",
+      "source_detail": "inventory/admin.json#/components/183"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/app-shell/index.tsx",
+      "reportable_hits": 46,
+      "current_source_sha256": "e90e35f05af914ddf90d283c2a18390b69c5e2873d109509f17246814b83b3cd",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Retain dormant/alternate exported source: fresh exact symbol/path import search and original route graph find no active first-party product consumer. Definition/barrel-only exports do not establish a visible surface; preserve existing contracts without opportunistic rewrite or removal.",
+      "source_detail": "inventory/admin.json#/components/196"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/tiles/dashboard-tile.tsx",
+      "reportable_hits": 15,
+      "current_source_sha256": "7c5dcc87a81a685ce9361f3fe6e3f2ba29e944397ba002695f6a52e006d883e7",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Retain dormant/alternate exported source: fresh exact symbol/path import search and original route graph find no active first-party product consumer. Definition/barrel-only exports do not establish a visible surface; preserve existing contracts without opportunistic rewrite or removal.",
+      "source_detail": "inventory/admin.json#/components/200"
+    },
+    {
+      "path": "apps/donor/app/(public)/(solid)/workers/[id]/worker-profile-client.tsx",
+      "reportable_hits": 60,
+      "current_source_sha256": "5b429ff9232866aff21b9c3d9a6244ad9af138295597e19fe1a11b8f66ae2fd6",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "No reachable product route consumer found by source import tracing; exported legacy/prototype UI, not evidence of a visible material opportunity. Do not opportunistically rewrite/remove.",
+      "source_detail": "inventory/donor.json#/sourceFiles/63"
+    },
+    {
+      "path": "apps/donor/features/donor/components/MissionBriefing.tsx",
+      "reportable_hits": 6,
+      "current_source_sha256": "6614d4eac63e71f9c5e419faaeace9d04bfa611472b55998d1e2fc0e7bb3f784",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "No reachable product route consumer found by source import tracing; exported legacy/prototype UI, not evidence of a visible material opportunity. Do not opportunistically rewrite/remove.",
+      "source_detail": "inventory/donor.json#/sourceFiles/82"
+    },
+    {
+      "path": "packages/missionary/components/activity-feed.tsx",
+      "reportable_hits": 14,
+      "current_source_sha256": "4d7bf0d09c29710c2ab7f8ade279e3301b8051c4c9b39a9e2773b6f7d8b9a69d",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "source_detail": "inventory/missionary.json#/first_party_source_index/64"
+    },
+    {
+      "path": "packages/missionary/components/alerts-section.tsx",
+      "reportable_hits": 7,
+      "current_source_sha256": "8e1183129b1066a48b0cc3da64e17ca48d2b6551ae6ae70151bec7af7027fa0e",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "source_detail": "inventory/missionary.json#/first_party_source_index/66"
+    },
+    {
+      "path": "packages/missionary/components/metric-card.tsx",
+      "reportable_hits": 5,
+      "current_source_sha256": "20a1325444e48ab9b885f0df9c44a04b5ad60fd99d60e601bf6428b3e1de45a7",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "source_detail": "inventory/missionary.json#/first_party_source_index/71"
+    },
+    {
+      "path": "packages/missionary/components/page-header.tsx",
+      "reportable_hits": 2,
+      "current_source_sha256": "95edd9bd3043247df8e23f8f27a76ec5bfbe0e4ff3ae301736912a47a72704b3",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "source_detail": "inventory/missionary.json#/first_party_source_index/73"
+    },
+    {
+      "path": "packages/missionary/components/quick-actions.tsx",
+      "reportable_hits": 9,
+      "current_source_sha256": "c60b8741cfbdf8f9dc95157d14cbee74b531c25e9f2411db88cc6d3398fcce19",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "source_detail": "inventory/missionary.json#/first_party_source_index/74"
+    },
+    {
+      "path": "packages/missionary/components/tasks-preview.tsx",
+      "reportable_hits": 16,
+      "current_source_sha256": "ee0cfa0449d6b5841ffa7c174d91855d3654be2dddb6d0b5081a6bbf18f9cb6e",
+      "disposition": "retained-dormant-source-no-active-product-consumer",
+      "reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "source_detail": "inventory/missionary.json#/first_party_source_index/89"
+    }
+  ],
+  "allowed_hits": [
+    {
+      "file": "apps/donor/app/(public)/(solid)/workers/[id]/worker-profile-client.tsx",
+      "lineNumber": 288,
+      "line": "<Badge className=\"bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border-none h-5 px-1.5\">",
+      "token": "bg-zinc-100",
+      "allowlist": "status colors"
+    },
+    {
+      "file": "apps/donor/app/(public)/(solid)/workers/[id]/worker-profile-client.tsx",
+      "lineNumber": 288,
+      "line": "<Badge className=\"bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border-none h-5 px-1.5\">",
+      "token": "text-zinc-600",
+      "allowlist": "status colors"
+    },
+    {
+      "file": "apps/donor/app/(public)/(solid)/workers/[id]/worker-profile-client.tsx",
+      "lineNumber": 288,
+      "line": "<Badge className=\"bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border-none h-5 px-1.5\">",
+      "token": "hover:bg-zinc-200",
+      "allowlist": "status colors"
+    },
+    {
+      "file": "packages/missionary/components/alerts-section.tsx",
+      "lineNumber": 59,
+      "line": "<Badge className=\"bg-zinc-100 text-zinc-900 border-none font-bold text-xs h-4.5 px-1.5 rounded-md\">",
+      "token": "bg-zinc-100",
+      "allowlist": "status colors"
+    },
+    {
+      "file": "packages/missionary/components/alerts-section.tsx",
+      "lineNumber": 59,
+      "line": "<Badge className=\"bg-zinc-100 text-zinc-900 border-none font-bold text-xs h-4.5 px-1.5 rounded-md\">",
+      "token": "text-zinc-900",
+      "allowlist": "status colors"
+    },
+    {
+      "file": "packages/ui/components/brand-logo.tsx",
+      "lineNumber": 28,
+      "line": ": \"bg-zinc-900 text-white dark:bg-white dark:text-zinc-900\";",
+      "token": "bg-zinc-900",
+      "allowlist": "brand exceptions"
+    },
+    {
+      "file": "packages/ui/components/brand-logo.tsx",
+      "lineNumber": 28,
+      "line": ": \"bg-zinc-900 text-white dark:bg-white dark:text-zinc-900\";",
+      "token": "dark:text-zinc-900",
+      "allowlist": "brand exceptions"
+    },
+    {
+      "file": "packages/ui/components/brand-logo.tsx",
+      "lineNumber": 53,
+      "line": "\"rounded-full flex items-center justify-center font-bold tracking-tight bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-md ring-2 ring-background\",",
+      "token": "bg-zinc-900",
+      "allowlist": "brand exceptions"
+    },
+    {
+      "file": "packages/ui/components/brand-logo.tsx",
+      "lineNumber": 53,
+      "line": "\"rounded-full flex items-center justify-center font-bold tracking-tight bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-md ring-2 ring-background\",",
+      "token": "dark:text-zinc-900",
+      "allowlist": "brand exceptions"
+    }
+  ]
+}

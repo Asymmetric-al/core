@@ -1,0 +1,86 @@
+{
+  "source_baseline": "f49fc2e03bce9246f5d3dc22c16d0a6c794a8304",
+  "upstream_integration_base": "180dde9e41b849e0c3a649aeef8989f3974bf4cd",
+  "captured_ui_source_epoch": "5319246eb709a58b4f01d3cbce824087aeef7b3e",
+  "current_ui_source_epoch": "0cc25be9c47b5fd3ab739f8cf18c33bde3b90bb3",
+  "captured_runtime_framework": "Next16.3.8",
+  "current_installed_framework": "Next16.4 inherited from newer develop; not a UI-task dependency upgrade",
+  "current_source_reconciliations": [
+    {
+      "path": "apps/admin/features/support-hub/components/settings/assignment/AssignmentRulesForm.tsx",
+      "owner": "specialized",
+      "pre_integration_source_sha256": "ede0d113e29aed770f27c6409044588a18e9b35c9b20101325de0494bcd82356",
+      "current_source_sha256": "2b75a9bb2dc22129b2b762bacffa7783dd5d01bd0c0bef3f3f9097a6733b18ed",
+      "current_source_lines": 122,
+      "upstream_source_sha256": "a55265bd05cdd4d867535005026cf26646afc4a9238e9307405ea7513715b6b8"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx",
+      "owner": "specialized",
+      "pre_integration_source_sha256": "3990f58ebeba0d9244aa70c59a43825d5e7cce5786d5976649a197b204663ce4",
+      "current_source_sha256": "9f4f7d2e4e016c986e110222032a85f3aa4f4f73493155e8227eb06c804a26e5",
+      "current_source_lines": 147,
+      "upstream_source_sha256": "7a6390f57537791653b76e68a39f55fbd8554d398234babea28f48148beb1289"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx",
+      "owner": "specialized",
+      "pre_integration_source_sha256": "9ded40165446de2c70a2ef5f915690c4d9313384768772606e3610a90458de83",
+      "current_source_sha256": "103b5a0ad825e11e13a763365f4b47f30d38653bcb7a81e2956768bb4b6b2f40",
+      "current_source_lines": 229,
+      "upstream_source_sha256": "901e30865bca593f73bec2f9fe67be77d035199a629dec3008f83c5c3f38b1ed"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/settings/notifications/NotificationPreferencesForm.tsx",
+      "owner": "specialized",
+      "pre_integration_source_sha256": "de25e9c48fa6b39a0614e56b4f9f26cfa2eebe484b04d2a523df198c70d98bbd",
+      "current_source_sha256": "7252a6e34fe84ee35a2b7e3bf52afa0d5510a0111a101c453019021147213224",
+      "current_source_lines": 209,
+      "upstream_source_sha256": "11c220deee1caeb7a338a59960069c5fa5f0a57c28aadec387961ef0f10bbc41"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/toolbar/InboxToolbar.tsx",
+      "owner": "specialized",
+      "pre_integration_source_sha256": "0ed28c24274a5395bc3eb103310b8746e59224bb0676646e5423b4350ea5d7e3",
+      "current_source_sha256": "96b4a41b67bdae0bb531a094cd161c70d370e4ab3fcdbe301dbc7d58e56911bc",
+      "current_source_lines": 90,
+      "upstream_source_sha256": "a83e03dbdfff7eed1c21d061689d2deab0c7e826a9d2c751bc5ef85ae63f3845"
+    },
+    {
+      "path": "apps/admin/app/(app)/crm/page-client.tsx",
+      "owner": "admin",
+      "pre_integration_source_sha256": "4a91b36622507f5818b95dbfb7e7c8dd4ab7a04de08f2f28497f8c0b7e0d12ec",
+      "current_source_sha256": "ee912430e364cf052619a4d728ed19ea2ef576c50adfe7574d0da422109bf7d8",
+      "current_source_lines": 683,
+      "upstream_source_sha256": "0e6848040be5d48e8154c48d96f33142505f8efcc19f7f6798252ebb83b8d470"
+    },
+    {
+      "path": "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx",
+      "owner": "admin",
+      "pre_integration_source_sha256": "817072a83f035a21ff20e7669d6622e367a3c1cbfcc3f33c7fd38c41d1a4a511",
+      "current_source_sha256": "db38ed6359cf6a34a1d09325c12f07c0825ede8597acb4d194c95c4d249c6323",
+      "current_source_lines": 160,
+      "upstream_source_sha256": "debc12fff131fa0d9f4a928149f108c858b5254d238506b752c603c3fef33685"
+    }
+  ],
+  "upstream_untouched_page_identities": [
+    {
+      "path": "apps/admin/app/(app)/contributions/page-client.tsx",
+      "current_source_sha256": "8208b024542119ced21400f4d1750ac949064a9516612ffcd6a0510ea5e68155",
+      "pre_integration_source_sha256": "524e2e74495166cd8b0f959ffa9f3611aa47bede39dd1dcf862987fd200f8b42",
+      "upstream_source_sha256": "8208b024542119ced21400f4d1750ac949064a9516612ffcd6a0510ea5e68155"
+    },
+    {
+      "path": "apps/admin/app/(app)/email/page-client.tsx",
+      "current_source_sha256": "4df5921ed010b5c02e72cd493a69600d8f65f0d2b3b9cf6f377b6bc0520c1ee7",
+      "pre_integration_source_sha256": "842818b87f0a0a2af7c47a593da22ef50f1479f75c4ffc75e458400c3f1bf44a",
+      "upstream_source_sha256": "4df5921ed010b5c02e72cd493a69600d8f65f0d2b3b9cf6f377b6bc0520c1ee7"
+    }
+  ],
+  "runtime_limit": "Before/current UI captures are pre-integration Next16.3.8 evidence. Final exact source identities/checks after rebase do not imply new Next16.4 browser validation.",
+  "source_review_attribution": "Root owns rebase/conflict resolution; admin/cross reviewers independently verify preserved upstream behavior. Source hashes identify exact composed bytes, never a post-rebase runtime pass.",
+  "inventory_reference_limit": "Seven overlapping identities remain within the733 reference count. Two untouched pages inherited from upstream are additional supplemental identities; ledgers overlap and do not count unique visual surfaces.",
+  "independent_review": "sources/cross-review-rebase-preservation.json",
+  "preservation_summary": "All seven composed overlaps preserve upstream selection/query/cache/draft/clock/reset behavior and UI improvements. Two inherited pages and seven upstream regression files remain exact upstream bytes; mobile/Pro source retains captured UI bytes. Independent review executed no new runtime/tests; root owns final gates.",
+  "guard_review": "sources/pr-rebase-guard-review.json"
+}

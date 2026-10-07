@@ -1,0 +1,325 @@
+{
+  "purpose": "Exact current identity of general-admin owned sources/tests/helper and explicit partial Support mobile Checkbox slice; substantive review and focused results are in the linked owner ledger.",
+  "source_baseline": "f49fc2e03bce9246f5d3dc22c16d0a6c794a8304",
+  "ownership_manifest": "inventory/admin.json#/general_owned_files",
+  "files": [
+    {
+      "path": "apps/admin/app/(app)/admin/page-client.tsx",
+      "sha256": "87990186d9bebe7836cfbf51d626fd542bab676d6f6fb9dff03ec94dc64234f7",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/care/directory/[id]/page-client.tsx",
+      "sha256": "8dbc7cbee1c805f966048466576b963c25adc5360deae22cd6ca99e3f9ff5dc5",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/care/directory/page-client.tsx",
+      "sha256": "27395c776a2a25ee8cb0c1ac57c098ddbcb6d8d5dd6132b05e818f85a3b7295a",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/care/page-client.tsx",
+      "sha256": "fbef67f924b84bbb74a780e44deaabfe570f7720faa87ed36409c7e66f174840",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/care/settings/page-client.tsx",
+      "sha256": "2b5b529d942771b4d428c18a5c926fe771089f71b242a1044ad858094f672d4c",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/contributions/boneyard-fallback.tsx",
+      "sha256": "3ee7265386fb71bd28a9a4ec90094eaec77818c03673c111660bf8bec8981a82",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/contributions/columns.tsx",
+      "sha256": "2865478b934f41fe868231df8fb63079986047f963dc522d3eb944ab4fb0b993",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/contributions/contribution-detail-sheet.tsx",
+      "sha256": "82971fb73933b8fc9cd8a7b404daab2bb19b1e6df3415f9b248d79fe1f46d49d",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/contributions/loading.tsx",
+      "sha256": "c8ff6854a2fe93e16c91dad6cd557e44748fca6f0f4be24a32e37de59916c660",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/contributions/main-body.tsx",
+      "sha256": "ad911d9009faa33e48463ccc1b203a257a2a58da8426a254faa064d476a6676e",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
+      "sha256": "5596e3b7fd3952a766203dcdcdaf6aa4844acfb40a5457163c73d1771e10b94f",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/contributions/operation-shell.tsx",
+      "sha256": "74fe5f541cad46e17d59ee5e51b0672cf093705884c5ed359ef67a19701b45a9",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/crm/columns.tsx",
+      "sha256": "49a3a45d2e9c4fcaa1ef8ba6d338d97419d1cfc7a97642137af6695549e24fd3",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/crm/notes/page-client.tsx",
+      "sha256": "8434dada87f0b10751e7f8542dae2e6c015c627c8cb32a5cab6ee051695ebdd1",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/crm/page-client.tsx",
+      "sha256": "ee912430e364cf052619a4d728ed19ea2ef576c50adfe7574d0da422109bf7d8",
+      "status": "tracked",
+      "pre_integration_source_sha256": "4a91b36622507f5818b95dbfb7e7c8dd4ab7a04de08f2f28497f8c0b7e0d12ec"
+    },
+    {
+      "path": "apps/admin/app/(app)/crm/relationships/columns.tsx",
+      "sha256": "8006ab52f06c137cbae38cfbd7497d626cd683edf0809d8cc10451fa05e75660",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/crm/relationships/page-client.tsx",
+      "sha256": "69f6241e5dc04eee26096661dbc8257d3f73fc3345b4d6a9213e9863564e3bde",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/events/page-client.tsx",
+      "sha256": "c2c5d0653d1a42529b19afdd6ca073f905b6d47cf0b122a86d51d0f2d9257ff1",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/events/registration-trends-chart.tsx",
+      "sha256": "5369890a1d43e72d85629de33b9339475c44a96b082e582f325343a89587682b",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
+      "sha256": "931a82d19ac42540044c2a306d087a8a130c21ace1cc8238063b05f94df55cda",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/feed/org-updates/page-client.tsx",
+      "sha256": "0cad2f445c9d4c221d89f3239719e8176cb5da4dc6f0d37ecfe3f5f21689c476",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/help/about/page.tsx",
+      "sha256": "12e903150118e405160c14aca8d03b29d86cef968394364e42bdd69d270a3fe7",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/mobilize/locations/page-client.tsx",
+      "sha256": "6566329c445dc2a09ecf81979002700efdcf86f8dd091498aff69f12fa5eb9b4",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/mobilize/mobilize-sections.tsx",
+      "sha256": "5830d6a6653631f9f47933d7afc402133f07b073fea149dabf8fad34fde3a410",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/mobilize/page-client.tsx",
+      "sha256": "827928e046e3ada3ba922d936600c094d88fde70db9ee5a1d16e83f154a110ab",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/mobilize/stage-colors.ts",
+      "sha256": "4a67b84294cae0938fa419cf0c37ca5094b92314f9530e498e4a74de2c7fcae4",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/reports/loading.tsx",
+      "sha256": "6c414df3ca7508b14964495c28391056642d856efffde8a03ef1ca915715438b",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/reports/page-client.tsx",
+      "sha256": "7491598d30f76bcf2b447e4a4db39f21c6307b679d2b63b1b6af5569d074f63e",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/settings/integrations/resend/page-client.tsx",
+      "sha256": "029143d870a447e5649914121822c3e0784325a21ff64ba8fd398ca4ff59810a",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
+      "sha256": "00c0022f6b11fe6997fa1926a3a0d9801302316f5d0826c3e69499ba7ce397ec",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/sign/page-client.tsx",
+      "sha256": "dd627d99b2ab21d9303b2d362ddd708edc4f5cd5be6b734dd284ea615de3ace5",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/tasks/tasks-content-sections.tsx",
+      "sha256": "7786578f905b74cbfa0f3bf869a9037198deb42b20cbf57e4bc954c683efa565",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/(app)/workflows/page-client.tsx",
+      "sha256": "f2b209a19437802b84b67f0d5452365aa2e16e0c100ddf91dc2f596f26f683c1",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/global-error.tsx",
+      "sha256": "1c2d33ad71f478497055b9181638dedb4d31fa9dd2b51c86c6091fa490034d81",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/global-not-found.tsx",
+      "sha256": "e604e04291a90cafdea7421a546312fc24486ce55dcd68e73889dbf949f11256",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/app/mc-shell.tsx",
+      "sha256": "daf4869d2d328ed9e5673ba65b4a6a1251b018aabb0d6bfed93baade2e6cdcd1",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/care/components/CareDashboard.tsx",
+      "sha256": "e075f7c217bd1be9e9b4031b9402c8257d147f8cdf440d8e1a5bb94116128932",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/care/components/HealthHeatmap.tsx",
+      "sha256": "588b2b9da8c4dc1024c20664bfaa86f3aa75dc1738e556172873fc816ac931a8",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/care/components/PersonnelList.tsx",
+      "sha256": "5ab5ad95c01b059c8177cca9dcf1bb3c48b2244a3ca4b4e9699771ad0d061f9b",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/care/components/PersonnelProfile.tsx",
+      "sha256": "98d8303689be7189dadb5d4e021a8ebc4b591ccd0de513e2013e341521ae1e71",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/care/components/TimezoneScheduler.tsx",
+      "sha256": "db38ed6359cf6a34a1d09325c12f07c0825ede8597acb4d194c95c4d249c6323",
+      "status": "tracked",
+      "pre_integration_source_sha256": "817072a83f035a21ff20e7669d6622e367a3c1cbfcc3f33c7fd38c41d1a4a511"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/WorkflowSummariesTable.tsx",
+      "sha256": "f84913bc7acf342245cc08f1d81dfda34e0098357a28ac7316273a3e3e2fa116",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/dynamic-icon-name.ts",
+      "sha256": "26ae653ea5a53483d3eec6dbbb36c54bb1d4fb143c610e8fef8fb7ee6e4c1f20",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/patterns/page-header.tsx",
+      "sha256": "3f2f7d830a03d770b47d9639ea72139c09cb0fa363317afdb1cdc0db3d47af78",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/tiles/mission-control-home.tsx",
+      "sha256": "fdf12e75c6db185dca2aea07ad7ef564fc01ea8994942b70b5350cd9d92d7e8e",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/tiles/quick-actions-row.tsx",
+      "sha256": "3f7b7b54bfd79bff4e0ff703c826806f7c3e7304f06cebb1c1bab22b7a91e7fe",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/tiles/tile-card.tsx",
+      "sha256": "5fdb1c37fe6d2a499d5220247d6029c860e577ea6095c9f34c06027ceb603eaa",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/tiles/tile-page.tsx",
+      "sha256": "080a9b73fdac5e53ede5438aca9c58f93db8b904de76dee011021036a873817f",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/components/tiles/workflows-panel.tsx",
+      "sha256": "a2a8c17852049d4a15635c6c6b948cc98642cc461932086b60da0dfac5c3ec61",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/locations/components/LocationEditor.tsx",
+      "sha256": "1ac8dc20aa63be8badb014f8e999921805b9b8301290dabf43b9ec79a69fbb11",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/mission-control/locations/components/LocationTable.tsx",
+      "sha256": "8bcc611b10cb95a5b3b537676ec8c3e270eb8fcb8e8fbf76e56695ab11d21ba3",
+      "status": "tracked"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/table/SupportTableView.tsx",
+      "sha256": "d342ec4567e370a1051face992ad7752c5930960501b1a29d3f89cae6425c3ed",
+      "status": "tracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/app/contribution-mobile-selection.test.tsx",
+      "sha256": "9118cb3048516e74987d8cba256965c33e0aa90f6819ddb29ee96bf297bd9543",
+      "status": "untracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/app/crm-view-toolbar.test.tsx",
+      "sha256": "7dd6bdd73736a98f75a1c2b6bed50b1596d8bfbc530a8ccf912f9078fd045466",
+      "status": "untracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/app/feed-org-updates-composer-actions.test.tsx",
+      "sha256": "7d234f6f3134f714cb5d4e13b4f1376b781efa101a3dd53ef5f9b09ed786adac",
+      "status": "tracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/app/mobilize/stage-colors.test.ts",
+      "sha256": "fb27cb018c7888dbd126360249c46712464885561b226b88581b831b393c82c5",
+      "status": "tracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/app/relationship-filter-selection.test.tsx",
+      "sha256": "d2031fa7bc08eb41a2cce92738fc17a491544ee6f34af745da69e6427b112c8c",
+      "status": "untracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/app/tasks/task-stat-actions.test.tsx",
+      "sha256": "49284528a061f63226f12b1604302009a5150e65a9a83a8b081abed5d99051b8",
+      "status": "untracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/features/mission-control/care/base-ui-controls.test.tsx",
+      "sha256": "7ee21685ecb925ae2f4e5581aa7dc0a78937e20d3ff932dcec13d52c783983f4",
+      "status": "tracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/features/mission-control/dynamic-icon-name.test.ts",
+      "sha256": "31f09868ae3d940e8b7aed5a0a02f9e521121b28ab497f6ad053e5b7241c2b78",
+      "status": "tracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/features/support-hub/components/mobile-card-bulk-selection.test.tsx",
+      "sha256": "db3f3e95e24bdc23757c5c0867ad949ec9b322e8f0ae7a4701cc69398941e421",
+      "status": "untracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/mission-control-link-actions.test.tsx",
+      "sha256": "0c440382221d97b35ae72df53c3bae4888d517c2e3ed62cb5284582dca62c845",
+      "status": "untracked"
+    },
+    {
+      "path": "tests/unit/apps/admin/app/contribution-mobile-fixture.ts",
+      "sha256": "df47a14a2a4df34e8a768a53ba81657936416b443907b1c33d849ad455fb8422",
+      "status": "untracked"
+    }
+  ],
+  "limit": "Hashes establish source identity, not productive browser/provider coverage. Runtime indexes and final aggregate gates remain separately attributed."
+}

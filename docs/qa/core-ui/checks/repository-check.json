@@ -1,0 +1,25 @@
+{
+  "command": "VITEST_MAX_WORKERS=1 bun run check",
+  "exitCode": 0,
+  "lint": {
+    "tasksPassed": 15,
+    "tasksTotal": 15
+  },
+  "typecheck": {
+    "tasksPassed": 15,
+    "tasksTotal": 15
+  },
+  "unit": {
+    "filesPassed": 846,
+    "filesSkipped": 2,
+    "filesTotal": 848,
+    "testsPassed": 6705,
+    "testsSkipped": 4,
+    "testsTotal": 6709,
+    "durationSeconds": 661.36
+  },
+  "logSha256": "34b0428c52495f4bfe9c37e43c828c4ed44c2d4d70d46ebaf24ac893817f936e",
+  "scope": "All implemented app/shared fixes through four mobile-table gaps, checkout targets and public header contrast. This run preceded the final Giving rail reveal and map-header spacing fixes; those receive focused checks and final complete preflight.",
+  "expectedTestDiagnostics": "Negative operational-lint tests intentionally exercise missing theme/config warnings; aggregate exits0. Skipped tests are not passed.",
+  "priorAttempt": "One final run lost its process/session without an exit or unit summary. It is recorded as interrupted, not failed assertions or passed; retry completed with persisted exit0."
+}
