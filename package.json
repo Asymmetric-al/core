@@ -230,7 +230,7 @@
     "playwright-core": "1.59.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "shadcn": "4.21.1",
+    "shadcn": "4.21.4",
     "sonner": "2.0.8",
     "tailwindcss": "4.3.3",
     "turbo": "2.11.7",
