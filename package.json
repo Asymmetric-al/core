@@ -162,7 +162,7 @@
     "boneyard:donor:force": "cd apps/donor && bunx boneyard-js build http://localhost:3000 --force",
     "boneyard:force": "bun run boneyard:admin:force && bun run boneyard:missionary:force && bun run boneyard:donor:force",
     "prepare": "husky",
-    "postinstall": "node scripts/dedupe-tanstack-db.mjs && node scripts/repair-workspace-links.mjs",
+    "postinstall": "node scripts/dedupe-tanstack-db.mjs && node scripts/repair-workspace-links.mjs && node scripts/repair-file-package-links.mjs",
     "verify:phase25-spec": "bun docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs",
     "verify:phase24-authority": "node scripts/verify/phase24-authority.mjs",
     "verify:openspec-deltas": "node scripts/verify/openspec-delta-compatibility.mjs && bun run verify:phase24-authority",
@@ -190,7 +190,9 @@
     "graphql-yoga": "5.24.2",
     "next": "16.4.0",
     "require-in-the-middle": "^8.0.1",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "held-pdf-zod-compat": "npm:zod@4.3.6",
+    "held-pdf-email-editor-compat": "npm:@react-email/editor@1.1.1"
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
