@@ -433,7 +433,7 @@
         },
         {
           "path": "apps/admin/package.json",
-          "sha256": "6f2ee65edfdfd309af28d718ef323513d811c6b11e4e6f3fbd2481045efc4603"
+          "sha256": "c8653c652d09a07d1ee714168ded8ae6a65b7046a3d8bd861c57d25da2712310"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",

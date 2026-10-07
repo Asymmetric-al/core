@@ -116,7 +116,7 @@
         "boneyard-js": "^1.8.1",
         "date-fns": "4.4.0",
         "eve": "0.25.1",
-        "lucide-animated": "^1.0.0",
+        "lucide-animated": "1.0.5",
         "lucide-react": "1.52.0",
         "motion": "^12.34.2",
         "next": "16.4.0",
@@ -3249,7 +3249,7 @@
 
     "lru-cache": ["lru-cache@10.4.3", "", {}, "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ=="],
 
-    "lucide-animated": ["lucide-animated@1.0.0", "", { "peerDependencies": { "motion": ">=11.0.0", "react": ">=18.0.0" } }, "sha512-7KP+/B/wGwVizVCKMOHDgYFhiwRFim+eE/TFBZg03ZbcB/kwgoJvGDz+0Ya32+Tt6rpt7S1enLIWC7ela256Eg=="],
+    "lucide-animated": ["lucide-animated@1.0.5", "", { "peerDependencies": { "motion": ">=11.0.0", "react": ">=18.0.0" } }, "sha512-bNRQvgrZZ/rZTug5YET+qNvJLtVHGamEYQ0vCI/GWveBZTTKQAAIQc0M8U2MUJBYR1+kXtjzFhpZL7oOqnD2CA=="],
 
     "lucide-react": ["lucide-react@1.52.0", "", { "peerDependencies": { "@types/react": "*", "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" }, "optionalPeers": ["@types/react"] }, "sha512-TUgPtl5ZI9WgxOcbu4ckaC5B3l1qxPQrCMgb6OfUB9owx/OvSJfcf93SMgUWAxRw5/1XDfh9uI5F5iNGXCcGDQ=="],
 
