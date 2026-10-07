@@ -49,6 +49,8 @@ export default defineConfig({
         rootDir,
         "packages/lib/node_modules/@sentry/nextjs",
       ),
+      /** The analytics fixture and shared adapter use the library's installed observer module. */
+      "web-vitals": path.join(rootDir, "packages/lib/node_modules/web-vitals"),
       /** Tests live outside `packages/ui`; pin Sonner so `vi.mock('sonner')` patches the same module as `@asym/ui`. */
       sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
       /** Tests live outside `packages/ui`; pin MapLibre so `vi.mock("maplibre-gl")` patches the same module as the Map primitive. */
