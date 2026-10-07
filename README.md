@@ -401,15 +401,15 @@ Build env details: `docs/guides/development/build-runbook.md`.
 
 ### Key Dependencies
 
-| Package               | Version | Notes                                    |
-| --------------------- | ------- | ---------------------------------------- |
-| Next.js               | 16.4.0  | App Router + Turbopack in app configs    |
-| React                 | 19.3.0  |                                          |
-| TypeScript            | 6.0.3   |                                          |
-| motion                | 12.x    | Animation (successor to framer-motion)   |
-| @tanstack/react-query | 5.x     | Server state                             |
-| @supabase/ssr         | 0.8.x   | Supabase server/client helpers           |
-| @sentry/nextjs        | 10.x    | Error monitoring (via `@asym/lib`, etc.) |
+| Package               | Version | Notes                                                         |
+| --------------------- | ------- | ------------------------------------------------------------- |
+| Next.js               | 16.4.0  | App Router + Turbopack in app configs                         |
+| React                 | 19.3.0  |                                                               |
+| TypeScript            | 7.0.2   | Native workspace compiler; root TS 6 API/editor compatibility |
+| motion                | 12.x    | Animation (successor to framer-motion)                        |
+| @tanstack/react-query | 5.x     | Server state                                                  |
+| @supabase/ssr         | 0.8.x   | Supabase server/client helpers                                |
+| @sentry/nextjs        | 10.x    | Error monitoring (via `@asym/lib`, etc.)                      |
 
 ### Verification Steps
 

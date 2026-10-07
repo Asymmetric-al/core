@@ -108,7 +108,7 @@
     "eslint": "^9.39.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "typescript": "^5.7.3"
+    "typescript": "7.0.2"
   },
   "peerDependencies": {
     "boneyard-js": "^1.8.1",

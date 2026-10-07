@@ -17,6 +17,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@asym/typescript-config": "workspace:*"
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "7.0.2"
   }
 }

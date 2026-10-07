@@ -2,14 +2,14 @@
 
 This package provides shared TypeScript config presets for the monorepo.
 
-**TypeScript 6 / 7 prep (no compiler bump here):** See `docs/guides/typescript-6-readiness.md` and `docs/ai/rules/typescript-future-proofing.md`. Run `bun run tsconfig:future-audit` for a quick local scan (non-blocking).
+**Native compiler and API compatibility:** See `docs/guides/typescript-6-readiness.md` and `docs/ai/rules/typescript-future-proofing.md`. Run `bun run tsconfig:future-audit` for a quick local scan (non-blocking).
 
 ## Configs
 
 - `base.json`
   - Monorepo strict baseline.
   - Enforces `strict`, `verbatimModuleSyntax`, and `noUncheckedIndexedAccess`.
-  - Sets **`libReplacement`: true** and **`noUncheckedSideEffectImports`: false** explicitly so behavior stays aligned with TypeScript 5.9 until a deliberate upgrade adopts TypeScript 6.0 defaults (see [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/)).
+  - Sets **`libReplacement`: true** and **`noUncheckedSideEffectImports`: false** explicitly to preserve the established behavior under TypeScript 7; adopting stricter defaults is a separate change (see [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/)).
   - Uses **`moduleResolution`: `Bundler`** and **`module`: `ESNext`** — the recommended combination for Next.js and Bun-bundled code; avoid legacy `node` / `node10` resolution (removed in TypeScript 7).
 - `nextjs.json`
   - App-focused preset for Next.js workspaces.
@@ -49,7 +49,7 @@ Per the [TSConfig `paths` reference](https://www.typescriptlang.org/tsconfig#pat
 Related readiness context:
 
 - TypeScript 6.0 announcement (defaults, deprecations): https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/
-- TypeScript 7 progress: https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/
+- TypeScript 7 release and API compatibility: https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/
 - TSConfig reference: https://www.typescriptlang.org/tsconfig
 
 ## Migration Examples

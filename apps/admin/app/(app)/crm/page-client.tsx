@@ -272,6 +272,8 @@ export default function MissionControlCRM() {
     if (selected.length > 0) {
       toast.info("Export includes the current donor report slice.");
     }
+    // The CSV API response uses Content-Disposition; preserve a full browser
+    // request rather than treating this download endpoint as an App Router page.
     window.location.assign(`/api/admin/crm/reports/export?${params}`);
   };
 
