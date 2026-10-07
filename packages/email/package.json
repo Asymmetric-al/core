@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "resend": "^6.9.2"
+    "resend": "6.32.1"
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",
