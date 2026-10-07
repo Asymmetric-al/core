@@ -315,22 +315,37 @@ The following document work does not complete Phase 4 runtime or activation.
 - [x] 6.4 Record one honest
       [Phase 4 program-foundation parity row](../../../docs/prds/sitestacker-parity/parity-matrix.md#program-foundation--phase-4-separate-from-parity-area-numbering)
       with implementation, live behavior and human confirmation unproved.
-- [ ] 6.5 Complete pinned strict OpenSpec, delta compatibility, scoped formatting,
-      lint and diff/link/semantic verification; record exact commands and outcomes
-      separately from runtime evidence. On 2026-10-07 the isolated AL-504 draft
-      passed pinned strict change validation, delta compatibility (78 checked),
-      Phase 24 authority validation and exact nine-file Prettier. Manual review
-      resolved 39 introduced relative links/anchors and confirmed owner semantics;
-      diff whitespace checks passed. Repository lint was attempted in the
-      corrected isolated dependency mounts and exited 2: the existing shared
-      design-system health check could not discover the required Button
-      definition (`p-8` / `icon-xs`). The clean baseline
-      `f49fc2e03bce9246f5d3dc22c16d0a6c794a8304` reproduces the same failure
-      under the isolated runner; host-root lint also emitted it before SIGSEGV
-      (exit 139). This is a reproduced baseline blocker, not an AL-504 regression.
-      This task remains incomplete until the required lint gate passes; no
-      dependency or unrelated code repair is
-      included in AL-504, and none of these checks proves runtime qualification.
+- [x] 6.5 Complete pinned strict OpenSpec, delta compatibility, scoped formatting,
+      lint and diff/link/semantic verification; record documentation evidence
+      separately from runtime qualification. On 2026-10-07, initial isolated
+      attempts failed on missing workspace dependency mounts and then Button
+      definition discovery (`p-8` / `icon-xs`). The clean baseline reproduced
+      the discovery failure; host lint also emitted it before SIGSEGV (exit 139).
+      Later pinned frozen dependency recovery restored the already-committed
+      plugin hunk without repository dependency, lockfile, configuration or
+      source changes. Independent recovery checks then passed; these earlier
+      failures are historical, not an open documentation-validation blocker.
+
+      Commands run from the repository root and recorded outcomes:
+
+      - `bun run openspec -- validate sitestacker-parity --strict`: exit 0,
+        pinned OpenSpec 1.9.0 accepted the change.
+      - `bun run verify:openspec-deltas`: exit 0, 78 deltas compatible and
+        Phase 24 authority valid (46 decisions, 120 stories, 73 proofs, 18 releases).
+      - `./node_modules/.bin/prettier --check CONTEXT.md openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md openspec/changes/sitestacker-parity/tasks.md docs/adr/0213-profile-claim-anchor-and-reserved-person-foundation.md docs/adr/0214-path2-tenant-isolation-with-shared-native-credential.md docs/adr/0215-guest-attribution-exact-claim-proof-and-current-access.md docs/adr/0216-non-destructive-source-governed-replayable-donor-merge.md docs/adr/registry.md docs/prds/sitestacker-parity/parity-matrix.md`: exit 0, all nine changed Markdown files passed installed Prettier.
+      - `bun run lint -- --force`: exit 0, full repository lint completed
+        15/15 tasks with zero cached results and unchanged health assertions.
+      - Historical committed-range `git diff --check f49fc2e03bce9246f5d3dc22c16d0a6c794a8304 64f14b541cc2e157d72a40433840d799404da9eb`:
+        exit 0. Independent manual structural/link/semantic review resolved all
+        39 introduced relative links/anchors and confirmed the owner boundaries.
+      - Normal pre-push `ci:preflight` (`node scripts/verify/ci-preflight.mjs`,
+        the `bun run ci:preflight` entrypoint): all requested stages passed,
+        including 819 passed test files and 6,585 passed tests (2 files and
+        4 tests skipped). Routine development compilation was not requested.
+
+      These are documentation and repository-gate results; Phase 4 runtime,
+      native/provider qualification and activation remain unproved below.
+
 - [ ] 6.6 Implement and qualify the permanent unclaimed lifecycle, exact atomic
       claim/proof/membership/audit, separate contact verification and current
       Phase 12/3 source admission, including wrong-Tenant/purpose/principal,
