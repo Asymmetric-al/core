@@ -10,7 +10,8 @@
 
 At the Phase 5 grill, the public-read pattern ran Payload's Local API with
 `overrideAccess: true` — which skips Payload access control entirely — plus a
-hand-written `where` clause for tenant + published on every query. Isolation
+hand-written `where` clause for tenant and, for draftable collections, published;
+versionless navigation used only a tenant filter. Isolation
 therefore depended on every query author remembering the right clause. The
 public navigation route bypassed access control with only a tenant filter.
 The original draft-leak premise was corrected during implementation in
