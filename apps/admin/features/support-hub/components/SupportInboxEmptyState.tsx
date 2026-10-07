@@ -1,6 +1,14 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import { LifeBuoy, RotateCcw } from "lucide-react";
 
 interface SupportInboxEmptyStateProps {
@@ -22,25 +30,27 @@ export function SupportInboxEmptyState({
   description = "Adjust the view, status, label, or assignee filters above to widen the search.",
 }: SupportInboxEmptyStateProps) {
   return (
-    <section
-      role="status"
-      className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 px-8 py-16 text-center"
-    >
-      <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-zinc-100">
-        <LifeBuoy className="size-6 text-zinc-300" />
-      </div>
-      <h3 className="text-base font-semibold text-zinc-900">{title}</h3>
-      <p className="mt-1 max-w-md text-xs text-zinc-500">{description}</p>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={onResetFilters}
-        className="mt-5 h-9 gap-2 rounded-xl border-zinc-200 px-4 font-bold uppercase tracking-widest"
-      >
-        <RotateCcw className="size-3.5" />
-        Reset filters
-      </Button>
-    </section>
+    <Empty role="status" className="py-16">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <LifeBuoy aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>
+          <h3>{title}</h3>
+        </EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onResetFilters}
+        >
+          <RotateCcw aria-hidden="true" />
+          Reset filters
+        </Button>
+      </EmptyContent>
+    </Empty>
   );
 }

@@ -18,7 +18,6 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
 import {
   CalendarClock,
   ExternalLink,
@@ -40,20 +39,18 @@ function initialsOf(name: string): string {
   );
 }
 
-function statusClasses(status: string): string {
+function statusVariant(status: string): "success" | "warning" | "secondary" {
   const normalized = status.toLowerCase();
-  if (normalized === "active") {
-    return "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
-  }
-  if (normalized === "paused") {
-    return "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400";
-  }
-  return "border-border bg-muted text-muted-foreground";
+  return normalized === "active"
+    ? "success"
+    : normalized === "paused"
+      ? "warning"
+      : "secondary";
 }
 
 function PledgeCard({ pledge }: { pledge: PledgeView }) {
   return (
-    <Card className="border-border rounded-xl text-left">
+    <Card className="text-left">
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -61,7 +58,7 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
               {pledge.recipientAvatar ? (
                 <AvatarImage src={pledge.recipientAvatar} alt="" />
               ) : null}
-              <AvatarFallback className="bg-muted text-foreground text-sm font-semibold uppercase">
+              <AvatarFallback className="bg-muted text-foreground text-sm font-semibold ">
                 {initialsOf(pledge.recipientName)}
               </AvatarFallback>
             </Avatar>
@@ -69,15 +66,12 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
               <p className="font-semibold text-foreground truncate">
                 {pledge.recipientName}
               </p>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-sm font-medium text-muted-foreground">
                 {pledge.recipientCategory}
               </p>
             </div>
           </div>
-          <Badge
-            variant="outline"
-            className={cn("shrink-0 uppercase", statusClasses(pledge.status))}
-          >
+          <Badge variant={statusVariant(pledge.status)} className="shrink-0">
             {pledge.status}
           </Badge>
         </div>
@@ -118,10 +112,10 @@ function PledgesHeader({
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
       <div>
-        <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight uppercase">
+        <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight ">
           Recurring Pledges
         </h1>
-        <p className="text-muted-foreground mt-2 font-semibold uppercase tracking-widest text-xs">
+        <p className="text-muted-foreground mt-2 font-semibold text-xs">
           Manage your ongoing commitments and impact.
         </p>
       </div>
@@ -129,7 +123,6 @@ function PledgesHeader({
         onClick={onManage}
         disabled={managing}
         focusableWhenDisabled={managing && isInitiator}
-        className="h-12 px-6 rounded-lg font-semibold uppercase tracking-widest"
       >
         {managing && isInitiator ? (
           <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
@@ -190,7 +183,7 @@ export default function DonorPledgesPage() {
           ))}
         </div>
       ) : snapshot.error ? (
-        <Card className="border-destructive/40 rounded-xl">
+        <Card>
           <CardContent className="p-6 space-y-3 text-left">
             <p role="alert" className="text-sm font-medium text-destructive">
               We couldn&apos;t load your recurring pledges.
@@ -205,7 +198,7 @@ export default function DonorPledgesPage() {
           </CardContent>
         </Card>
       ) : pledges.length === 0 ? (
-        <Card className="border-dashed border-border rounded-xl">
+        <Card>
           <CardContent className="p-10 flex flex-col items-center text-center gap-3">
             <HeartHandshake
               className="size-8 text-muted-foreground"

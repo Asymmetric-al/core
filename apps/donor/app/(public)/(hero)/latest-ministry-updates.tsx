@@ -17,10 +17,10 @@ export async function LatestMinistryUpdates() {
   return (
     <section className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-500">
+        <p className="text-sm font-medium text-muted-foreground">
           From Site Studio
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-zinc-900">
+        <h2 className="mt-2 text-2xl font-semibold text-foreground">
           Latest Ministry Updates
         </h2>
       </div>
@@ -28,17 +28,17 @@ export async function LatestMinistryUpdates() {
         {latestUpdates.map((update) => (
           <article
             key={String(update.id)}
-            className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-[transform,box-shadow] duration-200 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md"
+            className="rounded-xl border border-border bg-card p-4 shadow-sm transition-[transform,box-shadow] duration-200 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md"
           >
-            <p className="text-xs font-medium text-zinc-500">
+            <p className="text-xs font-medium text-muted-foreground">
               {typeof update.publishedAt === "string"
                 ? makeDisplayDate(update.publishedAt).toLocaleDateString()
                 : "Published"}
             </p>
-            <h3 className="mt-2 text-lg font-semibold text-zinc-900">
+            <h3 className="mt-2 text-lg font-semibold text-foreground">
               {String(update.title ?? "Untitled update")}
             </h3>
-            <p className="mt-2 line-clamp-3 text-sm text-zinc-600">
+            <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
               {String(update.excerpt ?? "No summary provided.")}
             </p>
           </article>

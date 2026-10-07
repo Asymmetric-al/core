@@ -341,7 +341,7 @@ function OperationResultPanel({
     tone === "failure"
       ? "flex items-center gap-2 text-sm font-medium text-destructive"
       : tone === "warning"
-        ? "flex items-start gap-2 text-sm font-medium text-amber-700 dark:text-amber-400"
+        ? "flex items-start gap-2 text-sm font-medium text-warning"
         : "flex items-center gap-2 text-sm font-medium text-foreground";
 
   return (

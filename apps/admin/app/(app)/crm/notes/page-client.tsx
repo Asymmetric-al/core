@@ -6,8 +6,24 @@ import { Alert } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@asym/ui/components/shadcn/empty";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { cn } from "@asym/ui/lib/utils";
 import {
@@ -81,8 +97,9 @@ export default function CrmNotesPageClient() {
     <PageShell
       title={CRM_NOTES_PAGE_META.title}
       description={CRM_NOTES_PAGE_META.description}
+      density={CRM_NOTES_PAGE_META.density}
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/crm"
             className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
@@ -90,55 +107,41 @@ export default function CrmNotesPageClient() {
             <ArrowLeft className="size-4" />
             CRM
           </Link>
-          <Button
-            variant="outline"
-            className=""
-            onClick={() => void onRefresh()}
-          >
+          <Button variant="outline" onClick={() => void onRefresh()}>
             <RefreshCcw className="size-4" />
             Refresh
           </Button>
         </div>
       }
     >
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="min-w-0 space-y-4">
+      <div className="grid gap-6 xl:grid-cols-3">
+        <section className="min-w-0 space-y-4 xl:col-span-2">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className={cn(
-                  "h-6 rounded-md font-semibold uppercase tracking-wide shadow-none",
-                  configured
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-amber-200 bg-amber-50 text-amber-700",
-                )}
-              >
+              <Badge variant={configured ? "success" : "warning"}>
                 {mode === "local" ? "Asym Postgres" : "CRM"}
               </Badge>
               {rollback ? (
-                <Badge
-                  variant="outline"
-                  className="h-6 rounded-md font-semibold uppercase tracking-wide shadow-none"
-                >
+                <Badge variant="outline">
                   Rollback: {rollback.existingCrmPath}
                 </Badge>
               ) : null}
             </div>
-            <div className="relative w-full sm:max-w-sm">
-              <FileText className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
+            <InputGroup className="w-full sm:max-w-sm">
+              <InputGroupAddon>
+                <FileText />
+              </InputGroupAddon>
+              <InputGroupInput
                 aria-label="Search CRM notes"
-                className="pl-9"
                 placeholder="Search notes"
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
               />
-            </div>
+            </InputGroup>
           </div>
 
           {missing.length > 0 ? (
-            <Alert className="rounded-lg border-amber-200 bg-amber-50 text-amber-900">
+            <Alert variant="warning">
               <ShieldAlert className="size-4" />
               <div className="text-sm">
                 CRM notes are not available in this environment. Notes remain
@@ -148,7 +151,7 @@ export default function CrmNotesPageClient() {
           ) : null}
 
           {isPermissionDenied ? (
-            <Alert className="rounded-lg border-destructive/30 bg-destructive/10 text-destructive">
+            <Alert variant="destructive">
               <ShieldAlert className="size-4" />
               <div className="text-sm">
                 Your account does not have staff CRM access for this tenant.
@@ -164,17 +167,19 @@ export default function CrmNotesPageClient() {
             onRefresh={() => void onRefresh()}
             onSortingChange={onSortingChange}
             emptyState={
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 rounded-lg bg-muted p-4">
-                  <FileText className="size-10 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold">No CRM notes</h3>
-                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                  {tableError
-                    ? tableError.message
-                    : "No CRM notes match the current tenant and search."}
-                </p>
-              </div>
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <FileText />
+                  </EmptyMedia>
+                  <EmptyTitle>No CRM notes</EmptyTitle>
+                  <EmptyDescription>
+                    {tableError
+                      ? tableError.message
+                      : "No CRM notes match the current tenant and search."}
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             }
             config={{
               enableColumnVisibility: true,
@@ -213,9 +218,7 @@ export default function CrmNotesPageClient() {
                           {note.bodyPreview}
                         </p>
                       </div>
-                      <Badge variant="outline" className="rounded-md">
-                        {note.source}
-                      </Badge>
+                      <Badge variant="outline">{note.source}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {note.authorName ?? "Mission Control"}
@@ -235,25 +238,27 @@ export default function CrmNotesPageClient() {
                 Saved immediately in Asym Postgres for this tenant.
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="crm-note-title">Title</Label>
-              <Input
-                id="crm-note-title"
-                maxLength={160}
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="crm-note-body">Body</Label>
-              <Textarea
-                id="crm-note-body"
-                className="min-h-40 resize-y"
-                maxLength={10000}
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-              />
-            </div>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="crm-note-title">Title</FieldLabel>
+                <Input
+                  id="crm-note-title"
+                  maxLength={160}
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="crm-note-body">Body</FieldLabel>
+                <Textarea
+                  id="crm-note-body"
+                  className="min-h-40 resize-y"
+                  maxLength={10000}
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                />
+              </Field>
+            </FieldGroup>
             <Button
               type="submit"
               className="w-full"

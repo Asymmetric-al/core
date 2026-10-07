@@ -31,7 +31,7 @@ export function StudioLayout({
       )}
     >
       <StudioTopBar sectionLabel={sectionLabel} currentLabel={currentLabel} />
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <StudioNavRail />
         <main className="min-h-0 flex-1 overflow-auto border-border border-t bg-background">
           {children}

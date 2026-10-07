@@ -244,7 +244,7 @@ const VisualCard = ({
             )}
             {isBank && <span>ACH Direct Debit</span>}
           </div>
-          <p className="text-lg font-semibold uppercase">{method.brand}</p>
+          <p className="text-lg font-semibold ">{method.brand}</p>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2 font-mono text-lg">
@@ -260,7 +260,7 @@ const VisualCard = ({
               <p className="text-xs text-muted-foreground">
                 {isBank ? "Account Name" : "Card Holder"}
               </p>
-              <p className="break-words text-sm font-semibold uppercase">
+              <p className="break-words text-sm font-semibold ">
                 {isBank
                   ? method.bankName || "Checking"
                   : method.holderName || "John Doe"}
@@ -313,11 +313,7 @@ const SelectionList = ({
                     ? method.bankName || "Bank Account"
                     : method.brand.toUpperCase()}
                 </FieldTitle>
-                {method.isDefault && (
-                  <Badge variant="secondary" className="self-start">
-                    Default
-                  </Badge>
-                )}
+                {method.isDefault && <Badge variant="secondary">Default</Badge>}
                 <FieldDescription>
                   {method.type === "bank" ? "Checking" : "Ending"} ••••{" "}
                   {method.last4}
@@ -613,7 +609,7 @@ function MethodCard({
         delay: index * STAGGER_MEDIUM,
         ease: EASE_OUT_SOFT,
       }}
-      className="group bg-card rounded-2xl border border-border p-2 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl transition-shadow duration-300 ease-out overflow-hidden text-left"
+      className="group bg-card rounded-2xl border border-border p-2 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-sm transition-shadow duration-300 ease-out overflow-hidden text-left"
     >
       <div className="flex flex-col lg:flex-row gap-8 p-6 lg:p-8">
         <div className="w-full lg:w-85 shrink-0 self-start">
@@ -624,12 +620,12 @@ function MethodCard({
           <div className="mb-6 flex items-start justify-between gap-2">
             <div>
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <h2 className="text-2xl font-semibold text-foreground tracking-normal uppercase">
+                <h2 className="text-2xl font-semibold text-foreground tracking-normal ">
                   {method.bankName || `${method.brand} ••${method.last4}`}
                 </h2>
                 {method.isDefault && <Badge>Default</Badge>}
               </div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-sm font-medium text-muted-foreground">
                 {method.type === "bank"
                   ? "Direct Debit (ACH)"
                   : `Expires ${method.expiryMonth}/${method.expiryYear}`}
@@ -677,10 +673,10 @@ function MethodCard({
               <MapPin className="size-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-0.5">
+              <p className="text-sm font-medium text-muted-foreground mb-0.5">
                 Billing Address
               </p>
-              <p className="wrap-anywhere text-xs font-semibold uppercase tracking-tight text-foreground leading-snug">
+              <p className="wrap-anywhere text-sm font-medium tracking-tight text-foreground leading-snug">
                 {method.billingAddress.street}
                 <br />
                 {method.billingAddress.city}, {method.billingAddress.state}{" "}
@@ -690,7 +686,7 @@ function MethodCard({
           </div>
 
           <div className="mt-auto pt-6 border-t border-border">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+            <p className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
               Connected Impact{" "}
               <span className="bg-muted text-foreground px-1.5 py-0.5 rounded text-xs min-w-5 text-center font-semibold">
                 {attachedPledges.length}
@@ -713,15 +709,15 @@ function MethodCard({
                         className="size-10 rounded-lg object-cover bg-card ring-2 ring-background shadow-sm"
                       />
                     ) : (
-                      <div className="size-10 rounded-lg bg-card flex items-center justify-center text-muted-foreground text-xs font-semibold ring-2 ring-background shadow-sm uppercase">
+                      <div className="size-10 rounded-lg bg-card flex items-center justify-center text-muted-foreground text-sm font-medium ring-2 ring-background shadow-sm ">
                         GH
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate uppercase tracking-tight">
+                      <p className="text-sm font-medium text-foreground truncate tracking-tight">
                         {pledge.name}
                       </p>
-                      <p className="text-xs font-semibold text-foreground uppercase tracking-widest">
+                      <p className="text-sm font-medium text-foreground ">
                         {formatCurrency(pledge.amount)} / {pledge.frequency}
                       </p>
                     </div>
@@ -740,7 +736,7 @@ function MethodCard({
                 ))}
               </div>
             ) : (
-              <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground italic bg-muted/30 p-4 rounded-xl border border-dashed border-border">
+              <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground italic bg-muted/30 p-4 rounded-xl border border-dashed border-border">
                 <div className="p-2">
                   <Wallet className="size-3.5 text-muted-foreground" />
                 </div>
@@ -897,12 +893,12 @@ function SwapPledgeDialog({
                   className="size-12 rounded-lg object-cover ring-2 ring-background shadow-sm"
                 />
               ) : (
-                <div className="size-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-semibold text-xs uppercase border border-border">
+                <div className="size-12 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-semibold text-xs border border-border">
                   GH
                 </div>
               )}
               <div className="flex-1">
-                <p className="font-semibold text-foreground uppercase tracking-tight">
+                <p className="font-semibold text-foreground tracking-tight">
                   {pledgeToSwap?.name}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -937,10 +933,10 @@ function SwapPledgeDialog({
                   <Wallet className="size-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-foreground uppercase tracking-tight">
+                  <p className="text-sm font-medium text-foreground tracking-tight">
                     No other payment methods
                   </p>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mt-1">
+                  <p className="text-sm font-medium text-muted-foreground mt-1">
                     Add a new method to move this support.
                   </p>
                 </div>
@@ -1008,7 +1004,7 @@ function BulkMoveDialog({
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest ml-1">
+            <p className="text-sm font-medium text-muted-foreground ml-1">
               Support to Transfer
             </p>
             <ul className="flex flex-col gap-2">
@@ -1017,7 +1013,7 @@ function BulkMoveDialog({
                   ? [
                       <li
                         key={pledge.id}
-                        className="text-xs font-semibold uppercase tracking-tight flex items-center justify-between bg-muted p-3 rounded-xl border border-border"
+                        className="text-sm font-medium tracking-tight flex items-center justify-between bg-muted p-3 rounded-xl border border-border"
                       >
                         <div className="flex items-center gap-3">
                           {pledge.avatar ? (
@@ -1029,7 +1025,7 @@ function BulkMoveDialog({
                               alt=""
                             />
                           ) : (
-                            <div className="size-8 rounded-lg bg-card border border-border flex items-center justify-center text-xs font-semibold uppercase text-muted-foreground">
+                            <div className="size-8 rounded-lg bg-card border border-border flex items-center justify-center text-sm font-medium text-muted-foreground">
                               GH
                             </div>
                           )}
@@ -1059,7 +1055,7 @@ function BulkMoveDialog({
                 onSelect={onSelectTargetMethod}
               />
             ) : (
-              <div className="p-4 bg-muted text-foreground rounded-xl border border-border text-xs font-semibold uppercase tracking-widest flex gap-3 items-start">
+              <div className="p-4 bg-muted text-foreground rounded-xl border border-border text-sm font-medium flex gap-3 items-start">
                 <AlertCircle className="size-5 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold">No Backup Method</p>
@@ -1279,10 +1275,10 @@ export default function DonorWalletPage() {
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
         <div>
-          <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight uppercase">
+          <h1 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight ">
             Wallet
           </h1>
-          <p className="text-muted-foreground font-semibold uppercase tracking-widest text-xs mt-1.5">
+          <p className="text-muted-foreground font-semibold text-xs mt-1.5">
             Manage your payment methods securely.
           </p>
         </div>

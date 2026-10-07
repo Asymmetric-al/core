@@ -61,23 +61,23 @@ export function CannedResponseList() {
             description="Create your first reply template to speed up donor care work."
           />
         ) : (
-          <ul className="flex flex-col divide-y divide-zinc-100">
+          <ul className="flex flex-col divide-y divide-border">
             {responses.map((row) => (
               <li
                 key={row.id}
                 className="flex flex-wrap items-start gap-3 py-3"
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                   <MessageSquareText className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-xs font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-foreground">
                     {row.title}
-                    <span className="ml-2 inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-xs text-zinc-500">
+                    <span className="ml-2 inline-flex items-center rounded-md border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                       /{row.shortCode}
                     </span>
                   </span>
-                  <span className="truncate text-xs text-zinc-500">
+                  <span className="truncate text-xs text-muted-foreground">
                     {row.bodyText.slice(0, 160)}
                     {row.bodyText.length > 160 ? "…" : ""}
                   </span>
@@ -88,7 +88,7 @@ export function CannedResponseList() {
                   size="icon"
                   onClick={() => setEditing(row)}
                   aria-label={`Edit ${row.title}`}
-                  className="size-8 text-zinc-500 hover:text-zinc-900"
+                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
@@ -98,7 +98,7 @@ export function CannedResponseList() {
                   size="icon"
                   onClick={() => void handleDelete(row)}
                   aria-label={`Delete ${row.title}`}
-                  className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

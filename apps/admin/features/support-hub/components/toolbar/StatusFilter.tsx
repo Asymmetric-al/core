@@ -43,10 +43,7 @@ export function StatusFilter({ value, onValueChange }: StatusFilterProps) {
         if (next !== null) onValueChange(next);
       }}
     >
-      <SelectTrigger
-        aria-label="Status filter"
-        className="h-10 w-40 rounded-xl border-zinc-200 bg-white font-medium text-zinc-700"
-      >
+      <SelectTrigger aria-label="Status filter" className="w-40">
         <SelectValue placeholder="All statuses" />
       </SelectTrigger>
       <SelectContent align="start">

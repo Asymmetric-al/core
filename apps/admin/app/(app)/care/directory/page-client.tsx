@@ -17,14 +17,10 @@ import { useCarePersonnel } from "@/features/mission-control/care/hooks/use-care
 
 const careDirectoryActions = (
   <>
-    <Button
-      variant="outline"
-      size="sm"
-      className="h-10 rounded-xl border-zinc-200 px-4 font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
-    >
-      <Download className="mr-2 size-4 text-zinc-500" /> Export
+    <Button variant="outline" size="sm">
+      <Download className="mr-2 size-4 text-muted-foreground" /> Export
     </Button>
-    <Button className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800">
+    <Button>
       <Plus className="mr-2 size-4" /> Add Personnel
     </Button>
   </>
@@ -40,14 +36,14 @@ export default function CareDirectoryPage() {
       density="compact"
       actions={careDirectoryActions}
     >
-      <Card className="overflow-hidden rounded-2xl border-zinc-200/70 shadow-sm">
-        <CardHeader className="border-b border-zinc-100 bg-zinc-50/30 p-5">
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border bg-muted/30 p-5">
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
             <div>
-              <CardTitle className="text-base font-semibold text-zinc-950">
+              <CardTitle className="text-base font-semibold text-foreground">
                 All Personnel
               </CardTitle>
-              <p className="mt-1 text-sm font-medium text-zinc-600">
+              <p className="mt-1 text-sm font-medium text-muted-foreground">
                 Global workforce matrix and care visibility.
               </p>
             </div>
@@ -55,11 +51,7 @@ export default function CareDirectoryPage() {
             <FilterBar
               className="w-full md:w-auto"
               actions={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 rounded-xl border-zinc-200 px-4 font-semibold text-zinc-700 hover:bg-white hover:text-zinc-950"
-                >
+                <Button variant="outline" size="sm">
                   <Filter className="mr-2 size-4" /> Advanced Filters
                 </Button>
               }

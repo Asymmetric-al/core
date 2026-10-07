@@ -42,6 +42,7 @@ import {
   isPostContentEmpty,
   PostContent,
 } from "@asym/ui/components/shadcn/rich-text-editor";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import {
   Tabs,
@@ -97,9 +98,7 @@ const RichTextEditor = dynamic(
     ),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-62.5 w-full bg-muted rounded-2xl animate-pulse" />
-    ),
+    loading: () => <Skeleton className="h-62.5 w-full" />,
   },
 );
 
@@ -194,11 +193,9 @@ function FollowerRequestItem({
     >
       <div className="flex items-start gap-3">
         <motion.div whileHover={{ scale: 1.02 }} transition={springTransition}>
-          <Avatar className="size-9 shrink-0 border border-border/50 shadow-sm">
+          <Avatar className="size-9 shrink-0">
             <AvatarImage src={request.avatar_url || undefined} />
-            <AvatarFallback className="bg-transparent bg-linear-to-br from-muted to-muted/50 text-muted-foreground text-xs font-semibold">
-              {request.initials}
-            </AvatarFallback>
+            <AvatarFallback>{request.initials}</AvatarFallback>
           </Avatar>
         </motion.div>
 
@@ -218,12 +215,7 @@ function FollowerRequestItem({
                     animate={{ scale: 1 }}
                     transition={springTransition}
                   >
-                    <Badge
-                      variant="secondary"
-                      className="h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-semibold uppercase tracking-wider"
-                    >
-                      Donor
-                    </Badge>
+                    <Badge variant="success">Donor</Badge>
                   </motion.div>
                 )}
                 <TimeAgo
@@ -251,8 +243,8 @@ function FollowerRequestItem({
                   >
                     <Button
                       size="sm"
-                      variant="maia"
-                      className="w-full uppercase tracking-wider rounded-lg"
+                      variant="default"
+                      className="w-full"
                       onClick={() => handleAction("approve")}
                     >
                       Accept
@@ -265,8 +257,8 @@ function FollowerRequestItem({
                   >
                     <Button
                       size="sm"
-                      variant="maia-outline"
-                      className="w-full uppercase tracking-wider rounded-lg"
+                      variant="outline"
+                      className="w-full"
                       onClick={() => handleAction("ignore")}
                     >
                       Ignore
@@ -303,19 +295,17 @@ function FollowerRequestItem({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   transition={springTransition}
-                  className="flex items-center gap-1.5 h-full absolute inset-0 text-emerald-600"
+                  className="flex items-center gap-1.5 h-full absolute inset-0 text-success"
                 >
                   <motion.div
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ ...springTransition, delay: 0.1 }}
-                    className="bg-emerald-100 rounded-full p-0.5"
+                    className="bg-success/10 rounded-full p-0.5"
                   >
                     <Check className="size-3" />
                   </motion.div>
-                  <span className="text-xs font-semibold uppercase tracking-wider">
-                    Accepted
-                  </span>
+                  <span className="text-sm font-medium">Accepted</span>
                 </motion.div>
               )}
 
@@ -336,9 +326,7 @@ function FollowerRequestItem({
                   >
                     <X className="size-3" />
                   </motion.div>
-                  <span className="text-xs font-semibold uppercase tracking-wider">
-                    Removed
-                  </span>
+                  <span className="text-sm font-medium">Removed</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -380,15 +368,15 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border border-border shadow-sm hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl group bg-card"
+        className="group overflow-hidden"
       >
-        <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
+        <CardHeader className="flex flex-row items-start justify-between gap-3">
           <div className="flex gap-3 sm:gap-4">
             <motion.div
               whileHover={{ scale: 1.02 }}
               transition={springTransition}
             >
-              <Avatar className="size-10 sm:h-12 sm:w-12 border-2 border-background shadow-md ring-1 ring-border">
+              <Avatar className="size-10 sm:size-12">
                 <AvatarImage src={authorAvatar} />
                 <AvatarFallback>
                   {post.author?.first_name?.[0] || "M"}
@@ -405,17 +393,15 @@ function PostCard({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Badge className="bg-muted text-muted-foreground border-none font-semibold uppercase tracking-wider">
-                    {post.post_type}
-                  </Badge>
+                  <Badge variant="secondary">{post.post_type}</Badge>
                 </motion.div>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                <span className="text-xs text-muted-foreground">
                   {formatDate(post.created_at)}
                 </span>
                 <span className="text-border">•</span>
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   {post.visibility === "public" ? (
                     <Globe className="size-3" />
                   ) : post.visibility === "partners" ? (
@@ -423,7 +409,7 @@ function PostCard({
                   ) : (
                     <Lock className="size-3" />
                   )}
-                  <span className="hidden xs:inline">{post.visibility}</span>
+                  <span className="hidden sm:inline">{post.visibility}</span>
                 </span>
               </div>
             </div>
@@ -431,63 +417,49 @@ function PostCard({
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Post actions"
-                  className="sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
-                >
-                  <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
+                <Button variant="ghost" size="icon" aria-label="Post actions">
+                  <MoreHorizontal />
                 </Button>
               }
             />
-            <DropdownMenuContent
-              align="end"
-              className="rounded-xl border-border shadow-lg p-2 min-w-40 sm:min-w-45"
-            >
-              <DropdownMenuItem className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
                 <Pin className="size-3.5 text-muted-foreground" /> Pin to Top
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={onEdit}
-                className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
-              >
+              <DropdownMenuItem onClick={onEdit}>
                 <Settings className="size-3.5 text-muted-foreground" /> Edit
                 Post
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border" />
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2.5 sm:py-3 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2.5 sm:gap-3"
-              >
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onDelete} variant="destructive">
                 <Trash2 className="size-3.5" /> Delete Post
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6"
+            className="space-y-4 pb-4"
           >
             <PostContent
               value={post.content}
-              richTextClassName="text-foreground/80 leading-relaxed"
-              htmlClassName="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
-                        prose-headings:font-semibold prose-headings:text-foreground prose-headings:tracking-tight
-                        prose-strong:font-semibold prose-strong:text-foreground
-                        prose-a:text-primary prose-a:font-semibold prose-a:no-underline hover:prose-a:underline
-                        prose-blockquote:border-l-4 prose-blockquote:border-border prose-blockquote:italic prose-blockquote:text-muted-foreground"
+              richTextClassName="leading-relaxed"
+              htmlClassName="prose prose-sm sm:prose-base max-w-none leading-relaxed
+                        prose-headings:font-semibold prose-headings:tracking-tight
+                        prose-strong:font-semibold
+                        prose-a:font-semibold prose-a:no-underline hover:prose-a:underline
+                        prose-blockquote:italic"
             />
             {post.media && post.media.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.15 }}
-                className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500"
+                className="overflow-hidden rounded-xl border border-border"
               >
                 {post.media.length === 1 && singleMedia ? (
                   <div className="relative w-full h-auto min-h-50 max-h-100 sm:max-h-150">
@@ -516,8 +488,8 @@ function PostCard({
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="left-2 sm:left-4 bg-background/80 border-none hover:bg-background transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-md" />
-                    <CarouselNext className="right-2 sm:right-4 bg-background/80 border-none hover:bg-background transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-md" />
+                    <CarouselPrevious placement="inside" />
+                    <CarouselNext placement="inside" />
                   </Carousel>
                 )}
               </motion.div>
@@ -528,7 +500,7 @@ function PostCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-muted/20"
+            className="border-t border-border pt-4"
           >
             <ReactionBar update={post} appearance="chip" comments="dialog" />
           </motion.div>
@@ -606,35 +578,29 @@ function SecurityAccessDialog({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 px-4 text-xs gap-2 hover-scale-subtle"
-          >
+          <Button variant="outline" size="sm">
             <ShieldCheck className="size-4" />
             <span className="hidden sm:inline">Security & Access</span>
             <span className="sm:hidden">Security</span>
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-130 p-0 overflow-hidden gap-0 rounded-2xl border-border">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
+      <DialogContent className="sm:max-w-130" scrollable>
+        <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <ShieldCheck className="size-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-semibold tracking-tight">
-                Security & Access
-              </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">
+              <DialogTitle>Security & Access</DialogTitle>
+              <DialogDescription>
                 Control who can see your feed and updates
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-6">
           <SecurityAccessOptions
             localLevel={localLevel}
             handleLevelChange={handleLevelChange}
@@ -649,15 +615,17 @@ function SecurityAccessDialog({
           />
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-border bg-muted/20">
+        <DialogFooter>
           <div className="flex items-center gap-3 w-full">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              className="flex-1 h-10 rounded-xl text-xs font-semibold"
-            >
-              Cancel
-            </Button>
+            <div className="flex-1">
+              <Button
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            </div>
             <motion.div
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
@@ -668,7 +636,7 @@ function SecurityAccessDialog({
                 focusableWhenDisabled={isSaving}
                 onClick={handleSave}
                 disabled={isSaving}
-                className="w-full h-10 rounded-xl text-xs font-semibold"
+                className="w-full"
               >
                 <span id={`${pendingActionLabelId}-27`} className="sr-only">
                   {isSaving ? "Saving…" : "Save Changes"}
@@ -762,7 +730,7 @@ export function PostComposerActions({
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
+            className="flex gap-2 sm:gap-3 overflow-x-auto pb-2"
           >
             {selectedMedia.map((item, idx) => (
               <motion.div
@@ -781,18 +749,21 @@ export function PostComposerActions({
                   unoptimized
                   className="size-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
                 />
-                <motion.button
-                  type="button"
-                  aria-label="Remove attached media"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() =>
-                    setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))
-                  }
-                  className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5   transition-opacity shadow-sm"
-                >
-                  <X className="size-3" />
-                </motion.button>
+                <div className="absolute -top-1.5 -right-1.5">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon-sm"
+                    aria-label="Remove attached media"
+                    onClick={() =>
+                      setSelectedMedia((prev) =>
+                        prev.filter((_, i) => i !== idx),
+                      )
+                    }
+                  >
+                    <X className="size-3" />
+                  </Button>
+                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -805,7 +776,7 @@ export function PostComposerActions({
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
-              className="text-xs text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
+              className="text-xs text-muted-foreground hidden md:inline-block"
             >
               Saved{" "}
               {formatTime(lastSaved, { hour: "2-digit", minute: "2-digit" })}
@@ -815,12 +786,12 @@ export function PostComposerActions({
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
+            aria-label={isUploading ? "Uploading media" : "Add media"}
             focusableWhenDisabled={isUploading}
-            variant="ghost"
+            variant="outline"
             size="sm"
             disabled={isUploading}
             onClick={simulateUpload}
-            className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             {isUploading ? (
               <motion.div
@@ -844,11 +815,7 @@ export function PostComposerActions({
           <DropdownMenuTrigger
             aria-label={`Post visibility: ${postPrivacy}`}
             render={
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
-              >
+              <Button variant="outline" size="sm">
                 {postPrivacy === "public" ? (
                   <Globe className="size-3" />
                 ) : postPrivacy === "partners" ? (
@@ -863,28 +830,16 @@ export function PostComposerActions({
               </Button>
             }
           />
-          <DropdownMenuContent
-            align="start"
-            className="rounded-xl border-border shadow-lg p-1.5 min-w-40"
-          >
-            <DropdownMenuItem
-              onClick={() => setPostPrivacy("public")}
-              className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-            >
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => setPostPrivacy("public")}>
               <Globe className="size-3.5 text-muted-foreground" />
               Public
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setPostPrivacy("partners")}
-              className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-            >
+            <DropdownMenuItem onClick={() => setPostPrivacy("partners")}>
               <Users className="size-3.5 text-muted-foreground" />
               Partners Only
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setPostPrivacy("private")}
-              className="font-semibold text-xs uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-            >
+            <DropdownMenuItem onClick={() => setPostPrivacy("private")}>
               <Lock className="size-3.5 text-muted-foreground" />
               Private
             </DropdownMenuItem>
@@ -897,11 +852,10 @@ export function PostComposerActions({
           <Button
             onClick={() => void runPostAction("draft")}
             aria-label="Save draft"
-            variant="maia-outline"
+            variant="outline"
             size="sm"
             disabled={actionsDisabled}
             focusableWhenDisabled={draftPending}
-            className="px-2.5 sm:px-4 uppercase tracking-wider rounded-lg"
           >
             {draftPending ? (
               <motion.div
@@ -925,11 +879,10 @@ export function PostComposerActions({
           <Button
             onClick={() => void runPostAction("published")}
             aria-labelledby={publishLabelId}
-            variant="maia"
+            variant="default"
             size="sm"
             disabled={actionsDisabled}
             focusableWhenDisabled={publishPending}
-            className="sm:px-5 uppercase tracking-wider rounded-lg shadow-sm"
           >
             <span id={publishLabelId} className="sr-only">
               {publishPending ? "Publishing update" : "Publish"}
@@ -981,9 +934,9 @@ function PostComposerCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...smoothTransition, delay: 0.15 }}
-      className="overflow-hidden border border-border shadow-md rounded-2xl sm:rounded-3xl bg-card"
+      className="overflow-hidden"
     >
-      <div className="p-4 sm:p-6">
+      <CardContent>
         <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
           {["Update", "Prayer Request", "Story", "Newsletter"].map(
             (type, index) => (
@@ -996,12 +949,9 @@ function PostComposerCard({
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  variant={postType === type ? "maia" : "maia-outline"}
+                  variant={postType === type ? "default" : "outline"}
                   onClick={() => setPostType(type)}
-                  className={cn(
-                    "px-3 sm:px-5 py-2 h-8 sm:h-9 uppercase tracking-wider font-semibold",
-                    postType === type && "shadow-md",
-                  )}
+                  size="sm"
                 >
                   {type}
                 </Button>
@@ -1024,7 +974,7 @@ function PostComposerCard({
                     setEditingPostId(null);
                     setPostContent("");
                   }}
-                  className="ml-auto text-destructive font-semibold uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+                  className="ml-auto"
                 >
                   Cancel Edit
                 </Button>
@@ -1040,25 +990,22 @@ function PostComposerCard({
             transition={{ delay: 0.25 }}
             className="hidden sm:flex"
           >
-            <Avatar className="size-9 sm:h-11 sm:w-11 border-2 border-border shadow-sm shrink-0">
+            <Avatar className="size-9 shrink-0 sm:size-11">
               <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-              <AvatarFallback className="font-semibold text-sm">
-                MF
-              </AvatarFallback>
+              <AvatarFallback>MF</AvatarFallback>
             </Avatar>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+            className="flex-1 min-w-0"
           >
             <RichTextEditor
               aria-label="Ministry post content"
               value={postContent}
               onChange={setPostContent}
               placeholder={`What's happening? Share a ${postType.toLowerCase()}…`}
-              className="rounded-xl sm:rounded-2xl"
               contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed"
               toolbarPosition="bottom"
               proseInvert={false}
@@ -1079,7 +1026,7 @@ function PostComposerCard({
             />
           </motion.div>
         </div>
-      </div>
+      </CardContent>
     </MotionCard>
   );
 }
@@ -1122,17 +1069,9 @@ function FeedPostsTabsSection({
           transition={{ delay: 0.35 }}
           className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
         >
-          <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
-            <TabsTrigger
-              value="published"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors"
-            >
-              Published
-            </TabsTrigger>
-            <TabsTrigger
-              value="draft"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors flex items-center gap-2"
-            >
+          <TabsList>
+            <TabsTrigger value="published">Published</TabsTrigger>
+            <TabsTrigger value="draft">
               Drafts
               <AnimatePresence>
                 {drafts.length > 0 && (
@@ -1142,9 +1081,7 @@ function FeedPostsTabsSection({
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Badge className="border-none h-4 px-1 font-semibold">
-                      {drafts.length}
-                    </Badge>
+                    <Badge variant="secondary">{drafts.length}</Badge>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1199,9 +1136,9 @@ function FeedPostsTabsSection({
                       <MotionCard
                         whileHover={{ y: -2 }}
                         transition={springTransition}
-                        className="overflow-hidden border border-border hover:border-muted-foreground/30 hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
+                        className="overflow-hidden"
                       >
-                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6 lg:gap-8">
+                        <CardContent className="flex flex-col items-start justify-between gap-4 sm:flex-row">
                           <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
                             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                               <motion.div
@@ -1209,7 +1146,7 @@ function FeedPostsTabsSection({
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
                               >
-                                <Badge className="bg-muted text-muted-foreground border-none font-semibold uppercase tracking-wider">
+                                <Badge variant="secondary">
                                   Draft • {draft.post_type}
                                 </Badge>
                               </motion.div>
@@ -1219,8 +1156,8 @@ function FeedPostsTabsSection({
                             </div>
                             <PostContent
                               value={draft.content}
-                              richTextClassName="line-clamp-3 opacity-60 text-foreground/80 text-sm"
-                              htmlClassName="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
+                              richTextClassName="line-clamp-3 text-sm"
+                              htmlClassName="prose prose-sm sm:prose-base max-w-none line-clamp-3"
                             />
                           </div>
                           <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
@@ -1230,10 +1167,10 @@ function FeedPostsTabsSection({
                               className="flex-1 sm:flex-none"
                             >
                               <Button
-                                variant="maia"
+                                variant="default"
                                 size="sm"
                                 onClick={() => onEditDraft(draft)}
-                                className="w-full h-9 sm:h-10 px-4 sm:px-6 uppercase tracking-wider rounded-xl"
+                                className="w-full"
                               >
                                 <ExternalLink className="size-3.5 mr-2" />
                                 <span className="hidden sm:inline">
@@ -1248,17 +1185,17 @@ function FeedPostsTabsSection({
                               className="flex-1 sm:flex-none"
                             >
                               <Button
-                                variant="ghost"
+                                variant="destructive"
                                 size="sm"
                                 onClick={() => onDeletePost(draft.id)}
-                                className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-semibold uppercase tracking-wider rounded-xl"
+                                className="w-full"
                               >
                                 <Trash2 className="size-3.5 mr-2" />
                                 Delete
                               </Button>
                             </motion.div>
                           </div>
-                        </div>
+                        </CardContent>
                       </MotionCard>
                     </motion.div>
                   ))
@@ -1294,10 +1231,10 @@ function FollowerRequestsCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card"
+      className="overflow-hidden"
     >
-      <div className="px-4 py-3 flex items-center justify-between">
-        <h3 className="font-semibold text-xs uppercase tracking-wider text-foreground">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <h3 className="font-semibold text-base text-foreground">
           Follow Requests
         </h3>
         <AnimatePresence>
@@ -1308,13 +1245,11 @@ function FollowerRequestsCard({
               exit={{ scale: 0.95, opacity: 0 }}
               transition={springTransition}
             >
-              <Badge className="border-none font-semibold h-5 min-w-5 px-1.5 flex">
-                {pendingRequests.length}
-              </Badge>
+              <Badge variant="secondary">{pendingRequests.length}</Badge>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </CardHeader>
 
       <div className="border-t border-border">
         {isLoadingRequests ? (
@@ -1363,13 +1298,11 @@ function FollowerRequestsCard({
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={springTransition}
-              className="size-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100"
+              className="size-10 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-success/20"
             >
-              <Check className="size-5 text-emerald-500" />
+              <Check className="size-5 text-success" />
             </motion.div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              All caught up!
-            </p>
+            <p className="text-sm text-muted-foreground">All caught up!</p>
           </motion.div>
         )}
       </div>
@@ -1464,9 +1397,7 @@ function SecurityAccessOptions({
 }) {
   return (
     <div className="space-y-3">
-      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Security Level
-      </Label>
+      <Label>Security Level</Label>
       <div className="space-y-3">
         {SECURITY_OPTIONS.map(
           ({
@@ -1489,7 +1420,7 @@ function SecurityAccessOptions({
                 whileHover={{ scale: 1.005 }}
                 whileTap={{ scale: 0.995 }}
                 className={cn(
-                  "w-full text-left p-4 rounded-xl border-2 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200",
+                  "w-full rounded-xl border-2 p-4 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   isSelected
                     ? cn(borderColor, bgColor, "ring-2", ringColor)
                     : "border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/30",
@@ -1522,19 +1453,11 @@ function SecurityAccessOptions({
                           animate={{ scale: 1 }}
                           transition={springTransition}
                         >
-                          <Badge
-                            className={cn(
-                              "h-5 px-1.5 font-semibold uppercase tracking-wider border-0",
-                              bgColor,
-                              color,
-                            )}
-                          >
-                            Active
-                          </Badge>
+                          <Badge variant="secondary">Active</Badge>
                         </motion.div>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-2">
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-2">
                       {description}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -1542,7 +1465,7 @@ function SecurityAccessOptions({
                         <span
                           key={feature}
                           className={cn(
-                            "text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full",
+                            "rounded-full px-2 py-0.5 text-xs font-medium",
                             isSelected
                               ? cn(bgColor, color)
                               : "bg-muted text-muted-foreground",
@@ -1555,7 +1478,7 @@ function SecurityAccessOptions({
                   </div>
                   <div
                     className={cn(
-                      "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]",
+                      "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
                       isSelected ? cn(borderColor, bgColor) : "border-border",
                     )}
                   >
@@ -1594,9 +1517,7 @@ function SecurityAccessNotes({
 }) {
   return (
     <div className="space-y-4 pt-4 border-t border-border">
-      <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Quick Settings
-      </Label>
+      <Label>Quick Settings</Label>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
@@ -1605,12 +1526,7 @@ function SecurityAccessNotes({
               <Globe className="size-4 text-primary" />
             </div>
             <div>
-              <Label
-                htmlFor={`${settingsId}-mirror`}
-                className="text-xs font-semibold cursor-pointer"
-              >
-                Public Mirror
-              </Label>
+              <Label htmlFor={`${settingsId}-mirror`}>Public Mirror</Label>
               <p className="text-xs text-muted-foreground">
                 Sync updates to your giving page
               </p>
@@ -1626,14 +1542,11 @@ function SecurityAccessNotes({
 
         <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
           <div className="flex items-center gap-3">
-            <div className="size-8 rounded-lg bg-purple-50 flex items-center justify-center">
-              <Users className="size-4 text-purple-600" />
+            <div className="size-8 rounded-lg bg-info/10 flex items-center justify-center">
+              <Users className="size-4 text-info" />
             </div>
             <div>
-              <Label
-                htmlFor={`${settingsId}-approval`}
-                className="text-xs font-semibold cursor-pointer"
-              >
+              <Label htmlFor={`${settingsId}-approval`}>
                 Auto-Approve Donors
               </Label>
               <p className="text-xs text-muted-foreground">

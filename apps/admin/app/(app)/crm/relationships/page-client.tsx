@@ -10,7 +10,18 @@ import { Alert } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
-import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@asym/ui/components/shadcn/empty";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { cn } from "@asym/ui/lib/utils";
 import {
   ArrowLeft,
@@ -109,28 +120,30 @@ function CrmRelationshipsSourceBadges({
   rollback?: { existingCrmPath: string };
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
-      <Badge variant="outline" className="rounded-md">
-        {mode === "local" ? "Asym Postgres" : "CRM"}
-      </Badge>
-      <Badge variant="outline" className="rounded-md">
-        {report?.sourceSystems.finance ??
-          "Asym owns payment execution, receipts, statements, refunds, and reconciliation."}
-      </Badge>
-      <Badge variant="outline" className="rounded-md">
-        {report?.sourceSystems.care ??
-          "Asym owns care plans and private care notes."}
-      </Badge>
-      {rollback ? (
-        <Badge variant="outline" className="rounded-md">
-          Rollback: {rollback.existingCrmPath}
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline">
+          {mode === "local" ? "Asym Postgres" : "CRM"}
         </Badge>
-      ) : null}
+        {rollback ? (
+          <Badge variant="outline">Rollback: {rollback.existingCrmPath}</Badge>
+        ) : null}
+      </div>
+      <div className="space-y-1 text-xs leading-5 text-muted-foreground">
+        <p>
+          {report?.sourceSystems.finance ??
+            "Asym owns payment execution, receipts, statements, refunds, and reconciliation."}
+        </p>
+        <p>
+          {report?.sourceSystems.care ??
+            "Asym owns care plans and private care notes."}
+        </p>
+      </div>
     </div>
   );
 }
 
-function CrmRelationshipsFilters({
+export function CrmRelationshipsFilters({
   search,
   domains,
   onSearchChange,
@@ -145,20 +158,22 @@ function CrmRelationshipsFilters({
 }) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="relative w-full lg:max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
+      <InputGroup className="w-full lg:max-w-sm">
+        <InputGroupAddon>
+          <Search />
+        </InputGroupAddon>
+        <InputGroupInput
           aria-label="Search CRM relationships"
-          className="pl-9"
           placeholder="Search relationships"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
-      </div>
+      </InputGroup>
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={domains.length === 0 ? "default" : "outline"}
           size="sm"
+          aria-pressed={domains.length === 0}
           onClick={clearDomains}
         >
           All
@@ -168,6 +183,7 @@ function CrmRelationshipsFilters({
             key={option.value}
             variant={domains.includes(option.value) ? "default" : "outline"}
             size="sm"
+            aria-pressed={domains.includes(option.value)}
             onClick={() => onDomainToggle(option.value)}
           >
             {option.label}
@@ -184,17 +200,19 @@ function CrmRelationshipsEmptyState({
   tableError: Error | null;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="mb-4 rounded-lg bg-muted p-4">
-        <Network className="size-10 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold">No CRM relationships</h3>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        {tableError
-          ? tableError.message
-          : "No relationship records match the current filters."}
-      </p>
-    </div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Network />
+        </EmptyMedia>
+        <EmptyTitle>No CRM relationships</EmptyTitle>
+        <EmptyDescription>
+          {tableError
+            ? tableError.message
+            : "No relationship records match the current filters."}
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }
 
@@ -214,9 +232,7 @@ function CrmRelationshipsMobileCard({
             {relationship.secondaryLabel ?? relationship.authorityLabel}
           </p>
         </div>
-        <Badge variant="outline" className="rounded-md">
-          {relationship.domain}
-        </Badge>
+        <Badge variant="outline">{relationship.domain}</Badge>
       </div>
       <p className="text-xs text-muted-foreground">
         {relationship.sourceSystem}
@@ -252,8 +268,9 @@ export default function CrmRelationshipsPageClient() {
     <PageShell
       title={CRM_RELATIONSHIPS_PAGE_META.title}
       description={CRM_RELATIONSHIPS_PAGE_META.description}
+      density={CRM_RELATIONSHIPS_PAGE_META.density}
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/crm"
             className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
@@ -268,11 +285,7 @@ export default function CrmRelationshipsPageClient() {
             <FileText className="size-4" />
             Notes
           </Link>
-          <Button
-            variant="outline"
-            className=""
-            onClick={() => void onRefresh()}
-          >
+          <Button variant="outline" onClick={() => void onRefresh()}>
             <RefreshCcw className="size-4" />
             Refresh
           </Button>
@@ -295,7 +308,7 @@ export default function CrmRelationshipsPageClient() {
         />
 
         {missing.length > 0 ? (
-          <Alert className="rounded-lg border-amber-200 bg-amber-50 text-amber-900">
+          <Alert variant="warning">
             <ShieldAlert className="size-4" />
             <div className="text-sm">
               CRM relationships are not available in this environment.
@@ -305,7 +318,7 @@ export default function CrmRelationshipsPageClient() {
         ) : null}
 
         {isPermissionDenied ? (
-          <Alert className="rounded-lg border-destructive/30 bg-destructive/10 text-destructive">
+          <Alert variant="destructive">
             <ShieldAlert className="size-4" />
             <div className="text-sm">
               Your account does not have staff CRM access for this tenant.

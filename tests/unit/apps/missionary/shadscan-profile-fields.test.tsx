@@ -1,9 +1,12 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
 
-import { FormField } from "../../../../apps/missionary/app/profile/profile-primitives";
+import {
+  FormField,
+  PreviewToggle,
+} from "../../../../apps/missionary/app/profile/profile-primitives";
 import { Input } from "../../../../packages/ui/components/shadcn/input";
 import { Textarea } from "../../../../packages/ui/components/shadcn/textarea";
 
@@ -45,4 +48,20 @@ it("labels the native textarea through the same shared field relationships", () 
     document.getElementById(control.getAttribute("aria-describedby")!)
       ?.textContent,
   ).toBe("Add more detail");
+});
+
+it("exposes the selected profile preview and preserves the requested mode", () => {
+  const onChange = vi.fn();
+  const view = render(<PreviewToggle value="mobile" onChange={onChange} />);
+  expect(
+    screen.getByRole("button", { name: "Mobile preview", pressed: true }),
+  ).toBeTruthy();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Desktop preview", pressed: false }),
+  );
+  expect(onChange).toHaveBeenCalledWith("desktop");
+  view.rerender(<PreviewToggle value="desktop" onChange={onChange} />);
+  expect(
+    screen.getByRole("button", { name: "Desktop preview", pressed: true }),
+  ).toBeTruthy();
 });

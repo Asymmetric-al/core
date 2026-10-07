@@ -225,30 +225,30 @@ export function SupportCommandPalette() {
 
         <CommandGroup heading="Navigation">
           <CommandItem onSelect={() => handleSelectView("all")}>
-            <Inbox className="size-3.5 text-zinc-500" />
+            <Inbox className="size-3.5 text-muted-foreground" />
             All conversations
           </CommandItem>
           <CommandItem onSelect={() => handleSelectView("mine")}>
-            <Inbox className="size-3.5 text-zinc-500" />
+            <Inbox className="size-3.5 text-muted-foreground" />
             My conversations
           </CommandItem>
           <CommandItem onSelect={() => handleSelectView("unassigned")}>
-            <Inbox className="size-3.5 text-zinc-500" />
+            <Inbox className="size-3.5 text-muted-foreground" />
             Unassigned
           </CommandItem>
           <CommandItem onSelect={() => handleSelectView("past-due")}>
-            <Inbox className="size-3.5 text-zinc-500" />
+            <Inbox className="size-3.5 text-muted-foreground" />
             Past due
           </CommandItem>
           <CommandItem onSelect={() => handleSelectView("escalated")}>
-            <Inbox className="size-3.5 text-zinc-500" />
+            <Inbox className="size-3.5 text-muted-foreground" />
             Escalated
           </CommandItem>
           <CommandItem onSelect={handleToggleLayout}>
             {state.layout === "board" ? (
-              <TableProperties className="size-3.5 text-zinc-500" />
+              <TableProperties className="size-3.5 text-muted-foreground" />
             ) : (
-              <LayoutGrid className="size-3.5 text-zinc-500" />
+              <LayoutGrid className="size-3.5 text-muted-foreground" />
             )}
             Switch to {state.layout === "board" ? "table" : "board"} layout
           </CommandItem>
@@ -261,31 +261,31 @@ export function SupportCommandPalette() {
               heading={`Conversation — ${selectedConversation.subject ?? "Untitled"}`}
             >
               <CommandItem onSelect={() => void handleStatus("resolved")}>
-                <CheckCircle2 className="size-3.5 text-emerald-600" />
+                <CheckCircle2 className="size-3.5 text-success" />
                 Resolve
               </CommandItem>
               <CommandItem onSelect={() => void handleStatus("pending")}>
-                <Clock className="size-3.5 text-amber-500" />
+                <Clock className="size-3.5 text-warning" />
                 Mark pending
               </CommandItem>
               <CommandItem onSelect={() => void handleStatus("open")}>
-                <ArrowUp className="size-3.5 text-zinc-500" />
+                <ArrowUp className="size-3.5 text-muted-foreground" />
                 Reopen
               </CommandItem>
               <CommandItem onSelect={() => void handleSnooze(24)}>
-                <ArrowDown className="size-3.5 text-zinc-500" />
+                <ArrowDown className="size-3.5 text-muted-foreground" />
                 Snooze 24h
               </CommandItem>
               <CommandItem onSelect={() => void handleAssignSelf()}>
-                <UserCheck className="size-3.5 text-zinc-500" />
+                <UserCheck className="size-3.5 text-muted-foreground" />
                 Assign to me
               </CommandItem>
               <CommandItem onSelect={() => void handleUnassign()}>
-                <UserX className="size-3.5 text-zinc-500" />
+                <UserX className="size-3.5 text-muted-foreground" />
                 Unassign
               </CommandItem>
               <CommandItem onSelect={() => void handleRoundRobin()}>
-                <Tag className="size-3.5 text-zinc-500" />
+                <Tag className="size-3.5 text-muted-foreground" />
                 Round-robin assign
               </CommandItem>
             </CommandGroup>
@@ -301,7 +301,7 @@ export function SupportCommandPalette() {
                   key={macro.id}
                   onSelect={() => void handleRunMacro(macro)}
                 >
-                  <Wand2 className="size-3.5 text-zinc-500" />
+                  <Wand2 className="size-3.5 text-muted-foreground" />
                   {macro.name}
                 </CommandItem>
               ))}
@@ -318,7 +318,7 @@ export function SupportCommandPalette() {
                   key={view.id}
                   onSelect={() => handleApplySavedView(view)}
                 >
-                  <Folder className="size-3.5 text-zinc-500" />
+                  <Folder className="size-3.5 text-muted-foreground" />
                   {view.name}
                 </CommandItem>
               ))}
@@ -329,11 +329,11 @@ export function SupportCommandPalette() {
         <CommandSeparator />
         <CommandGroup heading="Quick reply tone">
           <CommandItem onSelect={() => handleSwitchMode("reply")}>
-            <Mail className="size-3.5 text-zinc-500" />
+            <Mail className="size-3.5 text-muted-foreground" />
             Switch composer to reply
           </CommandItem>
           <CommandItem onSelect={() => handleSwitchMode("note")}>
-            <StickyNote className="size-3.5 text-amber-500" />
+            <StickyNote className="size-3.5 text-warning" />
             Switch composer to internal note
           </CommandItem>
         </CommandGroup>

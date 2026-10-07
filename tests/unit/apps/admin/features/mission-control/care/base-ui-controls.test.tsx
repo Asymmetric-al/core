@@ -8,7 +8,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock(
   "../../../../../../../apps/admin/features/mission-control/care/hooks/use-care",
@@ -31,6 +31,7 @@ vi.mock("@asym/ui/components/shadcn/rich-text-editor", () => ({
 }));
 
 import { PersonnelProfile } from "../../../../../../../apps/admin/features/mission-control/care/components/PersonnelProfile";
+import { PersonnelList } from "../../../../../../../apps/admin/features/mission-control/care/components/PersonnelList";
 import { ShortcutsHelp } from "../../../../../../../apps/admin/features/mission-control/care/components/ShortcutsHelp";
 
 import type { CarePersonnel } from "../../../../../../../apps/admin/features/mission-control/care/types";
@@ -49,9 +50,30 @@ const personnel: CarePersonnel = {
   careGaps: [],
 };
 
-afterEach(cleanup);
+beforeEach(() => {
+  vi.stubGlobal("matchMedia", (media: string) => ({
+    media,
+    matches: false,
+    addEventListener() {},
+    removeEventListener() {},
+  }));
+});
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe("Care Base UI controls", () => {
+  it("offers personnel details as one named link without a nested button", () => {
+    render(<PersonnelList data={[personnel]} />);
+    const link = screen.getByRole("link", {
+      name: "View Care Member's care profile",
+    });
+    expect(link.getAttribute("href")).toBe("/care/directory/person-1");
+    expect(link.querySelector("button")).toBeNull();
+  });
+
   it("names the shortcuts dialog and handles Escape from inside it", async () => {
     const onOpenChange = vi.fn();
     render(<ShortcutsHelp open onOpenChange={onOpenChange} />);

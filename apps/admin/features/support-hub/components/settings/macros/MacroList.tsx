@@ -60,21 +60,21 @@ export function MacroList() {
             description="Create a macro to automate common donor-care sequences."
           />
         ) : (
-          <ul className="flex flex-col divide-y divide-zinc-100">
+          <ul className="flex flex-col divide-y divide-border">
             {macros.map((macro) => (
               <li
                 key={macro.id}
                 className="flex flex-wrap items-start gap-3 py-3"
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                   <Wand2 className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-xs font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-foreground">
                     {macro.name}
                   </span>
                   {macro.description ? (
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-muted-foreground">
                       {macro.description}
                     </span>
                   ) : null}
@@ -86,7 +86,7 @@ export function MacroList() {
                   size="icon"
                   onClick={() => setEditing(macro)}
                   aria-label={`Edit ${macro.name}`}
-                  className="size-8 text-zinc-500 hover:text-zinc-900"
+                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
@@ -96,7 +96,7 @@ export function MacroList() {
                   size="icon"
                   onClick={() => void handleDelete(macro)}
                   aria-label={`Delete ${macro.name}`}
-                  className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

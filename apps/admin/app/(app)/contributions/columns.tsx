@@ -25,7 +25,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
 import {
   Banknote,
   Building2,
@@ -56,61 +55,32 @@ import type {
   PaymentMethod,
 } from "./types";
 
+type StatusBadgeVariant =
+  | "success"
+  | "warning"
+  | "info"
+  | "destructive"
+  | "secondary";
+
 const statusConfig: Record<
   ContributionStatus,
-  { icon: typeof CircleCheck; className: string }
+  { icon: typeof CircleCheck; variant: StatusBadgeVariant }
 > = {
-  completed: {
-    icon: CircleCheck,
-    className:
-      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
-  },
-  pending: {
-    icon: Clock,
-    className:
-      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
-  },
-  processing: {
-    icon: Clock,
-    className:
-      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
-  },
-  failed: {
-    icon: XCircle,
-    className:
-      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
-  },
-  refunded: {
-    icon: RotateCcw,
-    className:
-      "bg-zinc-50 text-zinc-700 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
-  },
+  completed: { icon: CircleCheck, variant: "success" },
+  pending: { icon: Clock, variant: "warning" },
+  processing: { icon: Clock, variant: "info" },
+  failed: { icon: XCircle, variant: "destructive" },
+  refunded: { icon: RotateCcw, variant: "secondary" },
 };
 
 const receiptStatusConfig: Record<
   SharedContributionReceiptStatus,
-  { icon: typeof CircleCheck; className: string }
+  { icon: typeof CircleCheck; variant: StatusBadgeVariant }
 > = {
-  sent: {
-    icon: CircleCheck,
-    className:
-      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
-  },
-  pending: {
-    icon: Clock,
-    className:
-      "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
-  },
-  failed: {
-    icon: XCircle,
-    className:
-      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
-  },
-  not_sent: {
-    icon: Clock,
-    className:
-      "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
-  },
+  sent: { icon: CircleCheck, variant: "success" },
+  pending: { icon: Clock, variant: "secondary" },
+  failed: { icon: XCircle, variant: "destructive" },
+  not_sent: { icon: Clock, variant: "secondary" },
 };
 
 function paymentStatusLabel(status: ContributionStatus): string {
@@ -245,13 +215,7 @@ export function getContributionColumns({
         const Icon = config.icon;
 
         return (
-          <Badge
-            variant="outline"
-            className={cn(
-              "gap-1.5 font-medium text-xs px-2 py-0.5",
-              config.className,
-            )}
-          >
+          <Badge variant={config.variant}>
             <Icon className="size-3" />
             {paymentStatusLabel(status)}
           </Badge>
@@ -279,11 +243,7 @@ export function getContributionColumns({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Type" />
       ),
-      cell: ({ row }) => (
-        <Badge variant="secondary" className="">
-          {row.original.type}
-        </Badge>
-      ),
+      cell: ({ row }) => <Badge variant="secondary">{row.original.type}</Badge>,
       enableSorting: false,
       meta: {
         label: "Type",
@@ -370,10 +330,7 @@ export function getContributionColumns({
         const config = receiptStatusConfig[receiptStatus];
         const Icon = config.icon;
         return (
-          <Badge
-            variant="outline"
-            className={cn("gap-1 text-xs", config.className)}
-          >
+          <Badge variant={config.variant}>
             <Icon className="size-3" />
             {SHARED_RECEIPT_STATUS_LABELS[receiptStatus]}
           </Badge>

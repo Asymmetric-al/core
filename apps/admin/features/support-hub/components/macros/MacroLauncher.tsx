@@ -37,15 +37,10 @@ export function MacroLauncher({
           <Button
             type="button"
             variant="ghost"
-            size={compact ? "icon" : "sm"}
-            className={
-              compact
-                ? "size-7 rounded-md text-zinc-400 hover:text-zinc-900"
-                : "h-8 gap-1.5 rounded-lg px-2 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
-            }
+            size={compact ? "icon-sm" : "sm"}
             aria-label="Open macros"
           >
-            <Wand2 className="size-3.5" />
+            <Wand2 aria-hidden="true" />
             {compact ? null : "Macros"}
           </Button>
         }

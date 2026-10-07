@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
@@ -22,25 +28,23 @@ export function SettingsPanel({
   children,
   className,
 }: SettingsPanelProps) {
+  const titleId = React.useId();
   return (
-    <section
-      className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm",
-        className,
-      )}
-    >
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <Card role="region" aria-labelledby={titleId} className={cn(className)}>
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h2 className="text-xs font-semibold text-zinc-900">{title}</h2>
+          <h2 id={titleId} className="text-base font-semibold text-foreground">
+            {title}
+          </h2>
           {description ? (
-            <p className="text-xs text-zinc-500">{description}</p>
+            <CardDescription>{description}</CardDescription>
           ) : null}
         </div>
         {actions ? (
           <div className="flex items-center gap-2">{actions}</div>
         ) : null}
-      </header>
-      <div className="flex flex-col gap-4">{children}</div>
-    </section>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
+    </Card>
   );
 }

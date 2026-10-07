@@ -21,27 +21,15 @@ import * as React from "react";
 
 import { useSupportLabels } from "../../hooks/use-support-labels";
 import { useToggleSupportLabel } from "../../hooks/use-support-mutations";
+import { LABEL_BADGE_VARIANTS } from "../labels/label-badge-variants";
 
-import type {
-  SupportConversation,
-  SupportLabel,
-  SupportLabelTone,
-} from "../../types";
+import type { SupportConversation, SupportLabel } from "../../types";
 
 interface ConversationLabelMenuProps {
   conversation: SupportConversation;
   /** Render as just the chevron trigger (true) or as a labelled button (false). */
   compact?: boolean;
 }
-
-const LABEL_TONE_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-100 text-zinc-700 ring-zinc-200",
-  blue: "bg-blue-50 text-blue-700 ring-blue-200",
-  amber: "bg-amber-50 text-amber-700 ring-amber-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-};
 
 export function ConversationLabelMenu({
   conversation,
@@ -60,22 +48,15 @@ export function ConversationLabelMenu({
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className={cn(
-              "h-8 gap-2 rounded-lg border-zinc-200 bg-white px-2.5 font-medium text-zinc-700",
-              compact && "px-2",
-            )}
+            size={compact ? "icon-sm" : "sm"}
             aria-label="Edit labels"
           >
-            <Tag className="size-3.5 text-zinc-400" />
+            <Tag aria-hidden="true" />
             {compact ? null : (
               <span>
                 Labels
                 {conversation.labels.length > 0 ? (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 h-4 min-w-[1rem] rounded-md bg-zinc-900 px-1 font-semibold text-white"
-                  >
+                  <Badge variant="secondary" className="ml-1 tabular-nums">
                     {conversation.labels.length}
                   </Badge>
                 ) : null}
@@ -86,7 +67,7 @@ export function ConversationLabelMenu({
       />
       <PopoverContent align="end" className="w-64 p-0">
         <Command>
-          <CommandInput placeholder="Search labels..." className="h-9" />
+          <CommandInput placeholder="Search labels..." />
           <CommandList>
             <CommandEmpty>No labels.</CommandEmpty>
             <CommandGroup>
@@ -108,8 +89,8 @@ export function ConversationLabelMenu({
                       className={cn(
                         "flex size-4 items-center justify-center rounded border",
                         isActive
-                          ? "border-zinc-900 bg-zinc-900 text-white"
-                          : "border-zinc-200",
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border",
                       )}
                       aria-hidden
                     >
@@ -128,14 +109,5 @@ export function ConversationLabelMenu({
 }
 
 function LabelChip({ label }: { label: SupportLabel }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 items-center rounded-md px-1.5 text-xs font-semibold ring-1 ring-inset",
-        LABEL_TONE_CLASSES[label.tone],
-      )}
-    >
-      {label.name}
-    </span>
-  );
+  return <Badge variant={LABEL_BADGE_VARIANTS[label.tone]}>{label.name}</Badge>;
 }

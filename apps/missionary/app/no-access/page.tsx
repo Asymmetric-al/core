@@ -1,3 +1,11 @@
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import Link from "next/link";
 
 import type { Metadata } from "next";
@@ -10,23 +18,27 @@ export const metadata: Metadata = {
 export default function NoAccessPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-muted px-4 py-8">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm">
-        <h1 className="text-xl font-semibold tracking-tight">No access</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Your account does not have permission to view this portal.
-        </p>
-        <div className="mt-4 flex gap-3">
-          <Link href="/" className="text-sm font-medium hover:underline">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>
+            <h1 className="text-xl font-semibold tracking-tight">No access</h1>
+          </CardTitle>
+          <CardDescription>
+            Your account does not have permission to view this portal.
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="flex-wrap gap-2">
+          <Link href="/" className={buttonVariants()}>
             Go to home
           </Link>
           <Link
             href="/login"
-            className="text-sm text-muted-foreground hover:underline"
+            className={buttonVariants({ variant: "outline" })}
           >
             Switch account
           </Link>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </main>
   );
 }

@@ -1,5 +1,9 @@
 "use client";
 
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -44,30 +48,37 @@ export default function WorkflowsPageClient() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 px-6 py-10">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold text-zinc-950">Workflows</h1>
-        <p className="text-sm text-zinc-500">
-          Durable background work across donations, giving, and email. Product
-          records stay authoritative; urgent items need staff attention.
-        </p>
-      </header>
-
-      {data ? (
-        <p className="text-sm text-zinc-600" role="status">
-          {data.counts.urgent} urgent · {data.counts.visible} routine
-        </p>
-      ) : null}
-
-      {error ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {error}
-        </p>
-      ) : data ? (
-        <WorkflowSummariesTable summaries={data.summaries} />
-      ) : (
-        <p className="text-sm text-zinc-400">Loading workflow summaries…</p>
-      )}
-    </main>
+    <PageShell
+      title="Workflows"
+      density="compact"
+      description="Durable background work across donations, giving, and email. Product records stay authoritative; urgent items need staff attention."
+    >
+      <div className="space-y-6">
+        {data ? (
+          <p className="text-sm text-muted-foreground" role="status">
+            {data.counts.urgent} urgent · {data.counts.visible} routine
+          </p>
+        ) : null}
+        {error ? (
+          <Alert variant="warning">
+            <AlertTriangle />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : data ? (
+          <WorkflowSummariesTable summaries={data.summaries} />
+        ) : (
+          <div
+            role="status"
+            aria-label="Loading workflow summaries"
+            className="space-y-3"
+          >
+            <span className="sr-only">Loading workflow summaries…</span>
+            {Array.from({ length: 4 }, (_, index) => (
+              <Skeleton key={index} className="h-14 w-full rounded-xl" />
+            ))}
+          </div>
+        )}
+      </div>
+    </PageShell>
   );
 }

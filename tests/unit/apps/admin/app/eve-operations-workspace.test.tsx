@@ -1,9 +1,9 @@
 /** @vitest-environment jsdom */
 
+import { createDefaultEveModelPolicy } from "@asym/api/eve/model-policy";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createDefaultEveModelPolicy } from "@asym/api/eve/model-policy";
 import { EveModelPolicyReadiness } from "../../../../../apps/admin/app/(app)/admin/eve/model-policy-panel";
 import { canAccessEveOperationsWorkspace } from "../../../../../apps/admin/app/(app)/admin/eve/workspace-access";
 import {
@@ -11,8 +11,8 @@ import {
   EveWorkspaceIndex,
 } from "../../../../../apps/admin/app/(app)/admin/eve/workspace-shell";
 
-import type { AuthContext } from "@asym/auth/context";
 import type { EveModelPolicyAdminView } from "@asym/api/eve/model-policy/types";
+import type { AuthContext } from "@asym/auth/context";
 
 const baseAuth = {
   email: "operator@example.test",
@@ -89,7 +89,8 @@ describe("Eve operations workspace", () => {
 
     expect(view.getByRole("heading", { name: "GitHub activity" })).toBeTruthy();
     expect(view.getByRole("heading", { name: "Chat runtime" })).toBeTruthy();
-    expect(view.getAllByText("Unavailable")).toHaveLength(2);
+    expect(view.getAllByText("Unavailable")).toHaveLength(1);
+    expect(view.getByText("Managed in panel")).toBeTruthy();
     expect(view.getByText("Mounted")).toBeTruthy();
     expect(
       view.getByText(/no commits, checks, reviews, or issues/i),
@@ -97,6 +98,30 @@ describe("Eve operations workspace", () => {
     expect(view.getByRole("heading", { name: "Notifications" })).toBeTruthy();
     expect(view.getByText(/explicit allowlist for page context/i)).toBeTruthy();
     expect(view.queryByText(/mock activity/i)).toBeNull();
+  });
+
+  it("keeps the notifications index target reserved for the real controls panel", () => {
+    const view = render(
+      <>
+        <EveWorkspaceIndex />
+        <EveCapabilityConnectionsPanel />
+      </>,
+    );
+    expect(
+      view.getByRole("link", { name: /^Notifications/ }).getAttribute("href"),
+    ).toBe("#eve-notifications");
+    expect(view.container.querySelector("#eve-notifications")).toBeNull();
+    expect(
+      view
+        .getByRole("link", { name: "Open notification controls" })
+        .getAttribute("href"),
+    ).toBe("#eve-notifications");
+    expect(
+      view.queryByText(/Email and Discord delivery are not connected/i),
+    ).toBeNull();
+    expect(
+      view.getByText(/Availability follows the server readiness response/i),
+    ).toBeTruthy();
   });
 
   it("derives eval and subagent health from the active model policy", () => {

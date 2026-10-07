@@ -37,7 +37,7 @@ export function AssignmentRulesForm() {
         title="Auto assignment"
         description="No inbox settings available yet."
       >
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           Configure the inbox first, then come back here to set assignment
           rules.
         </p>
@@ -84,7 +84,7 @@ export function AssignmentRulesForm() {
             onCheckedChange={setRoundRobin}
             aria-label="Round-robin"
           />
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {roundRobin ? "Enabled" : "Disabled"}
           </span>
         </div>

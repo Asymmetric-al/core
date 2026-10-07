@@ -2,9 +2,10 @@
 
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
 import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
@@ -128,7 +129,14 @@ function MinistryUpdateCreateViewContent() {
           slug: parsed.data.slug,
           ...(isSuperAdmin ? { tenantId: parsed.data.tenantId } : {}),
         }),
-      });
+      }).catch(() => null);
+
+      if (!res) {
+        setSubmitError(
+          "Unable to create draft. Check your connection and try again.",
+        );
+        return;
+      }
 
       // Read the payload for both branches (error responses carry data) with
       // the status check made before the body is consumed.
@@ -203,7 +211,7 @@ function MinistryUpdateCreateViewContent() {
 
           <form.Field name="missionaryProfileId">
             {(field) => (
-              <div className="flex flex-col gap-2">
+              <Field>
                 <SearchableSelect
                   items={[
                     ...(profiles ?? []).map((p) => ({
@@ -222,34 +230,34 @@ function MinistryUpdateCreateViewContent() {
                   placeholder="Select profile"
                   label="Missionary profile"
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
           <form.Field name="title">
             {(field) => (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="mu-title">Title</Label>
+              <Field>
+                <FieldLabel htmlFor="mu-title">Title</FieldLabel>
                 <Input
                   id="mu-title"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
           <form.Field name="slug">
             {(field) => (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="mu-slug">Slug</Label>
+              <Field>
+                <FieldLabel htmlFor="mu-slug">Slug</FieldLabel>
                 <Input
                   id="mu-slug"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   placeholder="spring-newsletter"
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
@@ -270,9 +278,18 @@ function MinistryUpdateCreateViewContent() {
             </p>
           ) : null}
 
-          <Button type="submit" disabled={!templateId}>
-            Create draft
-          </Button>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button
+                type="submit"
+                disabled={!templateId || isSubmitting}
+                aria-busy={isSubmitting || undefined}
+              >
+                {isSubmitting ? <Spinner aria-hidden="true" /> : null}
+                {isSubmitting ? "Creating draft…" : "Create draft"}
+              </Button>
+            )}
+          </form.Subscribe>
         </form>
       </div>
     </StudioLayout>

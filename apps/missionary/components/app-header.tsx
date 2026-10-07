@@ -33,7 +33,7 @@ export function AppHeader({ title, navigation }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 sm:px-4 lg:px-6">
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1 size-8 touch-target flex items-center justify-center [&_svg]:!size-4" />
+        <SidebarTrigger className="-ml-1" size="icon-lg" />
         <span className="hidden sm:flex">
           <Separator orientation="vertical" className="h-4" />
         </span>
@@ -48,7 +48,7 @@ export function AppHeader({ title, navigation }: AppHeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="lg">
+              <Button variant="ghost" size="icon">
                 <LifeBuoy aria-hidden data-icon="inline-start" />
                 <span className="sr-only">Help</span>
               </Button>

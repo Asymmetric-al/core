@@ -119,7 +119,10 @@ describe("donor FAQ accessibility", () => {
       }),
     ).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: /^Clear/ }));
+    const clear = screen.getByRole("button", { name: /^Clear/ });
+    clear.focus();
+    fireEvent.click(clear);
+    expect(document.activeElement).toBe(search);
     expect(
       screen.getByRole("button", {
         name: "How do I update my credit card information?",

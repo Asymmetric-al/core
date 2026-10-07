@@ -1,13 +1,20 @@
 "use client";
 
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@asym/ui/components/shadcn/breadcrumb";
 import Link from "next/link";
-
-import { ChevronRight } from "../icons";
+import { Fragment } from "react";
 
 import type { ReactNode } from "react";
 
-interface BreadcrumbItem {
+interface PageBreadcrumbItem {
   label: string;
   href?: string;
 }
@@ -15,7 +22,7 @@ interface BreadcrumbItem {
 interface PageHeaderProps {
   title: string;
   description?: string;
-  breadcrumbs?: BreadcrumbItem[];
+  breadcrumbs?: PageBreadcrumbItem[];
   actions?: ReactNode;
 }
 
@@ -28,38 +35,42 @@ export function PageHeader({
   return (
     <div className="border-b border-border bg-background px-6 py-4 lg:px-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
-          <Link
-            href={resolveMissionControlHref("/mc")}
-            className="hover:text-foreground"
-          >
-            Mission Control
-          </Link>
-          {breadcrumbs.map((item) => (
-            <span
-              key={`${item.href ?? "current"}-${item.label}`}
-              className="flex items-center gap-1"
-            >
-              <ChevronRight className="size-3.5" />
-              {item.href ? (
-                <Link href={item.href} className="hover:text-foreground">
-                  {item.label}
-                </Link>
-              ) : (
-                <span className="text-foreground">{item.label}</span>
-              )}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                render={<Link href={resolveMissionControlHref("/mc")} />}
+              >
+                Mission Control
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {breadcrumbs.map((item) => (
+              <Fragment key={`${item.href ?? "current"}-${item.label}`}>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  {item.href ? (
+                    <BreadcrumbLink render={<Link href={item.href} />}>
+                      {item.label}
+                    </BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
       )}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           {description && (
             <p className="text-sm text-muted-foreground">{description}</p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && (
+          <div className="flex flex-wrap items-center gap-2">{actions}</div>
+        )}
       </div>
     </div>
   );

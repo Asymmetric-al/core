@@ -59,7 +59,7 @@ export function ConversationDetail({
       <aside
         aria-label="Conversation detail"
         className={cn(
-          "flex h-full min-h-120 flex-col rounded-2xl border border-zinc-100 bg-white shadow-sm",
+          "flex h-full min-h-120 flex-col rounded-2xl border border-border bg-card shadow-sm",
           conversationId === null && "items-center justify-center text-center",
         )}
       >
@@ -89,8 +89,8 @@ export function ConversationDetail({
         side="right"
         className="flex w-full max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-w-xl"
       >
-        <SheetHeader className="border-b border-zinc-100 px-4 py-3">
-          <SheetTitle className="text-sm font-semibold text-zinc-900">
+        <SheetHeader className="border-b border-border px-4 py-3">
+          <SheetTitle className="text-sm font-semibold text-foreground">
             Conversation
           </SheetTitle>
           <SheetDescription className="sr-only">
@@ -129,7 +129,7 @@ function DetailBody({ conversation, isLoading, onClose }: DetailBodyProps) {
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         <ConversationTimeline conversationId={conversation.id} />
       </div>
-      <div className="border-t border-zinc-100 bg-zinc-50/40 p-3">
+      <div className="border-t border-border bg-muted/40 p-3">
         {/* Keyed per conversation so drafts, attachments, and mode start fresh
             when the agent switches threads instead of being reset in an effect. */}
         <ConversationComposer
@@ -161,13 +161,13 @@ interface ConversationNotFoundProps {
 function ConversationNotFound({ onClose }: ConversationNotFoundProps) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-rose-50 ring-1 ring-rose-100">
-        <MessageSquareWarning className="size-5 text-rose-400" />
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
+        <MessageSquareWarning className="size-5 text-destructive" />
       </div>
-      <p className="text-xs font-semibold text-zinc-900">
+      <p className="text-xs font-semibold text-foreground">
         Conversation not found
       </p>
-      <p className="max-w-xs text-xs text-zinc-500">
+      <p className="max-w-xs text-xs text-muted-foreground">
         It may have been resolved or removed. Head back to the inbox to pick
         another conversation.
       </p>
@@ -176,7 +176,7 @@ function ConversationNotFound({ onClose }: ConversationNotFoundProps) {
         variant="outline"
         size="sm"
         onClick={onClose}
-        className="mt-1 rounded-lg border-zinc-200 text-xs"
+        className="mt-1"
       >
         <ArrowLeft className="size-3.5" />
         Back to inbox

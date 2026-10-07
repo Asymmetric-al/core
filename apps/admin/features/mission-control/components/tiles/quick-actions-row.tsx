@@ -3,7 +3,7 @@
 import { useMC } from "@asym/lib/mission-control/context";
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
 import { TILES } from "@asym/lib/mission-control/tiles";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
 
 import { getIcon } from "../icon-map";
@@ -79,17 +79,10 @@ export function QuickActionsRow() {
           <Link
             key={`${action.tile.id}-${action.label}`}
             href={resolveMissionControlHref(action.href)}
+            className={buttonVariants({ variant: "outline" })}
           >
-            <Button
-              variant="secondary"
-              size="sm"
-              className="h-11 rounded-2xl border border-zinc-200/60 bg-white px-5 font-bold text-zinc-600 shadow-sm hover-lift hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/50"
-            >
-              {Icon && (
-                <Icon className="mr-2.5 size-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />
-              )}
-              {action.label}
-            </Button>
+            {Icon && <Icon data-icon="inline-start" />}
+            {action.label}
           </Link>
         );
       })}

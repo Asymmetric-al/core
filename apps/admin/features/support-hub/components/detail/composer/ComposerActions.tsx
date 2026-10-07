@@ -47,16 +47,16 @@ export function ComposerActions({
   );
 
   return (
-    <div className="flex items-center justify-between gap-2 px-3 py-2">
-      <div className="flex items-center gap-2 text-xs text-zinc-500">
+    <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {beforeSend}
         {!beforeSend ? (
-          <span aria-hidden className="text-zinc-300">
+          <span aria-hidden className="text-muted-foreground">
             Cmd+Enter to send
           </span>
         ) : null}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {onCancel ? (
           <Button
             type="button"
@@ -64,7 +64,6 @@ export function ComposerActions({
             size="sm"
             disabled={isPending}
             onClick={onCancel}
-            className="rounded-lg text-xs"
           >
             Cancel
           </Button>
@@ -79,9 +78,8 @@ export function ComposerActions({
             size="sm"
             disabled={isPending || !isDirty}
             onClick={onSaveDraft}
-            className="rounded-lg border-zinc-200 text-xs"
           >
-            <Save className="size-3.5" />
+            <Save aria-hidden="true" />
             <span id={`${pendingActionLabelId}-draft`}>
               {isSavingDraft ? "Saving draft" : "Save draft"}
             </span>
@@ -95,7 +93,6 @@ export function ComposerActions({
           disabled={isPending || !isDirty}
           aria-busy={isSending}
           onClick={onSend}
-          className="rounded-lg bg-zinc-900 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800"
         >
           <ComposerSendIcon isReply={isReply} isSending={isSending} />
           <span id={`${pendingActionLabelId}-17`} className="sr-only">
@@ -116,11 +113,11 @@ function ComposerSendIcon({
   isSending: boolean;
 }) {
   return isSending ? (
-    <Loader2 className="size-3.5 animate-spin" />
+    <Loader2 aria-hidden="true" className="animate-spin" />
   ) : isReply ? (
-    <Send className="size-3.5" />
+    <Send aria-hidden="true" />
   ) : (
-    <StickyNote className="size-3.5" />
+    <StickyNote aria-hidden="true" />
   );
 }
 

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { STAGE_COLORS } from "../../../../../../apps/admin/app/(app)/mobilize/stage-colors";
+import { STAGE_VARIANTS } from "../../../../../../apps/admin/app/(app)/mobilize/stage-colors";
 
-describe("mobilize stage colors", () => {
+describe("mobilize stage tones", () => {
   it("keeps deployed visually distinct from vetting", () => {
-    expect(STAGE_COLORS.Deployed).not.toBe(STAGE_COLORS.Vetting);
-    expect(STAGE_COLORS.Deployed).toContain("indigo");
+    expect(STAGE_VARIANTS.Deployed).not.toBe(STAGE_VARIANTS.Vetting);
+    // Resolved semantic colors and light/dark contrast are checked in the
+    // shared theme fixture; the deployed/vetting distinction stays observable.
   });
 });

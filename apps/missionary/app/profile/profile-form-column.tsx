@@ -65,13 +65,15 @@ export function ProfileFormColumn({
   return (
     <motion.div className="lg:col-span-7 space-y-6" variants={staggerContainer}>
       <MotionCard>
-        <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-            <User className="size-4" />
-            Personal Details
+        <CardHeader>
+          <CardTitle>
+            <span className="flex items-center gap-2">
+              <User className="size-4" />
+              Personal Details
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6">
+        <CardContent>
           <motion.div
             className="space-y-5"
             variants={staggerContainer}
@@ -83,7 +85,6 @@ export function ProfileFormColumn({
                 <Input
                   value={profile.firstName}
                   onChange={(e) => updateProfile("firstName", e.target.value)}
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                   placeholder="Your first name"
                 />
               </FormField>
@@ -91,7 +92,6 @@ export function ProfileFormColumn({
                 <Input
                   value={profile.lastName}
                   onChange={(e) => updateProfile("lastName", e.target.value)}
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                   placeholder="Your last name"
                 />
               </FormField>
@@ -103,7 +103,6 @@ export function ProfileFormColumn({
                   value={profile.location}
                   onChange={(e) => updateProfile("location", e.target.value)}
                   placeholder="City, Country"
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
               <FormField
@@ -115,7 +114,6 @@ export function ProfileFormColumn({
                   value={profile.phone}
                   onChange={(e) => updateProfile("phone", e.target.value)}
                   placeholder="+1 (555) 000-0000"
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
             </div>
@@ -124,7 +122,7 @@ export function ProfileFormColumn({
               label="Tagline"
               error={validationErrors.ministryFocus}
               helperText={
-                <p className="text-xs text-zinc-400 flex items-start gap-1.5">
+                <p className="text-sm text-muted-foreground flex items-start gap-1.5">
                   <Info className="size-3 mt-0.5 shrink-0" />
                   <span>
                     A brief description of your work that appears next to your
@@ -133,7 +131,7 @@ export function ProfileFormColumn({
                       className={cn(
                         "ml-1 font-medium",
                         profile.ministryFocus.length > TAGLINE_MAX_LENGTH - 10
-                          ? "text-amber-500"
+                          ? "text-warning"
                           : "",
                       )}
                     >
@@ -148,7 +146,6 @@ export function ProfileFormColumn({
                 onChange={(e) => updateProfile("ministryFocus", e.target.value)}
                 placeholder="e.g., Church planting in Southeast Asia"
                 maxLength={TAGLINE_MAX_LENGTH}
-                className="h-10 focus:ring-2 focus:ring-zinc-200"
               />
             </FormField>
 
@@ -157,7 +154,7 @@ export function ProfileFormColumn({
               error={validationErrors.bio}
               helperText={
                 <div className="space-y-1">
-                  <p className="text-xs text-zinc-400 flex items-start gap-1.5">
+                  <p className="text-sm text-muted-foreground flex items-start gap-1.5">
                     <Info className="size-3 mt-0.5 shrink-0" />
                     <span>
                       Share your story, calling, and ministry work. This appears
@@ -169,10 +166,10 @@ export function ProfileFormColumn({
                     className={cn(
                       "text-xs font-medium text-right",
                       bioWordCount < BIO_MIN_WORDS
-                        ? "text-zinc-400"
+                        ? "text-muted-foreground"
                         : bioWordCount > BIO_MAX_WORDS
-                          ? "text-amber-500"
-                          : "text-emerald-600",
+                          ? "text-warning"
+                          : "text-success",
                     )}
                   >
                     {bioWordCount} / {BIO_MIN_WORDS}–{BIO_MAX_WORDS} words
@@ -184,7 +181,7 @@ export function ProfileFormColumn({
                 value={profile.bio}
                 onChange={(e) => updateProfile("bio", e.target.value)}
                 placeholder="Tell supporters about yourself, your ministry, and how they can partner with you..."
-                className="min-h-45 resize-none focus:ring-2 focus:ring-zinc-200"
+                rows={7}
                 maxLength={BIO_MAX_CHARS}
               />
             </FormField>
@@ -193,13 +190,15 @@ export function ProfileFormColumn({
       </MotionCard>
 
       <MotionCard>
-        <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-            <ImageIcon className="size-4" />
-            Profile Photos
+        <CardHeader>
+          <CardTitle>
+            <span className="flex items-center gap-2">
+              <ImageIcon className="size-4" />
+              Profile Photos
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 space-y-6">
+        <CardContent className="space-y-6">
           <motion.div
             className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
             variants={fadeInUp}
@@ -220,10 +219,10 @@ export function ProfileFormColumn({
               />
             </ImageUpload>
             <div className="space-y-2 text-center sm:text-left">
-              <p className="text-sm font-medium text-zinc-900">
+              <p className="text-sm font-medium text-foreground">
                 Profile Picture
               </p>
-              <p className="text-xs text-zinc-500 max-w-55">
+              <p className="text-xs text-muted-foreground max-w-55">
                 Square image, at least 400x400px. JPG or PNG, max 5MB.
               </p>
               <ImageUpload
@@ -234,16 +233,8 @@ export function ProfileFormColumn({
                 }}
                 path="avatars"
               >
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                >
-                  <Upload
-                    className="mr-1.5 size-3.5"
-                    data-icon="inline-start"
-                  />
+                <Button type="button" variant="outline" size="sm">
+                  <Upload aria-hidden data-icon="inline-start" />
                   Upload Photo
                 </Button>
               </ImageUpload>
@@ -251,9 +242,7 @@ export function ProfileFormColumn({
           </motion.div>
 
           <motion.div className="space-y-2" variants={fadeInUp}>
-            <Label className="text-xs font-medium text-zinc-500">
-              Cover Photo
-            </Label>
+            <Label>Cover Photo</Label>
             <ImageUpload
               value={profile.coverUrl}
               onChange={(url) => {
@@ -266,7 +255,7 @@ export function ProfileFormColumn({
             >
               <CoverUploadArea coverUrl={profile.coverUrl} />
             </ImageUpload>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-muted-foreground">
               This image appears at the top of your public profile. Max 10MB.
             </p>
           </motion.div>
@@ -274,13 +263,15 @@ export function ProfileFormColumn({
       </MotionCard>
 
       <MotionCard>
-        <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-            <Globe className="size-4" />
-            Social Links
+        <CardHeader>
+          <CardTitle>
+            <span className="flex items-center gap-2">
+              <Globe className="size-4" />
+              Social Links
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6">
+        <CardContent>
           <motion.div
             className="space-y-4"
             variants={staggerContainer}
@@ -293,7 +284,6 @@ export function ProfileFormColumn({
                   value={profile.instagram}
                   onChange={(e) => updateProfile("instagram", e.target.value)}
                   placeholder="@yourhandle"
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
               <FormField label="Facebook" icon={Facebook}>
@@ -301,7 +291,6 @@ export function ProfileFormColumn({
                   value={profile.facebook}
                   onChange={(e) => updateProfile("facebook", e.target.value)}
                   placeholder="facebook.com/yourpage"
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
             </div>
@@ -311,7 +300,6 @@ export function ProfileFormColumn({
                   value={profile.twitter}
                   onChange={(e) => updateProfile("twitter", e.target.value)}
                   placeholder="@yourhandle"
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
               <FormField label="YouTube" icon={Youtube}>
@@ -319,7 +307,6 @@ export function ProfileFormColumn({
                   value={profile.youtube}
                   onChange={(e) => updateProfile("youtube", e.target.value)}
                   placeholder="youtube.com/@channel"
-                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
             </div>
@@ -332,7 +319,6 @@ export function ProfileFormColumn({
                 value={profile.website}
                 onChange={(e) => updateProfile("website", e.target.value)}
                 placeholder="https://yourwebsite.com"
-                className="h-10 focus:ring-2 focus:ring-zinc-200"
               />
             </FormField>
           </motion.div>

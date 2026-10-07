@@ -36,7 +36,7 @@ export function SettingsRow({
           <FieldPrimitive.Label
             nativeLabel={false}
             render={<div />}
-            className="text-xs font-semibold text-foreground"
+            className="text-sm font-medium text-foreground"
           >
             {label}
           </FieldPrimitive.Label>
@@ -53,7 +53,7 @@ export function SettingsRow({
   return (
     <div className={rowClassName}>
       <label htmlFor={htmlFor} className="flex flex-col gap-1">
-        <span className="text-xs font-semibold text-foreground">{label}</span>
+        <span className="text-sm font-medium text-foreground">{label}</span>
         {description ? (
           <span className="text-xs text-muted-foreground">{description}</span>
         ) : null}

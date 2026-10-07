@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Command,
@@ -17,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
-import { cn } from "@asym/ui/lib/utils";
 import { Check, Clock, Tag, UserCheck } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
@@ -34,12 +34,9 @@ import {
   type BulkMutationReport,
 } from "../../lib/bulk-mutations";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
+import { LABEL_BADGE_VARIANTS } from "../labels/label-badge-variants";
 
-import type {
-  SupportConversation,
-  SupportLabel,
-  SupportLabelTone,
-} from "../../types";
+import type { SupportConversation, SupportLabel } from "../../types";
 
 interface FloatingBarAction {
   label: string;
@@ -55,15 +52,6 @@ interface UseBulkActionsReturn {
 }
 
 const HOUR_MS = 60 * 60 * 1000;
-
-const TONE_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-100 text-zinc-700 ring-zinc-200",
-  blue: "bg-blue-50 text-blue-700 ring-blue-200",
-  amber: "bg-amber-50 text-amber-700 ring-amber-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-};
 
 function toastBulkReport(
   report: BulkMutationReport,
@@ -242,7 +230,7 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
           </DialogDescription>
         </DialogHeader>
         <Command>
-          <CommandInput placeholder="Search labels..." className="h-9" />
+          <CommandInput placeholder="Search labels..." />
           <CommandList>
             <CommandEmpty>No labels.</CommandEmpty>
             <CommandGroup>
@@ -253,16 +241,11 @@ export function useSupportBulkActions(): UseBulkActionsReturn {
                   onSelect={() => void applyLabel(label)}
                   className="flex items-center gap-2"
                 >
-                  <span
-                    className={cn(
-                      "inline-flex h-5 items-center rounded-md px-1.5 text-xs font-semibold ring-1 ring-inset",
-                      TONE_CLASSES[label.tone],
-                    )}
-                  >
+                  <Badge variant={LABEL_BADGE_VARIANTS[label.tone]}>
                     {label.name}
-                  </span>
+                  </Badge>
                   {label.description ? (
-                    <span className="truncate text-xs text-zinc-500">
+                    <span className="truncate text-xs text-muted-foreground">
                       {label.description}
                     </span>
                   ) : null}

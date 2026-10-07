@@ -204,7 +204,7 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "b7a6b703ee717afda03e5f7365bf65d009d9cf8a83f7965ad6207d1755cb7e4b"
+          "sha256": "daf4869d2d328ed9e5673ba65b4a6a1251b018aabb0d6bfed93baade2e6cdcd1"
         },
         {
           "path": "apps/admin/features/mission-control/components/navigation-search.tsx",
@@ -264,7 +264,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx",
-          "sha256": "7f30cfca4c961606ab8cb4bc05d20bbd7a0d09739e10a6f30a81300e55266fbe"
+          "sha256": "5596e3b7fd3952a766203dcdcdaf6aa4844acfb40a5457163c73d1771e10b94f"
         },
         {
           "path": "tests/unit/apps/admin/app/offline-gift-entry-dialog.test.tsx",
@@ -305,7 +305,7 @@
       "proof": [
         {
           "path": "apps/admin/app/global-error.tsx",
-          "sha256": "a334837d2c72246747dbe1f409e397c7b33aba520685b811f98fc359d1f7feb6"
+          "sha256": "1c2d33ad71f478497055b9181638dedb4d31fa9dd2b51c86c6091fa490034d81"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -330,7 +330,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
-          "sha256": "925806b893cb71b14f0d4dae90e98844a5896c1768b6d4b23cf5989c0e7f57dd"
+          "sha256": "00c0022f6b11fe6997fa1926a3a0d9801302316f5d0826c3e69499ba7ce397ec"
         },
         {
           "path": "apps/admin/app/(app)/settings/integrations/resend/use-resend-forms.ts",
@@ -342,7 +342,7 @@
         },
         {
           "path": "tests/unit/apps/admin/resend-field-accessibility.test.tsx",
-          "sha256": "6073e695655a45b75aa5339147ade7cc18eb9041ec8e0380663a18283b54bbe1"
+          "sha256": "bfabda6722a0f2a6e3c2362c12a2ac83edcd5c13358f40145a2a4361beb02cbb"
         },
         {
           "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
@@ -362,7 +362,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
-          "sha256": "0f43820fe80cb6da37b13805ddaf484f1341ffdd12daaf08fe0eebf68dbfaf10"
+          "sha256": "931a82d19ac42540044c2a306d087a8a130c21ace1cc8238063b05f94df55cda"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -386,7 +386,7 @@
       "proof": [
         {
           "path": "apps/admin/app/mc-shell.tsx",
-          "sha256": "b7a6b703ee717afda03e5f7365bf65d009d9cf8a83f7965ad6207d1755cb7e4b"
+          "sha256": "daf4869d2d328ed9e5673ba65b4a6a1251b018aabb0d6bfed93baade2e6cdcd1"
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
@@ -410,7 +410,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/admin/eve/workspace-shell.tsx",
-          "sha256": "703497ba1b3ac6979d22a7d8748a02b7aea321619b2073e9e285846cda0461eb"
+          "sha256": "f90d09bd3c16aea77f1e83c2ed6cf0875d5686ed28113a9b4e387417e8ac0441"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
@@ -434,7 +434,7 @@
         },
         {
           "path": "apps/admin/app/global-not-found.tsx",
-          "sha256": "ab4bf62b3a174b1c1f433d61689b5edaafe7f481e3b1a508637f3a0a73a272fb"
+          "sha256": "e604e04291a90cafdea7421a546312fc24486ce55dcd68e73889dbf949f11256"
         },
         {
           "path": "apps/admin/package.json",
@@ -478,11 +478,11 @@
       "proof": [
         {
           "path": "apps/admin/app/(payload)/layout.tsx",
-          "sha256": "c827425685353814b726e26b2f7a168441fe8f4a57afcd0743f920371e989143"
+          "sha256": "17e5c4926288a6c150fb57a4d30388a0d46c76f764d5fd28627154f36963f026"
         },
         {
           "path": "apps/admin/app/(payload)/web-studio/preview/[collection]/[id]/page.tsx",
-          "sha256": "6d6da8a339e0c825dbf05b9f8deae658a44853a8ff9b24f12c902d4f5fe8525f"
+          "sha256": "933780b6fa4ee50d82e990afb1f845fcfef8ff0fac0630bcbafcef7f6535426a"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -670,7 +670,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "5198556967ee79c4e17a51ad79123159d4f772d3964dcbbfe606ac2ff8c128e4"
+          "sha256": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4"
         },
         {
           "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
@@ -716,7 +716,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "5198556967ee79c4e17a51ad79123159d4f772d3964dcbbfe606ac2ff8c128e4"
+          "sha256": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4"
         },
         {
           "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
@@ -758,7 +758,7 @@
       "proof": [
         {
           "path": "apps/donor/app/global-error.tsx",
-          "sha256": "163498786a116348afd1d81d72f90e82edb5ec7c5e38234e3a1f2ce433d8a8ce"
+          "sha256": "2b811b8d9cf2e62db1457c8b98361e0cf896934e8c3dc6cbccaddbe9d23623b7"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -767,24 +767,6 @@
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
           "sha256": "0dd0f65b3a10390e2aee2ff17d3eed4c942b6ac3d5f1d8fa492bce2767ee517b"
-        }
-      ]
-    },
-    {
-      "project": "apps/donor",
-      "rule": "focus-visible-not-suppressed",
-      "classification": "scanner-limitation",
-      "rationale": "Custom amount input focus sets isInputFocused, which adds a border-zinc-900 and ring-4 replacement on its surrounding control. The scanner examines only the input className. Existing actual GivingWidget tests exercise native labeled input and real preset arrow navigation; computed CSS replacement is source-reviewed, not yet separately browser asserted. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
-      "verificationTests": ["tests/unit/apps/donor/giving-widget.test.tsx"],
-      "evidenceFingerprint": "efd24fe5a19cb912ef5117a61ae8a1e3927a944efdac7e88e593952cdddd671e",
-      "proof": [
-        {
-          "path": "apps/donor/app/(public)/(solid)/workers/[id]/giving-widget.tsx",
-          "sha256": "b12f3c7ef073ebd47093c94b17d425d469d6e8a7a748daad0e59397031bfda32"
-        },
-        {
-          "path": "tests/unit/apps/donor/giving-widget.test.tsx",
-          "sha256": "71e12d826ddd45c840fb5ef41326e412c49c881e894430756bb4adb3d17c1339"
         }
       ]
     },
@@ -801,7 +783,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx",
-          "sha256": "53931258a2dd3a9930bfb982b3131db235c67eec50e0fdda77f127e329cd22e1"
+          "sha256": "b7a8319c4db436dee87bf445726fdbb8efd135fe2f190513449a7fd5eee724fd"
         },
         {
           "path": "packages/ui/components/shadcn/button.ts",
@@ -838,7 +820,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
-          "sha256": "cfd34cfaa902b1c81a31ddac9f5de1b251752ba2c2e2e3948a52b72948d2e41d"
+          "sha256": "699b779d527d1eb7d7e8d6188500ee3697d560e343be22f76c81aaac2b769ec5"
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
@@ -867,7 +849,7 @@
       "proof": [
         {
           "path": "apps/donor/app/global-not-found.tsx",
-          "sha256": "736b8092e78fdfcc9ead3fdef59ab6e894e1aed96ea1827ff291301627195031"
+          "sha256": "6b56d7d53b43d91521ef3aa753a1c173f7a7f9d1b1267afd7c07d17b5d5d8571"
         },
         {
           "path": "apps/donor/next.config.ts",
@@ -923,15 +905,15 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
-          "sha256": "b19e2d2fc84635dcdbb6055d999aff8775236e1be312a33b313afe0c0f59b759"
+          "sha256": "78f9efb35a235631346fb2de68cc970a78c6bd517f8ff7b31278a8fe1e08da72"
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/settings/page-client.tsx",
-          "sha256": "504ad53a099596620906b6559699c5a26efe0fb05e0807dfc63b54eb6238142b"
+          "sha256": "9ab2beef331fd8c1d8de94c757dbe43717f61c9f15e7f6128c40fdbb321f2d3a"
         },
         {
           "path": "tests/unit/apps/donor/shadscan-settings-feedback.test.tsx",
-          "sha256": "46d714e852cd6eb84a2106cfef39734cac3f5c8daccdd3ef94bc8735d7dcb305"
+          "sha256": "477a91dd9083d6f557e33d5b2df085ca14970ee9ebcfe04e4d7999db474ddbbd"
         }
       ]
     },
@@ -947,7 +929,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "5198556967ee79c4e17a51ad79123159d4f772d3964dcbbfe606ac2ff8c128e4"
+          "sha256": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4"
         },
         {
           "path": "tests/unit/apps/donor/static-shell-contract.test.ts",
@@ -1040,7 +1022,7 @@
       "proof": [
         {
           "path": "apps/missionary/components/app-header.tsx",
-          "sha256": "7734349776a8e9889beb8b0a48975aa39db0f3453ca383ce035aeda25302e4a1"
+          "sha256": "18b4acbcd82ace4c133ad28b01bbf6fcd19e6998561284894f3f33fa7d8b6833"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-header-pending.test.tsx",
@@ -1069,7 +1051,7 @@
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
-          "sha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799"
+          "sha256": "4f1653e47453eae914275307deeec61efce230dd57ebdbfb8d1e665145ba83da"
         },
         {
           "path": "apps/missionary/components/navigation-search.tsx",
@@ -1136,7 +1118,7 @@
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
-          "sha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799"
+          "sha256": "4f1653e47453eae914275307deeec61efce230dd57ebdbfb8d1e665145ba83da"
         },
         {
           "path": "apps/missionary/components/navigation-search.tsx",
@@ -1195,7 +1177,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/global-error.tsx",
-          "sha256": "7e7593bcb944952cdb9b9ff6076d5d31db38a1129f842b57ca67f28abd80ce8f"
+          "sha256": "d2c2abe684f30dcb1a43f8f0d52a403d91c4160c0392ebe0aec55a3134d29eac"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -1220,11 +1202,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "6e6f2c5cf84c591a20c1d23030014c6184a35e3c0eb8638902ed69537b3034d0"
+          "sha256": "72654b2d16e35deacbbc94d050bc7de1c7f5876b979443e498e81f6d888d0fdb"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "824aadb268eb298d2d2ffca6881f528536341d7c8d10ac891943b0e1caa20e6c"
+          "sha256": "9a7b5d22a01edd47b92b7cbe468edcc09b7504ed188fe81a50b7dc8c60f0fb36"
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
@@ -1240,7 +1222,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
-          "sha256": "40552e53226e31a0b2a331a2e6195de2d79228f88cae5f6f4b5ea5487a1d3184"
+          "sha256": "e11b0ba247dca4a933aa54d602f41f87527963aa586c6d3334a6fc10f6cd2ec1"
         }
       ]
     },
@@ -1257,11 +1239,11 @@
       "proof": [
         {
           "path": "apps/missionary/app/profile/profile-form-column.tsx",
-          "sha256": "6e6f2c5cf84c591a20c1d23030014c6184a35e3c0eb8638902ed69537b3034d0"
+          "sha256": "72654b2d16e35deacbbc94d050bc7de1c7f5876b979443e498e81f6d888d0fdb"
         },
         {
           "path": "apps/missionary/app/profile/profile-primitives.tsx",
-          "sha256": "824aadb268eb298d2d2ffca6881f528536341d7c8d10ac891943b0e1caa20e6c"
+          "sha256": "9a7b5d22a01edd47b92b7cbe468edcc09b7504ed188fe81a50b7dc8c60f0fb36"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
@@ -1273,7 +1255,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
-          "sha256": "40552e53226e31a0b2a331a2e6195de2d79228f88cae5f6f4b5ea5487a1d3184"
+          "sha256": "e11b0ba247dca4a933aa54d602f41f87527963aa586c6d3334a6fc10f6cd2ec1"
         }
       ]
     },
@@ -1291,7 +1273,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/donors/donor-tasks.tsx",
-          "sha256": "a8f0ba30c0c8cf44b83a3995a6bfa98cd343da1c900194cad58b3e423e530fd4"
+          "sha256": "adccbdd0b62f6960a119bcbff9821750157bfcd851814db43e0d95471710c43b"
         },
         {
           "path": "packages/ui/components/shadcn/button.ts",
@@ -1332,7 +1314,7 @@
       "proof": [
         {
           "path": "apps/missionary/components/app-header.tsx",
-          "sha256": "7734349776a8e9889beb8b0a48975aa39db0f3453ca383ce035aeda25302e4a1"
+          "sha256": "18b4acbcd82ace4c133ad28b01bbf6fcd19e6998561284894f3f33fa7d8b6833"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -1360,15 +1342,15 @@
       "proof": [
         {
           "path": "apps/missionary/components/app-header.tsx",
-          "sha256": "7734349776a8e9889beb8b0a48975aa39db0f3453ca383ce035aeda25302e4a1"
+          "sha256": "18b4acbcd82ace4c133ad28b01bbf6fcd19e6998561284894f3f33fa7d8b6833"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
-          "sha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799"
+          "sha256": "4f1653e47453eae914275307deeec61efce230dd57ebdbfb8d1e665145ba83da"
         },
         {
           "path": "apps/missionary/components/app-sidebar.tsx",
-          "sha256": "8c494f62cb01f3d92b23db09b3a17c0359fda4dc7fb068ea93108908bee7f6ca"
+          "sha256": "3937b22a087dca88e4ab0831d6225c8c2b79ac067f9d15907c282acb677b1fc2"
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
@@ -1376,7 +1358,7 @@
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx",
-          "sha256": "8579aef9b250e1a6937f713b0a5c2900f37ea241928c2b68524588cd18d38ed3"
+          "sha256": "7871a1f6b8fbad5e93dcb05feb22ae6eb38055c627b92ed9d73b2d548821f2ae"
         }
       ]
     },
@@ -1393,7 +1375,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/global-not-found.tsx",
-          "sha256": "cfb1c2b066920cf93456acb0ba70eb345637d3e2897b25bc2678eed9c7696a52"
+          "sha256": "b8330d317cdfe3c709714063fb49c275064283120a3234d155e6ffc936931e8d"
         },
         {
           "path": "apps/missionary/next.config.ts",
@@ -1467,7 +1449,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/analytics/page-client.tsx",
-          "sha256": "fd682bf3d792a23fe570e8d722a2de2c62b96e9d42c76644d7c1edf40764087c"
+          "sha256": "da1211f0590d8b98abe638aa9bb1961c64bb26a83eb4be25bb7404b1b5e4800a"
         },
         {
           "path": "packages/ui/components/primitives/chart-wrappers.tsx",

@@ -49,7 +49,7 @@ export function TeamForm({ team, onSaved, onCancel }: TeamFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="team-name">Name</Label>

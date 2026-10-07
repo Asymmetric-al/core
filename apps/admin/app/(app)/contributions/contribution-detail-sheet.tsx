@@ -69,9 +69,9 @@ import type {
 /* ------------------------------------------------------------------ */
 
 const statusDotColor: Record<ContributionStatus, string> = {
-  completed: "bg-emerald-500",
-  pending: "bg-amber-500",
-  processing: "bg-blue-500",
+  completed: "bg-success",
+  pending: "bg-warning",
+  processing: "bg-info",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };
@@ -96,13 +96,13 @@ function crmPostStatusDotColor(
   status: SharedContributionCrmPostStatus | null,
 ): string {
   if (status === "posted") {
-    return "bg-emerald-500";
+    return "bg-success";
   }
   if (isCrmPostFailure(status)) {
     return "bg-destructive";
   }
   if (status === "queued") {
-    return "bg-amber-500";
+    return "bg-warning";
   }
   return "bg-muted-foreground/40";
 }
@@ -677,7 +677,7 @@ function ContributionDetailsGrid({
             className={cn(
               "size-2 shrink-0 rounded-full",
               contribution.receiptSent
-                ? "bg-emerald-500"
+                ? "bg-success"
                 : "bg-muted-foreground/40",
             )}
           />
@@ -692,10 +692,10 @@ function ContributionDetailsGrid({
               className={cn(
                 "size-2 shrink-0 rounded-full",
                 contribution.stagedGiftStatus === "posted"
-                  ? "bg-emerald-500"
+                  ? "bg-success"
                   : contribution.stagedGiftStatus === "failed"
                     ? "bg-destructive"
-                    : "bg-amber-500",
+                    : "bg-warning",
               )}
             />
             {contribution.stagedGiftStatus.replace(/_/g, " ")}

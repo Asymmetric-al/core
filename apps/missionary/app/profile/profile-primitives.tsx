@@ -71,11 +71,11 @@ export function ProfileSkeleton() {
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-7 space-y-6">
           {["skeleton-a", "skeleton-b", "skeleton-c"].map((skeletonId) => (
-            <Card key={skeletonId} className="rounded-2xl">
-              <CardHeader className="border-b border-zinc-100 px-6 py-4">
+            <Card key={skeletonId}>
+              <CardHeader>
                 <Skeleton className="h-4 w-32" />
               </CardHeader>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Skeleton className="h-3 w-20" />
@@ -94,7 +94,9 @@ export function ProfileSkeleton() {
         <div className="lg:col-span-5">
           <div className="sticky top-24 space-y-4">
             <Skeleton className="h-4 w-24" />
-            <Skeleton className="aspect-[9/16] rounded-3xl" />
+            <div className="aspect-9/16">
+              <Skeleton className="size-full rounded-3xl" />
+            </div>
           </div>
         </div>
       </div>
@@ -156,7 +158,6 @@ export function SocialIcon({
 
   return (
     <motion.div
-      className="cursor-pointer"
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
@@ -164,7 +165,7 @@ export function SocialIcon({
       whileTap={{ scale: 0.98 }}
       transition={springTransition}
     >
-      <Icon className="size-4 text-zinc-400 hover:text-zinc-600 transition-colors" />
+      <Icon className="size-4 text-muted-foreground hover:text-muted-foreground transition-colors" />
     </motion.div>
   );
 }
@@ -185,24 +186,25 @@ export function AvatarUploadArea({
     >
       {/* No shared VT name: the persistent sidebar avatar was the only other
           surface and can never form a legal unmount/mount pair. */}
-      <Avatar className="size-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
+      <Avatar className="size-24 sm:size-28">
         <AvatarImage src={avatarUrl} />
-        <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
-          {initials || "U"}
-        </AvatarFallback>
+        <AvatarFallback>{initials || "U"}</AvatarFallback>
       </Avatar>
 
       <motion.div
-        className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
+        className="absolute inset-0 rounded-full bg-media-scrim/0 group-hover:bg-media-scrim/30 transition-colors flex items-center justify-center"
         initial={false}
       >
-        <motion.div className="transition-opacity" initial={false}>
-          <Camera className="size-6 text-white drop-shadow-lg" />
+        <motion.div
+          className="flex size-10 items-center justify-center rounded-full bg-media-scrim/65"
+          initial={false}
+        >
+          <Camera className="size-6 text-media-foreground" />
         </motion.div>
       </motion.div>
 
       <motion.div
-        className="absolute -bottom-1 -right-1 size-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white"
+        className="absolute -bottom-1 -right-1 size-8 sm:h-9 sm:w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-background"
         whileHover={{ scale: 1.1 }}
         transition={springTransition}
       >
@@ -216,10 +218,10 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
   return (
     <motion.div
       className={cn(
-        "w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-colors relative overflow-hidden cursor-pointer",
+        "w-full aspect-3/1 rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-colors relative overflow-hidden cursor-pointer",
         coverUrl
           ? "border-transparent"
-          : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300",
+          : "border-border bg-muted hover:bg-muted hover:border-border",
       )}
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.995 }}
@@ -236,10 +238,10 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
             transition={gentleTransition}
           />
           <motion.div
-            className="absolute inset-0 bg-black/0 hover:bg-black/40 flex items-center justify-center transition-colors"
+            className="absolute inset-0 bg-media-scrim/0 hover:bg-media-scrim/40 flex items-center justify-center transition-colors"
             initial={false}
           >
-            <motion.div className="bg-white rounded-lg px-3 py-1.5 shadow-lg transition-opacity">
+            <motion.div className="bg-card rounded-lg px-3 py-1.5 shadow-lg transition-opacity">
               <span className="text-xs font-medium flex items-center gap-1.5">
                 <Camera className="size-3.5" />
                 Change Cover
@@ -254,13 +256,13 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
           animate={{ opacity: 1, y: 0 }}
           transition={smoothTransition}
         >
-          <motion.div className="size-10 sm:h-12 sm:w-12 rounded-xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-2 sm:mb-3">
-            <ImageIcon className="size-5 sm:h-6 sm:w-6 text-zinc-300" />
+          <motion.div className="size-10 sm:h-12 sm:w-12 rounded-xl bg-card shadow-sm border border-border flex items-center justify-center mb-2 sm:mb-3">
+            <ImageIcon className="size-5 sm:h-6 sm:w-6 text-muted-foreground" />
           </motion.div>
-          <p className="text-xs sm:text-sm font-medium text-zinc-700">
+          <p className="text-xs sm:text-sm font-medium text-foreground">
             Click to upload cover photo
           </p>
-          <p className="text-xs sm:text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs sm:text-xs text-muted-foreground mt-0.5">
             1200x400px recommended
           </p>
         </motion.div>
@@ -277,9 +279,9 @@ export function PreviewToggle({
   onChange: (v: "mobile" | "desktop") => void;
 }) {
   return (
-    <div className="relative bg-zinc-100 border border-zinc-200 p-1 rounded-lg flex">
+    <div className="relative bg-muted border border-border p-1 rounded-lg flex">
       <motion.div
-        className="absolute top-1 bottom-1 left-(--preview-indicator-left) bg-white rounded-md shadow-sm"
+        className="absolute top-1 bottom-1 left-(--preview-indicator-left) bg-card rounded-md shadow-sm"
         layout
         transition={springTransition}
         style={
@@ -293,12 +295,13 @@ export function PreviewToggle({
         type="button"
         onClick={() => onChange("mobile")}
         className={cn(
-          "relative z-10 px-2.5 py-1 rounded-md transition-colors",
+          "press-feedback relative z-10 rounded-md px-2.5 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
           value === "mobile"
-            ? "text-zinc-900"
-            : "text-zinc-400 hover:text-zinc-600",
+            ? "text-foreground"
+            : "text-muted-foreground hover:text-muted-foreground",
         )}
         aria-label="Mobile preview"
+        aria-pressed={value === "mobile"}
       >
         <Smartphone className="size-4" />
       </button>
@@ -306,12 +309,13 @@ export function PreviewToggle({
         type="button"
         onClick={() => onChange("desktop")}
         className={cn(
-          "relative z-10 px-2.5 py-1 rounded-md transition-colors",
+          "press-feedback relative z-10 rounded-md px-2.5 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring",
           value === "desktop"
-            ? "text-zinc-900"
-            : "text-zinc-400 hover:text-zinc-600",
+            ? "text-foreground"
+            : "text-muted-foreground hover:text-muted-foreground",
         )}
         aria-label="Desktop preview"
+        aria-pressed={value === "desktop"}
       >
         <Monitor className="size-4" />
       </button>
@@ -328,9 +332,7 @@ export function MotionCard({
 }) {
   return (
     <motion.div variants={fadeInUp} transition={gentleTransition}>
-      <Card className={cn("rounded-2xl border-zinc-200 shadow-sm", className)}>
-        {children}
-      </Card>
+      <Card className={className}>{children}</Card>
     </motion.div>
   );
 }
@@ -464,12 +466,7 @@ export function ProfileHeaderActions({
         <TooltipTrigger
           aria-label="Copy profile link"
           render={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onCopyLink}
-              className="h-9 text-xs"
-            >
+            <Button variant="outline" size="sm" onClick={onCopyLink}>
               <AnimatePresence mode="wait">
                 {copiedLink ? (
                   <motion.div
@@ -479,7 +476,7 @@ export function ProfileHeaderActions({
                     exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Check className="size-4 text-emerald-600" />
+                    <Check className="size-4 text-success" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -507,10 +504,7 @@ export function ProfileHeaderActions({
               href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "h-9 px-3 text-xs font-medium",
-              )}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >
               <Eye className="mr-1.5 size-4" />
               <span className="hidden sm:inline">View Public Page</span>
@@ -530,12 +524,7 @@ export function ProfileHeaderActions({
             exit={{ opacity: 0, scale: 0.9, x: -8 }}
             transition={springTransition}
           >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDiscard}
-              className="h-9 text-xs text-zinc-500 hover:text-zinc-900"
-            >
+            <Button variant="ghost" size="sm" onClick={onDiscard}>
               <RotateCcw className="mr-1.5 size-4" data-icon="inline-start" />
               Discard
             </Button>
@@ -554,10 +543,6 @@ export function ProfileHeaderActions({
           onClick={onSave}
           disabled={isSaving || !hasChanges}
           size="sm"
-          className={cn(
-            "h-9 px-4 text-xs font-medium min-w-25 transition-colors duration-200",
-            saveSuccess && "bg-emerald-600 hover:bg-emerald-600",
-          )}
         >
           <span id={`${pendingActionLabelId}-28`} className="sr-only">
             {isSaving ? "Saving…" : saveSuccess ? "Saved!" : "Save Changes"}

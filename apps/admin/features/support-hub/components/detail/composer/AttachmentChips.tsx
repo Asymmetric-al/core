@@ -50,9 +50,8 @@ export function AttachmentChips({
         size="sm"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        className="rounded-lg border-zinc-200 px-2 text-xs text-zinc-600"
       >
-        <Paperclip className="size-3.5" />
+        <Paperclip aria-hidden="true" />
         Attach
       </Button>
       <input
@@ -69,19 +68,19 @@ export function AttachmentChips({
         <span
           key={attachment.blobRef}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs font-medium text-zinc-700",
+            "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground",
           )}
         >
-          <Paperclip className="size-3 text-zinc-400" />
+          <Paperclip className="size-3 text-muted-foreground" />
           <span className="max-w-40 truncate">{attachment.filename}</span>
-          <span className="text-zinc-400">
+          <span className="text-muted-foreground">
             {formatBytes(attachment.sizeBytes)}
           </span>
           <button
             type="button"
             aria-label={`Remove ${attachment.filename}`}
             onClick={() => onRemove(index)}
-            className="rounded-sm p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+            className="rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <X className="size-3" />
           </button>

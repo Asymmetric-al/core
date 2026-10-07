@@ -26,6 +26,7 @@ const missionControlDynamicIconKeys: Record<string, unknown> = {
   globe: true,
   "user-plus": true,
   "pen-square": true,
+  "circle-x": true,
 };
 
 describe("resolveDynamicIconKebabName", () => {
@@ -43,6 +44,12 @@ describe("resolveDynamicIconKebabName", () => {
 
   it("accepts kebab-case keys directly", () => {
     expect(resolveDynamicIconKebabName("globe", importKeys)).toBe("globe");
+  });
+
+  it("resolves the legacy close-circle name to the installed canonical icon", () => {
+    expect(resolveDynamicIconKebabName("XCircle", importKeys)).toBe("circle-x");
+    expect(resolveDynamicIconKebabName("CircleX", importKeys)).toBe("circle-x");
+    expect(resolveDynamicIconKebabName("XCircle", { globe: true })).toBeNull();
   });
 
   it("returns null for unknown names", () => {

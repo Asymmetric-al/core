@@ -1,3 +1,4 @@
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import Link from "next/link";
 
 import type { Metadata } from "next";
@@ -15,16 +16,13 @@ export default function NoAccessPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           Your account does not have permission to view this page.
         </p>
-        <div className="mt-4 flex gap-3">
-          <Link
-            href="/donor-dashboard"
-            className="text-sm font-medium hover:underline"
-          >
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/donor-dashboard" className={buttonVariants()}>
             Go to donor home
           </Link>
           <Link
             href="/login"
-            className="text-sm text-muted-foreground hover:underline"
+            className={buttonVariants({ variant: "outline" })}
           >
             Switch account
           </Link>

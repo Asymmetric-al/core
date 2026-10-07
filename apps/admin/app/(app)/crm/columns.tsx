@@ -42,11 +42,6 @@ function formatShortDate(value: string | null | undefined) {
   }
 }
 
-const LIFECYCLE_BADGE_CLASS: Record<string, string> = {
-  active: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  inactive: "border-zinc-200 bg-zinc-100 text-zinc-600",
-};
-
 interface ColumnOptions {
   onViewRecord: (row: CrmGridRow) => void;
   tagOptions: DataTableFilterOption[];
@@ -173,13 +168,13 @@ export function getCrmColumns({
       ),
       cell: ({ row }) => (
         <Badge
-          variant="outline"
-          className={cn(
-            "border font-semibold shadow-none",
-            LIFECYCLE_BADGE_CLASS[
-              row.original.lifecycleStatus?.toLowerCase() ?? ""
-            ] ?? "border-border bg-background text-muted-foreground",
-          )}
+          variant={
+            row.original.lifecycleStatus?.toLowerCase() === "active"
+              ? "success"
+              : row.original.lifecycleStatus?.toLowerCase() === "inactive"
+                ? "secondary"
+                : "outline"
+          }
         >
           {row.original.lifecycleStatus ?? EMPTY_CELL_VALUE}
         </Badge>

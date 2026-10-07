@@ -11,11 +11,11 @@ import { SUPPORT_INBOX_KEYMAP } from "../../lib/keymap";
  */
 export function InboxShortcutHints() {
   return (
-    <div className="border-t border-zinc-100 px-3 py-2">
-      <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+    <div className="border-t border-border px-3 py-2">
+      <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
         Keyboard shortcuts
       </p>
-      <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-zinc-600">
+      <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
         {SUPPORT_INBOX_KEYMAP.map((entry) => (
           <li
             key={entry.action}

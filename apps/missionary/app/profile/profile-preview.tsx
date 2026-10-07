@@ -50,7 +50,7 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={gentleTransition}
-        className="border-[12px] border-zinc-900 rounded-[3rem] overflow-hidden shadow-2xl bg-white relative"
+        className="border-12 border-border rounded-4xl overflow-hidden shadow-2xl bg-card relative"
         style={{
           width: MOBILE_PREVIEW_WIDTH,
           height: MOBILE_PREVIEW_HEIGHT,
@@ -66,20 +66,18 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.25 }}
           />
-          <div className="absolute inset-0 bg-linear-to-t from-white/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent" />
         </div>
 
         <div className="absolute top-18 left-0 right-0 flex justify-center">
           <motion.div
-            className="rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50 size-18"
+            className="rounded-full border-3 border-background bg-card overflow-hidden shadow-lg ring-4 ring-background/50 size-18"
             layout
             transition={springTransition}
           >
             <Avatar className="size-full">
               <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
-              <AvatarFallback className="bg-zinc-100 font-semibold text-base">
-                {initials || "U"}
-              </AvatarFallback>
+              <AvatarFallback>{initials || "U"}</AvatarFallback>
             </Avatar>
           </motion.div>
         </div>
@@ -87,14 +85,14 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
         <div className="absolute top-38 left-0 right-0 bottom-0 px-5 text-center flex flex-col overflow-hidden">
           <div className="shrink-0">
             <div className="flex items-center justify-center gap-1.5">
-              <h2 className="text-lg font-semibold text-zinc-900 tracking-tight">
+              <h2 className="text-lg font-semibold text-foreground tracking-tight">
                 {profile.firstName || "First"} {profile.lastName || "Last"}
               </h2>
-              <div className="flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-xs font-semibold uppercase tracking-wider p-2">
+              <div className="flex items-center gap-1 rounded-full bg-info/10 text-info border border-info/20 text-xs font-semibold uppercase tracking-wider p-2">
                 <Check className="size-2" /> Verified
               </div>
             </div>
-            <div className="flex items-center justify-center gap-1 text-xs text-zinc-500 mt-0.5">
+            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-0.5">
               <MapPin className="size-2.5" />
               <span>{profile.location || "Location"}</span>
             </div>
@@ -106,32 +104,24 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
 
           <div className="mt-6 flex-1 flex flex-col min-h-0">
             <Tabs defaultValue="story" className="w-full flex-1 flex flex-col">
-              <TabsList className="w-full justify-center border-b border-zinc-100 bg-transparent h-auto p-0 mb-4 gap-4">
-                <TabsTrigger
-                  value="story"
-                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-active:text-zinc-900 transition-colors"
-                >
-                  Our Story
-                </TabsTrigger>
-                <TabsTrigger
-                  value="updates"
-                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-active:text-zinc-900 transition-colors"
-                >
-                  Field Journal
-                </TabsTrigger>
-              </TabsList>
+              <div className="mb-4 flex justify-center">
+                <TabsList variant="line">
+                  <TabsTrigger value="story">Our Story</TabsTrigger>
+                  <TabsTrigger value="updates">Field Journal</TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent
                 value="story"
-                className="outline-none flex-1 overflow-y-auto text-left pb-4"
+                className="flex-1 overflow-y-auto pb-4"
               >
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
+                <div className="space-y-3 text-left">
+                  <p className="text-xs font-semibold text-foreground leading-relaxed italic border-l-2 border-success pl-3">
                     &quot;
                     {profile.ministryFocus || "Your tagline will appear here"}
                     &quot;
                   </p>
-                  <div className="text-xs text-zinc-500 leading-relaxed whitespace-pre-wrap">
+                  <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
                     {profile.bio ||
                       "Your bio will appear here. Share your story, calling, and ministry work with potential supporters."}
                   </div>
@@ -140,21 +130,21 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
 
               <TabsContent
                 value="updates"
-                className="outline-none flex-1 overflow-y-auto pb-4"
+                className="flex-1 overflow-y-auto pb-4"
               >
                 <div className="space-y-4 py-2">
-                  <div className="p-3 rounded-xl border border-zinc-100 bg-zinc-50/50 text-left">
+                  <div className="p-3 rounded-xl border border-border bg-muted/50 text-left">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="size-5 rounded-full bg-zinc-200" />
+                      <div className="size-5 rounded-full bg-muted" />
                       <div className="flex-1">
-                        <div className="h-2 w-16 bg-zinc-200 rounded mb-1" />
-                        <div className="h-1.5 w-10 bg-zinc-100 rounded" />
+                        <div className="h-2 w-16 bg-muted rounded mb-1" />
+                        <div className="h-1.5 w-10 bg-muted rounded" />
                       </div>
                     </div>
-                    <div className="h-2 w-full bg-zinc-100 rounded mb-1.5" />
-                    <div className="size-2/3 bg-zinc-100 rounded" />
+                    <div className="h-2 w-full bg-muted rounded mb-1.5" />
+                    <div className="size-2/3 bg-muted rounded" />
                   </div>
-                  <p className="text-xs text-zinc-400 text-center italic">
+                  <p className="text-xs text-muted-foreground text-center italic">
                     Updates from your feed will appear here
                   </p>
                 </div>
@@ -162,7 +152,7 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
             </Tabs>
           </div>
 
-          <div className="flex justify-center gap-3 py-3 mt-auto bg-white border-t border-zinc-50">
+          <div className="flex justify-center gap-3 py-3 mt-auto bg-card border-t border-border">
             <AnimatePresence>
               {profile.instagram && (
                 <SocialIcon
@@ -204,10 +194,10 @@ function MobileProfilePreview({ profile, initials }: ProfilePreviewFrameProps) {
         </div>
 
         <div className="absolute top-0 left-0 right-0 h-6 flex justify-center pt-0.5 pointer-events-none">
-          <div className="bg-zinc-900 h-4 w-24 rounded-full" />
+          <div className="bg-primary h-4 w-24 rounded-full" />
         </div>
         <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none">
-          <div className="bg-zinc-200 h-1 w-28 rounded-full" />
+          <div className="bg-muted h-1 w-28 rounded-full" />
         </div>
       </motion.div>
     </MobilePreviewFrame>
@@ -226,16 +216,16 @@ function DesktopProfilePreview({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={gentleTransition}
-        className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white"
+        className="border border-border rounded-xl overflow-hidden shadow-lg bg-card"
         style={{
           width: DESKTOP_PREVIEW_WIDTH,
           height: DESKTOP_PREVIEW_HEIGHT,
         }}
       >
-        <div className="h-6 bg-zinc-100 border-b border-zinc-200 flex items-center px-3 gap-1.5">
-          <div className="size-2 rounded-full bg-zinc-300" />
-          <div className="size-2 rounded-full bg-zinc-300" />
-          <div className="size-2 rounded-full bg-zinc-300" />
+        <div className="h-6 bg-muted border-b border-border flex items-center px-3 gap-1.5">
+          <div className="size-2 rounded-full bg-muted" />
+          <div className="size-2 rounded-full bg-muted" />
+          <div className="size-2 rounded-full bg-muted" />
         </div>
 
         <div
@@ -251,27 +241,25 @@ function DesktopProfilePreview({
               unoptimized
               className="size-full object-cover"
             />
-            <div className="absolute inset-x-0 top-0 h-18 bg-linear-to-t from-white/40 via-transparent to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-18 bg-linear-to-t from-background/40 via-transparent to-transparent" />
           </div>
 
           <div className="px-5 pb-4">
             <div className="flex items-end gap-3 -mt-6">
-              <Avatar className="size-12 border-2 border-white shadow-md ring-2 ring-white/50">
+              <Avatar className="size-12">
                 <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
-                <AvatarFallback className="bg-zinc-100 text-sm font-semibold">
-                  {initials || "U"}
-                </AvatarFallback>
+                <AvatarFallback>{initials || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 pb-0.5 min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <h2 className="text-base font-semibold text-zinc-900 tracking-tight truncate">
+                  <h2 className="text-base font-semibold text-foreground tracking-tight truncate">
                     {profile.firstName || "First"} {profile.lastName || "Last"}
                   </h2>
-                  <div className="shrink-0 flex items-center gap-1 px-1 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-xs font-semibold uppercase tracking-wider">
+                  <div className="shrink-0 flex items-center gap-1 px-1 py-0.5 rounded-full bg-info/10 text-info border border-info/20 text-xs font-semibold uppercase tracking-wider">
                     <Check className="size-2" />
                   </div>
                 </div>
-                <p className="text-xs text-zinc-500 flex items-center gap-0.5">
+                <p className="text-xs text-muted-foreground flex items-center gap-0.5">
                   <MapPin className="size-2.5 shrink-0" />
                   <span className="truncate">
                     {profile.location || "Location"}
@@ -309,11 +297,11 @@ function DesktopProfilePreview({
               </div>
             </div>
 
-            <p className="text-xs font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
+            <p className="text-xs font-semibold text-muted-foreground mt-3 line-clamp-1 leading-relaxed italic border-l border-success pl-2">
               &quot;{profile.ministryFocus || "Your tagline will appear here"}
               &quot;
             </p>
-            <p className="text-xs text-zinc-400 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+            <p className="text-xs text-muted-foreground mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
               {profile.bio ||
                 "Your bio will appear here. Share your story with supporters."}
             </p>
@@ -345,7 +333,7 @@ export function ProfilePreviewColumn({
     >
       <div className="sticky top-24 pb-6">
         <div className="flex items-center justify-between mb-3 px-1">
-          <span className="text-xs font-medium text-zinc-500">
+          <span className="text-xs font-medium text-muted-foreground">
             Live Preview
           </span>
           <PreviewToggle value={previewMode} onChange={setPreviewMode} />
@@ -360,14 +348,14 @@ export function ProfilePreviewColumn({
         </AnimatePresence>
 
         <motion.p
-          className="text-xs text-zinc-400 text-center mt-3 flex items-center justify-center gap-1"
+          className="text-xs text-muted-foreground text-center mt-3 flex items-center justify-center gap-1"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
           <span className="relative flex size-2">
-            <span className="animate-ping absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full size-2 bg-emerald-500" />
+            <span className="animate-ping absolute inline-flex size-full rounded-full bg-success opacity-75" />
+            <span className="relative inline-flex rounded-full size-2 bg-success" />
           </span>
           Updates as you type
         </motion.p>

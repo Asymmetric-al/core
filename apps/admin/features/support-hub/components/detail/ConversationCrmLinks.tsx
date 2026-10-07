@@ -38,11 +38,11 @@ export function ConversationCrmLinks({
             href={link.href}
             prefetch={false}
             aria-label={link.description}
-            className="inline-flex items-center gap-1 rounded-md border border-zinc-100 bg-zinc-50 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-zinc-600 transition-colors hover:border-zinc-200 hover:text-zinc-900"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:border-border hover:text-foreground"
           >
             {link.icon}
             {link.label}
-            <ExternalLink className="size-3 text-zinc-400" />
+            <ExternalLink className="size-3 text-muted-foreground" />
           </Link>
         </li>
       ))}

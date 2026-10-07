@@ -1,7 +1,22 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { cn } from "@asym/ui/lib/utils";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@asym/ui/components/shadcn/table";
+import { Workflow } from "lucide-react";
 
 export interface WorkflowSummaryRow {
   dispatchRequestId: string;
@@ -25,34 +40,37 @@ export interface WorkflowSummaryRow {
 
 const STATE_TONES: Record<
   WorkflowSummaryRow["state"],
-  { tone: string; label: string }
+  {
+    variant: "secondary" | "info" | "warning" | "success" | "destructive";
+    label: string;
+  }
 > = {
   dispatching: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-700",
+    variant: "secondary",
     label: "Dispatching",
   },
   processing: {
-    tone: "border-blue-200 bg-blue-50 text-blue-700",
+    variant: "info",
     label: "Processing",
   },
   retrying: {
-    tone: "border-amber-200 bg-amber-50 text-amber-700",
+    variant: "warning",
     label: "Retrying",
   },
   action_required: {
-    tone: "border-amber-300 bg-amber-100 text-amber-800",
+    variant: "warning",
     label: "Needs routing review",
   },
   completed: {
-    tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    variant: "success",
     label: "Completed",
   },
   failed: {
-    tone: "border-rose-200 bg-rose-50 text-rose-700",
+    variant: "destructive",
     label: "Failed",
   },
   dead_letter: {
-    tone: "border-rose-300 bg-rose-100 text-rose-800",
+    variant: "destructive",
     label: "Needs attention",
   },
 };
@@ -70,97 +88,88 @@ export function WorkflowSummariesTable({
 }) {
   if (summaries.length === 0) {
     return (
-      <p className="rounded-xl border border-zinc-100 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-500">
-        No workflow activity yet.
-      </p>
+      <Empty className="rounded-2xl border border-dashed">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Workflow />
+          </EmptyMedia>
+          <EmptyTitle>No workflow activity yet.</EmptyTitle>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-zinc-100 bg-white shadow-sm">
-      <table className="w-full text-left text-sm">
-        <caption className="sr-only">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <Table>
+        <TableCaption className="sr-only">
           Workflow run summaries for this organization
-        </caption>
-        <thead>
-          <tr className="border-b border-zinc-100 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            <th scope="col" className="px-4 py-3">
+        </TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead scope="col" className="px-4 py-3">
               Workflow
-            </th>
-            <th scope="col" className="px-4 py-3">
+            </TableHead>
+            <TableHead scope="col" className="px-4 py-3">
               Record
-            </th>
-            <th scope="col" className="px-4 py-3">
+            </TableHead>
+            <TableHead scope="col" className="px-4 py-3">
               Status
-            </th>
-            <th scope="col" className="px-4 py-3">
+            </TableHead>
+            <TableHead scope="col" className="px-4 py-3">
               Attempts
-            </th>
-            <th scope="col" className="px-4 py-3">
+            </TableHead>
+            <TableHead scope="col" className="px-4 py-3">
               Alert
-            </th>
-          </tr>
-        </thead>
-        <tbody>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {summaries.map((summary) => {
             const config = STATE_TONES[summary.state];
             return (
-              <tr
-                key={summary.dispatchRequestId}
-                className="border-b border-zinc-50 last:border-b-0"
-              >
-                <td className="px-4 py-3">
-                  <div className="font-medium text-zinc-900">
+              <TableRow key={summary.dispatchRequestId}>
+                <TableCell className="px-4 py-3">
+                  <div className="font-medium text-foreground">
                     {summary.workflowName}
                   </div>
-                  <div className="text-xs text-zinc-500">
+                  <div className="text-xs text-muted-foreground">
                     {summary.productArea}
                   </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="font-mono text-xs text-zinc-600">
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <div className="font-mono text-xs text-muted-foreground">
                     {summary.subjectType}
                   </div>
-                  <div className="max-w-45 truncate font-mono text-xs text-zinc-400">
+                  <div className="max-w-45 truncate font-mono text-xs text-muted-foreground">
                     {summary.subjectId}
                   </div>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
-                      config.tone,
-                    )}
-                  >
-                    {config.label}
-                  </Badge>
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <Badge variant={config.variant}>{config.label}</Badge>
                   {summary.lastErrorCode ? (
-                    <div className="mt-1 font-mono text-xs text-zinc-400">
+                    <div className="mt-1 font-mono text-xs text-muted-foreground">
                       {summary.lastErrorCode}
                     </div>
                   ) : null}
-                </td>
-                <td className="px-4 py-3 font-mono text-xs tabular-nums text-zinc-600">
+                </TableCell>
+                <TableCell className="px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">
                   {summary.attempts}
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3">
                   {summary.notification.level === "urgent" ? (
-                    <Badge
-                      variant="outline"
-                      className="h-5 rounded-md border-rose-200 bg-rose-50 px-1.5 font-bold uppercase tracking-wider text-rose-700"
-                    >
-                      Urgent
-                    </Badge>
+                    <Badge variant="destructive">Urgent</Badge>
                   ) : (
-                    <span className="text-xs text-zinc-400">Visible</span>
+                    <span className="text-xs text-muted-foreground">
+                      Visible
+                    </span>
                   )}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

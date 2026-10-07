@@ -2,7 +2,6 @@
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { cn } from "@asym/ui/lib/utils";
 import { Check, X } from "lucide-react";
 
 import { ConversationAssigneeMenu } from "./ConversationAssigneeMenu";
@@ -16,26 +15,14 @@ import { ConversationStatusMenu } from "./ConversationStatusMenu";
 import { useSetSupportConversationStatus } from "../../hooks/use-support-mutations";
 import { useSupportNow } from "../../lib/now";
 import { formatRelative } from "../../lib/time";
+import { LABEL_BADGE_VARIANTS } from "../labels/label-badge-variants";
 
-import type {
-  SupportConversation,
-  SupportLabel,
-  SupportLabelTone,
-} from "../../types";
+import type { SupportConversation, SupportLabel } from "../../types";
 
 interface ConversationHeaderProps {
   conversation: SupportConversation;
   onClose: () => void;
 }
-
-const LABEL_TONE_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-100 text-zinc-700 ring-zinc-200",
-  blue: "bg-blue-50 text-blue-700 ring-blue-200",
-  amber: "bg-amber-50 text-amber-700 ring-amber-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-};
 
 /**
  * Top of the detail pane. Three rows:
@@ -52,16 +39,16 @@ export function ConversationHeader({
   const isResolved = conversation.status === "resolved";
 
   return (
-    <header className="flex flex-col gap-3 border-b border-zinc-100 bg-white px-4 py-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
+    <header className="flex flex-col gap-3 border-b border-border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
           Inbox
-          <span aria-hidden className="text-zinc-300">
+          <span aria-hidden className="text-muted-foreground">
             /
           </span>
-          <span className="text-zinc-700">{conversation.status}</span>
+          <span className="text-foreground">{conversation.status}</span>
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <ConversationMacrosMenu conversation={conversation} />
           <ConversationSnoozeMenu conversation={conversation} />
           <Button
@@ -75,18 +62,16 @@ export function ConversationHeader({
                 status: "resolved",
               })
             }
-            className="rounded-lg border-emerald-200 bg-emerald-50 px-2.5 font-bold uppercase tracking-wider text-emerald-700 hover:bg-emerald-100 disabled:opacity-60"
           >
-            <Check className="size-3.5" />
+            <Check aria-hidden="true" className="text-success" />
             {isResolved ? "Resolved" : "Resolve"}
           </Button>
           <Button
             type="button"
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             onClick={onClose}
             aria-label="Close conversation detail"
-            className="size-8 text-zinc-400 hover:text-zinc-700"
           >
             <X className="size-4" />
           </Button>
@@ -94,11 +79,11 @@ export function ConversationHeader({
       </div>
 
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <h2 className="min-w-0 flex-1 truncate text-base font-semibold text-zinc-900">
+        <h2 className="min-w-0 flex-1 truncate text-base font-semibold text-foreground">
           {conversation.subject}
         </h2>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="font-mono text-xs tabular-nums text-zinc-400">
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">
             {formatRelative(conversation.lastMessageAt, nowIso)}
           </span>
           <ConversationSlaChip conversation={conversation} />
@@ -128,15 +113,5 @@ export function ConversationHeader({
 }
 
 function LabelChip({ label }: { label: SupportLabel }) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        "h-6 rounded-md px-2 font-semibold uppercase tracking-wider ring-1 ring-inset",
-        LABEL_TONE_CLASSES[label.tone],
-      )}
-    >
-      {label.name}
-    </Badge>
-  );
+  return <Badge variant={LABEL_BADGE_VARIANTS[label.tone]}>{label.name}</Badge>;
 }

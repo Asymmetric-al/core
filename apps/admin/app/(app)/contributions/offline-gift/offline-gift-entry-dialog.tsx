@@ -708,7 +708,7 @@ function OfflineGiftEntrySuccess({
   return (
     <div className="px-6 py-8" role="status">
       <div className="flex flex-col items-center text-center">
-        <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+        <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-success/10 text-success">
           <CircleCheck className="size-6" />
         </span>
         <DialogTitle className="text-base font-semibold">

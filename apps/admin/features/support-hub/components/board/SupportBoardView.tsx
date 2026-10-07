@@ -127,7 +127,7 @@ export function SupportBoardView({
               />
             ))}
             {overflow > 0 ? (
-              <p className="px-2 py-1 text-xs font-medium text-zinc-500">
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
                 +{overflow} more, refine your filter to see them.
               </p>
             ) : null}

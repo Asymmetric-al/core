@@ -416,7 +416,7 @@ function PDFStudioHeaderSection({
     <header className="h-12 md:h-14 bg-background border-b border-border flex items-center justify-between px-2 md:px-4 shrink-0 z-20">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-600">
+          <div className="p-1.5 rounded-lg bg-chart-3/10 text-foreground">
             <FileText className="size-4" />
           </div>
           <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-foreground">
@@ -428,7 +428,9 @@ function PDFStudioHeaderSection({
           <PDFStudioSetupStatus variant="badge" />
         </div>
 
-        <Separator orientation="vertical" className="h-5 hidden md:block" />
+        <div className="hidden md:block">
+          <Separator orientation="vertical" className="h-5" />
+        </div>
 
         <StudioTemplateBreadcrumb
           name={metadata.name}
@@ -444,8 +446,7 @@ function PDFStudioHeaderSection({
               render={
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="size-7 p-0"
+                  size="icon-sm"
                   onClick={onUndo}
                   disabled={!isEditorReady}
                 >
@@ -464,8 +465,7 @@ function PDFStudioHeaderSection({
               render={
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="size-7 p-0"
+                  size="icon-sm"
                   onClick={onRedo}
                   disabled={!isEditorReady}
                 >
@@ -488,7 +488,9 @@ function PDFStudioHeaderSection({
           />
         </div>
 
-        <Separator orientation="vertical" className="h-5 hidden md:block" />
+        <div className="hidden md:block">
+          <Separator orientation="vertical" className="h-5" />
+        </div>
 
         <div className="hidden lg:flex items-center gap-1 rounded-md border text-xs font-medium uppercase text-muted-foreground p-2">
           <FileCode className="size-3" />
@@ -505,7 +507,6 @@ function PDFStudioHeaderSection({
                     <Button
                       variant="outline"
                       size="sm"
-                      className=""
                       disabled={!isEditorReady || isExporting}
                     >
                       {isExporting ? (
@@ -523,7 +524,7 @@ function PDFStudioHeaderSection({
             />
             <TooltipContent side="bottom">Export options</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onExportPDF}>
               <FileDown className="size-4 mr-2" />
               Export as PDF
@@ -555,15 +556,14 @@ function PDFStudioHeaderSection({
             render={
               <Button
                 variant="ghost"
-                size="sm"
-                className="size-8 p-0"
+                size="icon-sm"
                 aria-label="More PDF template actions"
               >
                 <MoreHorizontal className="size-4" />
               </Button>
             }
           />
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onNewTemplate}>
               <Plus className="size-4 mr-2" />
               New Document
@@ -613,7 +613,7 @@ function PDFStudioHeaderSection({
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
+              variant="destructive"
               disabled={!metadata.id}
               onClick={onOpenDeleteDialog}
             >
@@ -646,11 +646,13 @@ function PDFSaveDialogSection({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-130">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-violet-500/10">
-              <Save className="size-4 text-violet-600" />
-            </div>
-            {metadata.id ? "Update PDF Template" : "Save PDF Template"}
+          <DialogTitle>
+            <span className="flex items-center gap-2">
+              <span className="p-2 rounded-lg bg-chart-3/10">
+                <Save className="size-4 text-foreground" />
+              </span>
+              {metadata.id ? "Update PDF Template" : "Save PDF Template"}
+            </span>
           </DialogTitle>
           <DialogDescription>
             Enter the details for your PDF template. These will help organize
@@ -659,7 +661,7 @@ function PDFSaveDialogSection({
         </DialogHeader>
         <div className="grid gap-5 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name" className="text-xs font-medium">
+            <Label htmlFor="name">
               Template Name <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -669,15 +671,12 @@ function PDFSaveDialogSection({
                 setMetadata((prev) => ({ ...prev, name: e.target.value }))
               }
               placeholder="e.g., Annual Tax Receipt"
-              className="h-10"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="category" className="text-xs font-medium">
-                Category
-              </Label>
+              <Label htmlFor="category">Category</Label>
               <Select
                 value={metadata.category}
                 onValueChange={(value) => {
@@ -690,7 +689,7 @@ function PDFSaveDialogSection({
                   }));
                 }}
               >
-                <SelectTrigger id="category" className="h-10">
+                <SelectTrigger id="category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -704,9 +703,7 @@ function PDFSaveDialogSection({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="pageSize" className="text-xs font-medium">
-                Page Size
-              </Label>
+              <Label htmlFor="pageSize">Page Size</Label>
               <Select
                 value={metadata.pageSize}
                 onValueChange={(value) => {
@@ -716,7 +713,7 @@ function PDFSaveDialogSection({
                   setMetadata((prev) => ({ ...prev, pageSize: value }));
                 }}
               >
-                <SelectTrigger id="pageSize" className="h-10">
+                <SelectTrigger id="pageSize">
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
                 <SelectContent>
@@ -731,9 +728,7 @@ function PDFSaveDialogSection({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="orientation" className="text-xs font-medium">
-              Orientation
-            </Label>
+            <Label htmlFor="orientation">Orientation</Label>
             <Select
               value={metadata.orientation}
               onValueChange={(value) => {
@@ -743,7 +738,7 @@ function PDFSaveDialogSection({
                 setMetadata((prev) => ({ ...prev, orientation: value }));
               }}
             >
-              <SelectTrigger id="orientation" className="h-10">
+              <SelectTrigger id="orientation">
                 <SelectValue placeholder="Select orientation" />
               </SelectTrigger>
               <SelectContent>
@@ -757,9 +752,7 @@ function PDFSaveDialogSection({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="description" className="text-xs font-medium">
-              Description
-            </Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={metadata.description}
@@ -770,7 +763,6 @@ function PDFSaveDialogSection({
                 }))
               }
               placeholder="Brief description of this template's purpose…"
-              className="h-20 resize-none text-sm"
             />
             <p className="text-xs text-muted-foreground">
               A brief description helps team members understand when to use this
@@ -827,24 +819,28 @@ function PDFExportDialogSection({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-170">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-violet-500/10">
-              <FileCode className="size-4 text-violet-600" />
-            </div>
-            {engine === "asym_pdf_document_builder"
-              ? "Export Native JSON"
-              : "Export HTML"}
-          </DialogTitle>
-          <DialogDescription className="flex items-center gap-2">
-            {engine === "asym_pdf_document_builder"
-              ? "Copy or download the native document source."
-              : "Copy or download the generated HTML code for your document template."}
-            {studioConfig?.export.cleanupCss && (
-              <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-medium">
-                <Sparkles className="size-3" />
-                Optimized
+          <DialogTitle>
+            <span className="flex items-center gap-2">
+              <span className="p-2 rounded-lg bg-chart-3/10">
+                <FileCode className="size-4 text-foreground" />
               </span>
-            )}
+              {engine === "asym_pdf_document_builder"
+                ? "Export Native JSON"
+                : "Export HTML"}
+            </span>
+          </DialogTitle>
+          <DialogDescription>
+            <span className="flex flex-wrap items-center gap-2">
+              {engine === "asym_pdf_document_builder"
+                ? "Copy or download the native document source."
+                : "Copy or download the generated HTML code for your document template."}
+              {studioConfig?.export.cleanupCss && (
+                <span className="inline-flex items-center gap-1 text-success bg-success/10 px-2 py-0.5 rounded-full text-xs font-medium">
+                  <Sparkles className="size-3" />
+                  Optimized
+                </span>
+              )}
+            </span>
           </DialogDescription>
         </DialogHeader>
         <StudioExportedHtmlPreview
@@ -863,7 +859,7 @@ function PDFExportDialogSection({
           </Button>
           <Button variant="outline" onClick={onCopyHtml}>
             {copiedHtml ? (
-              <Check className="size-4 mr-2 text-emerald-600" />
+              <Check className="size-4 mr-2 text-success" />
             ) : (
               <Copy className="size-4 mr-2" />
             )}
@@ -898,9 +894,11 @@ function PDFDeleteDialogSection({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertCircle className="size-5 text-destructive" />
-            Archive Template
+          <AlertDialogTitle>
+            <span className="flex items-center gap-2">
+              <AlertCircle className="size-5 text-destructive" />
+              Archive Template
+            </span>
           </AlertDialogTitle>
           <AlertDialogDescription>
             Archive &ldquo;{templateName}&rdquo;? It will disappear from the
@@ -909,10 +907,7 @@ function PDFDeleteDialogSection({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onDelete}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
+          <AlertDialogAction onClick={onDelete} variant="destructive">
             Archive
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -938,11 +933,13 @@ function PDFTemplatePickerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-140">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="rounded-lg bg-violet-500/10 p-2">
-              <FolderOpen className="text-violet-600 size-4" />
-            </div>
-            Open PDF template
+          <DialogTitle>
+            <span className="flex items-center gap-2">
+              <span className="rounded-lg bg-chart-3/10 p-2">
+                <FolderOpen className="text-foreground size-4" />
+              </span>
+              Open PDF template
+            </span>
           </DialogTitle>
           <DialogDescription>
             Reopen a tenant PDF template from Mission Control storage.
@@ -1015,12 +1012,12 @@ function NativePdfDocumentBuilderSection({
             Preview
           </Button>
         </div>
-        <Textarea
+        <textarea
           aria-label="PDF template source"
           value={templateText}
           onChange={(event) => onTemplateTextChange(event.target.value)}
           spellCheck={false}
-          className="min-h-0 flex-1 resize-none rounded-none border-0 font-mono text-xs leading-relaxed shadow-none focus-visible:ring-0"
+          className="min-h-0 flex-1 resize-none border-0 bg-background px-3 py-2 font-mono text-xs leading-relaxed text-foreground outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
         />
       </section>
 
@@ -1044,7 +1041,7 @@ function NativePdfDocumentBuilderSection({
             // scripts), so the same sandbox as the email preview applies.
             sandbox="allow-same-origin"
             srcDoc={preview.html}
-            className="h-full w-full bg-white"
+            className="h-full w-full bg-card"
           />
           <div className="max-h-40 overflow-y-auto border-t bg-background p-3">
             {preview.error ? (

@@ -39,197 +39,53 @@ import {
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
+import {
+  Search as SearchIcon,
+  X as XIcon,
+  ChevronRight as ChevronRightIcon,
+  ChevronDown,
+  Globe as GlobeIcon,
+  ArrowLeft as ArrowLeftIcon,
+  Heart as HeartIcon,
+  ExternalLink as ExternalLinkIcon,
+  MapPin as MapPinIcon,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useMemo, useCallback, useEffect } from "react";
 
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function GlobeIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-      <path d="M2 12h20" />
-    </svg>
-  );
-}
-
-function ArrowLeftIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="m12 19-7-7 7-7" />
-      <path d="M19 12H5" />
-    </svg>
-  );
-}
-
-function HeartIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-    </svg>
-  );
-}
-
-function ExternalLinkIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M15 3h6v6" />
-      <path d="M10 14 21 3" />
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    </svg>
-  );
-}
-
-function MapPinIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
-
 const MARKER_COLORS = {
   missionary: {
-    bg: "bg-emerald-500",
-    bgHex: "#10b981",
-    border: "border-emerald-500",
-    ring: "ring-emerald-500/30",
-    text: "text-emerald-600 dark:text-emerald-400",
-    bgLight: "bg-emerald-50 dark:bg-emerald-950/50",
-    borderLight: "border-emerald-200 dark:border-emerald-800",
+    bg: "bg-success",
+    border: "border-success",
+    ring: "ring-success/30",
+    text: "text-success",
+    bgLight: "bg-success/10",
+    borderLight: "border-success/25",
     label: "Global Worker",
-    gradient: "from-emerald-500 to-teal-500",
+    gradient: "from-success to-success",
   },
   project: {
-    bg: "bg-violet-500",
-    bgHex: "#8b5cf6",
-    border: "border-violet-500",
-    ring: "ring-violet-500/30",
-    text: "text-violet-600 dark:text-violet-400",
-    bgLight: "bg-violet-50 dark:bg-violet-950/50",
-    borderLight: "border-violet-200 dark:border-violet-800",
+    bg: "bg-chart-3",
+    border: "border-chart-3",
+    ring: "ring-chart-3/30",
+    text: "text-chart-3",
+    bgLight: "bg-chart-3/10",
+    borderLight: "border-chart-3/25",
     label: "Project",
-    gradient: "from-violet-500 to-purple-500",
+    gradient: "from-chart-3 to-chart-3",
   },
   custom: {
-    bg: "bg-slate-500",
-    bgHex: "#64748b",
-    border: "border-slate-500",
-    ring: "ring-slate-500/30",
-    text: "text-slate-600 dark:text-slate-400",
-    bgLight: "bg-slate-50 dark:bg-slate-950/50",
-    borderLight: "border-slate-200 dark:border-slate-800",
+    bg: "bg-muted-foreground",
+    border: "border-muted-foreground",
+    ring: "ring-muted-foreground/30",
+    text: "text-muted-foreground",
+    bgLight: "bg-muted",
+    borderLight: "border-border",
     label: "Location",
-    gradient: "from-slate-500 to-zinc-500",
+    gradient: "from-invert to-invert",
   },
-} as const;
+};
 
 function LocationSearchCommand({
   locations,
@@ -251,20 +107,17 @@ function LocationSearchCommand({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-120 p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-120" scrollable>
         <DialogHeader className="sr-only">
           <DialogTitle>Search Locations</DialogTitle>
           <DialogDescription>
             Find missionaries and projects around the world
           </DialogDescription>
         </DialogHeader>
-        <Command className="rounded-lg border-0 shadow-none">
-          <CommandInput
-            placeholder="Search locations, workers, projects…"
-            className="h-14 text-base"
-          />
-          <CommandList className="max-h-100">
-            <CommandEmpty className="py-12">
+        <Command>
+          <CommandInput placeholder="Search locations, workers, projects…" />
+          <CommandList>
+            <CommandEmpty>
               <div className="flex flex-col items-center gap-2">
                 <div className="size-12 rounded-full bg-muted flex items-center justify-center">
                   <SearchIcon className="size-5 text-muted-foreground" />
@@ -469,7 +322,7 @@ function MarkerDot({
             >
               <div
                 className={cn(
-                  "size-2 rounded-full border-[1.5px] border-white/90 dark:border-zinc-900/90 shadow-md transition-shadow duration-200 ease-out",
+                  "size-2 rounded-full border-[1.5px] border-background/90 shadow-md transition-shadow duration-200 ease-out",
                   colors.bg,
                   isSelected && "ring-2 shadow-lg",
                   isSelected && colors.ring,
@@ -518,7 +371,7 @@ function DetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-130 p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-130" scrollable>
         <DialogHeader className="sr-only">
           <DialogTitle>{location.title}</DialogTitle>
           <DialogDescription>
@@ -535,14 +388,17 @@ function DetailDialog({
               className="object-cover"
               sizes="520px"
             />
-            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
-            <button
-              onClick={() => onOpenChange(false)}
-              aria-label="Close location details"
-              className="absolute top-3 right-3 size-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors"
-            >
-              <XIcon className="size-4 text-white" />
-            </button>
+            <div className="absolute inset-0 bg-linear-to-t from-media-scrim/60 via-transparent to-transparent" />
+            <div className="absolute top-3 right-3">
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                aria-label="Close location details"
+              >
+                <XIcon aria-hidden="true" />
+              </Button>
+            </div>
           </div>
         ) : (
           <div
@@ -552,14 +408,17 @@ function DetailDialog({
               "flex items-center justify-center",
             )}
           >
-            <GlobeIcon className="size-12 text-white/30" />
-            <button
-              onClick={() => onOpenChange(false)}
-              aria-label="Close location details"
-              className="absolute top-3 right-3 size-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors"
-            >
-              <XIcon className="size-4 text-white" />
-            </button>
+            <GlobeIcon className="size-12 text-media-foreground/30" />
+            <div className="absolute top-3 right-3">
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                aria-label="Close location details"
+              >
+                <XIcon aria-hidden="true" />
+              </Button>
+            </div>
           </div>
         )}
 
@@ -617,10 +476,7 @@ function DetailDialog({
                 </Link>
               </>
             ) : (
-              <Button
-                variant="secondary"
-                className="w-full h-11 rounded-xl font-semibold"
-              >
+              <Button variant="secondary" className="w-full">
                 Learn More
               </Button>
             )}
@@ -655,94 +511,83 @@ function MobileDetailSheet({
         if (!nextOpen) onClose();
       }}
     >
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        className="gap-0 bg-card rounded-t-3xl shadow-md max-h-[85vh] overflow-y-auto"
-      >
-        <div className="sticky top-0 bg-card p-3 flex justify-center">
-          <div className="w-12 h-1 bg-muted-foreground/20 rounded-full" />
-        </div>
-
-        {imageUrl && (
-          <div className="relative h-40 mx-4 rounded-2xl overflow-hidden mb-4">
-            <Image
-              src={imageUrl}
-              alt={location.title}
-              fill
-              className="object-cover"
-              sizes="100vw"
-            />
+      <SheetContent side="bottom" showCloseButton={false}>
+        <div className="max-h-[85dvh] overflow-y-auto">
+          <div className="sticky top-0 bg-card p-3 flex justify-center">
+            <div className="w-12 h-1 bg-muted-foreground/20 rounded-full" />
           </div>
-        )}
 
-        <div className="px-6 pb-8 pt-2">
-          <Badge variant="secondary" className="mb-3">
-            {colors.label}
-          </Badge>
+          {imageUrl && (
+            <div className="relative h-40 mx-4 rounded-2xl overflow-hidden mb-4">
+              <Image
+                src={imageUrl}
+                alt={location.title}
+                fill
+                className="object-cover"
+                sizes="100vw"
+              />
+            </div>
+          )}
 
-          <SheetTitle className="text-xl font-semibold text-foreground mb-2">
-            {location.title}
-          </SheetTitle>
+          <div className="px-6 pb-8 pt-2">
+            <Badge variant="secondary" className="mb-3">
+              {colors.label}
+            </Badge>
 
-          <SheetDescription
-            className={
-              location.summary
-                ? "text-muted-foreground text-sm leading-relaxed mb-6"
-                : "sr-only"
-            }
-          >
-            {location.summary || "Location details"}
-          </SheetDescription>
+            <SheetTitle>{location.title}</SheetTitle>
 
-          <div className="flex gap-3">
-            {location.linked_id && location.type === "missionary" ? (
-              <>
-                <Link
-                  href={`/workers/${location.linked_id}`}
-                  // See the desktop dialog above: one sheet is open at a time.
-                  prefetch
-                  className={cn(
-                    buttonVariants(),
-                    "flex-1 h-12 rounded-xl font-semibold",
-                  )}
-                >
-                  <ExternalLinkIcon className="size-4" />
-                  View Profile
-                </Link>
-                <Link
-                  href={buildCheckoutHref({
-                    missionaryId: location.linked_id,
-                  })}
-                  aria-label={`Give to ${location.title}`}
-                  className={cn(
-                    buttonVariants({ variant: "secondary", size: "icon" }),
-                    "size-12 rounded-xl shrink-0",
-                  )}
-                >
-                  <HeartIcon className="size-4" />
-                </Link>
-              </>
-            ) : (
-              <Button
-                variant="secondary"
-                className="flex-1 h-12 rounded-xl font-semibold"
-              >
-                Learn More
-              </Button>
-            )}
-            <SheetClose
-              render={
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="size-12 rounded-xl shrink-0"
-                />
+            <SheetDescription
+              className={
+                location.summary
+                  ? "text-muted-foreground text-sm leading-relaxed mb-6"
+                  : "sr-only"
               }
-              aria-label="Close location details"
             >
-              <XIcon className="size-5" />
-            </SheetClose>
+              {location.summary || "Location details"}
+            </SheetDescription>
+
+            <div className="flex gap-3">
+              {location.linked_id && location.type === "missionary" ? (
+                <>
+                  <Link
+                    href={`/workers/${location.linked_id}`}
+                    // See the desktop dialog above: one sheet is open at a time.
+                    prefetch
+                    className={cn(
+                      buttonVariants(),
+                      "flex-1 h-12 rounded-xl font-semibold",
+                    )}
+                  >
+                    <ExternalLinkIcon className="size-4" />
+                    View Profile
+                  </Link>
+                  <Link
+                    href={buildCheckoutHref({
+                      missionaryId: location.linked_id,
+                    })}
+                    aria-label={`Give to ${location.title}`}
+                    className={cn(
+                      buttonVariants({ variant: "secondary", size: "icon" }),
+                      "size-12 rounded-xl shrink-0",
+                    )}
+                  >
+                    <HeartIcon className="size-4" />
+                  </Link>
+                </>
+              ) : (
+                <Button variant="secondary" className="w-full">
+                  Learn More
+                </Button>
+              )}
+              <SheetClose
+                render={
+                  <Button variant="outline" size="icon" className="shrink-0" />
+                }
+                aria-label="Close location details"
+              >
+                <XIcon className="size-5" />
+              </SheetClose>
+            </div>
           </div>
         </div>
       </SheetContent>
@@ -753,15 +598,17 @@ function MobileDetailSheet({
 function MapHeaderControls({
   missionaryCount,
   onOpenSearch,
+  searchOpen,
   projectCount,
 }: {
   missionaryCount: number;
   onOpenSearch: () => void;
+  searchOpen: boolean;
   projectCount: number;
 }) {
   return (
     <>
-      <div className="absolute top-4 left-4 z-30 flex items-center gap-3">
+      <div className="absolute top-20 left-4 z-30 flex items-center gap-3">
         <Link
           href="/"
           aria-label="Back"
@@ -775,16 +622,20 @@ function MapHeaderControls({
         </Link>
       </div>
 
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-md rounded-2xl overflow-hidden"
         >
-          <button
+          <Button
+            variant="ghost"
+            size="lg"
+            aria-haspopup="dialog"
+            aria-expanded={searchOpen}
             onClick={onOpenSearch}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors w-full"
+            className="w-full"
           >
             <SearchIcon className="size-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground font-medium">
@@ -793,11 +644,11 @@ function MapHeaderControls({
             <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground ml-auto">
               <span className="text-xs">⌘</span>K
             </kbd>
-          </button>
+          </Button>
         </motion.div>
       </div>
 
-      <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+      <div className="absolute top-20 right-4 z-30 flex items-center gap-2">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -805,14 +656,14 @@ function MapHeaderControls({
           className="hidden sm:flex items-center gap-2 bg-card/95 backdrop-blur-xl border border-border/50 shadow-lg rounded-xl px-3 py-2"
         >
           <div className="flex items-center gap-1.5">
-            <div className="size-2 rounded-full bg-emerald-500" />
+            <div className="size-2 rounded-full bg-success" />
             <span className="text-xs font-semibold text-foreground">
               {missionaryCount}
             </span>
           </div>
           <div className="w-px h-4 bg-border" />
           <div className="flex items-center gap-1.5">
-            <div className="size-2 rounded-full bg-violet-500" />
+            <div className="size-2 rounded-full bg-chart-3" />
             <span className="text-xs font-semibold text-foreground">
               {projectCount}
             </span>
@@ -841,10 +692,7 @@ function SelectedLocationPill({
           exit={{ y: 20, opacity: 0 }}
           className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30"
         >
-          <button
-            onClick={onOpenDetails}
-            className="bg-card/95 backdrop-blur-xl shadow-md rounded-full pl-4 pr-2 py-2 flex items-center gap-3 border border-border/50 hover:bg-card transition-colors group"
-          >
+          <Button variant="outline" size="lg" onClick={onOpenDetails}>
             <div
               className={cn(
                 "size-2.5 rounded-full",
@@ -859,7 +707,7 @@ function SelectedLocationPill({
             <div className="size-7 rounded-full bg-primary flex items-center justify-center group-hover:bg-primary/90 transition-colors">
               <ChevronRightIcon className="size-4 text-primary-foreground" />
             </div>
-          </button>
+          </Button>
         </motion.div>
       )}
     </AnimatePresence>
@@ -880,18 +728,7 @@ function MapScrollHint() {
           animate={{ y: [0, 4, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
+          <ChevronDown className="size-3" aria-hidden="true" />
         </motion.div>
       </motion.div>
     </div>
@@ -1032,31 +869,21 @@ export function WhereWeWorkMap() {
           center={selectionState.mapCenter}
           zoom={selectionState.mapZoom}
           initialViewState={mapInitialViewState}
-          className="absolute inset-0 size-full"
         >
-          <MapControls
-            position="bottom-right"
-            className="bottom-6 right-4 lg:bottom-8 lg:right-8"
-            showFullscreen={!isMobile}
-          />
-          <MapStyleToggle
-            position="bottom-right"
-            className="bottom-35 lg:bottom-45 right-4 lg:right-8"
-          />
+          <MapControls position="bottom-right" showFullscreen={!isMobile} />
+          <div className="absolute bottom-32 lg:bottom-44 right-0 size-0">
+            <MapStyleToggle position="bottom-right" />
+          </div>
 
-          <MapLegend
-            title="Legend"
-            position="bottom-left"
-            className="bottom-8 left-8"
-          >
+          <MapLegend title="Legend" position="bottom-left">
             <div className="flex items-center gap-2.5">
-              <div className="size-2 rounded-full bg-emerald-500" />
+              <div className="size-2 rounded-full bg-success" />
               <span className="text-xs font-medium text-muted-foreground">
                 Global Workers
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="size-2 rounded-full bg-violet-500" />
+              <div className="size-2 rounded-full bg-chart-3" />
               <span className="text-xs font-medium text-muted-foreground">
                 Projects
               </span>
@@ -1080,6 +907,7 @@ export function WhereWeWorkMap() {
           ))}
         </Map>
         <MapHeaderControls
+          searchOpen={uiState.searchOpen}
           missionaryCount={stats.missionaries}
           onOpenSearch={() =>
             setUiState((prev) => ({ ...prev, searchOpen: true }))

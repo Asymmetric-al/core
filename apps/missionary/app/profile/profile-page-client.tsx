@@ -39,14 +39,14 @@ export function ProfilePageClient() {
         transition={gentleTransition}
       >
         <motion.div
-          className="size-12 rounded-full bg-red-50 flex items-center justify-center"
+          className="size-12 rounded-full bg-destructive/10 flex items-center justify-center"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1 }}
           transition={{ ...springTransition, delay: 0.1 }}
         >
-          <AlertCircle className="size-6 text-red-500" />
+          <AlertCircle className="size-6 text-destructive" />
         </motion.div>
-        <p className="text-zinc-600">{vm.fetchError}</p>
+        <p className="text-muted-foreground">{vm.fetchError}</p>
         <Button onClick={() => window.location.reload()} variant="outline">
           Try Again
         </Button>

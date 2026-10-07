@@ -2,8 +2,9 @@
 
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { cn } from "@asym/ui/lib/utils";
 import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
@@ -106,7 +107,14 @@ function StandardPageFromTemplateViewContent() {
           slug: parsed.data.slug,
           ...(isSuperAdmin ? { tenantId: value.tenantId } : {}),
         }),
-      });
+      }).catch(() => null);
+
+      if (!res) {
+        setSubmitError(
+          "Unable to create draft. Check your connection and try again.",
+        );
+        return;
+      }
 
       // Read the payload for both branches (error responses carry data) with
       // the status check made before the body is consumed.
@@ -177,8 +185,8 @@ function StandardPageFromTemplateViewContent() {
           ) : null}
           <form.Field name="title">
             {(field) => (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="title">Title</Label>
+              <Field>
+                <FieldLabel htmlFor="title">Title</FieldLabel>
                 <Input
                   id="title"
                   value={field.state.value}
@@ -186,13 +194,13 @@ function StandardPageFromTemplateViewContent() {
                   onBlur={field.handleBlur}
                   autoComplete="off"
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
           <form.Field name="slug">
             {(field) => (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="slug">URL slug</Label>
+              <Field>
+                <FieldLabel htmlFor="slug">URL slug</FieldLabel>
                 <Input
                   id="slug"
                   value={field.state.value}
@@ -201,7 +209,7 @@ function StandardPageFromTemplateViewContent() {
                   placeholder="about-us"
                   autoComplete="off"
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
@@ -216,9 +224,18 @@ function StandardPageFromTemplateViewContent() {
             </p>
           ) : null}
 
-          <Button type="submit" disabled={!templateId}>
-            Create draft
-          </Button>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button
+                type="submit"
+                disabled={!templateId || isSubmitting}
+                aria-busy={isSubmitting || undefined}
+              >
+                {isSubmitting ? <Spinner aria-hidden="true" /> : null}
+                {isSubmitting ? "Creating draft…" : "Create draft"}
+              </Button>
+            )}
+          </form.Subscribe>
         </form>
       </div>
     </StudioLayout>

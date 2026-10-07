@@ -11,6 +11,7 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -143,15 +144,14 @@ export default function AnalyticsPage() {
                 }
               }}
             >
-              <SelectTrigger
-                aria-label="Giving trend period"
-                className="w-25 h-8 rounded-lg font-bold uppercase tracking-wider border-zinc-200"
-              >
+              <SelectTrigger aria-label="Giving trend period">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="rounded-lg border-zinc-100">
-                <SelectItem value="6m">Last 6m</SelectItem>
-                <SelectItem value="12m">Last 12m</SelectItem>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="6m">Last 6m</SelectItem>
+                  <SelectItem value="12m">Last 12m</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           }
@@ -164,8 +164,8 @@ export default function AnalyticsPage() {
                   axisLine={false}
                   tickLine={false}
                   tick={{
-                    fontSize: 9,
-                    fontWeight: 700,
+                    fontSize: 12,
+                    fontWeight: 500,
                     fill: "var(--muted-foreground)",
                   }}
                 />
@@ -173,12 +173,12 @@ export default function AnalyticsPage() {
                   axisLine={false}
                   tickLine={false}
                   tick={{
-                    fontSize: 9,
-                    fontWeight: 700,
+                    fontSize: 12,
+                    fontWeight: 500,
                     fill: "var(--muted-foreground)",
                   }}
                   tickFormatter={(value: number) => `$${value}`}
-                  width={35}
+                  width={48}
                 />
                 <RechartsTooltip
                   cursor={{ fill: "var(--muted)", radius: 4 }}
@@ -186,13 +186,13 @@ export default function AnalyticsPage() {
                 />
                 <Bar
                   dataKey="recurring"
-                  fill="var(--foreground)"
+                  fill="var(--chart-1)"
                   radius={[3, 3, 0, 0]}
                   name="Recurring"
                 />
                 <Bar
                   dataKey="oneTime"
-                  fill="var(--muted)"
+                  fill="var(--chart-2)"
                   radius={[3, 3, 0, 0]}
                   name="One-time"
                 />

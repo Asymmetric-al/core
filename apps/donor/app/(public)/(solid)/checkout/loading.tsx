@@ -6,14 +6,14 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
  * every navigation while `page.tsx` awaited `searchParams`.
  *
  * The geometry is copied from the real frame in `checkout-client.tsx` (the
- * `min-h-screen … pt-24 pb-32` wrapper, `container … max-w-7xl`, and the
+ * `min-h-screen … pt-24 pb-24` wrapper, `container … max-w-7xl`, and the
  * `lg:grid-cols-12` 7/5 split) so the skeleton occupies the same box at every
  * breakpoint and the swap does not shift layout.
  */
 export default function CheckoutLoading() {
   return (
     <div
-      className="min-h-dvh bg-white font-sans pb-32 pt-24"
+      className="min-h-dvh bg-background font-sans pb-24 pt-24"
       role="status"
       aria-busy="true"
       aria-label="Loading your gift"
@@ -29,7 +29,7 @@ export default function CheckoutLoading() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           <div className="lg:col-span-7 space-y-8">
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-12 w-3/4" />

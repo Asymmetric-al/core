@@ -234,3 +234,28 @@ it("names the attached-media removal action and preserves the remaining order", 
   ) => (typeof first)[];
   expect(update([first, second])).toEqual([second]);
 });
+
+it("names the media action while preserving upload and pending behavior", () => {
+  const simulateUpload = vi.fn();
+  const view = render(
+    <PostComposerActions
+      {...baseProps}
+      simulateUpload={simulateUpload}
+      handlePost={vi.fn()}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Add media" }));
+  expect(simulateUpload).toHaveBeenCalledTimes(1);
+  view.rerender(
+    <PostComposerActions
+      {...baseProps}
+      isUploading
+      simulateUpload={simulateUpload}
+      handlePost={vi.fn()}
+    />,
+  );
+  const pending = screen.getByRole("button", { name: "Uploading media" });
+  expect(pending.getAttribute("aria-disabled")).toBe("true");
+  fireEvent.click(pending);
+  expect(simulateUpload).toHaveBeenCalledTimes(1);
+});

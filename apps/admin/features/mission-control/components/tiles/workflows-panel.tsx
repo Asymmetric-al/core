@@ -14,35 +14,35 @@ import { ArrowRight } from "../icons";
 
 export function WorkflowsPanel() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-zinc-900">
-            Suggested Workflows
+          <h2 className="text-lg font-semibold text-foreground">
+            Suggested workflows
           </h2>
-          <p className="text-sm font-medium text-zinc-500">
+          <p className="text-sm font-medium text-muted-foreground">
             Common tasks and multi-step processes for your role.
           </p>
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {WORKFLOWS.map((workflow) => (
           <Link
             key={workflow.id}
             href={resolveMissionControlHref(workflow.route)}
-            className="group block"
+            className="group block rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
-            <Card className="h-full overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm hover-lift hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/40">
-              <CardHeader className="space-y-1.5 p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="size-9 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-center group-hover:bg-zinc-900 group-hover:border-zinc-900 transition-[background-color,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
-                    <ArrowRight className="size-4 text-zinc-400 group-hover:text-white transition-colors" />
+            <Card className="h-full overflow-hidden border-border bg-card shadow-sm transition-colors hover:border-ring/30">
+              <CardHeader className="space-y-1.5">
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="flex size-9 items-center justify-center rounded-xl border border-border bg-muted">
+                    <ArrowRight className="size-4 text-muted-foreground" />
                   </div>
                 </div>
-                <CardTitle className="text-base font-semibold text-zinc-900 group-hover:text-zinc-900 transition-colors">
+                <CardTitle className="text-base font-semibold text-foreground">
                   {workflow.title}
                 </CardTitle>
-                <CardDescription className="text-sm font-medium text-zinc-500 leading-relaxed mt-1.5">
+                <CardDescription className="mt-1 text-sm leading-6 text-muted-foreground">
                   {workflow.description}
                 </CardDescription>
               </CardHeader>

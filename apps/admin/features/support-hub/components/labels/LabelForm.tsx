@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label as UiLabel } from "@asym/ui/components/shadcn/label";
@@ -12,6 +13,7 @@ import { Check } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { LABEL_BADGE_VARIANTS } from "./label-badge-variants";
 import { useSaveSupportLabel } from "../../hooks/use-support-mutations";
 import {
   SUPPORT_LABEL_TONES,
@@ -26,22 +28,13 @@ interface LabelFormProps {
   onCancel: () => void;
 }
 
-const TONE_PREVIEW_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-100 text-zinc-700 ring-zinc-200",
-  blue: "bg-blue-50 text-blue-700 ring-blue-200",
-  amber: "bg-amber-50 text-amber-700 ring-amber-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-};
-
 const TONE_DOT_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-400",
-  blue: "bg-blue-500",
-  amber: "bg-amber-500",
-  rose: "bg-rose-500",
-  emerald: "bg-emerald-500",
-  violet: "bg-violet-500",
+  zinc: "bg-muted-foreground",
+  blue: "bg-info",
+  amber: "bg-warning",
+  rose: "bg-destructive",
+  emerald: "bg-success",
+  violet: "bg-chart-3",
 };
 
 /**
@@ -121,6 +114,8 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
             if (next) setTone(next);
           }}
           spacing={2}
+          size="sm"
+          variant="outline"
           className="flex flex-wrap items-center gap-2"
         >
           {SUPPORT_LABEL_TONES.map((option) => {
@@ -131,12 +126,6 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
                 value={option}
                 type="button"
                 aria-label={`Use ${option} tone`}
-                className={cn(
-                  "flex h-8 items-center gap-1 rounded-md border px-2 text-[11px] font-semibold uppercase tracking-wider data-pressed:bg-transparent data-pressed:text-foreground",
-                  isActive
-                    ? "border-foreground"
-                    : "border-border hover:border-ring",
-                )}
               >
                 <span
                   aria-hidden
@@ -146,7 +135,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
                   )}
                 />
                 {option}
-                {isActive ? <Check className="size-3 text-foreground" /> : null}
+                {isActive ? <Check aria-hidden="true" /> : null}
               </ToggleGroupItem>
             );
           })}
@@ -154,23 +143,12 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
       </div>
       <div className="space-y-2">
         <UiLabel className="block">Preview</UiLabel>
-        <span
-          className={cn(
-            "inline-flex h-6 items-center rounded-md px-2 text-[11px] font-semibold uppercase tracking-wider ring-1 ring-inset",
-            TONE_PREVIEW_CLASSES[tone],
-          )}
-        >
+        <Badge variant={LABEL_BADGE_VARIANTS[tone]}>
           {trimmedName.length > 0 ? trimmedName : "Label preview"}
-        </span>
+        </Badge>
       </div>
       <div className="flex items-center justify-end gap-2 pt-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-          className="rounded-lg text-xs"
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
         <Button
@@ -179,7 +157,6 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
           onClick={handleSave}
           disabled={saveLabel.isPending || trimmedName.length === 0}
           focusableWhenDisabled={saveLabel.isPending}
-          className="rounded-lg text-xs"
         >
           {label ? "Save changes" : "Create label"}
         </Button>

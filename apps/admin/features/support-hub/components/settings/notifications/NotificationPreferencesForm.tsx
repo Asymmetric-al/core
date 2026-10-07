@@ -47,7 +47,7 @@ export function NotificationPreferencesForm() {
         title="Notification preferences"
         description="Pick an agent to manage their notification channels."
       >
-        <p className="text-xs text-zinc-500">No agents yet.</p>
+        <p className="text-xs text-muted-foreground">No agents yet.</p>
       </SettingsPanel>
     );
   }
@@ -124,11 +124,11 @@ export function NotificationPreferencesForm() {
         />
       </SettingsRow>
 
-      <div className="rounded-xl border border-zinc-100">
-        <div className="border-b border-zinc-100 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+      <div className="rounded-xl border border-border">
+        <div className="border-b border-border px-3 py-2 text-sm font-medium text-muted-foreground">
           Email
         </div>
-        <div className="flex flex-col divide-y divide-zinc-100">
+        <div className="flex flex-col divide-y divide-border">
           <PrefRow
             label="Mentions"
             description="Email me when a teammate @-mentions me in a private note."
@@ -150,11 +150,11 @@ export function NotificationPreferencesForm() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-100">
-        <div className="border-b border-zinc-100 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+      <div className="rounded-xl border border-border">
+        <div className="border-b border-border px-3 py-2 text-sm font-medium text-muted-foreground">
           In-app
         </div>
-        <div className="flex flex-col divide-y divide-zinc-100">
+        <div className="flex flex-col divide-y divide-border">
           <PrefRow
             label="Mentions"
             description="Show a bell indicator when I am mentioned."
@@ -200,8 +200,8 @@ function PrefRow({
   return (
     <div className="flex items-center gap-3 px-3 py-2">
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="text-xs font-semibold text-zinc-900">{label}</span>
-        <span className="text-xs text-zinc-500">{description}</span>
+        <span className="text-xs font-semibold text-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground">{description}</span>
       </div>
       <Switch checked={value} onCheckedChange={onChange} aria-label={label} />
     </div>

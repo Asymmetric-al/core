@@ -18,5 +18,11 @@ export function resolveDynamicIconKebabName<T extends Record<string, unknown>>(
     return converted as Extract<keyof T, string>;
   }
 
+  // Lucide's dynamic dictionary uses the canonical name, unlike its legacy
+  // static export alias. Preserve existing Mission Control string consumers.
+  if (name === "XCircle" && "circle-x" in importKeys) {
+    return "circle-x" as Extract<keyof T, string>;
+  }
+
   return null;
 }

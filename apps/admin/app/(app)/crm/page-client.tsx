@@ -23,8 +23,11 @@ import {
   DataTableResponsive,
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
-import { cn } from "@asym/ui/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -411,7 +414,7 @@ export default function MissionControlCRM() {
   );
 }
 
-function CrmViewToolbar({
+export function CrmViewToolbar({
   setView,
   view,
 }: {
@@ -419,48 +422,36 @@ function CrmViewToolbar({
   view: "table" | "kanban";
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex bg-muted p-0.5 rounded-lg border border-border">
-        <button
-          type="button"
-          aria-label="Show CRM table view"
-          onClick={() => setView("table")}
-          className={cn(
-            "p-1.5 rounded-md transition-colors",
-            view === "table"
-              ? "bg-card shadow-sm text-foreground"
-              : "text-muted-foreground",
-          )}
-        >
+    <div className="flex flex-wrap items-center gap-2">
+      <ToggleGroup
+        aria-label="CRM view"
+        variant="outline"
+        value={[view]}
+        onValueChange={(value) => {
+          const next = value[0];
+          if (next === "table" || next === "kanban") setView(next);
+        }}
+      >
+        <ToggleGroupItem value="table" aria-label="Show CRM table view">
           <List className="size-4" />
-        </button>
-        <button
-          type="button"
-          aria-label="Show CRM kanban view"
-          onClick={() => setView("kanban")}
-          className={cn(
-            "p-1.5 rounded-md transition-colors",
-            view === "kanban"
-              ? "bg-card shadow-sm text-foreground"
-              : "text-muted-foreground",
-          )}
-        >
+        </ToggleGroupItem>
+        <ToggleGroupItem value="kanban" aria-label="Show CRM kanban view">
           <Columns className="size-4" />
-        </button>
-      </div>
-      <Button className="h-10 rounded-xl px-5 font-semibold shadow-sm">
-        <Plus className="size-3.5" /> New Record
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <Button>
+        <Plus data-icon="inline-start" /> New Record
       </Button>
       <Link
         href="/crm/relationships"
-        className={cn(buttonVariants({ variant: "outline" }), "h-11 gap-2")}
+        className={buttonVariants({ variant: "outline" })}
       >
         <Network className="size-4" />
         Relationships
       </Link>
       <Link
         href="/crm/notes"
-        className={cn(buttonVariants({ variant: "outline" }), "h-11 gap-2")}
+        className={buttonVariants({ variant: "outline" })}
       >
         <StickyNote className="size-4" />
         Notes

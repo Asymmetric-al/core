@@ -32,7 +32,7 @@ function AutomationDryRunResult({
       <span
         className={
           result.matches
-            ? "inline-flex items-center gap-2 rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"
+            ? "inline-flex items-center gap-2 rounded-md bg-success/10 px-2 py-1 text-xs font-semibold text-success ring-1 ring-inset ring-success/30"
             : "inline-flex items-center gap-2 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-foreground"
         }
       >
@@ -56,7 +56,7 @@ function AutomationDryRunResult({
 
       {result.matches && result.plannedActions.length > 0 ? (
         <div className="space-y-1">
-          <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="text-sm font-medium text-muted-foreground">
             Planned actions
           </span>
           <MacroPreviewLine actions={result.plannedActions} />
@@ -64,7 +64,7 @@ function AutomationDryRunResult({
       ) : null}
 
       {result.unsupportedActions.length > 0 ? (
-        <p className="text-xs text-amber-700">
+        <p className="text-xs text-warning">
           {result.unsupportedActions
             .map((action: SupportAutomationAction) => action.kind)
             .join(", ")}{" "}
@@ -101,7 +101,7 @@ export function AutomationDryRunPreview({
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+        <span className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <FlaskConical className="size-3.5" />
           Dry run
         </span>

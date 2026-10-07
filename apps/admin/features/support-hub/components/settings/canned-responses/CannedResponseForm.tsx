@@ -112,7 +112,7 @@ export function CannedResponseForm({
           {SUPPORTED_MERGE_VARIABLES.map((token) => (
             <li
               key={token}
-              className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-xs text-zinc-500"
+              className="inline-flex items-center rounded-md border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
             >
               {token}
             </li>

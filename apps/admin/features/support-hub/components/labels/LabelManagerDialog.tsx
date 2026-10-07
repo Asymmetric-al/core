@@ -26,12 +26,12 @@ interface LabelManagerDialogProps {
 }
 
 const TONE_DOT_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-400",
-  blue: "bg-blue-500",
-  amber: "bg-amber-500",
-  rose: "bg-rose-500",
-  emerald: "bg-emerald-500",
-  violet: "bg-violet-500",
+  zinc: "bg-muted-foreground",
+  blue: "bg-info",
+  amber: "bg-warning",
+  rose: "bg-destructive",
+  emerald: "bg-success",
+  violet: "bg-chart-3",
 };
 
 /**
@@ -95,12 +95,12 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
       </DialogHeader>
       <div className="flex flex-col gap-3 py-2">
         {labels.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/40 px-4 py-6 text-center">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-zinc-100">
-              <Tag className="size-4 text-zinc-300" />
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-6 text-center">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-card shadow-sm ring-1 ring-border">
+              <Tag className="size-4 text-muted-foreground" />
             </span>
-            <p className="text-xs font-medium text-zinc-700">No labels yet</p>
-            <p className="max-w-xs text-xs text-zinc-500">
+            <p className="text-xs font-medium text-foreground">No labels yet</p>
+            <p className="max-w-xs text-xs text-muted-foreground">
               Create the first label to start triaging donor questions.
             </p>
           </div>
@@ -109,7 +109,7 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
             {labels.map((label) => (
               <li
                 key={label.id}
-                className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-zinc-50"
+                className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-muted/40"
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <span
@@ -119,11 +119,11 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
                       TONE_DOT_CLASSES[label.tone],
                     )}
                   />
-                  <span className="text-xs font-medium text-zinc-900">
+                  <span className="text-xs font-medium text-foreground">
                     {label.name}
                   </span>
                   {label.description ? (
-                    <span className="truncate text-xs text-zinc-500">
+                    <span className="truncate text-xs text-muted-foreground">
                       {label.description}
                     </span>
                   ) : null}
@@ -135,7 +135,7 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
                     size="icon"
                     onClick={() => setEditing(label)}
                     aria-label={`Edit ${label.name}`}
-                    className="size-7 text-zinc-500 hover:text-zinc-900"
+                    className="size-7 text-muted-foreground hover:text-foreground"
                   >
                     <Pencil className="size-3.5" />
                   </Button>
@@ -145,7 +145,7 @@ function LabelManagerDialogBody({ onDone }: { onDone: () => void }) {
                     size="icon"
                     onClick={() => void handleDelete(label)}
                     aria-label={`Delete ${label.name}`}
-                    className="size-7 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+                    className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash2 className="size-3.5" />
                   </Button>

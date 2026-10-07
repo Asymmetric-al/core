@@ -70,18 +70,18 @@ export function TeamList() {
           }
         />
       ) : (
-        <ul className="flex flex-col divide-y divide-zinc-100">
+        <ul className="flex flex-col divide-y divide-border">
           {rows.map((team) => (
             <li key={team.id} className="flex items-center gap-3 py-2.5">
-              <span className="inline-flex size-9 items-center justify-center rounded-xl bg-zinc-100 font-mono text-xs font-black uppercase tracking-wider text-zinc-700">
+              <span className="inline-flex size-9 items-center justify-center rounded-xl bg-muted font-mono text-xs font-black uppercase tracking-wider text-foreground">
                 {team.initials}
               </span>
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="text-xs font-semibold text-zinc-900">
+                <span className="text-xs font-semibold text-foreground">
                   {team.name}
                 </span>
                 {team.description ? (
-                  <span className="truncate text-xs text-zinc-500">
+                  <span className="truncate text-xs text-muted-foreground">
                     {team.description}
                   </span>
                 ) : null}
@@ -92,7 +92,7 @@ export function TeamList() {
                 size="icon"
                 onClick={() => setEditing(team)}
                 aria-label={`Edit ${team.name}`}
-                className="size-8 text-zinc-500 hover:text-zinc-900"
+                className="size-8 text-muted-foreground hover:text-foreground"
               >
                 <Pencil className="size-3.5" />
               </Button>
@@ -102,7 +102,7 @@ export function TeamList() {
                 size="icon"
                 onClick={() => void handleDelete(team)}
                 aria-label={`Remove ${team.name}`}
-                className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+                className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="size-3.5" />
               </Button>

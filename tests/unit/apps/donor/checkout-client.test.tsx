@@ -7,6 +7,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import React from "react";
 import { flushSync } from "react-dom";
@@ -356,6 +357,32 @@ const toggleCoverProcessingFees = () => {
     screen.getByRole("switch", { name: /cover processing fees/i }),
   );
 };
+
+it("keeps a named contribution summary bound to the recipient, gift and fee quote through checkout steps", () => {
+  renderCheckout();
+  const summary = screen.getByRole("complementary", {
+    name: "Contribution summary",
+  });
+  expect(within(summary).getByText("Unit Test Worker")).toBeTruthy();
+  expect(within(summary).getAllByText("$100.00")).toHaveLength(2);
+  fireEvent.change(screen.getByLabelText("Custom amount"), {
+    target: { value: "125.50" },
+  });
+  expect(within(summary).getAllByText("$125.50")).toHaveLength(2);
+  toggleCoverProcessingFees();
+  expect(within(summary).getByText("$4.06")).toBeTruthy();
+  expect(within(summary).getByText("$129.56")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: /next step/i }));
+  expect(within(summary).getByText("Unit Test Worker")).toBeTruthy();
+  expect(within(summary).getByText("$129.56")).toBeTruthy();
+  const progress = screen.getByRole("navigation", {
+    name: "Checkout progress",
+  });
+  expect(
+    within(progress).getByText("DETAILS").getAttribute("aria-current"),
+  ).toBe("step");
+  expect(fetchMock()).not.toHaveBeenCalled();
+});
 
 const guestGivingDefaultFeeFlags = {
   cover_fees: false,

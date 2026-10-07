@@ -19,10 +19,19 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
 import {
   DataTableResponsive,
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import { cn } from "@asym/ui/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -82,9 +91,9 @@ const smoothTransition = {
 };
 
 const statusDotColor: Record<ContributionStatus, string> = {
-  completed: "bg-emerald-500",
-  pending: "bg-amber-500",
-  processing: "bg-blue-500",
+  completed: "bg-success",
+  pending: "bg-warning",
+  processing: "bg-info",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };
@@ -622,81 +631,95 @@ function ContributionResultsTable({
             const avatarSrc = contribution.donorAvatar ?? undefined;
 
             return (
-              <button
-                type="button"
-                onClick={() => onSelectContribution(contribution)}
-                className="w-full p-4 cursor-pointer space-y-3 text-left"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="size-10 border border-border">
-                      {!contribution.isAnonymous && avatarSrc ? (
-                        <AvatarImage src={avatarSrc} alt={donorLabel} />
-                      ) : null}
-                      <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-                        {contribution.isAnonymous
-                          ? "?"
-                          : getInitials(donorLabel)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="text-sm font-semibold text-foreground">
-                        {donorLabel}
-                      </div>
-                      <div className="text-xs text-muted-foreground font-medium">
-                        {contribution.fundName}
+              <div className="flex items-start gap-3 p-4">
+                <label className="flex min-h-9 shrink-0 items-center px-1">
+                  <Checkbox
+                    checked={row.getIsSelected()}
+                    disabled={!row.getCanSelect()}
+                    onCheckedChange={(checked) => row.toggleSelected(checked)}
+                    onClick={(event) => event.stopPropagation()}
+                  />
+                  <span className="sr-only">
+                    Select contribution {contribution.id} from {donorLabel}
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => onSelectContribution(contribution)}
+                  className="min-w-0 flex-1 cursor-pointer space-y-3 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="size-10 border border-border">
+                        {!contribution.isAnonymous && avatarSrc ? (
+                          <AvatarImage src={avatarSrc} alt={donorLabel} />
+                        ) : null}
+                        <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+                          {contribution.isAnonymous
+                            ? "?"
+                            : getInitials(donorLabel)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-sm font-semibold text-foreground">
+                          {donorLabel}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {contribution.fundName}
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          "size-2 shrink-0 rounded-full",
+                          statusDotColor[contribution.status] ??
+                            "bg-muted-foreground",
+                        )}
+                      />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                        {statusShortLabel[contribution.status]}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={cn(
-                        "size-2 shrink-0 rounded-full",
-                        statusDotColor[contribution.status] ??
-                          "bg-muted-foreground",
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(contribution.date, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                    <span className="font-mono font-semibold tabular-nums tracking-tight">
+                      {formatSharedContributionAmount(
+                        contribution.shared.amountCents,
+                        contribution.shared.currencyCode,
                       )}
-                    />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                      {statusShortLabel[contribution.status]}
                     </span>
                   </div>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(contribution.date, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span className="font-mono font-semibold tabular-nums tracking-tight">
-                    {formatSharedContributionAmount(
-                      contribution.shared.amountCents,
-                      contribution.shared.currencyCode,
-                    )}
-                  </span>
-                </div>
-              </button>
+                </button>
+              </div>
             );
           },
         }}
         emptyState={
-          <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 py-32 text-center">
-            <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-lg border border-border bg-card shadow-sm">
-              <DollarSign className="size-10 text-muted-foreground/40" />
-            </div>
-            <h3 className="text-2xl font-semibold text-foreground tracking-tight">
-              No contributions found
-            </h3>
-            <p className="text-sm text-muted-foreground mt-2 font-medium">
-              Get started by recording your first contribution or importing from
-              another source.
-            </p>
-            <Button className="mt-8 h-12 px-8 font-semibold uppercase tracking-widest">
-              <Plus className="mr-2 size-4" />
-              Add Contribution
-            </Button>
-          </div>
+          <Empty className="rounded-2xl border border-dashed">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <DollarSign />
+              </EmptyMedia>
+              <EmptyTitle>No contributions found</EmptyTitle>
+              <EmptyDescription>
+                Get started by recording your first contribution or importing
+                from another source.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button>
+                <Plus data-icon="inline-start" /> Add Contribution
+              </Button>
+            </EmptyContent>
+          </Empty>
         }
       />
     </motion.div>

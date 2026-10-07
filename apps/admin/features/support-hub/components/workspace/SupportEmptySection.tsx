@@ -1,6 +1,13 @@
 "use client";
 
-import { cn } from "@asym/ui/lib/utils";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import * as React from "react";
 
 interface SupportEmptySectionProps {
@@ -23,26 +30,19 @@ export function SupportEmptySection({
   className,
 }: SupportEmptySectionProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center gap-3 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/40 px-6 py-10 text-center",
-        className,
-      )}
-    >
-      {icon ? (
-        <span className="flex size-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-zinc-100 text-zinc-400">
-          {icon}
-        </span>
-      ) : null}
-      <div className="space-y-1">
-        <p className="text-xs font-semibold text-zinc-800">{title}</p>
-        {description ? (
-          <p className="mx-auto max-w-md text-xs text-zinc-500">
-            {description}
-          </p>
+    <Empty className={className}>
+      <EmptyHeader>
+        {icon ? (
+          <EmptyMedia variant="icon" aria-hidden="true">
+            {icon}
+          </EmptyMedia>
         ) : null}
-      </div>
-      {action ? <div className="pt-1">{action}</div> : null}
-    </div>
+        <EmptyTitle>{title}</EmptyTitle>
+        {description ? (
+          <EmptyDescription>{description}</EmptyDescription>
+        ) : null}
+      </EmptyHeader>
+      {action ? <EmptyContent>{action}</EmptyContent> : null}
+    </Empty>
   );
 }

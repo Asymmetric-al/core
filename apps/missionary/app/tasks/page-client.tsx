@@ -9,6 +9,11 @@ import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
@@ -27,6 +32,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
@@ -59,12 +72,6 @@ import type {
   TaskPriority,
 } from "@asym/lib/hooks/use-tasks";
 
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
-
 const smoothTransition = {
   duration: 0.25,
   ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
@@ -77,38 +84,38 @@ const TASK_TYPE_CONFIG: Record<
   call: {
     label: "Call",
     icon: Phone,
-    color: "text-sky-600",
-    bgColor: "bg-sky-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
   email: {
     label: "Email",
     icon: Mail,
-    color: "text-violet-600",
-    bgColor: "bg-violet-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
   to_do: {
     label: "To-do",
     icon: CheckSquare,
-    color: "text-zinc-600",
-    bgColor: "bg-zinc-100",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
   },
   follow_up: {
     label: "Follow Up",
     icon: UserPlus,
-    color: "text-amber-600",
-    bgColor: "bg-amber-50",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
   },
   thank_you: {
     label: "Thank You",
     icon: CheckCircle2,
-    color: "text-pink-600",
-    bgColor: "bg-pink-50",
+    color: "text-success",
+    bgColor: "bg-success/10",
   },
   meeting: {
     label: "Meeting",
     icon: Users,
-    color: "text-teal-600",
-    bgColor: "bg-teal-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
 };
 
@@ -118,23 +125,23 @@ const PRIORITY_CONFIG: Record<
 > = {
   none: {
     label: "None",
-    color: "text-zinc-400",
-    badgeColor: "bg-zinc-100 text-zinc-500 border-zinc-200",
+    color: "text-muted-foreground",
+    badgeColor: "bg-muted text-muted-foreground border-border",
   },
   low: {
     label: "Low",
-    color: "text-sky-500",
-    badgeColor: "bg-sky-50 text-sky-700 border-sky-200",
+    color: "text-info",
+    badgeColor: "bg-info/10 text-info border-info/20",
   },
   medium: {
     label: "Medium",
-    color: "text-amber-500",
-    badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
+    color: "text-warning",
+    badgeColor: "bg-warning/10 text-warning border-warning/20",
   },
   high: {
     label: "High",
-    color: "text-rose-500",
-    badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "text-destructive",
+    badgeColor: "bg-destructive/10 text-destructive border-destructive/20",
   },
 };
 
@@ -144,7 +151,7 @@ function TaskListSkeleton() {
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-start gap-4 p-5 border border-zinc-200 rounded-2xl bg-white"
+          className="flex items-start gap-4 p-5 border border-border rounded-2xl bg-card"
         >
           <Skeleton className="size-5 rounded-md mt-1" />
           <Skeleton className="size-10 rounded-xl" />
@@ -177,16 +184,13 @@ function StatCard({
 }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={springTransition}
+      type="button"
       onClick={onClick}
+      aria-pressed={Boolean(isActive)}
       className={cn(
-        "flex items-center gap-4 px-6 py-4 rounded-2xl border transition-[background-color,border-color,box-shadow,transform] duration-200 cursor-pointer text-left shadow-sm min-w-40",
+        "press-feedback flex min-w-0 items-center gap-3 rounded-xl border px-4 py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
         color,
-        isActive
-          ? "ring-2 ring-zinc-900 ring-offset-2 border-transparent"
-          : "border-zinc-100",
+        isActive ? "border-primary ring-2 ring-ring/20" : "border-border",
       )}
     >
       <div className="flex flex-col">
@@ -198,9 +202,7 @@ function StatCard({
         >
           {value}
         </motion.span>
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] opacity-60 mt-0.5">
-          {label}
-        </span>
+        <span className="mt-1 text-sm font-medium">{label}</span>
       </div>
     </motion.button>
   );
@@ -264,17 +266,13 @@ function TasksPageActions({
   setInitialStatus,
 }: TasksPageActionsProps) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex bg-zinc-100 p-1 rounded-xl border border-zinc-200 mr-2">
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-1 rounded-lg border border-border p-1">
         <Button
           aria-label="Board view"
           aria-pressed={viewMode === "board"}
           variant={viewMode === "board" ? "secondary" : "ghost"}
           size="icon"
-          className={cn(
-            "size-9 rounded-lg",
-            viewMode === "board" && "bg-white shadow-sm",
-          )}
           onClick={() => setViewMode("board")}
         >
           <LayoutGrid className="size-4" />
@@ -284,10 +282,6 @@ function TasksPageActions({
           aria-pressed={viewMode === "list"}
           variant={viewMode === "list" ? "secondary" : "ghost"}
           size="icon"
-          className={cn(
-            "size-9 rounded-lg",
-            viewMode === "list" && "bg-white shadow-sm",
-          )}
           onClick={() => setViewMode("list")}
         >
           <List className="size-4" />
@@ -295,10 +289,9 @@ function TasksPageActions({
       </div>
       <Button
         variant="outline"
-        size="sm"
+        size="icon"
         aria-label="Refresh tasks"
         onClick={refresh}
-        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-colors duration-200"
       >
         <RefreshCw className={cn("size-4", loading && "animate-spin")} />
       </Button>
@@ -315,11 +308,8 @@ function TasksPageActions({
         }}
         onSuccess={refresh}
         trigger={
-          <Button
-            ref={addTaskRef}
-            className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-xs shadow-lg shadow-zinc-200"
-          >
-            <Plus className="mr-2 size-4" />
+          <Button ref={addTaskRef}>
+            <Plus aria-hidden data-icon="inline-start" />
             Add Task
           </Button>
         }
@@ -340,18 +330,18 @@ function TasksStatsGrid({
   setViewFilter,
 }: TasksStatsGridProps) {
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <StatCard
         label="Active"
         value={stats.notStarted + stats.inProgress}
-        color="bg-sky-50 text-sky-700"
+        color="bg-info/10 text-info"
         onClick={() => setViewFilter("active")}
         isActive={viewFilter === "active"}
       />
       <StatCard
         label="Completed"
         value={stats.completed}
-        color="bg-emerald-50 text-emerald-700"
+        color="bg-success/10 text-success"
         onClick={() => setViewFilter("completed")}
         isActive={viewFilter === "completed"}
       />
@@ -359,7 +349,7 @@ function TasksStatsGrid({
         <StatCard
           label="Overdue"
           value={stats.overdue}
-          color="bg-rose-50 text-rose-700"
+          color="bg-destructive/10 text-destructive"
           onClick={() => setViewFilter("overdue")}
           isActive={viewFilter === "overdue"}
         />
@@ -368,7 +358,7 @@ function TasksStatsGrid({
         <StatCard
           label="Due Today"
           value={stats.dueToday}
-          color="bg-amber-50 text-amber-700"
+          color="bg-warning/10 text-warning"
           onClick={() => setViewFilter("today")}
           isActive={viewFilter === "today"}
         />
@@ -414,62 +404,39 @@ function TasksFilterBar({
         placeholder: "Search mission tasks...",
       }}
       filters={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {viewMode === "list" && (
-            <Tabs
-              value={viewFilter}
-              onValueChange={(v) => setViewFilter(v as ViewFilter)}
-              className="hidden md:block"
-            >
-              <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
-                <TabsTrigger
-                  value="active"
-                  className="font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
-                >
-                  Active
-                </TabsTrigger>
-                <TabsTrigger
-                  value="completed"
-                  className="font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
-                >
-                  Done
-                </TabsTrigger>
-                <TabsTrigger
-                  value="all"
-                  className="font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
-                >
-                  All
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="hidden md:block">
+              <Tabs
+                value={viewFilter}
+                onValueChange={(v) => setViewFilter(v as ViewFilter)}
+              >
+                <TabsList>
+                  <TabsTrigger value="active">Active</TabsTrigger>
+                  <TabsTrigger value="completed">Done</TabsTrigger>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           )}
 
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button
-                  variant="outline"
-                  className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest"
-                >
-                  <ListFilter className="size-4 text-zinc-400" />
+                <Button variant="outline">
+                  <ListFilter className="size-4 text-muted-foreground" />
                   Refine
                 </Button>
               }
             />
-            <DropdownMenuContent
-              align="end"
-              className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
-            >
+            <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
-                  Task Type
-                </DropdownMenuLabel>
+                <DropdownMenuLabel>Task Type</DropdownMenuLabel>
                 {Object.entries(TASK_TYPE_CONFIG).map(([value, config]) => (
                   <DropdownMenuCheckboxItem
                     key={value}
                     checked={typeFilter === value}
                     onCheckedChange={() => setTypeFilter(value as TaskType)}
-                    className="rounded-lg px-3 py-2 text-sm font-medium"
                   >
                     <config.icon
                       className={cn("size-3.5 mr-2", config.color)}
@@ -478,11 +445,9 @@ function TasksFilterBar({
                   </DropdownMenuCheckboxItem>
                 ))}
               </DropdownMenuGroup>
-              <DropdownMenuSeparator className="bg-zinc-100 mx-1 my-2" />
+              <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
-                  Priority
-                </DropdownMenuLabel>
+                <DropdownMenuLabel>Priority</DropdownMenuLabel>
                 {Object.entries(PRIORITY_CONFIG).map(([value, config]) => (
                   <DropdownMenuCheckboxItem
                     key={value}
@@ -490,7 +455,6 @@ function TasksFilterBar({
                     onCheckedChange={() =>
                       setPriorityFilter(value as TaskPriority)
                     }
-                    className="rounded-lg px-3 py-2 text-sm font-medium"
                   >
                     <Flag className={cn("size-3.5 mr-2", config.color)} />
                     {config.label}
@@ -541,22 +505,14 @@ function TasksContent({
   return (
     <AnimatePresence mode="wait">
       {error ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center bg-white border border-zinc-100 rounded-3xl">
-          <div className="size-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100">
-            <AlertCircle className="size-8 text-rose-500" />
-          </div>
-          <h3 className="text-lg font-semibold text-zinc-900 uppercase tracking-tight">
-            Sync failed
-          </h3>
-          <p className="text-sm text-zinc-500 mt-2 max-w-sm font-medium">
-            {error}
-          </p>
-          <Button
-            onClick={refresh}
-            variant="outline"
-            className="mt-6 h-10 px-6 rounded-xl font-semibold uppercase tracking-widest"
-          >
-            <RefreshCw className="mr-2 size-4" />
+        <div className="flex flex-col items-center gap-4 py-8">
+          <Alert variant="destructive" role="alert">
+            <AlertCircle aria-hidden />
+            <AlertTitle>Sync failed</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Button onClick={refresh} variant="outline">
+            <RefreshCw aria-hidden data-icon="inline-start" />
             Retry Sync
           </Button>
         </div>
@@ -613,24 +569,25 @@ function TasksContent({
           ))}
         </motion.div>
       ) : (
-        <div className="text-center py-32 bg-zinc-50/50 border-2 border-dashed border-zinc-200 rounded-[2.5rem]">
-          <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
-            <CheckCircle2 className="size-10 text-zinc-200" />
-          </div>
-          <h3 className="text-2xl font-semibold text-zinc-900 tracking-tight">
-            All caught up
-          </h3>
-          <p className="text-sm text-zinc-500 mt-2 font-medium">
-            No tasks found for the current filters.
-          </p>
-          <Button
-            onClick={() => setTaskDialogOpen(true)}
-            className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest"
-          >
-            <Plus className="mr-2 size-4" />
-            Create New Task
-          </Button>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <CheckCircle2 aria-hidden />
+            </EmptyMedia>
+            <EmptyTitle role="heading" aria-level={2}>
+              All caught up
+            </EmptyTitle>
+            <EmptyDescription>
+              No tasks found for the current filters.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button onClick={() => setTaskDialogOpen(true)}>
+              <Plus aria-hidden data-icon="inline-start" />
+              Create New Task
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
     </AnimatePresence>
   );
@@ -661,16 +618,10 @@ function DeleteTaskDialog({
 }: DeleteTaskDialogProps) {
   return (
     <AlertDialog open={deleteDialogOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent
-        initialFocus={cancelRef}
-        finalFocus={finalFocus}
-        className="rounded-4xl border-zinc-200"
-      >
+      <AlertDialogContent initialFocus={cancelRef} finalFocus={finalFocus}>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl font-semibold tracking-tight text-zinc-900 uppercase">
-            Delete Task
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-sm font-medium text-zinc-500">
+          <AlertDialogTitle>Delete Task</AlertDialogTitle>
+          <AlertDialogDescription>
             Are you sure you want to delete &quot;{taskToDelete?.title}
             &quot;? This action cannot be undone.
           </AlertDialogDescription>
@@ -690,11 +641,7 @@ function DeleteTaskDialog({
           </p>
         ) : null}
         <AlertDialogFooter className="gap-2">
-          <AlertDialogCancel
-            ref={cancelRef}
-            disabled={deletePending}
-            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest h-11"
-          >
+          <AlertDialogCancel ref={cancelRef} disabled={deletePending}>
             Cancel
           </AlertDialogCancel>
           <Button
@@ -705,7 +652,7 @@ function DeleteTaskDialog({
               event.currentTarget.focus();
               void handleDeleteConfirm();
             }}
-            className="rounded-xl bg-rose-600 text-white hover:bg-rose-700 font-semibold uppercase tracking-widest text-xs h-11 border-none"
+            variant="destructive"
           >
             {deletePending ? "Deleting…" : "Delete Task"}
           </Button>
@@ -1103,7 +1050,7 @@ function TasksPageView() {
         />
       }
     >
-      <div className="space-y-10">
+      <div className="flex flex-col gap-6">
         <TasksStatsGrid
           stats={stats}
           viewFilter={viewFilter}

@@ -143,9 +143,9 @@ const recentActivityPanelActivities = [
 
 const recentActivityPanelVariantStyles = {
   default: "bg-muted text-muted-foreground",
-  warning: "bg-amber-100 text-amber-600",
-  danger: "bg-rose-100 text-rose-600",
-  success: "bg-emerald-100 text-emerald-600",
+  warning: "bg-warning/10 text-warning",
+  danger: "bg-destructive/10 text-destructive",
+  success: "bg-success/10 text-success",
 };
 
 const smoothTransition = {
@@ -179,9 +179,9 @@ function StatCard({
 }) {
   const toneClass = {
     default: "border-border bg-card text-muted-foreground",
-    warning: "border-amber-200 bg-amber-50/60 text-amber-700",
+    warning: "border-warning/25 bg-warning/10 text-warning",
     danger: "border-destructive/30 bg-destructive/5 text-destructive",
-    success: "border-emerald-200 bg-emerald-50/60 text-emerald-700",
+    success: "border-success/25 bg-success/10 text-success",
   }[variant];
 
   return (
@@ -202,22 +202,17 @@ function StatCard({
               <p className="text-xs sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {label}
               </p>
-              <motion.p
-                key={value}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-2xl font-semibold tracking-tight text-foreground tabular-nums"
-              >
+              <p className="text-2xl font-semibold tracking-tight text-foreground tabular-nums">
                 {value}
-              </motion.p>
+              </p>
               {trend !== undefined && (
                 <p
                   className={cn(
                     "text-xs sm:text-xs font-medium flex items-center gap-1",
                     trend > 0
-                      ? "text-emerald-600"
+                      ? "text-success"
                       : trend < 0
-                        ? "text-rose-600"
+                        ? "text-destructive"
                         : "text-muted-foreground",
                   )}
                 >
@@ -498,7 +493,7 @@ function ModerationQueue({
           transition={springTransition}
           className="size-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md border"
         >
-          <CheckCircle2 className="size-8 sm:h-10 sm:w-10 text-emerald-500" />
+          <CheckCircle2 className="size-8 sm:h-10 sm:w-10 text-success" />
         </motion.div>
         <motion.h3
           initial={{ opacity: 0, y: 10 }}
@@ -576,7 +571,7 @@ function AllPostsFeedPostCard({
         className={cn(
           "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color,opacity] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
           post.status === "hidden" && "opacity-60",
-          post.isFlagged && "border-amber-200",
+          post.isFlagged && "border-warning/25",
         )}
       >
         <CardContent className="p-4 sm:p-6">
@@ -929,7 +924,7 @@ function FlaggedCommentsPanel({
           animate={{ scale: 1 }}
           transition={springTransition}
         >
-          <CheckCircle2 className="size-10 text-emerald-500 mx-auto mb-3" />
+          <CheckCircle2 className="size-10 text-success mx-auto mb-3" />
         </motion.div>
         <h3 className="font-semibold text-foreground">No flagged comments</h3>
         <p className="text-xs text-muted-foreground mt-1">
@@ -951,7 +946,7 @@ function FlaggedCommentsPanel({
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ ...smoothTransition, delay: index * 0.05 }}
           >
-            <Card className="rounded-xl border-amber-200 hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
+            <Card className="rounded-xl border-warning/25 hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <motion.div
@@ -984,7 +979,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-emerald-600 hover:bg-emerald-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-success hover:bg-success/10 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "approve")}
                         >
                           <Check className="size-3 mr-1.5" /> Approve
@@ -997,7 +992,7 @@ function FlaggedCommentsPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-rose-600 hover:bg-rose-100 rounded-lg font-semibold uppercase tracking-wider"
+                          className="h-7 text-destructive hover:bg-destructive/10 rounded-lg font-semibold uppercase tracking-wider"
                           onClick={() => onAction(comment.id, "delete")}
                         >
                           <Trash2 className="size-3 mr-1.5" /> Delete
@@ -1160,7 +1155,7 @@ export function ContentModerationTabsSection({
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={springTransition}
                 >
-                  <Badge className="ml-2 h-4 sm:h-5 px-1.5 sm:px-2 bg-amber-500 text-white font-semibold border-0">
+                  <Badge variant="warning" className="ml-2">
                     {flaggedPosts.length}
                   </Badge>
                 </motion.div>
@@ -1304,9 +1299,9 @@ export function ContentModerationSidebarSection({
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={springTransition}
-              className="size-10 sm:h-11 sm:w-11 rounded-xl bg-amber-100 flex items-center justify-center"
+              className="size-10 sm:h-11 sm:w-11 rounded-xl bg-warning/10 flex items-center justify-center"
             >
-              <MessageCircle className="size-5 text-amber-600" />
+              <MessageCircle className="size-5 text-warning" />
             </motion.div>
             <div>
               <h3 className="font-semibold text-sm text-foreground">
@@ -1418,7 +1413,7 @@ function ModerationQueuePostCard({
         transition={springTransition}
         className={cn(
           "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
-          post.isFlagged && "border-amber-200",
+          post.isFlagged && "border-warning/25",
         )}
       >
         <CardContent className="p-4 sm:p-6">
@@ -1508,7 +1503,7 @@ function ModerationQueuePostCard({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-8 sm:h-9 sm:w-9 text-emerald-600 hover:bg-emerald-100 rounded-xl"
+                              className="size-8 sm:h-9 sm:w-9 text-success hover:bg-success/10 rounded-xl"
                               onClick={() => onActionClick(post.id, "approve")}
                             >
                               <Check className="size-4" />
@@ -1534,7 +1529,7 @@ function ModerationQueuePostCard({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-8 sm:h-9 sm:w-9 text-amber-600 hover:bg-amber-100 rounded-xl"
+                              className="size-8 sm:h-9 sm:w-9 text-warning hover:bg-warning/10 rounded-xl"
                               onClick={() => onActionClick(post.id, "hide")}
                             >
                               <EyeOff className="size-4" />
@@ -1560,7 +1555,7 @@ function ModerationQueuePostCard({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-8 sm:h-9 sm:w-9 text-rose-600 hover:bg-rose-100 rounded-xl"
+                              className="size-8 sm:h-9 sm:w-9 text-destructive hover:bg-destructive/10 rounded-xl"
                               onClick={() => onActionClick(post.id, "delete")}
                             >
                               <Trash2 className="size-4" />
@@ -1612,7 +1607,7 @@ function ModerationQueuePostCard({
                         <UserX className="size-4 text-muted-foreground" /> View
                         Author
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-amber-600 rounded-lg py-2.5 cursor-pointer gap-2.5">
+                      <DropdownMenuItem className="text-warning rounded-lg py-2.5 cursor-pointer gap-2.5">
                         <AlertTriangle className="size-4" /> Warn Author
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -1626,7 +1621,7 @@ function ModerationQueuePostCard({
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 rounded-xl text-amber-800 border border-amber-200"
+                    className="flex items-center gap-2 px-3 py-2.5 bg-warning/10 rounded-xl text-warning border border-warning/25"
                   >
                     <AlertCircle className="size-4 shrink-0" />
                     <span className="text-xs font-medium">

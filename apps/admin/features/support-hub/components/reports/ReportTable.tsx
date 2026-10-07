@@ -21,13 +21,13 @@ export function ReportTable({ series, className }: ReportTableProps) {
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm",
+        "overflow-hidden rounded-2xl border border-border bg-card shadow-sm",
         className,
       )}
     >
       <table className="w-full text-left text-xs">
         <caption className="sr-only">{series.slice} breakdown</caption>
-        <thead className="bg-zinc-50/60 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+        <thead className="bg-muted/60 text-sm font-medium text-muted-foreground">
           <tr>
             <th className="px-4 py-2">Label</th>
             <th className="px-4 py-2 text-right">Value</th>
@@ -35,9 +35,9 @@ export function ReportTable({ series, className }: ReportTableProps) {
         </thead>
         <tbody>
           {series.buckets.map((bucket) => (
-            <tr key={bucket.key} className="border-t border-zinc-100">
-              <td className="px-4 py-2 text-zinc-700">{bucket.label}</td>
-              <td className="px-4 py-2 text-right font-mono tabular-nums text-zinc-900">
+            <tr key={bucket.key} className="border-t border-border">
+              <td className="px-4 py-2 text-foreground">{bucket.label}</td>
+              <td className="px-4 py-2 text-right font-mono tabular-nums text-foreground">
                 {bucket.value.toLocaleString()}
               </td>
             </tr>

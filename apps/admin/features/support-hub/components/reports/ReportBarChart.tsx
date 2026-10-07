@@ -19,26 +19,30 @@ interface ReportBarChartProps {
 
 function Fallback() {
   return (
-    <div className="h-70 w-full animate-pulse rounded-xl bg-zinc-50 ring-1 ring-zinc-100" />
+    <div className="h-70 w-full animate-pulse rounded-xl bg-muted/40 ring-1 ring-border" />
   );
 }
 
 const BarChartContent = dynamic(
   async () => {
-    const {
-      Bar,
-      BarChart,
-      CartesianGrid,
-      ResponsiveContainer,
-      Tooltip,
-      XAxis,
-      YAxis,
-    } = await import("recharts");
+    const [
+      { Bar, BarChart, CartesianGrid, XAxis, YAxis },
+      { ChartContainer, ChartTooltip, ChartTooltipContent },
+    ] = await Promise.all([
+      import("recharts"),
+      import("@asym/ui/components/shadcn/chart"),
+    ]);
 
-    function BarChartInner({ series }: { series: SupportReportSeries }) {
+    function BarChartInner({
+      series,
+      title,
+    }: {
+      series: SupportReportSeries;
+      title: string;
+    }) {
       if (series.buckets.length === 0) {
         return (
-          <div className="flex h-70 items-center justify-center text-xs text-zinc-400">
+          <div className="flex h-70 items-center justify-center text-xs text-muted-foreground">
             No activity in the selected window.
           </div>
         );
@@ -49,8 +53,12 @@ const BarChartContent = dynamic(
       }));
       return (
         <div className="h-70 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer
+            className="h-full w-full aspect-auto"
+            config={{ value: { label: title, color: "var(--chart-1)" } }}
+          >
             <BarChart
+              accessibilityLayer
               data={data}
               margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
               barSize={24}
@@ -58,26 +66,33 @@ const BarChartContent = dynamic(
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="#f4f4f5"
+                stroke="var(--border)"
               />
               <XAxis
                 dataKey="label"
-                fontSize={10}
+                fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                stroke="#a1a1aa"
+                stroke="var(--muted-foreground)"
               />
               <YAxis
-                fontSize={10}
+                fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                stroke="#a1a1aa"
+                stroke="var(--muted-foreground)"
                 allowDecimals={false}
               />
-              <Tooltip cursor={{ fill: "#fafafa" }} />
-              <Bar dataKey="value" fill="#18181b" radius={[4, 4, 0, 0]} />
+              <ChartTooltip
+                cursor={{ fill: "var(--muted)" }}
+                content={<ChartTooltipContent />}
+              />
+              <Bar
+                dataKey="value"
+                fill="var(--color-value)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
       );
     }
@@ -93,19 +108,13 @@ export function ReportBarChart({
   description,
 }: ReportBarChartProps) {
   return (
-    <Card className="rounded-2xl border-zinc-100 shadow-sm">
+    <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
-          {title}
-        </CardTitle>
-        {description ? (
-          <CardDescription className="text-xs text-zinc-500">
-            {description}
-          </CardDescription>
-        ) : null}
+        <CardTitle className="text-base">{title}</CardTitle>
+        {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
       <CardContent className="pl-0">
-        <BarChartContent series={series} />
+        <BarChartContent series={series} title={title} />
       </CardContent>
     </Card>
   );

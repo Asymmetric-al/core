@@ -30,17 +30,17 @@ export function ConversationContactSidecar({
   const initials = (name ?? "??").charAt(0).toUpperCase();
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-zinc-100 bg-white p-3 shadow-sm">
-      <Avatar className="size-10 border border-zinc-100">
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
+      <Avatar className="size-10 border border-border">
         <AvatarImage src={undefined} alt={name} />
-        <AvatarFallback className="text-xs font-semibold text-zinc-700">
+        <AvatarFallback className="text-xs font-semibold text-foreground">
           {initials}
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-semibold text-zinc-900">{name}</p>
-        <p className="truncate text-xs text-zinc-500">
-          <Mail className="mr-1 inline size-3 align-[-2px] text-zinc-400" />
+        <p className="truncate text-xs font-semibold text-foreground">{name}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          <Mail className="mr-1 inline size-3 align-[-2px] text-muted-foreground" />
           {conversation.externalContactEmail}
         </p>
         <ConversationCrmLinks

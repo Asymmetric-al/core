@@ -30,7 +30,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-import { STATUS_COLORS, type Transaction } from "./types";
+import { STATUS_VARIANTS, type Transaction } from "./types";
 
 import { makeDisplayDate } from "@/lib/dates";
 
@@ -82,7 +82,7 @@ export const columns: ColumnDef<Transaction>[] = [
               {tx.recipient}
             </div>
             <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <span className="bg-muted px-1.5 py-0.5 rounded text-xs uppercase font-bold tracking-wide">
+              <span className="bg-muted px-1.5 py-0.5 rounded text-xs font-bold ">
                 {tx.type}
               </span>
               <span className="text-muted-foreground/50">•</span>
@@ -102,12 +102,7 @@ export const columns: ColumnDef<Transaction>[] = [
     accessorKey: "category",
     header: "Category",
     cell: ({ row }) => (
-      <Badge
-        variant="secondary"
-        className="uppercase font-semibold tracking-wide shadow-none rounded-lg"
-      >
-        {row.getValue("category")}
-      </Badge>
+      <Badge variant="secondary">{row.getValue("category")}</Badge>
     ),
     enableHiding: true,
     meta: {
@@ -158,13 +153,7 @@ export const columns: ColumnDef<Transaction>[] = [
     cell: ({ row }) => {
       const status = row.getValue("status") as Transaction["status"];
       return (
-        <Badge
-          variant="outline"
-          className={cn(
-            "uppercase font-semibold tracking-wide pl-1.5 pr-2.5 h-6 gap-1.5 shadow-none rounded-lg border-transparent",
-            STATUS_COLORS[status],
-          )}
-        >
+        <Badge variant={STATUS_VARIANTS[status]}>
           {getStatusIcon(status)}
           {status}
         </Badge>
@@ -206,28 +195,19 @@ export const columns: ColumnDef<Transaction>[] = [
             <DropdownMenuTrigger
               aria-label="Open actions"
               render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-muted-foreground hover:text-foreground rounded-xl"
-                >
+                <Button variant="ghost" size="icon">
                   <MoreHorizontal className="size-4" />
                 </Button>
               }
             />
-            <DropdownMenuContent align="end" className="rounded-xl">
+            <DropdownMenuContent align="end">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem className="rounded-lg">
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-lg">
-                  Manage Recurring
-                </DropdownMenuItem>
+                <DropdownMenuItem>View Details</DropdownMenuItem>
+                <DropdownMenuItem>Manage Recurring</DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="rounded-lg"
                 render={
                   <a
                     href={`/api/donor/statements/${new Date(tx.date).getFullYear()}`}

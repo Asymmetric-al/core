@@ -81,35 +81,34 @@ function PersonnelProfileHeaderCard({
 }) {
   const attentionLabelId = useId();
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden">
-      <div className="h-24 bg-linear-to-r from-zinc-900 to-zinc-800" />
+    <Card className="border-border shadow-sm overflow-hidden">
+      <div className="h-24 bg-primary" />
       <CardContent className="relative pt-0 pb-6 px-6">
         <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-10">
-          <Avatar className="size-24 border-4 border-white shadow-lg bg-white">
+          <Avatar className="size-24 border-4 border-background shadow-lg bg-card">
             <AvatarImage src={personnel.avatarUrl} />
             <AvatarFallback className="text-2xl font-semibold">
               {personnel.initials}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-semibold text-zinc-900">
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-2xl font-semibold text-foreground">
                 {personnel.name}
               </h2>
               <Badge
-                className={cn(
-                  "font-semibold",
+                variant={
                   personnel.status === "Healthy"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    ? "success"
                     : personnel.status === "At Risk"
-                      ? "bg-rose-50 text-rose-700 border-rose-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200",
-                )}
+                      ? "destructive"
+                      : "warning"
+                }
               >
                 {personnel.status}
               </Badge>
             </div>
-            <div className="flex flex-wrap gap-4 text-xs text-zinc-500 font-medium">
+            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground font-medium">
               <div className="flex items-center gap-1.5">
                 <MapPin className="size-3.5" /> {personnel.location}
               </div>
@@ -121,17 +120,17 @@ function PersonnelProfileHeaderCard({
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="h-9 px-4 font-semibold border-zinc-200"
+              className="h-9 px-4 font-semibold border-border"
               onClick={onToggleManualAttention}
               disabled={isUpdatingAttention}
               focusableWhenDisabled={isUpdatingAttention}
               aria-labelledby={attentionLabelId}
             >
-              <AlertTriangle className="mr-2 size-4 text-zinc-400" />
+              <AlertTriangle className="mr-2 size-4 text-muted-foreground" />
               <span id={attentionLabelId}>
                 {isUpdatingAttention
                   ? "Updating..."
@@ -141,7 +140,6 @@ function PersonnelProfileHeaderCard({
               </span>
             </Button>
             <Button
-              className="font-semibold bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200"
               onClick={onLogCheckIn}
               disabled={isLoggingCheckIn}
               focusableWhenDisabled={isLoggingCheckIn}
@@ -171,8 +169,8 @@ function OverviewTabContentSection({
       className="space-y-6 animate-in fade-in duration-300"
     >
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2 border-zinc-200 shadow-sm">
-          <CardHeader className="pb-3 border-b border-zinc-50">
+        <Card className="md:col-span-2 border-border shadow-sm">
+          <CardHeader className="pb-3 border-b border-border">
             <CardTitle className="text-base font-semibold">
               Wellness Heatmap
             </CardTitle>
@@ -183,35 +181,35 @@ function OverviewTabContentSection({
           <CardContent className="pt-6">
             <HealthHeatmap data={heatmapData} />
             <div className="mt-6 space-y-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Recent Activity
               </h4>
               <div className="space-y-3">
                 {activities.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex gap-3 p-3 rounded-lg border border-zinc-100 bg-zinc-50/30"
+                    className="flex gap-3 p-3 rounded-lg border border-border bg-muted/30"
                   >
                     <div className="mt-0.5">
                       {activity.type === "Video Call" ? (
-                        <Phone className="size-4 text-blue-500" />
+                        <Phone className="size-4 text-info" />
                       ) : (
-                        <MessageCircle className="size-4 text-emerald-500" />
+                        <MessageCircle className="size-4 text-success" />
                       )}
                     </div>
-                    <div className="flex-1 space-y-1">
+                    <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-zinc-900">
+                        <span className="text-sm font-semibold text-foreground">
                           {activity.type}
                         </span>
-                        <span className="text-xs text-zinc-400 font-medium">
+                        <span className="text-xs text-muted-foreground font-medium">
                           {formatDate(activity.date)}
                         </span>
                       </div>
-                      <p className="text-xs text-zinc-600 leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         {activity.content}
                       </p>
-                      <div className="text-xs text-zinc-400 font-semibold uppercase">
+                      <div className="text-xs text-muted-foreground font-semibold uppercase">
                         By {activity.authorName}
                       </div>
                     </div>
@@ -223,8 +221,8 @@ function OverviewTabContentSection({
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-zinc-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-zinc-50">
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-3 border-b border-border">
               <CardTitle className="text-base font-semibold">
                 Health Signals
               </CardTitle>
@@ -237,24 +235,24 @@ function OverviewTabContentSection({
                     <span
                       className={cn(
                         value > 80
-                          ? "text-emerald-600"
+                          ? "text-success"
                           : value > 50
-                            ? "text-amber-600"
-                            : "text-rose-600",
+                            ? "text-warning"
+                            : "text-destructive",
                       )}
                     >
                       {value}%
                     </span>
                   </div>
-                  <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full w-(--health-signal-width) rounded-full transition-colors",
                         value > 80
-                          ? "bg-emerald-500"
+                          ? "bg-success"
                           : value > 50
-                            ? "bg-amber-500"
-                            : "bg-rose-500",
+                            ? "bg-warning"
+                            : "bg-destructive",
                       )}
                       style={
                         {
@@ -269,9 +267,9 @@ function OverviewTabContentSection({
           </Card>
 
           {personnel.careGaps.length > 0 && (
-            <Card className="border-rose-100 bg-rose-50/30 shadow-sm">
+            <Card className="border-destructive/25 bg-destructive/5 shadow-sm">
               <CardHeader className="pb-2">
-                <div className="flex items-center gap-2 text-rose-900">
+                <div className="flex items-center gap-2 text-destructive">
                   <AlertTriangle className="size-4" />
                   <CardTitle className="text-sm font-semibold uppercase">
                     Active Care Gaps
@@ -283,9 +281,9 @@ function OverviewTabContentSection({
                   {personnel.careGaps.map((gap) => (
                     <li
                       key={gap}
-                      className="text-xs font-medium text-rose-700 flex items-center gap-2"
+                      className="text-xs font-medium text-destructive flex items-center gap-2"
                     >
-                      <div className="size-1 rounded-full bg-rose-400" />
+                      <div className="size-1 rounded-full bg-destructive" />
                       {gap}
                     </li>
                   ))}
@@ -294,27 +292,27 @@ function OverviewTabContentSection({
             </Card>
           )}
 
-          <Card className="border-zinc-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-zinc-50">
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-3 border-b border-border">
               <CardTitle className="text-base font-semibold">
                 Personal & Family Info
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 space-y-3 text-xs text-zinc-600">
+            <CardContent className="pt-6 space-y-3 text-xs text-muted-foreground">
               <div className="flex justify-between gap-4">
-                <span className="font-semibold uppercase tracking-wider text-zinc-400">
+                <span className="font-semibold uppercase tracking-wider text-muted-foreground">
                   Household
                 </span>
                 <span>Not provided</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="font-semibold uppercase tracking-wider text-zinc-400">
+                <span className="font-semibold uppercase tracking-wider text-muted-foreground">
                   Dependents
                 </span>
                 <span>Not provided</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="font-semibold uppercase tracking-wider text-zinc-400">
+                <span className="font-semibold uppercase tracking-wider text-muted-foreground">
                   Preferred language
                 </span>
                 <span>Not provided</span>
@@ -322,15 +320,15 @@ function OverviewTabContentSection({
             </CardContent>
           </Card>
 
-          <Card className="border-zinc-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-zinc-50">
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-3 border-b border-border">
               <CardTitle className="text-base font-semibold">
                 Emergency Contact
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-2 text-xs">
-              <p className="font-semibold text-zinc-900">Not yet recorded</p>
-              <p className="text-zinc-500">
+              <p className="font-semibold text-foreground">Not yet recorded</p>
+              <p className="text-muted-foreground">
                 Add emergency contact information in profile editing flows.
               </p>
             </CardContent>
@@ -359,8 +357,8 @@ function CareThreadTabContent({
       value="care-thread"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-zinc-200 shadow-sm min-h-100">
-        <CardHeader className="border-b border-zinc-50">
+      <Card className="border-border shadow-sm min-h-100">
+        <CardHeader className="border-b border-border">
           <CardTitle className="text-base font-semibold">Care Thread</CardTitle>
           <CardDescription className="text-xs">
             Shared updates and contextual care notes for {personnel.name}.
@@ -368,20 +366,20 @@ function CareThreadTabContent({
         </CardHeader>
         <CardContent className="p-6 space-y-4">
           {threadEntries.length === 0 ? (
-            <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-xs text-zinc-500">
+            <div className="rounded-xl border border-border bg-muted p-4 text-xs text-muted-foreground">
               No thread updates yet.
             </div>
           ) : (
             threadEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-xl border border-zinc-100 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-border bg-card p-4 shadow-sm"
               >
                 <div className="mb-2 flex items-center justify-between text-xs">
-                  <span className="font-semibold uppercase tracking-wider text-zinc-500">
+                  <span className="font-semibold uppercase tracking-wider text-muted-foreground">
                     {entry.authorName}
                   </span>
-                  <span className="text-zinc-400">
+                  <span className="text-muted-foreground">
                     {formatDateTime(entry.date)}
                   </span>
                 </div>
@@ -390,7 +388,7 @@ function CareThreadTabContent({
             ))
           )}
 
-          <div className="rounded-xl border border-zinc-200 p-4">
+          <div className="rounded-xl border border-border p-4">
             <LegacyRichTextEditor
               aria-label="Care thread update"
               value={draft}
@@ -402,7 +400,7 @@ function CareThreadTabContent({
                 aria-labelledby={`${pendingActionLabelId}-13`}
                 focusableWhenDisabled={createThreadPost.isPending}
                 size="sm"
-                className="font-semibold bg-zinc-900 text-white"
+                className="font-semibold bg-primary text-primary-foreground"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createThreadPost.mutateAsync({
@@ -446,8 +444,8 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
 
   return (
     <TabsContent value="care-plan" className="animate-in fade-in duration-300">
-      <Card className="border-zinc-200 shadow-sm min-h-100">
-        <CardHeader className="border-b border-zinc-50">
+      <Card className="border-border shadow-sm min-h-100">
+        <CardHeader className="border-b border-border">
           <div className="flex items-center justify-between gap-3">
             <div>
               <CardTitle className="text-base font-semibold">
@@ -461,7 +459,7 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               aria-labelledby={`${pendingActionLabelId}-14`}
               focusableWhenDisabled={upsertCareGoal.isPending}
               size="sm"
-              className="bg-zinc-900 text-white"
+              className="bg-primary text-primary-foreground"
               onClick={async () => {
                 await upsertCareGoal.mutateAsync({
                   personnelId: personnel.id,
@@ -480,7 +478,6 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
               focusableWhenDisabled={upsertCareRequirement.isPending}
               size="sm"
               variant="outline"
-              className=""
               onClick={async () => {
                 await upsertCareRequirement.mutateAsync({
                   personnelId: personnel.id,
@@ -503,20 +500,22 @@ function CarePlanTabContent({ personnel }: { personnel: CarePersonnel }) {
           {planItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-xl border border-zinc-100 bg-white p-4"
+              className="flex items-center justify-between rounded-xl border border-border bg-card p-4"
             >
               <div>
-                <p className="text-sm font-semibold text-zinc-900">
+                <p className="text-sm font-semibold text-foreground">
                   {item.title}
                 </p>
-                <p className="text-xs text-zinc-500">Owner: Member Care Team</p>
+                <p className="text-xs text-muted-foreground">
+                  Owner: Member Care Team
+                </p>
               </div>
               <Badge
                 className={cn(
                   "border-none",
                   item.status === "Overdue"
                     ? "bg-destructive text-destructive-foreground"
-                    : "bg-sky-500/10 text-sky-700",
+                    : "bg-info/10 text-info",
                 )}
               >
                 {item.status}
@@ -542,8 +541,8 @@ function ActivityTabContent({
       value="activity"
       className="space-y-6 animate-in fade-in duration-300"
     >
-      <Card className="border-zinc-200 shadow-sm">
-        <CardHeader className="border-b border-zinc-50">
+      <Card className="border-border shadow-sm">
+        <CardHeader className="border-b border-border">
           <CardTitle className="text-base font-semibold">
             Activity Log
           </CardTitle>
@@ -555,24 +554,26 @@ function ActivityTabContent({
           {activities.map((activity) => (
             <div
               key={activity.id}
-              className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-4"
+              className="rounded-xl border border-border bg-muted/40 p-4"
             >
               <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm font-semibold text-zinc-900">
+                <p className="text-sm font-semibold text-foreground">
                   {activity.type}
                 </p>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-muted-foreground">
                   {formatDateTime(activity.date)}
                 </p>
               </div>
-              <p className="text-xs text-zinc-600">{activity.content}</p>
+              <p className="text-xs text-muted-foreground">
+                {activity.content}
+              </p>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Card className="border-zinc-200 shadow-sm">
-        <CardHeader className="border-b border-zinc-50">
+      <Card className="border-border shadow-sm">
+        <CardHeader className="border-b border-border">
           <CardTitle className="text-base font-semibold">
             Activity Heatmap
           </CardTitle>
@@ -605,29 +606,29 @@ function SecureNotesTabContent({
       value="secure-notes"
       className="animate-in fade-in duration-300"
     >
-      <Card className="border-zinc-200 shadow-sm min-h-100 border-amber-100 bg-amber-50/5">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-amber-50">
+      <Card className="border-border shadow-sm min-h-100 border-warning/25 bg-warning/5">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-warning/25">
           <div>
             <div className="flex items-center gap-2">
               <CardTitle className="text-base font-semibold">
                 Private Pastoral Notes
               </CardTitle>
-              <Lock className="size-3.5 text-amber-600" />
+              <Lock className="size-3.5 text-warning" />
             </div>
-            <CardDescription className="text-xs text-amber-700/60">
+            <CardDescription className="text-xs text-warning/60">
               Only visible to you and platform super admins.
             </CardDescription>
           </div>
           <Button
             size="sm"
             variant="outline"
-            className="font-semibold border-amber-200 text-amber-700 hover:bg-amber-100"
+            className="font-semibold border-warning/25 text-warning hover:bg-warning/15"
           >
             <Plus className="mr-2 size-3.5" /> Add Private Note
           </Button>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
-          <div className="rounded-xl border border-amber-200/60 bg-amber-50 p-4 text-xs text-amber-900">
+          <div className="rounded-xl border border-warning/25 bg-warning/10 p-4 text-xs text-warning">
             Private notes are visible only to the author and platform super
             admins. They are for internal ministry/admin use only. Do not store
             regulated or legally protected information unless your organization
@@ -638,13 +639,13 @@ function SecureNotesTabContent({
               {privateNotes.map((note) => (
                 <div
                   key={note.id}
-                  className="p-4 rounded-xl border border-amber-100 bg-white shadow-sm space-y-2"
+                  className="p-4 rounded-xl border border-warning/25 bg-card shadow-sm space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-amber-900">
+                    <span className="text-xs font-semibold text-warning">
                       {note.authorName}
                     </span>
-                    <span className="text-xs text-zinc-400 font-medium">
+                    <span className="text-xs text-muted-foreground font-medium">
                       {formatDate(note.date)}
                     </span>
                   </div>
@@ -653,13 +654,13 @@ function SecureNotesTabContent({
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-amber-400">
+            <div className="flex flex-col items-center justify-center py-12 text-warning">
               <Lock className="size-12 mb-4 opacity-20" />
               <p className="text-sm font-medium">No private notes yet</p>
             </div>
           )}
 
-          <div className="rounded-xl border border-amber-200/60 bg-white p-4">
+          <div className="rounded-xl border border-warning/25 bg-card p-4">
             <LegacyRichTextEditor
               aria-label="Private care note"
               value={draft}
@@ -671,7 +672,7 @@ function SecureNotesTabContent({
                 aria-labelledby={`${pendingActionLabelId}-16`}
                 focusableWhenDisabled={createPrivateNote.isPending}
                 size="sm"
-                className="font-semibold bg-amber-600 text-white hover:bg-amber-500"
+                className="font-semibold bg-warning text-primary-foreground hover:bg-warning"
                 onClick={async () => {
                   if (!draft.trim()) return;
                   await createPrivateNote.mutateAsync({
@@ -753,11 +754,11 @@ export function PersonnelProfile({
       />
 
       <Tabs defaultValue="overview" className="w-full">
-        <div className="flex items-center justify-between border-b border-zinc-200 mb-6 pb-px">
+        <div className="mb-6 overflow-x-auto border-b border-border pb-px">
           <TabsList
             aria-label="Personnel profile"
             variant="line"
-            className="gap-8 p-0 group-data-[orientation=horizontal]/tabs:h-auto"
+            className="w-max min-w-full gap-5 p-0 group-data-[orientation=horizontal]/tabs:h-auto"
           >
             {[
               "overview",
@@ -769,7 +770,7 @@ export function PersonnelProfile({
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 rounded-none transition-none capitalize group-data-[orientation=horizontal]/tabs:after:bottom-0"
+                className="px-0 py-3 text-sm font-semibold text-muted-foreground data-active:text-foreground rounded-none transition-none capitalize group-data-[orientation=horizontal]/tabs:after:bottom-0"
               >
                 {tab.replace("-", " ")}
               </TabsTrigger>

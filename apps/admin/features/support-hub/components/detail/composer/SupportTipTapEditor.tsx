@@ -98,22 +98,21 @@ export function SupportTipTapEditor({
       proseInvert={false}
       extraExtensions={extraExtensions}
       className={cn(
-        "border border-zinc-200 bg-white shadow-sm",
-        tone === "note" && "border-amber-200 bg-amber-50/40",
+        "border border-border bg-card shadow-sm",
+        tone === "note" && "border-warning/30 bg-warning/5",
       )}
       editorClassName={cn(
-        "min-h-35 text-[13px] leading-relaxed text-zinc-900",
-        tone === "note" && "text-amber-900",
+        "min-h-35 text-[13px] leading-relaxed text-foreground",
       )}
     >
       {beforeToolbar ? (
-        <div className="border-b border-zinc-100 bg-zinc-50/40 px-3 py-1.5">
+        <div className="border-b border-border bg-muted/40 px-3 py-1.5">
           {beforeToolbar}
         </div>
       ) : null}
       <EditorToolbar tools={tools} />
       {afterToolbar ? (
-        <div className="border-b border-zinc-100 bg-zinc-50/40 px-3 py-1.5">
+        <div className="border-b border-border bg-muted/40 px-3 py-1.5">
           {afterToolbar}
         </div>
       ) : null}

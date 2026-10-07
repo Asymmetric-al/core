@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
@@ -57,38 +56,46 @@ function StatCard({
   onClick?: () => void;
   isActive?: boolean;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex flex-1 cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-left shadow-sm press-feedback hover-lift",
-        color,
-        isActive
-          ? "border-primary ring-2 ring-primary/20"
-          : "border-border bg-card",
-      )}
-    >
-      <div className="rounded-xl bg-background/70 p-2 shadow-sm ring-1 ring-border">
+  const content = (
+    <>
+      <div className={cn("rounded-xl p-2", color)}>
         <Icon className="size-5" />
       </div>
       <div className="flex min-w-0 flex-col">
-        <motion.span
-          key={value}
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="text-2xl font-black tabular-nums tracking-tight"
-        >
+        <span className="text-2xl font-semibold tabular-nums tracking-tight">
           {value}
-        </motion.span>
-        <span className="mt-0.5 text-sm font-bold leading-none text-foreground">
+        </span>
+        <span className="mt-0.5 text-sm font-semibold leading-none text-foreground">
           {label}
         </span>
         <span className="mt-1 text-xs font-medium leading-snug text-muted-foreground">
           {helper}
         </span>
       </div>
-    </button>
+    </>
+  );
+  if (!onClick) {
+    return (
+      <Card className="flex flex-1 flex-row items-start gap-3 px-4 py-3">
+        {content}
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-0">
+      <button
+        type="button"
+        aria-pressed={Boolean(isActive)}
+        onClick={onClick}
+        className={cn(
+          "press-feedback flex w-full cursor-pointer items-start gap-3 rounded-xl px-4 py-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+          isActive && "ring-2 ring-primary/20",
+        )}
+      >
+        {content}
+      </button>
+    </Card>
   );
 }
 

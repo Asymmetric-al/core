@@ -81,9 +81,9 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-white p-3">
+    <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+        <span className="text-sm font-medium text-muted-foreground">
           Actions
         </span>
         <Button
@@ -99,7 +99,7 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
       </div>
 
       {rows.length === 0 ? (
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           No actions yet. Add at least one to save the macro.
         </p>
       ) : (
@@ -107,7 +107,7 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
           {rows.map(({ id, value: action }, index) => (
             <li
               key={id}
-              className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2"
+              className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/60 p-2"
             >
               <Select
                 items={[
@@ -331,7 +331,7 @@ export function MacroActionEditor({ rows, onChange }: MacroActionEditorProps) {
                 size="icon"
                 onClick={() => handleRemove(index)}
                 aria-label="Remove action"
-                className="size-7 text-rose-500 hover:bg-rose-50"
+                className="size-7 text-destructive hover:bg-destructive/10"
               >
                 <Trash2 className="size-3.5" />
               </Button>

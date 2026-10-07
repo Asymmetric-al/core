@@ -1,5 +1,6 @@
 "use client";
 
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
@@ -27,22 +28,21 @@ export function ReportSummaryCards({
       )}
     >
       {cards.map((card) => (
-        <div
-          key={card.label}
-          className="flex flex-col gap-1 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm"
-        >
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">
-            {card.label}
-          </p>
-          <p className="font-mono text-2xl font-black tabular-nums text-zinc-900">
-            {typeof card.value === "number"
-              ? card.value.toLocaleString()
-              : card.value}
-          </p>
-          {card.helper ? (
-            <p className="text-xs text-zinc-500">{card.helper}</p>
-          ) : null}
-        </div>
+        <Card key={card.label}>
+          <CardContent className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-muted-foreground">
+              {card.label}
+            </p>
+            <p className="font-mono text-2xl font-semibold tabular-nums text-foreground">
+              {typeof card.value === "number"
+                ? card.value.toLocaleString()
+                : card.value}
+            </p>
+            {card.helper ? (
+              <p className="text-xs text-muted-foreground">{card.helper}</p>
+            ) : null}
+          </CardContent>
+        </Card>
       ))}
     </div>
   );

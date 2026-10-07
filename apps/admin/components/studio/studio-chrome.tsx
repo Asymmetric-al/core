@@ -37,23 +37,23 @@ export function StudioTemplateBreadcrumb({
   hasUnsavedChanges: boolean;
 }) {
   return (
-    <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground min-w-0">
-      <span className="shrink-0">Templates</span>
-      <ChevronRight className="size-3 shrink-0" />
-      <span className="font-medium text-foreground truncate max-w-[180px]">
+    <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+      <span className="hidden shrink-0 lg:inline">Templates</span>
+      <ChevronRight
+        aria-hidden="true"
+        className="hidden size-3 shrink-0 lg:block"
+      />
+      <span className="sr-only font-medium text-foreground lg:not-sr-only lg:max-w-[180px] lg:truncate">
         {name}
       </span>
       {hasUnsavedChanges && (
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-            }
-          />
-          <TooltipContent side="bottom">
-            <p>Unsaved changes</p>
-          </TooltipContent>
-        </Tooltip>
+        <span
+          role="status"
+          className="flex shrink-0 items-center gap-1.5 text-warning"
+        >
+          <span aria-hidden="true" className="size-2 rounded-full bg-warning" />
+          <span className="sr-only sm:not-sr-only">Unsaved changes</span>
+        </span>
       )}
     </div>
   );
@@ -70,6 +70,7 @@ export function StudioPreviewDeviceToggle({
 }) {
   return (
     <ToggleGroup
+      aria-label="Preview device"
       value={[value]}
       onValueChange={(groupValue) => {
         const next = groupValue[0];
@@ -84,11 +85,8 @@ export function StudioPreviewDeviceToggle({
       <Tooltip>
         <TooltipTrigger
           render={
-            <ToggleGroupItem
-              value="desktop"
-              className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-            >
-              <Monitor className="size-3.5" />
+            <ToggleGroupItem value="desktop" aria-label="Desktop preview">
+              <Monitor aria-hidden="true" className="size-3.5" />
               <span className="hidden lg:inline ml-1.5 text-xs font-medium uppercase tracking-wider">
                 Desktop
               </span>
@@ -100,11 +98,8 @@ export function StudioPreviewDeviceToggle({
       <Tooltip>
         <TooltipTrigger
           render={
-            <ToggleGroupItem
-              value="mobile"
-              className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-            >
-              <Smartphone className="size-3.5" />
+            <ToggleGroupItem value="mobile" aria-label="Mobile preview">
+              <Smartphone aria-hidden="true" className="size-3.5" />
               <span className="hidden lg:inline ml-1.5 text-xs font-medium uppercase tracking-wider">
                 Mobile
               </span>
@@ -129,19 +124,23 @@ export function StudioSaveButton({
   return (
     <Button
       size="sm"
+      aria-label={isSaving ? "Saving…" : "Save"}
+      aria-busy={isSaving || undefined}
       onClick={onClick}
       disabled={disabled}
       focusableWhenDisabled={isSaving}
-      className="h-8 px-3 md:px-4 gap-1.5"
     >
       {isSaving ? (
         <>
-          <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span
+            aria-hidden="true"
+            className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+          />
           <span className="hidden sm:inline text-xs font-medium">Saving…</span>
         </>
       ) : (
         <>
-          <Save className="size-3.5" />
+          <Save aria-hidden="true" className="size-3.5" />
           <span className="hidden sm:inline text-xs font-medium">Save</span>
         </>
       )}
@@ -167,24 +166,22 @@ export function StudioExportedHtmlPreview({
     <div className="py-4">
       <div className="relative group">
         <div className="absolute top-3 right-3 z-10">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="h-7 px-2   transition-opacity"
-            onClick={onCopy}
-          >
+          <Button variant="secondary" size="sm" onClick={onCopy}>
             {copied ? (
-              <Check className="size-3.5 mr-1 text-emerald-600" />
+              <Check
+                aria-hidden="true"
+                className="size-3.5 mr-1 text-success"
+              />
             ) : (
               <Copy className="size-3.5 mr-1" />
             )}
             {copied ? "Copied!" : "Copy"}
           </Button>
         </div>
-        <pre className="bg-zinc-950 text-zinc-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
+        <pre className="bg-invert text-invert-foreground p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
           {html.slice(0, EXPORT_PREVIEW_LIMIT)}
           {html.length > EXPORT_PREVIEW_LIMIT && (
-            <span className="text-zinc-500">
+            <span className="text-invert-foreground/70">
               {`\n\n… truncated (${(html.length - EXPORT_PREVIEW_LIMIT).toLocaleString()} more characters)`}
             </span>
           )}

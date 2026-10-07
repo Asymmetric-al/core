@@ -24,7 +24,7 @@ export const supportConversationColumns: ColumnDef<SupportConversation>[] = [
       <DataTableColumnHeader column={column} title="ID" />
     ),
     cell: ({ row }) => (
-      <span className="font-mono text-xs uppercase tracking-wider text-zinc-500">
+      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
         {row.original.id.replace(/^conv-/, "")}
       </span>
     ),

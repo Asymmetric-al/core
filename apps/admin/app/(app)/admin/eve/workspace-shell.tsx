@@ -1,4 +1,5 @@
 import { Badge } from "@asym/ui/components/shadcn/badge";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -154,13 +155,15 @@ function ConnectionState({
   icon,
   id,
   issue,
+  panelHref,
   title,
 }: {
-  availability?: "Mounted" | "Unavailable";
+  availability?: "Managed in panel" | "Mounted" | "Unavailable";
   description: string;
   icon: ReactNode;
   id: string;
   issue: string;
+  panelHref?: string;
   title: string;
 }) {
   return (
@@ -173,6 +176,17 @@ function ConnectionState({
         <Badge variant="outline">{availability}</Badge>
       </div>
       <p className="mt-3 text-sm text-muted-foreground">{description}</p>
+      {panelHref ? (
+        <a
+          href={panelHref}
+          className={buttonVariants({
+            variant: "link",
+            className: "mt-2 h-auto p-0",
+          })}
+        >
+          Open notification controls
+        </a>
+      ) : null}
       <p className="mt-3 text-xs text-muted-foreground">Owned by {issue}</p>
     </article>
   );
@@ -206,10 +220,12 @@ export function EveCapabilityConnectionsPanel() {
             icon={<GitPullRequest aria-hidden="true" className="size-4" />}
           />
           <ConnectionState
-            id="eve-notifications"
+            availability="Managed in panel"
+            id="eve-notification-connection"
             issue="#436"
             title="Notifications"
-            description="Email and Discord delivery are not connected, so the workspace reports no fabricated channel status or delivery history."
+            description="Notification policies, channels, and delivery history are reported by the Notifications panel. Availability follows the server readiness response."
+            panelHref="#eve-notifications"
             icon={<BellRing aria-hidden="true" className="size-4" />}
           />
           <ConnectionState
