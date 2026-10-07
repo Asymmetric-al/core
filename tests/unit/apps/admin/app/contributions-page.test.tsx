@@ -1,4 +1,5 @@
 /** @vitest-environment jsdom */
+/** @vitest-environment-options {"url": "http://localhost/"} */
 
 import { QueryProvider } from "@asym/database/providers";
 import {
@@ -9,7 +10,6 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { filterSharedContributions } from "../../../../../packages/api/src/admin/contribution-shared";
@@ -143,7 +143,6 @@ let ContributionsPage: ContributionsPageComponent;
 let ADMIN_CONTRIBUTIONS_QUERY_KEY: UseAdminContributionsModule["ADMIN_CONTRIBUTIONS_QUERY_KEY"];
 let MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY: DatabaseHooksModule["MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY"];
 let boneyardContributionsFixture: ContributionsDataModule["boneyardContributionsFixture"];
-let dom: JSDOM | undefined;
 let fetchDescriptor: PropertyDescriptor | undefined;
 let loadMockAdminContributions: UseAdminContributionsModule["loadMockAdminContributions"];
 let mockContributions: ContributionsDataModule["mockContributions"];
@@ -403,30 +402,9 @@ function renderContributionsPage() {
 }
 
 function installDom() {
-  dom = new JSDOM("<!doctype html><html><body></body></html>", {
-    url: "http://localhost",
-  });
+  // Vitest owns the jsdom Window; its document getter cannot be replaced.
+  document.body.replaceChildren();
 
-  globalThis.window = dom.window as unknown as Window & typeof globalThis;
-  globalThis.document = dom.window.document;
-  globalThis.HTMLElement = dom.window.HTMLElement;
-  globalThis.HTMLButtonElement = dom.window.HTMLButtonElement;
-  globalThis.HTMLInputElement = dom.window.HTMLInputElement;
-  globalThis.HTMLTextAreaElement = dom.window.HTMLTextAreaElement;
-  globalThis.SVGElement = dom.window.SVGElement;
-  globalThis.Element = dom.window.Element;
-  globalThis.Node = dom.window.Node;
-  globalThis.Event = dom.window.Event;
-  globalThis.CustomEvent = dom.window.CustomEvent;
-  globalThis.DocumentFragment = dom.window.DocumentFragment;
-  globalThis.EventTarget = dom.window.EventTarget;
-  globalThis.NodeFilter = dom.window.NodeFilter;
-  globalThis.MouseEvent = dom.window.MouseEvent;
-  globalThis.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
-  dom.window.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
-  globalThis.KeyboardEvent = dom.window.KeyboardEvent;
-  globalThis.MutationObserver = dom.window.MutationObserver;
-  globalThis.getComputedStyle = dom.window.getComputedStyle;
   globalThis.Element.prototype.getAnimations ??= function getAnimations() {
     return [];
   };
@@ -435,11 +413,6 @@ function installDom() {
   globalThis.requestAnimationFrame = (callback) =>
     window.setTimeout(callback, 0);
   globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
-
-  Object.defineProperty(globalThis, "navigator", {
-    configurable: true,
-    value: dom.window.navigator,
-  });
   Object.defineProperty(globalThis.window, "matchMedia", {
     configurable: true,
     value: vi.fn().mockImplementation((query: string) => ({
@@ -506,8 +479,6 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
         Reflect.deleteProperty(window, "confirm");
       }
     }
-    dom?.window.close();
-    dom = undefined;
   });
 
   beforeEach(async () => {

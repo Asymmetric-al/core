@@ -14,7 +14,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -31,7 +31,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -65,7 +65,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -82,7 +82,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -99,7 +99,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -116,7 +116,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -133,7 +133,7 @@
         },
         {
           "path": "package.json",
-          "sha256": "5ca084f9d38b34170f4c9d962b9912a5fee19db13d1247c494c9cd7694c70531"
+          "sha256": "f18c4a5ddc78c5d9ddedacf8fa2e27c236a21a870bc7097bf4790817217d7797"
         }
       ]
     },
@@ -2176,7 +2176,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-kanban-board.tsx",
-          "sha256": "2d4d7e6df70ff0d2522e55a8b630b8e9282658163e309b48a9fd43e90694a554"
+          "sha256": "1d379117a3453e2d7b3fbf756cb4274950ef8a54d3e1b882fe2798d7a071ea66"
         },
         {
           "path": "packages/missionary/components/task-row.tsx",
