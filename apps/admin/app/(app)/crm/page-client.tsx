@@ -72,7 +72,6 @@ const missionControlCRMHandleBulkExport = (selected: CrmGridRow[]) => {
 
 export default function MissionControlCRM() {
   const [view, setView] = useState<"table" | "kanban">("table");
-  const [selectedRecord, setSelectedRecord] = useState<CrmRecord | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -82,21 +81,13 @@ export default function MissionControlCRM() {
     ? giftParam
     : null;
   const hasInvalidGiftParam = giftParam != null && selectedGiftParam == null;
-  const [openGiftId, setOpenGiftId] = useState<string | null>(
-    () => selectedGiftParam,
-  );
   const { markFreshness, showFreshness } = useContributionFreshness();
-
-  useEffect(() => {
-    setOpenGiftId(selectedGiftParam);
-  }, [selectedGiftParam]);
 
   useEffect(() => {
     if (!hasInvalidGiftParam) {
       return;
     }
 
-    setOpenGiftId(null);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("gift");
     const query = params.toString();
@@ -126,39 +117,50 @@ export default function MissionControlCRM() {
         : undefined,
     [donorParam, rows],
   );
-  const shouldLoadRouteDonor =
-    Boolean(donorParam) && !routeDonorRow && selectedRecord?.id !== donorParam;
+  const [selectedRecordSnapshot, setSelectedRecordSnapshot] =
+    useState<CrmRecord | null>(() =>
+      routeDonorRow ? toCrmRecord(routeDonorRow) : null,
+    );
+  const shouldLoadRouteDonor = Boolean(donorParam) && !routeDonorRow;
   const routeDonorDetailQuery = useAdminCrmRecordDetail(
     shouldLoadRouteDonor ? donorParam : null,
   );
 
   /**
-   * Restore the donor drawer from `?donor=` route state. Prefer the loaded grid
+   * Derive the donor drawer from `?donor=` route state. Prefer the loaded grid
    * row when present, and fall back to the canonical detail route so bookmarked
-   * links survive pagination, filters, and sort changes.
+   * links survive pagination, filters, and sort changes. Keep the matching
+   * selected row while a detail read is loading or fails after filtering.
    */
-  useEffect(() => {
-    if (!donorParam || selectedRecord?.id === donorParam) {
-      return;
+  const selectedRecord = useMemo(() => {
+    if (!donorParam) {
+      return null;
     }
     if (routeDonorRow) {
-      setSelectedRecord(toCrmRecord(routeDonorRow));
-      return;
+      return toCrmRecord(routeDonorRow);
     }
     if (routeDonorDetailQuery.data?.donor.id === donorParam) {
-      setSelectedRecord(toCrmRecordFromDetail(routeDonorDetailQuery.data));
+      return toCrmRecordFromDetail(routeDonorDetailQuery.data);
     }
+    return selectedRecordSnapshot?.id === donorParam
+      ? selectedRecordSnapshot
+      : null;
   }, [
     donorParam,
     routeDonorDetailQuery.data,
     routeDonorRow,
-    selectedRecord?.id,
+    selectedRecordSnapshot,
   ]);
+  // A deep-linked donor can resolve after the first render. Remember each
+  // resolved selection before its row disappears, with URL identity as the
+  // guard so a different donor never inherits the snapshot.
+  if (selectedRecord && selectedRecordSnapshot?.id !== selectedRecord.id) {
+    setSelectedRecordSnapshot(selectedRecord);
+  }
 
   const selectRecord = useCallback(
     (record: CrmRecord | null) => {
-      setSelectedRecord(record);
-      setOpenGiftId(null);
+      setSelectedRecordSnapshot(record);
       const params = new URLSearchParams(searchParams.toString());
       params.delete("gift");
       if (record) {
@@ -176,6 +178,18 @@ export default function MissionControlCRM() {
 
   const giftOpenerRef = React.useRef<HTMLElement | null>(null);
 
+  useEffect(() => {
+    if (selectedGiftParam || !giftOpenerRef.current) {
+      return;
+    }
+    // Wait for the route to close the sheet before returning focus to the
+    // gift row in the donor drawer (ADR-CD-023).
+    const opener = giftOpenerRef.current;
+    giftOpenerRef.current = null;
+    const timeout = window.setTimeout(() => opener.focus(), 0);
+    return () => window.clearTimeout(timeout);
+  }, [selectedGiftParam]);
+
   const openGift = useCallback(
     (donationId: string) => {
       // Smart close (ADR-CD-023): remember the gift row so closing restores
@@ -184,7 +198,6 @@ export default function MissionControlCRM() {
         document.activeElement instanceof HTMLElement
           ? document.activeElement
           : null;
-      setOpenGiftId(donationId);
       const params = new URLSearchParams(searchParams.toString());
       if (selectedRecord) {
         params.set("donor", selectedRecord.id);
@@ -196,18 +209,12 @@ export default function MissionControlCRM() {
   );
 
   const closeGift = useCallback(() => {
-    setOpenGiftId(null);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("gift");
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
-    // Restore focus after the sheet unmounts so its focus-trap cleanup
-    // cannot clobber the opener focus (ADR-CD-023 focus return).
-    const opener = giftOpenerRef.current;
-    giftOpenerRef.current = null;
-    window.setTimeout(() => opener?.focus(), 0);
   }, [pathname, router, searchParams]);
 
   const tagOptions = useMemo(() => {
@@ -310,7 +317,7 @@ export default function MissionControlCRM() {
       )}
 
       <ContributionDetailOverlay
-        donationId={openGiftId}
+        donationId={selectedGiftParam}
         sourceSurface="donor_crm_record"
         onClose={closeGift}
         onActionSuccess={markFreshness}
