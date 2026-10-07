@@ -294,3 +294,57 @@ activation, runtime rules engines/value provenance, generalized approvals,
 new transports/providers and later record families. Later owners register and
 classify those families under the same floor when built; no whole Phase 12
 backward delivery gate is introduced.
+
+## 6. Phase 4 durable language — AL-504
+
+[AL-504](https://github.com/Asymmetric-al/core/issues/504) delivers documentation
+only under the current [Phase 4 owner PRD](../../../docs/prds/sitestacker-parity/phase-04-identity-account-claiming-foundation.md)
+and [Phase 25 identity contract](../../../docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/contracts/identity.md).
+The following document work does not complete Phase 4 runtime or activation.
+
+- [x] 6.1 Define all ten product-only terms and their individual `_Avoid_:` lines
+      in [CONTEXT.md](../../../CONTEXT.md#language), reconciling the existing
+      Claimable Donor Access entry with optional claiming and current access.
+- [x] 6.2 Record the four [foundation requirements](specs/platform-product-intent/spec.md)
+      and observable scenarios for permanent unclaimed giving/exact optional
+      claim, Path 2 isolation, verified host/account brand and method-agnostic
+      proof; preserve A2–A8/A10 and IC01–IC06 distinctions and qualification gates.
+- [x] 6.3 Author the four current canonical
+      [ADRs 0213–0216 and registry references](../../../docs/adr/registry.md#accepted-phase-4-foundation-records--al-504),
+      including named rejected alternatives and frozen-history/Undo boundaries.
+- [x] 6.4 Record one honest
+      [Phase 4 program-foundation parity row](../../../docs/prds/sitestacker-parity/parity-matrix.md#program-foundation--phase-4-separate-from-parity-area-numbering)
+      with implementation, live behavior and human confirmation unproved.
+- [ ] 6.5 Complete pinned strict OpenSpec, delta compatibility, scoped formatting,
+      lint and diff/link/semantic verification; record exact commands and outcomes
+      separately from runtime evidence. On 2026-10-07 the isolated AL-504 draft
+      passed pinned strict change validation, delta compatibility (78 checked),
+      Phase 24 authority validation and exact nine-file Prettier. Manual review
+      resolved 39 introduced relative links/anchors and confirmed owner semantics;
+      diff whitespace checks passed. Repository lint was attempted in the
+      corrected isolated dependency mounts and exited 2: the existing shared
+      design-system health check could not discover the required Button
+      definition (`p-8` / `icon-xs`). The clean baseline
+      `f49fc2e03bce9246f5d3dc22c16d0a6c794a8304` reproduces the same failure
+      under the isolated runner; host-root lint also emitted it before SIGSEGV
+      (exit 139). This is a reproduced baseline blocker, not an AL-504 regression.
+      This task remains incomplete until the required lint gate passes; no
+      dependency or unrelated code repair is
+      included in AL-504, and none of these checks proves runtime qualification.
+- [ ] 6.6 Implement and qualify the permanent unclaimed lifecycle, exact atomic
+      claim/proof/membership/audit, separate contact verification and current
+      Phase 12/3 source admission, including wrong-Tenant/purpose/principal,
+      expiry/replay, contact-change and narrow-grant negative cases.
+- [ ] 6.7 Qualify verified Tenant host/account brand and the signed identity
+      producer → Phase 17 immutable preparation/sender → Phase 6 sole dispatch/
+      history lane; prove wrong/default context fails closed without fallback.
+- [ ] 6.8 Resolve and qualify native G01 and each selected Google/Apple/Facebook
+      provider gate before affected activation; email-only delivery, SDK success
+      or a provider verified-email flag cannot complete the selected scope.
+- [ ] 6.9 Implement and qualify deliberate same-Tenant golden-record merge,
+      restrictive consent, source-approved mutable repairs, frozen history,
+      current-policy-safe Undo and completeness-gated unneeded shell purge.
+- [ ] 6.10 Record exact implementation/provider/operating proof and complete the
+      remaining owning Phase 4 work before
+      [AL-517 closeout](https://github.com/Asymmetric-al/core/issues/517), activation
+      or any built/live claim; leave reserved later domains outside this scope.

@@ -1550,6 +1550,71 @@ performed twice. It is stronger than short-term workflow event deduplication
 and belongs to the product area that owns the outcome.
 _Avoid_: Inngest dedupe key, random retry key, workflow-only idempotency
 
+**Donor record / constituent**:
+The permanent organization-scoped record of a donor, with an explicit claimed
+or unclaimed state. It remains valid without any login; claiming is optional
+and is never required to give.
+_Avoid_: account-only donor, temporary unclaimed record, mandatory signup
+
+**Contact email**:
+An organization's contact address for a donor, with a verified or unverified
+state. Unverified capture may support gifts and receipts under the owning
+source's policy but creates no login or private-data authority. Current contact
+verification is separate from established historical claim proof and current
+access.
+_Avoid_: sign-in email as contact truth, verified contact as portal permission
+
+**Login / credential**:
+An authentication identity through which a person signs in. Authentication
+alone authorizes no Tenant data or protected purpose; each current request
+needs its own admitted context, subject and purpose.
+_Avoid_: login as donor record, signed-in as authorized, shared organization access
+
+**Guest gift**:
+An online gift made without logging in. It preserves who legally gave and the
+organization's source rules, without forcing the giver to claim a record.
+_Avoid_: anonymous by default, unknown legal giver, account-first gift
+
+**Attribution**:
+Quietly associating a new guest gift with an eligible existing donor under the
+owning source's rules, without disclosure, duplicate identity, login, claim or
+access. An ambiguous match goes to review rather than an automatic identity guess.
+_Avoid_: welcome-back disclosure, attribution as proof, match as claim or access
+
+**Claim**:
+Optional acceptance of the exact intended person's account-to-record binding
+through fresh, single-use, purpose-bound proof of control of the intended contact
+email/mailbox and current claim policy. Established proof stays separate from
+mutable contact verification and every current protected-access decision. A newly matching email cannot replace a
+different person's established claim.
+_Avoid_: email match as ownership, contact flag as claim, claim as permanent access
+
+**Legacy invitation**:
+A staff-issued, organization-branded, expiring, single-use and revocable
+invitation for a legacy or imported donor to establish access through qualified
+proof and current policy. Issuing or accepting the invitation independently
+grants no access.
+_Avoid_: staff-granted possession, permanent access link, invitation as permission
+
+**Non-destructive merge / golden record**:
+A deliberate within-Tenant composition of a surviving donor record, field by
+field. Replayable Undo applies to source-approved mutable identity repairs;
+frozen financial, legal-donor and document history remains intact. Undo still
+respects current source policy and later restrictions.
+_Avoid_: move all history, automatic merge, unconditional inverse, history deletion
+
+**Person anchor (reserved)**:
+A future typed person foundation, neither populated nor read by Phase 4.
+It names a future populate-and-validate seam without claiming installed storage
+or donor-side person linkage today.
+_Avoid_: active constituent spine, current donor-person binding, delivered identity graph
+
+**Legal donor**:
+The actual legal giver at gift time: the hard-credit, tax and receipt truth.
+It is independent of current login or person identity and remains immutable
+across later identity merges.
+_Avoid_: current account as historical giver, mutable receipt identity, recognition as legal credit
+
 **Guest Giving**:
 Online giving without a pre-existing account or sign-in step. The donor still
 provides the name, email, and payment/billing details the payment method and
@@ -1566,10 +1631,13 @@ processor-cost attribution.
 _Avoid_: UI-owned Stripe rates, trusted client gross-up, "100% reaches the field"
 
 **Claimable Donor Access**:
-Donor portal access created during checkout without a password step. The donor
-later claims it through email verification or magic link. Creating it never
-reveals whether an email already belonged to an existing donor.
-_Avoid_: forced signup, silent password creation, account-existence leak
+The optional opportunity to establish donor self-service after checkout without
+a password step. Checkout and attribution create no access grant; qualified
+fresh claim proof and current source authorization independently admit the
+intended record and protected purpose. Public setup reveals no account or donor
+existence.
+_Avoid_: checkout-granted portal access, contact verification as permission,
+forced signup, account-existence leak
 
 **Gift Anonymity**:
 A per-gift visibility preference hiding the donor's identity from missionary
