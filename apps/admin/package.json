@@ -55,7 +55,7 @@
     "eve": "0.25.1",
     "lucide-animated": "1.0.5",
     "lucide-react": "1.52.0",
-    "motion": "^12.34.2",
+    "motion": "14.0.0",
     "next": "16.4.0",
     "next-themes": "^0.4.6",
     "nuqs": "2.10.1",
