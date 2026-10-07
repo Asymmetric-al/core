@@ -48,7 +48,7 @@ jobs:
 
       - name: Install Vercel CLI
         if: ${{ inputs.dry_run == false }}
-        run: npm install --global vercel
+        run: npm install --global vercel@62.7.0
 
       - name: Sync Resend webhook secret to Vercel Production
         if: ${{ inputs.dry_run == false }}

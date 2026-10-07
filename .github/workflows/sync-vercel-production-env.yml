@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Install Vercel CLI
-        run: npm install --global vercel
+        run: npm install --global vercel@62.7.0
 
       - name: Sync provider env values
         run: |
