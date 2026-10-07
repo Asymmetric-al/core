@@ -871,7 +871,7 @@
         },
         {
           "path": "apps/donor/next.config.ts",
-          "sha256": "3ace04aa2b85178aa6d0120be82f99f54545dd8e4550564b74a36e91f24df70e"
+          "sha256": "c1519f5f84bc3b859169e51e8fb274e3d5286d5f1a99f1a50ed28b3d3911704b"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
@@ -1397,7 +1397,7 @@
         },
         {
           "path": "apps/missionary/next.config.ts",
-          "sha256": "563e91c8a1df1051f47c998eb956ab170be6cb0b7280352be1df737602a0d13d"
+          "sha256": "dcbc4acbf0c30e2cb5007160a1f307af1d29aa9632603cc9e65da7e9febbc4ed"
         },
         {
           "path": "tests/unit/apps/global-boundary-contracts.test.ts",
