@@ -45,7 +45,7 @@
     "nuqs": "2.10.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "recharts": "^2.15.4",
+    "recharts": "3.10.1",
     "stripe": "23.0.0"
   },
   "devDependencies": {

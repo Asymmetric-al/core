@@ -62,7 +62,7 @@
     "payload": "4.0.0-internal.1f9ae9a",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "recharts": "^2.15.4",
+    "recharts": "3.10.1",
     "sharp": "^0.35.5",
     "sonner": "2.0.8",
     "zod": "^4.6.5"

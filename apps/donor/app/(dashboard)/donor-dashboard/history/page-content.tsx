@@ -183,7 +183,9 @@ function MonthlyGivingChart({
             fontSize: "12px",
           }}
           itemStyle={{ color: "#fff" }}
-          formatter={(value: number) => [formatCurrency(value), "Given"]}
+          formatter={(value) =>
+            typeof value === "number" ? [formatCurrency(value), "Given"] : null
+          }
         />
       </BarChart>
     </ResponsiveContainer>

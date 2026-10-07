@@ -55,10 +55,11 @@ export const WeeklyChart = memo(function WeeklyChart({
           />
           <Tooltip
             contentStyle={chartConfig.tooltip.contentStyle}
-            formatter={(value: number) => [
-              `$${value.toLocaleString()}`,
-              "Donations",
-            ]}
+            formatter={(value) =>
+              typeof value === "number"
+                ? [`$${value.toLocaleString()}`, "Donations"]
+                : null
+            }
           />
           <Bar dataKey="amount" fill="var(--primary)" radius={[4, 4, 0, 0]} />
         </BarChart>

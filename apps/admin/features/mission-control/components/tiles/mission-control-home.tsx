@@ -591,10 +591,11 @@ export function MissionControlHome({
                           color: "var(--foreground)",
                           boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
                         }}
-                        formatter={(value: number, name: string) => [
-                          `${value}%`,
-                          name,
-                        ]}
+                        formatter={(value, name) =>
+                          typeof value === "number"
+                            ? [`${value}%`, name ?? ""]
+                            : null
+                        }
                       />
                       <Line
                         type="monotone"
@@ -689,10 +690,11 @@ export function MissionControlHome({
                           color: "var(--foreground)",
                           boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
                         }}
-                        formatter={(value: number, name: string) => [
-                          `${value}%`,
-                          name,
-                        ]}
+                        formatter={(value, name) =>
+                          typeof value === "number"
+                            ? [`${value}%`, name ?? ""]
+                            : null
+                        }
                       />
                       <Bar
                         dataKey="healthy"

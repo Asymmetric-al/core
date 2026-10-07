@@ -67,10 +67,11 @@ export const RevenueChart = memo(function RevenueChart({
           <Tooltip
             contentStyle={chartConfig.tooltip.contentStyle}
             itemStyle={chartConfig.tooltip.itemStyle}
-            formatter={(value: number) => [
-              `$${value.toLocaleString()}`,
-              "Revenue",
-            ]}
+            formatter={(value) =>
+              typeof value === "number"
+                ? [`$${value.toLocaleString()}`, "Revenue"]
+                : null
+            }
           />
           <Area
             type="monotone"
