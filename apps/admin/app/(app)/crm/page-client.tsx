@@ -149,15 +149,7 @@ export default function MissionControlCRM() {
     [selectedDonorId, rows],
   );
   const [selectedRecordSnapshot, setSelectedRecordSnapshot] =
-    useState<SelectedCrmRecordSnapshot | null>(() =>
-      routeDonorRow
-        ? {
-            record: toCrmRecord(routeDonorRow),
-            detailUpdatedAt: 0,
-            source: "grid",
-          }
-        : null,
-    );
+    useState<SelectedCrmRecordSnapshot | null>(null);
   // Observe the same cache key as the drawer while a grid row is visible, so
   // its snapshot can distinguish cached detail from a subsequent fresh read.
   const routeDonorDetailQuery = useAdminCrmRecordDetail(selectedDonorId);
@@ -175,8 +167,18 @@ export default function MissionControlCRM() {
         return null;
       }
       if (routeDonorRow) {
+        const record = toCrmRecord(routeDonorRow);
+        // Keep the cache baseline tied to these grid values, so a detail
+        // refresh can supersede them when filtering removes the row.
+        if (
+          selectedRecordSnapshot?.source === "grid" &&
+          JSON.stringify(selectedRecordSnapshot.record) ===
+            JSON.stringify(record)
+        ) {
+          return selectedRecordSnapshot;
+        }
         return {
-          record: toCrmRecord(routeDonorRow),
+          record,
           detailUpdatedAt,
           source: "grid",
         };

@@ -139,6 +139,10 @@ vi.mock("../../../../../apps/admin/app/(app)/crm/detail-drawer", () => ({
       <div role="dialog" aria-label="Donor details">
         <span>{contact.displayName}</span>
         <span>{contact.email}</span>
+        <span>{contact.phone}</span>
+        {contact.lifetimeGiving != null && (
+          <span>Lifetime giving: {contact.lifetimeGiving}</span>
+        )}
       </div>
       <button type="button" onClick={onClose}>
         Close donor
@@ -608,6 +612,69 @@ describe("route-owned detail selection", () => {
       drawer.getByText("alice.canonical.updated@example.test"),
     ).toBeTruthy();
     expect(drawer.queryByText("Alice Detail")).toBeNull();
+  });
+
+  it.each([0, 1000])(
+    "uses detail refreshed before filtering hides the donor, with initial cache time %s",
+    (initialCacheTime) => {
+      route.pathname = "/crm";
+      route.search = "donor=donor-a";
+      queries.detail.mockReturnValue({
+        data: initialCacheTime ? makeCrmDetail("Alice Cached") : undefined,
+        dataUpdatedAt: initialCacheTime,
+        isPending: initialCacheTime === 0,
+      });
+      const view = render(<MissionControlCRM />, { wrapper: QueryProvider });
+      const grid = queries.grid.mock.results.at(-1)!.value;
+      expect(view.getByText("Alice Donor")).toBeTruthy();
+
+      const freshDetail = makeCrmDetail(
+        "Alice Fresh Detail",
+        "alice.fresh@example.test",
+      );
+      freshDetail.donor.phone = "+1 555 0100";
+      freshDetail.support.lifetimeGivingCents = 12500;
+      queries.detail.mockReturnValue({
+        data: freshDetail,
+        dataUpdatedAt: 2000,
+        isSuccess: true,
+        isPending: false,
+      });
+      // A recreated row with unchanged values must not consume the fresh
+      // detail response's timestamp before filtering removes the row.
+      queries.grid.mockReturnValue({ ...grid, rows: [{ ...donorRow }] });
+      view.rerender(<MissionControlCRM />);
+
+      queries.grid.mockReturnValue({ ...grid, rows: [] });
+      view.rerender(<MissionControlCRM />);
+      const drawer = within(
+        view.getByRole("dialog", { name: "Donor details" }),
+      );
+      expect(drawer.getByText("Alice Fresh Detail")).toBeTruthy();
+      expect(drawer.getByText("alice.fresh@example.test")).toBeTruthy();
+      expect(drawer.getByText("+1 555 0100")).toBeTruthy();
+      expect(drawer.getByText("Lifetime giving: 12500")).toBeTruthy();
+      expect(drawer.queryByText("Alice Donor")).toBeNull();
+    },
+  );
+
+  it("keeps initial grid values when filtering reveals preexisting cached detail", () => {
+    route.pathname = "/crm";
+    route.search = "donor=donor-a";
+    queries.detail.mockReturnValue({
+      data: makeCrmDetail("Alice Cached"),
+      dataUpdatedAt: 1000,
+      isSuccess: true,
+    });
+    const view = render(<MissionControlCRM />, { wrapper: QueryProvider });
+    queries.grid.mockReturnValue({
+      ...queries.grid.mock.results.at(-1)!.value,
+      rows: [],
+    });
+    view.rerender(<MissionControlCRM />);
+    const drawer = within(view.getByRole("dialog", { name: "Donor details" }));
+    expect(drawer.getByText("Alice Donor")).toBeTruthy();
+    expect(drawer.queryByText("Alice Cached")).toBeNull();
   });
 
   it.each(["success", "fetching", "error"])(
