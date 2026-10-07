@@ -38,7 +38,7 @@
         "@playwright/test": "^1.49.0",
         "@shadscan/cli": "0.17.0",
         "@tailwindcss/postcss": "^4",
-        "@tanstack/cli": "^0.63.1",
+        "@tanstack/cli": "^0.71.1",
         "@testing-library/react": "^16.3.0",
         "@tiptap/react": "^3.22.3",
         "@types/node": "24.19.1",
@@ -1723,9 +1723,9 @@
 
     "@tailwindcss/typography": ["@tailwindcss/typography@0.5.19", "", { "dependencies": { "postcss-selector-parser": "6.0.10" }, "peerDependencies": { "tailwindcss": ">=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1" } }, "sha512-w31dd8HOx3k9vPtcQh5QHP9GwKcgbMp87j58qi6xgiBnFFtKEAgCWnDw4qUT8aHwkCp8bKvb/KGKWWHedP0AAg=="],
 
-    "@tanstack/cli": ["@tanstack/cli@0.63.1", "", { "dependencies": { "@clack/prompts": "^0.10.0", "@tanstack/create": "0.63.3", "chalk": "^5.4.1", "chokidar": "^3.6.0", "commander": "^13.1.0", "diff": "^7.0.0", "semver": "^7.7.2", "tempy": "^3.1.0", "validate-npm-package-name": "^7.0.0", "zod": "^3.24.2" }, "bin": { "tanstack": "dist/bin.js" } }, "sha512-LPUM/1RbcxlG3waR5OYz70Ihev+MgOt7HkbHag4aHqSB+cOZDJOfCcOoYMsF4iApqukJS7TGBqrz0sAvMqSOpw=="],
+    "@tanstack/cli": ["@tanstack/cli@0.71.1", "", { "dependencies": { "@clack/prompts": "^0.10.0", "@tanstack/create": "0.70.1", "chalk": "^5.4.1", "chokidar": "^3.6.0", "commander": "^13.1.0", "diff": "^7.0.0", "semver": "^7.7.2", "tempy": "^3.1.0", "validate-npm-package-name": "^7.0.0", "zod": "^3.24.2" }, "bin": { "tanstack": "./dist/bin.js" } }, "sha512-dm1Tyepr4xZRsMG+j0zs2aFmu9zB0Wr17NwJ8ex/NcfeC2FS/PZ8nctHS/XKRPTitjQQga5kGbs//068/fJKiA=="],
 
-    "@tanstack/create": ["@tanstack/create@0.63.3", "", { "dependencies": { "ejs": "^3.1.10", "execa": "^9.5.2", "ignore": "^7.0.3", "memfs": "^4.17.0", "parse-gitignore": "^2.0.0", "prettier": "^3.5.0", "rimraf": "^6.0.1", "zod": "^3.24.2" } }, "sha512-0Vpf4RjQ8hU6AKki0+0HSgSeiaMbcjHL/GuudmWT/nObibKB2uMrxCpVmUroLvOdHoaHBrOLjbX0nw+stx0Qeg=="],
+    "@tanstack/create": ["@tanstack/create@0.70.1", "", { "dependencies": { "ejs": "^3.1.10", "execa": "^9.5.2", "ignore": "^7.0.3", "parse-gitignore": "^2.0.0", "prettier": "^3.5.0", "rimraf": "^6.0.1", "zod": "^3.24.2" } }, "sha512-S1W4EWt3spjBbo1UEuhusNRWU92xXxOZn7mLUxG+wwTyNTyuKshSGj5oiAkHj0UucFjkyrM73bua2cQOYBhP/g=="],
 
     "@tanstack/db": ["@tanstack/db@0.12.1", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "@tanstack/db-ivm": "0.1.26", "@tanstack/pacer-lite": "^0.2.1" }, "peerDependencies": { "typescript": ">=4.7" } }, "sha512-nSLr/NUDdN/rnM66qZaBY0Xl5pKikv2T5aANSNyVN1/NY86Y8erhVRSh9Cm20t1tAZkikqJWfID23S5sejR82w=="],
 

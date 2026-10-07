@@ -19,8 +19,8 @@ AI agents should pair official TanStack CLI docs/search output with this repo-sp
 | `@tanstack/db`                   | `^0.12.1`                | `packages/database`                                            | DB runtime                              |
 | `@supabase-labs/tanstack-db`     | `0.1.0` (exact, patched) | `packages/database`                                            | Supabase collection adapter             |
 | `@tanstack/react-virtual`        | `^3.14.13`               | `packages/ui`                                                  | Row/list virtualization                 |
-| `@tanstack/cli`                  | `^0.63.1`                | repo root (devDependency)                                      | TanStack docs + tooling                 |
-| `zod`                            | `^4.3.6`                 | apps + shared packages                                         | Runtime schema validation               |
+| `@tanstack/cli`                  | `^0.71.1`                | repo root (devDependency)                                      | TanStack docs + tooling                 |
+| `zod`                            | `^4.6.5`                 | apps + shared packages                                         | Runtime schema validation               |
 
 `@tanstack/react-table` and `@tanstack/react-table-devtools` are pinned **exactly** (no caret) in every workspace that consumes them: the engine boundary and devtools adapter are qualified together. Their published versions differ; the adapter peer range accepts the installed stable v9 engine. Rationale and rollout history live in `docs/guides/architecture/tanstack-table-v9-decisions.md` (ADR-1).
 

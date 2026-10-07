@@ -202,7 +202,7 @@
     "@playwright/test": "^1.49.0",
     "@shadscan/cli": "0.17.0",
     "@tailwindcss/postcss": "^4",
-    "@tanstack/cli": "^0.63.1",
+    "@tanstack/cli": "^0.71.1",
     "@testing-library/react": "^16.3.0",
     "@tiptap/react": "^3.22.3",
     "@types/node": "24.19.1",
