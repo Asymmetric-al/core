@@ -114,7 +114,7 @@
         "@tanstack/react-table": "9.2.6",
         "@tanstack/react-table-devtools": "9.2.5",
         "boneyard-js": "^1.8.1",
-        "date-fns": "^4.1.0",
+        "date-fns": "4.4.0",
         "eve": "0.25.1",
         "lucide-animated": "^1.0.0",
         "lucide-react": "1.17.0",
@@ -166,7 +166,7 @@
         "@tanstack/react-query": "^5.104.1",
         "@tanstack/react-table": "9.2.6",
         "boneyard-js": "^1.8.1",
-        "date-fns": "^4.1.0",
+        "date-fns": "4.4.0",
         "lucide-react": "1.17.0",
         "motion": "^12.34.2",
         "next": "16.4.0",
@@ -216,7 +216,7 @@
         "@sentry/nextjs": "^10.32.1",
         "@tanstack/react-query": "^5.104.1",
         "boneyard-js": "^1.8.1",
-        "date-fns": "^4.1.0",
+        "date-fns": "4.4.0",
         "lucide-react": "1.17.0",
         "motion": "^12.34.2",
         "next": "16.4.0",
@@ -410,7 +410,7 @@
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
-        "date-fns": "^4.1.0",
+        "date-fns": "4.4.0",
         "lucide-react": "1.17.0",
         "motion": "^12.34.2",
         "next": "16.4.0",
@@ -470,7 +470,7 @@
         "class-variance-authority": "^0.7.1",
         "cmdk": "^1.1.1",
         "cn": "0.3.2",
-        "date-fns": "^4.1.0",
+        "date-fns": "4.4.0",
         "embla-carousel-react": "^8.6.0",
         "lucide-react": "1.17.0",
         "maplibre-gl": "^6.10.0",
@@ -2479,7 +2479,7 @@
 
     "dataloader": ["dataloader@2.2.3", "", {}, "sha512-y2krtASINtPFS1rSDjacrFgn1dcUuoREVabwlOGOe4SdxenREqwjwjElAdwvbGM7kgZz9a3KVicWR7vcz8rnzA=="],
 
-    "date-fns": ["date-fns@4.1.0", "", {}, "sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg=="],
+    "date-fns": ["date-fns@4.4.0", "", {}, "sha512-+1UMbeh68lH1SegH83CGWwpb6OHHbpSgr3+s5Eww5M4CAgswBpoWS0AjTOfEJ33HiYKz1hdj/KTFprzXHmq/6w=="],
 
     "date-fns-jalali": ["date-fns-jalali@4.1.0-0", "", {}, "sha512-hTIP/z+t+qKwBDcmmsnmjWTduxCg+5KfdqWQvb2X/8C9+knYY6epN/pfxdDuyVlSVeFz0sM5eEfwIUQ70U4ckg=="],
 
@@ -4790,6 +4790,10 @@
     "@payloadcms/next/uuid": ["uuid@14.0.0", "", { "bin": { "uuid": "dist-node/bin/uuid" } }, "sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg=="],
 
     "@payloadcms/richtext-lexical/uuid": ["uuid@14.0.0", "", { "bin": { "uuid": "dist-node/bin/uuid" } }, "sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg=="],
+
+    "@payloadcms/translations/date-fns": ["date-fns@4.1.0", "", {}, "sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg=="],
+
+    "@payloadcms/ui/date-fns": ["date-fns@4.1.0", "", {}, "sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg=="],
 
     "@payloadcms/ui/scheduler": ["scheduler@0.25.0", "", {}, "sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA=="],
 

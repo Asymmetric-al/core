@@ -51,7 +51,7 @@
     "@tanstack/react-table": "9.2.6",
     "@tanstack/react-table-devtools": "9.2.5",
     "boneyard-js": "^1.8.1",
-    "date-fns": "^4.1.0",
+    "date-fns": "4.4.0",
     "eve": "0.25.1",
     "lucide-animated": "^1.0.0",
     "lucide-react": "1.17.0",
