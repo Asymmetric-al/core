@@ -183,11 +183,18 @@ function useDonorsPageView(): DonorsPageViewModel {
     [donors, selectedDonorId],
   );
 
-  React.useEffect(() => {
-    if (!selectedDonor) return;
-    setSelectedTags(selectedDonor.tags || []);
-    // Key on id only: refreshing donor rows must not wipe in-progress tag edits for the same partner.
-  }, [selectedDonor?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when selected partner id changes
+  const tagDraftPartnerId = selectedDonor?.id ?? null;
+  const [draftPartnerId, setDraftPartnerId] = React.useState<string | null>(
+    null,
+  );
+  if (draftPartnerId !== tagDraftPartnerId) {
+    setDraftPartnerId(tagDraftPartnerId);
+    // A different partner starts a new draft; refreshing the same partner
+    // must keep unsaved tag edits.
+    if (selectedDonor) {
+      setSelectedTags(createTagEditorDraft(selectedDonor.tags));
+    }
+  }
 
   const copyToClipboard = React.useCallback((text: string, label: string) => {
     navigator.clipboard.writeText(text);

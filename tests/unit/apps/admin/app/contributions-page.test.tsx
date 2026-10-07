@@ -54,15 +54,28 @@ vi.mock("@asym/database/hooks", () => ({
 const routerPushMock = vi.fn();
 const routerReplaceMock = vi.fn();
 let mockSearch = "";
+const routeListeners = new Set<() => void>();
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/contributions",
-  useRouter: () => ({
-    push: routerPushMock,
-    replace: routerReplaceMock,
-  }),
-  useSearchParams: () => new URLSearchParams(mockSearch),
-}));
+vi.mock("next/navigation", async () => {
+  const { useSyncExternalStore } = await import("react");
+  return {
+    usePathname: () => "/contributions",
+    useRouter: () => ({
+      push: routerPushMock,
+      replace: routerReplaceMock,
+    }),
+    useSearchParams: () => {
+      const search = useSyncExternalStore(
+        (listener) => {
+          routeListeners.add(listener);
+          return () => routeListeners.delete(listener);
+        },
+        () => mockSearch,
+      );
+      return new URLSearchParams(search);
+    },
+  };
+});
 
 vi.mock(
   "../../../../../apps/admin/app/(app)/contributions/use-admin-contributions",
@@ -500,6 +513,12 @@ describe("apps/admin/app/(app)/contributions/page-client", () => {
   beforeEach(async () => {
     delete process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK;
     mockSearch = "";
+    const navigate = (url: string) => {
+      mockSearch = url.split("?")[1] ?? "";
+      for (const listener of routeListeners) listener();
+    };
+    routerPushMock.mockImplementation(navigate);
+    routerReplaceMock.mockImplementation(navigate);
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
     installDom();
     await loadEnvSensitiveModules();

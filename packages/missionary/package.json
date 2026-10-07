@@ -25,9 +25,9 @@
     "date-fns": "^4.1.0",
     "lucide-react": "1.17.0",
     "motion": "^12.34.2",
-    "next": "16.3.8",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "recharts": "^2.15.4",
     "sonner": "^2.0.7",
     "zod": "^4.6.5"
@@ -36,8 +36,8 @@
     "@asym/eslint-config": "workspace:*",
     "eslint": "^9.39.2",
     "@asym/typescript-config": "workspace:*",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "typescript": "^5.7.3"
   }
 }

@@ -86,12 +86,9 @@ export function AutomationDryRunPreview({
   const [conversationId, setConversationId] = React.useState<string>(
     rows[0]?.id ?? "",
   );
-
-  React.useEffect(() => {
-    if (!conversationId && rows[0]?.id) {
-      setConversationId(rows[0].id);
-    }
-  }, [conversationId, rows]);
+  if (!conversationId && rows[0]?.id) {
+    setConversationId(rows[0].id);
+  }
 
   const target = rows.find((row) => row.id === conversationId);
   const result = React.useMemo(() => {

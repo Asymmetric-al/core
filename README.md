@@ -1,6 +1,6 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance Next.js 16.3.3 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
+A high-performance Next.js 16.4.0 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
@@ -118,7 +118,7 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.3.3 (App Router, Turbopack in app configs, Instant Navigation via `cacheComponents` + `partialPrefetching`) — _optimized for performance_
+- **Framework**: Next.js 16.4.0 (App Router, Turbopack in app configs, Instant Navigation via `cacheComponents` + `partialPrefetching`) — _optimized for performance_
 - **UI system**: Tailwind CSS 4 + shadcn/ui (Maia theme) + Base UI
 - **Theme**: Light Zinc aesthetic (Zinc/Zinc), shadcn/ui Maia theme
 - **Database**: Supabase (PostgreSQL)
@@ -403,8 +403,8 @@ Build env details: `docs/guides/development/build-runbook.md`.
 
 | Package               | Version | Notes                                    |
 | --------------------- | ------- | ---------------------------------------- |
-| Next.js               | 16.3.3  | App Router + Turbopack in app configs    |
-| React                 | 19.2.3  |                                          |
+| Next.js               | 16.4.0  | App Router + Turbopack in app configs    |
+| React                 | 19.3.0  |                                          |
 | TypeScript            | 6.0.3   |                                          |
 | motion                | 12.x    | Animation (successor to framer-motion)   |
 | @tanstack/react-query | 5.x     | Server state                             |
@@ -441,7 +441,7 @@ bun run verify:supabase-money
 ## Key Conventions
 
 1. **RSC first:** Keep components as React Server Components unless interactivity requires client hooks or browser-only APIs.
-2. **Next.js 16.3.3 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
+2. **Next.js 16.4.0 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
 3. **Zinc and shadcn/ui Maia aesthetic:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`; use `zinc-900` for primary actions and `zinc-500` for secondary text where this convention applies.
 4. **Responsive integrity:** Test UI changes on both ~375px (mobile) and ~1440px (desktop) viewports.
 

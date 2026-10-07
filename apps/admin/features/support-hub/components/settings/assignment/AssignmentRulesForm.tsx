@@ -17,14 +17,19 @@ export function AssignmentRulesForm() {
   const { data: agents } = useSupportAgents();
   const saveSettings = useSaveSupportInboxSettings();
 
-  const [roundRobin, setRoundRobin] = React.useState(
-    activeSettings?.roundRobinEnabled ?? false,
-  );
+  const savedRoundRobin = activeSettings?.roundRobinEnabled ?? false;
+  const assignmentVersion = JSON.stringify([
+    activeSettings?.id ?? null,
+    savedRoundRobin,
+  ]);
+  const [roundRobin, setRoundRobin] = React.useState(savedRoundRobin);
+  const [draftVersion, setDraftVersion] = React.useState(assignmentVersion);
   const [fallbackAgent, setFallbackAgent] = React.useState<string>("");
 
-  React.useEffect(() => {
-    setRoundRobin(activeSettings?.roundRobinEnabled ?? false);
-  }, [activeSettings?.roundRobinEnabled]);
+  if (draftVersion !== assignmentVersion) {
+    setDraftVersion(assignmentVersion);
+    setRoundRobin(savedRoundRobin);
+  }
 
   if (!activeSettings) {
     return (

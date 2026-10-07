@@ -31,10 +31,15 @@ export function InboxSettingsForm() {
   const [draft, setDraft] = React.useState<SupportInboxSettings | null>(
     activeSettings ?? null,
   );
+  const settingsVersion = JSON.stringify(activeSettings ?? null);
+  const [draftVersion, setDraftVersion] = React.useState(settingsVersion);
 
-  React.useEffect(() => {
+  // Reset before committing a changed record, while keeping edits across
+  // equivalent cache snapshots.
+  if (draftVersion !== settingsVersion) {
+    setDraftVersion(settingsVersion);
     setDraft(activeSettings ?? null);
-  }, [activeSettings]);
+  }
 
   if (!activeSettings) {
     return (

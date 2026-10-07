@@ -17,17 +17,35 @@ interface TimezoneSchedulerProps {
   remoteName: string;
 }
 
+function createClockStore() {
+  let timestamp: number | null = null;
+
+  return {
+    getSnapshot: () => timestamp,
+    subscribe(onStoreChange: () => void) {
+      timestamp = Date.now();
+      const timer = setInterval(() => {
+        timestamp = Date.now();
+        onStoreChange();
+      }, 1000);
+      return () => clearInterval(timer);
+    },
+  };
+}
+
+const getServerTimeSnapshot = () => null;
+
 export function TimezoneScheduler({
   remoteTimezone,
   remoteName,
 }: TimezoneSchedulerProps) {
-  const [localTime, setLocalTime] = React.useState<Date | null>(null);
-
-  React.useEffect(() => {
-    setLocalTime(new Date());
-    const timer = setInterval(() => setLocalTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const [clock] = React.useState(createClockStore);
+  const timestamp = React.useSyncExternalStore(
+    clock.subscribe,
+    clock.getSnapshot,
+    getServerTimeSnapshot,
+  );
+  const localTime = timestamp === null ? null : new Date(timestamp);
 
   const remoteTime = localTime
     ? new Intl.DateTimeFormat("en-US", {

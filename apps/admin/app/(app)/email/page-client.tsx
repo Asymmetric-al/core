@@ -178,6 +178,8 @@ export default function EmailStudio() {
     editorRef.current?.redo();
   }, []);
 
+  const minifyHtml = ui.studioConfig?.export.minifyHtml;
+
   const handlePreview = useCallback(
     async (device: PreviewDevice) => {
       dispatch({ type: "set_preview_device", device });
@@ -191,7 +193,7 @@ export default function EmailStudio() {
       }
       try {
         const exported = await editor.exportEmail(
-          studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
+          studioExportOptions(metadata, minifyHtml),
         );
         setPreviewResult(exported);
       } catch (error) {
@@ -201,12 +203,7 @@ export default function EmailStudio() {
         });
       }
     },
-    [
-      isLegacyReadOnly,
-      legacyPreviewResult,
-      metadata,
-      ui.studioConfig?.export.minifyHtml,
-    ],
+    [isLegacyReadOnly, legacyPreviewResult, metadata, minifyHtml],
   );
 
   const handleExportHtml = useCallback(async () => {
@@ -220,7 +217,7 @@ export default function EmailStudio() {
     }
     try {
       const exported = await editor.exportEmail(
-        studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
+        studioExportOptions(metadata, minifyHtml),
       );
       dispatch({ type: "open_export_dialog", html: exported.html });
     } catch (error) {
@@ -229,7 +226,7 @@ export default function EmailStudio() {
           error instanceof Error ? error.message : "Could not export HTML.",
       });
     }
-  }, [isLegacyReadOnly, metadata, ui.studioConfig?.export.minifyHtml]);
+  }, [isLegacyReadOnly, metadata, minifyHtml]);
 
   const persistCurrentTemplate = useCallback(
     async (metadataOverride?: EmailMetadata) => {
@@ -239,7 +236,7 @@ export default function EmailStudio() {
       }
       const nextMetadata = metadataOverride ?? metadata;
       const exportResult = await editor.exportEmail(
-        studioExportOptions(nextMetadata, ui.studioConfig?.export.minifyHtml),
+        studioExportOptions(nextMetadata, minifyHtml),
       );
       const saved = await persistEmailTemplate(nextMetadata, exportResult);
       const nextDesign = studioEditorDesign(exportResult.design);
@@ -257,12 +254,7 @@ export default function EmailStudio() {
       void invalidateAdminSurfaceQuery(queryClient, "emailTemplates");
       return saved;
     },
-    [
-      canEditCurrentTemplate,
-      metadata,
-      queryClient,
-      ui.studioConfig?.export.minifyHtml,
-    ],
+    [canEditCurrentTemplate, metadata, queryClient, minifyHtml],
   );
 
   const handleSaveClick = useCallback(() => {
@@ -388,7 +380,7 @@ export default function EmailStudio() {
       const exportResult = await editor.exportEmail(
         studioExportOptions(
           metadata,
-          ui.studioConfig?.export.minifyHtml,
+          minifyHtml,
           metadata.subject || metadata.name,
         ),
       );
@@ -418,7 +410,7 @@ export default function EmailStudio() {
     isLegacyReadOnly,
     metadata,
     testToEmail,
-    ui.studioConfig?.export.minifyHtml,
+    minifyHtml,
   ]);
 
   const handleCopyHtml = useCallback(async () => {
