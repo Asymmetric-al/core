@@ -8,16 +8,21 @@
 
 ## Context
 
-The shipped public-read pattern runs Payload's Local API with
+At the Phase 5 grill, the public-read pattern ran Payload's Local API with
 `overrideAccess: true` — which skips Payload access control entirely — plus a
-hand-written `where` clause for tenant + published on every query. Isolation
-therefore depends on every query author remembering the right clause, and one
-already forgot: the public navigation route omitted the published filter and
-returned drafts. There is no structural guard, and there cannot be a
-database-level one: Postgres row-level security does not protect the `cms`
+hand-written `where` clause for tenant and, for draftable collections, published;
+versionless navigation used only a tenant filter. Isolation
+therefore depended on every query author remembering the right clause. The
+public navigation route bypassed access control with only a tenant filter.
+The original draft-leak premise was corrected during implementation in
+[AL-523](https://github.com/Asymmetric-al/core/issues/523#issuecomment-5042493918):
+navigation has always used `versions: false`, so no Payload navigation drafts
+existed to leak. The defect was missing independent tenant/policy enforcement,
+not a demonstrated draft disclosure. There was no structural guard, and there
+cannot be a database-level one: Postgres row-level security does not protect the `cms`
 schema, because the Payload database role bypasses RLS. The alternatives were:
 keep the hand-written-`where` pattern and add review discipline (no safety
-net — it already leaked), rely on RLS (impossible for `cms`), or make
+net), rely on RLS (impossible for `cms`), or make
 isolation structural at the application boundary with independent enforcement
 layers.
 
@@ -28,7 +33,8 @@ published-content reader — with layered, independent guarantees:
 
 - the resolved tenant (and reserved site) is a **required typed argument**,
   so isolation cannot be forgotten at a call site;
-- the choke-point **always applies the tenant-and-published constraint**;
+- the choke-point **always applies the tenant constraint and, for draftable
+  collections, the published constraint** from shared collection capabilities;
 - an unresolved tenant returns **empty, never unfiltered** (fail-closed);
 - the read runs **`overrideAccess: false` under an explicit public-read
   access policy** ("anonymous ⇒ published + resolved tenant only"), so
@@ -37,12 +43,16 @@ published-content reader — with layered, independent guarantees:
 - a **hard-blocking sole-entry lint** forbids raw Payload reads
   (`payload.find` / `findByID`) in public code paths outside the reader;
 - a permanent **negative-test tier** asserts cross-tenant emptiness, draft
-  unreachability (including a navigation regression test), and fail-closed
-  behavior.
+  unreachability for draftable collections, navigation tenant/policy enforcement,
+  collection-capability drift, and fail-closed behavior.
 
-The shipped navigation draft-leak is fixed by routing navigation through the
-same choke-point. This retires the `overrideAccess: true` +
-hand-written-`where` pattern for public reads.
+Navigation now reads through the same choke-point with `overrideAccess: false`
+and the public-read policy (PR #969). Its versionless schema requires no invalid
+`_status` filter. Capability-drift tests require the shared capability to match
+the collection definition; if navigation gains drafts, both enforcement layers
+must apply the published constraint. This retires the `overrideAccess: true` +
+hand-written-`where` pattern for public reads. Query-shape and drift tests are
+not live Payload/database enforcement proof; that qualification remains AL-531.
 
 ## Consequences
 
@@ -56,6 +66,9 @@ hand-written-`where` pattern for public reads.
 - Payload access policies gain a real public-read policy instead of being
   skipped, which future restricted-content rules (for example
   restricted-worker suppression) extend rather than bypass.
+
+The later Phase 24 amendments below record owner requirements, not evidence of
+implemented or qualified host/generation authority.
 
 **Phase 24 D66 amendment (2026-08-30).** Site Locale becomes another mandatory
 positive public-read dimension, never an optional filter. The choke point and

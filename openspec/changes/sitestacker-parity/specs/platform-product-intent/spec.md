@@ -667,16 +667,27 @@ Phase 5 (Public Website Runtime Contract) and
 `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`.
 Public content MUST be readable only through one server-only published-content
 choke-point that takes the resolved tenant (and reserved site) as a required
-argument, always applies the tenant-and-published constraint, runs with
+argument, always applies the tenant constraint and the published constraint
+for draftable collections (versionless navigation has no drafts), runs with
 Payload access control enforced (`overrideAccess: false`) under an explicit
 public-read policy, and returns empty — never unfiltered — when no tenant
 resolves. A public request MUST resolve its tenant only from the
 platform-trusted host in production and MUST fail closed to a neutral "site
 not found" on an unknown or disabled host. No draft or unpublished document
-may be reachable through any public route; staff preview goes through Draft
-Mode behind a signed, tenant-checked route and is never cached and never
-indexed. A giving CTA MUST hand off through the server-validated,
-enumeration-safe checkout resolver — every operational reference re-validated
+may be reachable through any public read, including requests from signed-in
+users; authentication or a Draft Mode cookie MUST NOT elevate the public reader
+or public-read policy into draft access. Authenticated staff preview MUST use
+the same transport-agnostic reader/serializer and real renderer contract through
+a separately authorized preview read, with drafts on and Payload access control
+enforced (`overrideAccess: false`), rather than weakening the published-only
+entry point. Draft Mode and the signed route are rendering/entry mechanics,
+never authorization. Preview MUST be private, `no-store`, and non-indexable,
+and MUST never read or populate the published cache. Every preview read MUST
+authenticate the staff principal and authorize access within the resolved
+tenant; missing, invalid, or revoked authority MUST fail closed to a
+non-enumerating unavailable result without a public-read fallback.
+A giving CTA MUST hand off
+through the server-validated, enumeration-safe checkout resolver — every operational reference re-validated
 server-side against the resolved tenant, a preset amount treated as a
 re-validated suggestion — and the handoff carries the reserved
 `site_id` / `source_code` / `currency` / `locale` /
@@ -708,12 +719,31 @@ existence, and a dangling or cross-tenant reference fails safe.
 - AND an invalid, stale, or cross-tenant giving link fails to a friendly
   "give another way" instead of a mis-designated gift
 
+#### Scenario: Public reads stay published-only for signed-in visitors
+
+- GIVEN a visitor is authenticated or carries a Draft Mode cookie
+- WHEN the visitor requests content through the public reader or public API
+- THEN the public-read policy still enforces the resolved tenant and published
+  constraint for draftable collections, and no draft is returned
+- AND versionless navigation remains tenant/policy constrained without an
+  invalid `_status` clause; capability drift must be detected if it gains drafts
+
 #### Scenario: Staff preview and publish a draft
 
 - WHEN a staff member previews a draft or publishes a change
-- THEN preview renders the real page through the same reader with drafts on,
-  behind a signed-secret route that authenticates the staff user and checks
-  the tenant, marked noindex and never cached
+- THEN a separately authorized preview read renders the real page through the
+  shared reader/serializer contract with drafts on and `overrideAccess: false`,
+  authenticates the staff user and checks the tenant, and remains private,
+  `no-store`, noindex, and outside the published cache
+- AND for Phase 22 Public Ministry Pages, every HTML/data/media/refresh request
+  reauthenticates and reauthorizes the exact saved revision or immutable
+  candidate under the current owner scope; copied URLs, signed entry links,
+  and Draft Mode cookies grant no authority, and failed authorization returns
+  non-enumerating unavailable without fallback to another version or public read
 - AND publishing emits the secured admin→public invalidation signal so the
   right cache tags revalidate promptly, with the bounded-staleness backstop
   self-healing a missed signal
+
+Phase 22 exact-version preview and Phase 24 host/Site/locale/Domain/generation
+amendments remain governing owner requirements with their own qualification
+gates; this governance correction does not claim those runtime behaviors ship.
