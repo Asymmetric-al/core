@@ -390,7 +390,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
-          "sha256": "f31fe6fd7a89e45513a93da23cccbfdc8132e76948063b9467bbabd00a692eb2"
+          "sha256": "e8460d41a0e6103a44139931eda27e54337603340212760bde97e243d722527c"
         },
         {
           "path": "tests/unit/apps/admin/mc-shell-navigation-names.test.tsx",
@@ -597,7 +597,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -625,7 +625,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -842,7 +842,7 @@
         },
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
-          "sha256": "41a6802bd490817e6beffdbff7b412262e0c3926c587e7bfa1879db65c0b4319"
+          "sha256": "94687c2a6229c0a7c07563940e0c1a06c413fe254c0fbcb1754a3c8df9e60352"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
@@ -992,7 +992,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1020,7 +1020,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1372,7 +1372,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/sidebar.tsx",
-          "sha256": "f31fe6fd7a89e45513a93da23cccbfdc8132e76948063b9467bbabd00a692eb2"
+          "sha256": "e8460d41a0e6103a44139931eda27e54337603340212760bde97e243d722527c"
         },
         {
           "path": "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx",
@@ -1544,7 +1544,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1572,7 +1572,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -2109,7 +2109,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-dialog.tsx",
-          "sha256": "efe6ae40ec6db5df8dc18cf71cde915fa3167b734f25d8c600b5e385c3ba2852"
+          "sha256": "2a0ea4d39e487e9a6800a56b47780130eecf65f878c21614227dd53c6b986e64"
         },
         {
           "path": "packages/ui/components/shadcn/select.tsx",
@@ -2117,7 +2117,7 @@
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+          "sha256": "5c05d69370bc0dedcf539e44e043e7dc8791dfc4e051514476210f4b7aaf1b08"
         }
       ]
     },
@@ -2137,7 +2137,7 @@
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+          "sha256": "5c05d69370bc0dedcf539e44e043e7dc8791dfc4e051514476210f4b7aaf1b08"
         }
       ]
     },
@@ -2189,11 +2189,11 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-kanban-board.tsx",
-          "sha256": "d7006c27b444165f322002dd74ef5f6a25a7068ace273dd1f680c1bda9754557"
+          "sha256": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672"
         },
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "3d7f03ed604372d0e7ba3890a3ec10555f672d04e5bf849c213a5eb1f1654e60"
+          "sha256": "05dfa7dbf91977aadc43ac71a0440c11fe79fe797b8e5ee1be5ec5b79052beda"
         },
         {
           "path": "packages/ui/components/shadcn/button.ts",
@@ -2209,7 +2209,7 @@
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+          "sha256": "5c05d69370bc0dedcf539e44e043e7dc8791dfc4e051514476210f4b7aaf1b08"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -2233,7 +2233,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-row.tsx",
-          "sha256": "3d7f03ed604372d0e7ba3890a3ec10555f672d04e5bf849c213a5eb1f1654e60"
+          "sha256": "05dfa7dbf91977aadc43ac71a0440c11fe79fe797b8e5ee1be5ec5b79052beda"
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
@@ -2278,7 +2278,7 @@
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
-          "sha256": "f64369595ffaf5b99e9390ccd8537f390721c5b233b00ef1c2323e6d29f04c6d"
+          "sha256": "5c05d69370bc0dedcf539e44e043e7dc8791dfc4e051514476210f4b7aaf1b08"
         }
       ]
     },
@@ -2392,7 +2392,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         }
       ]
     },
@@ -2409,7 +2409,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         }
       ]
     },
@@ -2470,7 +2470,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         }
       ]
     },
@@ -2487,7 +2487,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         }
       ]
     },
@@ -2599,11 +2599,11 @@
       "proof": [
         {
           "path": "packages/ui/components/public/navbar-client.tsx",
-          "sha256": "41a6802bd490817e6beffdbff7b412262e0c3926c587e7bfa1879db65c0b4319"
+          "sha256": "94687c2a6229c0a7c07563940e0c1a06c413fe254c0fbcb1754a3c8df9e60352"
         },
         {
           "path": "packages/ui/components/shadcn/sheet.tsx",
-          "sha256": "5fe3af037d91fed4d33ef54ca328670d0d29f310a516ff3f804e28f1b8b7be4c"
+          "sha256": "be2515f5a6cfd26288d598cdd82422cc879f33af3292a17e17ff3b27f789fac0"
         },
         {
           "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
@@ -2681,7 +2681,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         }
       ]
     },
@@ -2730,7 +2730,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         }
       ]
     },
@@ -2747,7 +2747,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d7f810edb144cf9c3cae61192c2a4cc4253d94722c3b4e628776bc3bba1a62ae"
+          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
         }
       ]
     },

@@ -6,9 +6,8 @@
  * One component renders the reactions (love/prayer/fire) and the comment
  * affordance for a Ministry Update on every surface:
  *
- * - `appearance="chip"` reproduces the missionary feed treatment: emoji
- *   chips with a particle burst on activation, a rolling count, and an
- *   active glow.
+ * - `appearance="chip"` presents emoji chips with a particle burst on activation
+ *   and an accessible, stable count.
  * - `appearance="quiet"` reproduces the donor feed treatment: minimal
  *   icon + count buttons.
  *
@@ -98,7 +97,6 @@ interface ReactionVisualConfig {
   activeText: string;
   chipActiveBg: string;
   chipHoverBg: string;
-  glowColor: string;
 }
 
 const REACTION_VISUALS: Record<ReactionKind, ReactionVisualConfig> = {
@@ -108,10 +106,9 @@ const REACTION_VISUALS: Record<ReactionKind, ReactionVisualConfig> = {
     pluralNoun: "loves",
     icon: Heart,
     fillWhenActive: true,
-    activeText: "text-rose-600",
-    chipActiveBg: "bg-rose-50/80",
-    chipHoverBg: "hover:bg-rose-50",
-    glowColor: "rgba(225, 29, 72, 0.2)",
+    activeText: "text-primary",
+    chipActiveBg: "bg-primary/10",
+    chipHoverBg: "hover:bg-primary/10",
   },
   prayer: {
     emoji: "🙏",
@@ -119,10 +116,9 @@ const REACTION_VISUALS: Record<ReactionKind, ReactionVisualConfig> = {
     pluralNoun: "prayers",
     icon: HandHeart,
     fillWhenActive: false,
-    activeText: "text-primary",
-    chipActiveBg: "bg-primary/10",
-    chipHoverBg: "hover:bg-primary/10",
-    glowColor: "rgba(79, 70, 229, 0.2)",
+    activeText: "text-info",
+    chipActiveBg: "bg-info/10",
+    chipHoverBg: "hover:bg-info/10",
   },
   fire: {
     emoji: "🔥",
@@ -130,10 +126,9 @@ const REACTION_VISUALS: Record<ReactionKind, ReactionVisualConfig> = {
     pluralNoun: "fires",
     icon: Flame,
     fillWhenActive: true,
-    activeText: "text-amber-600",
-    chipActiveBg: "bg-amber-50/80",
-    chipHoverBg: "hover:bg-amber-100",
-    glowColor: "rgba(217, 119, 6, 0.2)",
+    activeText: "text-warning",
+    chipActiveBg: "bg-warning/10",
+    chipHoverBg: "hover:bg-warning/10",
   },
 };
 
@@ -182,7 +177,7 @@ interface ReactionButtonProps {
   onToggle: () => void;
 }
 
-/** Rich chip treatment (missionary feed): burst, count roll, active glow. */
+/** Rich chip treatment (missionary feed): burst and semantic active state. */
 function ChipReactionButton({
   kind,
   state,
@@ -245,86 +240,26 @@ function ChipReactionButton({
         aria-label={`${config.label} ${state.count}`}
         aria-pressed={state.mine}
         data-active={state.mine ? "" : undefined}
-        whileHover={
-          reduceMotion
-            ? undefined
-            : {
-                scale: 1.1,
-                y: -4,
-                boxShadow: `0 12px 24px -8px ${config.glowColor}`,
-              }
-        }
-        whileTap={reduceMotion ? undefined : { scale: 0.97 }}
         onClick={handleToggleReaction}
         className={cn(
-          "group relative flex h-10 items-center gap-2.5 overflow-hidden rounded-2xl px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-[background-color,color,box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
+          "group relative flex h-10 items-center gap-2 overflow-hidden rounded-2xl px-3 py-2.5 text-xs font-semibold press-feedback hover-scale-subtle outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-4",
           state.mine
-            ? cn(
-                config.chipActiveBg,
-                config.activeText,
-                "shadow-lg ring-1 ring-black/5",
-              )
+            ? cn(config.chipActiveBg, config.activeText, "ring-1 ring-border")
             : cn(
                 "border border-border bg-background text-muted-foreground hover:text-foreground",
                 config.chipHoverBg,
               ),
         )}
       >
-        {reduceMotion ? (
-          <span
-            className="relative z-10 select-none text-lg"
-            aria-hidden="true"
-          >
-            {config.emoji}
-          </span>
-        ) : (
-          <m.div
-            className="relative z-10 select-none text-lg"
-            aria-hidden="true"
-            animate={
-              state.mine ? { scale: [1, 1.4, 1], rotate: [0, 15, -15, 0] } : {}
-            }
-            transition={{ duration: 0.4 }}
-          >
-            {config.emoji}
-          </m.div>
-        )}
+        <span className="relative z-10 select-none text-lg" aria-hidden="true">
+          {config.emoji}
+        </span>
 
         <span className="sr-only">{config.label}</span>
 
-        {reduceMotion ? (
-          <span className="relative z-10 min-w-[1ch] tabular-nums">
-            {countOrLabel}
-          </span>
-        ) : (
-          <AnimatePresence mode="wait" initial={false}>
-            <m.span
-              key={state.count}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className="relative z-10 min-w-[1ch] tabular-nums"
-            >
-              {countOrLabel}
-            </m.span>
-          </AnimatePresence>
-        )}
-
-        {state.mine &&
-          (reduceMotion ? (
-            <span
-              className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/40 to-transparent"
-              aria-hidden="true"
-            />
-          ) : (
-            <m.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="pointer-events-none absolute inset-0 bg-linear-to-tr from-white/40 to-transparent"
-              aria-hidden="true"
-            />
-          ))}
+        <span className="relative z-10 min-w-2 tabular-nums">
+          {countOrLabel}
+        </span>
       </m.button>
     </div>
   );
@@ -334,7 +269,6 @@ function ChipReactionButton({
 function QuietReactionButton({
   kind,
   state,
-  reduceMotion,
   onToggle,
 }: ReactionButtonProps): React.JSX.Element {
   const config = REACTION_VISUALS[kind];
@@ -347,10 +281,9 @@ function QuietReactionButton({
       aria-label={`${config.label} ${state.count}`}
       aria-pressed={state.mine}
       data-active={state.mine ? "" : undefined}
-      whileTap={reduceMotion ? undefined : { scale: 0.85 }}
       onClick={onToggle}
       className={cn(
-        "group flex items-center gap-2 rounded-full px-3 py-2 transition-colors duration-150 hover:bg-muted/60",
+        "group flex items-center gap-2 rounded-full px-3 py-2 press-feedback outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60",
         state.mine
           ? config.activeText
           : "text-muted-foreground hover:text-foreground",
@@ -388,11 +321,11 @@ function CommentsButton({
         type="button"
         aria-label={`Comments ${count}`}
         onClick={onOpen}
-        className="flex h-10 items-center gap-2.5 rounded-2xl border border-border bg-background px-5 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+        className="flex h-10 items-center gap-2 rounded-2xl border border-border bg-background px-3 py-2.5 text-xs font-semibold text-muted-foreground press-feedback outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60 hover:text-foreground sm:px-4"
       >
         <MessageCircle aria-hidden className="size-4" strokeWidth={1.5} />
         <span className="sr-only">Comments</span>
-        <span className="min-w-[1ch] tabular-nums">{count}</span>
+        <span className="min-w-2 tabular-nums">{count}</span>
       </button>
     );
   }
@@ -401,7 +334,7 @@ function CommentsButton({
       type="button"
       aria-label={`Comments ${count}`}
       onClick={onOpen}
-      className="group flex items-center gap-2 rounded-full px-3 py-2 text-muted-foreground transition-colors duration-150 hover:bg-muted/60 hover:text-foreground"
+      className="group flex items-center gap-2 rounded-full px-3 py-2 text-muted-foreground press-feedback outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60 hover:text-foreground"
     >
       <MessageCircle
         aria-hidden
@@ -436,7 +369,7 @@ function StaticReactionBar({
       data-slot="reaction-bar"
       data-read-only=""
       className={cn(
-        "flex items-center gap-4 text-sm text-muted-foreground",
+        "flex flex-wrap items-center gap-4 text-sm text-muted-foreground",
         className,
       )}
     >
@@ -519,7 +452,7 @@ function InteractiveReactionBar({
       <div
         data-slot="reaction-bar"
         className={cn(
-          "flex items-center",
+          "flex flex-wrap items-center",
           appearance === "chip" ? "gap-3" : "gap-2",
           className,
         )}

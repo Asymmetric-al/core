@@ -5,7 +5,6 @@ import { siteConfig } from "@asym/config/site-client";
 import Link from "next/link";
 
 import { NavbarClient, type NavbarVariant } from "./navbar-client";
-import { cn } from "../../lib/utils";
 import { buttonVariants } from "../shadcn/button";
 
 const navLinks = siteConfig.nav.main;
@@ -15,12 +14,12 @@ function NavbarLogo({ variant = "dark" }: { variant?: "dark" | "light" }) {
   return (
     <Link href="/" className="flex items-center gap-2 group relative z-50">
       <div
-        className={`h-8 w-8 ${isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900"} rounded-lg flex items-center justify-center font-bold text-sm shadow-sm [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105 transition-transform`}
+        className={`h-8 w-8 ${isDark ? "bg-primary text-primary-foreground" : "bg-invert-foreground text-invert"} rounded-lg flex items-center justify-center font-bold text-sm shadow-sm [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105 transition-transform`}
       >
         {siteConfig.shortName}
       </div>
       <span
-        className={`font-bold text-lg tracking-tight ${isDark ? "text-slate-900" : "text-white"}`}
+        className={`font-bold text-lg tracking-tight ${isDark ? "text-foreground" : "text-media-foreground"}`}
       >
         {siteConfig.name.toUpperCase().slice(0, 4)}
         <span className="font-light opacity-60">
@@ -38,20 +37,17 @@ function DesktopNav({ isScrolled }: { isScrolled: boolean }) {
         <Link
           key={link.href}
           href={link.href}
-          className={`text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center ${isScrolled ? "text-slate-600" : "text-white/90"}`}
+          className={`text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center ${isScrolled ? "text-muted-foreground" : "text-media-foreground"}`}
         >
           {link.label}
         </Link>
       ))}
       <Link
         href={siteConfig.nav.cta.href}
-        className={cn(
-          buttonVariants({ variant: "ghost" }),
-          "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
-          isScrolled
-            ? "bg-slate-900 text-white"
-            : "bg-white text-slate-900 hover:bg-slate-100",
-        )}
+        className={buttonVariants({
+          variant: isScrolled ? "default" : "inverse",
+          size: "lg",
+        })}
       >
         {siteConfig.nav.cta.label}
       </Link>

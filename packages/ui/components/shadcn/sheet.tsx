@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { Button } from "./button";
 import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
@@ -70,10 +71,15 @@ function SheetContent({
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
-            <XIcon className="size-4" />
-            <span className="sr-only">Close</span>
-          </SheetPrimitive.Close>
+          <SheetPrimitive.Close
+            render={
+              <Button variant="ghost" size="icon-sm">
+                <XIcon className="size-4" aria-hidden="true" />
+                <span className="sr-only">Close</span>
+              </Button>
+            }
+            className="absolute top-3 right-3"
+          />
         )}
       </SheetPrimitive.Popup>
     </SheetPortal>

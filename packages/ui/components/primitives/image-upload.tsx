@@ -152,31 +152,33 @@ function ImageUploadDefaultContent({
             className="border-border size-24 rounded-full border-2 object-cover"
           />
           {onRemove && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove();
-              }}
-              aria-label="Remove image"
-              className="absolute -top-1 -right-1 bg-rose-500 text-white p-1 rounded-full   transition-opacity"
-            >
-              <X className="size-3" />
-            </button>
+            <div className="absolute -top-1 -right-1">
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon-sm"
+                disabled={disabled || isUploading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                aria-label="Remove image"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </Button>
+            </div>
           )}
         </div>
       ) : (
         <Button
           type="button"
-          variant="outline"
+          variant="upload"
+          size="avatar"
           onClick={openFilePicker}
           disabled={isUploading || disabled}
           focusableWhenDisabled={isUploading}
           aria-labelledby={labelId}
-          className={cn(
-            "flex size-24 flex-col items-center justify-center gap-2 rounded-full border-dashed",
-            isDragging && "border-ring bg-accent",
-          )}
+          data-dragging={isDragging ? "" : undefined}
         >
           <span id={labelId} className="sr-only">
             {isUploading ? "Uploading image" : "Upload image"}

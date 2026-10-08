@@ -24,7 +24,7 @@ import {
   activateDataGridCellFromKeyboard,
 } from "./data-grid-keyboard";
 import { useDataTableVirtualization } from "../data-table/hooks/use-data-table-virtualization";
-import { Input } from "../input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "../input-group";
 import {
   DEFAULT_ROW_HEIGHT,
   DEFAULT_HEADER_HEIGHT,
@@ -108,22 +108,23 @@ function DataGridToolbar({
   onAddRow: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b px-4 py-3">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+      <div className="w-full sm:w-64">
         {enableSearch && (
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
+          <InputGroup>
+            <InputGroupAddon>
+              <Search aria-hidden="true" />
+            </InputGroupAddon>
+            <InputGroupInput
               placeholder="Search..."
               aria-label="Search grid"
               value={globalFilter}
               onChange={(e) => onGlobalFilterChange(e.target.value)}
-              className="h-9 w-64 pl-10 rounded-xl"
             />
-          </div>
+          </InputGroup>
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {enableUndo && (
           <>
             <Button
@@ -132,7 +133,6 @@ function DataGridToolbar({
               onClick={onUndo}
               disabled={!canUndo}
               aria-label="Undo"
-              className="size-9 rounded-xl"
             >
               <Undo className="size-4" />
             </Button>
@@ -142,52 +142,31 @@ function DataGridToolbar({
               onClick={onRedo}
               disabled={!canRedo}
               aria-label="Redo"
-              className="size-9 rounded-xl"
             >
               <Redo className="size-4" />
             </Button>
           </>
         )}
         {enableCopy && canCopy && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onCopy}
-            className="h-9 rounded-xl"
-          >
+          <Button variant="outline" size="sm" onClick={onCopy}>
             <Copy className="size-4 mr-2" />
             Copy
           </Button>
         )}
         {enablePaste && canPaste && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onPaste}
-            className="h-9 rounded-xl"
-          >
+          <Button variant="outline" size="sm" onClick={onPaste}>
             <Clipboard className="size-4 mr-2" />
             Paste
           </Button>
         )}
         {enableRowDelete && selectedRowCount > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDeleteRows}
-            className="h-9 rounded-xl text-destructive hover:text-destructive"
-          >
+          <Button variant="destructive" size="sm" onClick={onDeleteRows}>
             <Trash2 className="size-4 mr-2" />
             Delete ({selectedRowCount})
           </Button>
         )}
         {enableRowAdd && (
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onAddRow}
-            className="h-9 rounded-xl"
-          >
+          <Button variant="default" size="sm" onClick={onAddRow}>
             <Plus className="size-4 mr-2" />
             Add Row
           </Button>
@@ -232,6 +211,7 @@ function DataGridViewport<TData extends Record<string, unknown>>({
         }}
       >
         <div
+          role="row"
           className="sticky top-0 z-10 flex border-b bg-muted/50"
           style={{ height: headerHeight }}
         >
@@ -239,6 +219,7 @@ function DataGridViewport<TData extends Record<string, unknown>>({
             headerGroup.headers.map((header) => (
               <div
                 key={header.id}
+                role="columnheader"
                 className="flex items-center px-3 text-xs font-semibold text-muted-foreground border-r last:border-r-0"
                 style={{
                   width: header.getSize(),

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 import { cn } from "../../lib/utils";
-import { buttonVariants } from "../shadcn/button";
+import { Button, buttonVariants } from "../shadcn/button";
 import {
   Sheet,
   SheetContent,
@@ -90,15 +90,15 @@ export function NavbarClient({
         {/* react-doctor-disable-next-line react-doctor/anchor-target-exists */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-white focus:text-zinc-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-100 focus:top-4 focus:left-4 focus:bg-background focus:text-foreground focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
         >
           Skip to main content
         </a>
         <nav
           className={cn(
-            "fixed top-0 z-50 w-full transition-[background-color,backdrop-filter,padding,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
+            "fixed top-0 z-50 w-full transition-colors duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
             showScrolledStyles
-              ? "bg-white/95 backdrop-blur-md border-b border-zinc-200 py-2 sm:py-3"
+              ? "bg-background/95 backdrop-blur-md border-b border-border py-2 sm:py-3"
               : "bg-transparent py-4 sm:py-6",
           )}
           aria-label="Main navigation"
@@ -111,10 +111,10 @@ export function NavbarClient({
               <div
                 className={cn(
                   // Logo: gate hover-scale for hover devices only.
-                  "size-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm transition-[transform,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
+                  "size-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm transition-colors duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
                   showScrolledStyles
-                    ? "bg-zinc-900 text-white"
-                    : "bg-white text-zinc-900",
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-invert-foreground text-invert",
                 )}
               >
                 {shortName}
@@ -123,8 +123,8 @@ export function NavbarClient({
                 className={cn(
                   "font-bold text-lg tracking-tight transition-colors",
                   showScrolledStyles || isMobileMenuOpen
-                    ? "text-zinc-900"
-                    : "text-white",
+                    ? "text-foreground"
+                    : "text-media-foreground",
                 )}
               >
                 {displayName.slice(0, 4)}
@@ -142,8 +142,8 @@ export function NavbarClient({
                   className={cn(
                     "text-sm font-semibold tracking-tight hover:opacity-70 transition-opacity touch-target flex items-center",
                     showScrolledStyles
-                      ? "text-zinc-600 hover:text-zinc-900"
-                      : "text-white/90",
+                      ? "text-muted-foreground hover:text-foreground"
+                      : "text-media-foreground",
                   )}
                 >
                   {link.label}
@@ -151,13 +151,10 @@ export function NavbarClient({
               ))}
               <Link
                 href={ctaHref}
-                className={cn(
-                  buttonVariants({ variant: "ghost" }),
-                  "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
-                  showScrolledStyles
-                    ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                    : "bg-white text-zinc-900 hover:bg-zinc-100",
-                )}
+                className={buttonVariants({
+                  variant: showScrolledStyles ? "default" : "inverse",
+                  size: "lg",
+                })}
               >
                 {ctaLabel}
               </Link>
@@ -165,16 +162,14 @@ export function NavbarClient({
 
             <SheetTrigger
               render={
-                <button type="button">
-                  <Menu className="size-6" />
-                </button>
+                <Button
+                  variant={showScrolledStyles ? "ghost" : "ghost-inverse"}
+                  size="icon-lg"
+                >
+                  <Menu aria-hidden="true" />
+                </Button>
               }
-              className={cn(
-                "md:hidden p-2 touch-target flex items-center justify-center relative z-50 -mr-2",
-                showScrolledStyles || isMobileMenuOpen
-                  ? "text-zinc-900"
-                  : "text-white",
-              )}
+              className="md:hidden"
               aria-label="Open menu"
             />
           </div>
@@ -209,8 +204,8 @@ export function NavbarClient({
                   href={ctaHref}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    buttonVariants({ variant: "ghost" }),
-                    "w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-zinc-800",
+                    buttonVariants({ variant: "default", size: "lg" }),
+                    "w-full",
                   )}
                 >
                   {ctaLabel}

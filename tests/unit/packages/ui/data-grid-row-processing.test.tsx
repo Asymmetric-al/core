@@ -30,15 +30,27 @@ describe("DataGrid row processing", () => {
       />,
     );
 
-    expect(screen.getAllByRole("row")).toHaveLength(15);
+    const headerRow = screen
+      .getByRole("columnheader", { name: "Name" })
+      .closest('[role="row"]');
+    expect(headerRow).not.toBeNull();
+    const dataRows = () =>
+      screen.getAllByRole("row").filter((row) => row !== headerRow);
+    expect(dataRows()).toHaveLength(15);
+    for (const row of rows) {
+      expect(screen.getByText(row.name)).toBeDefined();
+    }
     expect(screen.getByText("15 rows")).toBeDefined();
 
     fireEvent.change(screen.getByRole("textbox", { name: "Search grid" }), {
       target: { value: "Donor 14" },
     });
 
-    expect(screen.getAllByRole("row")).toHaveLength(1);
+    expect(dataRows()).toHaveLength(1);
     expect(screen.getByText("Donor 14")).toBeDefined();
     expect(screen.getByText("1 row")).toBeDefined();
+    for (const row of rows.slice(0, 14)) {
+      expect(screen.queryByText(row.name)).toBeNull();
+    }
   });
 });

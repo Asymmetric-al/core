@@ -94,7 +94,7 @@ export function PublicCmsMediaFigure({
         className="h-auto w-full rounded-xl object-cover"
       />
       {figcaption ? (
-        <figcaption className="text-center text-sm text-zinc-500">
+        <figcaption className="text-center text-sm text-muted-foreground">
           {figcaption}
         </figcaption>
       ) : null}

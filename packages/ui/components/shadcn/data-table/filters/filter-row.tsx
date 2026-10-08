@@ -111,7 +111,7 @@ export function FilterRow({
           handleFieldChange(newFieldId);
         }}
       >
-        <SelectTrigger aria-label="Filter field" className="h-8 w-40 text-sm">
+        <SelectTrigger aria-label="Filter field" size="sm">
           <SelectValue placeholder="Select field" />
         </SelectTrigger>
         <SelectContent>
@@ -136,10 +136,7 @@ export function FilterRow({
           handleOperatorChange(newOperator);
         }}
       >
-        <SelectTrigger
-          aria-label="Filter operator"
-          className="h-8 w-40 text-sm"
-        >
+        <SelectTrigger aria-label="Filter operator" size="sm">
           <SelectValue placeholder="Select operator" />
         </SelectTrigger>
         <SelectContent>
@@ -163,10 +160,9 @@ export function FilterRow({
       {showRemove && (
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           onClick={onRemove}
           aria-label={field ? `Remove ${field.label} filter` : "Remove filter"}
-          className="size-8 text-muted-foreground hover:text-destructive shrink-0"
         >
           <Trash2Icon className="size-4" />
         </Button>

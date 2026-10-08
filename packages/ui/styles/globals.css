@@ -31,6 +31,17 @@
   --color-border: var(--border);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-invert: var(--invert);
+  --color-invert-foreground: var(--invert-foreground);
+  --color-media-scrim: var(--media-scrim);
+  --color-media-foreground: var(--media-foreground);
+  --color-document-background: var(--document-background);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -215,6 +226,22 @@
   --destructive: oklch(0.55 0.2 25);
   --destructive-foreground: oklch(0.985 0.002 265);
 
+  /* ReUI semantic status names, reconciled with Core's Maia surfaces. */
+  --success: oklch(0.47 0.13 150);
+  --success-foreground: var(--primary-foreground);
+  --warning: oklch(0.46 0.1 70);
+  --warning-foreground: var(--primary-foreground);
+  --info: oklch(0.47 0.13 250);
+  --info-foreground: var(--primary-foreground);
+
+  /* Editorial inverse panels and image overlays stay dark in both modes. */
+  --invert: oklch(0.205 0.015 265);
+  --invert-foreground: oklch(0.985 0.002 265);
+  --media-scrim: oklch(0.1 0.005 265);
+  --media-foreground: oklch(0.985 0.002 265);
+  /* Exported documents keep their authored light canvas in either app mode. */
+  --document-background: oklch(1 0 0);
+
   --border: oklch(0.915 0.003 265);
   --input: oklch(0.915 0.003 265);
   --ring: oklch(0.205 0.015 265);
@@ -289,6 +316,18 @@
   --destructive: oklch(0.55 0.2 25);
   --destructive-foreground: oklch(0.985 0.002 265);
 
+  --success: oklch(0.76 0.13 150);
+  --success-foreground: var(--primary-foreground);
+  --warning: oklch(0.8 0.13 85);
+  --warning-foreground: var(--primary-foreground);
+  --info: oklch(0.76 0.11 250);
+  --info-foreground: var(--primary-foreground);
+  --invert: oklch(0.24 0.01 265);
+  --invert-foreground: oklch(0.985 0.002 265);
+  --media-scrim: oklch(0.1 0.005 265);
+  --media-foreground: oklch(0.985 0.002 265);
+  --document-background: oklch(1 0 0);
+
   --border: oklch(0.28 0.008 265);
   --input: oklch(0.28 0.008 265);
   --ring: oklch(0.94 0.002 265);
@@ -307,6 +346,11 @@
   --sidebar-accent-foreground: oklch(0.94 0.002 265);
   --sidebar-border: oklch(0.28 0.008 265);
   --sidebar-ring: oklch(0.94 0.002 265);
+}
+
+/* Preserve the task board's viewport allocation without arbitrary utilities. */
+@utility task-board-height {
+  height: calc(100vh - --spacing(80));
 }
 
 @layer base {

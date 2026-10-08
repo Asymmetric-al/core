@@ -58,25 +58,25 @@ const COLUMNS: {
     id: "not_started",
     label: "To Do",
     icon: Clock,
-    color: "text-zinc-500 bg-zinc-50",
+    color: "text-muted-foreground bg-muted",
   },
   {
     id: "in_progress",
     label: "In Progress",
     icon: AlertCircle,
-    color: "text-sky-600 bg-sky-50",
+    color: "text-info bg-info/10",
   },
   {
     id: "waiting",
     label: "Waiting",
     icon: PauseCircle,
-    color: "text-amber-600 bg-amber-50",
+    color: "text-warning bg-warning/10",
   },
   {
     id: "completed",
     label: "Done",
     icon: CheckCircle2,
-    color: "text-emerald-600 bg-emerald-50",
+    color: "text-success bg-success/10",
   },
 ];
 
@@ -195,7 +195,7 @@ export function TaskKanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-6 overflow-x-auto pb-6 h-[calc(100vh-320px)] min-h-125 items-start">
+      <div className="task-board-height flex min-h-125 items-start gap-4 overflow-x-auto pb-4">
         {COLUMNS.map((column) => (
           <KanbanColumn
             key={column.id}
@@ -263,7 +263,7 @@ function KanbanColumn({
   onCreateTask,
 }: KanbanColumnProps) {
   return (
-    <div className="flex flex-col w-80 shrink-0 h-full">
+    <div className="flex h-full w-80 max-w-full shrink-0 flex-col">
       <div className="flex items-center justify-between mb-4 px-2">
         <div className="flex items-center gap-2">
           <div className={cn("p-2 rounded-xl", color)}>
@@ -271,10 +271,10 @@ function KanbanColumn({
           </div>
           <h3
             aria-label={`${title} ${tasks.length}`}
-            className="text-xs font-semibold uppercase tracking-widest text-zinc-900"
+            className="text-sm font-semibold text-foreground"
           >
             {title}
-            <span className="ml-2 text-zinc-400 font-semibold">
+            <span className="ml-2 text-muted-foreground font-semibold">
               {tasks.length}
             </span>
           </h3>
@@ -285,7 +285,7 @@ function KanbanColumn({
           aria-label={`Add task to ${title}`}
           onClick={() => onCreateTask?.(id)}
         >
-          <Plus className="size-4 text-zinc-400" />
+          <Plus className="size-4 text-muted-foreground" />
         </Button>
       </div>
 
@@ -294,7 +294,7 @@ function KanbanColumn({
         items={tasks.map((t) => t.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-37.5 rounded-3xl group bg-zinc-100/30 p-2 border border-transparent hover:border-zinc-200/50 transition-colors">
+        <div className="group flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-muted/30 p-2">
           {tasks.map((task) => (
             <KanbanCard
               key={task.id}
@@ -305,7 +305,7 @@ function KanbanColumn({
             />
           ))}
           {tasks.length === 0 && (
-            <div className="h-24 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center text-xs font-semibold uppercase tracking-widest text-zinc-300">
+            <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
               Drop tasks here
             </div>
           )}
@@ -343,101 +343,101 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
       <div
         ref={setNodeRef}
         style={style}
-        className="h-35 rounded-2xl bg-zinc-100/50 border-2 border-dashed border-zinc-300"
+        className="h-35 rounded-2xl bg-muted/50 border-2 border-dashed border-border"
       />
     );
   }
 
   return (
-    <Card
+    <div
       ref={setNodeRef}
       style={style}
-      className={cn(
-        "rounded-2xl border-zinc-200/60 shadow-sm transition-shadow [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md group cursor-default select-none bg-white",
-        isOverlay && "shadow-2xl border-zinc-900/10 ring-1 ring-zinc-900/5",
-      )}
+      className="group select-none"
+      data-drag-overlay={isOverlay}
     >
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            aria-label={`Move ${task.title}`}
-            className="mt-1 cursor-grab active:cursor-grabbing hover:text-zinc-900 text-zinc-300"
-          >
-            <GripVertical className="size-4" />
-          </button>
-          <div className="flex-1">
-            <h4
-              className={cn(
-                "text-sm font-semibold leading-tight line-clamp-2",
-                task.status === "completed" && "text-zinc-400 line-through",
-              )}
-            >
-              {task.title}
-            </h4>
-          </div>
-          <div className="transition-opacity">
+      <Card>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-2">
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label={`Edit ${task.title}`}
-              onClick={() => onEdit(task)}
+              type="button"
+              {...attributes}
+              {...listeners}
+              aria-label={`Move ${task.title}`}
             >
-              <MoreHorizontal className="size-4 text-zinc-400" />
+              <GripVertical className="size-4" />
             </Button>
-          </div>
-        </div>
-
-        {task.description && (
-          <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed font-medium">
-            {task.description}
-          </p>
-        )}
-
-        <div className="flex flex-wrap gap-2 pt-1">
-          {task.priority !== "none" && (
-            <Badge
-              variant={task.priority === "high" ? "destructive" : "secondary"}
-            >
-              {task.priority}
-            </Badge>
-          )}
-          {task.due_date && (
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-100">
-              <Calendar className="size-3" />
-              {format(makeDisplayDate(task.due_date), "MMM d")}
+            <div className="min-w-0 flex-1">
+              <h4
+                className={cn(
+                  "text-sm font-semibold leading-tight line-clamp-2",
+                  task.status === "completed" &&
+                    "text-muted-foreground line-through",
+                )}
+              >
+                {task.title}
+              </h4>
             </div>
-          )}
-        </div>
+            <div className="transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Edit ${task.title}`}
+                onClick={() => onEdit(task)}
+              >
+                <MoreHorizontal className="size-4 text-muted-foreground" />
+              </Button>
+            </div>
+          </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-zinc-50">
-          <div className="flex items-center gap-2">
-            {task.donor && (
-              <div className="flex items-center gap-2 max-w-35">
-                <Avatar className="size-5 ring-2 ring-white">
-                  <AvatarImage src={task.donor.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-xs font-semibold uppercase">
-                    {task.donor.name[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 truncate">
-                  {task.donor.name}
-                </span>
+          {task.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium">
+              {task.description}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            {task.priority !== "none" && (
+              <Badge
+                variant={task.priority === "high" ? "destructive" : "secondary"}
+              >
+                {task.priority}
+              </Badge>
+            )}
+            {task.due_date && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-lg border border-border">
+                <Calendar className="size-3" />
+                {format(makeDisplayDate(task.due_date), "MMM d")}
               </div>
             )}
           </div>
 
-          <Button
-            variant={task.status === "completed" ? "secondary" : "ghost"}
-            size="xs"
-            onClick={() => onComplete(task)}
-          >
-            {task.status === "completed" ? "Done" : "Mark Done"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <div className="flex items-center gap-2">
+              {task.donor && (
+                <div className="flex items-center gap-2 max-w-35">
+                  <Avatar className="size-5">
+                    <AvatarImage src={task.donor.avatar_url ?? undefined} />
+                    <AvatarFallback>{task.donor.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-medium text-muted-foreground truncate">
+                    {task.donor.name}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <Button
+              variant={task.status === "completed" ? "secondary" : "ghost"}
+              size="xs"
+              onClick={() => onComplete(task)}
+            >
+              {task.status === "completed" ? "Done" : "Mark Done"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

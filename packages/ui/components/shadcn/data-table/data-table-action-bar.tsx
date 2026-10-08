@@ -5,14 +5,15 @@ import {
   LazyMotion,
   domAnimation,
   motion as m,
+  useReducedMotion,
 } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import { X } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
-import { Separator } from "../separator";
 import {
   areChromeTablePropsInterchangeable,
   areDataTableChromeActionsEqual,
@@ -45,6 +46,7 @@ function DataTableActionBarImpl<TData extends RowData>({
   actions,
   className,
 }: DataTableActionBarProps<TData>) {
+  const reduceMotion = useReducedMotion();
   // Focused subscriptions: the memo comparator below keeps parent broadcasts out,
   // so every state slice this chrome reads needs its own subscription.
   const atoms = getTableSliceAtoms(table);
@@ -75,13 +77,16 @@ function DataTableActionBarImpl<TData extends RowData>({
     <LazyMotion features={domAnimation}>
       <AnimatePresence>
         <m.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
+          exit={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+          transition={reduceMotion ? { duration: 0 } : transitionStandard}
+          role="toolbar"
+          aria-label="Selected record actions"
           className={cn(
-            "fixed bottom-6 left-1/2 -translate-x-1/2 z-50",
-            "flex items-center gap-3 px-4 py-3",
-            "bg-primary text-primary-foreground",
+            "fixed inset-x-4 bottom-6 z-50 mx-auto w-fit max-w-full",
+            "flex flex-wrap items-center justify-center gap-3 px-4 py-3",
+            "bg-invert text-invert-foreground",
             "rounded-2xl shadow-2xl",
             className,
           )}
@@ -92,22 +97,21 @@ function DataTableActionBarImpl<TData extends RowData>({
           </div>
           {hasActions && (
             <>
-              <Separator
-                orientation="vertical"
-                className="h-5 bg-primary-foreground/20"
+              <span
+                aria-hidden="true"
+                className="h-5 w-px bg-invert-foreground/20"
               />
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center justify-center gap-1">
                 {visibleActions.map((action) => (
                   <Button
                     key={action.label}
-                    variant="ghost"
+                    variant={
+                      action.variant === "destructive"
+                        ? "ghost-inverse-destructive"
+                        : "ghost-inverse"
+                    }
                     size="sm"
                     onClick={() => action.onClick(selectedOriginalRows)}
-                    className={cn(
-                      "h-8 gap-2 rounded-xl text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
-                      action.variant === "destructive" &&
-                        "hover:bg-destructive/20",
-                    )}
                   >
                     {action.icon && (
                       <action.icon className="size-4" aria-hidden="true" />
@@ -116,17 +120,16 @@ function DataTableActionBarImpl<TData extends RowData>({
                   </Button>
                 ))}
               </div>
-              <Separator
-                orientation="vertical"
-                className="h-5 bg-primary-foreground/20"
+              <span
+                aria-hidden="true"
+                className="h-5 w-px bg-invert-foreground/20"
               />
             </>
           )}
           <Button
-            variant="ghost"
-            size="icon"
+            variant="ghost-inverse"
+            size="icon-sm"
             onClick={() => table.toggleAllPageRowsSelected(false)}
-            className="size-8 rounded-xl text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
           >
             <X className="size-4" aria-hidden="true" />
             <span className="sr-only">Clear selection</span>

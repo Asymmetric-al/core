@@ -11,13 +11,23 @@ export const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
         outline:
           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        upload:
+          "flex-col gap-2 rounded-full border border-dashed bg-background text-muted-foreground hover:bg-accent data-dragging:border-ring data-dragging:bg-accent",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        "ghost-inverse":
+          "text-invert-foreground hover:bg-invert-foreground/10 hover:text-invert-foreground",
+        "ghost-inverse-destructive":
+          "text-invert-foreground hover:bg-destructive/20 hover:text-invert-foreground",
+        inverse:
+          "bg-invert-foreground text-invert hover:bg-invert-foreground/90",
+        "outline-inverse":
+          "border border-invert-foreground/20 bg-invert-foreground/5 text-invert-foreground hover:bg-invert-foreground/10 hover:text-invert-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         // Maia: hover scale gated for fine pointers via .hover-scale-subtle;
         // press from base .press-feedback. Semantic colors from shadcn audit.
@@ -34,6 +44,7 @@ export const buttonVariants = cva(
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
         "icon-lg": "size-10",
+        avatar: "size-24",
       },
     },
     defaultVariants: {

@@ -32,7 +32,7 @@ export interface AppIconProps extends React.ComponentPropsWithoutRef<"svg"> {
  * - Standard tween (duration-standard, ease-out-soft) instead of a
  *   spring — this is a high-frequency surface (admin/missionary
  *   sidebar) that should feel calm, not bouncy.
- * - Reduced motion: render the static icon, no entrance.
+ * - Reduced motion: keep the same wrapper and render without an entrance.
  */
 export const AppIcon = React.memo(function AppIcon({
   icon: Icon,
@@ -44,9 +44,7 @@ export const AppIcon = React.memo(function AppIcon({
 }: AppIconProps) {
   const reduceMotion = useReducedMotion();
 
-  // Graceful fallback: when not animated or when the user prefers reduced
-  // motion, render the standard icon.
-  if (!animated || reduceMotion) {
+  if (!animated) {
     return (
       <Icon
         className={cn("shrink-0", className)}
@@ -63,9 +61,9 @@ export const AppIcon = React.memo(function AppIcon({
   return (
     <LazyMotion features={domAnimation}>
       <m.span
-        initial={{ scale: 0.96, opacity: 0.7 }}
+        initial={false}
         animate={{ scale: 1, opacity: 1 }}
-        transition={transitionStandard}
+        transition={reduceMotion ? { duration: 0 } : transitionStandard}
         className={cn(
           "inline-flex shrink-0 items-center justify-center",
           className,

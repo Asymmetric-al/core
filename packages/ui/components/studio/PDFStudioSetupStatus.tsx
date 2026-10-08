@@ -20,7 +20,7 @@ import {
   Check,
   Info,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
@@ -41,22 +41,22 @@ import { cn } from "@asym/ui/lib/utils";
 
 const pdfStudioStatusConfig = {
   not_configured: {
-    color: "bg-amber-50 text-amber-700 border-amber-200",
+    color: "bg-warning/10 text-warning border-warning/20",
     icon: AlertCircle,
     label: "Free Mode",
   },
   free_tier: {
-    color: "bg-amber-50 text-amber-700 border-amber-200",
+    color: "bg-warning/10 text-warning border-warning/20",
     icon: AlertCircle,
     label: "Free Tier",
   },
   configured: {
-    color: "bg-blue-50 text-blue-700 border-blue-200",
+    color: "bg-info/10 text-info border-info/20",
     icon: CheckCircle2,
     label: "Configured",
   },
   white_label: {
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "bg-success/10 text-success border-success/20",
     icon: Crown,
     label: "White Label",
   },
@@ -97,7 +97,7 @@ export function PDFStudioSetupStatus({
             </button>
           }
         />
-        <DialogContent className="sm:max-w-125">
+        <DialogContent scrollable className="sm:max-w-125">
           <DialogHeader>
             <DialogTitle>PDF Studio Configuration</DialogTitle>
             <DialogDescription>{status.message}</DialogDescription>
@@ -112,7 +112,7 @@ export function PDFStudioSetupStatus({
     return (
       <div
         className={cn(
-          "flex items-center justify-between gap-4 px-4 py-2 rounded-lg border",
+          "flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3",
           currentStatus.color,
           className,
         )}
@@ -125,13 +125,13 @@ export function PDFStudioSetupStatus({
           <Dialog>
             <DialogTrigger
               render={
-                <Button variant="outline" size="sm" className="h-7">
+                <Button variant="outline" size="sm">
                   <Settings className="size-3.5 mr-1.5" />
                   Setup
                 </Button>
               }
             />
-            <DialogContent className="sm:max-w-125">
+            <DialogContent scrollable className="sm:max-w-125">
               <DialogHeader>
                 <DialogTitle>PDF Studio Configuration</DialogTitle>
                 <DialogDescription>
@@ -165,15 +165,46 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
   );
   const [isWhiteLabelOpen, setIsWhiteLabelOpen] = useState(false);
   const [copiedStep, setCopiedStep] = useState<number | null>(null);
+  const [copyingStep, setCopyingStep] = useState<number | null>(null);
+  const [copyError, setCopyError] = useState<string | null>(null);
+  const copiedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleCopy = (text: string, step: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedStep(step);
-    setTimeout(() => setCopiedStep(null), 2000);
+  useEffect(
+    () => () => {
+      if (copiedTimeout.current) clearTimeout(copiedTimeout.current);
+    },
+    [],
+  );
+
+  const handleCopy = async (text: string, step: number) => {
+    if (copyingStep !== null) return;
+    if (copiedTimeout.current) clearTimeout(copiedTimeout.current);
+    setCopyingStep(step);
+    setCopiedStep(null);
+    setCopyError(null);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedStep(step);
+      copiedTimeout.current = setTimeout(() => setCopiedStep(null), 2000);
+    } catch {
+      setCopyError(
+        "Could not copy the setting. Select the code and copy it manually.",
+      );
+    } finally {
+      setCopyingStep(null);
+    }
   };
 
   return (
     <div className="space-y-4">
+      {copyError && (
+        <p role="alert" className="text-sm text-destructive">
+          {copyError}
+        </p>
+      )}
+      <p role="status" className="sr-only">
+        {copiedStep !== null ? "Setting copied to clipboard." : ""}
+      </p>
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 rounded-lg bg-muted/50 border border-border">
           <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
@@ -199,11 +230,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
         </div>
         <div className="flex flex-wrap gap-1.5">
           {status.features.map((feature) => (
-            <Badge
-              key={feature}
-              variant="outline"
-              className="bg-emerald-50 text-emerald-700 border-emerald-200"
-            >
+            <Badge key={feature} variant="success">
               <CheckCircle2 className="size-3 mr-1" />
               {feature}
             </Badge>
@@ -212,11 +239,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
         {status.missingFeatures.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {status.missingFeatures.map((feature) => (
-              <Badge
-                key={feature}
-                variant="outline"
-                className="bg-muted text-muted-foreground"
-              >
+              <Badge key={feature} variant="secondary">
                 <Zap className="size-3 mr-1 opacity-50" />
                 {feature}
               </Badge>
@@ -269,17 +292,19 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                       )}
                       {step.code && (
                         <div className="mt-2 flex items-center gap-2">
-                          <code className="flex-1 text-xs bg-foreground text-background px-2 py-1.5 rounded font-mono">
+                          <code className="min-w-0 flex-1 break-all rounded bg-invert px-2 py-1.5 font-mono text-xs text-invert-foreground">
                             {step.code}
                           </code>
                           <Button
                             variant="ghost"
-                            size="sm"
-                            className="size-7 p-0"
+                            size="icon-sm"
+                            aria-label={`Copy ${step.title} setting`}
+                            disabled={copyingStep !== null}
+                            aria-busy={copyingStep === step.step}
                             onClick={() => handleCopy(step.code!, step.step)}
                           >
                             {copiedStep === step.step ? (
-                              <Check className="size-3.5 text-emerald-600" />
+                              <Check className="size-3.5 text-success" />
                             ) : (
                               <Copy className="size-3.5" />
                             )}
@@ -350,19 +375,21 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                         )}
                         {step.code && (
                           <div className="mt-2 flex items-center gap-2">
-                            <code className="flex-1 text-xs bg-foreground text-background px-2 py-1.5 rounded font-mono">
+                            <code className="min-w-0 flex-1 break-all rounded bg-invert px-2 py-1.5 font-mono text-xs text-invert-foreground">
                               {step.code}
                             </code>
                             <Button
                               variant="ghost"
-                              size="sm"
-                              className="size-7 p-0"
+                              size="icon-sm"
+                              aria-label={`Copy ${step.title} setting`}
+                              disabled={copyingStep !== null}
+                              aria-busy={copyingStep === step.step + 10}
                               onClick={() =>
                                 handleCopy(step.code!, step.step + 10)
                               }
                             >
                               {copiedStep === step.step + 10 ? (
-                                <Check className="size-3.5 text-emerald-600" />
+                                <Check className="size-3.5 text-success" />
                               ) : (
                                 <Copy className="size-3.5" />
                               )}
@@ -374,7 +401,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                             href={step.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 mt-1"
+                            className="mt-1 inline-flex items-center gap-1 text-xs text-warning hover:underline"
                           >
                             View Pricing
                             <ExternalLink className="size-3" />
@@ -400,8 +427,8 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
           </div>
           <div className="flex flex-wrap gap-1.5">
             {config.allowedDomains.map((domain) => (
-              <Badge key={domain} variant="outline" className="font-mono">
-                {domain}
+              <Badge key={domain} variant="outline">
+                <span className="font-mono">{domain}</span>
               </Badge>
             ))}
           </div>
@@ -432,13 +459,7 @@ export function PDFStudioConfigBadge({ className }: { className?: string }) {
 
   if (config.isWhiteLabel) {
     return (
-      <Badge
-        variant="outline"
-        className={cn(
-          "bg-emerald-50 text-emerald-700 border-emerald-200",
-          className,
-        )}
-      >
+      <Badge variant="success" className={className}>
         <Crown className="size-3 mr-1" />
         White Label
       </Badge>
@@ -447,10 +468,7 @@ export function PDFStudioConfigBadge({ className }: { className?: string }) {
 
   if (config.isConfigured) {
     return (
-      <Badge
-        variant="outline"
-        className={cn("bg-blue-50 text-blue-700 border-blue-200", className)}
-      >
+      <Badge variant="info" className={className}>
         <CheckCircle2 className="size-3 mr-1" />
         Configured
       </Badge>
@@ -458,10 +476,7 @@ export function PDFStudioConfigBadge({ className }: { className?: string }) {
   }
 
   return (
-    <Badge
-      variant="outline"
-      className={cn("bg-amber-50 text-amber-700 border-amber-200", className)}
-    >
+    <Badge variant="warning" className={className}>
       <AlertCircle className="size-3 mr-1" />
       Free Mode
     </Badge>

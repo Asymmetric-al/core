@@ -17,7 +17,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 
 export interface EmailStudioMergeTagMenuProps {
   onInsert: (key: string) => void;
@@ -57,35 +61,35 @@ export function EmailStudioMergeTagMenu({
           </Button>
         }
       />
-      <DropdownMenuContent align="end" className="w-72">
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Insert merge tag</DropdownMenuLabel>
-          <div className="px-2 pb-2">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 text-muted-foreground size-3.5" />
-              <Input
+          <div className="w-72 px-2 pb-2">
+            <InputGroup>
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                aria-label="Search merge tags"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search tags"
-                className="h-8 pl-8"
               />
-            </div>
+            </InputGroup>
           </div>
 
           <DropdownMenuSeparator />
           <div className="max-h-80 overflow-y-auto">
             {tags.map((tag) => (
-              <DropdownMenuItem
-                key={tag.key}
-                className="flex flex-col items-start gap-0.5"
-                onClick={() => onInsert(tag.key)}
-              >
-                <span className="font-medium">{tag.label}</span>
-                <span className="text-xs text-muted-foreground">
-                  {"{{"}
-                  {tag.key}
-                  {"}}"} · {tag.category}
-                </span>
+              <DropdownMenuItem key={tag.key} onClick={() => onInsert(tag.key)}>
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className="font-medium">{tag.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {"{{"}
+                    {tag.key}
+                    {"}}"} · {tag.category}
+                  </span>
+                </div>
               </DropdownMenuItem>
             ))}
             {tags.length === 0 && (

@@ -22,7 +22,6 @@ import {
   getDefaultOperator,
   getDefaultValue,
 } from "./types";
-import { mergeBaseUIClassName } from "../../../../lib/base-ui";
 import { Badge } from "../../badge";
 import { Button } from "../../button";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
@@ -83,7 +82,7 @@ export function FilterBuilder({
               combined with AND/OR logic.
             </SheetDescription>
           </SheetHeader>
-          <div className="py-4 overflow-y-auto max-h-[calc(100vh-200px)]">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             {content}
           </div>
           <SheetFooter>
@@ -110,7 +109,7 @@ export function FilterBuilder({
           />
         }
       />
-      <PopoverContent className="w-auto min-w-100 max-w-150 p-4" align={align}>
+      <PopoverContent className="w-100" align={align}>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Filters</h4>
@@ -119,7 +118,6 @@ export function FilterBuilder({
                 variant="ghost"
                 size="sm"
                 onClick={() => onChange(createEmptyFilterState())}
-                className="h-7 text-xs"
               >
                 Clear all
               </Button>
@@ -147,25 +145,10 @@ function FilterTriggerButton({
   ...props
 }: FilterTriggerButtonProps) {
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      className={mergeBaseUIClassName(
-        "h-9 gap-2 rounded-xl border-dashed",
-        className,
-      )}
-      {...props}
-    >
+    <Button variant="outline" size="sm" className={className} {...props}>
       <FilterIcon className="size-4" />
       <span>Filters</span>
-      {activeCount > 0 && (
-        <Badge
-          variant="secondary"
-          className="rounded-lg px-1.5 py-0 text-xs font-normal"
-        >
-          {activeCount}
-        </Badge>
-      )}
+      {activeCount > 0 && <Badge variant="secondary">{activeCount}</Badge>}
     </Button>
   );
 }
@@ -270,12 +253,7 @@ function FilterBuilderContent({
           {index > 0 && (
             <div className="flex items-center gap-2 py-1">
               <Separator className="flex-1" />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLogic}
-                className="h-6 px-2 text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
+              <Button variant="ghost" size="xs" onClick={toggleLogic}>
                 {value.logic.toUpperCase()}
               </Button>
               <Separator className="flex-1" />
@@ -296,7 +274,7 @@ function FilterBuilderContent({
         variant="ghost"
         size="sm"
         onClick={addCondition}
-        className="h-8 w-full text-muted-foreground hover:text-foreground"
+        className="w-full"
       >
         <PlusIcon className="size-4 mr-1" />
         Add filter
@@ -344,11 +322,7 @@ export function ActiveFilters({
         if (!field) return null;
 
         return (
-          <Badge
-            key={condition.id}
-            variant="secondary"
-            className="rounded-lg pl-2 pr-1 py-1 gap-1 font-normal"
-          >
+          <Badge key={condition.id} variant="secondary">
             {index > 0 && (
               <span className="text-xs text-muted-foreground mr-1">
                 {value.logic.toUpperCase()}
@@ -359,24 +333,21 @@ export function ActiveFilters({
               {getOperatorLabel(condition.operator)}
             </span>
             <span>{formatFilterValue(condition.value, field, formatDate)}</span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               onClick={() => removeCondition(condition.id)}
               aria-label={`Remove ${field.label} filter`}
-              className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+              className="ml-1"
             >
               <XIcon className="size-3" />
-            </button>
+            </Button>
           </Badge>
         );
       })}
       {value.conditions.length > 1 && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={clearAll}
-          className="h-7 text-xs text-muted-foreground"
-        >
+        <Button variant="ghost" size="sm" onClick={clearAll}>
           Clear all
         </Button>
       )}

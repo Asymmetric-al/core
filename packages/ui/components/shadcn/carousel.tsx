@@ -194,8 +194,9 @@ function CarouselPrevious({
   className,
   variant = "outline",
   size = "icon",
+  placement = "outside",
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof Button> & { placement?: "outside" | "inside" }) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
   return (
@@ -207,8 +208,12 @@ function CarouselPrevious({
         cn(
           "absolute size-8 rounded-full",
           orientation === "horizontal"
-            ? "top-1/2 -left-12 -translate-y-1/2"
-            : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
+            ? placement === "inside"
+              ? "top-1/2 left-2 -translate-y-1/2 sm:left-4"
+              : "top-1/2 -left-12 -translate-y-1/2"
+            : placement === "inside"
+              ? "top-2 left-1/2 -translate-x-1/2 rotate-90"
+              : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
         ),
         className,
       )}
@@ -226,8 +231,9 @@ function CarouselNext({
   className,
   variant = "outline",
   size = "icon",
+  placement = "outside",
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof Button> & { placement?: "outside" | "inside" }) {
   const { orientation, scrollNext, canScrollNext } = useCarousel();
 
   return (
@@ -239,8 +245,12 @@ function CarouselNext({
         cn(
           "absolute size-8 rounded-full",
           orientation === "horizontal"
-            ? "top-1/2 -right-12 -translate-y-1/2"
-            : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
+            ? placement === "inside"
+              ? "top-1/2 right-2 -translate-y-1/2 sm:right-4"
+              : "top-1/2 -right-12 -translate-y-1/2"
+            : placement === "inside"
+              ? "bottom-2 left-1/2 -translate-x-1/2 rotate-90"
+              : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
         ),
         className,
       )}

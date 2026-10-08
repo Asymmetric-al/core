@@ -65,8 +65,8 @@ export function EmailStudioPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] max-w-5xl flex-col overflow-hidden p-0">
-        <DialogHeader className="border-b px-5 py-4">
+      <DialogContent scrollable className="max-w-5xl">
+        <DialogHeader>
           <DialogTitle>Email preview</DialogTitle>
           <DialogDescription>
             {subject || "Untitled email"}
@@ -86,7 +86,7 @@ export function EmailStudioPreviewDialog({
           defaultValue="rendered"
           className="min-h-0 flex-1 overflow-hidden px-5 pb-5"
         >
-          <div className="flex items-center justify-between py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 py-3">
             <TabsList>
               <TabsTrigger value="rendered">
                 <Monitor />
@@ -124,27 +124,34 @@ export function EmailStudioPreviewDialog({
           </div>
 
           <TabsContent value="rendered" className="min-h-0 overflow-auto">
-            <div className="flex min-h-[560px] justify-center rounded-md border bg-muted/50 p-4">
+            <div
+              className={cn(
+                "flex min-h-140 justify-center rounded-md border bg-muted/50 p-4",
+                device === "mobile" ? "min-w-fit" : "min-w-0",
+              )}
+            >
               <iframe
                 sandbox="allow-same-origin"
                 srcDoc={html}
                 title="Email preview"
                 className={cn(
-                  "h-[560px] rounded-sm border bg-white shadow-sm",
-                  device === "mobile" ? "w-[390px]" : "w-full max-w-[760px]",
+                  "h-140 rounded-sm border bg-document-background shadow-sm scheme-light",
+                  device === "mobile"
+                    ? "w-97.5 shrink-0"
+                    : "min-w-0 w-full max-w-190",
                 )}
               />
             </div>
           </TabsContent>
 
           <TabsContent value="html" className="min-h-0 overflow-auto">
-            <pre className="max-h-[560px] overflow-auto rounded-md border bg-muted p-4 text-xs leading-relaxed">
+            <pre className="max-h-140 overflow-auto rounded-md border bg-muted p-4 text-xs leading-relaxed">
               {html}
             </pre>
           </TabsContent>
 
           <TabsContent value="text" className="min-h-0 overflow-auto">
-            <pre className="max-h-[560px] whitespace-pre-wrap overflow-auto rounded-md border bg-muted p-4 text-sm leading-relaxed">
+            <pre className="max-h-140 whitespace-pre-wrap overflow-auto rounded-md border bg-muted p-4 text-sm leading-relaxed">
               {text}
             </pre>
           </TabsContent>

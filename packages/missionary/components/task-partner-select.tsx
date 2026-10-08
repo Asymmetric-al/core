@@ -18,7 +18,6 @@ import {
   createComboboxItems,
 } from "@asym/ui/components/shadcn/combobox";
 import { InputGroup } from "@asym/ui/components/shadcn/input-group";
-import { cn } from "@asym/ui/lib/utils";
 import { Check, ChevronsUpDown, Loader2, User, X } from "lucide-react";
 import { useId, useMemo, useRef } from "react";
 
@@ -50,7 +49,7 @@ function PartnerAvatar({
   return (
     <Avatar className={size === "sm" ? "size-6" : "size-8"}>
       <AvatarImage src={donor.avatar_url || undefined} />
-      <AvatarFallback className="bg-muted text-xs font-bold">
+      <AvatarFallback>
         {donor.name
           .split(" ")
           .map((name) => name[0])
@@ -88,10 +87,7 @@ export function TaskPartnerSelect({
 
   return (
     <div className="grid gap-2">
-      <span
-        id={labelId}
-        className="text-xs font-black uppercase tracking-widest text-muted-foreground"
-      >
+      <span id={labelId} className="text-sm font-medium text-foreground">
         Associated Partner
       </span>
       <Combobox
@@ -115,31 +111,30 @@ export function TaskPartnerSelect({
         }
       >
         <div className="flex min-w-0 items-center gap-2">
-          <ComboboxTrigger
-            ref={triggerRef}
-            aria-labelledby={labelId}
-            aria-describedby={hintId}
-            render={<Button variant="outline" />}
-            className={cn(
-              "h-12 min-w-0 flex-1 justify-between rounded-xl border-transparent bg-muted font-medium hover:bg-accent",
-              !value && "text-muted-foreground",
-            )}
-          >
-            {selectedDonor ? (
-              <span className="flex min-w-0 items-center gap-2">
-                <PartnerAvatar donor={selectedDonor} size="sm" />
-                <span className="truncate">{selectedDonor.name}</span>
-              </span>
-            ) : (
-              <span className="flex min-w-0 items-center gap-2">
-                <User className="size-4" />
-                <span className="truncate">
-                  {value ? "Selected partner" : "Select partner (optional)"}
+          <div className="min-w-0 flex-1">
+            <ComboboxTrigger
+              ref={triggerRef}
+              aria-labelledby={labelId}
+              aria-describedby={hintId}
+              render={<Button variant="outline" />}
+              className="w-full"
+            >
+              {selectedDonor ? (
+                <span className="flex min-w-0 items-center gap-2">
+                  <PartnerAvatar donor={selectedDonor} size="sm" />
+                  <span className="truncate">{selectedDonor.name}</span>
                 </span>
-              </span>
-            )}
-            <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
-          </ComboboxTrigger>
+              ) : (
+                <span className="flex min-w-0 items-center gap-2">
+                  <User className="size-4" />
+                  <span className="truncate">
+                    {value ? "Selected partner" : "Select partner (optional)"}
+                  </span>
+                </span>
+              )}
+              <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
+            </ComboboxTrigger>
+          </div>
           {value && (
             <Button
               type="button"
@@ -156,16 +151,15 @@ export function TaskPartnerSelect({
             </Button>
           )}
         </div>
-        <ComboboxContent
-          aria-labelledby={labelId}
-          className="w-[400px] rounded-xl p-0"
-        >
-          <InputGroup className="m-2 w-auto">
-            <ComboboxInput
-              aria-label="Search partners"
-              placeholder="Search partners..."
-            />
-          </InputGroup>
+        <ComboboxContent aria-labelledby={labelId}>
+          <div className="m-2">
+            <InputGroup>
+              <ComboboxInput
+                aria-label="Search partners"
+                placeholder="Search partners..."
+              />
+            </InputGroup>
+          </div>
           <ComboboxEmpty>
             {loading ? (
               <span
@@ -181,11 +175,7 @@ export function TaskPartnerSelect({
           </ComboboxEmpty>
           <ComboboxList>
             {(donor: TaskPartner) => (
-              <ComboboxItem
-                key={donor.id}
-                value={donor.id}
-                className="rounded-lg"
-              >
+              <ComboboxItem key={donor.id} value={donor.id}>
                 <PartnerAvatar donor={donor} size="md" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">

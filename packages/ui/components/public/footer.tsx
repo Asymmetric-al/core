@@ -149,19 +149,19 @@ const legalLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-zinc-950 text-white py-12 sm:py-16 lg:py-24 border-t border-white/5">
+    <footer className="bg-invert text-invert-foreground py-12 sm:py-16 lg:py-24 border-t border-invert-foreground/5">
       <div className="container-responsive">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-12 mb-12 lg:mb-16">
           <div className="sm:col-span-2 lg:col-span-1 space-y-4 sm:space-y-6">
             <Link href="/" className="flex items-center gap-2">
-              <div className="size-8 bg-white text-zinc-950 rounded-lg flex items-center justify-center font-semibold text-sm">
+              <div className="size-8 bg-invert-foreground text-invert rounded-lg flex items-center justify-center font-semibold text-sm">
                 GH
               </div>
               <span className="font-semibold text-lg tracking-tight">
                 GIVE<span className="font-light opacity-60">HOPE</span>
               </span>
             </Link>
-            <p className="text-zinc-400 text-sm leading-relaxed max-w-xs">
+            <p className="text-invert-foreground/75 text-sm leading-relaxed max-w-xs">
               Bridging the gap between compassion and action. Supporting
               verified field partners in the world&apos;s most fractured
               regions.
@@ -170,19 +170,19 @@ export function Footer() {
 
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h2 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
+              <h2 className="font-semibold text-xs uppercase tracking-widest mb-4 sm:mb-6 lg:mb-8 text-invert-foreground/75">
                 {section.title}
               </h2>
-              <ul className="space-y-3 sm:space-y-4 text-sm font-medium text-zinc-300">
+              <ul className="space-y-3 sm:space-y-4 text-sm font-medium text-invert-foreground/85">
                 {section.links.map((link) => (
                   <li key={link.href + link.label}>
                     <Link
                       href={link.href}
-                      className="hover:text-white transition-colors touch-target inline-flex items-center gap-2"
+                      className="hover:text-invert-foreground transition-colors touch-target inline-flex items-center gap-2"
                     >
                       {link.label}
                       {link.badge && (
-                        <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded text-white/50">
+                        <span className="text-xs bg-invert-foreground/10 px-1.5 py-0.5 rounded text-invert-foreground/75">
                           {link.badge}
                         </span>
                       )}
@@ -196,7 +196,7 @@ export function Footer() {
           <div>
             {socialLinks.length > 0 && (
               <>
-                <h2 className="font-semibold text-xs uppercase tracking-[0.2em] mb-4 sm:mb-6 lg:mb-8 text-white/60">
+                <h2 className="font-semibold text-xs uppercase tracking-widest mb-4 sm:mb-6 lg:mb-8 text-invert-foreground/75">
                   Connect
                 </h2>
                 <div className="flex flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -205,7 +205,7 @@ export function Footer() {
                       key={label}
                       href={href}
                       aria-label={label}
-                      className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/20 transition-colors touch-target"
+                      className="size-10 rounded-full border border-invert-foreground/10 flex items-center justify-center hover:bg-invert-foreground/5 hover:border-invert-foreground/20 transition-colors touch-target"
                     >
                       <Icon className="size-4" />
                     </a>
@@ -213,30 +213,30 @@ export function Footer() {
                 </div>
               </>
             )}
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-invert-foreground/75">
               © 2025 GiveHope. <br className="sm:hidden" />
               Registered 501(c)(3) nonprofit.
             </p>
           </div>
         </div>
 
-        <div className="pt-8 sm:pt-12 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
+        <div className="pt-8 sm:pt-12 border-t border-invert-foreground/5 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
           <a
             href="https://asymmetric.al/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors touch-target"
+            className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-invert-foreground/75 hover:text-invert-foreground transition-colors touch-target"
           >
             Made with{" "}
-            <HeartIcon className="size-3 text-rose-500 fill-current" /> by
-            Asymmetric.al
+            <HeartIcon className="size-3 text-invert-foreground fill-current" />{" "}
+            by Asymmetric.al
           </a>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-xs font-semibold uppercase tracking-widest text-invert-foreground/75">
             {legalLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="hover:text-white transition-colors touch-target"
+                className="hover:text-invert-foreground transition-colors touch-target"
               >
                 {link.label}
               </Link>

@@ -61,17 +61,18 @@ function FilterSearch({
   inputRef?: Ref<HTMLInputElement>;
 }) {
   return (
-    <InputGroup className="m-2 mb-0 h-10 w-auto rounded-xl border-2 border-border/70 bg-background shadow-none">
-      <InputGroupAddon>
-        <Search className="text-muted-foreground/60" />
-      </InputGroupAddon>
-      <ComboboxInput
-        ref={inputRef}
-        aria-label={`Search ${label}`}
-        placeholder="Search..."
-        className="text-sm"
-      />
-    </InputGroup>
+    <div className="m-2 mb-0">
+      <InputGroup>
+        <InputGroupAddon>
+          <Search className="text-muted-foreground/60" />
+        </InputGroupAddon>
+        <ComboboxInput
+          ref={inputRef}
+          aria-label={`Search ${label}`}
+          placeholder="Search..."
+        />
+      </InputGroup>
+    </div>
   );
 }
 
@@ -79,7 +80,7 @@ function FilterOptions({ multiple = false }: { multiple?: boolean }) {
   return (
     <>
       <ComboboxEmpty>No options found.</ComboboxEmpty>
-      <ComboboxList className="p-2">
+      <ComboboxList>
         {(option: FilterOption) => (
           <ComboboxItem key={option.value} value={option.value}>
             <span
@@ -132,11 +133,7 @@ export function FilterSelectInput({
       <ComboboxTrigger
         aria-label={field.label}
         render={<Button variant="outline" />}
-        className={cn(
-          "h-9 w-45 justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
-          !selectedOption && "text-muted-foreground",
-          className,
-        )}
+        className={className}
       >
         <span className="truncate">
           {selectedOption ? (
@@ -152,11 +149,7 @@ export function FilterSelectInput({
         </span>
         <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
       </ComboboxTrigger>
-      <ComboboxContent
-        aria-label={field.label}
-        className="w-55 overflow-hidden rounded-2xl bg-popover p-0"
-        sideOffset={8}
-      >
+      <ComboboxContent aria-label={field.label} sideOffset={8}>
         <FilterSearch label={field.label} />
         <FilterOptions />
       </ComboboxContent>
@@ -202,11 +195,7 @@ export function FilterMultiSelectInput({
         {selectedOptions.length > 0 && selectedOptions.length <= 2 && (
           <div className="flex flex-wrap gap-1 py-0.5">
             {selectedOptions.map((option) => (
-              <Badge
-                key={option.value}
-                variant="secondary"
-                className="rounded-md px-1.5 py-0 text-xs font-normal"
-              >
+              <Badge key={option.value} variant="secondary">
                 {option.label}
                 <Button
                   variant="ghost"
@@ -220,7 +209,7 @@ export function FilterMultiSelectInput({
                     );
                     triggerRef.current?.focus();
                   }}
-                  className="ml-1 size-4 rounded-full p-0 hover:bg-muted-foreground/20"
+                  className="ml-1"
                 >
                   <X className="size-3" />
                 </Button>
@@ -231,19 +220,10 @@ export function FilterMultiSelectInput({
         <ComboboxTrigger
           ref={triggerRef}
           aria-label={field.label}
-          render={<Button variant="ghost" />}
-          className={cn(
-            "h-8 min-w-0 flex-1 justify-between rounded-xl p-0 text-sm font-normal hover:bg-transparent",
-            !selectedOptions.length && "text-muted-foreground",
-          )}
+          render={<Button variant="ghost" size="sm" className="grow" />}
         >
           {selectedOptions.length > 2 ? (
-            <Badge
-              variant="secondary"
-              className="rounded-md px-1.5 py-0 text-xs font-normal"
-            >
-              {selectedOptions.length} selected
-            </Badge>
+            <Badge variant="secondary">{selectedOptions.length} selected</Badge>
           ) : !selectedOptions.length ? (
             <span>{field.placeholder ?? "Select options..."}</span>
           ) : null}
@@ -253,7 +233,6 @@ export function FilterMultiSelectInput({
       <ComboboxContent
         anchor={anchorRef}
         aria-label={field.label}
-        className="w-65 overflow-hidden rounded-2xl bg-popover p-0"
         sideOffset={8}
       >
         <FilterSearch label={field.label} inputRef={searchInputRef} />
@@ -267,7 +246,7 @@ export function FilterMultiSelectInput({
                 searchInputRef.current?.focus();
                 onChange([]);
               }}
-              className="h-8 w-full rounded-xl text-xs font-medium"
+              className="w-full"
             >
               Clear all
             </Button>
