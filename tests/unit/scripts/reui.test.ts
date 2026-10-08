@@ -651,6 +651,26 @@ describe("ReUI readiness verification", () => {
     },
   );
 
+  it.each([
+    [null, "null"],
+    [undefined, "undefined"],
+  ])(
+    "reports a nullish transport rejection (%s) without masking it",
+    async (rejection, expectedMessage) => {
+      const { root } = fixture();
+      const fetchImpl = vi.fn().mockRejectedValue(rejection);
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toMatchObject({ message: expectedMessage });
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it("redacts a credential if a transport exception includes it", async () => {
     const { root } = fixture();
     const fetchImpl = vi.fn(async () => {
