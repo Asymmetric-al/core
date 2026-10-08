@@ -670,7 +670,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4"
+          "sha256": "ace31510dde1aaf92688f6cc0f9b8af01c25c46996a79b90b0c9392e708b20b6"
         },
         {
           "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
@@ -716,7 +716,7 @@
         },
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4"
+          "sha256": "ace31510dde1aaf92688f6cc0f9b8af01c25c46996a79b90b0c9392e708b20b6"
         },
         {
           "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
@@ -929,7 +929,7 @@
       "proof": [
         {
           "path": "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
-          "sha256": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4"
+          "sha256": "ace31510dde1aaf92688f6cc0f9b8af01c25c46996a79b90b0c9392e708b20b6"
         },
         {
           "path": "tests/unit/apps/donor/static-shell-contract.test.ts",

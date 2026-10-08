@@ -1,0 +1,223 @@
+{
+  "phase": "corrected",
+  "source": {
+    "layoutSha256": "ace31510dde1aaf92688f6cc0f9b8af01c25c46996a79b90b0c9392e708b20b6",
+    "sha": "c4bc0553546f8b26599bc6dbe08f7aadbef52cc1",
+    "layoutDiff": "diff --git a/apps/donor/app/(dashboard)/donor-dashboard/layout.tsx b/apps/donor/app/(dashboard)/donor-dashboard/layout.tsx\nindex df334f7b6..7182730fb 100644\n--- a/apps/donor/app/(dashboard)/donor-dashboard/layout.tsx\n+++ b/apps/donor/app/(dashboard)/donor-dashboard/layout.tsx\n@@ -31,7 +31,7 @@ export default function DonorDashboardLayout({\n   return (\n     <div className=\"flex min-h-dvh flex-col bg-background\">\n       <Navbar variant=\"solid\" />\n-      <div className=\"pt-16\">\n+      <div className=\"flex flex-1 flex-col pt-16\">\n         <DonorSubNav />\n         <main id=\"main-content\" className=\"flex-1 pt-8 pb-20\">\n           <RouteMainViewTransitionBoundary className=\"container-responsive\">\n"
+  },
+  "scope": "Real guarded Donor application at http://localhost:3106; only /api/posts fixture; actual per-origin Chromium browser zoom via extension chrome.tabs.setZoom, no viewport/deviceScaleFactor/CDP page-scale emulation",
+  "nominalWindow": {
+    "width": 1280,
+    "height": 900
+  },
+  "browser": "156.0.8078.4",
+  "demoAuth": {
+    "ok": true,
+    "status": 200
+  },
+  "unzoomed": {
+    "innerWidth": 1280,
+    "innerHeight": 813,
+    "outerWidth": 1280,
+    "outerHeight": 900,
+    "devicePixelRatio": 1
+  },
+  "zoom": {
+    "factor": 2,
+    "settings": {
+      "defaultZoomFactor": 1,
+      "mode": "automatic",
+      "scope": "per-origin"
+    }
+  },
+  "keyboard": {
+    "firstFocused": {
+      "tag": "A",
+      "text": "Skip to main content",
+      "href": "#main-content"
+    },
+    "skipActivated": {
+      "hash": "#main-content",
+      "anchorCount": 1,
+      "activeTag": "BUTTON",
+      "activeId": "",
+      "activeText": "All",
+      "focusedInsideMain": true,
+      "scrollY": 113
+    },
+    "footerTabCount": 39,
+    "footerLink": {
+      "focused": true,
+      "rect": {
+        "top": 322.25,
+        "bottom": 366.25
+      },
+      "innerHeight": 406,
+      "scrollY": 5185.5,
+      "navbarBottom": 65
+    }
+  },
+  "errors": [],
+  "status": "passed scoped geometry/scroll/actual zoom checks",
+  "scenarios": [
+    {
+      "name": "empty",
+      "viewport": {
+        "width": 640,
+        "height": 406
+      },
+      "documentWidth": 640,
+      "documentHeight": 1979,
+      "main": {
+        "rect": {
+          "x": 0,
+          "y": 113,
+          "width": 640,
+          "height": 907.5,
+          "top": 113,
+          "bottom": 1020.5
+        },
+        "css": {
+          "display": "block",
+          "position": "static",
+          "flex": "1 1 0%",
+          "flexShrink": "1",
+          "minHeight": "auto",
+          "height": "907.5px",
+          "overflowX": "visible",
+          "overflowY": "visible",
+          "paddingTop": "32px",
+          "paddingBottom": "80px"
+        }
+      },
+      "footer": {
+        "rect": {
+          "x": 0,
+          "y": 1020.5,
+          "width": 640,
+          "height": 958.25,
+          "top": 1020.5,
+          "bottom": 1978.75
+        },
+        "css": {
+          "display": "block",
+          "position": "static",
+          "flex": "0 1 auto",
+          "flexShrink": "1",
+          "minHeight": "auto",
+          "height": "958.25px",
+          "overflowX": "visible",
+          "overflowY": "visible",
+          "paddingTop": "64px",
+          "paddingBottom": "64px"
+        }
+      }
+    },
+    {
+      "name": "loading",
+      "viewport": {
+        "width": 640,
+        "height": 406
+      },
+      "documentWidth": 640,
+      "documentHeight": 1867,
+      "main": {
+        "rect": {
+          "x": 0,
+          "y": 113,
+          "width": 640,
+          "height": 795.5,
+          "top": 113,
+          "bottom": 908.5
+        },
+        "css": {
+          "display": "block",
+          "position": "static",
+          "flex": "1 1 0%",
+          "flexShrink": "1",
+          "minHeight": "auto",
+          "height": "795.5px",
+          "overflowX": "visible",
+          "overflowY": "visible",
+          "paddingTop": "32px",
+          "paddingBottom": "80px"
+        }
+      },
+      "footer": {
+        "rect": {
+          "x": 0,
+          "y": 908.5,
+          "width": 640,
+          "height": 958.25,
+          "top": 908.5,
+          "bottom": 1866.75
+        },
+        "css": {
+          "display": "block",
+          "position": "static",
+          "flex": "0 1 auto",
+          "flexShrink": "1",
+          "minHeight": "auto",
+          "height": "958.25px",
+          "overflowX": "visible",
+          "overflowY": "visible",
+          "paddingTop": "64px",
+          "paddingBottom": "64px"
+        }
+      }
+    },
+    {
+      "name": "long-after-loading",
+      "viewport": {
+        "width": 640,
+        "height": 406
+      },
+      "documentWidth": 640,
+      "documentHeight": 5692,
+      "main": {
+        "rect": {
+          "x": 0,
+          "y": 113,
+          "width": 640,
+          "height": 4620.5,
+          "top": 113,
+          "bottom": 4733.5
+        },
+        "css": {
+          "display": "block",
+          "position": "static",
+          "flex": "1 1 0%",
+          "flexShrink": "1",
+          "minHeight": "auto",
+          "height": "4620.5px",
+          "overflowX": "visible",
+          "overflowY": "visible",
+          "paddingTop": "32px",
+          "paddingBottom": "80px"
+        }
+      },
+      "footer": {
+        "rect": {
+          "x": 0,
+          "y": 4733.5,
+          "width": 640,
+          "height": 958.25,
+          "top": 4733.5,
+          "bottom": 5691.75
+        },
+        "css": {
+          "display": "block",
+          "position": "static",
+          "flex": "0 1 auto",
+          "flexShrink": "1",
+          "minHeight": "auto",
+          "height": "958.25px",
+          "overflowX": "visible",
+          "overflowY": "visible",
+          "paddingTop": "64px",
+          "paddingBottom": "64px"
+        }
+      }
+    }
+  ]
+}
