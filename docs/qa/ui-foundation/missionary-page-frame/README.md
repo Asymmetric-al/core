@@ -17,6 +17,13 @@ adds evidence without an application/shared implementation delta. The original
 `/workspace/core` checkout at `a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68` was left
 untouched. This isolated branch is `chore/AL-1978-missionary-page-frame`.
 
+The branch now includes `develop` at
+`5e60ee75d831caa6e150023fac6579ea9d5d7cbb`, after #1980 and #1981 merged.
+Of the 15 recorded source owners, only the layout selector changed: #1981 adds
+standalone account-route handling, while home still follows the same AppShell
+path. The measurements, hashes and integration record below describe the
+original `c4bc055` baseline; this update adds no new browser measurements.
+
 The private frozen install uses Bun 1.4.2, Node 24.19.0, Next 16.4.0,
 React 19.3.0, Tailwind 4.3.3, Vitest 5.0.3, Playwright 1.64.0 and Chromium
 156.0.8078.4. The pre-existing installation had Next 16.3.8 and was not used.
@@ -27,7 +34,9 @@ aliases. No registry or component source was installed or overwritten.
 
 Browser evidence uses the actual Next application at `http://localhost:4108`,
 its compiled styles and an owned browser context. The committed CI environment
-wrapper and demo-account authentication are used unchanged. Cache Components,
+wrapper and demo-account authentication are used unchanged. To reproduce fixture
+authentication on this alternate port, set `ASYM_E2E_AUTH_SURFACE=missionary`;
+the standard Missionary port 4000 selects that surface automatically. Cache Components,
 partial prefetching, providers, authentication and route transitions remain in
 place. The [measurement record](./evidence.json) distinguishes these states:
 
@@ -186,4 +195,5 @@ no local home correction is justified. Productive loaded/empty portal data,
 populated table behavior, reduced-motion hydration and loaded/empty native-zoom
 checks are explicit limits. Rollback removes only this report and its evidence
 record; application behavior is unaffected. The ending documentation SHA is
-the PR head; the measured runtime source remains the starting SHA.
+the PR head; the measurement source remains the starting SHA, with later
+integration changes described above.
