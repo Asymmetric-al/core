@@ -183,6 +183,7 @@
     "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "verify:cms-public-boundary": "node tests/verify-cms-public-boundary.mjs",
     "verify:pdf-studio-package-consumption": "bun scripts/verify-pdf-studio-package-consumption.ts"
   },
   "dependencies": {
