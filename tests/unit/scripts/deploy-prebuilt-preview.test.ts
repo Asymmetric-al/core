@@ -30,6 +30,11 @@ describe("prebuilt preview delivery", () => {
       "build",
       "deploy",
     ]);
+    expect(run.mock.calls.map((call) => [call[0], call[1][0]])).toEqual([
+      ["bunx", "vercel@62.7.0"],
+      ["bunx", "vercel@62.7.0"],
+      ["bunx", "vercel@62.7.0"],
+    ]);
     expect(run.mock.calls[0][1]).toContain("--environment=preview");
     expect(run.mock.calls[2][1]).toContain("--prebuilt");
     expect(run.mock.calls[2][1]).toContain("--target=preview");

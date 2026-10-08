@@ -54,10 +54,11 @@ function parseCookieHeader(cookieHeader: string | null) {
 
 function createAuthClient(request: Request) {
   const pendingCookies: PendingCookie[] = [];
+  const pendingHeaders = new Headers();
   const { url, key } = getSupabasePublicConfig();
 
   if (!url || !key) {
-    return { supabase: null, pendingCookies };
+    return { supabase: null, pendingCookies, pendingHeaders };
   }
 
   const requestCookies = parseCookieHeader(request.headers.get("cookie"));
@@ -73,7 +74,11 @@ function createAuthClient(request: Request) {
           value: string;
           options?: PendingCookie["options"];
         }[],
+        cacheHeaders: Record<string, string> = {},
       ) {
+        Object.entries(cacheHeaders).forEach(([name, value]) => {
+          pendingHeaders.set(name, value);
+        });
         cookiesToSet.forEach((cookie) => {
           pendingCookies.push({
             name: cookie.name,
@@ -85,7 +90,7 @@ function createAuthClient(request: Request) {
     },
   });
 
-  return { supabase, pendingCookies };
+  return { supabase, pendingCookies, pendingHeaders };
 }
 
 function parseOrigin(value: string | null) {
@@ -171,7 +176,8 @@ export async function POST(request: Request) {
     return response;
   }
 
-  const { supabase, pendingCookies } = createAuthClient(request);
+  const { supabase, pendingCookies, pendingHeaders } =
+    createAuthClient(request);
   if (!supabase) {
     return noStoreJson(
       { ok: false, error: "Supabase auth is not configured." },
@@ -187,7 +193,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = noStoreJson({ ok: true });
+  const response = noStoreJson({ ok: true }, { headers: pendingHeaders });
   pendingCookies.forEach((cookie) => {
     response.cookies.set(
       cookie.name,

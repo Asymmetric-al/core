@@ -3,14 +3,14 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- AL-1962: App regression test at the settings form's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: App regression test at the settings form's public UI boundary.
 import { AssignmentRulesForm } from "../../../../../../../apps/admin/features/support-hub/components/settings/assignment/AssignmentRulesForm";
-// eslint-disable-next-line no-restricted-imports -- AL-1962: App regression test at the settings form's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: App regression test at the settings form's public UI boundary.
 import { InboxSettingsForm } from "../../../../../../../apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm";
-// eslint-disable-next-line no-restricted-imports -- AL-1962: App regression test at the settings form's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: App regression test at the settings form's public UI boundary.
 import { NotificationPreferencesForm } from "../../../../../../../apps/admin/features/support-hub/components/settings/notifications/NotificationPreferencesForm";
 
-// eslint-disable-next-line no-restricted-imports -- AL-1962: Fixtures use the app's public wire-format types.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: Fixtures use the app's public wire-format types.
 import type {
   SupportAssignee,
   SupportInboxSettings,
@@ -130,6 +130,19 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Support Hub settings drafts", () => {
+  it("keeps the initial fallback agent when loaded agents change order", () => {
+    hooks.currentAgentId = null;
+    hooks.agents = [agent("agent-a", "Alex"), agent("agent-b", "Blair")];
+    const { rerender } = render(<NotificationPreferencesForm />);
+    expect(
+      screen.getByRole("combobox", { name: "Agent" }).textContent,
+    ).toContain("Alex");
+    hooks.agents = [hooks.agents[1], hooks.agents[0]];
+    rerender(<NotificationPreferencesForm />);
+    expect(
+      screen.getByRole("combobox", { name: "Agent" }).textContent,
+    ).toContain("Alex");
+  });
   it("loads assignment defaults, discards edits, and follows saved assignment changes", () => {
     const { rerender } = render(<AssignmentRulesForm />);
     expect(

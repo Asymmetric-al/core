@@ -133,7 +133,7 @@ export function DateRangeFilter({
               selected={dateRange}
               onSelect={handleCalendarSelect}
               numberOfMonths={2}
-              initialFocus
+              autoFocus
             />
             {value && (
               <div className="flex justify-end border-t pt-2 mt-2">

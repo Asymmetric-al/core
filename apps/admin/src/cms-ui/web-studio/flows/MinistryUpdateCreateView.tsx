@@ -192,6 +192,9 @@ function MinistryUpdateCreateViewContent() {
           className="mt-8 flex flex-col gap-6"
           onSubmit={(e) => {
             e.preventDefault();
+            if (form.state.isSubmitting) {
+              return;
+            }
             void form.handleSubmit();
           }}
         >

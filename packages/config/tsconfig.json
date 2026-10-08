@@ -1,6 +1,7 @@
 {
   "extends": "@asym/typescript-config/library-transitional.json",
   "compilerOptions": {
+    "types": ["node"],
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "outDir": "dist",
     "rootDir": "."

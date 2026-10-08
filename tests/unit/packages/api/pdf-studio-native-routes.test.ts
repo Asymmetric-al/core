@@ -122,4 +122,29 @@ describe("native PDF Studio routes", () => {
     expect(body.report.legacyTemplate.category).toBe("donor_letter");
     expect(readPdfTemplateMock).toHaveBeenCalledWith("tenant_1", TEMPLATE_ID);
   });
+
+  it.each([
+    { code: "unrecognized_feature", message: "Invalid", severity: "warning" },
+    { code: "raw_html_block", message: "Invalid", severity: "unrecognized" },
+    {
+      code: "raw_html_block",
+      message: "Invalid",
+      severity: "warning",
+      extra: true,
+    },
+  ])(
+    "rejects invalid unsupported-feature data before reading a template",
+    async (feature) => {
+      const response = await POST_NATIVE_MIGRATION_REPORT(
+        jsonRequest("/api/pdf-templates/native/migration-report", {
+          templateId: TEMPLATE_ID,
+          unsupportedFeatures: [feature],
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      expect(readPdfTemplateMock).not.toHaveBeenCalled();
+      expect((await response.json()).error).toEqual(expect.any(String));
+    },
+  );
 });

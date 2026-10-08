@@ -61,7 +61,9 @@ export function MinistryHealthTrendChart() {
             color: "var(--foreground)",
             boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
           }}
-          formatter={(value: number, name: string) => [`${value}%`, name]}
+          formatter={(value, name) =>
+            typeof value === "number" ? [`${value}%`, name ?? ""] : null
+          }
         />
         <Line
           isAnimationActive={!reduceMotion}
@@ -133,7 +135,9 @@ export function MinistryHealthMixChart() {
             color: "var(--foreground)",
             boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
           }}
-          formatter={(value: number, name: string) => [`${value}%`, name]}
+          formatter={(value, name) =>
+            typeof value === "number" ? [`${value}%`, name ?? ""] : null
+          }
         />
         <Bar
           isAnimationActive={!reduceMotion}

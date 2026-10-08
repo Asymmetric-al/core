@@ -237,6 +237,7 @@ function ChipReactionButton({
       </AnimatePresence>
       <m.button
         type="button"
+        aria-label={`${config.label} ${state.count}`}
         aria-pressed={state.mine}
         data-active={state.mine ? "" : undefined}
         onClick={handleToggleReaction}
@@ -277,6 +278,7 @@ function QuietReactionButton({
   return (
     <m.button
       type="button"
+      aria-label={`${config.label} ${state.count}`}
       aria-pressed={state.mine}
       data-active={state.mine ? "" : undefined}
       onClick={onToggle}
@@ -317,6 +319,7 @@ function CommentsButton({
     return (
       <button
         type="button"
+        aria-label={`Comments ${count}`}
         onClick={onOpen}
         className="flex h-10 items-center gap-2 rounded-2xl border border-border bg-background px-3 py-2.5 text-xs font-semibold text-muted-foreground press-feedback outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60 hover:text-foreground sm:px-4"
       >
@@ -329,6 +332,7 @@ function CommentsButton({
   return (
     <button
       type="button"
+      aria-label={`Comments ${count}`}
       onClick={onOpen}
       className="group flex items-center gap-2 rounded-full px-3 py-2 text-muted-foreground press-feedback outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60 hover:text-foreground"
     >

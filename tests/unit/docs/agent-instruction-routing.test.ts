@@ -314,7 +314,7 @@ describe("agent instruction routing fixtures", () => {
     expect(packageManifests).toContain("@tanstack/react-query");
     expect(packageManifests).toContain("@tanstack/db");
     expect(packageManifests).toContain("@tanstack/react-form");
-    expect(packageManifests).toContain("9.0.0-beta.9");
+    expect(packageManifests).toContain("9.2.6");
     expect(packageManifests).toContain("@tanstack/react-virtual");
     expect(packageManifests).not.toContain("@tanstack/react-charts");
     expect(packageManifests).not.toContain("@tanstack/react-hotkeys");

@@ -43,10 +43,10 @@ jobs:
       ONLY_KEYS: ${{ inputs.only_keys }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Vercel CLI
-        run: npm install --global vercel
+        run: npm install --global vercel@62.7.0
 
       - name: Sync provider env values
         run: |

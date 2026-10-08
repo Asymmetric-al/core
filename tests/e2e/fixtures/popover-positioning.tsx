@@ -30,7 +30,7 @@ function Fixture() {
           >
             <PopoverTitle className="sr-only">Choose date</PopoverTitle>
             <Calendar
-              initialFocus
+              autoFocus
               mode="single"
               defaultMonth={date}
               selected={date}

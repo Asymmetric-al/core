@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 
 import {
   createE2EAuthCookieValue,
@@ -21,7 +22,10 @@ const mockSupabaseConfig = {
   keyType: null as "anon" | "publishable" | null,
 };
 const { supabaseCookiesToSetRef, supabaseSessionRef } = vi.hoisted(() => ({
-  supabaseCookiesToSetRef: { cookies: [] as MockCookieToSet[] },
+  supabaseCookiesToSetRef: {
+    cookies: [] as MockCookieToSet[],
+    headers: {} as Record<string, string>,
+  },
   supabaseSessionRef: { userId: null as string | null },
 }));
 
@@ -33,12 +37,22 @@ vi.mock("@supabase/ssr", () => ({
   createServerClient: (
     _url: string,
     _key: string,
-    options: { cookies: { setAll: (cookies: MockCookieToSet[]) => void } },
+    options: {
+      cookies: {
+        setAll: (
+          cookies: MockCookieToSet[],
+          headers: Record<string, string>,
+        ) => void;
+      };
+    },
   ) => ({
     auth: {
       getUser: () => {
         if (supabaseCookiesToSetRef.cookies.length > 0) {
-          options.cookies.setAll(supabaseCookiesToSetRef.cookies);
+          options.cookies.setAll(
+            supabaseCookiesToSetRef.cookies,
+            supabaseCookiesToSetRef.headers,
+          );
         }
 
         return Promise.resolve({
@@ -95,6 +109,7 @@ function mockNoConfig() {
   mockSupabaseConfig.key = null;
   mockSupabaseConfig.keyType = null;
   supabaseCookiesToSetRef.cookies = [];
+  supabaseCookiesToSetRef.headers = {};
   supabaseSessionRef.userId = null;
 }
 
@@ -119,6 +134,28 @@ describe("createAuthMiddleware", () => {
     process.env.NODE_ENV = originalNodeEnv;
     process.env.E2E_AUTH_SECRET = originalE2ESecret;
     process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = originalE2EAllowlist;
+  });
+
+  it("forwards refreshed request cookies to server rendering with the pathname header", async () => {
+    mockConfigWithUser();
+    supabaseCookiesToSetRef.cookies = [
+      { name: "sb-session.0", value: "fresh" },
+    ];
+    supabaseCookiesToSetRef.headers = { "Cache-Control": "private, no-store" };
+    const request = new NextRequest("https://example.org/donor-dashboard", {
+      headers: { cookie: "sb-session.0=stale" },
+    });
+
+    const response = await createAuthMiddleware()(request);
+
+    expect(response.headers.get("x-middleware-request-cookie")).toContain(
+      "sb-session.0=fresh",
+    );
+    expect(response.headers.get("x-middleware-request-x-asym-pathname")).toBe(
+      "/donor-dashboard",
+    );
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.cookies.get("sb-session.0")?.value).toBe("fresh");
   });
 
   it("redirects unauthenticated page requests to login with next param", async () => {
@@ -375,6 +412,40 @@ describe("createAuthMiddleware", () => {
       "refreshed-access-token",
     );
   });
+
+  it.each([
+    ["/donor-dashboard", "user_123", 200],
+    ["/login", "user_123", 307],
+    ["/donor-dashboard", null, 307],
+  ] as const)(
+    "preserves refresh cookies and prevents caching for %s with user %s",
+    async (pathname, userId, status) => {
+      mockConfigWithUser(userId);
+      supabaseCookiesToSetRef.cookies = [
+        { name: "sb-session.0", value: userId ? "refreshed-token" : "" },
+      ];
+      supabaseCookiesToSetRef.headers = {
+        "Cache-Control": "private, no-store",
+        Expires: "0",
+        Pragma: "no-cache",
+      };
+      const middleware = createAuthMiddleware({
+        publicRoutes: ["/login"],
+        protectedRoutePrefixes: ["/donor-dashboard"],
+        redirectAuthenticatedTo: "/donor-dashboard",
+      });
+
+      const response = await middleware(createRequest(pathname));
+
+      expect(response.status).toBe(status);
+      expect(response.cookies.get("sb-session.0")?.value).toBe(
+        userId ? "refreshed-token" : "",
+      );
+      expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+      expect(response.headers.get("Expires")).toBe("0");
+      expect(response.headers.get("Pragma")).toBe("no-cache");
+    },
+  );
 
   it("honours a safe next param when redirecting a signed-in visitor off an auth route", async () => {
     mockConfigWithUser();

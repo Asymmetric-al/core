@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "@asym/ui/components/shadcn/data-table/tanstack";
@@ -23,7 +22,6 @@ vi.mock("@asym/ui/components/shadcn/data-table", () => ({
   }: DataTableResponsiveProps<SupportConversation, unknown>) => {
     const table = useTable({
       features: dataTableFeatures,
-      rowModels: createDataTableRowModels<SupportConversation>(),
       data,
       columns,
     });

@@ -186,6 +186,7 @@ function StatCard({
     <motion.button
       type="button"
       onClick={onClick}
+      aria-label={`${value} ${label}`}
       aria-pressed={Boolean(isActive)}
       className={cn(
         "press-feedback flex min-w-0 items-center gap-3 rounded-xl border px-4 py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",

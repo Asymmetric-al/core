@@ -1,15 +1,52 @@
-# TypeScript 6 / 7 readiness (prep only)
+# TypeScript 6 / 7 configuration and tooling
 
-This document is a **preparation and policy** guide. It is **not** the TypeScript upgrade runbook. The repo stays on **TypeScript 5.9.x** until a dedicated upgrade task bumps the compiler.
+All 15 compiled application and shared-package workspaces use the stable native
+TypeScript 7 compiler. Exact versions belong to their manifests and `bun.lock`.
+The repository root intentionally retains the full TypeScript 6 JavaScript
+compiler package for API consumers and editor plugins. Changing the root package
+alone does not select the compiler used by a workspace.
 
-## Why this prep pass exists
+## Compiler and API ownership
+
+| Context                                    | Dependency                                 | Purpose                                                                     |
+| ------------------------------------------ | ------------------------------------------ | --------------------------------------------------------------------------- |
+| Apps and packages with `typecheck`         | Local `typescript@7.0.2`                   | Native `tsc` for workspace checks/builds; Next selects this CLI in each app |
+| Root fixture/compiler commands             | `@typescript/native: npm:typescript@7.0.2` | Explicit native CLI, including `test:e2e:base-ui`                           |
+| Root AST scripts and ESLint                | Root `typescript@6.0.3`                    | Supported JavaScript compiler API for existing tooling                      |
+| Legacy editor/Next language-service plugin | Root `node_modules/typescript/lib`         | Full TypeScript 6 editor SDK, including `tsserver.js`                       |
+
+TypeScript 7's package root does not expose the legacy JavaScript compiler API.
+The current typescript-eslint peer range also excludes TypeScript 7. Keep the
+root API context supported; do not suppress version warnings or override peer
+ranges. Native compiler completion does not mean ESLint uses the native API.
+
+Next 16.4 selects each application's local CLI by default. Keep
+`experimental.useTypeScriptCli` enabled (its default) and never enable
+`typescript.ignoreBuildErrors` to accommodate this migration. Native TypeScript
+7 cannot load the legacy Next language-service plugin. For that plugin, open the
+repository root and select the TypeScript 6 workspace SDK; an editor configured
+for native TypeScript 7 has a separate plugin capability boundary.
+
+The official `@typescript/typescript6` compatibility package can supply the
+legacy API, but its shim does not include `lib/tsserver.js`. Retaining the full
+root TypeScript 6 package supports the existing editor SDK without another
+alias or SDK path convention.
+
+When updating compiler dependencies, verify actual installed workspace CLI,
+Next CLI and ESLint API resolution, then run `bun run typecheck`, `bun run lint`
+and `bun run test:unit`. Run `bun run verify:workspace-contract` and
+`bun run verify:cms-public-sole-entry` to exercise existing AST tooling. The Base
+UI fixture explicitly dispatches `node node_modules/@typescript/native/lib/tsc.js`.
+
+## Compiler transition context
 
 Microsoft positions **TypeScript 6.0** as a **bridge** release (last Strada/JavaScript compiler line) before **TypeScript 7.0** (native compiler). Official posts:
 
 - [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/)
 - [Progress on TypeScript 7 - December 2025](https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/)
+- [Announcing TypeScript 7.0](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/)
 
-  6.0 changes **defaults** and **deprecates** options that 7.0 will remove. Preparing early reduces surprise; changing the compiler version is intentionally separate.
+  6.0 changes **defaults** and **deprecates** options that 7.0 will remove. Explicit configuration preserves the existing behavior while compiler and API contexts migrate independently.
 
 ## What changed in TypeScript 6.0 that matters here
 
@@ -28,9 +65,9 @@ From the official 6.0 announcement (non-exhaustive; see the post for the full li
 
 ## What TypeScript 7 means here (plain language)
 
-- **Performance:** Native compiler (`tsgo` / `@typescript/native-preview`) is optional side-by-side validation, not part of default repo workflows.
+- **Stable compiler:** TypeScript 7 is published in the ordinary `typescript` package. `@typescript/native-preview` is the older preview channel and is not the stable migration target.
 - **Breaking removals:** TS 7 drops deprecated TS 6 behaviors (e.g. **`baseUrl`**, **`node10` resolution**, stricter **`rootDir`/`outDir` expectations** per official roadmap summaries).
-- **Practical approach:** Use TS 6.0 when you upgrade off 5.9; use native preview **optionally** to compare type errors (official TS 7 post states high parity with ~known gaps).
+- **Compatibility:** TypeScript 7 does not expose the legacy JavaScript compiler API. Repository AST scripts, typescript-eslint and the Next language-service plugin still need a supported TypeScript 6 API context. The ownership table above records this repository's installed split; verify actual compiler and parser resolution after installation.
 
 ## Module resolution: how to choose (this repo)
 
@@ -44,11 +81,11 @@ From the official 6.0 announcement (non-exhaustive; see the post for the full li
 - **House rule:** Do **not** add **`baseUrl`** in new configs. Use **`paths`** only (as in `apps/*/tsconfig.json` for `@/*`).
 - **Legacy:** If you see bare imports that only worked via `baseUrl` (non-`paths` rewriting), document and fix deliberately; do not guess.
 
-## Aliases going forward
+## Source aliases
 
 - **Next apps:** `@/*` → `./*` in each app’s `tsconfig.json` (example: `apps/admin/tsconfig.json`).
 - **Packages (`@asym/ui`, `@asym/missionary`):** same pattern for editor/tsc resolution; bundlers must still resolve aliases (Next/Vite config). **Package `exports`** remain the runtime public API — tsconfig aliases are for **typechecking and DX**, not a substitute for `exports`.
-- **Vitest:** root `vitest.config.ts` uses `resolve.alias` for `@` → `./src`; keep test aliases in sync with test layout, not necessarily app `src/`.
+- **Vitest:** root `vitest.config.ts` uses the per-importer alias plugin to resolve `@/` against each workspace's tsconfig; keep test aliases aligned with the importing workspace.
 
 ## `types` array
 
@@ -65,7 +102,7 @@ Bun’s documentation matches the TypeScript 6.0 story: with **`types` defaultin
 
 | Situation                                                                        | What to do                                                                                                                                                                                                                                                                                                                       |
 | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Today (TypeScript 5.9)**                                                       | Do **not** set `compilerOptions.types` to `["bun"]` only on Next app tsconfigs. TypeScript 5.9 still auto-includes `@types/*`; a narrow `types` array **drops** `node`, `react`, etc. and will break typechecking.                                                                                                               |
+| **Workspaces still using TypeScript 5.9**                                        | Do **not** set `compilerOptions.types` to `["bun"]` only on Next app tsconfigs. TypeScript 5.9 still auto-includes `@types/*`; a narrow `types` array **drops** `node`, `react`, etc. and will break typechecking.                                                                                                               |
 | **After upgrading to TypeScript 6+**                                             | Where TypeScript should see **`Bun`**, add **`@types/bun`** and list it in **`types`** alongside other globals that project needs (Bun’s doc shows `"types": ["bun", "react"]`; Next apps typically need **`node`** at minimum—combine per workspace, e.g. `"types": ["node", "bun"]` only after verifying nothing else breaks). |
 | **`paths` / `@/*` (e.g. `apps/missionary/tsconfig.json`)**                       | Path aliases are **unrelated** to Bun globals. Keep **`paths`** as-is; add Bun **`types`** only when you actually reference **`Bun`** in that project’s TypeScript and you are on TS 6+ empty-default behavior.                                                                                                                  |
 | **Root `scripts/*.ts` using `Bun.*`** (e.g. `scripts/shadcn/add-shadcnuikit.ts`) | On TS 6+, either: add a **small `tsconfig`** scoped to those scripts with `"types": ["bun", "node"]`, or ensure the root/workspace project that includes them lists both. Install **`@types/bun`** at the root when you add that.                                                                                                |
@@ -152,38 +189,34 @@ Bun’s sample tsconfig (ESNext, `module: "Preserve"`, etc.) targets **Bun-first
 - [ ] Do not bump `typescript` in `package.json` unless the task is explicitly an upgrade.
 - [ ] After shared `base.json` change, run **`bun run typecheck`**.
 
-## Deferred until TypeScript 6 upgrade
+## Configuration preparation before compiler convergence
 
-- Bumping **`typescript`** to 6.x and re-running full **`typecheck`** / **`lint`** / **`test:unit`**.
+- Re-run full **`typecheck`** / **`lint`** / **`test:unit`** whenever workspace compiler dependencies change; do not infer a common version from the root manifest.
+- `config`, `missionary`, `ui` and `email` explicitly include **`types: ["node"]`** because their source or imported source references Node globals such as `process`. Their previous implicit ambient inclusion fails with TypeScript 6 and 7's empty default. Keep this per-project rather than imposing a shared global list.
 - Deciding whether to adopt TS 6 defaults (`noUncheckedSideEffectImports: true`, `libReplacement: false`, empty `types`) **per workspace** with fixes.
 - Any **`ignoreDeprecations`** usage (avoid hiding issues in prep; evaluate at upgrade time).
 
-## Deferred until later TS 7 validation
+## Native migration validation
 
-- Optional **`tsgo`** / **`@typescript/native-preview`** side-by-side runs (official guidance: compare errors vs `tsc`).
+- Compare the stable native **`typescript`** compiler with the current compiler, using the separate root API context for legacy tools.
 - Broader **JSX / generic inference** changes from TS 6 (may need explicit type arguments — see 6.0 announcement).
-- Language service / **LSP** behavior differences when using native preview in editors.
-
-## Internal doc mismatches (recorded)
-
-- `docs/ai/rules/general.md` references **TypeScript 5.9.x** with a pointer to root `package.json` for the exact version (currently **5.9.3**).
-- Default Git branch in automation may be **`production`** while `general.md` discusses **`main`** as protected; follow **remote default** for branch operations.
+- Retain a TypeScript 6 editor option for plugins that require the legacy language-service API. Native CLI completion does not establish plugin compatibility.
 
 ## Audit matrix (snapshot)
 
-| Workspace / file                              | Pattern                           | TS6/TS7 risk                                                                            | Level   | Prep action                                                                                          |
-| --------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
-| `tooling/typescript-config/base.json`         | Explicit strict, bundler, ES2022  | Default shifts for `libReplacement`, `noUncheckedSideEffectImports`, `types`, `rootDir` | Medium  | **Done:** explicit `libReplacement` + `noUncheckedSideEffectImports`                                 |
-| `tooling/typescript-config/nextjs.json`       | `noEmit`, bundler                 | Same as base for omitted options                                                        | Medium  | Inherits base                                                                                        |
-| `apps/{admin,donor,missionary}/tsconfig.json` | `paths` for `@/*`                 | `baseUrl` removal in TS7                                                                | Medium  | **Done:** removed `baseUrl`; kept `paths`                                                            |
-| `packages/{ui,missionary}/tsconfig.json`      | `paths`, `outDir`, `rootDir`      | `baseUrl` removal; emit root                                                            | Medium  | **Done:** removed `baseUrl`                                                                          |
-| `packages/*/tsconfig` (transitional)          | `library-transitional.json`       | `types` default `[]` on upgrade                                                         | Low–Med | Defer; audit per package on upgrade                                                                  |
-| `packages/email`                              | `library.json` + `rootDir: ./src` | Emit layout                                                                             | Low     | Defer unless changing structure                                                                      |
-| Root `vitest.config.ts`                       | `alias "@": ./src`                | Not tsc                                                                                 | Low     | None                                                                                                 |
-| Playwright configs                            | `process.env`                     | Node globals if `types` empty                                                           | Med     | Defer explicit `types` until upgrade                                                                 |
-| App layouts                                   | CSS side-effect imports           | `noUncheckedSideEffectImports`                                                          | Med     | Deferred; flag stays false in base until audited                                                     |
-| Root scripts using `Bun.*`                    | `Bun` global                      | TS6 `types: []`; need `@types/bun` + `types`                                            | Med     | On TS6+: `bun add -d @types/bun` + scoped `types` ([Bun TS6 doc](https://bun.com/docs/typescript-6)) |
+| Workspace / file                              | Pattern                          | TS6/TS7 risk                                                                            | Level   | Prep action                                                                                          |
+| --------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| `tooling/typescript-config/base.json`         | Explicit strict, bundler, ES2022 | Default shifts for `libReplacement`, `noUncheckedSideEffectImports`, `types`, `rootDir` | Medium  | **Done:** explicit `libReplacement` + `noUncheckedSideEffectImports`                                 |
+| `tooling/typescript-config/nextjs.json`       | `noEmit`, bundler                | Same as base for omitted options                                                        | Medium  | Inherits base                                                                                        |
+| `apps/{admin,donor,missionary}/tsconfig.json` | `paths` for `@/*`                | `baseUrl` removal in TS7                                                                | Medium  | **Done:** removed `baseUrl`; kept `paths`                                                            |
+| `packages/{ui,missionary}/tsconfig.json`      | `paths`, `outDir`, `rootDir`     | `baseUrl` removal; emit root                                                            | Medium  | **Done:** removed `baseUrl`                                                                          |
+| `packages/*/tsconfig` (transitional)          | `library-transitional.json`      | `types` default `[]` on upgrade                                                         | Low–Med | Verified under native compiler; add globals locally when needed                                      |
+| `packages/email`                              | `library.json` + `rootDir: .`    | Emit layout                                                                             | Low     | Preserve explicit root; include Node globals locally                                                 |
+| Root `vitest.config.ts`                       | Per-importer workspace aliases   | Not tsc                                                                                 | Low     | None                                                                                                 |
+| Playwright configs                            | `process.env`                    | Node globals if `types` empty                                                           | Med     | Fixtures/apps include Node globals explicitly                                                        |
+| App layouts                                   | CSS side-effect imports          | `noUncheckedSideEffectImports`                                                          | Med     | Deferred; flag stays false in base until audited                                                     |
+| Root scripts using `Bun.*`                    | `Bun` global                     | TS6 `types: []`; need `@types/bun` + `types`                                            | Med     | On TS6+: `bun add -d @types/bun` + scoped `types` ([Bun TS6 doc](https://bun.com/docs/typescript-6)) |
 
 ---
 
-**Sources used for this document:** [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/), [Progress on TypeScript 7 - December 2025](https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/), [TypeScript TSConfig Reference](https://www.typescriptlang.org/tsconfig) (`baseUrl`, `paths`, `moduleResolution`, `rootDir`, `types`, `noUncheckedSideEffectImports`).
+**Sources used for this document:** [Announcing TypeScript 7.0](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/), [Next TypeScript configuration](https://nextjs.org/docs/app/api-reference/config/typescript), [typescript-eslint dependency support](https://typescript-eslint.io/users/dependency-versions/), [Announcing TypeScript 6.0](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/), [Progress on TypeScript 7 - December 2025](https://devblogs.microsoft.com/typescript/progress-on-typescript-7-december-2025/), [TypeScript TSConfig Reference](https://www.typescriptlang.org/tsconfig) (`baseUrl`, `paths`, `moduleResolution`, `rootDir`, `types`, `noUncheckedSideEffectImports`).
