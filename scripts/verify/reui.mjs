@@ -76,6 +76,19 @@ function mirrorsMatch(root) {
     if (!files.includes(path.join(canonical, "SKILL.md"))) return false;
     const skill = read(root, "docs/ai/skills/reui/SKILL.md");
     if (!/^name:\s*reui\s*$/m.test(skill ?? "")) return false;
+    const manifest = readJson(
+      root,
+      "docs/ai/skills/reui/references/upstream-manifest.json",
+    );
+    if (
+      typeof manifest?.reviewedAt !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}(?:T|$)/.test(manifest.reviewedAt) ||
+      !Number.isFinite(Date.parse(manifest.reviewedAt)) ||
+      (manifest.reviewStatus !== undefined &&
+        manifest.reviewStatus !== "reviewed")
+    ) {
+      return false;
+    }
     for (const mirror of [".agents", ".cursor", ".claude"]) {
       const destination = path.join(root, mirror, "skills/reui");
       const mirrored = skillFiles(destination);
@@ -130,6 +143,7 @@ function localChecks(root) {
       cursor?.url === MCP_URL &&
       cursor?.headers?.Authorization === "Bearer ${env:REUI_LICENSE_KEY}" &&
       cursor?.headers?.["X-Reui-Style"] === "base-maia" &&
+      !/^[ \t]*enabled\s*=\s*false\s*(?:#.*)?$/m.test(codex) &&
       /^[ \t]*url\s*=\s*"https:\/\/mcp\.reui\.io"\s*(?:#.*)?$/m.test(codex) &&
       /^[ \t]*bearer_token_env_var\s*=\s*"REUI_LICENSE_KEY"\s*(?:#.*)?$/m.test(
         codex,
