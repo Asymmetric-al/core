@@ -1,5 +1,6 @@
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -7,10 +8,9 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 const TIMEOUT_FLAG = "timeout --kill-after=10s";
 const POSITIVE_INSTALL_TIMEOUT_PATTERN =
@@ -20,6 +20,134 @@ const POSITIVE_UPDATE_TIMEOUT_PATTERN =
 
 function readScript(relativePath: string): string {
   return readFileSync(relativePath, "utf8");
+}
+
+const fixtureRoots: string[] = [];
+const aptScripts = [
+  "prepare-apt.sh",
+  "install-canvas-deps.sh",
+  "install-postgresql-client.sh",
+] as const;
+type AptScript = (typeof aptScripts)[number];
+
+afterEach(() => {
+  for (const root of fixtureRoots.splice(0)) {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Exercise the unmodified Bash entrypoints. Only privilege escalation, package
+// management, GNU timeout and elapsed time are faked at their process boundaries.
+// APT_ETC_DIR selects fixture files; production defaults remain /etc/apt.
+// These guards are defense in depth, not a substitute for execution isolation.
+function aptFixture(files: Record<string, string> = {}) {
+  const root = mkdtempSync(path.resolve(".apt-fixture-"));
+  fixtureRoots.push(root);
+  const aptDir = path.join(root, "etc", "apt");
+  const binDir = path.join(root, "bin");
+  const stateDir = path.join(root, "state");
+  for (const directory of [
+    binDir,
+    stateDir,
+    path.join(aptDir, "sources.list.d"),
+    path.join(aptDir, "apt.conf.d"),
+    path.join(root, "scripts", "github"),
+  ]) {
+    mkdirSync(directory, { recursive: true });
+  }
+  for (const script of aptScripts) {
+    writeFileSync(
+      path.join(root, "scripts", "github", script),
+      readScript(`scripts/github/${script}`),
+    );
+  }
+  for (const [file, contents] of Object.entries(files)) {
+    mkdirSync(path.dirname(path.join(aptDir, file)), { recursive: true });
+    writeFileSync(path.join(aptDir, file), contents);
+  }
+  const fakes: Record<string, string> = {
+    sudo: `for argument in "$@"; do
+  case "$argument" in
+    /*) case "$argument" in "$FIXTURE_ROOT"/*) ;; *) echo "refusing host path: $argument" >&2; exit 97 ;; esac ;;
+  esac
+done
+exec "$@"`,
+    timeout: `printf 'timeout %s\\n' "$*" >> "$FIXTURE_STATE/calls"
+if [ "$#" -lt 3 ] || [ "$1" != "--kill-after=10s" ]; then exit 96; fi
+shift 2
+exec "$@"`,
+    "apt-get": `printf 'apt-get %s\\n' "$*" >> "$FIXTURE_STATE/calls"
+case "$1" in update|install) operation="$1" ;; *) exit 95 ;; esac
+counter="$FIXTURE_STATE/$operation-count"
+count=0
+if [ -f "$counter" ]; then read -r count < "$counter"; fi
+count=$((count + 1))
+printf '%s\\n' "$count" > "$counter"
+status=$(sed -n "\${count}p" "$FIXTURE_STATE/$operation-statuses")
+exit "\${status:-0}"`,
+    sleep: `printf 'sleep %s\\n' "$*" >> "$FIXTURE_STATE/calls"`,
+  };
+  for (const [command, body] of Object.entries(fakes)) {
+    const file = path.join(binDir, command);
+    writeFileSync(file, `#!/usr/bin/env bash\nset -euo pipefail\n${body}\n`);
+    chmodSync(file, 0o755);
+  }
+
+  return {
+    exists(file: string) {
+      return existsSync(path.join(aptDir, file));
+    },
+    read(file: string) {
+      return readFileSync(path.join(aptDir, file), "utf8");
+    },
+    run({
+      script = "prepare-apt.sh",
+      updateStatuses = [0],
+      installStatuses = [0],
+      env = {},
+    }: {
+      script?: AptScript;
+      updateStatuses?: number[];
+      installStatuses?: number[];
+      env?: Record<string, string>;
+    } = {}) {
+      writeFileSync(path.join(stateDir, "calls"), "");
+      for (const [operation, statuses] of [
+        ["update", updateStatuses],
+        ["install", installStatuses],
+      ] as const) {
+        writeFileSync(
+          path.join(stateDir, `${operation}-statuses`),
+          `${statuses.join("\n")}\n`,
+        );
+        rmSync(path.join(stateDir, `${operation}-count`), { force: true });
+      }
+      const result = spawnSync("bash", [`scripts/github/${script}`], {
+        cwd: root,
+        encoding: "utf8",
+        timeout: 10_000,
+        env: {
+          PATH: `${binDir}:/usr/bin:/bin`,
+          HOME: root,
+          TMPDIR: root,
+          LANG: "C",
+          FIXTURE_ROOT: root,
+          FIXTURE_STATE: stateDir,
+          APT_ETC_DIR: aptDir,
+          ...env,
+        },
+      });
+      return {
+        status: result.status,
+        stderr: result.stderr,
+        stdout: result.stdout,
+        error: result.error,
+        calls: readFileSync(path.join(stateDir, "calls"), "utf8")
+          .split("\n")
+          .filter(Boolean),
+      };
+    },
+  };
 }
 
 function jobBlock(workflow: string, jobId: string): string {
@@ -92,114 +220,6 @@ describe("github apt install scripts bound hung metadata fetches", () => {
     expect(prepare).toContain("APT_GET_TIMEOUT_SECONDS");
   });
 
-  it("pins Ubuntu apt to HTTPS away from Azure mirrors before update", () => {
-    const prepare = readScript("scripts/github/prepare-apt.sh");
-
-    expect(prepare).toContain("https://archive.ubuntu.com/ubuntu/");
-    expect(prepare).toContain("https://security.ubuntu.com/ubuntu/");
-    expect(prepare).toContain("mirror+file:/etc/apt/apt-mirrors.txt");
-    expect(prepare).toContain('Acquire::http::Timeout "20"');
-    expect(prepare).toContain('Acquire::https::Timeout "20"');
-    expect(prepare).toContain('Acquire::Retries "2"');
-  });
-
-  // This helper runs only on Ubuntu CI; its shell behavior needs GNU sed.
-  it.skipIf(process.platform !== "linux")(
-    "normalizes Ubuntu list and deb822 sources while retaining signatures and unrelated feeds",
-    () => {
-      const fixtureRoot = mkdtempSync(path.join(tmpdir(), "core-github-apt-"));
-      const aptRoot = path.join(fixtureRoot, "apt");
-      const sourcesRoot = path.join(aptRoot, "sources.list.d");
-      const commandLog = path.join(fixtureRoot, "commands.log");
-      const keyring = "/usr/share/keyrings/ubuntu-archive-keyring.gpg";
-
-      try {
-        mkdirSync(sourcesRoot, { recursive: true });
-        mkdirSync(path.join(aptRoot, "apt.conf.d"));
-        writeFileSync(path.join(aptRoot, "apt-mirrors.txt"), "old mirror\n");
-        writeFileSync(
-          path.join(aptRoot, "sources.list"),
-          [
-            "deb http://archive.ubuntu.com/ubuntu noble main",
-            "deb-src http://security.ubuntu.com/ubuntu noble-security main",
-            "deb https://azure.archive.ubuntu.com/ubuntu noble-updates main",
-            "deb http://example.org/ubuntu noble main",
-            "deb https://example.org/ubuntu noble main",
-            "",
-          ].join("\n"),
-        );
-        writeFileSync(
-          path.join(sourcesRoot, "ubuntu.list"),
-          "deb http://azure.archive.ubuntu.com/ubuntu noble-backports main\n",
-        );
-        writeFileSync(
-          path.join(sourcesRoot, "ubuntu.sources"),
-          `Types: deb\nURIs: mirror+file:${aptRoot}/apt-mirrors.txt http://security.ubuntu.com/ubuntu/\nSuites: noble noble-security\nComponents: main\nSigned-By: ${keyring}\n`,
-        );
-        writeFileSync(
-          path.join(sourcesRoot, "microsoft.sources"),
-          "Types: deb\nURIs: https://packages.microsoft.com/ubuntu\n",
-        );
-
-        const prepare = readScript("scripts/github/prepare-apt.sh");
-        execFileSync(
-          "bash",
-          [
-            "-c",
-            // Run the real helper against temporary apt files. Intercept only
-            // the privileged boundary; no apt/network operation is executed.
-            `sudo() { if [[ "$1" == timeout ]]; then printf '%s\\n' "$*" >> "$APT_TEST_COMMAND_LOG"; else "$@"; fi; }\n${prepare.replaceAll("/etc/apt", aptRoot)}`,
-          ],
-          {
-            env: {
-              ...process.env,
-              APT_GET_TIMEOUT_SECONDS: "9",
-              APT_TEST_COMMAND_LOG: commandLog,
-            },
-            timeout: 10_000,
-          },
-        );
-
-        expect(readFileSync(path.join(aptRoot, "sources.list"), "utf8")).toBe(
-          [
-            "deb https://archive.ubuntu.com/ubuntu noble main",
-            "deb-src https://security.ubuntu.com/ubuntu noble-security main",
-            "deb https://archive.ubuntu.com/ubuntu noble-updates main",
-            "deb http://example.org/ubuntu noble main",
-            "deb https://example.org/ubuntu noble main",
-            "",
-          ].join("\n"),
-        );
-        expect(
-          readFileSync(path.join(sourcesRoot, "ubuntu.list"), "utf8"),
-        ).toBe("deb https://archive.ubuntu.com/ubuntu noble-backports main\n");
-        expect(
-          readFileSync(path.join(sourcesRoot, "ubuntu.sources"), "utf8"),
-        ).toBe(
-          `Types: deb\nURIs: https://archive.ubuntu.com/ubuntu https://security.ubuntu.com/ubuntu/\nSuites: noble noble-security\nComponents: main\nSigned-By: ${keyring}\n`,
-        );
-        expect(
-          readFileSync(path.join(aptRoot, "apt-mirrors.txt"), "utf8"),
-        ).toBe(
-          "https://archive.ubuntu.com/ubuntu/\nhttps://security.ubuntu.com/ubuntu/\n",
-        );
-        expect(existsSync(path.join(sourcesRoot, "microsoft.sources"))).toBe(
-          false,
-        );
-        expect(
-          existsSync(
-            path.join(sourcesRoot, "microsoft.sources.disabled-by-core-ci"),
-          ),
-        ).toBe(true);
-        expect(readFileSync(commandLog, "utf8")).toBe(
-          "timeout --kill-after=10s 9s apt-get update\n",
-        );
-      } finally {
-        rmSync(fixtureRoot, { recursive: true, force: true });
-      }
-    },
-  );
-
   it("wraps canvas and postgres client installs with a longer GNU timeout and retries once", () => {
     const canvas = readScript("scripts/github/install-canvas-deps.sh");
     const postgres = readScript("scripts/github/install-postgresql-client.sh");
@@ -236,3 +256,367 @@ describe("github apt install scripts bound hung metadata fetches", () => {
     expectJobLevelTimeout(jobBlock(integration, "migrate"), "migrate", 50);
   });
 });
+
+const ubuntuSources = [
+  [
+    "mirror-file",
+    "mirror+file:/etc/apt/apt-mirrors.txt",
+    "https://archive.ubuntu.com/ubuntu",
+  ],
+  [
+    "HTTP Azure",
+    "http://azure.archive.ubuntu.com/ubuntu",
+    "https://archive.ubuntu.com/ubuntu",
+  ],
+  [
+    "HTTPS Azure",
+    "https://azure.archive.ubuntu.com/ubuntu/",
+    "https://archive.ubuntu.com/ubuntu/",
+  ],
+  [
+    "HTTP archive",
+    "http://archive.ubuntu.com/ubuntu/",
+    "https://archive.ubuntu.com/ubuntu/",
+  ],
+  [
+    "HTTP security",
+    "http://security.ubuntu.com/ubuntu",
+    "https://security.ubuntu.com/ubuntu",
+  ],
+  [
+    "HTTPS archive",
+    "https://archive.ubuntu.com/ubuntu",
+    "https://archive.ubuntu.com/ubuntu",
+  ],
+  [
+    "HTTPS security",
+    "https://security.ubuntu.com/ubuntu/",
+    "https://security.ubuntu.com/ubuntu/",
+  ],
+] as const;
+
+describe("github apt prepares existing Ubuntu sources over HTTPS", () => {
+  describe.each(["sources.list", "sources.list.d/ubuntu.list"])(
+    "legacy %s",
+    (file) => {
+      it.each(ubuntuSources)(
+        "normalizes %s without changing options, suites or components",
+        (_name, inputUri, expectedUri) => {
+          const fixture = aptFixture({
+            [file]: `deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] ${inputUri} noble-updates main restricted universe multiverse\ndeb-src ${inputUri} noble-security main universe\n`,
+          });
+          const result = fixture.run();
+
+          expect({
+            status: result.status,
+            sources: fixture.read(file),
+          }).toEqual({
+            status: 0,
+            sources: `deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] ${expectedUri} noble-updates main restricted universe multiverse\ndeb-src ${expectedUri} noble-security main universe\n`,
+          });
+        },
+      );
+    },
+  );
+
+  it.each(ubuntuSources)(
+    "normalizes Deb822 %s while preserving Signed-By and security pockets",
+    (_name, inputUri, expectedUri) => {
+      const file = "sources.list.d/ubuntu.sources";
+      const fixture = aptFixture({
+        [file]: `Types: deb deb-src\nURIs: ${inputUri}\nSuites: noble noble-updates noble-backports noble-security\nComponents: main restricted universe multiverse\nArchitectures: amd64 arm64\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n`,
+      });
+      const result = fixture.run();
+
+      expect({ status: result.status, sources: fixture.read(file) }).toEqual({
+        status: 0,
+        sources: `Types: deb deb-src\nURIs: ${expectedUri}\nSuites: noble noble-updates noble-backports noble-security\nComponents: main restricted universe multiverse\nArchitectures: amd64 arm64\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n`,
+      });
+    },
+  );
+
+  it("normalizes official mirror-file entries while preserving unrelated entries", () => {
+    const fixture = aptFixture({
+      "apt-mirrors.txt":
+        "http://azure.archive.ubuntu.com/ubuntu/\nhttps://azure.archive.ubuntu.com/ubuntu/\nhttp://archive.ubuntu.com/ubuntu/\nhttp://security.ubuntu.com/ubuntu/\nhttps://archive.ubuntu.com/ubuntu/\nhttp://mirror.example.org/ubuntu/\n",
+    });
+    const result = fixture.run();
+
+    expect({
+      status: result.status,
+      mirrors: fixture.read("apt-mirrors.txt"),
+    }).toEqual({
+      status: 0,
+      mirrors:
+        "https://archive.ubuntu.com/ubuntu/\nhttps://archive.ubuntu.com/ubuntu/\nhttps://archive.ubuntu.com/ubuntu/\nhttps://security.ubuntu.com/ubuntu/\nhttps://archive.ubuntu.com/ubuntu/\nhttp://mirror.example.org/ubuntu/\n",
+    });
+  });
+
+  it("preserves unrelated hosts, repository paths, comments and lookalike endpoints", () => {
+    const sources =
+      "deb http://mirror.example.org/ubuntu noble main\ndeb http://archive.ubuntu.com.example.org/ubuntu noble main\ndeb http://azure.archive.ubuntu.com.example.org/ubuntu noble main\ndeb http://security.ubuntu.com.example.org/ubuntu noble-security main\ndeb http://archive.ubuntu.com/ubuntu-other noble main\ndeb http://azure.archive.ubuntu.com/ubuntu-other noble main\ndeb http://security.ubuntu.com/ubuntu-other noble-security main\ndeb http://archive.ubuntu.com:8080/ubuntu noble main\ndeb mirror+file:/etc/apt/apt-mirrors.txt.other noble main\n# third-party note: http://archive.ubuntu.com/ubuntu\n";
+    const fixture = aptFixture({ "sources.list.d/unrelated.list": sources });
+    const result = fixture.run();
+
+    expect({
+      status: result.status,
+      sources: fixture.read("sources.list.d/unrelated.list"),
+    }).toEqual({ status: 0, sources });
+  });
+
+  it("preserves mixed Deb822 URI fields, continuation lines and embedded signing keys", () => {
+    const file = "sources.list.d/mixed.sources";
+    const fixture = aptFixture({
+      [file]:
+        "Types: deb\nURIs: http://archive.ubuntu.com/ubuntu/ http://mirror.example.org/ubuntu/\n http://security.ubuntu.com/ubuntu/\nSuites: noble noble-security\nComponents: main universe\nArchitectures: amd64\nSigned-By:\n -----BEGIN PGP PUBLIC KEY BLOCK-----\n .\n fixture-key-material\n -----END PGP PUBLIC KEY BLOCK-----\n\nTypes: deb\nURIs: http://vendor.example.org/packages\nSuites: stable\nComponents: main\nSigned-By: /usr/share/keyrings/vendor.gpg\n",
+    });
+    const result = fixture.run();
+
+    expect({ status: result.status, sources: fixture.read(file) }).toEqual({
+      status: 0,
+      sources:
+        "Types: deb\nURIs: https://archive.ubuntu.com/ubuntu/ http://mirror.example.org/ubuntu/\n https://security.ubuntu.com/ubuntu/\nSuites: noble noble-security\nComponents: main universe\nArchitectures: amd64\nSigned-By:\n -----BEGIN PGP PUBLIC KEY BLOCK-----\n .\n fixture-key-material\n -----END PGP PUBLIC KEY BLOCK-----\n\nTypes: deb\nURIs: http://vendor.example.org/packages\nSuites: stable\nComponents: main\nSigned-By: /usr/share/keyrings/vendor.gpg\n",
+    });
+  });
+
+  it("leaves already-normalized source and mirror files unchanged on repeated preparation", () => {
+    const files = {
+      "sources.list":
+        "deb https://archive.ubuntu.com/ubuntu noble-updates main\n",
+      "sources.list.d/ubuntu.sources":
+        "Types: deb\nURIs: https://security.ubuntu.com/ubuntu/\nSuites: noble-security\nComponents: main\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n",
+      "apt-mirrors.txt":
+        "https://archive.ubuntu.com/ubuntu/\nhttps://security.ubuntu.com/ubuntu/\n",
+    };
+    const fixture = aptFixture(files);
+    const first = fixture.run();
+    const second = fixture.run();
+
+    expect({
+      statuses: [first.status, second.status],
+      files: Object.fromEntries(
+        Object.keys(files).map((file) => [file, fixture.read(file)]),
+      ),
+    }).toEqual({ statuses: [0, 0], files });
+  });
+
+  it("remains idempotent after normalizing HTTP and Azure source forms", () => {
+    const fixture = aptFixture({
+      "sources.list": "deb http://azure.archive.ubuntu.com/ubuntu noble main\n",
+      "sources.list.d/security.sources":
+        "Types: deb\nURIs: http://security.ubuntu.com/ubuntu/\nSuites: noble-security\nComponents: main\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n",
+    });
+    const first = fixture.run();
+    const second = fixture.run();
+
+    expect({
+      statuses: [first.status, second.status],
+      archive: fixture.read("sources.list"),
+      security: fixture.read("sources.list.d/security.sources"),
+    }).toEqual({
+      statuses: [0, 0],
+      archive: "deb https://archive.ubuntu.com/ubuntu noble main\n",
+      security:
+        "Types: deb\nURIs: https://security.ubuntu.com/ubuntu/\nSuites: noble-security\nComponents: main\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n",
+    });
+  });
+
+  it("retains the existing Microsoft .list disabling behavior", () => {
+    const fixture = aptFixture({
+      "sources.list.d/microsoft.list":
+        "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main\n",
+    });
+    fixture.run();
+
+    expect(fixture.read("sources.list.d/microsoft.list")).toBe(
+      "# disabled by core CI apt prep: deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main\n",
+    );
+  });
+
+  it("retains the existing Microsoft Deb822 disabling behavior", () => {
+    const sources =
+      "Types: deb\nURIs: https://packages.microsoft.com/repos/code\nSuites: stable\nComponents: main\nSigned-By: /usr/share/keyrings/microsoft.gpg\n";
+    const fixture = aptFixture({ "sources.list.d/microsoft.sources": sources });
+    fixture.run();
+
+    expect({
+      originalExists: fixture.exists("sources.list.d/microsoft.sources"),
+      disabledSources: fixture.read(
+        "sources.list.d/microsoft.sources.disabled-by-core-ci",
+      ),
+    }).toEqual({ originalExists: false, disabledSources: sources });
+  });
+
+  it("sets only the established Acquire timeout and retry settings", () => {
+    const fixture = aptFixture();
+    fixture.run();
+
+    expect(fixture.read("apt.conf.d/99-core-ci-timeouts")).toBe(
+      'Acquire::http::Timeout "20";\nAcquire::https::Timeout "20";\nAcquire::Retries "2";\n',
+    );
+  });
+});
+
+const updateCalls = [
+  "timeout --kill-after=10s 180s apt-get update",
+  "apt-get update",
+];
+const installCases = [
+  [
+    "install-canvas-deps.sh",
+    "libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev",
+  ],
+  ["install-postgresql-client.sh", "postgresql-client"],
+] as const;
+const malformedTimeouts = [
+  "0",
+  "-1",
+  "01",
+  "1.5",
+  "1s",
+  "abc",
+  " 20",
+  "20 ",
+  "1\n2",
+];
+
+describe("github apt preserves bounded update behavior", () => {
+  it("succeeds on the first update without another attempt or delay", () => {
+    const result = aptFixture().run();
+
+    expect({ status: result.status, calls: result.calls }).toEqual({
+      status: 0,
+      calls: updateCalls,
+    });
+  });
+
+  it.each([100, 124, 137])(
+    "recovers after update failure %i with exactly one bounded retry",
+    (firstFailure) => {
+      const result = aptFixture().run({ updateStatuses: [firstFailure, 0] });
+
+      expect({ status: result.status, calls: result.calls }).toEqual({
+        status: 0,
+        calls: [...updateCalls, "sleep 5", ...updateCalls],
+      });
+    },
+  );
+
+  it.each([100, 124, 137])(
+    "propagates the final update failure %i without a third attempt",
+    (finalFailure) => {
+      const result = aptFixture().run({ updateStatuses: [100, finalFailure] });
+
+      expect({ status: result.status, calls: result.calls }).toEqual({
+        status: finalFailure,
+        calls: [...updateCalls, "sleep 5", ...updateCalls],
+      });
+    },
+  );
+
+  it("uses a configured positive update timeout with the existing kill grace", () => {
+    const result = aptFixture().run({ env: { APT_GET_TIMEOUT_SECONDS: "21" } });
+
+    expect({ status: result.status, calls: result.calls }).toEqual({
+      status: 0,
+      calls: ["timeout --kill-after=10s 21s apt-get update", "apt-get update"],
+    });
+  });
+
+  it.each(malformedTimeouts)(
+    "rejects malformed update timeout %j before invoking apt-get",
+    (value) => {
+      const result = aptFixture().run({
+        env: { APT_GET_TIMEOUT_SECONDS: value },
+      });
+
+      expect({
+        failed: result.status !== null && result.status !== 0,
+        diagnostic: result.stderr.includes(
+          "APT_GET_TIMEOUT_SECONDS must be a positive integer",
+        ),
+        calls: result.calls,
+      }).toEqual({ failed: true, diagnostic: true, calls: [] });
+    },
+  );
+});
+
+describe.each(installCases)(
+  "github apt install entrypoint %s",
+  (script, packages) => {
+    const installCalls = [
+      `timeout --kill-after=10s 600s apt-get install -y ${packages}`,
+      `apt-get install -y ${packages}`,
+    ];
+
+    it("installs the exact existing packages once with the 600-second bound", () => {
+      const result = aptFixture().run({ script });
+
+      expect({ status: result.status, calls: result.calls }).toEqual({
+        status: 0,
+        calls: [...updateCalls, ...installCalls],
+      });
+    });
+
+    it("recovers from an install timeout with exactly one bounded retry", () => {
+      const result = aptFixture().run({ script, installStatuses: [124, 0] });
+
+      expect({ status: result.status, calls: result.calls }).toEqual({
+        status: 0,
+        calls: [...updateCalls, ...installCalls, "sleep 5", ...installCalls],
+      });
+    });
+
+    it("propagates a second install failure without a third attempt", () => {
+      const result = aptFixture().run({ script, installStatuses: [124, 100] });
+
+      expect({ status: result.status, calls: result.calls }).toEqual({
+        status: 100,
+        calls: [...updateCalls, ...installCalls, "sleep 5", ...installCalls],
+      });
+    });
+
+    it("does not install packages after metadata preparation fails twice", () => {
+      const result = aptFixture().run({ script, updateStatuses: [124, 124] });
+
+      expect({ status: result.status, calls: result.calls }).toEqual({
+        status: 124,
+        calls: [...updateCalls, "sleep 5", ...updateCalls],
+      });
+    });
+
+    it("accepts a configured positive install timeout with the existing kill grace", () => {
+      const result = aptFixture().run({
+        script,
+        env: { APT_GET_INSTALL_TIMEOUT_SECONDS: "601" },
+      });
+
+      expect({ status: result.status, calls: result.calls }).toEqual({
+        status: 0,
+        calls: [
+          ...updateCalls,
+          `timeout --kill-after=10s 601s apt-get install -y ${packages}`,
+          `apt-get install -y ${packages}`,
+        ],
+      });
+    });
+
+    it.each(malformedTimeouts)(
+      "rejects malformed install timeout %j before invoking installation",
+      (value) => {
+        const result = aptFixture().run({
+          script,
+          env: { APT_GET_INSTALL_TIMEOUT_SECONDS: value },
+        });
+
+        expect({
+          failed: result.status !== null && result.status !== 0,
+          diagnostic: result.stderr.includes(
+            "APT_GET_INSTALL_TIMEOUT_SECONDS must be a positive integer",
+          ),
+          calls: result.calls,
+        }).toEqual({ failed: true, diagnostic: true, calls: updateCalls });
+      },
+    );
+  },
+);
