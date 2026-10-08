@@ -148,6 +148,9 @@ function fixture() {
   ]) {
     write(`${directory}/reui/SKILL.md`, skill);
     write(`${directory}/reui/rules/cli.md`, "Run from packages/ui.\n");
+    write(`${directory}/reui/references/upstream-manifest.json`, {
+      reviewedAt: "2026-10-07",
+    });
   }
   const config = {
     style: "base-maia",
@@ -211,6 +214,69 @@ describe("ReUI readiness verification", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
     expect(readFileSync(path.join(root, ".mcp.json"))).toEqual(before);
   });
+
+  it.each([
+    ["missing manifest", undefined],
+    ["missing review date", { reviewStatus: "reviewed" }],
+    ["pending review", { reviewStatus: "pending", reviewedAt: "2026-10-07" }],
+    [
+      "staged pending review",
+      { reviewStatus: "pending", stagedAt: "2026-10-08T05:00:00.000Z" },
+    ],
+    ["invalid review date", { reviewedAt: "not-a-date" }],
+    [
+      "unrecognized review status",
+      { reviewStatus: "rejected", reviewedAt: "2026-10-07" },
+    ],
+  ])(
+    "rejects synchronized but unreviewed canonical provenance (%s)",
+    async (_label, manifest) => {
+      const { root, write } = fixture();
+      for (const directory of [
+        "docs/ai/skills",
+        ".agents/skills",
+        ".cursor/skills",
+        ".claude/skills",
+      ]) {
+        const relative = `${directory}/reui/references/upstream-manifest.json`;
+        if (manifest) write(relative, manifest);
+        else rmSync(path.join(root, relative));
+      }
+      const { fetchImpl } = remoteFixture();
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("canonical ReUI skill and all mirrors");
+      expect(fetchImpl).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["2026-10-07", "2026-10-08T05:00:00.000Z"])(
+    "accepts explicitly reviewed canonical provenance dated %s",
+    async (reviewedAt) => {
+      const { root, write } = fixture();
+      for (const directory of [
+        "docs/ai/skills",
+        ".agents/skills",
+        ".cursor/skills",
+        ".claude/skills",
+      ]) {
+        write(`${directory}/reui/references/upstream-manifest.json`, {
+          reviewStatus: "reviewed",
+          reviewedAt,
+        });
+      }
+      await expect(verifyReui({ root, env: {} })).resolves.toMatchObject({
+        checks: expect.arrayContaining([
+          "canonical ReUI skill and all mirrors",
+        ]),
+      });
+    },
+  );
 
   it("fails live mode loudly when the license is absent, without sending requests", async () => {
     const { root } = fixture();
@@ -395,6 +461,40 @@ describe("ReUI readiness verification", () => {
       }),
     ).rejects.toThrow("MCP auth/style forwarding");
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])(
+    "rejects an explicitly disabled Codex server before hosted access (live=%s)",
+    async (live) => {
+      const { root, write } = fixture();
+      write(
+        ".codex/config.toml",
+        '[mcp_servers.reui]\nurl = "https://mcp.reui.io"\nbearer_token_env_var = "REUI_LICENSE_KEY"\nhttp_headers = { "X-Reui-Style" = "base-maia" }\n  enabled = false # temporarily disabled\n',
+      );
+      const { fetchImpl } = remoteFixture();
+      await expect(
+        verifyReui({
+          root,
+          live,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("MCP auth/style forwarding");
+      expect(fetchImpl).not.toHaveBeenCalled();
+    },
+  );
+
+  it("accepts an enabled Codex ReUI server while ignoring other disabled entries", async () => {
+    const { root, write } = fixture();
+    write(
+      ".codex/config.toml",
+      '[mcp_servers.reui]\nurl = "https://mcp.reui.io"\nbearer_token_env_var = "REUI_LICENSE_KEY"\nhttp_headers = { "X-Reui-Style" = "base-maia" }\n# enabled = false\nenabled = true\n[mcp_servers.other]\nenabled = false\n',
+    );
+    await expect(verifyReui({ root, env: {} })).resolves.toMatchObject({
+      checks: expect.arrayContaining([
+        "Codex, Claude, and Cursor MCP auth/style forwarding",
+      ]),
+    });
   });
 
   it.each(["style", "registry"])(

@@ -55,15 +55,23 @@
   `.cursor/mcp.json`, and `.codex/config.toml`.
 - Claude Code reads the repo-root `.mcp.json`; Cursor reads `.cursor/mcp.json`;
   Codex reads `.codex/config.toml`.
-- The MCP endpoint is `https://mcp.reui.io` and does not need auth headers or a
-  license key. It is for ReUI search, planning, inline APIs, and validation.
-- Free `@reui` installs use the plain-string registry in
-  `packages/ui/components.json`. Premium installs temporarily need the
-  authenticated `@reui` object form plus `REUI_LICENSE_KEY` in git-ignored
-  `.env.local` (see `docs/ai/skills/reui/rules/cli.md`). ReUI is not
-  shadcn-studio `/rui` (Refine UI).
+- The MCP endpoint is `https://mcp.reui.io` and requires authentication through
+  OAuth or a bearer credential. Core's configured headless clients use the
+  runtime `REUI_LICENSE_KEY` and send `X-Reui-Style: base-maia`. Reload/reconnect
+  the client after configuration changes; a disabled server exposes no tools.
+- Registry installation authenticates separately through the existing `@reui`
+  object in `packages/ui/components.json` and runtime `REUI_LICENSE_KEY`.
+  Preserve that configuration for free and Pro items. Prefer the existing
+  process environment; a fallback git-ignored `packages/ui/.env.local` must
+  sit beside the package's `components.json`. ReUI is not shadcn-studio `/rui`
+  (Refine UI).
 - The canonical ReUI skill remains `docs/ai/skills/reui/SKILL.md`; keep mirrors
-  fresh with `bun run skills:sync` and `bun run skills:verify`.
+  fresh with `bun run skills:sync` and `bun run skills:verify`. Reviewed refreshes
+  record `reviewStatus: "reviewed"` and an ISO `reviewedAt` date or timestamp
+  in `references/upstream-manifest.json` before promotion and sync.
+- Follow [ReUI setup](guides/development/reui.md), including
+  `bun run verify:reui` and explicit `bun run verify:reui --live`. The latter
+  checks authenticated MCP/Pro access and paid registry source independently.
 
 ## Monorepo scoping (pick the right app first)
 
