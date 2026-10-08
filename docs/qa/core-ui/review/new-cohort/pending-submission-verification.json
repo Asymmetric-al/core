@@ -1,0 +1,55 @@
+{
+  "validatedLocalApplicationTip": "1944a55e682e3414d76e650b4cd5fb797bf4398d",
+  "integratedLocalSourceTip": "30d0712cf6ccb09d8738905b041e5bec1d701e21",
+  "rootCause": "Installed FormApi1.33.5 permits later submission attempts despite isSubmitting. Four CMS forms issued a duplicate POST while the first was pending; strengthened asynchronous repeat-submit actions exposed it directly.",
+  "correction": "Each native form checks the live form.state.isSubmitting before handleSubmit. Existing fields, validation, payloads, errors, retries and navigation remain unchanged.",
+  "accessibleNaming": "Original styled browser names already contained separators. Explicit dynamic count+label preserves that contract in browser and jsdom layouts; task-toolbar assertions are unchanged.",
+  "greenTests": {
+    "filesPassed": 4,
+    "testsPassed": 22
+  },
+  "scopedLintTypecheckTasksPassed": 15,
+  "normalCommitHooks": "PASS; no policy, proof, baseline, threshold or configuration edits",
+  "sourceHashes": {
+    "apps/admin/src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx": "ab14ee3b26aca7140243677fe858516b325d698d324ccd8af890eb003b68cff9",
+    "apps/admin/src/cms-ui/web-studio/flows/MissionaryGivingCreateView.tsx": "4c71facf80842e5948f1424b4490e5d00f601547867c2f7fe1cc22c104c196ec",
+    "apps/admin/src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx": "bb84394d8762c67ca4b5fa7bd4e1d9abfa4f02f03910c20e895eca68c22f77ff",
+    "apps/admin/src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx": "838be8e70f94863bc750f70d5930cf0ba0a35284c77c5cea1ba64cdc0fb63006",
+    "apps/missionary/app/tasks/page-client.tsx": "1efa3080a28d3f46e7ee433396fe4099b52ac8845ba800b23fc55dea30a3afb6",
+    "tests/unit/apps/admin/cms-create-feedback.test.tsx": "9ed49656e2f08976252ab1257ea95e8d67e448f5cb2a069a8566975c1840e016",
+    "tests/unit/apps/missionary/app/tasks/task-toolbar.test.tsx": "4ceda334360239c082303946292415e2923e27847f270349cc9a8a3a215e035b"
+  },
+  "logs": [
+    {
+      "localDiagnostic": "new-cohort-cms-create-red.log",
+      "sha256": "682832e264170b307a3a04957ab057c60269674be040d9d8fdbd0ac91ab36f37"
+    },
+    {
+      "localDiagnostic": "new-cohort-task-toolbar-red.log",
+      "sha256": "a4645acd1875f04cd28ff13ef53dceb0f15729585f4517fae051095ac42b529b"
+    },
+    {
+      "localDiagnostic": "new-cohort-cms-duplicate-red.log",
+      "sha256": "1b7cd72bf29c3843e38dc9b9286bc3609cdc792b2be19ffed9e0f217b1cd6a89"
+    },
+    {
+      "localDiagnostic": "new-cohort-app-pending-names-green.log",
+      "sha256": "a827ee4e871d4e771ba7c5be80fd2213f80c9cf88fd1142c5fa7d2cc636130ee"
+    },
+    {
+      "localDiagnostic": "new-cohort-app-pending-names-scoped-gates.log",
+      "sha256": "c7ff9f61bf1987f212eb7597daafca4ac27083d79edae53b1d753df515c0e7bc"
+    },
+    {
+      "localDiagnostic": "new-cohort-app-pending-names-commit.log",
+      "sha256": "2bb9b7b089e556e29e22200fcbed2c667192b84a99361ac5653fa05ac963591e"
+    },
+    {
+      "localDiagnostic": "new-cohort-task-name-qualified-browser.log",
+      "sha256": "42591d6dbd610fe7d5a3c64241fe0c518d09080e9458c8c5df80ae44fd3c0d09"
+    }
+  ],
+  "browserProbe": "Matching Playwright1.64/Chromium156 isolated markup/CSS name probe; not a complete application screenshot or provider test.",
+  "independentReview": "No concrete blocker found at the stable commit; source identities, live-state guard timing and retry release were inspected independently.",
+  "scope": "Focused qualification. Final full preflight and latest published CI are separate records."
+}

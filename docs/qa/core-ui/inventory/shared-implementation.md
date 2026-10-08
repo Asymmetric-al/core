@@ -12,7 +12,7 @@ The original chart zero result was already visible as a bare React text node. Te
 
 Generic shadcn controls, TanStack table/Form adapters, server pagination/state serialization, chart engines, specialized editors, crop/upload backend and public authored-content renderer boundaries were retained because a registry transplant would weaken compatibility or offer no material benefit. Current ReUI Filters query trees and file-upload ownership do not match Core's persistent filters and crop/backend pipeline. No source from those examples was copied. No dependency, lockfile, theme preset, primitive base or behavior ownership was migrated.
 
-Public MIT ReUI APIs/examples and official shadcn documentation informed this first slice; exact artifacts and source decisions appear in `[shared.json](./shared.json)`. A later commercial Pro settings composition is separately authorized by the owner's public-distribution agreement confirmation and must not be labelled MIT.
+Public MIT ReUI APIs/examples and official shadcn documentation informed this first slice; exact artifacts and source decisions appear in [shared.json](./shared.json). A later commercial Pro settings composition is separately authorized by the owner's public-distribution agreement confirmation and must not be labelled MIT.
 
 Verification:
 

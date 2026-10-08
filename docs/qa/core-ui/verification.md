@@ -10,6 +10,12 @@ changes. Those are inherited upstream changes, not a framework migration in
 this UI task. The independent [integration review](./sources/upstream-integration-review.md)
 records all seven overlapping source files and preserved regression tests.
 
+The [2026-10-08 review follow-up](./review/README.md) separately records fixes
+and current-source targeted component checks. The results below describe the
+original delivery epoch; they do not establish checks at a later review tip.
+Complete integrated-source application screenshot qualification remains open
+in OpenSpec task 4.1.
+
 ## Coverage and implementation
 
 The [coverage index](./coverage-index.json) contains 165 explicit source-disposition

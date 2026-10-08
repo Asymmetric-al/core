@@ -1,0 +1,1568 @@
+{
+  "capturedAt": "2026-10-08T04:27:18.783Z",
+  "baselineHead": "d8cf325d24b4e6c65c3783df417326f5e89e850f",
+  "reviewFixedPoint": "21e861c4453bb09778dc8448f78b518d8e702233",
+  "reviewCandidate": "41cdce7ce3938461f6133aae38d08ff82373414c",
+  "sourceScope": "Actual first-party component fixture only; not Next.js application, authenticated provider, live data, or production qualification",
+  "frameworkBoundaries": [
+    "Native image/anchor adapters for next/image and next/link",
+    "Canonical public site-shared config in place of unused server-env site config"
+  ],
+  "dataScope": "Explicitly labelled synthetic task props; existing public component scaffolding remains unchanged; no production mutations",
+  "externalNetworkBlocked": true,
+  "source": [
+    {
+      "path": "packages/ui/components/studio/EmailStudioPreview.tsx",
+      "beforeSha256": "8bb7bdcb3c2f9121583999cc466f1621843cc0d85744470dbb15e4c94383ac2f",
+      "afterSha256": "627ee6aac3b442a557c4cefc82d2b7089a230eecfdb3445eb9f4a075ff6bb172",
+      "baselineSameAsReviewCandidate": true
+    },
+    {
+      "path": "packages/ui/components/public/home-sections.tsx",
+      "beforeSha256": "850d85cc15c581e51714e83aeea4cce4ab610fbcfb3a50de689927bb2084be32",
+      "afterSha256": "879f0bb12b2716a03cd32e869c11be7241a439cf386ecd69cea4811ab330c06c",
+      "baselineSameAsReviewCandidate": true
+    },
+    {
+      "path": "packages/missionary/components/task-kanban-board.tsx",
+      "beforeSha256": "398f6943f529249f34381e49e01c30bc910ff4b296644186dd71fa2fc7571246",
+      "afterSha256": "bc2b149d263af67668436fd263bd3fb9139fdc53111a3291495d06e85c877315",
+      "baselineSameAsReviewCandidate": true
+    },
+    {
+      "path": "packages/ui/styles/globals.css",
+      "beforeSha256": "602ff05ea6118253d21f1bd71b6133dd24a8eae6f3121b8686d326526f3f63fa",
+      "afterSha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
+      "baselineSameAsReviewCandidate": true
+    }
+  ],
+  "matchingViewportsAndStates": true,
+  "srcdocPreserved": true,
+  "before": {
+    "phase": "before",
+    "syntheticInputs": true,
+    "externalNetworkBlocked": true,
+    "source": "Actual three first-party components; inert Next Image/Link browser boundaries only",
+    "results": [
+      {
+        "phase": "before",
+        "surface": "email",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "email-light-narrow.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 266,
+          "availableWidth": 300,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "before",
+        "surface": "email",
+        "theme": "light",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "email-light-wide.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 388,
+          "availableWidth": 422,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "before",
+        "surface": "home",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "home-light-narrow.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(1 0 0)",
+              "contrast": 12.764105432745946
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(1 0 0)",
+              "contrast": 12.764105432745946
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(1 0 0)",
+              "contrast": 12.764105432745946
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "before",
+        "surface": "home",
+        "theme": "light",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "home-light-wide.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(1 0 0)",
+              "contrast": 12.764105432745946
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(1 0 0)",
+              "contrast": 12.764105432745946
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(1 0 0)",
+              "contrast": 12.764105432745946
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "before",
+        "surface": "board",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "board-light-narrow.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 524,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "clientWidth": 342,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": false,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": false
+      },
+      {
+        "phase": "before",
+        "surface": "board",
+        "theme": "light",
+        "size": "wide-short",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "screenshot": "board-light-wide-short.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 500,
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "before",
+        "surface": "board",
+        "theme": "light",
+        "size": "wide-tall",
+        "viewport": {
+          "width": 1280,
+          "height": 1400
+        },
+        "screenshot": "board-light-wide-tall.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 1080,
+          "viewport": {
+            "width": 1280,
+            "height": 1400
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": false,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": false
+      },
+      {
+        "phase": "before",
+        "surface": "email",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "email-dark-narrow.png",
+        "metrics": {
+          "iframeBackground": "oklch(0.18 0.012 265)",
+          "iframeScheme": "dark",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 1.1192064871513492
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 1.1192064871513492
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 1.1192064871513492
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 266,
+          "availableWidth": 300,
+          "passesContrast": false
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": false
+      },
+      {
+        "phase": "before",
+        "surface": "email",
+        "theme": "dark",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "email-dark-wide.png",
+        "metrics": {
+          "iframeBackground": "oklch(0.18 0.012 265)",
+          "iframeScheme": "dark",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 1.1192064871513492
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 1.1192064871513492
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 1.1192064871513492
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 388,
+          "availableWidth": 422,
+          "passesContrast": false
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": false
+      },
+      {
+        "phase": "before",
+        "surface": "home",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "home-dark-narrow.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(0.18 0.012 265)",
+              "contrast": 1.067971344580606
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(0.18 0.012 265)",
+              "contrast": 1.067971344580606
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(0.18 0.012 265)",
+              "contrast": 1.067971344580606
+            }
+          ],
+          "passesContrast": false
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": false
+      },
+      {
+        "phase": "before",
+        "surface": "home",
+        "theme": "dark",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "home-dark-wide.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(0.18 0.012 265)",
+              "contrast": 1.067971344580606
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(0.18 0.012 265)",
+              "contrast": 1.067971344580606
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "rgba(0, 0, 0, 0)",
+              "fill": "oklch(0.18 0.012 265)",
+              "contrast": 1.067971344580606
+            }
+          ],
+          "passesContrast": false
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": false
+      },
+      {
+        "phase": "before",
+        "surface": "board",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "board-dark-narrow.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 524,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "clientWidth": 342,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": false,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": false
+      },
+      {
+        "phase": "before",
+        "surface": "board",
+        "theme": "dark",
+        "size": "wide-short",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "screenshot": "board-dark-wide-short.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 500,
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "before",
+        "surface": "board",
+        "theme": "dark",
+        "size": "wide-tall",
+        "viewport": {
+          "width": 1280,
+          "height": 1400
+        },
+        "screenshot": "board-dark-wide-tall.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 1080,
+          "viewport": {
+            "width": 1280,
+            "height": 1400
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": false,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": false
+      }
+    ]
+  },
+  "after": {
+    "phase": "after",
+    "syntheticInputs": true,
+    "externalNetworkBlocked": true,
+    "source": "Actual three first-party components; inert Next Image/Link browser boundaries only",
+    "results": [
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "email-light-narrow.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 266,
+          "availableWidth": 300,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "light",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "email-light-wide.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 388,
+          "availableWidth": 422,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "home-light-narrow.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "light",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "home-light-wide.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "board-light-narrow.png",
+        "metrics": {
+          "actualHeight": 524,
+          "expectedHeight": 524,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "clientWidth": 342,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [508, 508, 508, 508],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "light",
+        "size": "wide-short",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "screenshot": "board-light-wide-short.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 500,
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "light",
+        "size": "wide-tall",
+        "viewport": {
+          "width": 1280,
+          "height": 1400
+        },
+        "screenshot": "board-light-wide-tall.png",
+        "metrics": {
+          "actualHeight": 1080,
+          "expectedHeight": 1080,
+          "viewport": {
+            "width": 1280,
+            "height": 1400
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [1064, 1064, 1064, 1064],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "email-dark-narrow.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 266,
+          "availableWidth": 300,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "dark",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "email-dark-wide.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 388,
+          "availableWidth": 422,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "home-dark-narrow.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "dark",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "home-dark-wide.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "board-dark-narrow.png",
+        "metrics": {
+          "actualHeight": 524,
+          "expectedHeight": 524,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "clientWidth": 342,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [508, 508, 508, 508],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "dark",
+        "size": "wide-short",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "screenshot": "board-dark-wide-short.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 500,
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "dark",
+        "size": "wide-tall",
+        "viewport": {
+          "width": 1280,
+          "height": 1400
+        },
+        "screenshot": "board-dark-wide-tall.png",
+        "metrics": {
+          "actualHeight": 1080,
+          "expectedHeight": 1080,
+          "viewport": {
+            "width": 1280,
+            "height": 1400
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [1064, 1064, 1064, 1064],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      }
+    ]
+  },
+  "images": [
+    {
+      "phase": "before",
+      "file": "board-dark-narrow.png",
+      "path": "docs/qa/core-ui/review/before/board-dark-narrow.png",
+      "sha256": "0cd03ddcf2fb57e8b220d40e8bc649157fafef71bea4ae513994da2cba51f5cf",
+      "bytes": 24548,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "before",
+      "file": "board-dark-wide-short.png",
+      "path": "docs/qa/core-ui/review/before/board-dark-wide-short.png",
+      "sha256": "bdaf1cb89b32343c0c376cacd305c3457994ab8e0bf73d36f382a6669502e0f5",
+      "bytes": 39184,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "phase": "before",
+      "file": "board-dark-wide-tall.png",
+      "path": "docs/qa/core-ui/review/before/board-dark-wide-tall.png",
+      "sha256": "374e80ec4209d10692d038420623809915efdf8ba2492e086078f17321d53c57",
+      "bytes": 42646,
+      "width": 1280,
+      "height": 1400
+    },
+    {
+      "phase": "before",
+      "file": "board-light-narrow.png",
+      "path": "docs/qa/core-ui/review/before/board-light-narrow.png",
+      "sha256": "3e51504e865456d2d59308a2a744830f3c38c81b74fc9ce8a7a15f50b98cd031",
+      "bytes": 24555,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "before",
+      "file": "board-light-wide-short.png",
+      "path": "docs/qa/core-ui/review/before/board-light-wide-short.png",
+      "sha256": "74fcdfc449fff645a260f2566eba09761f9604f23aec80100a2c7d9c3c0d42c6",
+      "bytes": 38530,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "phase": "before",
+      "file": "board-light-wide-tall.png",
+      "path": "docs/qa/core-ui/review/before/board-light-wide-tall.png",
+      "sha256": "631ad879fba23b3dcf388b9069235829410cd2c60ecf61e1abcfd9ca7e1ef9bb",
+      "bytes": 41992,
+      "width": 1280,
+      "height": 1400
+    },
+    {
+      "phase": "before",
+      "file": "email-dark-narrow.png",
+      "path": "docs/qa/core-ui/review/before/email-dark-narrow.png",
+      "sha256": "d097e6c3f2575dab0e91b307cb641c749f4ad652860152732515041a1e4668ba",
+      "bytes": 22529,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "before",
+      "file": "email-dark-wide.png",
+      "path": "docs/qa/core-ui/review/before/email-dark-wide.png",
+      "sha256": "cd9523521d4eb1a9fae64eac77cd61556cf4c5306bba737108b382643f6944da",
+      "bytes": 27226,
+      "width": 1280,
+      "height": 1000
+    },
+    {
+      "phase": "before",
+      "file": "email-light-narrow.png",
+      "path": "docs/qa/core-ui/review/before/email-light-narrow.png",
+      "sha256": "58285e1c58b83cd198cc1a91eb33b9dae38952cba879c619f734c8ace856e2b7",
+      "bytes": 23727,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "before",
+      "file": "email-light-wide.png",
+      "path": "docs/qa/core-ui/review/before/email-light-wide.png",
+      "sha256": "eecda90bda1e9ab60f7f67718af5b45a1648e46a93e7884937b102690f164ff7",
+      "bytes": 29435,
+      "width": 1280,
+      "height": 1000
+    },
+    {
+      "phase": "before",
+      "file": "home-dark-narrow.png",
+      "path": "docs/qa/core-ui/review/before/home-dark-narrow.png",
+      "sha256": "f375955ca75abb75531c1bb61828be0bb75e9d2027c73e1a7c9c9b503ec62fe5",
+      "bytes": 98354,
+      "width": 390,
+      "height": 2032
+    },
+    {
+      "phase": "before",
+      "file": "home-dark-wide.png",
+      "path": "docs/qa/core-ui/review/before/home-dark-wide.png",
+      "sha256": "16c7a9245c86b42bf4f0eabec793571166cde47c2525289c5587fc53ed56de4c",
+      "bytes": 96443,
+      "width": 1280,
+      "height": 1081
+    },
+    {
+      "phase": "before",
+      "file": "home-light-narrow.png",
+      "path": "docs/qa/core-ui/review/before/home-light-narrow.png",
+      "sha256": "fb8e6ba87385aca631eceb757a2e80410897a2f93828297d8774f832fb12dd00",
+      "bytes": 102758,
+      "width": 390,
+      "height": 2032
+    },
+    {
+      "phase": "before",
+      "file": "home-light-wide.png",
+      "path": "docs/qa/core-ui/review/before/home-light-wide.png",
+      "sha256": "167e1d05b0dd011e87b11802dec662e65b52d99a1beb9af809490dc684aca7b8",
+      "bytes": 99957,
+      "width": 1280,
+      "height": 1081
+    },
+    {
+      "phase": "after",
+      "file": "board-dark-narrow.png",
+      "path": "docs/qa/core-ui/review/after/board-dark-narrow.png",
+      "sha256": "6193bb4abea0131bcff25a65eb3096116e61d787dd899fe5d0716cb7ae83dec0",
+      "bytes": 26755,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "after",
+      "file": "board-dark-wide-short.png",
+      "path": "docs/qa/core-ui/review/after/board-dark-wide-short.png",
+      "sha256": "bdaf1cb89b32343c0c376cacd305c3457994ab8e0bf73d36f382a6669502e0f5",
+      "bytes": 39184,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "phase": "after",
+      "file": "board-dark-wide-tall.png",
+      "path": "docs/qa/core-ui/review/after/board-dark-wide-tall.png",
+      "sha256": "ed65a29d92eeba35ea9a7ff8e2d20c8ac9ef6bc2ae1b5b126b5fdc094be525b0",
+      "bytes": 64917,
+      "width": 1280,
+      "height": 1400
+    },
+    {
+      "phase": "after",
+      "file": "board-light-narrow.png",
+      "path": "docs/qa/core-ui/review/after/board-light-narrow.png",
+      "sha256": "265ad7761fe8e2fd70e79c344f5f63e084a0225bdf9b1918d4839d949aa51ca1",
+      "bytes": 26811,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "after",
+      "file": "board-light-wide-short.png",
+      "path": "docs/qa/core-ui/review/after/board-light-wide-short.png",
+      "sha256": "74fcdfc449fff645a260f2566eba09761f9604f23aec80100a2c7d9c3c0d42c6",
+      "bytes": 38530,
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "phase": "after",
+      "file": "board-light-wide-tall.png",
+      "path": "docs/qa/core-ui/review/after/board-light-wide-tall.png",
+      "sha256": "8fd3d090baf14db0f22354322f92d8be04935e045f3a0f09f599d8e6fd5d900f",
+      "bytes": 64736,
+      "width": 1280,
+      "height": 1400
+    },
+    {
+      "phase": "after",
+      "file": "email-dark-narrow.png",
+      "path": "docs/qa/core-ui/review/after/email-dark-narrow.png",
+      "sha256": "f3b2314b205cbc6eb9c6fe915e375b8f15eabbfc44ce79f6e9d9b10fbe7da731",
+      "bytes": 23594,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "after",
+      "file": "email-dark-wide.png",
+      "path": "docs/qa/core-ui/review/after/email-dark-wide.png",
+      "sha256": "fe9dbe5e2aa5f068d4e3aca6c76d0620d348322e014778907925c04ca2646514",
+      "bytes": 28917,
+      "width": 1280,
+      "height": 1000
+    },
+    {
+      "phase": "after",
+      "file": "email-light-narrow.png",
+      "path": "docs/qa/core-ui/review/after/email-light-narrow.png",
+      "sha256": "58285e1c58b83cd198cc1a91eb33b9dae38952cba879c619f734c8ace856e2b7",
+      "bytes": 23727,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "phase": "after",
+      "file": "email-light-wide.png",
+      "path": "docs/qa/core-ui/review/after/email-light-wide.png",
+      "sha256": "eecda90bda1e9ab60f7f67718af5b45a1648e46a93e7884937b102690f164ff7",
+      "bytes": 29435,
+      "width": 1280,
+      "height": 1000
+    },
+    {
+      "phase": "after",
+      "file": "home-dark-narrow.png",
+      "path": "docs/qa/core-ui/review/after/home-dark-narrow.png",
+      "sha256": "591cd33f6d27b69db6bb4947cfa172880ae4a8dad5cd15ae9c7f2efdb0f471ee",
+      "bytes": 98463,
+      "width": 390,
+      "height": 2032
+    },
+    {
+      "phase": "after",
+      "file": "home-dark-wide.png",
+      "path": "docs/qa/core-ui/review/after/home-dark-wide.png",
+      "sha256": "af6511bf2897d373675f32ba0687e284039207bc1b15ecec543a82a2a8cc85e1",
+      "bytes": 96552,
+      "width": 1280,
+      "height": 1081
+    },
+    {
+      "phase": "after",
+      "file": "home-light-narrow.png",
+      "path": "docs/qa/core-ui/review/after/home-light-narrow.png",
+      "sha256": "0856a16494d407e8b7776af43e9136dc3444437935ed6c1cfac9afbd3c379991",
+      "bytes": 102846,
+      "width": 390,
+      "height": 2032
+    },
+    {
+      "phase": "after",
+      "file": "home-light-wide.png",
+      "path": "docs/qa/core-ui/review/after/home-light-wide.png",
+      "sha256": "eae101ea365e4d343289c60dd90ebb60c9da8f5c00cffc22e465000d5a5f9172",
+      "bytes": 100014,
+      "width": 1280,
+      "height": 1081
+    }
+  ],
+  "checks": [
+    {
+      "name": "Existing Email preview and missionary controls",
+      "command": "bunx vitest run tests/unit/packages/ui/studio/email-studio-preview.test.tsx tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+      "exitCode": 0,
+      "filesPassed": 2,
+      "testsPassed": 8,
+      "localDiagnosticLog": "shared-focused-tests.log",
+      "logSha256": "5241588a249bb7d71ebbe043c6535ea9b19252514ca13938fa3e054ba43f5696"
+    },
+    {
+      "name": "Scoped ESLint",
+      "exitCode": 0,
+      "localDiagnosticLog": "shared-eslint.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "Four-file Prettier check",
+      "exitCode": 0,
+      "localDiagnosticLog": "shared-format.log",
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "name": "UI package typecheck",
+      "exitCode": 0,
+      "localDiagnosticLog": "shared-ui-typecheck.log",
+      "logSha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+    },
+    {
+      "name": "Missionary package typecheck",
+      "exitCode": 0,
+      "localDiagnosticLog": "shared-missionary-typecheck.log",
+      "logSha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+    },
+    {
+      "name": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "name": "After browser fixture measured states",
+      "exitCode": 0,
+      "statesPassed": 14,
+      "localDiagnosticLog": "shared-browser-after.log",
+      "logSha256": "d83a2679f55848fb51eb657ccb78e6d9a15f9b55cbc00700dcf7ea98e3ac7329"
+    }
+  ],
+  "directVisualComparison": {
+    "pairsReviewed": [
+      "email-dark-narrow.png",
+      "home-dark-wide.png",
+      "board-light-wide-tall.png"
+    ],
+    "observations": [
+      "Email default and explicit black text legible on fixed-light canvas in dark host",
+      "Deployment fills visible against permanent dark media scrims",
+      "Tall board now uses available height and shows more original task cards while preserving internal scrolling"
+    ],
+    "remoteImageQualification": "External images intentionally blocked; screenshot image fallbacks do not qualify remote image loading"
+  },
+  "capturedSourceApplicationTip": "69b8c74e39768ac49574a493caa2bf21a1ed11e5",
+  "publicationScope": "28 component-fixture images in review/before and review/after; separate from the original application capture indexes and their 638 images."
+}

@@ -1,0 +1,27 @@
+{
+  "scope": "Final published source commits have the exact same Git trees as the locally validated branches. Evidence-only metadata is separately formatted and checked; current hosted head identities and CI status are reported on the four PRs.",
+  "integratedDevelop": "289c16317eee9807dfcebb412a20ebccbcfcd012",
+  "sourceCommits": [
+    {
+      "pr": 1970,
+      "preservedRemoteParent": "377031e48480f921c8a5e9ab01d01abf0dab737f",
+      "validatedLocalTip": "5cce23208912e8606c00ced47389226307deab9c",
+      "publishedEquivalentTip": "836e9930826dc19e91f28a182e66e0f6be9cf5c2",
+      "identicalTree": "11c9fe87941082f194cf9ad2cd17229b91e19cbd"
+    },
+    {
+      "pr": 1971,
+      "preservedRemoteParent": "ca2223fbd6d6b77f3070c4b9c4ed0a1d3b981c71",
+      "validatedLocalTip": "2219c6eef09eba821104017d6d0a59797d363350",
+      "publishedEquivalentTip": "2ba7bcd27edd3e97cfdc1bf0009c94a9677e6e7f",
+      "identicalTree": "6c8a266c5f7b650da9a70caf3115d7d5be3dab27"
+    },
+    {
+      "pr": 1972,
+      "preservedRemoteParent": "66ed6829bdd702f4102de2c1059d07ce052b47fc",
+      "validatedLocalTip": "b9f0e94d7b5c6e0509244dc2a9e97670ee75771a",
+      "publishedEquivalentTip": "bba151e3fd70535e70d17dd729d68d5c12cf455e",
+      "identicalTree": "60721108cc81053da3c6c12a754dead897d06546"
+    }
+  ]
+}

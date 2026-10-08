@@ -1,0 +1,34 @@
+{
+  "mechanism": "Connected GitHub app Git Database API; normal local commits/hooks and complete local preflight, preserved current remote first parent and prerequisite second parent, force=false with expected-SHA lease.",
+  "integratedDevelop": "a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68",
+  "entries": [
+    {
+      "pr": 1970,
+      "localValidatedSourceCommit": "c3fd6592dbe9288d3edd2d0e1b50264f360a97a3",
+      "publishedCommit": "cdf7b2ce38a0f5414bd5956578b9346bc14438a1",
+      "tree": "959f747b300c25a05640c518149d73667927bfbb",
+      "preservedRemoteParent": "836e9930826dc19e91f28a182e66e0f6be9cf5c2",
+      "prerequisiteParent": "a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68",
+      "exactTreeEqualityVerified": true
+    },
+    {
+      "pr": 1971,
+      "localValidatedSourceCommit": "10667cfb3935af86a05431b6da17e2b2cb06e608",
+      "publishedCommit": "f002d1f6cbd7697328e8f38f99fd725742246ab5",
+      "tree": "2e6739c327d59c05129e4cb0ef12c93ccd26a98d",
+      "preservedRemoteParent": "2ba7bcd27edd3e97cfdc1bf0009c94a9677e6e7f",
+      "prerequisiteParent": "cdf7b2ce38a0f5414bd5956578b9346bc14438a1",
+      "exactTreeEqualityVerified": true
+    },
+    {
+      "pr": 1972,
+      "localValidatedSourceCommit": "1944a55e682e3414d76e650b4cd5fb797bf4398d",
+      "publishedCommit": "8a17926bc5acd60d383d7b842bed1c604dee0fca",
+      "tree": "b9d46bfd715fee210537012d7f6896944298fb1f",
+      "preservedRemoteParent": "bba151e3fd70535e70d17dd729d68d5c12cf455e",
+      "prerequisiteParent": "f002d1f6cbd7697328e8f38f99fd725742246ab5",
+      "exactTreeEqualityVerified": true
+    }
+  ],
+  "scope": "Source PRs after current-version validation. Evidence publication has a different equivalent local/GitHub identity; hosted checks are evaluated on actual published heads."
+}

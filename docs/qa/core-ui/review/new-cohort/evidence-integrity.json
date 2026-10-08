@@ -1,0 +1,16 @@
+{
+  "imagesVerified": 14,
+  "measurementsAndInteractionOutcomesPassed": 14,
+  "componentChecksRecorded": 62,
+  "currentCapturedSourceHashesMatched": 4,
+  "historicalArtifactCheck": {
+    "manifest": "../shared-verification.json",
+    "historicalArtifactsPreserved": true,
+    "unchangedHistoricalArtifacts": 30,
+    "sameDependencyCohort": false,
+    "historicalBeforeSourceTip": "d8cf325d24b4e6c65c3783df417326f5e89e850f",
+    "historicalPlaywright": "1.59.1",
+    "historicalBrowser": "System Chromium; historical manifest does not record its exact version"
+  },
+  "scope": "Deterministic image/source integrity and recorded outcome verification; not an additional application/browser test execution."
+}

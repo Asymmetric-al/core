@@ -1,0 +1,35 @@
+{
+  "validatedLocalSourceTip": "1514943957aeb656f055aa189eea5e2027ad05ef",
+  "tests": {
+    "filesPassed": 6,
+    "testsPassed": 90,
+    "refresh": 32,
+    "readiness": 31,
+    "otherSkillSafety": 27
+  },
+  "liveChecksPassed": 6,
+  "redGreenScope": [
+    "Protected destination physical/case aliases",
+    "Downloaded and Core-reference folder spelling collisions",
+    "Indented TOML section boundaries",
+    "Registry file metadata and required target rejection",
+    "Monolithic Radix dependency and source rejection"
+  ],
+  "checks": [
+    {
+      "name": "readiness-focused-tests.log",
+      "sha256": "be779cb32cc9112cc2578db878b262098257923d0bed0a1b0e1d3d5a503fd631",
+      "scope": "Local diagnostic; exact check results summarized in the review record, not a hosted CI result."
+    },
+    {
+      "name": "readiness-live.log",
+      "sha256": "dc7ba78eb734e640f421676940bdd474c645e7d04f671a0ab6e88ca729e8698d",
+      "scope": "Local diagnostic; exact check results summarized in the review record, not a hosted CI result."
+    },
+    {
+      "name": "readiness-skills-verify.log",
+      "sha256": "cd9f3e83234f8f03c9bf7801fbf5e557dbc1ca6a659c21b63715b8e88322dbad",
+      "scope": "Local diagnostic; exact check results summarized in the review record, not a hosted CI result."
+    }
+  ]
+}

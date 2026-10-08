@@ -1,0 +1,9 @@
+{
+  "validatedLocalApplicationSourceTip": "69b8c74e39768ac49574a493caa2bf21a1ed11e5",
+  "command": "UI_AUDIT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium node node_modules/@playwright/test/cli.js test --config docs/qa/core-ui/component-check.config.mts",
+  "exitCode": 0,
+  "testsPassed": 62,
+  "suites": 8,
+  "scope": "Current source standalone component fixtures; not productive Next.js application/provider qualification",
+  "logSha256": "466d1e446d401893764117c03da17df6d67df069a61eac942a3131c9682844b2"
+}

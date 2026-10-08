@@ -1,0 +1,28 @@
+{
+  "scope": "These published source commits have exactly the same Git trees as the locally validated integrated branches. GitHub app publication preserves the current rebased stack tips as parents; commit identities differ from local author/time metadata. This record does not assert current hosted CI or application/provider visual qualification.",
+  "integratedDevelop": "289c16317eee9807dfcebb412a20ebccbcfcd012",
+  "sourceCommits": [
+    {
+      "pr": 1970,
+      "preservedRemoteParent": "6f2a6230eb04496e0d26018ea4a2ca1b12d5fb45",
+      "validatedLocalTip": "5191dabdd7f188cb8d6fa9afc2957253f500d530",
+      "publishedEquivalentTip": "377031e48480f921c8a5e9ab01d01abf0dab737f",
+      "identicalTree": "21d4241e7205bfef995f182492b340a5986ad64d"
+    },
+    {
+      "pr": 1971,
+      "preservedRemoteParent": "3d2d0408c2c9a0eec584b31fef70f8854e4c35be",
+      "validatedLocalTip": "d98da8c62c589d250d7e85bcf62e51cda4503014",
+      "publishedEquivalentTip": "ca2223fbd6d6b77f3070c4b9c4ed0a1d3b981c71",
+      "identicalTree": "70994e63506060e872ee91b3d9708b7cea41a07d"
+    },
+    {
+      "pr": 1972,
+      "preservedRemoteParent": "3727e926c64b08bca9d210ee0fc84234b1eb1969",
+      "validatedLocalTip": "acbe15d4006f4c0ef67d7a32aa69a338a081927f",
+      "publishedEquivalentTip": "66ed6829bdd702f4102de2c1059d07ce052b47fc",
+      "identicalTree": "e837d90b583ff108d30c0d1703deab4087218006"
+    }
+  ],
+  "evidenceScope": "Evidence-only follow-up metadata is separately formatted and checked; its final commit identity and current CI status are reported on PR #1973."
+}
