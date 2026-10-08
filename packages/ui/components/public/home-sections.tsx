@@ -412,7 +412,7 @@ export function HomeFeatured() {
                         {item.title}
                       </h3>
                       <div
-                        className="h-1 w-full bg-card/20 rounded-full overflow-hidden"
+                        className="h-1 w-full bg-media-foreground/20 rounded-full overflow-hidden"
                         role="progressbar"
                         aria-label={`${item.title} deployed`}
                         aria-valuenow={parseInt(item.raised)}
@@ -425,7 +425,7 @@ export function HomeFeatured() {
                         width and scale it horizontally based on raised %.
                       */}
                         <div
-                          className="size-full origin-left bg-card transform-(--impact-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                          className="size-full origin-left bg-media-foreground transform-(--impact-progress-transform) transition-transform duration-700 ease-[var(--ease-out-soft)]"
                           style={
                             {
                               "--impact-progress-transform": `scaleX(${parseInt(item.raised) / 100})`,

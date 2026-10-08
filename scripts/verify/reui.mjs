@@ -11,6 +11,23 @@ const REPO_ROOT = path.resolve(
 const MCP_URL = "https://mcp.reui.io";
 const REGISTRY_URL = "https://reui.io/r/{style}/{name}.json";
 const PROTOCOL_VERSION = "2025-06-18";
+// Match the file discriminators in Core's installed shadcn registry schema.
+const REGISTRY_FILE_TYPES = new Set([
+  "registry:file",
+  "registry:page",
+  "registry:lib",
+  "registry:block",
+  "registry:component",
+  "registry:ui",
+  "registry:hook",
+  "registry:theme",
+  "registry:style",
+  "registry:item",
+  "registry:base",
+  "registry:font",
+  "registry:example",
+  "registry:internal",
+]);
 const REQUIRED_TOOLS = [
   "search",
   "get_block",
@@ -102,7 +119,7 @@ function localChecks(root) {
   // must never satisfy its credential/style forwarding contract.
   const codex =
     toml.match(
-      /^\[mcp_servers\.reui\][ \t]*\r?\n([\s\S]*?)(?=^\[|(?![\s\S]))/m,
+      /^[ \t]*\[mcp_servers\.reui\][ \t]*\r?\n([\s\S]*?)(?=^[ \t]*\[|(?![\s\S]))/m,
     )?.[1] ?? "";
   check(
     "Codex, Claude, and Cursor MCP auth/style forwarding",
@@ -113,11 +130,11 @@ function localChecks(root) {
       cursor?.url === MCP_URL &&
       cursor?.headers?.Authorization === "Bearer ${env:REUI_LICENSE_KEY}" &&
       cursor?.headers?.["X-Reui-Style"] === "base-maia" &&
-      /^url\s*=\s*"https:\/\/mcp\.reui\.io"\s*(?:#.*)?$/m.test(codex) &&
-      /^bearer_token_env_var\s*=\s*"REUI_LICENSE_KEY"\s*(?:#.*)?$/m.test(
+      /^[ \t]*url\s*=\s*"https:\/\/mcp\.reui\.io"\s*(?:#.*)?$/m.test(codex) &&
+      /^[ \t]*bearer_token_env_var\s*=\s*"REUI_LICENSE_KEY"\s*(?:#.*)?$/m.test(
         codex,
       ) &&
-      /^http_headers\s*=\s*\{[^\n]*"X-Reui-Style"\s*=\s*"base-maia"[^\n]*\}\s*(?:#.*)?$/m.test(
+      /^[ \t]*http_headers\s*=\s*\{[^\n]*"X-Reui-Style"\s*=\s*"base-maia"[^\n]*\}\s*(?:#.*)?$/m.test(
         codex,
       ),
   );
@@ -201,6 +218,18 @@ function toolValue(result, name) {
     }
   }
   throw new Error(`${name} returned no structured result`);
+}
+
+function usableRegistryFile(file) {
+  return (
+    typeof file?.path === "string" &&
+    file.path.trim() &&
+    REGISTRY_FILE_TYPES.has(file.type) &&
+    typeof file.content === "string" &&
+    file.content.trim() &&
+    (!["registry:page", "registry:file"].includes(file.type) ||
+      (typeof file.target === "string" && file.target.trim()))
+  );
 }
 
 async function liveChecks(key, fetchImpl) {
@@ -306,13 +335,15 @@ async function liveChecks(key, fetchImpl) {
   if (
     item.name !== block.name ||
     item.type !== "registry:block" ||
-    !item.files?.some(
-      (file) => typeof file.content === "string" && file.content.trim(),
-    ) ||
+    !Array.isArray(item.files) ||
+    !item.files.length ||
+    !item.files.every(usableRegistryFile) ||
     item.dependencies?.some((dependency) =>
-      dependency.startsWith("@radix-ui/"),
+      /^(?:@radix-ui\/|radix-ui(?:$|[@/]))/.test(dependency),
     ) ||
-    item.files.some((file) => /["']@radix-ui\//.test(file.content ?? ""))
+    item.files.some((file) =>
+      /["'](?:@radix-ui\/[^"']+|radix-ui(?:\/[^"']*)?)["']/.test(file.content),
+    )
   ) {
     throw new Error("Paid registry did not return usable Base UI block source");
   }

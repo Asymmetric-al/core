@@ -45,6 +45,7 @@ function remoteFixture({
         files: [
           {
             path: "block.tsx",
+            type: "registry:component",
             content: "export function Block() { return null }",
           },
         ],
@@ -378,6 +379,24 @@ describe("ReUI readiness verification", () => {
     },
   );
 
+  it("rejects Codex credentials inherited from an indented next TOML table", async () => {
+    const { root, write } = fixture();
+    write(
+      ".codex/config.toml",
+      '[mcp_servers.reui]\nurl = "https://mcp.reui.io"\n  [mcp_servers.other]\nbearer_token_env_var = "REUI_LICENSE_KEY"\nhttp_headers = { "X-Reui-Style" = "base-maia" }\n',
+    );
+    const fetchImpl = vi.fn();
+    await expect(
+      verifyReui({
+        root,
+        live: true,
+        env: { REUI_LICENSE_KEY: testLicense },
+        fetchImpl,
+      }),
+    ).rejects.toThrow("MCP auth/style forwarding");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it.each(["style", "registry"])(
     "rejects local %s changes that would install another base or drop paid auth",
     async (drift) => {
@@ -447,6 +466,88 @@ describe("ReUI readiness verification", () => {
       }
       expect(message).toContain(expected);
       expect(message).not.toContain(testLicense);
+    },
+  );
+
+  it.each([
+    ["missing path", { type: "registry:component" }],
+    ["missing type", { path: "block.tsx" }],
+    ["unsupported type", { path: "block.tsx", type: "source" }],
+    ["page target", { path: "page.tsx", type: "registry:page" }],
+    ["file target", { path: "block.tsx", type: "registry:file" }],
+  ])(
+    "rejects paid registry files with %s metadata",
+    async (_label, metadata) => {
+      const { root } = fixture();
+      const { fetchImpl } = remoteFixture({
+        override: (_body, url) =>
+          url === "https://reui.io/r/base-maia/solution-crm-1.json"
+            ? Response.json({
+                name: "solution-crm-1",
+                type: "registry:block",
+                files: [
+                  {
+                    ...metadata,
+                    content: "export function Block() { return null }",
+                  },
+                ],
+                dependencies: ["@base-ui/react"],
+              })
+            : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("usable Base UI block source");
+    },
+  );
+
+  it.each([
+    ["dependency", ["radix-ui"], "export function Block() { return null }"],
+    [
+      "versioned dependency",
+      ["radix-ui@^1.4.3"],
+      "export function Block() { return null }",
+    ],
+    [
+      "import",
+      ["@base-ui/react"],
+      'import { Dialog } from "radix-ui"; export { Dialog };',
+    ],
+    [
+      "subpath import",
+      ["@base-ui/react"],
+      "export * from 'radix-ui/react-dialog';",
+    ],
+  ])(
+    "rejects paid block source using a monolithic Radix %s",
+    async (_label, dependencies, content) => {
+      const { root } = fixture();
+      const { fetchImpl } = remoteFixture({
+        override: (_body, url) =>
+          url === "https://reui.io/r/base-maia/solution-crm-1.json"
+            ? Response.json({
+                name: "solution-crm-1",
+                type: "registry:block",
+                files: [
+                  { path: "block.tsx", type: "registry:component", content },
+                ],
+                dependencies,
+              })
+            : undefined,
+      });
+      await expect(
+        verifyReui({
+          root,
+          live: true,
+          env: { REUI_LICENSE_KEY: testLicense },
+          fetchImpl,
+        }),
+      ).rejects.toThrow("usable Base UI block source");
     },
   );
 
