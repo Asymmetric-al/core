@@ -32,6 +32,9 @@ export function SwitchAccountButton() {
           {isPending ? "Signing out…" : "Switch account"}
         </span>
       </Button>
+      <span role="status" className="sr-only">
+        {isPending ? "Signing out…" : ""}
+      </span>
       {error ? (
         <p
           id={errorId}

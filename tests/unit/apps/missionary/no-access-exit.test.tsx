@@ -66,6 +66,7 @@ it("keeps the exit pending, reports failure, and allows a retry", async () => {
   fireEvent.click(button);
 
   const pending = screen.getByRole("button", { name: "Signing out…" });
+  expect(screen.getByRole("status").textContent).toBe("Signing out…");
   expect(pending.getAttribute("aria-disabled")).toBe("true");
   expect(document.activeElement).toBe(pending);
   fireEvent.click(pending);
@@ -83,6 +84,7 @@ it("keeps the exit pending, reports failure, and allows a retry", async () => {
   });
 
   const alert = screen.getByRole("alert");
+  expect(screen.getByRole("status").textContent).toBe("");
   expect(alert.textContent).toBe("Unable to sign out. Try again.");
   const available = screen.getByRole("button", { name: "Switch account" });
   expect(available.getAttribute("aria-describedby")).toBe(alert.id);
