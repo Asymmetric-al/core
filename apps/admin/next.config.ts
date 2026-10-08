@@ -1,5 +1,5 @@
 import { withPayload } from "@payloadcms/next/withPayload";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import { withEve } from "eve/next";
 
 import { normalizeEveVercelEnvironment } from "./eve-runtime-environment";

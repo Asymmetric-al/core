@@ -20,7 +20,6 @@ import {
 
 import { DataTableFacetedFilter } from "../../../../../../packages/ui/components/shadcn/data-table/data-table-faceted-filter";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -40,7 +39,6 @@ const options = [
 function Harness({ disabled = false }: { disabled?: boolean }) {
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<Entry>(),
     data,
     columns,
     initialState: { columnFilters: [{ id: "status", value: ["a"] }] },

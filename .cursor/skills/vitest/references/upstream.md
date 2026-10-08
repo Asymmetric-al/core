@@ -16,11 +16,12 @@ last_reviewed: 2026-07-15
   [`LICENSE.md`](https://github.com/antfu/skills/blob/a74f281a27dadc02397bc1a174b0f2c97531b6ae/LICENSE.md).
 - **Generated source:** upstream derives its references from Vitest docs.
 
-The reviewed upstream skill targets Vitest 5 beta, while Core resolves Vitest
-4.1.x. No upstream skill file or generated reference tree is vendored into the
+The reviewed upstream snapshot targets Vitest 5 beta; Core now resolves the
+stable Vitest 5.0.3 release. No upstream skill file or generated reference tree is vendored into the
 canonical source. Core's adapter keeps the useful workflow topics—configuration,
 filtering, mocking, environment selection, isolation, and coverage—but derives
-commands and constraints from Core's checked-in Vitest 4 harness.
+commands and constraints from Core's checked-in Vitest 5 harness rather than
+assuming the snapshot's beta APIs match the installed release.
 
 The optional ecosystem install remains recorded in `skills-lock.json`; the
 canonical `docs/ai/skills/vitest/SKILL.md` is the routed authority inside Core.

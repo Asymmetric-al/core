@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
-    "@asym/typescript-config": "workspace:*"
+    "@asym/typescript-config": "workspace:*",
+    "typescript": "7.0.2"
   }
 }

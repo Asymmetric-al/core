@@ -133,7 +133,9 @@ for (const width of [320, 768, 1280]) {
           expect(amount.right).toBeLessThanOrEqual(amount.chartLeft + 1);
         const tickBounds = await page
           .getByTestId("breakdown")
-          .locator(".recharts-yAxis .recharts-cartesian-axis-tick-value")
+          .locator(
+            ".recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value",
+          )
           .evaluateAll((nodes) =>
             nodes.map((n) => {
               const r = n.getBoundingClientRect(),
@@ -157,6 +159,14 @@ for (const width of [320, 768, 1280]) {
           ).toBeGreaterThanOrEqual(0);
           expect(tick.right).toBeLessThanOrEqual(0);
         }
+        const legendItems = page
+          .getByTestId("breakdown")
+          .locator(".recharts-legend-wrapper > div > div");
+        await expect(legendItems).toHaveText([
+          "Recurring",
+          "One-Time",
+          "Offline",
+        ]);
         const bar = page
           .getByTestId("breakdown")
           .locator(".recharts-bar-rectangle path")
@@ -170,6 +180,16 @@ for (const width of [320, 768, 1280]) {
         await expect(tooltip).toContainText("$50");
         await expect(tooltip).toContainText("Offline");
         await expect(tooltip).toContainText("$25");
+        await page.mouse.move(0, 0);
+        const accessibleChart = page
+          .getByTestId("breakdown")
+          .getByRole("application");
+        await expect(accessibleChart).toHaveAttribute("tabindex", "0");
+        await accessibleChart.focus();
+        await page.keyboard.press("ArrowRight");
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText("Recurring");
+        await expect(tooltip).toContainText("$100");
         expect(
           await page.evaluate(() => document.documentElement.scrollWidth),
         ).toBeLessThanOrEqual(width);

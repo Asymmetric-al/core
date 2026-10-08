@@ -86,11 +86,12 @@ function isPermissionError(error: PermissionErrorLike | null) {
 
 function createAuthClient(request: NextRequest) {
   const pendingCookies: PendingCookie[] = [];
+  const pendingHeaders = new Headers();
   const supabaseUrl = serverEnv.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = serverEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    return { supabase: null, pendingCookies };
+    return { supabase: null, pendingCookies, pendingHeaders };
   }
 
   const requestCookies = parseCookieHeader(request.headers.get("cookie"));
@@ -102,7 +103,11 @@ function createAuthClient(request: NextRequest) {
       },
       setAll(
         cookiesToSet: Array<{ name: string; value: string; options?: unknown }>,
+        cacheHeaders: Record<string, string> = {},
       ) {
+        Object.entries(cacheHeaders).forEach(([name, value]) => {
+          pendingHeaders.set(name, value);
+        });
         cookiesToSet.forEach(
           (cookie: { name: string; value: string; options?: unknown }) => {
             pendingCookies.push({
@@ -116,15 +121,19 @@ function createAuthClient(request: NextRequest) {
     },
   });
 
-  return { supabase, pendingCookies };
+  return { supabase, pendingCookies, pendingHeaders };
 }
 
 function jsonWithCookies(
   payload: Record<string, unknown>,
   init: { status?: number } | undefined,
   pendingCookies: PendingCookie[],
+  pendingHeaders: Headers,
 ) {
-  const response = NextResponse.json(payload, init);
+  const response = NextResponse.json(payload, {
+    ...init,
+    headers: pendingHeaders,
+  });
   pendingCookies.forEach((cookie) => {
     response.cookies.set(
       cookie.name,
@@ -139,7 +148,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { supabase, pendingCookies } = createAuthClient(request);
+  const { supabase, pendingCookies, pendingHeaders } =
+    createAuthClient(request);
   if (!supabase) {
     return NextResponse.json(
       { error: "Supabase client unavailable." },
@@ -155,6 +165,7 @@ export async function GET(
         { error: "Missing missionary ID" },
         { status: 400 },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -165,6 +176,7 @@ export async function GET(
         { error: "Unauthorized" },
         { status: 401 },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -178,6 +190,7 @@ export async function GET(
         { error: "Forbidden" },
         { status: 403 },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -195,6 +208,7 @@ export async function GET(
         { error: status === 403 ? "Forbidden" : "Internal server error" },
         { status },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -203,6 +217,7 @@ export async function GET(
         { error: "Missionary not found" },
         { status: 404 },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -211,6 +226,7 @@ export async function GET(
         { error: "Missionary not found" },
         { status: 404 },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -223,6 +239,7 @@ export async function GET(
         { error: "Missionary not found" },
         { status: 404 },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -242,6 +259,7 @@ export async function GET(
           { donations: [], limited: true },
           { status: 200 },
           pendingCookies,
+          pendingHeaders,
         );
       }
       console.error("Supabase error:", error);
@@ -249,6 +267,7 @@ export async function GET(
         { error: "Internal server error" },
         { status: 500 },
         pendingCookies,
+        pendingHeaders,
       );
     }
 
@@ -256,6 +275,7 @@ export async function GET(
       { donations: data || [] },
       undefined,
       pendingCookies,
+      pendingHeaders,
     );
   } catch (e) {
     console.error("API error:", e);
@@ -263,6 +283,7 @@ export async function GET(
       { error: "Internal server error" },
       { status: 500 },
       pendingCookies,
+      pendingHeaders,
     );
   }
 }

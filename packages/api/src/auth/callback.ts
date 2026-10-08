@@ -3,6 +3,20 @@ import { routeForProfileRole } from "@asym/auth/roles";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
 
+function callbackRedirect(url: string) {
+  // The server cookie store persists the exchange, but cannot apply the SSR
+  // SDK's response headers. Keep every callback outcome private, including
+  // redirects that carry newly issued or cleared auth cookies.
+  return NextResponse.redirect(url, {
+    headers: {
+      "Cache-Control":
+        "private, no-cache, no-store, must-revalidate, max-age=0",
+      Expires: "0",
+      Pragma: "no-cache",
+    },
+  });
+}
+
 /**
  * PKCE-ready auth callback route handler.
  *
@@ -34,15 +48,13 @@ export async function GET(request: Request) {
 
         const roleRoute = routeForProfileRole(profile?.role);
         if (roleRoute) {
-          return NextResponse.redirect(`${origin}${roleRoute}`);
+          return callbackRedirect(`${origin}${roleRoute}`);
         }
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return callbackRedirect(`${origin}${next}`);
     }
   }
 
-  return NextResponse.redirect(
-    `${origin}/login?error=Could%20not%20authenticate`,
-  );
+  return callbackRedirect(`${origin}/login?error=Could%20not%20authenticate`);
 }

@@ -32,8 +32,12 @@ const renderRequestSchema = previewRequestSchema.extend({
 
 const migrationReportRequestSchema = z.object({
   templateId: z.string().uuid(),
-  unsupportedFeatures: z.array(UnlayerUnsupportedFeatureSchema).optional(),
+  unsupportedFeatures: z.unknown().optional(),
 });
+
+// The local PDF package owns this schema and its Zod runtime independently.
+const unsupportedFeaturesSchema =
+  UnlayerUnsupportedFeatureSchema.array().optional();
 
 async function requireAdminContext(
   request?: Request,
@@ -87,6 +91,9 @@ export async function POST_NATIVE_MIGRATION_REPORT(request: NextRequest) {
     const body = migrationReportRequestSchema.parse(
       await ensureJsonBody(request),
     );
+    const unsupportedFeatures = unsupportedFeaturesSchema.parse(
+      body.unsupportedFeatures,
+    );
     const row = await readPdfTemplate(auth.tenantId, body.templateId);
 
     if (!row) {
@@ -100,7 +107,7 @@ export async function POST_NATIVE_MIGRATION_REPORT(request: NextRequest) {
       createdAt: new Date().toISOString(),
       createdByActorId: auth.userId,
       row,
-      unsupportedFeatures: body.unsupportedFeatures,
+      unsupportedFeatures,
     });
 
     return NextResponse.json({ success: true, report }, { status: 200 });

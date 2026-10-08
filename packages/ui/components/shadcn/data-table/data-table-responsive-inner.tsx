@@ -13,7 +13,6 @@ import {
   type Row,
   type RowData,
   type Table,
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "./tanstack";
@@ -375,13 +374,7 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
 
   const table = useTable({
     features: dataTableFeatures,
-    // The core row model is automatic in v9; manual flags skip the matching
-    // client-side row model just like the v8 `get*RowModel: undefined` paths.
-    rowModels: createDataTableRowModels<TData>({
-      filtering: !manualFiltering,
-      pagination: !manualPagination,
-      sorting: !manualSorting,
-    }),
+    // Shared feature slots provide the row models; manual flags skip each stage.
     data: filteredData,
     columns: tableColumns,
     // Devtools identity: registration is skipped unless a key exists.

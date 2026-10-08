@@ -13,6 +13,7 @@
     "./image-utils": "./image-utils.ts",
     "./assets": "./assets.ts",
     "./monitoring": "./monitoring/index.ts",
+    "./monitoring/sentry-policy": "./monitoring/sentry-policy.ts",
     "./seo": "./seo/index.ts",
     "./html/sanitize": "./html/sanitize.ts",
     "./http/fetch-result": "./http/fetch-result.ts",
@@ -58,20 +59,20 @@
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/env": "workspace:*",
-    "@sentry/nextjs": "^10.32.1",
-    "@stripe/stripe-js": "^9.7.0",
-    "@supabase/supabase-js": "^2.89.0",
-    "html-react-parser": "^5.2.17",
-    "isomorphic-dompurify": "^2.36.0",
-    "lucide-react": "1.17.0",
-    "motion": "^12.34.2",
+    "@sentry/nextjs": "11.5.0",
+    "@stripe/stripe-js": "10.0.0",
+    "@supabase/supabase-js": "2.117.3",
+    "html-react-parser": "6.1.8",
+    "isomorphic-dompurify": "4.5.0",
+    "lucide-react": "1.52.0",
+    "motion": "14.0.0",
     "next": "16.4.0",
-    "react": "19.2.3",
-    "sonner": "^2.0.7",
-    "web-vitals": "^4.2.4"
+    "react": "19.3.0",
+    "sonner": "2.0.8",
+    "web-vitals": "6.2.3"
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",
-    "typescript": "^5.7.3"
+    "typescript": "7.0.2"
   }
 }
