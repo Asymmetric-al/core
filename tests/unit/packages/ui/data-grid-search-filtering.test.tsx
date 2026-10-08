@@ -12,12 +12,11 @@
  * DataTable (non-virtualized) render pattern.
  *
  * Instead we build a `useTable` instance the same way `data-grid.tsx` does —
- * same features (`dataTableFeatures`) and same
- * `createDataTableRowModels({ filtering: true, sorting: false, ... })` — then
+ * same features (`dataTableFeatures`) and manual processing options — then
  * drive the `globalFilter` state and assert `table.getRowModel().rows` shrinks.
  * This test FAILS against the pre-fix flag (`filtering: enableFilter` → false)
- * because v9 silently skips filtering when `filteredRowModel` is not registered
- * (ADR-2): all four rows would still be returned regardless of the filter value.
+ * because v9 skips filtering when manualFiltering is true (ADR-2):
+ * all four rows would still be returned regardless of the filter value.
  */
 
 import * as React from "react";
@@ -33,7 +32,6 @@ import {
 } from "vitest";
 
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -115,12 +113,8 @@ function SearchFilterHarness({
   // enableSearch: true, enableFilter: false → filtering: false || true = true
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<Donor>({
-      filtering: true, // enableFilter || enableSearch = false || true
-      sorting: false,
-      pagination: false,
-      faceting: false,
-    }),
+    manualSorting: true,
+    manualPagination: true,
     data: donors,
     columns: columns as ColumnDef<Donor, unknown>[],
     getRowId: (row) => row.id,

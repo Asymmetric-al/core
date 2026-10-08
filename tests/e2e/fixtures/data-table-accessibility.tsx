@@ -4,7 +4,6 @@ import { createRoot } from "react-dom/client";
 import { DataTablePagination } from "../../../packages/ui/components/shadcn/data-table/data-table-pagination";
 import { DataTableToolbarResponsive } from "../../../packages/ui/components/shadcn/data-table/data-table-toolbar-responsive";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
   type ColumnDef,
@@ -31,7 +30,6 @@ const columns: ColumnDef<Person>[] = [
   { accessorKey: "name", header: "Name", meta: { label: "Name" } },
   { accessorKey: "city", header: "City", meta: { label: "City" } },
 ];
-const rowModels = createDataTableRowModels<Person>();
 const pageSizes = [2, 4, 6];
 
 function DataTableAccessibilityFixture() {
@@ -49,7 +47,6 @@ function DataTableAccessibilityFixture() {
   const [exports, setExports] = React.useState(0);
   const table = useTable({
     features: dataTableFeatures,
-    rowModels,
     data: people,
     columns,
     getRowId: (row) => row.id,

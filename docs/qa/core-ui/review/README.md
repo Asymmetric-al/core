@@ -11,6 +11,13 @@ During review, `develop` advanced to
 reviewed and merged through all four branches before final preflight. No runtime,
 dependency or CI-policy changes were introduced by that base update.
 
+The later approved dependency upgrade in PR #1969 advanced `develop` to
+`a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68`. All four stack branches integrate
+that source and its API migrations. The records below describe the earlier
+dependency epoch; [new-cohort qualification](./new-cohort/README.md) records
+fresh checks, captures, reviewed merge resolutions and publication equivalence.
+Historical source and image hashes remain unchanged.
+
 ## Corrections
 
 - Readiness rejects protected-tree case aliases, inconsistent directory
@@ -31,7 +38,7 @@ and [readiness](./readiness-review.md) reviews record their scopes separately.
 No additional concrete P0/P1 application regression or scope expansion was found.
 A History-column hypothesis was withdrawn after checking the actual controls.
 
-Only three hash fields for two reviewed source paths changed. [The proof update](./reviewed-proof-updates.json)
+The initial review changed three hash fields for two reviewed source paths. [The proof update](./reviewed-proof-updates.json)
 preserves classifications, tests, mappings, coverage and thresholds. Fixes are
 forwarded through the existing stack with ordinary merges, preserving prior work.
 Recorded source tips identify local validated commits. GitHub publication through
@@ -42,8 +49,9 @@ tree and source hashes establish their correspondence.
 
 [Initial local preflight](./local-preflight.json) passed all 17 stages on the
 integrated source, including all three Next.js 16.4 production builds and coverage
-with 6,839 unit tests passed and four intentional skips. Motion and token-drift
-guards also passed. [Published source equivalence](./publication-equivalence.json)
+with 6,839 unit tests passed and four intentional skips. Motion validation
+passed. Token drift is a report-only inventory, not a pass/fail gate.
+[Published source equivalence](./publication-equivalence.json)
 records exact tree matches and the preserved rebased remote parents. Later
 evidence-only metadata receives targeted formatting and source/image checks.
 
@@ -75,8 +83,8 @@ its recorded upstream source. Neither warrants a shared-contract migration or
 notice reformatting.
 
 The [eight existing component browser suites](./component-check.json) passed all
-62 checks on the integrated follow-up source. This is current component-fixture
-verification and leaves application visual qualification separately scoped.
+62 checks on the integrated follow-up source under the preceding dependencies.
+Application visual qualification remains separately scoped.
 
 [Browser evidence](./shared-verification.json): 14 matching before/after states,
 28 images, exact source/image hashes, zero after page errors. Email contrast is

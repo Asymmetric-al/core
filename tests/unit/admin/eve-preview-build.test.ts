@@ -6,7 +6,7 @@ vi.mock("@next/env", () => ({ loadEnvConfig: vi.fn() }));
 vi.mock("@payloadcms/next/withPayload", () => ({
   withPayload: (config: unknown) => config,
 }));
-vi.mock("@sentry/nextjs", () => ({
+vi.mock("@sentry/nextjs/config", () => ({
   withSentryConfig: (config: unknown) => config,
 }));
 vi.mock(

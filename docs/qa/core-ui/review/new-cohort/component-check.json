@@ -1,0 +1,45 @@
+{
+  "capturedAt": "2026-10-08T06:11:23.889812+00:00",
+  "validatedLocalSourceTip": "c28a5eb7fc2be27f756040237718a894ea2e01a5",
+  "command": "env -u UI_AUDIT_CHROMIUM_EXECUTABLE_PATH PATH=/tmp/core-stack-review/toolchain/1.4.2/bun-linux-x64:/tmp/core-stack-review/toolchain/node24.21.0/node-v24.21.0-linux-x64/bin:$PATH PLAYWRIGHT_BROWSERS_PATH=/tmp/core-stack-review/playwright-browsers node node_modules/@playwright/test/cli.js test --config docs/qa/core-ui/component-check.config.mts --output=/tmp/core-stack-review/new-cohort-component-results",
+  "exitCode": 0,
+  "testsPassed": 62,
+  "suites": 8,
+  "duration": "2.1m",
+  "runtime": {
+    "node": "24.21.0",
+    "bun": "1.4.2",
+    "playwright": "1.64.0",
+    "chromium": "156.0.8078.4",
+    "chromiumRevision": "1248",
+    "browserCache": "Isolated task cache; bundled matching Chrome Headless Shell",
+    "installedPackages": {
+      "next": "16.4.0",
+      "react": "19.3.0",
+      "react-dom": "19.3.0",
+      "@playwright/test": "1.64.0",
+      "vitest": "5.0.3",
+      "tailwindcss": "4.3.3",
+      "@tailwindcss/postcss": "4.3.3",
+      "@base-ui/react": "1.8.0",
+      "@tanstack/react-table": "9.2.6",
+      "recharts": "3.10.1",
+      "motion": "14.0.0"
+    }
+  },
+  "scope": "Unchanged existing actual-component browser suites on the new installed cohort; not Next.js application, authenticated provider, CMS, or production qualification",
+  "assertionsModified": false,
+  "externalNetworkBlocked": true,
+  "log": "/tmp/core-stack-review/new-cohort-components.log",
+  "logSha256": "618e821cf8abb5435573a2702c3c0ec7b71a33a8b502ed1e9652d5016e7d2652",
+  "testFiles": [
+    "data-table-accessibility.spec.ts",
+    "shared-primitive-contrast.spec.ts",
+    "dialog-dismissal.spec.ts",
+    "popover-positioning.spec.ts",
+    "missionary-dashboard-charts.spec.ts",
+    "missionary-summary-layout.spec.ts",
+    "public-about-layout.spec.ts",
+    "donor-wallet-layout.spec.ts"
+  ]
+}

@@ -64,10 +64,11 @@ export function WeeklyChartView({ data, height = 200 }: WeeklyChartProps) {
           />
           <Tooltip
             contentStyle={chartConfig.tooltip.contentStyle}
-            formatter={(value: number) => [
-              `$${value.toLocaleString()}`,
-              "Donations",
-            ]}
+            formatter={(value) =>
+              typeof value === "number"
+                ? [`$${value.toLocaleString()}`, "Donations"]
+                : null
+            }
           />
           <Bar
             isAnimationActive={!reduceMotion}

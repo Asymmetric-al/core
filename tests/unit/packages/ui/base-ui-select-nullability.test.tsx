@@ -35,7 +35,6 @@ import { TaskDialog } from "../../../../packages/missionary/components/task-dial
 import { DataGridCell } from "../../../../packages/ui/components/shadcn/data-grid/data-grid-cell";
 import { DataTablePagination } from "../../../../packages/ui/components/shadcn/data-table/data-table-pagination";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -218,7 +217,6 @@ const columns = [{ accessorKey: "id" }];
 function PaginationHarness() {
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<{ id: string }>(),
     data: rows,
     columns,
     initialState: { pagination: { pageIndex: 0, pageSize: 5 } },

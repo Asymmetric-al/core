@@ -1,0 +1,33 @@
+{
+  "localReadinessCommit": "517d8bf78485d8492884aa0d38ad5a651295f6a4",
+  "validatedLocalStackCommit": "e8f84269b646d6725781de985b33958702a07f51",
+  "issue": "An injected transport rejecting null or undefined was masked by TypeError while reading error.message.",
+  "correction": "Read error?.message before falling back to String(error); retain exact credential redaction and existing transport semantics.",
+  "regressionEvidence": {
+    "redSelectedTestsFailed": 2,
+    "redUnselectedTests": 42,
+    "greenFilesPassed": 1,
+    "greenTestsPassed": 44,
+    "publicSeam": "verifyReui({ live: true, fetchImpl })",
+    "assertions": "Original null/undefined diagnostic and exactly one transport call; existing credential-redaction and transport tests remain passing."
+  },
+  "sourceSha256": {
+    "scripts/verify/reui.mjs": "31303aa2aa2541a1db590323a42db122a06b409e50760c1378600d737f08c6b0",
+    "tests/unit/scripts/reui.test.ts": "f0e11856bfb016aedfc09a9bff39aa9198fc90e4370f5b2a551b5a4384a4e165"
+  },
+  "diagnosticSha256": {
+    "readiness-nullish-red.log": "c7e1054f880e4ace85ecb8ec308c1455427e9a9d62a3678bc19ac02185c7e89e",
+    "readiness-nullish-green.log": "5f29cc609876686db4ca66c280cde846850b4355b2b8eb2e4c61af5f96cce93f",
+    "readiness-nullish-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "readiness-nullish-format.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "readiness-nullish-commit.log": "3c05cc01b3afe9ac7c0ae5834bb8e19a482ac779c7505811d35cab446a2fbd08"
+  },
+  "scopedChecks": [
+    "ESLint",
+    "Prettier",
+    "node syntax",
+    "git diff check",
+    "normal pre-commit Prettier and staged Shadscan"
+  ],
+  "scope": "Readiness-only public-seam error reporting. No credential, configuration, app or shared UI changes. Final integrated full preflight is recorded separately."
+}

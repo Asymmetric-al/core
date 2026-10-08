@@ -104,7 +104,7 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
             <>
               <DropdownMenuItem
                 aria-label="Pin to left"
-                onClick={() => column.pin("left")}
+                onClick={() => column.pin("start")}
                 className="gap-2 rounded-lg"
               >
                 <Pin

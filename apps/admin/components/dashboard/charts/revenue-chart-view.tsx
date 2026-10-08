@@ -76,10 +76,11 @@ export function RevenueChartView({ data, height = 280 }: RevenueChartProps) {
           <Tooltip
             contentStyle={chartConfig.tooltip.contentStyle}
             itemStyle={chartConfig.tooltip.itemStyle}
-            formatter={(value: number) => [
-              `$${value.toLocaleString()}`,
-              "Revenue",
-            ]}
+            formatter={(value) =>
+              typeof value === "number"
+                ? [`$${value.toLocaleString()}`, "Revenue"]
+                : null
+            }
           />
           <Area
             isAnimationActive={!reduceMotion}

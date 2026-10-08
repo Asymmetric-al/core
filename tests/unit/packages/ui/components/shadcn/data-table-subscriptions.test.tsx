@@ -34,7 +34,6 @@ import {
 import { DataTable } from "../../../../../../packages/ui/components/shadcn/data-table/data-table";
 import { DataTablePagination } from "../../../../../../packages/ui/components/shadcn/data-table/data-table-pagination";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -189,7 +188,6 @@ function PaginationProbeHarness({
 
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<Person>(),
     data: people,
     columns: columns as ColumnDef<Person, unknown>[],
     getRowId: (row) => row.id,

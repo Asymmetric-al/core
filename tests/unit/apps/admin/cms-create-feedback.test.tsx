@@ -147,7 +147,9 @@ it.each([
         await screen.findByRole("button", { name: "Creating draft…" })
       ).hasAttribute("disabled"),
     ).toBe(true);
-    fireEvent.submit(form);
+    await act(async () => {
+      fireEvent.submit(form);
+    });
     expect(create).toHaveBeenCalledTimes(1);
     const [url, init] = create.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("/api/cms/web-studio/create-from-template");
@@ -214,7 +216,9 @@ it("keeps draft input and payload intact through pending, connection failure, an
   });
   expect(pendingButton).toBe(submit);
   expect(pendingButton.hasAttribute("disabled")).toBe(true);
-  fireEvent.submit(form);
+  await act(async () => {
+    fireEvent.submit(form);
+  });
   expect(fetchMock).toHaveBeenCalledTimes(1);
   const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
   expect(url).toBe("/api/cms/web-studio/create-from-template");

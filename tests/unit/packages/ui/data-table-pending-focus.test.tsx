@@ -15,7 +15,6 @@ import { DataTablePagination } from "../../../../packages/ui/components/shadcn/d
 import { DataTableToolbar } from "../../../../packages/ui/components/shadcn/data-table/data-table-toolbar";
 import { DataTableToolbarResponsive } from "../../../../packages/ui/components/shadcn/data-table/data-table-toolbar-responsive";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -90,7 +89,6 @@ function Harness({
   ]);
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<(typeof rows)[number]>(),
     columns,
     data: rows,
     state: { pagination, columnFilters },

@@ -1,0 +1,745 @@
+{
+  "capturedAt": "2026-10-08T06:11:23.890056+00:00",
+  "validatedLocalSourceTip": "c28a5eb7fc2be27f756040237718a894ea2e01a5",
+  "runtime": {
+    "node": "24.21.0",
+    "bun": "1.4.2",
+    "playwright": "1.64.0",
+    "chromium": "156.0.8078.4",
+    "chromiumRevision": "1248",
+    "browserCache": "Isolated task cache; bundled matching Chrome Headless Shell",
+    "installedPackages": {
+      "next": "16.4.0",
+      "react": "19.3.0",
+      "react-dom": "19.3.0",
+      "@playwright/test": "1.64.0",
+      "vitest": "5.0.3",
+      "tailwindcss": "4.3.3",
+      "@tailwindcss/postcss": "4.3.3",
+      "@base-ui/react": "1.8.0",
+      "@tanstack/react-table": "9.2.6",
+      "recharts": "3.10.1",
+      "motion": "14.0.0"
+    }
+  },
+  "sourceScope": "Actual three first-party components with fixed synthetic inputs and inert Next Image/Link/public-config boundaries. No Next.js application or provider runtime exercised.",
+  "sourceSha256": {
+    "packages/ui/components/studio/EmailStudioPreview.tsx": "627ee6aac3b442a557c4cefc82d2b7089a230eecfdb3445eb9f4a075ff6bb172",
+    "packages/ui/components/public/home-sections.tsx": "879f0bb12b2716a03cd32e869c11be7241a439cf386ecd69cea4811ab330c06c",
+    "packages/missionary/components/task-kanban-board.tsx": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
+    "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c"
+  },
+  "frameworkBoundaries": [
+    "Native image/anchor adapters for next/image and next/link",
+    "Canonical public site-shared config in place of unused server-env site config"
+  ],
+  "themeInitialization": "Light/dark class set in initial fixture HTML before React mounts; reduced motion",
+  "externalNetworkBlocked": true,
+  "hostedWrites": false,
+  "applicationRuntimeExercised": false,
+  "currentAfterStates": 14,
+  "currentAfterImages": 14,
+  "zeroPageErrors": true,
+  "after": {
+    "phase": "after",
+    "browserVersion": "156.0.8078.4",
+    "syntheticInputs": true,
+    "externalNetworkBlocked": true,
+    "source": "Actual three first-party components; inert Next Image/Link browser boundaries only",
+    "results": [
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "email-light-narrow.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 266,
+          "availableWidth": 300,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "light",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "email-light-wide.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 388,
+          "availableWidth": 422,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "home-light-narrow.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "light",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "home-light-wide.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 6.574997092347812
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "light",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "board-light-narrow.png",
+        "metrics": {
+          "actualHeight": 524,
+          "expectedHeight": 524,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "clientWidth": 342,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [508, 508, 508, 508],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "light",
+        "size": "wide-short",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "screenshot": "board-light-wide-short.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 500,
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "light",
+        "size": "wide-tall",
+        "viewport": {
+          "width": 1280,
+          "height": 1400
+        },
+        "screenshot": "board-light-wide-tall.png",
+        "metrics": {
+          "actualHeight": 1080,
+          "expectedHeight": 1080,
+          "viewport": {
+            "width": 1280,
+            "height": 1400
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [1064, 1064, 1064, 1064],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "email-dark-narrow.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 266,
+          "availableWidth": 300,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "email",
+        "theme": "dark",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "email-dark-wide.png",
+        "metrics": {
+          "iframeBackground": "oklch(1 0 0)",
+          "iframeScheme": "light",
+          "innerScheme": "normal",
+          "innerBackground": "rgba(0, 0, 0, 0)",
+          "text": [
+            {
+              "text": "Exported email",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Body colors intentionally omitted.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            },
+            {
+              "text": "Explicit black email text.",
+              "color": "rgb(0, 0, 0)",
+              "contrast": 21
+            }
+          ],
+          "sandbox": "allow-same-origin",
+          "desktopWidth": 388,
+          "availableWidth": 422,
+          "passesContrast": true
+        },
+        "interactions": {
+          "deviceWidth390": true,
+          "exportedHtmlAndTextTabs": true,
+          "srcdocSha256": "e4526b33cb80cea082789f390c122b742d4ae409aa56ce3ace4552eea9650ee9"
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "home-dark-narrow.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "home",
+        "theme": "dark",
+        "size": "wide",
+        "viewport": {
+          "width": 1280,
+          "height": 1000
+        },
+        "screenshot": "home-dark-wide.png",
+        "metrics": {
+          "samples": [
+            {
+              "label": "Clean Water Protocol deployed",
+              "value": "89",
+              "transform": "matrix(0.89, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Refugee Crisis Sync deployed",
+              "value": "64",
+              "transform": "matrix(0.64, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            },
+            {
+              "label": "Education Backbone deployed",
+              "value": "92",
+              "transform": "matrix(0.92, 0, 0, 1, 0, 0)",
+              "track": "oklab(0.985 -0.000174311 -0.00199239 / 0.2)",
+              "fill": "oklch(0.985 0.002 265)",
+              "contrast": 11.165396553609892
+            }
+          ],
+          "passesContrast": true
+        },
+        "interactions": {},
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "dark",
+        "size": "narrow",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "screenshot": "board-dark-narrow.png",
+        "metrics": {
+          "actualHeight": 524,
+          "expectedHeight": 524,
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "clientWidth": 342,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [508, 508, 508, 508],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "dark",
+        "size": "wide-short",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "screenshot": "board-dark-wide-short.png",
+        "metrics": {
+          "actualHeight": 500,
+          "expectedHeight": 500,
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [484, 484, 484, 484],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      },
+      {
+        "phase": "after",
+        "surface": "board",
+        "theme": "dark",
+        "size": "wide-tall",
+        "viewport": {
+          "width": 1280,
+          "height": 1400
+        },
+        "screenshot": "board-dark-wide-tall.png",
+        "metrics": {
+          "actualHeight": 1080,
+          "expectedHeight": 1080,
+          "viewport": {
+            "width": 1280,
+            "height": 1400
+          },
+          "documentWidth": 1280,
+          "clientWidth": 1232,
+          "scrollWidth": 1328,
+          "columns": ["To Do12", "In Progress0", "Waiting0", "Done0"],
+          "columnHeights": [1064, 1064, 1064, 1064],
+          "passesHeight": true,
+          "passesContainment": true
+        },
+        "interactions": {
+          "keyboardCreateAndEditExactPayloads": [
+            {
+              "event": "create",
+              "status": "not_started"
+            },
+            {
+              "event": "edit",
+              "id": "fixture-task-1"
+            }
+          ],
+          "lastColumnReachable": true
+        },
+        "errors": [],
+        "passes": true
+      }
+    ]
+  },
+  "images": [
+    {
+      "path": "after/board-dark-narrow.png",
+      "sha256": "fa8bc9e0607b4e0c151bd26ff3c8cd2fc56df2b86e60be62a5701eca317769fb"
+    },
+    {
+      "path": "after/board-dark-wide-short.png",
+      "sha256": "d148ba6415094b79231d6ee04b3ff3046092f67e9c5ae16743e1f5068fd2fea7"
+    },
+    {
+      "path": "after/board-dark-wide-tall.png",
+      "sha256": "cd02985d4d3757b6ca4b8d2d03f2e9d45b76cbe781210004668ff3fe8a6a85e9"
+    },
+    {
+      "path": "after/board-light-narrow.png",
+      "sha256": "265ad7761fe8e2fd70e79c344f5f63e084a0225bdf9b1918d4839d949aa51ca1"
+    },
+    {
+      "path": "after/board-light-wide-short.png",
+      "sha256": "84a705c73f0a2d4878440f1592c2a779dc4070ef4fa82a934a283a6ad948e3f6"
+    },
+    {
+      "path": "after/board-light-wide-tall.png",
+      "sha256": "cfe8a16197364dfc3adcf730bffe740196ad944df7135a90115f12fd0bb5bceb"
+    },
+    {
+      "path": "after/email-dark-narrow.png",
+      "sha256": "79b078d6a29e94592a04a97a6caee06e37eae4ec15b91bcd1a346006b7ce29b2"
+    },
+    {
+      "path": "after/email-dark-wide.png",
+      "sha256": "fe9dbe5e2aa5f068d4e3aca6c76d0620d348322e014778907925c04ca2646514"
+    },
+    {
+      "path": "after/email-light-narrow.png",
+      "sha256": "58285e1c58b83cd198cc1a91eb33b9dae38952cba879c619f734c8ace856e2b7"
+    },
+    {
+      "path": "after/email-light-wide.png",
+      "sha256": "eecda90bda1e9ab60f7f67718af5b45a1648e46a93e7884937b102690f164ff7"
+    },
+    {
+      "path": "after/home-dark-narrow.png",
+      "sha256": "591cd33f6d27b69db6bb4947cfa172880ae4a8dad5cd15ae9c7f2efdb0f471ee"
+    },
+    {
+      "path": "after/home-dark-wide.png",
+      "sha256": "af6511bf2897d373675f32ba0687e284039207bc1b15ecec543a82a2a8cc85e1"
+    },
+    {
+      "path": "after/home-light-narrow.png",
+      "sha256": "0856a16494d407e8b7776af43e9136dc3444437935ed6c1cfac9afbd3c379991"
+    },
+    {
+      "path": "after/home-light-wide.png",
+      "sha256": "eae101ea365e4d343289c60dd90ebb60c9da8f5c00cffc22e465000d5a5f9172"
+    }
+  ],
+  "captureHarnessSha256": {
+    "fixture.tsx": "1be1c19fab738bf32e9787596865e5661074b100558e5b3ef6bdbe907ccd3f30",
+    "next-boundary.tsx": "9c9f75d8571fc13fe788dac20b269d06c91c16b17bcc682b582552a74d921ec4",
+    "build.mjs": "4af02e1f15468c7fea7ab8261279f3a0bb5366177be22a14a2576667a261370a",
+    "server.mjs": "ff7c5d8932c820ca56b70438443fd74fb04f938acba00a4dbf9eff4a20a122d2",
+    "browser.mjs": "6993390d7831de08072e388b0d53b7e0188008f384d7f6303b4dd99cc4d54f89"
+  },
+  "log": "/tmp/core-stack-review/new-cohort-browser-after.log",
+  "logSha256": "d83a2679f55848fb51eb657ccb78e6d9a15f9b55cbc00700dcf7ea98e3ac7329",
+  "historicalComparison": {
+    "manifest": "../shared-verification.json",
+    "historicalArtifactsPreserved": true,
+    "unchangedHistoricalArtifacts": 30,
+    "sameDependencyCohort": false,
+    "historicalBeforeSourceTip": "d8cf325d24b4e6c65c3783df417326f5e89e850f",
+    "historicalPlaywright": "1.59.1",
+    "historicalBrowser": "System Chromium; historical manifest does not record its exact version"
+  },
+  "visualInspection": {
+    "inspectedNewAfterAndHistoricalMatchingBefore": [
+      "email-dark-narrow.png",
+      "email-light-wide.png",
+      "home-light-narrow.png",
+      "home-dark-wide.png",
+      "board-light-narrow.png",
+      "board-dark-wide-tall.png"
+    ],
+    "inspection": "Actual visual inspection of six matching pairs via original PNGs, covering every component, both themes, and narrow/wide states",
+    "materialRegressionFound": false,
+    "observations": [
+      "Email dark-host default/explicit black text remains visible on a fixed white canvas; light-wide panel spacing, tabs, labels and device controls match the historical layout.",
+      "Deployment fills and complete tracks remain visible against dark scrims in both themes; headings, card geometry, percentage badges and directory links retain their hierarchy.",
+      "Narrow board remains contained within the viewport and preserves card spacing. Tall dark board uses available height and exposes additional original task cards; other columns and controls retain their geometry."
+    ],
+    "remoteImageQualification": "External images intentionally blocked; visible image fallbacks do not qualify image loading or every photographic backdrop",
+    "comparisonLimit": "Historical before PNGs use an earlier source/dependency epoch. This visual comparison does not establish same-cohort before measurements or productive application qualification"
+  }
+}

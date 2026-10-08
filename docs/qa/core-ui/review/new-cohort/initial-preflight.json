@@ -1,0 +1,42 @@
+{
+  "validatedLocalSourceTip": "c28a5eb7fc2be27f756040237718a894ea2e01a5",
+  "integratedDevelop": "a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68",
+  "command": "PATH=<task Bun1.4.2 and Node24.21.0> VITEST_MAX_WORKERS=2 bun run ci:preflight -- --full",
+  "exitCode": 1,
+  "passedStagesAndBuildSteps": [
+    "format",
+    "skills-verify",
+    "verify-phase25-spec",
+    "openspec-validate",
+    "verify-openspec-deltas",
+    "lint",
+    "verify-data-boundary",
+    "verify-cms-public-sole-entry",
+    "verify-workspace-contract",
+    "verify-bun-lock-drift",
+    "verify-eslint",
+    "verify-shadcn-config",
+    "verify-shadcn-diff",
+    "verify-shadscan",
+    "typecheck",
+    "admin",
+    "donor",
+    "missionary",
+    "ci-build",
+    "build"
+  ],
+  "applicationBuildsPassed": ["admin", "donor", "missionary"],
+  "unitFilesPassed": 869,
+  "unitFilesFailed": 2,
+  "unitFilesSkipped": 2,
+  "unitTestsPassed": 6951,
+  "unitTestsFailed": 5,
+  "unitTestsSkipped": 4,
+  "failedFiles": [
+    "tests/unit/apps/admin/cms-create-feedback.test.tsx",
+    "tests/unit/apps/missionary/app/tasks/task-toolbar.test.tsx"
+  ],
+  "diagnosis": "Four pending-submission tests exposed duplicate CMS draft requests under upgraded FormApi; the task test exposed missing separators in accessible names. Follow-up corrections and final qualification are recorded separately.",
+  "logSha256": "637a9a70b3fae0eb6938b0d10225309eeb46dbdf92b6f9c81cf731aa6776b85d",
+  "scope": "Initial new-cohort preflight. This failed unit gate is preserved; the 16 passed preflight stages and three fresh successful builds are not a full green qualification."
+}

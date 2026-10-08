@@ -1,7 +1,6 @@
 /** @vitest-environment jsdom */
 
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   flexRender,
   useTable,
@@ -33,7 +32,6 @@ vi.mock("@asym/ui/components/shadcn/data-table", () => ({
   }: DataTableResponsiveProps<Contribution, unknown>) => {
     const table = useTable({
       features: dataTableFeatures,
-      rowModels: createDataTableRowModels<Contribution>(),
       data,
       columns,
     });
@@ -95,7 +93,6 @@ function contribution(giftDate: string): Contribution {
 function DateColumn({ row }: { row: Contribution }) {
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<Contribution>(),
     data: [row],
     columns: getContributionColumns({ onViewContribution: vi.fn() }),
   });
