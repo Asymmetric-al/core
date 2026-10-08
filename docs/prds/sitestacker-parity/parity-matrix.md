@@ -79,6 +79,34 @@ Status values also include **`out-of-scope`** (we chose not to pursue).
   **phase-03 payments/giving-pipeline** evidence refers to an earlier delivery
   sequence and does not prove this permission/projection foundation.
 
+## Program foundation — Phase 4 (separate from parity-area numbering)
+
+| Program phase                                    | Foundation outcome                                                                            | Built?                        | Live?  | Confirmed? | Owning surface                                   |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------- | ------ | ---------- | ------------------------------------------------ |
+| Phase 4 — Identity & Account-Claiming Foundation | Permanent unclaimed donors, optional exact claim, isolated identity and source-governed merge | ? (implementation unverified) | unconf | No         | Mission Control + donor portal + shared identity |
+
+- **PRD:** [current Phase 4 foundation](./phase-04-identity-account-claiming-foundation.md)
+  and [Phase 25 identity owner contract](./phase-25-donor-dashboard-depth/contracts/identity.md).
+- **Planning evidence:** [AL-504](https://github.com/Asymmetric-al/core/issues/504),
+  [active requirements/tasks](../../../openspec/changes/sitestacker-parity/tasks.md#6-phase-4-durable-language--al-504)
+  and canonical ADRs
+  [anchor](../../adr/0213-profile-claim-anchor-and-reserved-person-foundation.md),
+  [Path 2](../../adr/0214-path2-tenant-isolation-with-shared-native-credential.md),
+  [attribution/proof/access](../../adr/0215-guest-attribution-exact-claim-proof-and-current-access.md)
+  and [merge](../../adr/0216-non-destructive-source-governed-replayable-donor-merge.md)
+  record settled target intent. Documentation is not implementation evidence;
+  no runtime, live or human-confirmation claim is made.
+- **Outstanding gates:** current claim/contact/access contracts, exact source
+  admission, safe merge and immutable history need implementation proof.
+  Native G01 remains unresolved and every selected optional Google/Apple/Facebook
+  entry needs exact provider qualification before affected activation. Verified
+  host/account brand and Phase 17/6 communication qualification remain required;
+  there is no default-brand or direct-send fallback.
+- **Completion:** [AL-517](https://github.com/Asymmetric-al/core/issues/517)
+  requires the remaining owning work and actual qualification. This row supplies
+  no closeout artifact or full Phase 4 completion claim. Phase 4 is a program
+  phase, distinct from the 25 parity-area indices; those indices are unchanged.
+
 ## Per-area detail
 
 Each block: **SiteStacker capability (benchmark)** · **Current Asym state** ·
