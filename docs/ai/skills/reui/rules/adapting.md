@@ -1,5 +1,18 @@
 # Adapting installed ReUI code (reuse-first, no AI slop)
 
+<!-- BEGIN:core-reui-overlay -->
+
+## Core usage
+
+Preserve useful ReUI composition while adapting every installed item to
+Core's exact `base-maia`, shared `packages/ui` ownership, and semantic tokens.
+The upstream instruction to keep styling/internals does not override the
+shared-system contract or prevent a requested, tested shared-component fix.
+Apps consume shared UI via `@asym/ui`; real data stays within existing API and
+database access boundaries. Read the installed source before changing it.
+
+<!-- END:core-reui-overlay -->
+
 ReUI items ship production-quality. Your job is to **adapt by reuse** - wire real data and fit the app - not to redesign or hand-roll. The output should look like ReUI built it for this product.
 
 ## Preserve the design - don't over-customize

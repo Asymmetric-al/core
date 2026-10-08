@@ -1,36 +1,89 @@
 # ReUI components
 
-The 17 ReUI building blocks: `alert`, `autocomplete`, `badge`, `data-grid`, `date-selector`, `filters`, `frame`, `icon-stack`, `kanban`, `number-field`, `phone-input`, `rating`, `scrollspy`, `sortable`, `stepper`, `timeline`, `tree`. Examples and blocks are composed from these.
+<!-- BEGIN:core-reui-overlay -->
 
-**Rule one: never guess a component's API. Read it first.** Call **`get_component(name)`** for its inline `api` (props + usage, no web fetch); the result's `docsUrl` and the `/llms.txt` index are the fallback. Then call **`get_examples(name)`** to install a worked example and copy real composition. The contracts below are first-try orientation (required props, composition shape, the one gotcha); the inline `api` is the full reference. No single block fits? Compose: search the components you need, read each `get_component`, install a `get_examples` example per component, and adapt.
+## Core usage
+
+Use the current installed `packages/ui` source and manifests alongside the
+live API when maintaining existing components. The upstream contracts below
+reflect this pinned bundle, not proof that every component has been installed
+or upgraded. Standard app tables keep Core's shared `DataTableResponsive`;
+ReUI `data-grid` is for its specific composition through the shared package.
+The v9 APIs below replace the older v8 examples; inspect the pinned TanStack
+version before adapting either. Filters now use a query tree; do not use the
+retired flat-list API against a freshly installed Filters component.
+`createFilterQuery(rules?, combinator?, id?)` takes a root ID string;
+`createFilterRule({ id, path, operator, value?, negated? })` takes an explicit
+rule ID. An ID factory supplies those strings, not a helper argument. Use
+Core's exported `@asym/ui/components/shadcn/number-field` wrapper and label its
+input through `htmlFor`/`id`; it does not export `NumberFieldScrubArea`.
+See [Core workflow](../SKILL.md#this-repository-asymmetric-alcore).
+
+<!-- END:core-reui-overlay -->
+
+The 24 ReUI building blocks: `alert`, `autocomplete`, `badge`, `cascader`, `code-block`, `data-grid`, `date-selector`, `event-calendar`, `filters`, `frame`, `gantt`, `icon-stack`, `icon-tile`, `kanban`, `number-field`, `phone-input`, `rating`, `scrollspy`, `signature-pad`, `sortable`, `stepper`, `time-picker`, `timeline`, `tree`. Examples and blocks are composed from these. `file-upload` is a ReUI component too, shipped as the `use-file-upload` hook rather than a primitive, so it is not in the 24: install it as `@reui/use-file-upload`, call `get_component("file-upload")` for its API and `get_examples("file-upload")` for its free examples.
+
+**Rule one: never guess a component's API. Read it first.** Call **`get_component(name)`** for its inline `api` (props + usage, no web fetch), and **share the result's `docsUrl`** (the component's API documentation page) with the user whenever you work with that component's API, so they have the full reference (the `/llms.txt` index is a further fallback). Then call **`get_examples(name)`** to install a worked example and copy real composition. The contracts below are first-try orientation (required props, composition shape, the one gotcha); the inline `api` is the deeper reference. Do not assume you received all of it: a very large API (`cascader`, `filters`, `data-grid`) is trimmed on heading boundaries to fit your context, and every dropped heading is named in `sectionsOmitted`, so a trimmed capsule is a partial read - follow the response's own `next` hint to pull back the part you need instead of guessing at it. `validate_usage` always checks the FULL API, trimmed capsule or not. No single block fits? Compose: search the components you need, read each `get_component`, install a `get_examples` example per component, and adapt.
 
 ## data-grid (the flagship - read its API every time)
 
-`data-grid` wraps TanStack Table v8. It is NOT a styled `<table>` and does NOT take `data`/`columns` props directly. The contract:
+`data-grid` wraps TanStack Table v9. It is NOT a styled `<table>` and does NOT take `data`/`columns` props directly. The contract:
 
-- Build a TanStack table instance with `useReactTable(...)` (columns, data, the feature models you need: sorting, pagination, row selection).
-- Pass that instance to `<DataGrid table={table} recordCount={total}>` (`total` is the full row count for pagination, not just the current page's `data.length`).
+- Build a TanStack table instance with `useTable({ features: dataGridFeatures, ... })` (columns, data). `dataGridFeatures` is exported by the primitive and already bundles sorting, filtering, pagination, row selection, expanding, pinning, resizing and faceting, so there are no per-table row models to wire.
+- Pass that instance to `<DataGrid table={table} recordCount={total}>`.
 - Compose the body with `DataGridTable` inside `DataGrid`, and enable features through `tableLayout` (e.g. `{ headerSticky: true, columnsResizable: true }`), not ad-hoc classes.
 - Server-side data uses the documented fetch shape (`recordCount` is the total for pagination).
 
 ```tsx
-const table = useReactTable({
+const table = useTable({
+  features: dataGridFeatures,
   data,
   columns,
-  getCoreRowModel: getCoreRowModel(),
-  // add sorting/pagination/selection models per the API
 })
 
-<DataGrid table={table} recordCount={totalRowCount}>
+<DataGrid table={table} recordCount={data.length}>
   <DataGridTable />
 </DataGrid>
 ```
 
 Common mistakes:
 
-- **Incorrect:** `<DataGrid data={rows} columns={cols} />` - these props do not exist. **Correct:** build a `useReactTable` instance and pass `table={table}` + `recordCount`.
+- **Incorrect:** `<DataGrid data={rows} columns={cols} />` - these props do not exist. **Correct:** build a `useTable({ features: dataGridFeatures, ... })` instance and pass `table={table}` + `recordCount`.
 - **Incorrect:** a raw `<table>` / hand-rolled pagination. **Correct:** use `data-grid`; read its API for sticky header, pagination, virtualization, row selection.
-- **Incorrect:** styling rows/cells with arbitrary classes. **Correct:** drive layout via `tableLayout` and the documented `ColumnMeta` (e.g. `cellClassName`, `headerTitle`).
+- **Incorrect:** styling rows/cells with arbitrary classes. **Correct:** drive layout via `tableLayout` and the primitive's `DataGridColumnMeta` (e.g. `cellClassName`, `headerTitle`), set through the bundle's `columnMeta` slot.
+
+## event-calendar
+
+**Required:** events via `events`/`onEventsChange` (controlled) or `defaultEvents` (uncontrolled), plus a height on the root.
+**Shape:**
+
+```tsx
+<EventCalendar defaultEvents={events} defaultView="month" className="h-[560px]">
+  <EventCalendarNav />
+  <EventCalendarContent />
+</EventCalendar>
+```
+
+**Gotcha:** headless-first: `EventCalendarContent` renders the active view (month/week/day/days/agenda; a resource view activates when `resources` is passed) - there is no per-view JSX to compose. Events are `{ id, title, start, end (exclusive), allDay?, color?, recurrence?, resourceId? }`. Mutations flow through `onEventUpdate`/`canDropEvent` (return `false` to reject); the root needs an explicit height because it is a min-h-0 flex column.
+
+## gantt
+
+**Required:** `resources` (the left tree) plus bars via `events`/`defaultEvents` attached by `resourceId`.
+**Shape:**
+
+```tsx
+<Gantt
+  defaultEvents={bars}
+  resources={tasks}
+  defaultScale="month"
+  className="h-[480px]"
+>
+  <GanttNav />
+  <GanttView />
+</Gantt>
+```
+
+**Gotcha:** bars move along the time axis only (never across rows) and are all-day spans with exclusive `end`; `progress` is 0-100. Scales are `day | week | month | quarter | year`. Zoom control, infinite scroll, summary rollups, and row checkboxes are ON by default - turn off what you do not need. Same `onEventUpdate`/`canDropEvent` commit pipeline as `event-calendar`; the root needs an explicit height.
 
 ## kanban
 
@@ -85,22 +138,60 @@ Common mistakes:
 
 ## filters
 
-**Required:** `filters` (`Filter[]`), `fields` (`FilterFieldConfig[]`), `onChange`
+**Required:** `fields` (`FilterField[]`). The value is ONE `FilterQuery` tree - `query` + `onQueryChange`, or uncontrolled `defaultQuery`.
 **Shape:**
 
 ```tsx
-const [filters, setFilters] = useState<Filter[]>([
-  createFilter("priority", "is_any_of", ["low"]),
-])
-const fields: FilterFieldConfig[] = [
-  { key: "priority", label: "Priority", type: "multiselect",
-    options: [{ value: "low", label: "Low" }, { value: "high", label: "High" }] },
+const fields: FilterField[] = [
+  { id: "title", label: "Title", type: "text" },
+  {
+    id: "status",
+    label: "Status",
+    type: "select",
+    options: [
+      { value: "active", label: "Active" },
+      { value: "archived", label: "Archived" },
+    ],
+  },
 ]
+const [query, setQuery] = useState<FilterQuery>(() => createFilterQuery())
 
-<Filters filters={filters} fields={fields} onChange={setFilters} />
+<Filters fields={fields} query={query} onQueryChange={setQuery} />
 ```
 
-**Gotcha:** always build initial filters with `createFilter(field, operator, values)` - it generates the required `id`. Never hand-construct a `Filter` object. Pairs naturally with `data-grid`.
+**Gotcha:** the state is a TREE, not a list of chips. `FilterQuery` is a group of rules joined by `and`/`or` and a group may hold another group, so `(A and B) or C` is expressible; a rule is `{ id, type: "rule", path: ["status"], operator, value }` and `path` is the whole nested attribute path, root first. The pre-rewrite API is GONE: there is no `filters`/`onChange` prop, no `FilterFieldConfig` (fields are `FilterField`, nested through their own `fields`, keyed `id` not `key`), and no `createFilter()` - it minted ids inside a pure function and broke hydration. `createFilterQuery(rules?, combinator?, id?)` defaults to an empty `and` group with root ID `"root"`; `createFilterRule({ id, path, operator, value?, negated? })` requires an explicit ID. `createFilterIdFactory(seed)` returns a function producing deterministic ID strings and the primitive seeds its internal factory from `useId`. The query and rule helpers take the resulting strings in their ID fields, not the factory itself. Read the query back with `flattenFilterConditions` (`{ path, field, operator, values, negated }` per rule, incomplete rules skipped) and walk the tree yourself when the parentheses carry meaning - the primitive compiles nothing, no SQL, no query string.
+
+`variant` picks the chrome over that one query: `"basic"`, the default, is the flat chip row for a toolbar over a table; `"advanced"` is the condition builder, hung off a trigger or rendered in place with `advancedMode="inline"`. Both read and write the same tree, so a saved view built in one opens in the other. Other props worth knowing before you hand-roll them: `size` is two rungs, `"sm" | "default"`, resolved per style (there is no `lg`); `reorderable` turns on drag and Alt+Arrow row moves in the builder; `onBeforeQueryChange` is the ONE veto point for every write (return `false` to refuse, it cannot rewrite); `editors` registers custom value editors a field selects by `editor` name; `labels` / `operatorLabels` own every rendered string; `pathCollapse` + `maxPathSegments` shorten deep attribute paths; `renderChip` / `renderValue` / `renderEmpty` replace rendered parts. On a field, `loadOptions` supplies async options with paging and `resolveValues` renders a chip restored from a saved view whose option was never loaded. Pairs naturally with `data-grid`.
+
+## cascader
+
+**Required:** `items` (a tree of `{ value, label, children? }`), plus the panel parts inside `CascaderContent`.
+**Shape:**
+
+```tsx
+<Cascader items={items} value={value} onValueChange={setValue}>
+  <CascaderTrigger render={<Button variant="outline" />}>
+    <CascaderValue placeholder="Select an attribute" />
+  </CascaderTrigger>
+  <CascaderContent className="w-80">
+    <CascaderPanel>
+      <CascaderNav>
+        <CascaderBreadcrumb />
+        <CascaderInput />
+      </CascaderNav>
+      <CascaderEmpty />
+      <CascaderList maxHeight={288}>
+        <CascaderItems />
+      </CascaderList>
+      <CascaderStatus />
+    </CascaderPanel>
+  </CascaderContent>
+</Cascader>
+```
+
+**Gotcha:** pressing a branch NAVIGATES, it does not select - only leaves are selectable until you pass `selectable="any"` or a predicate, and once a branch is selectable its chevron becomes the only way to open it. `CascaderInput` must stay inside `CascaderContent` (Base UI refills the query from the selection when the input sits outside the popup). Always include `CascaderStatus`: it is the live region announcing level changes, which the visual breadcrumb does not provide to screen readers. Accepts a flat adjacency list via `getParent` as well as nested `children`. `searchScope="deep"` searches the current level and everything under it, `searchScope="global"` the whole tree from any level, and both annotate results with their path; `multiple` gives checkbox rows; `inline` + a bare `CascaderPanel` embeds it with no popover.
+
+The shape above is `mode="drill"`, the default. `mode="tree"` keeps the same parts (drop `CascaderBreadcrumb`, pass `showBack={false}`, drive expansion with `expanded`/`onExpandedChange`); `mode="columns"` REPLACES `CascaderList` + `CascaderItems` with a single `CascaderColumns`, and has no breadcrumb. Other props worth knowing before you hand-roll them: `cascade` (multi-select only, parent/child selection with indeterminate branches - pair it with `selectable="any"`, since a leaf-only tree can never cascade), `indicator={false}` to drop the single-select check and its gutter (visual only, no-op with `multiple`), `virtualize`/`virtualizeThreshold` plus `CascaderVirtualItems` for long levels, and `getChildren` for async levels with cursor paging, retry on failure and optional `prefetch`. `CascaderFooter` pins commands below the list (`actions` is the quick path) and `CascaderSubmenu` opens one as a side-anchored flyout with the full menu keyboard model. To head a run of rows use `CascaderGroup` wrapping a `CascaderLabel` - a bare label inside a listbox names nothing and is dropped from the accessibility tree - and `CascaderSeparator` for the rule between runs. Every rendered string comes from `labels`, and the panel is RTL-correct under a `DirectionProvider` or `dir="rtl"`.
 
 ## date-selector
 
@@ -227,17 +318,26 @@ const [value, setValue] = useState<DateSelectorValue | undefined>()
 **Shape:**
 
 ```tsx
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  NumberField,
+  NumberFieldDecrement,
+  NumberFieldGroup,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from "@asym/ui/components/shadcn/number-field";
+
 <NumberField defaultValue={0}>
-  <NumberFieldScrubArea label="Quantity" />
+  <Label htmlFor="quantity">Quantity</Label>
   <NumberFieldGroup>
     <NumberFieldDecrement />
-    <NumberFieldInput />
+    <NumberFieldInput id="quantity" />
     <NumberFieldIncrement />
   </NumberFieldGroup>
-</NumberField>
+</NumberField>;
 ```
 
-**Gotcha:** import from `@/components/ui/number-field`. The accessible label goes on `NumberFieldScrubArea`, not `NumberField`. External API: https://base-ui.com/react/components/number-field
+**Gotcha:** Core imports the existing shared wrapper from `@asym/ui/components/shadcn/number-field`. Associate `Label` with `NumberFieldInput` through matching `htmlFor` and `id`; this wrapper does not export `NumberFieldScrubArea`. External API: https://base-ui.com/react/components/number-field
 
 ## rating
 
@@ -300,6 +400,39 @@ const [value, setValue] = useState<DateSelectorValue | undefined>()
 ```
 
 **Gotcha:** isometric layered artwork for empty states and illustrations; style the inner icon via its own `className`. Mark purely decorative stacks `aria-hidden="true"` and keep the real label in surrounding copy.
+
+## icon-tile
+
+**Required:** one child icon
+**Shape:**
+
+```tsx
+<IconTile variant="elevated" size="lg">
+  <PackageIcon />
+</IconTile>
+```
+
+**Gotcha:** the square container an icon sits in, so every list row, feature card and empty state shares one affordance. `variant`: `outline` (default) | `elevated` (muted fill, raised ring) | `soft` (tinted nested, tone from currentColor) | `solid` (filled tone, contrasting glyph) | `frame` (double container). `soft` and `solid` retint from one text color class (they default to `text-primary`). `size`: `xs | sm | default | lg | xl` (24/32/40/48/64px tile, glyph scales 12/14/16/20/24px). `radius`: `default | full`. Do not set a `size-*` class on the child icon unless you mean to override the tile's glyph size; recolor with `className` on the tile, not the icon.
+
+## code-block
+
+**Required:** `code` + `language`, or pre-highlighted `lines`.
+**Shape:**
+
+```tsx
+<CodeBlock code={code} language="tsx" />
+
+<CodeBlock code={code} language="tsx" showLineNumbers maxLines={20}>
+  <CodeBlockHeader>
+    <CodeBlockTitle>use-totals.ts</CodeBlockTitle>
+    <CodeBlockLanguage />
+    <CodeBlockCopyButton className="ml-auto" />
+  </CodeBlockHeader>
+  <CodeBlockExpandButton />
+</CodeBlock>
+```
+
+**Gotcha:** the one-liner is already a complete block; every child (header, title, language label, copy button, wrap toggle, expand button, line actions) is optional chrome, at any depth. Shiki is the only npm dependency and loads lazily, one chunk per language, on first highlight; `lines` (from `highlightCode` in `code-block-highlight`, which is server-safe and has no `"use client"`) or `highlight={false}` loads nothing at all. `maxLines` caps the height AND marks the block collapsible, which is what makes `CodeBlockExpandButton` appear. Use `variant="ghost"` when the block sits inside a surface that already has a border.
 
 ## alert
 

@@ -1,0 +1,54 @@
+{
+  "source": "https://mcp.reui.io/api/skills/download",
+  "version": "e7aac3424a",
+  "reviewedAt": "2026-10-07",
+  "bundleSha256": "79becac482cf5e25ee6f3de7b75f8f8b83693bfb017643ad35a7a735b7550338",
+  "installerUrl": "https://mcp.reui.io/install",
+  "installerSha256": "4e10ff1714a412d94e9abf2c11bbbcf558425a2618c02a394ccbb9124d020593",
+  "files": {
+    "SKILL.md": {
+      "sha256": "142a274b208808f9d6fa746547fa718a8041d50cfde3848a328222ce4e4893fc",
+      "bytes": 8603
+    },
+    "rules/adapting.md": {
+      "sha256": "8292e87e4864f2ed76c0a180927161e82f7c4a7f8f6de0b226f1b52cf3a8d7a5",
+      "bytes": 4450
+    },
+    "rules/cli.md": {
+      "sha256": "b5a3494d42fcb3908afb1a1c7fc154b3533f2ea077335eb1b0b914704c74e9e6",
+      "bytes": 4613
+    },
+    "rules/components.md": {
+      "sha256": "2011a76cc82aeed367de3bcd19cf17f5dd5dcb57861af59b2396faa9f1a96329",
+      "bytes": 21359
+    },
+    "rules/craft.md": {
+      "sha256": "009d12fac2255f8ee84ecba71b34c67c04fbe90c1c9cdcac3f7668f453a38995",
+      "bytes": 3501
+    },
+    "rules/icons.md": {
+      "sha256": "0d759b33907fa191ed3d9385119b4b121d49a32fe1810bf77d4c3a73eb6f4a56",
+      "bytes": 2984
+    },
+    "rules/quality.md": {
+      "sha256": "625df6fbf394e934a8a1ff1c9f819179c1d4a1c3e67fb82a82178bb131f25985",
+      "bytes": 1464
+    },
+    "rules/registry.md": {
+      "sha256": "1b1d0e7ece6572fd173124e649fece68815f6f5c65257e6d8e3008d35e003937",
+      "bytes": 4647
+    },
+    "rules/styling.md": {
+      "sha256": "08f7db891aa2c81db473553812738845a34064fe529a11951073656d07846dde",
+      "bytes": 1987
+    },
+    "rules/workflow.md": {
+      "sha256": "574a7341138d404f83fdb574331a06d4c438d2405540f503ab02abcef1714f99",
+      "bytes": 6607
+    },
+    "tools.md": {
+      "sha256": "cceb2af47d496b3e055bd44418ee5f1a67d7a6b583ed2f92658169d7656983de",
+      "bytes": 10278
+    }
+  }
+}

@@ -892,6 +892,8 @@
     ],
     "reui": [
       "SKILL.md",
+      "references/docs.md",
+      "references/upstream-manifest.json",
       "references/upstream.md",
       "rules/adapting.md",
       "rules/cli.md",

@@ -1,6 +1,20 @@
 # Styling (ReUI delta over shadcn)
 
-Follow [`docs/ai/skills/moai-library-shadcn/SKILL.md`](../../moai-library-shadcn/SKILL.md) for the generic rules (semantic colors not raw values, `gap-*` not `space-y-*`, `size-*`, `cn()`, no manual `dark:` overrides, no overlay `z-index`). This file is only the ReUI-specific additions.
+<!-- BEGIN:core-reui-overlay -->
+
+## Core usage
+
+Core's `packages/ui/AGENTS.md`, `docs/ai/rules/frontend.md`, and
+`docs/ai/skills/moai-library-shadcn/SKILL.md` govern exact Maia geometry and
+semantic tokens. Use `packages/ui/styles/globals.css` for justified shared
+semantic additions with light/dark values and contrast checks. Do not change
+the preset, global radius/spacing/typography/motion scales, or existing theme to
+match a downloaded block. Adapt registry output to the current shared system.
+The generic preset advice below does not authorize a Core preset change.
+
+<!-- END:core-reui-overlay -->
+
+Follow the shadcn skill for the generic rules (semantic colors not raw values, `gap-*` not `space-y-*`, `size-*`, `cn()`, no manual `dark:` overrides, no overlay `z-index`). This file is only the ReUI-specific additions.
 
 ## ReUI extended semantic tokens
 
