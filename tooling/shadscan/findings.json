@@ -2171,7 +2171,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/task-kanban-board.tsx",
-          "sha256": "398f6943f529249f34381e49e01c30bc910ff4b296644186dd71fa2fc7571246"
+          "sha256": "bc2b149d263af67668436fd263bd3fb9139fdc53111a3291495d06e85c877315"
         },
         {
           "path": "packages/missionary/components/task-row.tsx",

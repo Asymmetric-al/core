@@ -61,6 +61,22 @@ function validatePath(value) {
   return value;
 }
 
+function assertDirectorySpellings(filePaths) {
+  const directorySpellings = new Map();
+  for (const filePath of filePaths) {
+    const segments = filePath.split("/");
+    for (let index = 1; index < segments.length; index++) {
+      const directory = segments.slice(0, index).join("/");
+      const portableDirectory = directory.toLowerCase();
+      const spelling = directorySpellings.get(portableDirectory);
+      if (spelling && spelling !== directory) {
+        throw new Error("ReUI inventory contains directory case aliases");
+      }
+      directorySpellings.set(portableDirectory, directory);
+    }
+  }
+}
+
 function validateBundle(bytes) {
   if (bytes.length > maxBundleBytes)
     throw new Error("ReUI bundle exceeds the size limit");
@@ -103,6 +119,7 @@ function validateBundle(bytes) {
     }
     files.set(filePath, file.content);
   }
+  assertDirectorySpellings(files.keys());
   for (const filePath of portablePaths) {
     const segments = filePath.split("/");
     for (let index = 1; index < segments.length; index++) {
@@ -220,16 +237,18 @@ function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function assertScratchDestination(destination) {
-  for (const relative of [
+async function assertScratchDestination(destination) {
+  const protectedTrees = [
     "docs/ai/skills",
     ".agents/skills",
     ".claude/skills",
     ".cursor/skills",
-  ]) {
+  ];
+  const assertOutside = (protectedTree, candidate) => {
+    // Case aliases must stay protected on case-insensitive filesystems too.
     const fromProtected = path.relative(
-      path.join(repoRoot, relative),
-      destination,
+      protectedTree.toLowerCase(),
+      candidate.toLowerCase(),
     );
     if (
       !fromProtected ||
@@ -239,6 +258,23 @@ function assertScratchDestination(destination) {
     ) {
       throw new Error("Refusing to stage inside a protected skill tree");
     }
+  };
+  for (const relative of protectedTrees) {
+    assertOutside(path.join(repoRoot, relative), destination);
+  }
+  const physicalRoot = await realpath(repoRoot);
+  const physicalDestination = path.join(
+    await realpath(path.dirname(destination)),
+    path.basename(destination),
+  );
+  for (const relative of protectedTrees) {
+    const protectedTree = await realpath(path.join(repoRoot, relative)).catch(
+      (error) => {
+        if (error.code !== "ENOENT") throw error;
+        return path.join(physicalRoot, relative);
+      },
+    );
+    assertOutside(protectedTree, physicalDestination);
   }
 }
 
@@ -365,15 +401,23 @@ async function main() {
     }),
   );
 
+  const portableStagedPaths = new Set(
+    [...staged.keys()].map((filePath) => filePath.toLowerCase()),
+  );
+  if (portableStagedPaths.size !== staged.size) {
+    throw new Error("ReUI stage contains duplicate file paths");
+  }
+  assertDirectorySpellings(staged.keys());
+
   let destination;
   if (args.output) {
-    assertScratchDestination(args.output);
+    await assertScratchDestination(args.output);
     await assertRealDirectories(path.dirname(args.output));
     await mkdir(args.output); // Never reuse or remove an occupied destination.
     destination = args.output;
   } else {
     const temporaryRoot = await realpath(os.tmpdir());
-    assertScratchDestination(temporaryRoot);
+    await assertScratchDestination(temporaryRoot);
     await assertRealDirectories(temporaryRoot);
     destination = await mkdtemp(path.join(temporaryRoot, "core-reui-skills-"));
   }

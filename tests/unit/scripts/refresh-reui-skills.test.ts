@@ -293,6 +293,51 @@ describe("ReUI skill refresh staging", () => {
     expect(existsSync(protectedOutput)).toBe(false);
   });
 
+  it("refuses a case alias of a protected skill tree before creating a stage", async () => {
+    const f = await fixture();
+    const aliasedTree = path.join(f.root, ".AGENTS/skills");
+    await mkdir(aliasedTree, { recursive: true });
+    const protectedOutput = path.join(aliasedTree, "review-stage");
+    const result = run(f.root, [
+      `--bundle=${f.bundlePath}`,
+      `--output=${protectedOutput}`,
+    ]);
+    expect(result.status, result.output).not.toBe(0);
+    expect(result.output).toContain("protected skill tree");
+    expect(existsSync(protectedOutput)).toBe(false);
+    expect(
+      await readFile(path.join(f.root, ".agents/skills/reui/SKILL.md"), "utf8"),
+    ).toBe("Existing generated mirror.\n");
+  });
+
+  it("refuses staging in the physical location of a mirrored skill tree", async () => {
+    const f = await fixture();
+    const physicalTree = path.join(f.root, "physical-mirror");
+    await mkdir(physicalTree);
+    await writeFile(
+      path.join(physicalTree, "keep.txt"),
+      "Existing mirror data.\n",
+    );
+    await mkdir(path.join(f.root, ".cursor"));
+    await symlink(
+      physicalTree,
+      path.join(f.root, ".cursor/skills"),
+      "junction",
+    );
+    const protectedOutput = path.join(physicalTree, "review-stage");
+    const result = run(f.root, [
+      `--bundle=${f.bundlePath}`,
+      `--output=${protectedOutput}`,
+    ]);
+    expect(result.status, result.output).not.toBe(0);
+    expect(result.output).toContain("protected skill tree");
+    expect(existsSync(protectedOutput)).toBe(false);
+    expect(await readdir(physicalTree)).toEqual(["keep.txt"]);
+    expect(await readFile(path.join(physicalTree, "keep.txt"), "utf8")).toBe(
+      "Existing mirror data.\n",
+    );
+  });
+
   it.each(["SKILL.md", "skill.md"])(
     "rejects duplicate paths (%s) without touching an occupied output",
     async (filePath) => {
@@ -312,6 +357,48 @@ describe("ReUI skill refresh staging", () => {
       expect(await readFile(path.join(f.output, "keep.txt"), "utf8")).toBe(
         "Existing user file.\n",
       );
+    },
+  );
+
+  it("rejects differently cased aliases of a shared bundle directory before staging", async () => {
+    const f = await fixture();
+    const payload = bundle();
+    payload.files.push({
+      path: "Rules/new.md",
+      content: "Ambiguous folder.\n",
+    });
+    await writeFile(f.bundlePath, JSON.stringify(payload));
+    const result = run(f.root, [
+      `--bundle=${f.bundlePath}`,
+      `--output=${f.output}`,
+    ]);
+    expect(result.status, result.output).not.toBe(0);
+    expect(result.output).toContain("case aliases");
+    expect(existsSync(f.output)).toBe(false);
+    expect(
+      await readFile(path.join(f.canonical, "rules/workflow.md"), "utf8"),
+    ).toBe(originalRule);
+  });
+
+  it.each(["references/DOCS.md", "References/new.md"])(
+    "rejects a staged case alias of Core-owned references at %s",
+    async (filePath) => {
+      const f = await fixture();
+      const payload = bundle();
+      payload.files.push({
+        path: filePath,
+        content: "Ambiguous local reference.\n",
+      });
+      await writeFile(f.bundlePath, JSON.stringify(payload));
+      const result = run(f.root, [
+        `--bundle=${f.bundlePath}`,
+        `--output=${f.output}`,
+      ]);
+      expect(result.status, result.output).not.toBe(0);
+      expect(existsSync(f.output)).toBe(false);
+      expect(
+        await readFile(path.join(f.canonical, "references/docs.md"), "utf8"),
+      ).toBe("Core documentation map.\n");
     },
   );
 

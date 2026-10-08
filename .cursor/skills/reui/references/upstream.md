@@ -59,6 +59,9 @@ They describe upstream bytes **before** Core overlays or formatting.
    composition. Core's exact `base-maia`, package ownership, Pro entitlement,
    authenticated registry, Lucide fallback, current data-access boundaries, and
    installed-component compatibility outrank generic upstream advice.
+   Reconcile the Filters query/rule helper signatures in `rules/components.md`
+   with the current Base UI documentation, and keep its Number Field example
+   on Core's exported shared wrapper and supported labeling composition.
    Keep `tools.md`'s introduction consistent too: Pro blocks and Ultimate-only
    Motion Icons have distinct entitlements, and Core uses its runtime license
    for both MCP authentication and registry installation.
