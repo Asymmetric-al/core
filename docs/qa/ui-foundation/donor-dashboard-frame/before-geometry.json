@@ -1,0 +1,89 @@
+{
+  "sourceSHA": "c4bc0553546f8b26599bc6dbe08f7aadbef52cc1",
+  "layoutHash": "d5e9ae4b6fdd5cc14e9eed4069ed1e3e48cf5908db944302ce28ea109bb969a4",
+  "environment": {
+    "node": "v24.19.0",
+    "browser": "156.0.8078.4",
+    "url": "http://localhost:3106/donor-dashboard/feed",
+    "datasource": "repository CI placeholder defaults",
+    "fixture": "GET /api/posts HTTP data in the actual Next.js app",
+    "reducedMotion": "reduce",
+    "zoom": "default browser zoom; viewport emulation is not browser zoom"
+  },
+  "state": "short-empty",
+  "measured": {
+    "viewport": {
+      "width": 1440,
+      "height": 1800
+    },
+    "scrollY": 0,
+    "documentWidth": 1440,
+    "documentHeight": 1800,
+    "frame": {
+      "top": 0,
+      "bottom": 1800,
+      "left": 0,
+      "right": 1440,
+      "height": 1800,
+      "width": 1440
+    },
+    "wrapper": {
+      "top": 0,
+      "bottom": 1040.5,
+      "left": 0,
+      "right": 1440,
+      "height": 1040.5,
+      "width": 1440
+    },
+    "main": {
+      "top": 113,
+      "bottom": 1040.5,
+      "left": 0,
+      "right": 1440,
+      "height": 927.5,
+      "width": 1440
+    },
+    "routeContent": {
+      "top": 145,
+      "bottom": 960.5,
+      "left": 0,
+      "right": 1440,
+      "height": 815.5,
+      "width": 1440
+    },
+    "footer": {
+      "top": 1040.5,
+      "bottom": 1722.5,
+      "left": 0,
+      "right": 1440,
+      "height": 682,
+      "width": 1440
+    },
+    "navbar": {
+      "top": 0,
+      "bottom": 69,
+      "left": 0,
+      "right": 1440,
+      "height": 69,
+      "width": 1440
+    },
+    "workspace": {
+      "top": 64,
+      "bottom": 113,
+      "left": 0,
+      "right": 1440,
+      "height": 49,
+      "width": 1440
+    },
+    "mainPaddingTop": 32,
+    "mainPaddingBottom": 80,
+    "footerPosition": "static",
+    "footerPaddingTop": "96px",
+    "footerPaddingBottom": "96px",
+    "wrapperDisplay": "block",
+    "wrapperFlex": "0 1 auto",
+    "mainFlex": "1 1 0%",
+    "mainMinHeight": "0px",
+    "scrollingAncestors": []
+  }
+}
