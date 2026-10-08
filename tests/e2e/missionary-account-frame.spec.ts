@@ -1,11 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
+import { instant } from "@next/playwright";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 /**
  * Run against the Missionary application with playwright.missionary.config.ts.
- * Demo flows use the repository's run-with-ci-env.mjs fixture, not a provider
- * session. The fixture intentionally does not exercise authenticated /login
- * redirects, which require a real Supabase user.
+ * The full suite uses next dev and run-with-ci-env.mjs's non-production demo
+ * fixture, not a provider session. Production rigs can run the account-links
+ * case with INSTANT_NAV_RIG=1; NODE_ENV=production intentionally disables the
+ * fixture. Authenticated /login redirects require a real Supabase user.
  */
 async function expectStandaloneAccountFrame(page: Page) {
   // AppHeader and DashboardFooter are nested inside SidebarInset's main, so
@@ -124,8 +126,37 @@ test.describe("initial server account frame", () => {
 test("account links preserve invitation-only registration and unavailable password help", async ({
   page,
 }) => {
-  await page.goto("/login");
-  await page.getByRole("link", { name: "Forgot password?" }).click();
+  const rigActive = process.env.INSTANT_NAV_RIG === "1";
+  if (rigActive) {
+    // A static destination alone could pass with the testing API disabled.
+    // Login's request-time content must stay deferred until lock release.
+    await instant(
+      page,
+      async () => {
+        await page.goto("/login");
+        await expect(
+          page.getByRole("status", { name: "Loading sign-in" }),
+        ).toBeVisible();
+        await expectStandaloneAccountFrame(page);
+        await expect(
+          page.getByRole("heading", { name: "Sign In" }),
+        ).toHaveCount(0);
+      },
+      { baseURL: test.info().project.use.baseURL },
+    );
+  } else {
+    await page.goto("/login");
+  }
+  await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
+  const openPasswordHelp = async () => {
+    await page.getByRole("link", { name: "Forgot password?" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Forgot password?" }),
+    ).toBeVisible();
+    await expectStandaloneAccountFrame(page);
+  };
+  if (rigActive) await instant(page, openPasswordHelp);
+  else await openPasswordHelp();
   await expect(page).toHaveURL(/\/forgot-password$/);
   await expect(
     page.getByRole("heading", { name: "Forgot password?" }),
@@ -137,7 +168,18 @@ test("account links preserve invitation-only registration and unavailable passwo
   await page.getByRole("link", { name: "Back to login" }).click();
   await expect(page.getByRole("heading", { name: "Sign In" })).toBeVisible();
   await expectStandaloneAccountFrame(page);
-  await page.getByRole("link", { name: "Register", exact: true }).click();
+  if (rigActive) {
+    await instant(page, async () => {
+      await page.getByRole("link", { name: "Register", exact: true }).click();
+      // This route's completed invitation-only content can be prefetched.
+      await expect(
+        page.getByRole("heading", { name: "Registration unavailable" }),
+      ).toBeVisible();
+      await expectStandaloneAccountFrame(page);
+    });
+  } else {
+    await page.getByRole("link", { name: "Register", exact: true }).click();
+  }
   await expect(
     page.getByRole("heading", { name: "Registration unavailable" }),
   ).toBeVisible();
