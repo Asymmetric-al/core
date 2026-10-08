@@ -66,7 +66,10 @@ They describe upstream bytes **before** Core overlays or formatting.
    Motion Icons have distinct entitlements, and Core uses its runtime license
    for both MCP authentication and registry installation.
 5. Promote the reviewed staged files into `docs/ai/skills/reui/`, including the
-   updated manifest/provenance. Remove an obsolete upstream file only after
+   updated manifest/provenance. After review, set `reviewStatus: "reviewed"`
+   and `reviewedAt` to its ISO date or timestamp in
+   `references/upstream-manifest.json`; pending or undated candidates fail
+   `bun run verify:reui` even when their mirrors match. Remove an obsolete upstream file only after
    reviewing the inventory. Keep local references. Do not change product UI,
    package dependencies, theme, secrets, or MCP configuration as a side effect
    of a skill refresh.

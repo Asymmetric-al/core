@@ -59,8 +59,10 @@ bun run skills:verify
 bun run verify:reui --live
 ```
 
-The first check reads skill mirrors and client/registry configuration without
-making network calls. Skill verification checks the complete generated trees.
+The first check reads reviewed canonical provenance, skill mirrors, and
+client/registry configuration without making network calls. It rejects pending
+or undated skill manifests and an explicitly disabled Codex ReUI server.
+Skill verification checks the complete generated trees.
 Live mode requires the runtime key and checks authenticated MCP tools, Base UI
 API context, Pro discovery, and premium registry source access. These commands
 do not install components or edit client settings. A protocol check establishes
@@ -120,7 +122,9 @@ This stages the official shared bundle and retains Core overlays for review.
 It prints the candidate path and does not change canonical files, mirrors, or
 MCP settings. Compare the complete candidate with `docs/ai/skills/reui`, reconcile
 Core body edits and removed upstream files, and update reviewed provenance when
-promoting it. Then run `bun run skills:sync` and `bun run skills:verify`.
+promoting it: set `reviewStatus: "reviewed"` and an ISO `reviewedAt` date or
+timestamp in `references/upstream-manifest.json` after review. Then run
+`bun run skills:sync`, `bun run skills:verify`, and `bun run verify:reui`.
 
 The old `@reui/skills-codex`, `skills-claude`, and `skills-cursor` packages have
 been replaced by the shared hosted bundle. ReUI's installer writes client files

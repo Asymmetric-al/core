@@ -40,18 +40,39 @@ tree and source hashes establish their correspondence.
 
 ## Verification and limits
 
-[Full local preflight](./local-preflight.json) passed all 17 stages on the
+[Initial local preflight](./local-preflight.json) passed all 17 stages on the
 integrated source, including all three Next.js 16.4 production builds and coverage
 with 6,839 unit tests passed and four intentional skips. Motion and token-drift
 guards also passed. [Published source equivalence](./publication-equivalence.json)
 records exact tree matches and the preserved rebased remote parents. Later
 evidence-only metadata receives targeted formatting and source/image checks.
 
+[Final integrated preflight](./final-preflight.json), including the additional
+readiness safeguards, again passed all 17 stages: 6,850 unit tests passed, four
+intentional skips, all three application build gates passed. Application inputs
+are unchanged, so the second run legitimately reused the successful Next.js 16.4
+builds. [Final publication equivalence](./final-publication-equivalence.json)
+records exact source-tree matches. Hosted results are checked at these later
+heads independently of the initial passing CI.
+
 [Readiness](./readiness-verification.json): six suites, 90 tests passed, including
 32 refresh and 31 readiness cases; executable fixes have RED/GREEN evidence.
 All six live checks passed, including authenticated MCP Pro entitlement and paid
 source retrieval. Scoped lint, formatting, mirror nonmutation, syntax and strict
 OpenSpec checks passed.
+
+The [additional readiness review](./readiness-follow-up.json) corrected stale
+playbook authentication/registry guidance, disabled Codex server acceptance and
+unreviewed canonical-manifest acceptance. All 101 focused tests across six suites
+and six live Pro checks passed; independent review found no remaining P0/P1 in
+the eight-file follow-up. Dated legacy manifests remain supported. The refreshed
+verification requires reviewed provenance before any live request.
+
+Fresh shared comments were [reviewed with evidence](./standards-review.md): the
+sole settings consumer constructs channel headers and controls from the same
+list, with six existing tests passed; the MIT notice remains byte-identical to
+its recorded upstream source. Neither warrants a shared-contract migration or
+notice reformatting.
 
 The [eight existing component browser suites](./component-check.json) passed all
 62 checks on the integrated follow-up source. This is current component-fixture

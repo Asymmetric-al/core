@@ -9,3 +9,20 @@ Three concrete P1 regressions were confirmed and corrected in the shared follow-
 The shared/component diff review found no additional concrete P0/P1 standards violations. Fowler smells remain judgment heuristics; no speculative naming, duplication, abstraction, or formatter/linter findings are treated as merge blockers. Scope: the shared components/tokens and missionary component diff plus applicable authority/standards contracts; other product and operational slices have their independent review owners.
 
 Verification: eight existing unit tests across two files, scoped ESLint, four-file Prettier, both affected package typechecks, and `git diff --check` passed. Fourteen matched before/after actual-component captures cover light/dark, narrow/wide, and short/tall states. After states all pass measured contrast/viewport checks; keyboard create/edit exact payloads, final-column scrolling, device width, HTML/text tabs, and original iframe payload are preserved. These are blocked-network local component fixtures, not Next.js application or provider workflow qualification.
+
+## Fresh shared review comments
+
+The notification-control reorder concern (`PRRT_kwDOQ4BXFs6qNEG4`) has no
+reachable trigger in Core. Its sole product consumer passes headers from
+`NOTIFICATION_CHANNELS` and builds every row's controls from that same list;
+each switch reads and updates its own `channel.id`. Reordering the list preserves
+both associations. Independent inspection verified current remote blobs and six
+existing matrix/settings tests passed. Retain this shared positional contract;
+an unsupported independent permutation does not justify a breaking API change.
+
+The MIT-title Markdown suggestion (`PRRT_kwDOQ4BXFs6qNEGz`) is a formatting nit.
+Retain the verbatim notice: fresh retrieval from the recorded upstream commit
+`ef0fe1252d9b24d69bdedee48a69ec9b29d1f217` matches the checked-in file at SHA256
+`09592ffefa6512b68dd7aa9031bc50d5d39cfcc9da08288f5eb1f9d236baca66`.
+Its required copyright, permission and warranty clauses remain intact. This
+external Markdown warning is not a failed repository gate.
