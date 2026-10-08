@@ -31,7 +31,7 @@ export default function DonorDashboardLayout({
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Navbar variant="solid" />
-      <div className="pt-16">
+      <div className="flex flex-1 flex-col pt-16">
         <DonorSubNav />
         <main id="main-content" className="flex-1 pt-8 pb-20">
           <RouteMainViewTransitionBoundary className="container-responsive">

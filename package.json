@@ -68,7 +68,7 @@
     "test:e2e:development-smoke:donor": "bun run test:e2e:development-smoke --project=development-donor",
     "test:e2e:development-smoke:missionary": "bun run test:e2e:development-smoke --project=development-missionary",
     "test:e2e:boneyard:admin": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.admin.config.ts tests/e2e/boneyard-smoke.spec.ts --project=admin-boneyard",
-    "test:e2e:boneyard:missionary": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.missionary.config.ts tests/e2e/boneyard-smoke.spec.ts --project=missionary-boneyard",
+    "test:e2e:boneyard:missionary": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.missionary.config.ts tests/e2e/boneyard-smoke.spec.ts tests/e2e/missionary-account-frame.spec.ts --project=missionary-boneyard",
     "test:e2e:boneyard:donor": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test -c playwright.donor.config.ts tests/e2e/boneyard-smoke.spec.ts --project=donor-boneyard",
     "test:a11y": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/accessibility.spec.ts",
     "test:a11y:strict": "node node_modules/@playwright/test/cli.js test tests/e2e/accessibility.spec.ts",
