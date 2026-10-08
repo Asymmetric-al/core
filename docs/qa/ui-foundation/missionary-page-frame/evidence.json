@@ -1,0 +1,493 @@
+{
+  "issue": "AL-1978",
+  "sourceSha": "c4bc0553546f8b26599bc6dbe08f7aadbef52cc1",
+  "runtimeTree": "2c37fc4d8b39f298e3fab938239cd75de8c04031",
+  "recordedAt": "2026-10-08T10:53:02.982Z",
+  "runtimeChanged": false,
+  "environment": {
+    "node": "v24.19.0",
+    "next": "16.4.0",
+    "playwright": "1.64.0",
+    "browser": "156.0.8078.4",
+    "bun": "1.4.2",
+    "react": "19.3.0",
+    "tailwind": "4.3.3",
+    "vitest": "5.0.3",
+    "source": "isolated frozen installation",
+    "origin": "http://localhost:4108",
+    "auth": "Unchanged run-with-ci-env + demo-account missionary setup",
+    "motion": "no-preference in completed application matrix"
+  },
+  "fixtureBoundary": {
+    "loading": "Real portal request held then continued",
+    "error": "Real endpoint503; retry503 at every listed viewport",
+    "loaded": "Exact committed dashboard-home.test.tsx snapshot literal",
+    "absent": "Tested absent presenter input adapted to JSONnull; supplemental UI fixture, not provider contract",
+    "metrics": "Unintercepted; productive metrics not qualified"
+  },
+  "home": [
+    {
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 320,
+      "hostWidth": 320,
+      "hostPadding": ["16px", "16px", "16px", "16px"],
+      "homeRouteWidth": 288,
+      "homeRoutePadding": ["8px", "0px", "8px", "0px"],
+      "pageShellPadding": ["16px", "16px", "80px", "16px"],
+      "titleContentLeft": 32,
+      "titleTop": 88,
+      "contentTop": 231.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    },
+    {
+      "viewport": {
+        "width": 700,
+        "height": 800
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 700,
+      "hostWidth": 700,
+      "hostPadding": ["16px", "16px", "16px", "16px"],
+      "homeRouteWidth": 640,
+      "homeRoutePadding": ["8px", "0px", "8px", "0px"],
+      "pageShellPadding": ["24px", "24px", "24px", "24px"],
+      "titleContentLeft": 54,
+      "titleTop": 96,
+      "contentTop": 243.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    },
+    {
+      "viewport": {
+        "width": 767,
+        "height": 800
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 767,
+      "hostWidth": 767,
+      "hostPadding": ["16px", "16px", "16px", "16px"],
+      "homeRouteWidth": 640,
+      "homeRoutePadding": ["8px", "0px", "8px", "0px"],
+      "pageShellPadding": ["24px", "24px", "24px", "24px"],
+      "titleContentLeft": 87.5,
+      "titleTop": 96,
+      "contentTop": 243.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 800
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 768,
+      "hostWidth": 560,
+      "hostPadding": ["24px", "24px", "24px", "24px"],
+      "homeRouteWidth": 512,
+      "homeRoutePadding": ["16px", "0px", "16px", "0px"],
+      "pageShellPadding": ["24px", "24px", "24px", "24px"],
+      "titleContentLeft": 256,
+      "titleTop": 112,
+      "contentTop": 259.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    },
+    {
+      "viewport": {
+        "width": 769,
+        "height": 800
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 769,
+      "hostWidth": 561,
+      "hostPadding": ["24px", "24px", "24px", "24px"],
+      "homeRouteWidth": 513,
+      "homeRoutePadding": ["16px", "0px", "16px", "0px"],
+      "pageShellPadding": ["24px", "24px", "24px", "24px"],
+      "titleContentLeft": 256,
+      "titleTop": 112,
+      "contentTop": 259.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 1440,
+      "hostWidth": 1232,
+      "hostPadding": ["32px", "40px", "32px", "40px"],
+      "homeRouteWidth": 1152,
+      "homeRoutePadding": ["16px", "0px", "16px", "0px"],
+      "pageShellPadding": ["32px", "32px", "32px", "32px"],
+      "titleContentLeft": 280,
+      "titleTop": 128,
+      "contentTop": 283.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 1920,
+      "hostWidth": 1600,
+      "hostPadding": ["32px", "40px", "32px", "40px"],
+      "homeRouteWidth": 1520,
+      "homeRoutePadding": ["16px", "0px", "16px", "0px"],
+      "pageShellPadding": ["32px", "32px", "32px", "32px"],
+      "titleContentLeft": 336,
+      "titleTop": 128,
+      "contentTop": 283.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 480
+      },
+      "states": [
+        "actual-loading-held-request",
+        "actual-provider-error",
+        "loaded-ui-fixture",
+        "absent-data-ui-fixture"
+      ],
+      "documentWidth": 1280,
+      "hostWidth": 1072,
+      "hostPadding": ["32px", "40px", "32px", "40px"],
+      "homeRouteWidth": 992,
+      "homeRoutePadding": ["16px", "0px", "16px", "0px"],
+      "pageShellPadding": ["32px", "32px", "32px", "32px"],
+      "titleContentLeft": 280,
+      "titleTop": 128,
+      "contentTop": 283.75,
+      "titleContentAlignmentDelta": 0,
+      "primaryMainCount": 1,
+      "scrollingElement": "HTML"
+    }
+  ],
+  "settledControls": [
+    {
+      "path": "/donors",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "documentWidth": 320,
+      "mainDomCount": 1,
+      "mainVisibleCount": 1,
+      "scrollingElement": "HTML",
+      "hostPadding": "16px",
+      "headingX": 16
+    },
+    {
+      "path": "/settings",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "documentWidth": 390,
+      "mainDomCount": 1,
+      "mainVisibleCount": 1,
+      "scrollingElement": "HTML",
+      "hostPadding": "16px",
+      "headingX": 16
+    },
+    {
+      "path": "/donors",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "mainDomCount": 1,
+      "mainVisibleCount": 1,
+      "scrollingElement": "HTML",
+      "hostPadding": "32px 40px",
+      "headingX": 248
+    },
+    {
+      "path": "/settings",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "mainDomCount": 1,
+      "mainVisibleCount": 1,
+      "scrollingElement": "HTML",
+      "hostPadding": "32px 40px",
+      "headingX": 248
+    }
+  ],
+  "nativeZoom": {
+    "state": "actual-provider-error",
+    "viewport": {
+      "width": 720,
+      "height": 450
+    },
+    "devicePixelRatio": 2,
+    "visualViewportScale": 1,
+    "documentWidth": 720,
+    "scrollingElement": "HTML",
+    "titleX": 64,
+    "contentX": 64,
+    "browserZoom": 2,
+    "method": "Local extension chrome.tabs.setZoom/getZoom; viewport dimensions/deviceScaleFactor unchanged",
+    "scope": "Actual portal503 error; retry in-viewport assertion; CDP viewport screenshot"
+  },
+  "documentScroll": [
+    {
+      "viewport": {
+        "width": 320,
+        "height": 480
+      },
+      "before": 0,
+      "after": 1194,
+      "documentScrollTop": 1194,
+      "mainScrollTop": 0,
+      "documentWidth": 320,
+      "action": "View All Tasks (reachability only; no product action invoked)"
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 480
+      },
+      "before": 0,
+      "after": 853,
+      "documentScrollTop": 853,
+      "mainScrollTop": 0,
+      "documentWidth": 1440,
+      "action": "View All Tasks (reachability only; no product action invoked)"
+    }
+  ],
+  "unchangedSource": [
+    {
+      "path": "apps/missionary/app/layout.tsx",
+      "sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902"
+    },
+    {
+      "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
+      "sha256": "722a7775da9f64604fc2a00c637a8d97a70755d90db3d1154dc26dafa70c054b"
+    },
+    {
+      "path": "apps/missionary/components/app-shell.tsx",
+      "sha256": "4f1653e47453eae914275307deeec61efce230dd57ebdbfb8d1e665145ba83da"
+    },
+    {
+      "path": "apps/missionary/components/app-header.tsx",
+      "sha256": "18b4acbcd82ace4c133ad28b01bbf6fcd19e6998561284894f3f33fa7d8b6833"
+    },
+    {
+      "path": "apps/missionary/components/dashboard-footer.tsx",
+      "sha256": "37c7298f7cf97532bcd0eaf3a64d56bcebe26b56ed6fb0fb225e30805eac4317"
+    },
+    {
+      "path": "apps/missionary/app/page.tsx",
+      "sha256": "0736c1dd5bcd7b155a7c61e702c7046691768ccb3220d38746b74fea56c12794"
+    },
+    {
+      "path": "packages/missionary/components/dashboard-home.tsx",
+      "sha256": "f9a5d81a76c47b1359657a83743fe28c7b609161c64024ed26030731587faa96"
+    },
+    {
+      "path": "packages/ui/components/primitives/page-shell.tsx",
+      "sha256": "49f4946f8373e936981d52dc620596f9216527dcee270cc24eeb8919d4363a9c"
+    },
+    {
+      "path": "packages/ui/components/shadcn/sidebar.tsx",
+      "sha256": "e8460d41a0e6103a44139931eda27e54337603340212760bde97e243d722527c"
+    },
+    {
+      "path": "packages/ui/styles/globals.css",
+      "sha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c"
+    },
+    {
+      "path": "packages/ui/components/view-transitions/route-main-boundary.tsx",
+      "sha256": "0b19a433f2b7c1927e7d6c0f55d6e5ba6120a4c7700df968b89a36e4bfad462a"
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-content.tsx",
+      "sha256": "9464b93118c3a9413d13579731a08efb85f336a806cbbcc815329bd74474ec0f"
+    },
+    {
+      "path": "apps/missionary/app/settings/page-client.tsx",
+      "sha256": "366a27aa7c697fc2cffd83109f6cfc845d73e8475cec302babc3e283c3b0f452"
+    },
+    {
+      "path": "tests/unit/missionary-dashboard/dashboard-home.test.tsx",
+      "sha256": "b8df86bc7360a85d676549c8317da0ebaefed97306bdf4664908314f1b9b83c9"
+    },
+    {
+      "path": "tests/unit/missionary-dashboard/dashboard-view.test.ts",
+      "sha256": "9d6c0d8e91c1dca92bcb20578edcb7559507f5b58146e9546328bb7363e47145"
+    }
+  ],
+  "screenshots": {
+    "availability": "Local ignored worktree artifacts, not included in this PR; development overlays visible",
+    "selected": [
+      {
+        "path": "test-results/missionary-page-frame/home-loading-320.png",
+        "sha256": "e847bbd2b6515f4be482b64e9deee14aed3c12f880261df6b50f00db1dfca09b"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-error-320.png",
+        "sha256": "71892047591e8300b3317b82caeb75bcbf5cc653168af50da52b9380041dab80"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-loaded-fixture-320.png",
+        "sha256": "b657bbf1fb0ace7aa9267fadb35aeb1c74a811b32c93f7324c019e4b406449b8"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-absent-fixture-320.png",
+        "sha256": "fd94e1b2b04f52f4c770c6bca8cd0c1d3608f0a941d9142bf2d857c0cbbffa64"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-loading-1440.png",
+        "sha256": "55c8ead5db4fed54f1b72b0ca297f56c76577039b99fa91ba0238d1e218e363b"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-error-1440.png",
+        "sha256": "f5a2cf0916d9cfdcf67fe585e24ea8e1608873096386223dc4987923717ac5ec"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-loaded-fixture-1440.png",
+        "sha256": "f6aded722afcdfaa3e262ad6d0d92cf7f45d5e5f7a4057614846ace82bfa2a3b"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-absent-fixture-1440.png",
+        "sha256": "9156cb004ea7dba767d9ff764a63e0ad70a5967b2e438c1b3e6c73ecf3211b19"
+      },
+      {
+        "path": "test-results/missionary-page-frame/donors-320.png",
+        "sha256": "681578963668a55dcae4f76c21df6b02a511503e0fc4a7a4d994ab6bd694b9c0"
+      },
+      {
+        "path": "test-results/missionary-page-frame/donors-1440.png",
+        "sha256": "0bf47bc0e9d7f8e4b6cedbc1b871ec35ecdb0b8bfa898f26ab0101bc5969ab6b"
+      },
+      {
+        "path": "test-results/missionary-page-frame/settings-320.png",
+        "sha256": "3ad013ed128d4b0e824a687688250bf21c956025f2867e43f86465dccd9abbec"
+      },
+      {
+        "path": "test-results/missionary-page-frame/settings-1440.png",
+        "sha256": "f0c3afda4c74f45e2eb55eee9575ead6a179a855dbe9a25c81eb63a232eba955"
+      },
+      {
+        "path": "test-results/missionary-page-frame/home-real-zoom-200-viewport.png",
+        "sha256": "7d3684eac15dc686d2490f19b06cc676bf8fc763b253b7a1f2b1081db28d5385"
+      }
+    ]
+  },
+  "unverified": [
+    "Productive loaded and valid empty portal responses",
+    "Populated table/virtualizer/internal task scrolling",
+    "Productive metrics/chart data",
+    "Reduced-motion application hydration pass",
+    "Loaded/absent-data fixture at native200%zoom"
+  ],
+  "independentConcerns": [
+    "Unchanged settings320 viewport has390 document width after motion settles",
+    "Initial reduced-motion application emits hydration attribute warning; not included as visual pass"
+  ],
+  "checks": {
+    "dashboardUnit": {
+      "files": 4,
+      "tests": 21,
+      "result": "passed"
+    },
+    "scopedLintTypecheck": {
+      "tasks": 13,
+      "result": "passed",
+      "cached": 0
+    },
+    "demoAuth": {
+      "tests": 1,
+      "skipped": 0,
+      "result": "passed"
+    },
+    "isolatedSummaryChartBrowser": {
+      "tests": 18,
+      "result": "passed"
+    },
+    "structuralGeometry": {
+      "measurements": 32,
+      "result": "passed"
+    },
+    "ciPreflight": {
+      "result": "passed",
+      "selectedStages": 16,
+      "compilation": "not requested for routine development documentation",
+      "unitFilesPassed": 871,
+      "unitTestsPassed": 6958,
+      "preExistingSkippedFiles": 2,
+      "preExistingSkippedTests": 4,
+      "log": "test-results/missionary-page-frame/preflight.log"
+    }
+  },
+  "integration": {
+    "target": "develop",
+    "targetSha": "c4bc0553546f8b26599bc6dbe08f7aadbef52cc1",
+    "endingRuntimeSourceSha": "c4bc0553546f8b26599bc6dbe08f7aadbef52cc1",
+    "openPRsBeforePublication": [1981, 1980],
+    "concurrentPRs": "Neither PR overlaps the two owned documentation files; unmerged changes are excluded from measured baseline",
+    "runtimeDiff": "none",
+    "originalCheckout": "a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68 remains clean",
+    "review": "Two independent read-only reviews verified paths, hashes and measured ownership"
+  }
+}
