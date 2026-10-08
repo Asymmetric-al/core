@@ -484,7 +484,8 @@
     "target": "develop",
     "targetSha": "c4bc0553546f8b26599bc6dbe08f7aadbef52cc1",
     "endingRuntimeSourceSha": "c4bc0553546f8b26599bc6dbe08f7aadbef52cc1",
-    "openPRsBeforePublication": 0,
+    "openPRsBeforePublication": [1981, 1980],
+    "concurrentPRs": "Neither PR overlaps the two owned documentation files; unmerged changes are excluded from measured baseline",
     "runtimeDiff": "none",
     "originalCheckout": "a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68 remains clean",
     "review": "Two independent read-only reviews verified paths, hashes and measured ownership"

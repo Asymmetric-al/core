@@ -173,9 +173,11 @@ compilation result is reported separately. `qa:smoke` is not applied to an
 evidence-only PR under the current testing policy.
 
 The concurrent account-frame and Donor issues (#1976/#1977), possible sidebar
-work and all frozen owners were inspected without edits. Final target-branch
-and open-PR checks found unchanged develop at the starting SHA and no open PRs; overlapping source changes would
-require affected browser remeasurement. Historical `docs/qa/core-ui` records and
+work and all frozen owners were inspected without edits. The publication check
+found unchanged develop at the starting SHA and newly opened PRs #1981 (account
+frame) and #1980 (Donor frame). Neither changes this report's files; their
+unmerged changes are not part of the measured baseline. Overlapping source
+changes would require affected browser remeasurement. Historical `docs/qa/core-ui` records and
 OpenSpec task 4.1 remain untouched. No new accepted specification is invented.
 
 Acceptance: ownership and the supplied host convention are documented; current
