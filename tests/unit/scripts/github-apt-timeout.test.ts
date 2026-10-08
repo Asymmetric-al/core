@@ -12,6 +12,9 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+// Bash fixtures require Linux process and path semantics.
+const describeLinux = describe.skipIf(process.platform !== "linux");
+
 const TIMEOUT_FLAG = "timeout --kill-after=10s";
 const POSITIVE_INSTALL_TIMEOUT_PATTERN =
   '[[ "$APT_GET_INSTALL_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]';
@@ -295,7 +298,7 @@ const ubuntuSources = [
   ],
 ] as const;
 
-describe("github apt prepares existing Ubuntu sources over HTTPS", () => {
+describeLinux("github apt prepares existing Ubuntu sources over HTTPS", () => {
   describe.each(["sources.list", "sources.list.d/ubuntu.list"])(
     "legacy %s",
     (file) => {
@@ -480,7 +483,7 @@ const malformedTimeouts = [
   "1\n2",
 ];
 
-describe("github apt preserves bounded update behavior", () => {
+describeLinux("github apt preserves bounded update behavior", () => {
   it("succeeds on the first update without another attempt or delay", () => {
     const result = aptFixture().run();
 
@@ -541,7 +544,7 @@ describe("github apt preserves bounded update behavior", () => {
   );
 });
 
-describe.each(installCases)(
+describeLinux.each(installCases)(
   "github apt install entrypoint %s",
   (script, packages) => {
     const installCalls = [
