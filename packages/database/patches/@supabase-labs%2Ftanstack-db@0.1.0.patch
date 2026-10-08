@@ -1,0 +1,97 @@
+diff --git a/dist/index.mjs b/dist/index.mjs
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -649,17 +649,29 @@
+ 		if (filter) config.filter = filter;
+ 		return config;
+ 	};
+-	const handleUpsert = (payload) => {
+-		collection.utils.writeUpsert(payload.new);
+-	};
+-	const handleKnownUpdate = (payload) => {
++	// Realtime invokes callbacks without awaiting their return values. Consume
++	// every direct-write rejection and make one bounded snapshot recovery attempt.
++	const applyRealtimeWrite = async (write) => {
++		try {
++			await write();
++		} catch (error) {
++			console.error(`[${tableName}] Realtime write failed; refetching`, error);
++			try {
++				await collection.utils.refetch({ throwOnError: true });
++			} catch (recoveryError) {
++				console.error(`[${tableName}] Realtime recovery failed; retaining the last valid snapshot`, recoveryError);
++			}
++		}
++	};
++	const handleUpsert = (payload) => applyRealtimeWrite(() => collection.utils.writeUpsert(payload.new));
++	const handleKnownUpdate = (payload) => applyRealtimeWrite(() => {
+ 		const row = payload.new;
+-		if (isSynced(collection, collection.getKeyFromItem(row))) collection.utils.writeUpdate(row);
+-	};
+-	const handleDelete = (payload) => {
++		if (isSynced(collection, collection.getKeyFromItem(row))) return collection.utils.writeUpdate(row);
++	});
++	const handleDelete = (payload) => applyRealtimeWrite(() => {
+ 		const id = collection.getKeyFromItem(payload.old);
+-		if (isSynced(collection, id)) collection.utils.writeDelete(id);
+-	};
++		if (isSynced(collection, id)) return collection.utils.writeDelete(id);
++	});
+ 	const conditions = filters.getAll("filter");
+ 	for (const filter of conditions.length > 0 ? conditions : [void 0]) {
+ 		channel.on("postgres_changes", changesFilter("INSERT", filter), handleUpsert);
+@@ -889,7 +901,7 @@
+ 			single: true
+ 		});
+ 		mutation.modified = data;
+-		collection.utils.writeUpsert(data);
++		await collection.utils.writeUpsert(data);
+ 	}));
+ 	return { refetch: false };
+ };
+@@ -909,7 +921,7 @@
+ 			single: true
+ 		});
+ 		mutation.modified = data;
+-		collection.utils.writeUpdate(data);
++		await collection.utils.writeUpdate(data);
+ 	}));
+ 	return { refetch: false };
+ };
+@@ -920,7 +932,7 @@
+ 			search: keyColumnsToSearch(keys, mutation.original)
+ 		});
+ 		const key = collection.getKeyFromItem(mutation.original);
+-		if (isSynced(collection, key)) collection.utils.writeDelete(key);
++		if (isSynced(collection, key)) await collection.utils.writeDelete(key);
+ 	}));
+ 	return { refetch: false };
+ };
+@@ -1106,8 +1118,7 @@
+ 	return {
+ 		from: serializeFrom(clause.from),
+ 		type: clause.type,
+-		left: serializeExpression(clause.left),
+-		right: serializeExpression(clause.right)
++		on: serializeExpression(clause.on)
+ 	};
+ }
+ function serializeOrderByClause(clause) {
+@@ -1148,6 +1159,9 @@
+ 
+ //#endregion
+ //#region src/query-once.ts
++function hasJoins(ir) {
++	return (ir.join?.length ?? 0) > 0 || ir.from.type === "subquery" && hasJoins(ir.from.query);
++}
+ /**
+ * Execute a SerializedQueryIR against Supabase and return the results.
+ *
+@@ -1155,6 +1169,7 @@
+ * and aggregate syntax for count/sum/avg/min/max.
+ */
+ async function executeQuery(supabase, ir) {
++	if (hasJoins(ir)) throw new Error("Cannot push server aggregate joins to PostgREST; resource embedding cannot preserve arbitrary ON predicates or join cardinality");
+ 	const { tableName, search } = queryIrToSearch(ir);
+ 	const { data } = await postgrestRequest(supabase, tableName, {
+ 		method: "GET",

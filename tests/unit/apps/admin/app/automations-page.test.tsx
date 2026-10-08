@@ -1,10 +1,10 @@
 /** @vitest-environment jsdom */
+/** @vitest-environment-options {"url": "http://localhost/"} */
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { cleanup, fireEvent, render } from "@testing-library/react";
-import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { useMissionControlAutomationsMock } = vi.hoisted(() => ({
@@ -26,7 +26,6 @@ type AutomationRuleFixture = Parameters<FilterAutomationRules>[0][number];
 let AutomationsPage: AutomationsPageComponent;
 let AutomationsPageView: AutomationsPageViewComponent;
 let filterAutomationRules: FilterAutomationRules;
-let dom: JSDOM | undefined;
 
 const emptySummary = {
   totalRules: 0,
@@ -74,25 +73,12 @@ describe("apps/admin/app/(app)/automations/page-client", () => {
     useMissionControlAutomationsMock.mockReset();
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
-    dom = new JSDOM("<!doctype html><html><body></body></html>", {
-      url: "http://localhost",
-    });
-    globalThis.window = dom.window as unknown as Window & typeof globalThis;
-    globalThis.document = dom.window.document;
-    globalThis.HTMLElement = dom.window.HTMLElement;
-    globalThis.SVGElement = dom.window.SVGElement;
-    globalThis.Node = dom.window.Node;
-    globalThis.Event = dom.window.Event;
-    globalThis.InputEvent = dom.window.InputEvent;
-    globalThis.MutationObserver = dom.window.MutationObserver;
-    globalThis.getComputedStyle = dom.window.getComputedStyle;
+    // Vitest owns the jsdom Window; its document getter cannot be replaced.
+    document.body.replaceChildren();
+
     globalThis.requestAnimationFrame = (callback) =>
       window.setTimeout(callback, 0);
     globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
-    Object.defineProperty(globalThis, "navigator", {
-      configurable: true,
-      value: dom.window.navigator,
-    });
     Object.defineProperty(globalThis.window, "matchMedia", {
       configurable: true,
       value: vi.fn().mockImplementation((query: string) => ({
@@ -126,8 +112,6 @@ describe("apps/admin/app/(app)/automations/page-client", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
-    dom?.window.close();
-    dom = undefined;
   });
 
   it("does not render demo flows while loading", () => {

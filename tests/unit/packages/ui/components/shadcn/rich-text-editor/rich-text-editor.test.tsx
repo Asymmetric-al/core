@@ -36,6 +36,27 @@ function EditorSetContentProbe() {
   );
 }
 
+function EditorRoundTripProbe({
+  onRoundTrip,
+}: {
+  onRoundTrip: (before: unknown, after: unknown) => void;
+}) {
+  const { editor } = useEditorContext();
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (!editor) return;
+        const before = editor.getJSON();
+        editor.commands.setContent(editor.getHTML());
+        onRoundTrip(before, editor.getJSON());
+      }}
+    >
+      round trip
+    </button>
+  );
+}
+
 describe("rich-text-editor/rich-text-editor", () => {
   it("mounts with immediate render disabled and renders editor content", () => {
     const onChange = vi.fn();
@@ -96,6 +117,69 @@ describe("rich-text-editor/rich-text-editor", () => {
         JSON.parse(onChange.mock.calls.at(-1)?.[0] ?? ""),
       ).not.toThrow();
     });
+  });
+
+  it("preserves formatted stored content through a real JSON to HTML round trip", () => {
+    const onRoundTrip = vi.fn();
+    const value = JSON.stringify({
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "Field update" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", marks: [{ type: "bold" }], text: "News " },
+            {
+              type: "text",
+              marks: [{ type: "link", attrs: { href: "https://example.com" } }],
+              text: "Details",
+            },
+          ],
+        },
+        {
+          type: "bulletList",
+          content: [
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Prayer request" }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: "image",
+          attrs: { src: "https://example.com/photo.jpg", alt: "Field photo" },
+        },
+        { type: "paragraph", content: [{ type: "text", text: "Thank you" }] },
+      ],
+    });
+
+    render(
+      <EditorRoot value={value} onChange={vi.fn()}>
+        <EditorRoundTripProbe onRoundTrip={onRoundTrip} />
+        <EditorContent />
+      </EditorRoot>,
+    );
+    screen.getByRole("button", { name: "round trip" }).click();
+
+    const [before, after] = onRoundTrip.mock.calls[0] ?? [];
+    expect(before).toBeDefined();
+    expect(after).toEqual(before);
+    expect(screen.getByRole("heading", { level: 2 }).textContent).toBe(
+      "Field update",
+    );
+    expect(
+      screen.getByRole("link", { name: "Details" }).getAttribute("href"),
+    ).toBe("https://example.com");
+    expect(JSON.stringify(after)).toContain("https://example.com/photo.jpg");
   });
 
   it("syncs external value changes and avoids update loops", async () => {

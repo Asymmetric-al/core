@@ -10,10 +10,10 @@
  * table-creating files import `@tanstack/react-table-devtools` directly (it is
  * a devtools adapter, not the engine, so it stays out of this boundary).
  *
- * v9 makes features and row models explicit per table instance. This module
- * pins ONE shared feature set (`dataTableFeatures`) covering everything the
- * shared data-table/data-grid layer uses, plus a row-model factory bundle
- * (`createDataTableRowModels`). The v8-named type aliases below are pre-bound
+ * v9 registers features, row-model factories, and function registries together.
+ * This module pins ONE shared feature set (`dataTableFeatures`) covering the
+ * shared data-table/data-grid layer; per-table `manual*` options control which
+ * processing stages run. The v8-named type aliases below are pre-bound
  * to that feature set so consumer files keep compiling with v8-era signatures
  * such as `ColumnDef<TData, TValue>` and `Table<TData>`.
  */
@@ -70,79 +70,25 @@ import type {
  */
 export const dataTableFeatures = tableFeatures({
   columnFacetingFeature,
+  facetedRowModel: createFacetedRowModel(),
+  facetedUniqueValues: createFacetedUniqueValues(),
   columnFilteringFeature,
+  filteredRowModel: createFilteredRowModel(),
+  filterFns,
   columnPinningFeature,
   columnResizingFeature,
   columnSizingFeature,
   columnVisibilityFeature,
   globalFilteringFeature,
   rowPaginationFeature,
+  paginatedRowModel: createPaginatedRowModel(),
   rowSelectionFeature,
   rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns,
 });
 
 export type SharedTableFeatures = typeof dataTableFeatures;
-
-export interface CreateDataTableRowModelsOptions {
-  /** Register the client-side filtered row model. Disable for manual/server filtering. */
-  filtering?: boolean;
-  /** Register the client-side sorted row model. Disable for manual/server sorting. */
-  sorting?: boolean;
-  /** Register the client-side paginated row model. Disable for manual/server pagination. */
-  pagination?: boolean;
-  /** Register the faceted row models used by faceted filter option counts. */
-  faceting?: boolean;
-}
-
-/**
- * Shared row-model bundle for the v9 `rowModels` table option.
- *
- * v9 silently skips client-side processing when a row model is not
- * registered (no error is thrown), so the flags below must mirror the
- * `manual*` / `enable*` flags passed to the same table. Registering a model
- * alongside a `manual*` flag is harmless: the runtime checks the manual flag
- * first and falls back to the pre-stage row model.
- */
-export function createDataTableRowModels<TData extends RowData>({
-  filtering = true,
-  sorting = true,
-  pagination = true,
-  faceting = true,
-}: CreateDataTableRowModelsOptions = {}) {
-  return {
-    ...(filtering
-      ? {
-          filteredRowModel: createFilteredRowModel<SharedTableFeatures, TData>(
-            filterFns,
-          ),
-        }
-      : {}),
-    ...(sorting
-      ? {
-          sortedRowModel: createSortedRowModel<SharedTableFeatures, TData>(
-            sortFns,
-          ),
-        }
-      : {}),
-    ...(pagination
-      ? {
-          paginatedRowModel: createPaginatedRowModel<
-            SharedTableFeatures,
-            TData
-          >(),
-        }
-      : {}),
-    ...(faceting
-      ? {
-          facetedRowModel: createFacetedRowModel<SharedTableFeatures, TData>(),
-          facetedUniqueValues: createFacetedUniqueValues<
-            SharedTableFeatures,
-            TData
-          >(),
-        }
-      : {}),
-  };
-}
 
 export { flexRender, useTable, tableFeatures } from "@tanstack/react-table";
 

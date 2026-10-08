@@ -9,9 +9,9 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- AL-1962: App regression test at the toolbar's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: App regression test at the toolbar's public UI boundary.
 import { InboxToolbar } from "../../../../../../../apps/admin/features/support-hub/components/toolbar/InboxToolbar";
-// eslint-disable-next-line no-restricted-imports -- AL-1962: Fixtures use the app's public route-state contract.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: Fixtures use the app's public route-state contract.
 import { DEFAULT_SUPPORT_INBOX_ROUTE_STATE } from "../../../../../../../apps/admin/features/support-hub/types/route-state";
 
 const hooks = vi.hoisted(() => ({ q: "", setState: vi.fn() }));

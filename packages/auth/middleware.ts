@@ -121,6 +121,10 @@ function buildUnauthenticatedRedirectUrl(
 
 function redirectWithCookies(url: URL, cookieSource: NextResponse) {
   const response = NextResponse.redirect(url);
+  for (const name of ["Cache-Control", "Expires", "Pragma"]) {
+    const value = cookieSource.headers.get(name);
+    if (value !== null) response.headers.set(name, value);
+  }
   cookieSource.cookies.getAll().forEach((cookie) => {
     response.cookies.set(cookie);
   });
@@ -226,10 +230,10 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
 
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-asym-pathname", pathname);
-    const requestWithHeaders = NextResponse.next({
+    let supabaseResponse = NextResponse.next({
       request: { headers: requestHeaders },
     });
-    const supabaseResponse = requestWithHeaders;
+    const refreshHeaders = new Headers();
 
     const supabase = createServerClient(url, key, {
       cookies: {
@@ -242,14 +246,33 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
             value: string;
             options?: Record<string, unknown>;
           }[],
+          cacheHeaders: Record<string, string> = {},
         ) {
-          cookiesToSet.forEach(({ name, value, options }) => {
+          cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
+          });
+          const cookieHeader = request.headers.get("cookie");
+          if (cookieHeader === null) requestHeaders.delete("cookie");
+          else requestHeaders.set("cookie", cookieHeader);
+          const previousCookies = supabaseResponse.cookies.getAll();
+          supabaseResponse = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
+          previousCookies.forEach((cookie) => {
+            supabaseResponse.cookies.set(cookie);
+          });
+          cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(
               name,
               value,
               options as Record<string, unknown>,
             );
+          });
+          Object.entries(cacheHeaders).forEach(([name, value]) => {
+            refreshHeaders.set(name, value);
+          });
+          refreshHeaders.forEach((value, name) => {
+            supabaseResponse.headers.set(name, value);
           });
         },
       },
@@ -335,12 +358,13 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (isProtectedPath && !userId) {
-      return NextResponse.redirect(
+      return redirectWithCookies(
         buildUnauthenticatedRedirectUrl(
           request,
           loginPath,
           unauthenticatedRedirects,
         ),
+        supabaseResponse,
       );
     }
 

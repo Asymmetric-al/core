@@ -142,6 +142,9 @@ export const SuggestionList = React.forwardRef<
                   type="button"
                   id={optionId(index)}
                   role="option"
+                  aria-label={[item.label, item.description, item.hint]
+                    .filter(Boolean)
+                    .join(" ")}
                   aria-selected={isActive}
                   tabIndex={-1}
                   className={cn(

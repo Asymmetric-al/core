@@ -8,7 +8,7 @@ import { EXPECTED_PROJECTS } from "../verify/vercel-build-controls.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const TEAM = "team_YrLB8jJARcRH0jnF1HPpPGTB";
-export const VERCEL_CLI_VERSION = "62.1.0";
+export const VERCEL_CLI_VERSION = "62.7.0";
 
 export function deployPrebuiltPreview({
   app,

@@ -1,4 +1,5 @@
 /** @vitest-environment jsdom */
+/** @vitest-environment-options {"url": "http://localhost/"} */
 
 import { readFileSync } from "node:fs";
 // This test runs under the jsdom environment, whose global `URL` rewrites
@@ -15,7 +16,6 @@ import {
   render,
   waitFor,
 } from "@testing-library/react";
-import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ContributionGridRow as Contribution } from "@asym/api/admin/contributions/types";
@@ -103,7 +103,6 @@ let ContributionsPageActions: ContributionsPageActionsComponent;
 let confirmDescriptor: PropertyDescriptor | undefined;
 let cryptoDescriptor: PropertyDescriptor | undefined;
 let customEventDescriptor: PropertyDescriptor | undefined;
-let dom: JSDOM | undefined;
 let eventTargetDescriptor: PropertyDescriptor | undefined;
 let fetchDescriptor: PropertyDescriptor | undefined;
 let windowConfirmDescriptor: PropertyDescriptor | undefined;
@@ -267,9 +266,8 @@ function stubBatchFetch() {
 }
 
 beforeEach(async () => {
-  dom = new JSDOM("<!doctype html><html><body></body></html>", {
-    url: "http://localhost",
-  });
+  // Vitest owns the jsdom Window; its document getter cannot be replaced.
+  document.body.replaceChildren();
   confirmDescriptor = Object.getOwnPropertyDescriptor(globalThis, "confirm");
   cryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, "crypto");
   customEventDescriptor = Object.getOwnPropertyDescriptor(
@@ -282,27 +280,9 @@ beforeEach(async () => {
   );
   fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
 
-  globalThis.window = dom.window as unknown as Window & typeof globalThis;
-  globalThis.document = dom.window.document;
-  globalThis.HTMLElement = dom.window.HTMLElement;
-  globalThis.HTMLButtonElement = dom.window.HTMLButtonElement;
-  globalThis.SVGElement = dom.window.SVGElement;
-  globalThis.Element = dom.window.Element;
-  globalThis.Node = dom.window.Node;
-  globalThis.Event = dom.window.Event;
-  globalThis.CustomEvent = dom.window.CustomEvent;
-  globalThis.EventTarget = dom.window.EventTarget;
-  globalThis.MouseEvent = dom.window.MouseEvent;
-  globalThis.KeyboardEvent = dom.window.KeyboardEvent;
-  globalThis.MutationObserver = dom.window.MutationObserver;
-  globalThis.getComputedStyle = dom.window.getComputedStyle;
   globalThis.requestAnimationFrame = (callback) =>
     window.setTimeout(callback, 0);
   globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
-  Object.defineProperty(globalThis, "navigator", {
-    configurable: true,
-    value: dom.window.navigator,
-  });
   Object.defineProperty(globalThis.window, "matchMedia", {
     configurable: true,
     value: vi.fn().mockImplementation((query: string) => ({
@@ -383,8 +363,6 @@ afterEach(() => {
       Reflect.deleteProperty(window, "confirm");
     }
   }
-  dom?.window.close();
-  dom = undefined;
 });
 
 describe("ContributionsMainBody bulk receipt confirmation", () => {

@@ -20,6 +20,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   let supabaseResponse = NextResponse.next({ request });
+  const refreshHeaders = new Headers();
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -32,18 +33,29 @@ export async function updateSession(request: NextRequest) {
           value: string;
           options?: Record<string, unknown>;
         }[],
+        cacheHeaders: Record<string, string> = {},
       ) {
         try {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
+          Object.entries(cacheHeaders).forEach(([name, value]) => {
+            refreshHeaders.set(name, value);
+          });
+          const previousCookies = supabaseResponse.cookies.getAll();
           supabaseResponse = NextResponse.next({ request });
+          previousCookies.forEach((cookie) => {
+            supabaseResponse.cookies.set(cookie);
+          });
           cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(
               name,
               value,
               options as Record<string, unknown>,
             );
+          });
+          refreshHeaders.forEach((value, name) => {
+            supabaseResponse.headers.set(name, value);
           });
         } catch {}
       },

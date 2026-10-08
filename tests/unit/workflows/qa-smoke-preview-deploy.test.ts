@@ -102,7 +102,9 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).toContain("development-admin");
     expect(workflow).toContain("development-donor");
     expect(workflow).toContain("development-missionary");
-    expect(workflow).toContain("actions/upload-artifact@v4");
+    expect(workflow).toContain(
+      "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+    );
     expect(workflow).toContain("<!-- headless-pr-preview-smoke-qa -->");
     expect(workflow).toContain("# Headless PR Preview Smoke QA");
   });

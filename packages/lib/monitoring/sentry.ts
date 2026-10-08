@@ -1,6 +1,8 @@
 import { clientEnv, runtimeEnvFlags } from "@asym/env";
 import * as Sentry from "@sentry/nextjs";
 
+import { getSentryCompatibilityOptions } from "./sentry-policy";
+
 export function initSentry() {
   if (!clientEnv.NEXT_PUBLIC_SENTRY_DSN) {
     console.warn("Sentry DSN not configured");
@@ -8,10 +10,10 @@ export function initSentry() {
   }
 
   Sentry.init({
+    ...getSentryCompatibilityOptions(),
     dsn: clientEnv.NEXT_PUBLIC_SENTRY_DSN,
     environment: runtimeEnvFlags.NODE_ENV,
     tracesSampleRate: runtimeEnvFlags.NODE_ENV === "production" ? 0.1 : 1.0,
-    profilesSampleRate: 0.1,
     debug: runtimeEnvFlags.NODE_ENV === "development",
     beforeSend(event, hint) {
       if (event.exception) {

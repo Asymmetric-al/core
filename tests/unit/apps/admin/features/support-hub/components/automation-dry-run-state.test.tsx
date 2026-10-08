@@ -3,10 +3,10 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- AL-1962: App regression test at the dry-run preview's public UI boundary.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: App regression test at the dry-run preview's public UI boundary.
 import { AutomationDryRunPreview } from "../../../../../../../apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview";
 
-// eslint-disable-next-line no-restricted-imports -- AL-1962: Fixtures use the app's public wire-format types.
+// eslint-disable-next-line no-restricted-imports -- AL-1965: Fixtures use the app's public wire-format types.
 import type {
   SupportAutomationRule,
   SupportConversation,
@@ -78,6 +78,23 @@ afterEach(() => {
 });
 
 describe("AutomationDryRunPreview selection", () => {
+  it("keeps the initially loaded conversation when refreshed rows change order", () => {
+    const receipt = conversation("conv-1", "Receipt question", "inbox-finance");
+    const address = conversation("conv-2", "Address change", "inbox-general");
+    const { rerender } = render(<AutomationDryRunPreview rule={rule} />);
+    hooks.rows = [receipt, address];
+    rerender(<AutomationDryRunPreview rule={rule} />);
+    expect(screen.getByText("Rule matches")).toBeTruthy();
+
+    hooks.rows = [address, receipt];
+    rerender(<AutomationDryRunPreview rule={rule} />);
+    expect(
+      screen.getByRole("combobox", { name: "Conversation to test" })
+        .textContent,
+    ).toContain("Receipt question");
+    expect(screen.getByText("Rule matches")).toBeTruthy();
+  });
+
   it("defaults to the first loaded conversation and evaluates its actual inbox", () => {
     const { rerender } = render(<AutomationDryRunPreview rule={rule} />);
     expect(

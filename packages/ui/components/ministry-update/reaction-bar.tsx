@@ -242,6 +242,7 @@ function ChipReactionButton({
       </AnimatePresence>
       <m.button
         type="button"
+        aria-label={`${config.label} ${state.count}`}
         aria-pressed={state.mine}
         data-active={state.mine ? "" : undefined}
         whileHover={
@@ -343,6 +344,7 @@ function QuietReactionButton({
   return (
     <m.button
       type="button"
+      aria-label={`${config.label} ${state.count}`}
       aria-pressed={state.mine}
       data-active={state.mine ? "" : undefined}
       whileTap={reduceMotion ? undefined : { scale: 0.85 }}
@@ -384,6 +386,7 @@ function CommentsButton({
     return (
       <button
         type="button"
+        aria-label={`Comments ${count}`}
         onClick={onOpen}
         className="flex h-10 items-center gap-2.5 rounded-2xl border border-border bg-background px-5 py-2.5 text-xs font-black uppercase tracking-widest text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
       >
@@ -396,6 +399,7 @@ function CommentsButton({
   return (
     <button
       type="button"
+      aria-label={`Comments ${count}`}
       onClick={onOpen}
       className="group flex items-center gap-2 rounded-full px-3 py-2 text-muted-foreground transition-colors duration-150 hover:bg-muted/60 hover:text-foreground"
     >

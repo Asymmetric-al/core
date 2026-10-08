@@ -31,7 +31,6 @@ import {
   DEFAULT_COLUMN_WIDTH,
 } from "./types";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   flexRender,
   useTable,
@@ -697,16 +696,11 @@ export function DataGrid<TData extends Record<string, unknown>>({
 
   const table = useTable({
     features: dataTableFeatures,
-    // Mirrors the v8 setup: sorting + filtering row models, gated by their grid
-    // config flags. The global search box runs through the FILTERED row model,
-    // so register it when search is on too — v9 silently no-ops filtering when
-    // the model is absent (ADR-2).
-    rowModels: createDataTableRowModels<TData>({
-      filtering: enableFilter || enableSearch,
-      sorting: enableSort,
-      pagination: false,
-      faceting: false,
-    }),
+    // Search uses the filtered stage even when column filters are disabled.
+    // Grids display every supplied row rather than applying table pagination.
+    manualFiltering: !(enableFilter || enableSearch),
+    manualSorting: !enableSort,
+    manualPagination: true,
     data: gridData,
     columns: tableColumns,
     // Devtools identity: registration is skipped unless a key exists.

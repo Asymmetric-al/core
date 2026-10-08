@@ -2,9 +2,16 @@ import { promises as fs } from "node:fs";
 import inspector from "node:inspector";
 import path from "node:path";
 
-const session = new inspector.Session();
-let sessionStarted = false;
-const coverageWarnings = [];
+// Vitest invalidates local modules between starting coverage and running an
+// isolated test file. Keep the inspector session alive when it reloads this
+// module to take coverage; module-local state would silently return no scripts.
+const runtimeKey = Symbol.for("core.vitest.raw-v8-coverage-runtime");
+const coverageRuntime = (globalThis[runtimeKey] ??= {
+  session: new inspector.Session(),
+  sessionStarted: false,
+  warnings: [],
+});
+const { session, warnings: coverageWarnings } = coverageRuntime;
 
 function formatError(error) {
   if (!error) {
@@ -314,7 +321,7 @@ class RawV8CoverageProvider {
 }
 
 async function startCoverage() {
-  if (sessionStarted) {
+  if (coverageRuntime.sessionStarted) {
     return;
   }
 
@@ -325,15 +332,15 @@ async function startCoverage() {
       callCount: true,
       detailed: true,
     });
-    sessionStarted = true;
+    coverageRuntime.sessionStarted = true;
   } catch (error) {
     warn("start", error);
-    sessionStarted = false;
+    coverageRuntime.sessionStarted = false;
   }
 }
 
 async function takeCoverage() {
-  if (!sessionStarted) {
+  if (!coverageRuntime.sessionStarted) {
     return { result: [] };
   }
 
@@ -350,7 +357,7 @@ async function takeCoverage() {
 }
 
 async function stopCoverage() {
-  if (!sessionStarted) {
+  if (!coverageRuntime.sessionStarted) {
     return;
   }
 
@@ -365,7 +372,7 @@ async function stopCoverage() {
     } catch (error) {
       warn("disconnect", error);
     }
-    sessionStarted = false;
+    coverageRuntime.sessionStarted = false;
   }
 }
 
