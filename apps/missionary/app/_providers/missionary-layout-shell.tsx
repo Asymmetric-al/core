@@ -21,6 +21,13 @@ export function MissionaryLayoutShell({ children }: { children: ReactNode }) {
       </div>
     );
   }
+  // Account screens own their full-page frame and main landmark. This is a
+  // presentation boundary only; public access and workspace search stay separate.
+  if (
+    ["/login", "/register", "/forgot-password", "/no-access"].includes(pathname)
+  ) {
+    return children;
+  }
   return (
     <AppShell
       role="missionary"

@@ -8,6 +8,8 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import Link from "next/link";
 
+import { SwitchAccountButton } from "./switch-account-button";
+
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,12 +33,7 @@ export default function NoAccessPage() {
           <Link href="/" className={buttonVariants()}>
             Go to home
           </Link>
-          <Link
-            href="/login"
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Switch account
-          </Link>
+          <SwitchAccountButton />
         </CardFooter>
       </Card>
     </main>

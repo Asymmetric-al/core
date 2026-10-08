@@ -34,6 +34,7 @@ const DEFAULT_PAYLOAD_DATABASE_URI =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 const DEFAULT_PAYLOAD_SECRET = "playwright-secret";
 const DEFAULT_PROJECT_TEST_IGNORE = Object.freeze([
+  "**/missionary-account-frame.spec.ts",
   "**/upload-crop.spec.ts",
   "**/donor-giving-history.spec.ts",
   "**/mc-contributions-live-query.spec.ts",

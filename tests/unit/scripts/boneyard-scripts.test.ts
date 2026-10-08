@@ -43,6 +43,16 @@ function expectsNoindexRobots(source: string, label: string): void {
 }
 
 describe("boneyard maintenance contract", () => {
+  it("runs Missionary account-frame regressions in the hosted smoke suite", () => {
+    const scripts = parsePackageJson().scripts as Record<string, string>;
+    expect(scripts["test:e2e:boneyard:missionary"].split(/\s+/)).toContain(
+      "tests/e2e/missionary-account-frame.spec.ts",
+    );
+    expect(readRepoFile(".github/workflows/ci-integration.yml")).toContain(
+      "run: bun run test:e2e:boneyard:missionary",
+    );
+  });
+
   it("pins boneyard-js at 1.10.0 in app and UI packages", () => {
     for (const relativePath of [
       "apps/admin/package.json",
