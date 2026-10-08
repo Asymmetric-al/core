@@ -44,16 +44,31 @@ export default function ContributionsPage({
     ? giftParam
     : null;
   const hasInvalidGiftParam = giftParam != null && selectedGiftParam == null;
-  const [selectedDonationId, setSelectedDonationId] = useState<string | null>(
-    () => selectedGiftParam,
-  );
+  const [giftSelection, setGiftSelection] = useState({
+    giftParam,
+    donationId: selectedGiftParam,
+  });
+  if (giftSelection.giftParam !== giftParam) {
+    setGiftSelection({ giftParam, donationId: selectedGiftParam });
+  }
+  const selectedDonationId =
+    giftSelection.giftParam === giftParam
+      ? giftSelection.donationId
+      : selectedGiftParam;
   const { markFreshness, showFreshness } = useContributionFreshness();
+  const openerElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    setSelectedDonationId(selectedGiftParam);
-  }, [selectedGiftParam]);
-
-  const openerElementRef = useRef<HTMLElement | null>(null);
+    if (selectedDonationId || !openerElementRef.current) {
+      return;
+    }
+    // Wait for the sheet to close before returning focus, so its
+    // focus-trap cleanup cannot clobber the opener (ADR-CD-023).
+    const opener = openerElementRef.current;
+    openerElementRef.current = null;
+    const timeout = window.setTimeout(() => opener.focus(), 0);
+    return () => window.clearTimeout(timeout);
+  }, [selectedDonationId]);
 
   /**
    * Bulk receipt batches change receipt state for many rows at once; refresh
@@ -73,16 +88,16 @@ export default function ContributionsPage({
         document.activeElement instanceof HTMLElement
           ? document.activeElement
           : null;
-      setSelectedDonationId(donationId);
+      setGiftSelection({ giftParam, donationId });
       const params = new URLSearchParams(searchParams.toString());
       params.set("gift", donationId);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams],
+    [giftParam, pathname, router, searchParams],
   );
 
   const closeGift = useCallback(() => {
-    setSelectedDonationId(null);
+    setGiftSelection({ giftParam, donationId: null });
     // Smart close removes only the gift selection from route state; filters,
     // search, and the rest of the workspace stay untouched (ADR-CD-023).
     const params = new URLSearchParams(searchParams.toString());
@@ -91,19 +106,13 @@ export default function ContributionsPage({
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
-    // Restore focus after the sheet unmounts so its focus-trap cleanup
-    // cannot clobber the opener focus (ADR-CD-023 focus return).
-    const opener = openerElementRef.current;
-    openerElementRef.current = null;
-    window.setTimeout(() => opener?.focus(), 0);
-  }, [pathname, router, searchParams]);
+  }, [giftParam, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!hasInvalidGiftParam) {
       return;
     }
 
-    setSelectedDonationId(null);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("gift");
     const query = params.toString();

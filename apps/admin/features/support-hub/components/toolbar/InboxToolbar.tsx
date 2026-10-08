@@ -21,10 +21,12 @@ export function InboxToolbar() {
 
   // Local mirror so typing isn't gated on URL replace latency.
   const [searchDraft, setSearchDraft] = React.useState(state.q);
+  const [draftQuery, setDraftQuery] = React.useState(state.q);
 
-  React.useEffect(() => {
+  if (draftQuery !== state.q) {
+    setDraftQuery(state.q);
     setSearchDraft(state.q);
-  }, [state.q]);
+  }
 
   React.useEffect(() => {
     if (searchDraft === state.q) return;

@@ -65,20 +65,34 @@ vi.mock("@asym/database/hooks", () => ({
 const routerPushMock = vi.fn();
 const routerReplaceMock = vi.fn();
 let mockSearch = "";
+const routeListeners = new Set<() => void>();
 
 function syncMockSearchFromRouterUrl(url: string) {
   const queryIndex = url.indexOf("?");
   mockSearch = queryIndex >= 0 ? url.slice(queryIndex + 1) : "";
+  for (const listener of routeListeners) listener();
 }
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/crm",
-  useRouter: () => ({
-    push: routerPushMock,
-    replace: routerReplaceMock,
-  }),
-  useSearchParams: () => new URLSearchParams(mockSearch),
-}));
+vi.mock("next/navigation", async () => {
+  const { useSyncExternalStore } = await import("react");
+  return {
+    usePathname: () => "/crm",
+    useRouter: () => ({
+      push: routerPushMock,
+      replace: routerReplaceMock,
+    }),
+    useSearchParams: () => {
+      const search = useSyncExternalStore(
+        (listener) => {
+          routeListeners.add(listener);
+          return () => routeListeners.delete(listener);
+        },
+        () => mockSearch,
+      );
+      return new URLSearchParams(search);
+    },
+  };
+});
 
 vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },

@@ -38,6 +38,7 @@ const nextConfig: NextConfig & {
     "@asym/email",
   ],
   experimental: {
+    agentUpgrade: "latest",
     globalNotFound: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
     /** Instant-navigation e2e rig only (see instant-nav.rig.md); preview deploys only. */

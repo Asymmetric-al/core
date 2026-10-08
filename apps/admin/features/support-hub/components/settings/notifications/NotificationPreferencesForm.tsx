@@ -21,24 +21,25 @@ export function NotificationPreferencesForm() {
   const preferences = useSupportNotificationPreferences();
   const save = useSaveSupportNotificationPreferences();
 
-  const [agentId, setAgentId] = React.useState<string | null>(
-    currentAgentId ?? agents[0]?.id ?? null,
-  );
+  const defaultAgentId = currentAgentId ?? agents[0]?.id ?? null;
+  const [agentId, setAgentId] = React.useState<string | null>(defaultAgentId);
+  if (agentId === null && defaultAgentId !== null) {
+    setAgentId(defaultAgentId);
+  }
 
   const existing = agentId ? preferences.for(agentId) : null;
 
   const [draft, setDraft] =
     React.useState<SupportNotificationPreferences | null>(existing ?? null);
+  const preferencesVersion = JSON.stringify([agentId, existing]);
+  const [draftVersion, setDraftVersion] = React.useState(preferencesVersion);
 
-  React.useEffect(() => {
+  // Scope drafts to the selected agent even when neither agent has saved
+  // preferences, and retain edits across equivalent cache snapshots.
+  if (draftVersion !== preferencesVersion) {
+    setDraftVersion(preferencesVersion);
     setDraft(existing ?? null);
-  }, [existing]);
-
-  React.useEffect(() => {
-    if (agentId === null && agents[0]?.id) {
-      setAgentId(agents[0].id);
-    }
-  }, [agentId, agents]);
+  }
 
   if (!agentId) {
     return (

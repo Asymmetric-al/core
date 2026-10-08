@@ -386,6 +386,7 @@ function useEmailStudioAuthoringActions({
   setShowTemplatePicker: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const canPreview = ui.isEditorReady || isLegacyReadOnly;
+  const minifyHtml = ui.studioConfig?.export.minifyHtml;
 
   const loadEditorDesign = useCallback(
     (design: Record<string, unknown>) => {
@@ -439,7 +440,7 @@ function useEmailStudioAuthoringActions({
       }
       try {
         const exported = await editor.exportEmail(
-          studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
+          studioExportOptions(metadata, minifyHtml),
         );
         setPreviewResult(exported);
       } catch (error) {
@@ -456,7 +457,7 @@ function useEmailStudioAuthoringActions({
       legacyPreviewResult,
       metadata,
       setPreviewResult,
-      ui.studioConfig?.export.minifyHtml,
+      minifyHtml,
     ],
   );
 
@@ -471,7 +472,7 @@ function useEmailStudioAuthoringActions({
     }
     try {
       const exported = await editor.exportEmail(
-        studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
+        studioExportOptions(metadata, minifyHtml),
       );
       dispatch({ type: "open_export_dialog", html: exported.html });
     } catch (error) {
@@ -480,13 +481,7 @@ function useEmailStudioAuthoringActions({
           error instanceof Error ? error.message : "Could not export HTML.",
       });
     }
-  }, [
-    dispatch,
-    editorRef,
-    isLegacyReadOnly,
-    metadata,
-    ui.studioConfig?.export.minifyHtml,
-  ]);
+  }, [dispatch, editorRef, isLegacyReadOnly, metadata, minifyHtml]);
 
   const persistCurrentTemplate = useCallback(
     async (metadataOverride?: EmailMetadata) => {
@@ -496,7 +491,7 @@ function useEmailStudioAuthoringActions({
       }
       const nextMetadata = metadataOverride ?? metadata;
       const exportResult = await editor.exportEmail(
-        studioExportOptions(nextMetadata, ui.studioConfig?.export.minifyHtml),
+        studioExportOptions(nextMetadata, minifyHtml),
       );
       const saved = await persistEmailTemplate(nextMetadata, exportResult);
       const nextDesign = studioEditorDesign(exportResult.design);
@@ -523,7 +518,7 @@ function useEmailStudioAuthoringActions({
       queryClient,
       setInitialDesign,
       setMetadata,
-      ui.studioConfig?.export.minifyHtml,
+      minifyHtml,
     ],
   );
 
@@ -702,6 +697,8 @@ function useEmailStudioTestDelivery({
   setShowTestSendDialog: React.Dispatch<React.SetStateAction<boolean>>;
   setTestToEmail: React.Dispatch<React.SetStateAction<string>>;
 }) {
+  const minifyHtml = ui.studioConfig?.export.minifyHtml;
+
   const handleConfirmTestSend = useCallback(async () => {
     if (
       testSendInFlightRef.current ||
@@ -722,7 +719,7 @@ function useEmailStudioTestDelivery({
       const exportResult = await editor.exportEmail(
         studioExportOptions(
           metadata,
-          ui.studioConfig?.export.minifyHtml,
+          minifyHtml,
           metadata.subject || metadata.name,
         ),
       );
@@ -759,7 +756,7 @@ function useEmailStudioTestDelivery({
     setTestToEmail,
     testSendInFlightRef,
     testToEmail,
-    ui.studioConfig?.export.minifyHtml,
+    minifyHtml,
   ]);
 
   return { handleConfirmTestSend };
