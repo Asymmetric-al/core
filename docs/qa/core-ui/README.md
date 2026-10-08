@@ -9,6 +9,11 @@ on upstream `develop` at `180dde9e41b849e0c3a649aeef8989f3974bf4cd`, which
 separately introduced Next.js 16.4 and admin refresh fixes. Browser captures
 retain their actual pre-integration Next.js 16.3.8 epoch.
 
+The [2026-10-08 stack review](./review/README.md) records subsequent readiness
+and shared UI corrections with targeted current-source component evidence.
+OpenSpec task 4.1 remains open for complete integrated-source application visual
+qualification. Original capture indexes and checks retain their historical scope.
+
 ## Coverage and limits
 
 The [coverage join](./coverage.md) and [structured index](./coverage-index.json)

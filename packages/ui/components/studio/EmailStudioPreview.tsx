@@ -135,7 +135,7 @@ export function EmailStudioPreviewDialog({
                 srcDoc={html}
                 title="Email preview"
                 className={cn(
-                  "h-140 rounded-sm border bg-card shadow-sm",
+                  "h-140 rounded-sm border bg-document-background shadow-sm scheme-light",
                   device === "mobile"
                     ? "w-97.5 shrink-0"
                     : "min-w-0 w-full max-w-190",

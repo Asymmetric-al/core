@@ -41,6 +41,7 @@
   --color-invert-foreground: var(--invert-foreground);
   --color-media-scrim: var(--media-scrim);
   --color-media-foreground: var(--media-foreground);
+  --color-document-background: var(--document-background);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -238,6 +239,8 @@
   --invert-foreground: oklch(0.985 0.002 265);
   --media-scrim: oklch(0.1 0.005 265);
   --media-foreground: oklch(0.985 0.002 265);
+  /* Exported documents keep their authored light canvas in either app mode. */
+  --document-background: oklch(1 0 0);
 
   --border: oklch(0.915 0.003 265);
   --input: oklch(0.915 0.003 265);
@@ -323,6 +326,7 @@
   --invert-foreground: oklch(0.985 0.002 265);
   --media-scrim: oklch(0.1 0.005 265);
   --media-foreground: oklch(0.985 0.002 265);
+  --document-background: oklch(1 0 0);
 
   --border: oklch(0.28 0.008 265);
   --input: oklch(0.28 0.008 265);
@@ -342,6 +346,11 @@
   --sidebar-accent-foreground: oklch(0.94 0.002 265);
   --sidebar-border: oklch(0.28 0.008 265);
   --sidebar-ring: oklch(0.94 0.002 265);
+}
+
+/* Preserve the task board's viewport allocation without arbitrary utilities. */
+@utility task-board-height {
+  height: calc(100vh - --spacing(80));
 }
 
 @layer base {

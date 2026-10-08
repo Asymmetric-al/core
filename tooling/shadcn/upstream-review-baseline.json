@@ -2141,7 +2141,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "localSha256": "602ff05ea6118253d21f1bd71b6133dd24a8eae6f3121b8686d326526f3f63fa",
+      "localSha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": ["packages/ui/styles/globals.css", "docs/ai/rules/frontend.md"]
     }
@@ -2545,7 +2545,7 @@
     },
     {
       "path": "packages/ui/styles/globals.css",
-      "sha256": "602ff05ea6118253d21f1bd71b6133dd24a8eae6f3121b8686d326526f3f63fa"
+      "sha256": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c"
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/admin-shadscan.spec.ts",
