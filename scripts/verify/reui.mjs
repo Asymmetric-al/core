@@ -386,7 +386,7 @@ export async function verifyReui({
       );
     } catch (error) {
       throw new Error(
-        String(error.message ?? error).replaceAll(
+        String(error?.message ?? error).replaceAll(
           env.REUI_LICENSE_KEY,
           "<redacted>",
         ),
