@@ -3,6 +3,7 @@ import {
   sanitizePublicCmsHref,
 } from "@asym/lib/cms/public-page";
 
+import type { PublicRequestContext } from "./context";
 import type {
   SerializedPublicFaqItem,
   SerializedPublicImpactStat,
@@ -33,7 +34,10 @@ type PageCtaContext = {
   fundId: string | null;
 };
 
-export function serializePublicPage(doc: UnknownRecord): SerializedPublicPage {
+export function serializePublicPage(
+  _context: PublicRequestContext,
+  doc: UnknownRecord,
+): SerializedPublicPage {
   const pageType = readOptionalString(doc.pageType);
   const missionaryId = readOptionalString(doc.missionaryId);
   const fundId = readOptionalString(doc.fundId);
@@ -64,6 +68,7 @@ export function serializePublicPage(doc: UnknownRecord): SerializedPublicPage {
 }
 
 export function serializePublicNavigation(
+  _context: PublicRequestContext,
   doc: UnknownRecord,
 ): SerializedPublicNavigation {
   const rawItems = Array.isArray(doc.items) ? doc.items : [];
@@ -86,6 +91,7 @@ export function serializePublicNavigation(
 }
 
 export function serializePublicUpdate(
+  _context: PublicRequestContext,
   doc: UnknownRecord,
 ): SerializedPublicUpdate {
   const update: SerializedPublicUpdate = {

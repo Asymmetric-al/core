@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -56,8 +56,15 @@ try {
 }
 
 const eslint = new ESLint({ cwd: apiDir });
+const adminFixtureImport = "../../../../../apps/admin/lib/admin-access";
+assert.ok(
+  existsSync(
+    path.resolve(apiDir, "src/cms/public", adminFixtureImport + ".ts"),
+  ),
+  "admin-app fixture import must target an existing source module",
+);
 const [result] = await eslint.lintText(
-  'import "payload";\nimport "../../../../apps/admin/private";\n',
+  `import "payload";\nimport "${adminFixtureImport}";\n`,
   {
     filePath: path.join(apiDir, "src/cms/public/forbidden-import-fixture.mjs"),
   },
@@ -75,8 +82,10 @@ assert.ok(
   "Payload import was not rejected by the package boundary rule",
 );
 assert.ok(
-  restricted.some((message) =>
-    message.message.includes("Cannot import from apps/admin"),
+  restricted.some(
+    (message) =>
+      message.message.includes("Cannot import from apps/admin") &&
+      message.message.includes(adminFixtureImport),
   ),
   "admin-app import was not rejected by the package boundary rule",
 );

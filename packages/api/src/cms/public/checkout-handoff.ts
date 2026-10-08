@@ -197,6 +197,7 @@ function buildCheckoutHandoffTarget(
  * party_kind).
  */
 export function checkoutHandoffSearchParams(
+  _context: PublicRequestContext,
   handoff: CheckoutHandoff,
 ): URLSearchParams {
   const params = new URLSearchParams();
