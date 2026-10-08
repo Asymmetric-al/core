@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DataTableFloatingBar } from "../../../../packages/ui/components/shadcn/data-table/data-table-floating-bar";
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   useTable,
 } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
@@ -28,7 +27,6 @@ function SelectionHarness({
 }) {
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<RecordRow>(),
     data: selectedRows,
     columns,
     getRowId: (row) => row.id,

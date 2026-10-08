@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-const PINNED_SUPABASE_CLI_VERSION = "2.76.12";
+const PINNED_SUPABASE_CLI_VERSION = "2.120.0";
 const forcePinned = process.env.SUPABASE_CLI_FORCE_PINNED === "1";
 const pinnedVersion =
   process.env.SUPABASE_CLI_VERSION?.trim() || PINNED_SUPABASE_CLI_VERSION;
@@ -33,7 +33,11 @@ function hasGlobalSupabaseCli() {
     shell: process.platform === "win32",
   });
 
-  return !probe.error && probe.status === 0;
+  return (
+    !probe.error &&
+    probe.status === 0 &&
+    probe.stdout.toString().trim() === pinnedVersion
+  );
 }
 
 function printGlobalInstallHint() {
@@ -65,7 +69,7 @@ if (!forcePinned && hasGlobalSupabaseCli()) {
 
 if (!forcePinned) {
   console.warn(
-    `==> Global Supabase CLI not found; using pinned fallback supabase@${pinnedVersion} via npx.`,
+    `==> Global Supabase CLI does not match ${pinnedVersion}; using pinned fallback supabase@${pinnedVersion} via npx.`,
   );
   printGlobalInstallHint();
 }

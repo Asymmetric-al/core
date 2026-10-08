@@ -99,10 +99,11 @@ const GivingChart = dynamic<{ data: GivingByFundPoint[] }>(
                 stroke="var(--border)"
               />
               <Tooltip
-                formatter={(value: number) => [
-                  `$${value.toLocaleString("en-US")}`,
-                  "Giving",
-                ]}
+                formatter={(value) =>
+                  typeof value === "number"
+                    ? [`$${value.toLocaleString("en-US")}`, "Giving"]
+                    : null
+                }
                 contentStyle={{
                   borderRadius: "12px",
                   border: "1px solid var(--border)",
@@ -174,7 +175,9 @@ const DonorsChart = dynamic<{ data: DonorsByFundPoint[] }>(
               />
               <Tooltip
                 cursor={{ fill: "var(--muted)" }}
-                formatter={(value: number) => [value, "Donors"]}
+                formatter={(value) =>
+                  typeof value === "number" ? [value, "Donors"] : null
+                }
               />
               <Bar
                 dataKey="donors"

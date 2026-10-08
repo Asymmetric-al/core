@@ -88,6 +88,18 @@ function ActionsProbe() {
       <button type="button" onClick={() => view.donors.selectById("donor-1")}>
         Select first partner
       </button>
+      <button type="button" onClick={() => view.donors.selectById("donor-2")}>
+        Select second partner
+      </button>
+      <button
+        type="button"
+        onClick={() => view.tagEditor.toggleTag("monthly-partner")}
+      >
+        Add monthly tag
+      </button>
+      <output data-testid="tag-draft">
+        {view.tagEditor.selectedTags.join(",")}
+      </output>
       <button type="button" onClick={view.editDialog.open}>
         Open profile
       </button>
@@ -139,6 +151,32 @@ afterEach(() => {
 });
 
 describe("Partners roster safety", () => {
+  it("keeps tag edits across same-partner refreshes and resets for a different partner", () => {
+    mocks.rows = [donor(1), { ...donor(2), tags: ["second-partner"] }];
+    const view = render(<EditablePage />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select first partner" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open tags" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add monthly tag" }));
+    expect(screen.getByTestId("tag-draft").textContent).toBe(
+      "stored-tag,monthly-partner",
+    );
+
+    mocks.rows = [{ ...donor(1), tags: ["refreshed-tag"] }, mocks.rows[1]];
+    view.rerender(<EditablePage />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select first partner" }),
+    );
+    expect(screen.getByTestId("tag-draft").textContent).toBe(
+      "stored-tag,monthly-partner",
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select second partner" }),
+    );
+    expect(screen.getByTestId("tag-draft").textContent).toBe("second-partner");
+  });
   it("edits named partner tags through labeled shared checkboxes without discarding existing tags", async () => {
     render(
       <QueryClientProvider client={new QueryClient()}>

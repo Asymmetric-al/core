@@ -43,7 +43,7 @@ function expectsNoindexRobots(source: string, label: string): void {
 }
 
 describe("boneyard maintenance contract", () => {
-  it("pins boneyard-js at ^1.8.1 in app and UI packages", () => {
+  it("pins boneyard-js at 1.10.0 in app and UI packages", () => {
     for (const relativePath of [
       "apps/admin/package.json",
       "apps/donor/package.json",
@@ -59,7 +59,7 @@ describe("boneyard maintenance contract", () => {
         pkg.devDependencies?.["boneyard-js"] ??
         pkg.dependencies?.["boneyard-js"] ??
         pkg.peerDependencies?.["boneyard-js"];
-      expect(version, relativePath).toBe("^1.8.1");
+      expect(version, relativePath).toBe("1.10.0");
     }
   });
 

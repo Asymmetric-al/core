@@ -158,7 +158,10 @@ vi.mock("../../../../../apps/admin/app/(app)/crm/detail-drawer", () => ({
 }));
 vi.mock(
   "../../../../../apps/admin/app/(app)/contributions/contribution-detail-overlay",
-  () => ({
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("../../../../../apps/admin/app/(app)/contributions/contribution-detail-overlay")
+    >()),
     ContributionDetailOverlay: ({
       donationId,
       onClose,

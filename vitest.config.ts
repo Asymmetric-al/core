@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +9,9 @@ import { perImporterAtAlias } from "./vitest.per-importer-alias";
 import { pinWorkspacePackages } from "./vitest.pin-workspace-packages";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
+const libraryRequire = createRequire(
+  new URL("./packages/lib/package.json", import.meta.url),
+);
 
 export default defineConfig({
   /**
@@ -44,6 +48,15 @@ export default defineConfig({
         rootDir,
         "packages/auth/node_modules/@supabase/ssr",
       ),
+      /** Resolve the public config export before the package-prefix alias appends `/config` to a physical directory. */
+      "@sentry/nextjs/config": libraryRequire.resolve("@sentry/nextjs/config"),
+      /** Apps and shared monitoring must resolve to the same SDK instance for local transport and initialization fixtures. */
+      "@sentry/nextjs": path.join(
+        rootDir,
+        "packages/lib/node_modules/@sentry/nextjs",
+      ),
+      /** The analytics fixture and shared adapter use the library's installed observer module. */
+      "web-vitals": path.join(rootDir, "packages/lib/node_modules/web-vitals"),
       /** Tests live outside `packages/ui`; pin Sonner so `vi.mock('sonner')` patches the same module as `@asym/ui`. */
       sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
       /** Tests live outside `packages/ui`; pin MapLibre so `vi.mock("maplibre-gl")` patches the same module as the Map primitive. */

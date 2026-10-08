@@ -18,7 +18,7 @@ describe("Shadscan browser dependency isolation", () => {
     const scannerCore = cliRequire.resolve("playwright-core/package.json");
 
     expect(axeCore).toBe(testCore);
-    expect(JSON.parse(readFileSync(testCore, "utf8")).version).toBe("1.59.1");
+    expect(JSON.parse(readFileSync(testCore, "utf8")).version).toBe("1.64.0");
     expect(JSON.parse(readFileSync(scannerCore, "utf8")).version).toBe(
       "1.61.1",
     );

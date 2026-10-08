@@ -1,4 +1,4 @@
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";

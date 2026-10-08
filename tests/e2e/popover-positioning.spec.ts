@@ -65,6 +65,18 @@ async function openCalendar(page: Page) {
   await trigger.click();
   const popup = page.locator('[data-slot="popover-content"]');
   await expect(popup).toBeVisible();
+  await expect(popup.locator('[data-selected-single="true"]')).toBeFocused();
+  const grid = popup.locator("table");
+  await expect(grid.locator("thead th")).toHaveCount(7);
+  const geometry = await grid.evaluate((table) => ({
+    width: table.getBoundingClientRect().width,
+    parentWidth: table.parentElement!.getBoundingClientRect().width,
+  }));
+  expect(geometry.width).toBeGreaterThan(0);
+  expect(Math.abs(geometry.width - geometry.parentWidth)).toBeLessThan(1);
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("selected-day")).toHaveText("2");
   await expect
     .poll(() =>
       popup.evaluate((n) =>
@@ -84,6 +96,10 @@ test("popover preserves anchored placement when collision preference is omitted"
   const anchor = await trigger.boundingBox(),
     bounds = await popup.boundingBox();
   expect(bounds!.y).toBeGreaterThanOrEqual(anchor!.y + anchor!.height);
+  await popup.getByRole("button", { name: /next month/i }).click();
+  await expect(popup).toContainText("February 2026");
+  await popup.getByRole("button", { name: /previous month/i }).click();
+  await expect(popup).toContainText("January 2026");
   await page.keyboard.press("Escape");
   await expect(popup).toBeHidden();
   await expect(trigger).toBeFocused();

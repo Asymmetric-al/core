@@ -93,6 +93,9 @@ describe("api/auth/demo-account", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
     expect(response.headers.get("set-cookie")).toContain("sb-");
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(response.headers.get("expires")).toBe("0");
+    expect(response.headers.get("pragma")).toBe("no-cache");
   });
 
   it("sets the seeded donor tenant and profile in the E2E bypass cookie", async () => {

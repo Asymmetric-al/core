@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
 import {
-  createDataTableRowModels,
   dataTableFeatures,
   flexRender,
   useTable,
@@ -35,7 +34,6 @@ function ActionCell<TData>({
 }) {
   const table = useTable({
     features: dataTableFeatures,
-    rowModels: createDataTableRowModels<TData>(),
     data: [record],
     columns,
   });

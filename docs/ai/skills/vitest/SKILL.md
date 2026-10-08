@@ -1,12 +1,12 @@
 ---
 name: vitest
-description: Write, review, filter, mock, and debug Core unit tests with the repository's installed Vitest 4 configuration. Use for tests under Core's Vitest include paths, `vi.mock`/spies/timers, jsdom component tests, coverage output, focused reruns, or unit-test failures. Do not use for browser E2E flows or async Next.js Server Components.
+description: Write, review, filter, mock, and debug Core unit tests with the repository's installed Vitest 5 configuration. Use for tests under Core's Vitest include paths, `vi.mock`/spies/timers, jsdom component tests, coverage output, focused reruns, or unit-test failures. Do not use for browser E2E flows or async Next.js Server Components.
 ---
 
 # Vitest in Core
 
 Use the repository harness as the source of truth. Core currently resolves
-Vitest 4.1.x from `bun.lock`; verify the exact version before relying on a newly
+Vitest 5.0.3 from `bun.lock`; verify the exact version before relying on a newly
 introduced API.
 
 ## Authority and test surface
@@ -74,9 +74,10 @@ bun run test:unit:feedback
 - Prefer explicit test data builders/helpers over large untyped fixture blobs.
 - Avoid `.only`; use `.skip`/`.todo` only with a documented reason and no hidden
   loss of required coverage.
-- Core's custom coverage output is useful evidence, but its current
-  `totalScripts: 0` summary is not a line/branch quality signal. Do not claim a
-  threshold the provider does not measure.
+- Core's custom raw V8 coverage provider records script/function information
+  but does not compute line, statement, or branch coverage. Its placeholder
+  totals do not establish coverage quality. Do not claim a threshold the
+  provider does not measure.
 
 ## Checklist
 
@@ -91,4 +92,4 @@ bun run test:unit:feedback
 ## Provenance
 
 See [references/upstream.md](references/upstream.md) for the reviewed upstream
-source, version mismatch decision, license, and refresh workflow.
+source, version compatibility decision, license, and refresh workflow.

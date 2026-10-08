@@ -31,7 +31,12 @@ without repairing it. Setup does not start an issue trial.
 - **Base branch:** branch from and open normal pull requests to `develop`.
   `production` is updated only through the intentional release workflow, and
   the canonical repository has no `main` branch; do not create or target one.
-- **Package manager:** `bun` pinned via `package.json#packageManager` and `.bun-version` (currently `bun@1.4.0`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions. Apps still run on Node.js via Next.js; Bun is the package manager and script runner, not a replacement Node runtime. Do not set `bunVersion` in app `vercel.json` files.
+- **Package manager:** `bun` pinned via `package.json#packageManager` and `.bun-version` (currently `bun@1.4.2`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions. Apps still run on Node.js via Next.js; Bun is the package manager and script runner, not a replacement Node runtime. Do not set `bunVersion` in app `vercel.json` files.
+- **TypeScript:** application and shared-package checks use local TypeScript 7.
+  The root TypeScript 6 package intentionally supplies the JavaScript API for
+  ESLint/AST tooling and the legacy editor SDK. Root fixture commands use the
+  explicit native alias. See the [compiler ownership guide](docs/guides/typescript-6-readiness.md)
+  before changing compiler dependencies or editor settings.
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)

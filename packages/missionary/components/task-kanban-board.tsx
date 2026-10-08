@@ -269,7 +269,10 @@ function KanbanColumn({
           <div className={cn("p-2 rounded-xl", color)}>
             <Icon className="size-4" />
           </div>
-          <h3 className="text-sm font-semibold text-foreground">
+          <h3
+            aria-label={`${title} ${tasks.length}`}
+            className="text-sm font-semibold text-foreground"
+          >
             {title}
             <span className="ml-2 text-muted-foreground font-semibold">
               {tasks.length}
