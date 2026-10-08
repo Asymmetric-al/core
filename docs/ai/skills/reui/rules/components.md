@@ -12,6 +12,11 @@ ReUI `data-grid` is for its specific composition through the shared package.
 The v9 APIs below replace the older v8 examples; inspect the pinned TanStack
 version before adapting either. Filters now use a query tree; do not use the
 retired flat-list API against a freshly installed Filters component.
+`createFilterQuery(rules?, combinator?, id?)` takes a root ID string;
+`createFilterRule({ id, path, operator, value?, negated? })` takes an explicit
+rule ID. An ID factory supplies those strings, not a helper argument. Use
+Core's exported `@asym/ui/components/shadcn/number-field` wrapper and label its
+input through `htmlFor`/`id`; it does not export `NumberFieldScrubArea`.
 See [Core workflow](../SKILL.md#this-repository-asymmetric-alcore).
 
 <!-- END:core-reui-overlay -->
@@ -154,7 +159,7 @@ const [query, setQuery] = useState<FilterQuery>(() => createFilterQuery())
 <Filters fields={fields} query={query} onQueryChange={setQuery} />
 ```
 
-**Gotcha:** the state is a TREE, not a list of chips. `FilterQuery` is a group of rules joined by `and`/`or` and a group may hold another group, so `(A and B) or C` is expressible; a rule is `{ id, type: "rule", path: ["status"], operator, value }` and `path` is the whole nested attribute path, root first. The pre-rewrite API is GONE: there is no `filters`/`onChange` prop, no `FilterFieldConfig` (fields are `FilterField`, nested through their own `fields`, keyed `id` not `key`), and no `createFilter()` - it minted ids inside a pure function and broke hydration, so ids now come from `createFilterIdFactory(seed)` seeded off `useId`, and `createFilterQuery()` / `createFilterRule()` take one. Read the query back with `flattenFilterConditions` (`{ path, field, operator, values, negated }` per rule, incomplete rules skipped) and walk the tree yourself when the parentheses carry meaning - the primitive compiles nothing, no SQL, no query string.
+**Gotcha:** the state is a TREE, not a list of chips. `FilterQuery` is a group of rules joined by `and`/`or` and a group may hold another group, so `(A and B) or C` is expressible; a rule is `{ id, type: "rule", path: ["status"], operator, value }` and `path` is the whole nested attribute path, root first. The pre-rewrite API is GONE: there is no `filters`/`onChange` prop, no `FilterFieldConfig` (fields are `FilterField`, nested through their own `fields`, keyed `id` not `key`), and no `createFilter()` - it minted ids inside a pure function and broke hydration. `createFilterQuery(rules?, combinator?, id?)` defaults to an empty `and` group with root ID `"root"`; `createFilterRule({ id, path, operator, value?, negated? })` requires an explicit ID. `createFilterIdFactory(seed)` returns a function producing deterministic ID strings and the primitive seeds its internal factory from `useId`. The query and rule helpers take the resulting strings in their ID fields, not the factory itself. Read the query back with `flattenFilterConditions` (`{ path, field, operator, values, negated }` per rule, incomplete rules skipped) and walk the tree yourself when the parentheses carry meaning - the primitive compiles nothing, no SQL, no query string.
 
 `variant` picks the chrome over that one query: `"basic"`, the default, is the flat chip row for a toolbar over a table; `"advanced"` is the condition builder, hung off a trigger or rendered in place with `advancedMode="inline"`. Both read and write the same tree, so a saved view built in one opens in the other. Other props worth knowing before you hand-roll them: `size` is two rungs, `"sm" | "default"`, resolved per style (there is no `lg`); `reorderable` turns on drag and Alt+Arrow row moves in the builder; `onBeforeQueryChange` is the ONE veto point for every write (return `false` to refuse, it cannot rewrite); `editors` registers custom value editors a field selects by `editor` name; `labels` / `operatorLabels` own every rendered string; `pathCollapse` + `maxPathSegments` shorten deep attribute paths; `renderChip` / `renderValue` / `renderEmpty` replace rendered parts. On a field, `loadOptions` supplies async options with paging and `resolveValues` renders a chip restored from a saved view whose option was never loaded. Pairs naturally with `data-grid`.
 
@@ -313,17 +318,26 @@ const [value, setValue] = useState<DateSelectorValue | undefined>()
 **Shape:**
 
 ```tsx
+import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  NumberField,
+  NumberFieldDecrement,
+  NumberFieldGroup,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from "@asym/ui/components/shadcn/number-field";
+
 <NumberField defaultValue={0}>
-  <NumberFieldScrubArea label="Quantity" />
+  <Label htmlFor="quantity">Quantity</Label>
   <NumberFieldGroup>
     <NumberFieldDecrement />
-    <NumberFieldInput />
+    <NumberFieldInput id="quantity" />
     <NumberFieldIncrement />
   </NumberFieldGroup>
-</NumberField>
+</NumberField>;
 ```
 
-**Gotcha:** import from `@/components/reui/number-field`. The accessible label goes on `NumberFieldScrubArea`, not `NumberField`. External API: https://base-ui.com/react/components/number-field
+**Gotcha:** Core imports the existing shared wrapper from `@asym/ui/components/shadcn/number-field`. Associate `Label` with `NumberFieldInput` through matching `htmlFor` and `id`; this wrapper does not export `NumberFieldScrubArea`. External API: https://base-ui.com/react/components/number-field
 
 ## rating
 
