@@ -56,14 +56,14 @@ export default async function CmsPublicPage({ params }: PageProps) {
   return (
     <article className="mx-auto w-full max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
       <header className="mb-8 space-y-3">
-        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-zinc-500">
+        <p className="text-sm font-medium text-muted-foreground">
           Site Studio Page
         </p>
-        <h1 className="text-balance text-4xl font-semibold text-zinc-900 sm:text-5xl">
+        <h1 className="text-balance text-4xl font-semibold text-foreground sm:text-5xl">
           {page.title}
         </h1>
         {page.summary ? (
-          <p className="text-lg text-zinc-600">{page.summary}</p>
+          <p className="text-lg text-muted-foreground">{page.summary}</p>
         ) : null}
       </header>
 

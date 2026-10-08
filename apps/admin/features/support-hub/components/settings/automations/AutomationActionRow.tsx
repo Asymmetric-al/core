@@ -48,7 +48,7 @@ export function AutomationActionRow({
   };
 
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2">
+    <li className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/60 p-2">
       <Select
         items={[
           ...SUPPORT_AUTOMATION_ACTION_KINDS.map((kind) => ({
@@ -229,7 +229,7 @@ export function AutomationActionRow({
         size="icon"
         onClick={onRemove}
         aria-label="Remove action"
-        className="size-7 text-rose-500 hover:bg-rose-50"
+        className="size-7 text-destructive hover:bg-destructive/10"
       >
         <Trash2 className="size-3.5" />
       </Button>

@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { cn } from "@asym/ui/lib/utils";
 import {
   MoreHorizontal,
   MapPin,
@@ -54,11 +53,11 @@ export function LocationTable({
       ),
       cell: ({ row }) => (
         <div className="flex items-center gap-3 py-1">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-zinc-100 border border-zinc-200">
-            <MapPin className="size-4 text-zinc-500" />
+          <div className="flex size-8 items-center justify-center rounded-lg bg-muted border border-border">
+            <MapPin className="size-4 text-muted-foreground" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-bold text-sm text-zinc-900 truncate tracking-tight">
+            <span className="font-bold text-sm text-foreground truncate tracking-tight">
               {row.original.title}
             </span>
             <span className="text-xs text-muted-foreground truncate">
@@ -77,11 +76,15 @@ export function LocationTable({
         const type = row.original.type;
         return (
           <div className="flex items-center gap-2">
-            {type === "missionary" && <User className="size-3 text-zinc-400" />}
-            {type === "project" && (
-              <Activity className="size-3 text-zinc-400" />
+            {type === "missionary" && (
+              <User className="size-3 text-muted-foreground" />
             )}
-            {type === "custom" && <Globe className="size-3 text-zinc-400" />}
+            {type === "project" && (
+              <Activity className="size-3 text-muted-foreground" />
+            )}
+            {type === "custom" && (
+              <Globe className="size-3 text-muted-foreground" />
+            )}
             <span className="text-xs font-semibold text-muted-foreground capitalize">
               {type}
             </span>
@@ -97,15 +100,7 @@ export function LocationTable({
       cell: ({ row }) => {
         const status = row.original.status;
         return (
-          <Badge
-            variant="outline"
-            className={cn(
-              "h-5 px-2.5 rounded-full border shadow-none font-medium capitalize",
-              status === "published"
-                ? "bg-emerald-500/10 text-emerald-600"
-                : "bg-zinc-100 text-zinc-500",
-            )}
-          >
+          <Badge variant={status === "published" ? "success" : "secondary"}>
             {status}
           </Badge>
         );
@@ -138,29 +133,22 @@ export function LocationTable({
               render={
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="size-8 rounded-lg"
+                  size="icon-sm"
                   aria-label={`Open actions for ${row.original.title}`}
                 >
                   <MoreHorizontal className="size-4" />
                 </Button>
               }
             />
-            <DropdownMenuContent
-              align="end"
-              className="w-40 rounded-xl border-zinc-100 shadow-xl"
-            >
-              <DropdownMenuItem
-                onClick={() => onEdit(row.original)}
-                className="text-xs font-bold uppercase tracking-widest text-zinc-600 focus:text-zinc-900"
-              >
-                <Edit2 className="mr-2 size-3.5" /> Edit
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                <Edit2 /> Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(row.original.id)}
-                className="text-xs font-bold uppercase tracking-widest text-red-600 focus:text-red-700"
+                variant="destructive"
               >
-                <Trash2 className="mr-2 size-3.5" /> Delete
+                <Trash2 /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

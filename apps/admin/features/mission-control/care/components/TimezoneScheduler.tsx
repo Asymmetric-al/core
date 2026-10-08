@@ -96,71 +96,61 @@ export function TimezoneScheduler({
   const working = isRemoteWorkingHours();
 
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden bg-zinc-50/50">
-      <CardHeader className="pb-2 border-b border-zinc-100 bg-white">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+    <Card className="border-border shadow-sm overflow-hidden bg-muted/50">
+      <CardHeader className="pb-2 border-b border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <Clock className="size-3.5" /> Timezone Check
           </CardTitle>
-          <Badge
-            variant={working ? "default" : "outline"}
-            className={cn(
-              "font-bold h-5",
-              working
-                ? "bg-emerald-500 text-white border-none"
-                : "bg-zinc-100 text-zinc-500 border-zinc-200",
-            )}
-          >
+          <Badge variant={working ? "success" : "secondary"}>
             {working ? "Within Working Hours" : "Outside Working Hours"}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 space-y-1">
-            <p className="text-xs font-bold text-zinc-400 uppercase">My Time</p>
-            <p className="text-xl font-bold text-zinc-900 tabular-nums">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="text-xs font-bold text-muted-foreground uppercase">
+              My Time
+            </p>
+            <p className="text-base font-semibold text-foreground tabular-nums sm:text-xl">
               {localTimeStr}
             </p>
-            <p className="text-xs text-zinc-500 font-medium truncate">
+            <p className="text-xs text-muted-foreground font-medium truncate">
               Local Timezone
             </p>
           </div>
 
-          <div className="size-10 rounded-full bg-white border border-zinc-200 flex items-center justify-center shadow-sm">
-            <ArrowRightLeft className="size-4 text-zinc-400" />
+          <div className="hidden size-10 rounded-full bg-card sm:flex border border-border items-center justify-center shadow-sm">
+            <ArrowRightLeft className="size-4 text-muted-foreground" />
           </div>
 
-          <div className="flex-1 text-right space-y-1">
-            <p className="text-xs font-bold text-zinc-400 uppercase">
+          <div className="min-w-0 flex-1 space-y-1 sm:text-right">
+            <p className="text-xs font-bold text-muted-foreground uppercase">
               {remoteName}&apos;s Time
             </p>
-            <p className="text-xl font-bold text-zinc-900 tabular-nums">
+            <p className="text-base font-semibold text-foreground tabular-nums sm:text-xl">
               {remoteTime}
             </p>
-            <p className="text-xs text-zinc-500 font-medium truncate">
+            <p className="text-xs text-muted-foreground font-medium truncate">
               {remoteTimezone}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 p-3 rounded-lg bg-white border border-zinc-100 flex items-center justify-between">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
           <div className="flex items-center gap-3">
             <div
               className={cn(
                 "size-2 rounded-full",
-                working ? "bg-emerald-500" : "bg-zinc-300",
+                working ? "bg-success" : "bg-muted-foreground",
               )}
             />
-            <span className="text-xs font-bold text-zinc-700">
+            <span className="text-xs font-bold text-muted-foreground">
               Recommended contact: 2PM - 4PM (Your Time)
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 font-bold uppercase text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-          >
+          <Button variant="ghost" size="sm" className="text-info">
             Schedule Call
           </Button>
         </div>

@@ -32,10 +32,10 @@ const PRIORITY_LABELS: Record<SupportPriority, string> = {
 };
 
 const PRIORITY_TONES: Record<SupportPriority, string> = {
-  urgent: "text-rose-600",
-  high: "text-amber-600",
-  normal: "text-zinc-500",
-  low: "text-zinc-400",
+  urgent: "text-destructive",
+  high: "text-warning",
+  normal: "text-muted-foreground",
+  low: "text-muted-foreground",
 };
 
 export function ConversationPriorityMenu({
@@ -52,19 +52,16 @@ export function ConversationPriorityMenu({
             type="button"
             variant="ghost"
             size="sm"
-            className="rounded-lg px-2 font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
             aria-label={`Priority: ${PRIORITY_LABELS[conversation.priority]}`}
           >
-            <Flag className={cn("size-3.5", tone)} />
+            <Flag aria-hidden="true" className={tone} />
             {PRIORITY_LABELS[conversation.priority]}
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs uppercase tracking-widest text-zinc-400">
-            Priority
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Priority</DropdownMenuLabel>
 
           <DropdownMenuSeparator />
           {SUPPORT_PRIORITIES.map((priority) => (
@@ -76,17 +73,17 @@ export function ConversationPriorityMenu({
                   priority,
                 })
               }
-              className="gap-2 text-xs"
             >
               <Check
+                aria-hidden="true"
                 className={cn(
                   "size-3.5",
                   priority === conversation.priority
-                    ? "text-zinc-900"
+                    ? "text-foreground"
                     : "text-transparent",
                 )}
               />
-              <Flag className={cn("size-3.5", PRIORITY_TONES[priority])} />
+              <Flag aria-hidden="true" className={PRIORITY_TONES[priority]} />
               {PRIORITY_LABELS[priority]}
             </DropdownMenuItem>
           ))}

@@ -5,9 +5,13 @@ import React from "react";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
 
 // eslint-disable-next-line no-restricted-imports -- AL-1894: App composer regression test at its public UI boundary.
-import type { ComposeCardActions as ComposeCardActionsComponent } from "../../../../../apps/admin/app/(app)/feed/org-updates/page-client";
+import type {
+  ComposeCardActions as ComposeCardActionsComponent,
+  ComposeCardTypeSelector as ComposeCardTypeSelectorComponent,
+} from "../../../../../apps/admin/app/(app)/feed/org-updates/page-client";
 
 let ComposeCardActions: typeof ComposeCardActionsComponent;
+let ComposeCardTypeSelector: typeof ComposeCardTypeSelectorComponent;
 
 vi.mock("@asym/lib/motion", async () => {
   const ReactModule = await import("react");
@@ -96,6 +100,7 @@ beforeAll(async () => {
   const module =
     await import("../../../../../apps/admin/app/(app)/feed/org-updates/page-client");
   ComposeCardActions = module.ComposeCardActions;
+  ComposeCardTypeSelector = module.ComposeCardTypeSelector;
 });
 
 afterEach(cleanup);
@@ -187,4 +192,50 @@ it("names the attached-media removal action and retains its payload", () => {
     screen.getByRole("button", { name: "Remove attached media" }),
   );
   expect(onRemoveMedia).toHaveBeenCalledExactlyOnceWith(item);
+});
+
+it("announces the selected post type and keeps it selected on repeated activation", () => {
+  const onSetType = vi.fn();
+  const { rerender } = render(
+    <ComposeCardTypeSelector
+      postType="Announcement"
+      editingPost={null}
+      onSetType={onSetType}
+      onCancelEdit={vi.fn()}
+    />,
+  );
+  expect(
+    screen
+      .getByRole("button", { name: "Announcement" })
+      .getAttribute("aria-pressed"),
+  ).toBe("true");
+  const prayer = screen.getByRole("button", { name: "Prayer Request" });
+  expect(prayer.getAttribute("aria-pressed")).toBe("false");
+  fireEvent.click(prayer);
+  expect(onSetType).toHaveBeenCalledWith("Prayer Request");
+  rerender(
+    <ComposeCardTypeSelector
+      postType="Prayer Request"
+      editingPost={null}
+      onSetType={onSetType}
+      onCancelEdit={vi.fn()}
+    />,
+  );
+  expect(prayer.getAttribute("aria-pressed")).toBe("true");
+  onSetType.mockClear();
+  fireEvent.click(prayer);
+  expect(onSetType).not.toHaveBeenCalled();
+});
+
+it("keeps the media action named when its visible text is hidden", () => {
+  const onAddMedia = vi.fn();
+  renderActions({
+    isUploading: false,
+    isPublishing: false,
+    isDisabled: false,
+    onAddMedia,
+  });
+  const media = screen.getByRole("button", { name: "Add media" });
+  fireEvent.click(media);
+  expect(onAddMedia).toHaveBeenCalledOnce();
 });

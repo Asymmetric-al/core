@@ -70,11 +70,9 @@ export default function LocationsPage() {
   const actions = (
     <Button
       onClick={() => setIsAdding(!isAdding)}
-      className={`h-10 rounded-xl px-4 text-sm font-semibold shadow-sm transition-colors ${
-        isAdding
-          ? "bg-amber-500 hover:bg-amber-600 text-white animate-pulse"
-          : "bg-zinc-900 text-white hover:bg-zinc-800"
-      }`}
+      aria-pressed={isAdding}
+      variant={isAdding ? "secondary" : "default"}
+      className="h-auto min-h-9 whitespace-normal text-left"
     >
       <Plus className="mr-2 size-4" />
       {isAdding ? "Click on Map to Drop Marker" : "Add Location"}
@@ -90,24 +88,18 @@ export default function LocationsPage() {
     >
       <Tabs defaultValue="map" className="space-y-5">
         <div className="flex justify-start">
-          <TabsList className="h-10 rounded-xl border border-zinc-200 bg-zinc-100/60 p-1">
-            <TabsTrigger
-              value="map"
-              className="rounded-lg px-4 text-sm font-semibold data-active:bg-white data-active:shadow-sm"
-            >
+          <TabsList>
+            <TabsTrigger value="map">
               <Layers className="mr-2 size-3.5" /> Map View
             </TabsTrigger>
-            <TabsTrigger
-              value="table"
-              className="rounded-lg px-4 text-sm font-semibold data-active:bg-white data-active:shadow-sm"
-            >
+            <TabsTrigger value="table">
               <TableIcon className="mr-2 size-3.5" /> Data Table
             </TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="map" className="m-0">
-          <Card className="relative h-150 overflow-hidden rounded-2xl border-zinc-100 bg-zinc-50 shadow-sm">
+          <Card className="relative h-150 overflow-hidden rounded-2xl border-border bg-muted shadow-sm">
             <Map
               initialViewState={{
                 longitude: 0,
@@ -126,15 +118,15 @@ export default function LocationsPage() {
                 >
                   <MarkerContent>
                     <div
-                      className={`size-6 rounded-full border-4 border-white shadow-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 ${
+                      className={`size-6 rounded-full border-4 border-background shadow-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 ${
                         loc.type === "missionary"
-                          ? "bg-zinc-900"
+                          ? "bg-primary"
                           : loc.type === "project"
-                            ? "bg-blue-600"
-                            : "bg-zinc-400"
+                            ? "bg-info"
+                            : "bg-muted-foreground"
                       }`}
                     >
-                      <MapPin className="size-3 text-white" />
+                      <MapPin className="size-3 text-primary-foreground" />
                     </div>
                   </MarkerContent>
                 </MapMarker>
@@ -142,8 +134,8 @@ export default function LocationsPage() {
             </Map>
 
             {isAdding && (
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                <div className="bg-amber-500 text-white text-xs font-black uppercase tracking-widest px-6 py-3 rounded-full shadow-2xl">
+              <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex justify-center">
+                <div className="rounded-xl border border-warning/25 bg-background px-4 py-3 text-center text-sm font-medium text-warning shadow-sm">
                   Add Mode Active: Click anywhere on map
                 </div>
               </div>
@@ -152,7 +144,7 @@ export default function LocationsPage() {
         </TabsContent>
 
         <TabsContent value="table" className="m-0">
-          <Card className="rounded-2xl border-zinc-100 shadow-sm">
+          <Card className="rounded-2xl border-border shadow-sm">
             <div className="p-4">
               <LocationTable
                 data={locations || []}

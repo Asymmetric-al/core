@@ -12,6 +12,10 @@ import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import {
+  flexRender,
+  type Row,
+} from "@asym/ui/components/shadcn/data-table/tanstack";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -59,7 +63,7 @@ import {
   formatCurrency,
   getStatusBadge,
   getTagLabel,
-  getTagStyle,
+  getTagVariant,
 } from "./donors-model";
 import { createGivingHistoryColumns } from "./donors-page-columns";
 import { currentDisplayDate, parseDisplayDate } from "./donors-page-dates";
@@ -80,6 +84,39 @@ import {
   springTransition,
 } from "./donors-page-motion";
 import { useDonorsPageViewFields } from "./use-donors-page-view";
+
+import type { Activity } from "./donor-types";
+
+const GIVING_HISTORY_LABELS: Record<string, string> = {
+  date: "Date",
+  title: "Type",
+  gift_type: "Method",
+  amount: "Amount",
+  status: "Status",
+};
+
+function GivingHistoryCard({ row }: { row: Row<Activity> }) {
+  return (
+    <article aria-label={`Gift: ${row.original.title}`}>
+      <Card>
+        <CardContent>
+          <dl className="flex flex-col gap-3">
+            {row.getAllCells().map((cell) => (
+              <div key={cell.id} className="grid grid-cols-3 gap-3">
+                <dt className="text-sm text-muted-foreground">
+                  {GIVING_HISTORY_LABELS[cell.column.id]}
+                </dt>
+                <dd className="col-span-2 min-w-0 text-sm whitespace-normal wrap-break-word">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
+    </article>
+  );
+}
 
 export function DonorsPageDetail() {
   const view = useDonorsPageViewFields();
@@ -118,7 +155,7 @@ export function DonorsPageDetail() {
             transition={smoothTransition}
             className="h-full"
           >
-            <Card className="border-border bg-card rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
+            <Card className="overflow-hidden h-full flex flex-col">
               <div className="p-6 border-b border-border bg-card shrink-0">
                 <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                   <DonorDetailIdentity
@@ -148,32 +185,51 @@ export function DonorsPageDetail() {
                 onValueChange={setActiveTab}
                 className="flex-1 flex flex-col min-h-0"
               >
-                <div className="px-6 py-4 border-b border-border shrink-0">
-                  <TabsList className="bg-muted/50 border border-border p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-3 sm:flex">
-                    {[
-                      "overview",
-                      "tasks",
-                      "contact",
-                      "recurring",
-                      "giving",
-                    ].map((tab) => (
-                      <TabsTrigger
-                        key={tab}
-                        value={tab}
-                        className="rounded-xl data-active:bg-card data-active:shadow-sm px-2 sm:px-6 py-2 font-semibold uppercase tracking-widest text-muted-foreground data-active:text-foreground transition-colors"
-                      >
-                        {tab === "overview"
-                          ? "Overview"
-                          : tab === "tasks"
-                            ? "Tasks"
-                            : tab === "contact"
-                              ? "Contact"
-                              : tab === "recurring"
-                                ? "Recurring"
-                                : "Giving"}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
+                <div
+                  className="px-6 py-4 border-b border-border shrink-0 overflow-x-auto"
+                  onFocusCapture={(event) => {
+                    const tab = event.target;
+                    if (
+                      !(tab instanceof HTMLElement) ||
+                      tab.getAttribute("role") !== "tab"
+                    ) {
+                      return;
+                    }
+                    const rail = event.currentTarget;
+                    const railBounds = rail.getBoundingClientRect();
+                    const tabBounds = tab.getBoundingClientRect();
+                    // Base UI preserves page scroll during keyboard focus.
+                    // Reveal overflowed tabs within this horizontal rail only.
+                    if (tabBounds.right > railBounds.right) {
+                      rail.scrollLeft += tabBounds.right - railBounds.right;
+                    } else if (tabBounds.left < railBounds.left) {
+                      rail.scrollLeft -= railBounds.left - tabBounds.left;
+                    }
+                  }}
+                >
+                  <div className="min-w-full w-max">
+                    <TabsList className="w-full">
+                      {[
+                        "overview",
+                        "tasks",
+                        "contact",
+                        "recurring",
+                        "giving",
+                      ].map((tab) => (
+                        <TabsTrigger key={tab} value={tab}>
+                          {tab === "overview"
+                            ? "Overview"
+                            : tab === "tasks"
+                              ? "Tasks"
+                              : tab === "contact"
+                                ? "Contact"
+                                : tab === "recurring"
+                                  ? "Recurring"
+                                  : "Giving"}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </div>
                 </div>
 
                 <ScrollArea className="flex-1 min-h-0">
@@ -213,6 +269,9 @@ export function DonorsPageDetail() {
                       <DataTableResponsive
                         columns={givingHistoryColumns}
                         data={givingHistoryRows}
+                        mobileCardConfig={{
+                          renderCard: (row) => <GivingHistoryCard row={row} />,
+                        }}
                         config={{
                           enableRowSelection: false,
                           enableColumnVisibility: false,
@@ -264,21 +323,19 @@ function DonorDetailIdentity({
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden size-8 -ml-2 mt-1 text-muted-foreground"
+        className="lg:hidden -ml-2 mt-1"
         onClick={clearSelection}
         aria-label="Back to partner list"
       >
         <ArrowLeft data-icon="inline-start" />
       </Button>
-      <Avatar className="size-16 rounded-2xl border border-border shadow-sm">
+      <Avatar className="size-16">
         <AvatarImage src={selectedDonor.avatar_url} />
-        <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground font-semibold">
-          {selectedDonor.initials}
-        </AvatarFallback>
+        <AvatarFallback>{selectedDonor.initials}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground truncate">
+          <h2 className="text-xl tracking-tight text-foreground truncate">
             {selectedDonor.name}
           </h2>
           {getStatusBadge(selectedDonor.status)}
@@ -338,7 +395,7 @@ function DonorDetailActions({
         <Button
           variant="outline"
           size="sm"
-          className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border hover:bg-muted"
+          className="w-full"
           onClick={() => noteComposer.open("note")}
         >
           <Pencil data-icon="inline-start" /> Note
@@ -363,12 +420,7 @@ function DonorDetailActions({
             <Phone data-icon="inline-start" /> Call
           </a>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled
-            className="w-full h-9 px-4 text-xs font-medium rounded-xl border-border"
-          >
+          <Button variant="outline" size="sm" disabled className="w-full">
             <Phone data-icon="inline-start" /> Call
           </Button>
         )}
@@ -389,11 +441,7 @@ function DonorDetailActions({
             <Mail data-icon="inline-start" /> Email
           </a>
         ) : (
-          <Button
-            size="sm"
-            disabled
-            className="w-full h-9 px-4 text-xs font-medium rounded-xl"
-          >
+          <Button size="sm" disabled className="w-full">
             <Mail data-icon="inline-start" /> Email
           </Button>
         )}
@@ -401,58 +449,37 @@ function DonorDetailActions({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Partner actions"
-              className="size-9 text-muted-foreground rounded-xl hover:bg-muted"
-            >
+            <Button variant="ghost" size="icon" aria-label="Partner actions">
               <MoreHorizontal className="size-5" />
             </Button>
           }
         />
-        <DropdownMenuContent
-          align="end"
-          className="rounded-xl border-border shadow-xl"
-        >
+        <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Actions
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-muted" />
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleEditDialogOpen}
               disabled={selectedDonor.is_anonymous}
-              className="text-xs font-medium"
             >
               <Pencil data-icon="inline-start" /> Edit Profile
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleTagEditorOpen}
               disabled={selectedDonor.is_anonymous}
-              className="text-xs font-medium"
             >
               <Tag data-icon="inline-start" /> Manage Tags
             </DropdownMenuItem>
           </DropdownMenuGroup>
-          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem
-              onClick={() => noteComposer.open("call")}
-              className="text-xs font-medium"
-            >
+            <DropdownMenuItem onClick={() => noteComposer.open("call")}>
               <Phone data-icon="inline-start" /> Log Call
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => noteComposer.open("meeting")}
-              className="text-xs font-medium"
-            >
+            <DropdownMenuItem onClick={() => noteComposer.open("meeting")}>
               <Briefcase data-icon="inline-start" /> Log Meeting
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => noteComposer.open("email")}
-              className="text-xs font-medium"
-            >
+            <DropdownMenuItem onClick={() => noteComposer.open("email")}>
               <Mail data-icon="inline-start" /> Log Email
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -584,15 +611,7 @@ function DonorDetailTags({
               delay: i * 0.03,
             }}
           >
-            <Badge
-              variant="outline"
-              className={cn(
-                "font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                getTagStyle(tag),
-              )}
-            >
-              {getTagLabel(tag)}
-            </Badge>
+            <Badge variant={getTagVariant(tag)}>{getTagLabel(tag)}</Badge>
           </motion.div>
         ))}
       </AnimatePresence>
@@ -600,7 +619,6 @@ function DonorDetailTags({
         <Button
           variant="ghost"
           size="sm"
-          className="h-6 px-2 font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
           onClick={handleTagEditorOpen}
           disabled={selectedDonor.is_anonymous}
         >
@@ -628,9 +646,9 @@ function DonorDetailEmpty({
       exit={scaleIn.exit}
       transition={smoothTransition}
     >
-      <Card className="border-border border-dashed bg-muted/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
-        <CardContent className="p-16">
-          <Empty className="border-none bg-transparent min-h-0">
+      <Card className="h-full min-h-150 flex items-center justify-center">
+        <CardContent className="w-full">
+          <Empty className="min-h-0">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <User />
@@ -647,7 +665,7 @@ function DonorDetailEmpty({
                   missionaryId={profile.id}
                   onSuccess={refreshDonors}
                   trigger={
-                    <Button className="h-11 px-8 rounded-2xl bg-primary font-semibold uppercase tracking-[0.2em] text-primary-foreground hover:bg-primary">
+                    <Button>
                       <Plus data-icon="inline-start" /> Add Partner
                     </Button>
                   }

@@ -53,6 +53,10 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Send,
@@ -724,7 +728,7 @@ function composeCardReducer(
   }
 }
 
-function ComposeCardTypeSelector({
+export function ComposeCardTypeSelector({
   postType,
   editingPost,
   onSetType,
@@ -736,48 +740,34 @@ function ComposeCardTypeSelector({
   onCancelEdit: () => void;
 }) {
   return (
-    <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
-      {POST_TYPE_OPTIONS.map((type, i) => (
-        <motion.div
-          key={type}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 + i * 0.05 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Button
-            variant={postType === type ? "default" : "outline"}
-            onClick={() => onSetType(type)}
-            className={cn(
-              "px-3 sm:px-5 py-2 h-8 sm:h-9 uppercase tracking-wider font-semibold rounded-xl",
-              postType === type && "shadow-md",
-            )}
-          >
+    <div className="mb-4 flex flex-wrap items-center gap-3 sm:mb-6">
+      <ToggleGroup
+        aria-label="Post type"
+        variant="outline"
+        spacing={1}
+        className="flex-wrap"
+        value={[postType]}
+        onValueChange={(value) => {
+          const next = value[0];
+          if (next && POST_TYPE_OPTIONS.includes(next)) onSetType(next);
+        }}
+      >
+        {POST_TYPE_OPTIONS.map((type) => (
+          <ToggleGroupItem key={type} value={type}>
             {type}
-          </Button>
-        </motion.div>
-      ))}
-      <AnimatePresence>
-        {editingPost && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCancelEdit}
-              className="ml-auto text-destructive font-semibold uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
-            >
-              Cancel Edit
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      {editingPost && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onCancelEdit}
+          className="text-destructive"
+        >
+          Cancel Edit
+        </Button>
+      )}
     </div>
   );
 }
@@ -854,11 +844,12 @@ export function ComposeCardActions({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             focusableWhenDisabled={isUploading}
-            variant="ghost"
+            aria-label="Add media"
+            variant="outline"
             size="sm"
             disabled={isUploading}
             onClick={onAddMedia}
-            className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+            className=""
           >
             {isUploading ? (
               <Loader2 className="size-3 animate-spin" />
@@ -874,11 +865,7 @@ export function ComposeCardActions({
             <DropdownMenuTrigger
               aria-label={`Post visibility: ${visibility}`}
               render={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground font-semibold uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
-                >
+                <Button variant="ghost" size="sm" className="">
                   {visibility === "public" ? (
                     <Globe className="size-3" />
                   ) : visibility === "partners" ? (
@@ -1480,17 +1467,13 @@ export default function OrgUpdatesPage() {
           <>
             <Link
               href="/feed"
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-xs shadow-sm hover:bg-zinc-50",
-              )}
+              className={buttonVariants({ variant: "outline" })}
             >
               <Eye className="mr-2 size-4" />
               Moderation
             </Link>
             <Button
               variant="outline"
-              className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest shadow-sm hover:bg-zinc-50"
               onClick={() =>
                 dispatchUi({ type: "set_settings_open", value: true })
               }

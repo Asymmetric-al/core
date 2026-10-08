@@ -28,11 +28,11 @@ export function SignatureChip({
     <label
       htmlFor={id}
       className={cn(
-        "inline-flex h-8 cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2 text-[12px] font-medium text-zinc-700",
-        enabled && "border-emerald-200 bg-emerald-50 text-emerald-800",
+        "inline-flex h-8 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-2 text-[12px] font-medium text-foreground",
+        enabled && "border-success/30 bg-success/10 text-success",
       )}
     >
-      <Signature className="size-3.5 text-zinc-400" />
+      <Signature className="size-3.5 text-muted-foreground" />
       <span>Append signature</span>
       <Switch
         id={id}

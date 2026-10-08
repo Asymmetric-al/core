@@ -35,12 +35,7 @@ export function ImpactTile({
       : value;
 
   return (
-    <Card
-      className={cn(
-        "border-zinc-100 shadow-sm hover:border-zinc-200 transition-colors h-full bg-white overflow-hidden group rounded-xl",
-        className,
-      )}
-    >
+    <Card className={cn("h-full overflow-hidden group", className)}>
       <CardContent className="p-4 sm:p-5">
         <div className="flex justify-between items-start mb-3 sm:mb-4">
           <div
@@ -55,10 +50,10 @@ export function ImpactTile({
           </div>
         </div>
         <div>
-          <h4 className="text-xs sm:text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-0.5 sm:mb-1">
+          <h4 className="text-xs sm:text-sm font-medium text-muted-foreground mb-0.5 sm:mb-1">
             {title}
           </h4>
-          <p className="text-2xl sm:text-3xl font-semibold tracking-tighter text-zinc-900">
+          <p className="text-2xl sm:text-3xl font-semibold tracking-tighter text-foreground">
             {displayValue || "---"}
           </p>
         </div>

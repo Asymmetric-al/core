@@ -12,17 +12,17 @@ import React from "react";
 const healthHeatmapGetColor = (intensity: number) => {
   switch (intensity) {
     case 0:
-      return "bg-zinc-100 dark:bg-zinc-800";
+      return "bg-muted";
     case 1:
-      return "bg-emerald-200 dark:bg-emerald-900/40";
+      return "bg-chart-5/20";
     case 2:
-      return "bg-emerald-400 dark:bg-emerald-700";
+      return "bg-chart-5/40";
     case 3:
-      return "bg-emerald-600 dark:bg-emerald-500";
+      return "bg-chart-5/70";
     case 4:
-      return "bg-emerald-800 dark:bg-emerald-300";
+      return "bg-chart-5";
     default:
-      return "bg-zinc-100";
+      return "bg-muted";
   }
 };
 
@@ -58,13 +58,13 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
                 type="button"
                 aria-label={label}
                 className={cn(
-                  "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-zinc-400 focus-visible:ring-1 focus-visible:ring-zinc-400 focus-visible:outline-none",
+                  "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-ring focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
                   healthHeatmapGetColor(intensity),
                 )}
               />
               <TooltipContent side="top">
                 <p className="text-xs font-medium">{date}</p>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-muted-foreground">
                   {intensity > 0
                     ? `${entry?.type} intensity: ${intensity}`
                     : "No activity logged"}

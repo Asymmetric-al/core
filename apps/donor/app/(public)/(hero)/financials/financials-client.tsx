@@ -11,9 +11,9 @@ import { Download, FileText, CheckCircle, ShieldCheck } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 const data = [
-  { name: "Program Services", value: 85, color: "#10b981" },
-  { name: "Fundraising", value: 10, color: "#64748b" },
-  { name: "Administration", value: 5, color: "#94a3b8" },
+  { name: "Program Services", value: 85, color: "var(--chart-2)" },
+  { name: "Fundraising", value: 10, color: "var(--chart-4)" },
+  { name: "Administration", value: 5, color: "var(--chart-5)" },
 ];
 
 async function importRechartsModule() {
@@ -32,7 +32,7 @@ type RechartsModule = {
 function FinancialsChartFallback() {
   return (
     <div
-      className="h-87.5 w-full rounded-2xl bg-zinc-50 animate-pulse"
+      className="h-87.5 w-full rounded-2xl bg-background animate-pulse"
       aria-hidden="true"
     />
   );
@@ -70,16 +70,20 @@ export function FinancialsPageClient() {
   }, []);
 
   return (
-    <div className="bg-zinc-50 min-h-dvh pt-20">
-      <section className="bg-white py-24 border-b border-zinc-200">
+    <div className="relative bg-background min-h-dvh pt-20">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-invert"
+      />
+      <section className="bg-card py-24 border-b border-border">
         <div className="container mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold uppercase tracking-widest mb-6 border border-emerald-100">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 text-success rounded-full text-sm font-medium mb-6 border border-success/10">
             <ShieldCheck className="size-4" /> Radical Transparency
           </div>
-          <h1 className="text-5xl md:text-6xl font-semibold tracking-normal text-zinc-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-semibold tracking-normal text-foreground mb-6">
             Financial Integrity
           </h1>
-          <p className="text-xl md:text-2xl text-zinc-500 max-w-3xl mx-auto font-light leading-relaxed text-balance">
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed text-balance">
             We believe that every dollar you give is a sacred trust. Here is
             exactly how we use it to change lives.
           </p>
@@ -88,10 +92,10 @@ export function FinancialsPageClient() {
 
       <section className="py-24 container mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <Card className="shadow-2xl shadow-zinc-200/50 border-none overflow-hidden rounded-3xl bg-white relative">
-            <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-emerald-500 via-zinc-500 to-zinc-300" />
+          <Card className="overflow-hidden relative">
+            <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-success via-muted to-muted" />
             <CardHeader className="pt-8 px-8 pb-2">
-              <CardTitle className="text-2xl font-semibold text-zinc-900">
+              <CardTitle className="text-2xl font-semibold text-foreground">
                 Expense Allocation
               </CardTitle>
             </CardHeader>
@@ -107,42 +111,46 @@ export function FinancialsPageClient() {
                   <FinancialsChartFallback />
                 )}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-6xl font-semibold text-zinc-900 tracking-tighter">
+                  <span className="text-6xl font-semibold text-foreground tracking-tighter">
                     85%
                   </span>
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mt-2">
+                  <span className="text-sm font-medium text-muted-foreground mt-2">
                     Program Services
                   </span>
                 </div>
               </div>
 
               <div className="mt-8 space-y-3">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 transition-colors hover:bg-emerald-50">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-success/10 border border-success/10 transition-colors hover:bg-success/10">
                   <div className="flex items-center gap-3">
-                    <div className="size-3 rounded-full bg-emerald-500 ring-2 ring-emerald-200" />
-                    <span className="font-semibold text-zinc-900">
+                    <div className="size-3 rounded-full bg-chart-2 ring-2 ring-chart-2" />
+                    <span className="font-semibold text-foreground">
                       Direct Program Support
                     </span>
                   </div>
-                  <span className="font-semibold text-emerald-700">85%</span>
+                  <span className="font-semibold text-success">85%</span>
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-zinc-100 transition-colors hover:bg-zinc-50">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border transition-colors hover:bg-background">
                   <div className="flex items-center gap-3">
-                    <div className="size-3 rounded-full bg-zinc-500" />
-                    <span className="font-medium text-zinc-600">
+                    <div className="size-3 rounded-full bg-chart-4" />
+                    <span className="font-medium text-muted-foreground">
                       Fundraising
                     </span>
                   </div>
-                  <span className="font-semibold text-zinc-600">10%</span>
+                  <span className="font-semibold text-muted-foreground">
+                    10%
+                  </span>
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-zinc-100 transition-colors hover:bg-zinc-50">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border transition-colors hover:bg-background">
                   <div className="flex items-center gap-3">
-                    <div className="size-3 rounded-full bg-zinc-300" />
-                    <span className="font-medium text-zinc-600">
+                    <div className="size-3 rounded-full bg-chart-5" />
+                    <span className="font-medium text-muted-foreground">
                       Admin & Management
                     </span>
                   </div>
-                  <span className="font-semibold text-zinc-600">5%</span>
+                  <span className="font-semibold text-muted-foreground">
+                    5%
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -150,19 +158,19 @@ export function FinancialsPageClient() {
 
           <div className="space-y-12">
             <div>
-              <h2 className="text-3xl font-semibold text-zinc-900 mb-8 tracking-tight">
+              <h2 className="text-3xl font-semibold text-foreground mb-8 tracking-tight">
                 Accountability Standards
               </h2>
               <div className="space-y-8">
                 <div className="flex gap-5">
-                  <div className="size-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                  <div className="size-12 rounded-xl bg-info/10 flex items-center justify-center text-info shrink-0">
                     <CheckCircle className="size-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-zinc-900 mb-2">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
                       Independent Audits
                     </h3>
-                    <p className="text-zinc-600 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       We undergo voluntary annual financial audits by an
                       independent CPA firm to ensure accuracy and compliance.
                       Our books are open.
@@ -170,14 +178,14 @@ export function FinancialsPageClient() {
                   </div>
                 </div>
                 <div className="flex gap-5">
-                  <div className="size-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                  <div className="size-12 rounded-xl bg-info/10 flex items-center justify-center text-info shrink-0">
                     <CheckCircle className="size-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-zinc-900 mb-2">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
                       Board Oversight
                     </h3>
-                    <p className="text-zinc-600 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       Our independent Board of Directors reviews and approves
                       the annual budget, monitors performance, and ensures
                       conflict-of-interest policies.
@@ -185,14 +193,14 @@ export function FinancialsPageClient() {
                   </div>
                 </div>
                 <div className="flex gap-5">
-                  <div className="size-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                  <div className="size-12 rounded-xl bg-info/10 flex items-center justify-center text-info shrink-0">
                     <CheckCircle className="size-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-zinc-900 mb-2">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
                       Donor Privacy
                     </h3>
-                    <p className="text-zinc-600 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       We will never sell, trade, or share your personal
                       information with other organizations. Your trust is our
                       currency.
@@ -202,51 +210,45 @@ export function FinancialsPageClient() {
               </div>
             </div>
 
-            <div className="bg-zinc-950 text-white p-8 rounded-2xl relative overflow-hidden">
+            <div className="bg-invert text-invert-foreground p-8 rounded-2xl relative overflow-hidden">
               <div className="relative z-10">
                 <h3 className="font-semibold text-xl mb-4">Our Promise</h3>
-                <p className="text-zinc-300 text-lg italic font-light leading-relaxed">
+                <p className="text-invert-foreground/75 text-lg italic font-light leading-relaxed">
                   &quot;We pledge to treat every resource entrusted to us with
                   maximum care, ensuring it reaches the intended need with speed
                   and integrity.&quot;
                 </p>
               </div>
               <div className="absolute top-0 right-0 p-8 opacity-10">
-                <ShieldCheck className="size-32 text-white" />
+                <ShieldCheck className="size-32 text-invert-foreground" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-zinc-100 py-24">
+      <section className="bg-muted py-24">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-semibold text-zinc-900 mb-10 tracking-tight">
+          <h2 className="text-3xl font-semibold text-foreground mb-10 tracking-tight">
             Annual Reports & Filings
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[2023, 2022, 2021].map((year) => (
               <div
                 key={year}
-                className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1 transition-[box-shadow,transform] duration-300 group cursor-pointer"
+                className="bg-card p-8 rounded-2xl border border-border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1 transition-[box-shadow,transform] duration-300 group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-8">
-                  <FileText className="size-10 text-zinc-300 group-hover:text-blue-600 transition-colors" />
-                  <span className="font-semibold text-3xl text-zinc-900">
+                  <FileText className="size-10 text-muted-foreground group-hover:text-info transition-colors" />
+                  <span className="font-semibold text-3xl text-foreground">
                     {year}
                   </span>
                 </div>
                 <div className="space-y-3">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start gap-3 h-12 font-semibold border-zinc-200 hover:bg-zinc-50"
-                  >
+                  <Button variant="outline" className="w-full justify-start">
                     <Download className="size-4" /> Annual Report (PDF)
                   </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3 h-12 text-zinc-500 hover:text-zinc-900"
-                  >
+                  <Button variant="ghost" className="w-full justify-start">
                     <Download className="size-4" /> IRS Form 990
                   </Button>
                 </div>
@@ -286,8 +288,9 @@ function FinancialsPieChart({
         <Tooltip
           contentStyle={{
             borderRadius: "12px",
-            border: "none",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+            border: "1px solid var(--border)",
+            background: "var(--popover)",
+            color: "var(--popover-foreground)",
           }}
         />
       </PieChart>

@@ -6,7 +6,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
@@ -110,17 +110,15 @@ const columns: ColumnDef<CarePersonnel>[] = [
 
       return (
         <Badge
-          variant="outline"
-          className={cn(
-            "font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
+          variant={
             priority === "Critical"
-              ? "bg-destructive text-destructive-foreground"
+              ? "destructive"
               : priority === "High"
-                ? "bg-amber-500/10 text-amber-600"
+                ? "warning"
                 : priority === "Medium"
-                  ? "bg-sky-500/10 text-sky-600"
-                  : "bg-muted text-muted-foreground",
-          )}
+                  ? "info"
+                  : "secondary"
+          }
         >
           {priority}
         </Badge>
@@ -139,17 +137,15 @@ const columns: ColumnDef<CarePersonnel>[] = [
       const status = row.original.status;
       return (
         <Badge
-          variant="outline"
-          className={cn(
-            "font-black h-5 uppercase tracking-widest px-2.5 rounded-full border-none shadow-none",
+          variant={
             status === "Healthy"
-              ? "bg-emerald-500/10 text-emerald-600"
+              ? "success"
               : status === "At Risk"
-                ? "bg-amber-500/10 text-amber-600"
+                ? "warning"
                 : status === "Crisis"
-                  ? "bg-destructive text-destructive-foreground animate-pulse"
-                  : "bg-muted text-muted-foreground",
-          )}
+                  ? "destructive"
+                  : "secondary"
+          }
         >
           {status === "Healthy" && <HeartPulse className="mr-1 size-3" />}
           {status === "Crisis" && <ShieldAlert className="mr-1 size-3" />}
@@ -207,14 +203,12 @@ const columns: ColumnDef<CarePersonnel>[] = [
     id: "actions",
     cell: ({ row }) => (
       <div className="flex justify-end pr-4">
-        <Link href={`/care/directory/${row.original.id}`}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
-          >
-            <ChevronRight className="size-4" />
-          </Button>
+        <Link
+          href={`/care/directory/${row.original.id}`}
+          aria-label={`View ${row.original.name}'s care profile`}
+          className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+        >
+          <ChevronRight className="size-4" />
         </Link>
       </div>
     ),

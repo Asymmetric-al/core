@@ -75,9 +75,9 @@ interface ChipProps {
 }
 
 const TONE_CLASSES: Record<ChipProps["tone"], string> = {
-  rose: "border-rose-200 bg-rose-50 text-rose-700",
-  amber: "border-amber-200 bg-amber-50 text-amber-700",
-  emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  rose: "border-destructive/30 bg-destructive/10 text-destructive",
+  amber: "border-warning/30 bg-warning/10 text-warning",
+  emerald: "border-success/30 bg-success/10 text-success",
 };
 
 function Chip({ tone, icon, label }: ChipProps) {

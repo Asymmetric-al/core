@@ -46,9 +46,9 @@ export function DonorsPageActivityDialogs() {
           noteComposer.close();
         }}
       >
-        <DialogContent className="sm:max-w-[500px] rounded-2xl">
+        <DialogContent className="sm:max-w-125" scrollable>
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold tracking-tight">
+            <DialogTitle>
               {noteComposer.activityType === "note"
                 ? "Add Note"
                 : noteComposer.activityType === "call"
@@ -57,7 +57,7 @@ export function DonorsPageActivityDialogs() {
                     ? "Log Meeting"
                     : "Log Email"}
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
+            <DialogDescription>
               Add to {selectedDonor?.name}&apos;s timeline.
             </DialogDescription>
           </DialogHeader>
@@ -75,22 +75,17 @@ export function DonorsPageActivityDialogs() {
                       ? "Meeting notes..."
                       : "Type your note here..."
                 }
-                className="min-h-[150px] resize-none rounded-xl border-border"
+                rows={6}
               />
             </Field>
           </FieldGroup>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={handleNoteComposerClose}
-              className="h-10 px-6 rounded-xl border-border"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={handleNoteComposerClose}>
               Cancel
             </Button>
             <Button
               onClick={handleNoteComposerSave}
               disabled={!noteComposer.noteInput.trim() || noteComposer.isSaving}
-              className="h-10 px-6 rounded-xl"
             >
               {noteComposer.isSaving ? (
                 <Spinner data-icon="inline-start" />
@@ -113,12 +108,10 @@ export function DonorsPageActivityDialogs() {
           tagEditor.close();
         }}
       >
-        <DialogContent className="sm:max-w-[500px] rounded-2xl">
+        <DialogContent className="sm:max-w-125" scrollable>
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold tracking-tight">
-              Manage Tags
-            </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
+            <DialogTitle>Manage Tags</DialogTitle>
+            <DialogDescription>
               Select tags for {selectedDonor?.name}. Tags help you organize and
               filter your partners.
             </DialogDescription>
@@ -140,19 +133,11 @@ export function DonorsPageActivityDialogs() {
               ))}
             </FieldGroup>
           </FieldSet>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={handleTagEditorClose}
-              className="h-10 px-6 rounded-xl border-border"
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={handleTagEditorClose}>
               Cancel
             </Button>
-            <Button
-              onClick={handleTagEditorSave}
-              disabled={tagEditor.isSaving}
-              className="h-10 px-6 rounded-xl"
-            >
+            <Button onClick={handleTagEditorSave} disabled={tagEditor.isSaving}>
               {tagEditor.isSaving ? (
                 <Spinner data-icon="inline-start" />
               ) : (

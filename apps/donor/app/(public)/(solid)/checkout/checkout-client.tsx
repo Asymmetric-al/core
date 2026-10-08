@@ -18,6 +18,7 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Card } from "@asym/ui/components/shadcn/card";
 import {
   Field,
   FieldContent,
@@ -372,9 +373,9 @@ function SummaryCard({
   total,
 }: SummaryCardProps) {
   return (
-    <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden sticky top-32">
+    <Card className="gap-0 py-0 overflow-hidden">
       <div className="p-8 bg-muted/50 border-b border-border">
-        <h3 className="text-xs font-semibold text-foreground/80 uppercase tracking-widest mb-6">
+        <h3 className="text-sm font-medium text-foreground/80 mb-6">
           Contribution Summary
         </h3>
         <div className="flex items-center gap-4">
@@ -383,7 +384,7 @@ function SummaryCard({
             <AvatarFallback>GH</AvatarFallback>
           </Avatar>
           <div className="min-w-0 space-y-1 wrap-anywhere">
-            <p className="text-xs font-semibold text-foreground">Supporting</p>
+            <p className="text-sm font-medium text-foreground">Supporting</p>
             <p className="text-xl font-semibold text-foreground font-display leading-tight">
               {worker?.title || "General Mission Fund"}
             </p>
@@ -422,7 +423,7 @@ function SummaryCard({
 
         <div className="flex justify-between items-end pt-2">
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-muted-foreground">
+            <span className="text-sm font-medium text-muted-foreground">
               Amount Due Today
             </span>
             <span className="block text-3xl font-semibold text-foreground font-display tracking-tighter">
@@ -432,7 +433,7 @@ function SummaryCard({
         </div>
       </div>
 
-      <div className="px-8 py-4 bg-primary flex flex-wrap gap-4 items-center justify-between text-xs font-semibold uppercase tracking-widest text-primary-foreground/80">
+      <div className="px-8 py-4 bg-primary flex flex-wrap gap-4 items-center justify-between text-sm font-medium text-primary-foreground/80">
         <div className="flex items-center gap-2">
           <Shield className="size-3.5" /> Secure SSL
         </div>
@@ -440,7 +441,7 @@ function SummaryCard({
           <Lock className="size-3.5" /> PCI Compliant
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -472,8 +473,9 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
               aria-hidden="true"
             />
             <span
+              aria-current={currentIdx === idx ? "step" : undefined}
               className={cn(
-                "text-xs font-semibold uppercase tracking-widest",
+                "text-sm font-medium ",
                 currentIdx === idx
                   ? "text-foreground"
                   : "text-muted-foreground",
@@ -507,7 +509,7 @@ function SuccessView({
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden text-center"
+        className="bg-card max-w-2xl w-full rounded-3xl shadow-sm overflow-hidden text-center"
       >
         <div className="bg-primary px-6 py-12 sm:px-12 sm:pt-24 sm:pb-32 text-primary-foreground relative overflow-hidden">
           <div className="absolute inset-0 opacity-20" aria-hidden="true">
@@ -519,7 +521,7 @@ function SuccessView({
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3, type: "spring" }}
-            className="size-24 bg-card rounded-4xl flex items-center justify-center mx-auto mb-10 shadow-xl"
+            className="size-24 bg-card rounded-4xl flex items-center justify-center mx-auto mb-10 shadow-sm"
           >
             <Check
               className="size-12 text-foreground"
@@ -538,7 +540,7 @@ function SuccessView({
 
         <div className="px-6 py-10 sm:px-16 sm:py-20 space-y-12">
           <div className="space-y-4">
-            <p className="text-xs font-semibold text-muted-foreground">
+            <p className="text-sm font-medium text-muted-foreground">
               Total Contribution
             </p>
             <p className="text-4xl sm:text-7xl font-semibold text-foreground font-display tracking-tighter tabular-nums wrap-anywhere">
@@ -559,7 +561,7 @@ function SuccessView({
           {mode === "test" && (
             <div
               role="status"
-              className="inline-flex items-center gap-3 rounded-full bg-muted px-6 py-3 text-xs font-semibold uppercase tracking-widest text-foreground dark:bg-muted/10 dark:text-foreground"
+              className="inline-flex items-center gap-3 rounded-full bg-muted px-6 py-3 text-sm font-medium text-foreground dark:bg-muted/10 dark:text-foreground"
             >
               <AlertTriangle className="size-3.5" aria-hidden="true" /> Test
               mode — no card charge collected
@@ -621,10 +623,10 @@ function ConfigStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground">
+        <span className="text-sm font-medium text-foreground">
           Set Up Support
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Your Gift.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -634,7 +636,7 @@ function ConfigStep({
 
       <div className="space-y-8">
         <div className="rounded-4xl border border-border bg-muted p-6">
-          <p className="text-xs font-semibold text-foreground/80">
+          <p className="text-sm font-medium text-foreground/80">
             Contribution Frequency
           </p>
           <p className="mt-2 font-semibold text-foreground font-display">
@@ -643,7 +645,7 @@ function ConfigStep({
         </div>
 
         <fieldset className="space-y-6">
-          <legend className="text-xs font-semibold text-muted-foreground">
+          <legend className="text-sm font-medium text-muted-foreground">
             Support Amount
           </legend>
           <RadioGroup
@@ -661,9 +663,9 @@ function ConfigStep({
                 nativeButton
                 render={(radioProps) => <button {...radioProps}>${val}</button>}
                 className={cn(
-                  "h-24 rounded-2xl border-2 font-semibold font-display text-2xl press-feedback",
+                  "w-full h-24 rounded-2xl border-2 font-semibold font-display text-2xl press-feedback",
                   amount === val && !customAmount
-                    ? "border-primary bg-primary text-primary-foreground shadow-2xl ring-4 ring-ring/15"
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm ring-4 ring-ring/15"
                     : "border-border bg-muted text-foreground hover:border-border hover:bg-accent",
                 )}
               />
@@ -758,10 +760,10 @@ function DetailsStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground">
+        <span className="text-sm font-medium text-foreground">
           Donor Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Your Details.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -868,10 +870,10 @@ function PaymentStep({
       className="space-y-12"
     >
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground">
+        <span className="text-sm font-medium text-foreground">
           Payment Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Secure Payment.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -908,7 +910,7 @@ function PaymentStep({
               value={value}
               disabled={isProcessing}
               className={cn(
-                "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 text-muted-foreground data-active:bg-primary data-active:text-primary-foreground data-active:shadow-xl",
+                "min-h-11 min-w-0 whitespace-normal wrap-anywhere px-1 py-2 text-xs font-medium rounded-xl transition-colors press-feedback outline-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 text-muted-foreground data-active:bg-primary data-active:text-primary-foreground data-active:shadow-sm",
                 isProcessing && "cursor-not-allowed opacity-60",
               )}
             >
@@ -927,7 +929,7 @@ function PaymentStep({
                 className="space-y-8"
               >
                 <div className="space-y-3" data-testid="stripe-card-panel">
-                  <p className="text-xs font-semibold text-foreground/80 pl-2">
+                  <p className="text-sm font-medium text-foreground/80 pl-2">
                     Card Details
                   </p>
                   {mode === "live" ? (
@@ -1034,7 +1036,7 @@ function PaymentStep({
             aria-hidden="true"
           />
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-foreground dark:text-foreground">
+            <p className="text-sm font-medium text-foreground dark:text-foreground">
               Test mode — card capture disabled
             </p>
             <p className="text-sm font-medium leading-relaxed text-foreground/80 dark:text-foreground/80">
@@ -1128,10 +1130,10 @@ function CheckoutConfigurationError({ message }: { message: string | null }) {
   return (
     <div className="space-y-12">
       <header className="space-y-4">
-        <span className="text-xs font-semibold text-foreground">
+        <span className="text-sm font-medium text-foreground">
           Payment Information
         </span>
-        <h1 className="text-5xl md:text-7xl font-semibold text-foreground font-display tracking-normal">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-semibold text-foreground font-display tracking-normal">
           Secure Payment.
         </h1>
         <p className="text-2xl text-muted-foreground font-light tracking-tight">
@@ -1185,19 +1187,19 @@ function resolveCheckoutSummaryWorkerTitle({
 
 function CheckoutMissingTargetState() {
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-white">
+    <div className="min-h-dvh flex items-center justify-center bg-card">
       <div className="text-center space-y-6">
-        <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-sm">
-          <Activity className="size-8 text-zinc-300" />
+        <div className="size-20 bg-background rounded-3xl flex items-center justify-center mx-auto border border-border shadow-sm">
+          <Activity className="size-8 text-muted-foreground" />
         </div>
-        <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
+        <h2 className="text-3xl font-semibold text-foreground font-syne">
           Target Unspecified
         </h2>
         <Link
           href="/workers"
           className={cn(
             buttonVariants(),
-            "rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800",
+            "rounded-full px-8 h-12 font-semibold font-syne text-[10px] bg-invert hover:bg-invert",
           )}
         >
           View Missionaries
@@ -1335,11 +1337,11 @@ function CheckoutActiveFlow({
   };
 
   return (
-    <div className="min-h-dvh bg-white font-sans pb-32 pt-24 selection:bg-zinc-900/10">
+    <div className="min-h-dvh bg-background font-sans pb-24 pt-24 selection:bg-invert/10">
       <div className="container mx-auto px-6 max-w-7xl">
         <StepIndicator currentStep={step} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           <div className="lg:col-span-7 space-y-16">
             <AnimatePresence mode="wait">
               {step === "config" ? (
@@ -1368,7 +1370,10 @@ function CheckoutActiveFlow({
             </AnimatePresence>
           </div>
 
-          <aside className="lg:col-span-5 hidden lg:block">
+          <aside
+            aria-label="Contribution summary"
+            className="lg:col-span-5 min-w-0 lg:sticky lg:top-32 self-start"
+          >
             <SummaryCard
               worker={summaryWorker}
               amount={amount}

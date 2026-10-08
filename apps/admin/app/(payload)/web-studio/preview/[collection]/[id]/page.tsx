@@ -1,4 +1,5 @@
 import { renderPublicCmsPageContent } from "@asym/lib/cms/public-page-renderer";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
@@ -92,7 +93,7 @@ export default async function WebStudioAuthenticatedPreviewPage({
             <p className="text-muted-foreground text-sm">{label}</p>
           </div>
           <Link
-            className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 font-semibold text-sm"
+            className={buttonVariants({ variant: "outline" })}
             href={`/web-studio/collections/${collection}/${encodeURIComponent(id)}`}
           >
             Back to editor
@@ -210,10 +211,7 @@ function renderHeroBlock(block: PreviewBlock, key: string) {
           </p>
         ) : null}
         {href && label ? (
-          <a
-            className="inline-flex h-10 items-center rounded-md bg-foreground px-4 font-semibold text-background text-sm"
-            href={href}
-          >
+          <a className={buttonVariants()} href={href}>
             {label}
           </a>
         ) : null}
@@ -240,10 +238,7 @@ function renderCallToActionBlock(block: PreviewBlock, key: string) {
           ) : null}
         </div>
         {href ? (
-          <a
-            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-border px-4 font-semibold text-sm"
-            href={href}
-          >
+          <a className={buttonVariants({ variant: "outline" })} href={href}>
             {label}
           </a>
         ) : null}

@@ -8,7 +8,7 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 export function DashboardShellSkeleton() {
   return (
     <div
-      className="flex min-h-dvh flex-col bg-zinc-50"
+      className="flex min-h-dvh flex-col bg-background"
       aria-busy="true"
       role="status"
       aria-label="Loading dashboard"

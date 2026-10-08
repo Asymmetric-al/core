@@ -1,6 +1,6 @@
 # Admin Dashboard — UX/UI Standards
 
-> Definitive reference for the admin dashboard design system. All admin pages must follow these standards.
+> Practical composition guidance for Core admin UI. The [shared UI contract](../../packages/ui/AGENTS.md), [frontend rules](rules/frontend.md), and current shared component APIs take precedence. Existing legacy styling is not a template for new work.
 
 ## Table of Contents
 
@@ -21,443 +21,229 @@
 - [Icons](#icons)
 - [Accessibility](#accessibility)
 - [Component Imports](#component-imports)
-
----
+- [Pages NOT Following PageShell Pattern](#pages-not-following-pageshell-pattern)
+- [Checklist for New Pages](#checklist-for-new-pages)
 
 ## Design Philosophy
 
-**Calm, predictable, fast.** Clean and breathable, not empty. Bold hierarchy for quick scanning. Everything feels like one product.
+Calm, predictable, fast. Use clear hierarchy, readable labels, useful density, and reachable actions. Compose existing product behavior rather than filling gaps with demo records or invented capabilities.
 
 ### Non-Negotiables
 
-- Semantic tokens only — components use `bg-background`, `text-foreground`, `border-border`, etc.
-- Zinc palette for structure (surfaces, borders, text hierarchy)
-- Accent colors ONLY for semantic meaning (status, warning, success)
-- One typography system: Inter for UI body, Syne for display/headings, Geist Mono for code/numbers
-- Light and dark must both look designed
-
----
+- Preserve exact `base-maia`, Base UI through `@base-ui/react`, Zinc as the configured base color, semantic CSS variables, and the existing aliases/icon system in [components.json](../../packages/ui/components.json).
+- Maia includes geometry, spacing, radii, and composition. Reuse shared owners from `@asym/ui`; do not restyle their internals or create app-local primitive forks.
+- Use Base UI `render` composition, not Radix `asChild`. Preserve native HTML and specialized engines where they already own behavior.
+- Keep Inter, Syne, and Geist Mono through the existing font tokens. Shared primitives support light/dark; the [admin shell](../../apps/admin/app/mc-shell.tsx) deliberately forces light. Preserve that restriction, Web Studio's shell exception, Eve panel, providers, and route-transition boundary.
+- ReUI is a source registry through shadcn. Follow the [Core ReUI workflow](../guides/development/reui.md) and source-license record; inspect source/dependencies and adapt accepted output to Maia. Do not initialize shadcn, replace the theme, or install a competing primitive system.
 
 ## Typography
 
 ### Fonts
 
-| Font           | Usage                                                          |
-| -------------- | -------------------------------------------------------------- |
-| **Inter**      | All UI body text (default `font-sans`)                         |
-| **Syne**       | Display and heading treatments (`font-display` or `font-syne`) |
-| **Geist Mono** | IDs, transaction codes, fund codes, currency amounts in tables |
+| Font                     | Usage                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| Inter (`font-sans`)      | Default UI body and component text                                               |
+| Syne (`font-display`)    | Existing editorial/display treatments; not a mandatory override on every heading |
+| Geist Mono (`font-mono`) | Copyable IDs/codes and currency columns where fixed-width digits help            |
 
-### When to Use Geist Mono (`font-mono`)
-
-Use ONLY when users might:
-
-- Copy a value (transaction IDs, fund codes)
-- Compare digits (currency amounts in table columns)
-- Scan repeated patterns (IDs, invoice numbers)
-
-**Never** use on: dates, timestamps, general text, labels, descriptions.
+Prefer ordinary proportional text for dates, timestamps, descriptions, and labels. Add `tabular-nums` when comparing aligned numeric values; keep existing currency, units, and formatting helpers.
 
 ### Type Scale
 
-| Element          | Classes                                                                      |
-| ---------------- | ---------------------------------------------------------------------------- |
-| Page title       | `text-5xl font-black tracking-tighter uppercase lg:text-6xl` (via PageShell) |
-| Page description | `text-sm font-bold uppercase tracking-widest text-zinc-400` (via PageShell)  |
-| Section title    | `text-base font-semibold`                                                    |
-| Card title       | `text-sm font-semibold` or `text-base font-semibold`                         |
-| Body             | `text-sm` (14px)                                                             |
-| Muted text       | `text-xs text-muted-foreground` or `text-sm text-muted-foreground`           |
-| Labels           | `text-xs font-medium` or `text-[10px] font-bold uppercase tracking-widest`   |
-| Stat card number | `text-3xl font-black tabular-nums tracking-tight text-zinc-900`              |
-| Stat card label  | `text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400`            |
-| Table header     | `text-xs font-semibold text-muted-foreground`                                |
-| Tabular numbers  | Always add `tabular-nums` class                                              |
+Let the owning component set its default typography:
 
----
+| Element                 | Current composition                                              |
+| ----------------------- | ---------------------------------------------------------------- |
+| PageShell compact title | Responsive `text-2xl` → `text-3xl` → `text-4xl`, semibold        |
+| PageShell default title | Responsive `text-3xl` → `text-4xl` → `text-5xl`, bold            |
+| Page description        | Readable `text-sm text-muted-foreground`, natural wrapping       |
+| Section/body text       | Usually `text-base` or `text-sm`, according to hierarchy         |
+| Card title/description  | Shared `CardTitle` / `CardDescription` defaults                  |
+| Field labels            | Shared `FieldLabel`; explicit association with the input         |
+| Statistic value         | Clear semibold numeric text; size reflects its actual importance |
+| Supporting text         | Usually `text-sm` or `text-xs text-muted-foreground`             |
+
+Do not prescribe tiny arbitrary font sizes, forced uppercase, or wide tracking for all labels/buttons. Use real heading elements where they express document structure.
 
 ## Color System
 
-### Zinc Palette (structure)
+The semantic palette lives in [globals.css](../../packages/ui/styles/globals.css). Zinc is the configured palette family, not a reason to use raw Zinc classes.
 
-| Token      | Light Mode     | Usage                       |
-| ---------- | -------------- | --------------------------- |
-| `zinc-50`  | Background     | App canvas, subtle fills    |
-| `white`    | Cards          | Card/panel surfaces         |
-| `zinc-100` | Borders, hover | Default borders, hover rows |
-| `zinc-200` | Strong borders | Emphasized borders          |
-| `zinc-400` | Muted text     | Labels, hints               |
-| `zinc-500` | Secondary text | Muted icons                 |
-| `zinc-600` | Body text      | Sidebar inactive text       |
-| `zinc-700` | Strong text    | Sidebar active text         |
-| `zinc-900` | Primary text   | Titles, headings            |
-| `zinc-950` | Darkest        | Rarely used                 |
+| Purpose                            | Tokens / shared variants                                                                                       |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Canvas and primary text            | `background`, `foreground`                                                                                     |
+| Cards and overlays                 | `card` / `card-foreground`, `popover` / `popover-foreground`                                                   |
+| Supporting text and boundaries     | `muted-foreground`, `border`, `input`, `ring`                                                                  |
+| Primary/secondary actions          | Shared Button `default`, `secondary`, `outline`, `ghost`, `destructive`                                        |
+| Status meaning                     | `success`, `warning`, `info`, `destructive`; shared Badge/Alert variants                                       |
+| Sidebar identity and navigation    | Existing `sidebar-*` tokens and Sidebar APIs                                                                   |
+| Data series/categories             | Existing `chart-*` tokens and chart configuration                                                              |
+| Intentional inverse/photo surfaces | Existing `invert` / `invert-foreground` and `media-scrim` / `media-foreground` with composited contrast review |
 
-### Accent Colors (meaning only)
-
-| Color            | Usage                      |
-| ---------------- | -------------------------- |
-| `emerald-500`    | Success status dot         |
-| `amber-500`      | Pending/warning status dot |
-| `bg-destructive` | Failed/error status        |
-| `orange-500`     | Disputed status            |
-| `rose-500`       | Notification badge         |
-
-**Rule**: No colored backgrounds on stat cards, icon containers, or decorative elements. Accent colors appear ONLY as small status dots or semantic badges.
-
----
+Use labels/icons alongside color. Preserve persisted status/category meanings; a selected label tone is not automatically an error. Do not replace global values to fix one block. A needed semantic addition belongs in the shared owner with light/dark values, actual consumers, and contrast evidence.
 
 ## Layout & Spacing
 
-### Page Structure
+Use the existing page's shell and density. `PageShell` supplies responsive padding, a wrapping title/action header, and `default` or `compact` rhythm; compact uses smaller section/header gaps. Arrange native content grids with ordinary spacing-scale utilities.
 
-Every page follows this rhythm via `PageShell`:
+Content may fill available width; forms, descriptions, and focused tasks may use justified width constraints. Do not impose a universal no-`max-w-*` rule or wrap every page in duplicate padding. Long text, action groups, filters, and footers must fit narrow viewports without clipping controls.
 
-```
-┌──────────────────────────────────┐
-│ Header (title + description)     │  ← PageShell header
-│ Actions (buttons, right-aligned) │
-├──────────────────────────────────┤
-│ Stat cards row                   │  ← flex flex-wrap gap-4
-├──────────────────────────────────┤
-│ Content area                     │  ← space-y-10
-│ (table, charts, cards, etc.)     │
-└──────────────────────────────────┘
-```
-
-### Responsive Padding
-
-```
-PageShell: p-4 sm:p-6 lg:p-8
-           (16px → 24px → 32px)
-```
-
-No `max-w-*` constraint — content fills the available width (sidebar constrains left edge).
-
-### Spacing Scale
-
-| Gap          | Usage                               |
-| ------------ | ----------------------------------- |
-| `gap-0.5`    | Between menu items                  |
-| `gap-2`      | Inline elements, icon + text        |
-| `gap-3`      | Button groups, header actions       |
-| `gap-4`      | Stat cards, card grids              |
-| `gap-6`      | Between header and content sections |
-| `space-y-10` | Between major page sections         |
-
----
+Keep Next.js Server/Client boundaries, Suspense placement, Cache Components, and route transitions intact. Do not turn an entire page into a client component solely for a registry layout.
 
 ## PageShell Component
 
-All module pages wrap in `PageShell` from `@asym/ui/components/primitives/page-shell`.
+Use [PageShell](../../packages/ui/components/primitives/page-shell.tsx) for ordinary module pages that follow its existing layout:
 
 ```tsx
 <PageShell
   title="Contributions"
-  description="Track and manage all donations and contributions."
-  actions={<Button>...</Button>}
+  description="Track and manage donations and contributions."
+  density="compact"
+  actions={actions}
 >
-  <div className="space-y-10">
-    {/* stat cards */}
-    {/* table/content */}
-  </div>
+  {/* Existing data-bound statistics and content */}
 </PageShell>
 ```
 
-**Do NOT use**: manual headers, `<h1>` tags outside PageShell, the old `PageHeader` component, or the `badge` prop (deprecated).
+The example illustrates slots; bind only actions the page actually supports. Use the existing `actions`, `breadcrumbs`, and density APIs without overriding title geometry. The compatibility `badge` prop no longer renders content.
 
----
+[PageHeader](../../packages/ui/components/page-header.tsx) remains a supported shared header for suitable existing layouts, including its named title View Transition. TilePage and editor/auth shells remain valid boundaries. Do not duplicate an `<h1>` when the owning shell already provides it.
 
 ## Stat Cards
 
-Neutral white cards with bold font-black numbers:
+Prefer existing data-bound compositions or neutral shared `Card` slots. For a simple statistic, `label` and `value` below are the existing product label and already formatted value:
 
 ```tsx
-<div className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm min-w-[140px]">
-  <div className="flex flex-col">
-    <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
-      $35,000.00
-    </span>
-    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-1">
-      Received
-    </span>
-  </div>
-</div>
+<Card>
+  <CardHeader>
+    <CardDescription>{label}</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <p className="text-2xl font-semibold tabular-nums">{value}</p>
+  </CardContent>
+</Card>
 ```
 
-**Rules**:
-
-- No colored backgrounds on stat cards
-- Use `font-mono` on stat card values ONLY for currency
-- Add staggered `motion.div` entrance animation with `delay: index * 0.06`
-- Add `whileHover={{ y: -2 }}` for hover lift
-
----
+Keep calculations, units, permissions, loading/error/empty states, and existing icons where useful. A trend is not inherently good or bad; retain the business meaning. Stat cards do not require staggered entrances, hover lifts, raw white/Zinc surfaces, or a custom radius.
 
 ## Buttons
 
-### Primary Action
+Use the shared [Button variant and size APIs](../../packages/ui/components/shadcn/button-variants.ts):
 
-```
-h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800
-font-black uppercase tracking-widest text-[10px]
-shadow-lg shadow-zinc-200 gap-2
-```
-
-### Outline Action
-
-```
-h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50
-font-bold uppercase tracking-widest text-[10px] gap-2
+```tsx
+<Button>Save changes</Button>
+<Button variant="outline">Cancel</Button>
+<Button variant="destructive">Delete</Button>
+<Button variant="ghost" size="icon-sm" aria-label="More actions">
+  <MoreHorizontal aria-hidden="true" />
+</Button>
 ```
 
-**Rules**:
+Choose primary emphasis according to the task. Preserve submit types, disabled/pending state, names, and handlers. Shared Buttons own typography, radius, colors, focus, and press feedback; callers should not copy custom heights/padding/uppercase/hover styles. Use `buttonVariants` on Next.js `Link` for navigation-shaped buttons.
 
-- One primary action per page (right side of PageShell header)
-- Consistent `h-11` height for page-level buttons
-- Uppercase text with wide tracking
-- Use `gap-2` for icon + label
-
----
+Base UI trigger composition puts the rendered Button's content inside the `render` element. Use the rendered Button's supported variant/size rather than nesting buttons or styling the trigger around it.
 
 ## Sidebar
 
-Follows the pattern from `apps/missionary/components/app-sidebar.tsx`.
+Keep the app's existing permission-aware navigation, tenant branding, account actions, mobile controls, and provider boundaries. Use shared Sidebar slots and `sidebar-*` tokens rather than importing another app's shell wholesale.
 
-### Structure
-
-```tsx
-<Sidebar collapsible="icon" className="border-r border-zinc-200/60 bg-white">
-  <SidebarHeader>   {/* Logo + org name */}
-  <SidebarContent>   {/* NavSection groups */}
-  <SidebarFooter>    {/* User avatar + name */}
-  <SidebarRail />    {/* Resize handle */}
-</Sidebar>
-```
-
-### Menu Items
-
-- Use `SidebarMenuButton` with shadcn defaults (no custom size overrides)
-- `text-[13px]` for labels, `size-4` for icons (via built-in `[&>svg]:size-4`)
-- Active: `isActive` prop + `bg-zinc-100 text-zinc-900 font-medium`
-- Inactive: `text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50`
-- Use `AppIcon` with `animated={isActive}` for spring entrance on active route
-- Use `usePathname()` for active route detection
-
-### Group Labels
-
-```
-text-[10px] font-semibold uppercase tracking-wide text-zinc-400
-```
-
-### User Footer
-
-Display-only: avatar + name + role. No interactive dropdown (profile dropdown lives in top header).
-
----
+- Use `SidebarMenuButton` with `isActive`, `render`, tooltip, and supported size APIs. Its owner supplies active/hover/focus geometry.
+- Keep current route matching and collapsed/mobile behavior. `SidebarRail` toggles the sidebar; it is not a general resize engine.
+- `SidebarTrigger` honors an explicit shared Button size. Its legacy default remains unchanged.
+- Preserve reachable account menus and sign-out wherever the app currently locates them; do not mandate a display-only footer.
+- `AppIcon` remains Lucide-based. Its animated mode currently uses a stable Motion span with `initial={false}`; it does not provide the old active-route spring entrance.
+- The sidebar shortcut must leave editable controls, cancelled events, and IME composition alone.
 
 ## Tables
 
-Use `DataTableResponsive` from `@asym/ui/components/shadcn/data-table`.
+Use [DataTableResponsive](../../packages/ui/components/shadcn/data-table/data-table-responsive.tsx) and existing [TanStack boundary](../../packages/ui/components/shadcn/data-table/tanstack.ts). Do not import a second grid or bypass the pinned version/adapters for visual changes.
+
+### Mobile Records and Actions
+
+`mobileCardConfig` is optional in TypeScript, but the default responsive behavior switches to cards below 768px. **Every caller with an active card view must supply meaningful primary fields or a `renderCard`.** There is no automatic column-cell fallback: missing fields render empty strings and can produce blank records.
+
+Field-based cards suit records that need only the configured identity/supporting/status fields. Use `renderCard` when the row needs formatted dates/currency, multiple labeled values, links, receipt controls, or other existing cell actions. Preserve existing formatter helpers and actual values.
+
+Real source examples:
+
+- [Partner roster](../../apps/missionary/app/donors/donors-page-roster.tsx): `name`, `location`, and `status`, with the existing record-open callback; selection intentionally disabled.
+- [Contributions](<../../apps/admin/app/(app)/contributions/main-body.tsx>): formatted amount/date, donor/fund/status, anonymous identity handling, selection, and detail opening.
+- [Donor History](<../../apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx>): actual transaction values and existing receipt action.
+- [Partner Giving](../../apps/missionary/app/donors/donors-page-detail.tsx): the existing Date/Type/Method/Amount/Status cells from actual gift activities.
+- [Support table](../../apps/admin/features/support-hub/components/table/SupportTableView.tsx): conversation values, open action, and controlled bulk selection.
+
+A custom `renderCard` bypasses the default card's identity, selection, and action wrappers. **It owns those controls.** When row selection applies, compose a record-named Checkbox using the actual row state (`row.getIsSelected()`, `row.getCanSelect()`, `row.toggleSelected(checked)`). Keep the Checkbox outside the record-open button/link, so selecting a row does not open it. Preserve remaining row actions and the same bulk-action payload. Opening a Support conversation is distinct from bulk row selection.
+
+Intentionally table-only surfaces remain appropriate. For `DataTableResponsive`, use the existing explicit contract when needed:
 
 ```tsx
-<DataTableResponsive
-  columns={columns}
-  data={data}
-  filterFields={filterFields}
-  searchKey="donor"
-  searchPlaceholder="Search..."
-  config={{
-    enableRowSelection: true,
-    enableColumnVisibility: true,
-    enablePagination: true,
-    enableFilters: true,
-    enableSorting: true,
-    enableViewToggle: true,
-    enableKeyboardNavigation: true,
-  }}
-/>
+config={{
+  enableViewToggle: false,
+  defaultViewMode: "table",
+  mobileBreakpoint: 0,
+}}
 ```
 
-### Column Styling
+`DataTableWrapper` already supplies these defaults. Current CRM, Notes, and Relationships retain their explicit table-only mode and manual operations. Verify horizontal scrolling and action reachability instead of forcing cards onto every dense table.
 
-- Donor/name: `text-sm font-semibold text-foreground` (clickable)
-- Amount: `font-mono text-sm font-semibold text-foreground tabular-nums` (right-aligned)
-- Date: `text-sm text-muted-foreground` (NO font-mono)
-- Status: dot indicator (`h-2 w-2 rounded-full`) + text label
-- Fund code: `font-mono text-xs text-muted-foreground`
-- Transaction ID: `font-mono text-xs text-muted-foreground tabular-nums`
+### Behavior and Columns
 
-### Column Factory Pattern
+Preserve sorting, filters, saved serialization, URL/browser history, server/manual pagination and totals, stable IDs, selection, column controls, virtualization, keyboard access, exports, realtime updates, and optimistic mutations. Never apply client filtering/sorting only to the loaded server page.
 
-```tsx
-export function getColumns({ onViewItem }) {
-  return [
-    /* columns array */
-  ];
-}
-```
-
----
+Use the existing column factories and shared cell adapters. Names remain readable; currency/IDs may use `font-mono` and `tabular-nums`; dates use existing date/timezone formatters. Status labels and semantic Badge variants retain their meanings. ReUI Filters/Data Grid replacements require API/state compatibility review, not a cosmetic swap.
 
 ## Detail Sheets
 
-Side sheet for viewing record details. Uses `Sheet` + `SheetContent` from shadcn.
+Use existing shared `Sheet`, `SheetContent`, `SheetHeader`, `SheetTitle`, and description/footer slots. Let the owner provide geometry, focus, dismissal, scrolling, and close controls. Keep readable labels and long values, meaningful headings, pending/error feedback, and reachable actions at narrow/short viewports.
 
-### Labels
-
-```
-text-[9px] font-bold text-muted-foreground uppercase tracking-widest
-```
-
-### Values
-
-```
-text-sm font-bold text-foreground
-```
-
-### Amount Display
-
-```
-text-3xl font-black font-mono tabular-nums text-foreground tracking-tight
-```
-
-### Action Buttons
-
-```
-rounded-xl font-bold uppercase tracking-widest text-[10px] h-9
-```
-
----
+Preserve form payloads, dirty state, keyboard submission, async validation and focus restoration. Use TanStack Form/Zod for existing complex forms and native/server forms where intentional. For long dialogs use `DialogContent scrollable`; do not add competing consumer height/scroll implementations.
 
 ## Cards
 
-```
-rounded-2xl border border-zinc-100 shadow-sm
-```
+Use shared `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, and `CardFooter` slots with their Maia defaults. Native child wrappers may arrange content; caller classes do not redefine the primitive's surface, radius, padding, focus, or motion.
 
-Module cards (Admin page, Support page): add `hover:-translate-y-1 hover:shadow-lg transition-all duration-300`.
-
----
+Interactive cards need a real named button/link and visible keyboard focus. Static information cards do not require hover motion. Use the existing source-derived shared settings compositions where they fit live settings sections; they do not own app field/save state.
 
 ## Motion & Animation
 
-Import from `@asym/lib/motion`.
+Follow the [motion rulebook](rules/frontend.md#motion-rules) and [Core motion skill](skills/anim/SKILL.md). Use motion only when it improves feedback, continuity, or state understanding; calm static statistics/content are valid.
 
-### Transitions
-
-```tsx
-const smooth = {
-  duration: 0.25,
-  ease: [0.25, 0.1, 0.25, 1],
-};
-```
-
-### Page Entrance (via PageShell)
-
-- Header: `initial={{ opacity: 0, y: -8 }}` → `animate={{ opacity: 1, y: 0 }}`
-- Actions: slide-in from right with 100ms delay
-
-### Stat Card Entrance
-
-```tsx
-<motion.div
-  initial={{ opacity: 0, y: 16 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ ...smooth, delay: index * 0.06 }}
-  whileHover={{ y: -2 }}
-/>
-```
-
-### Content Sections
-
-```tsx
-<motion.div
-  initial={{ opacity: 0, y: 12 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ ...smooth, delay: 0.3 }}
-/>
-```
-
-### Where Motion Belongs
-
-- ✅ Page entrance (PageShell header)
-- ✅ Stat card stagger
-- ✅ Content section fade-in
-- ✅ Card hover lift (`whileHover: { y: -2 }`)
-- ✅ Active sidebar icon (spring scale via AppIcon)
-- ✅ Collapsible sub-menu expand/collapse
-
-### Where Motion Does NOT Belong
-
-- ❌ Long page transitions
-- ❌ Bounce or overshoot effects
-- ❌ Delays that block interaction
-- ❌ Every hover (only on interactive cards)
-
----
+- Import JS motion from `@asym/lib/motion` and timing/presets from [motion-presets](../../packages/lib/motion-presets.ts). Use existing `--duration-*` / `--ease-*` CSS tokens instead of new literals.
+- Shared Button press feedback is automatic. Native controls use `press-feedback` where appropriate; avoid duplicate CSS/Motion transforms.
+- `hover-lift` / `hover-scale-subtle` already gate transforms to fine pointers. Avoid ungated touch hover effects and `transition-all`.
+- Route entrances belong to the existing boundary. Suppress a component entrance inside a route View Transition via `useWithinViewTransitionRouteLayer()`; PageShell already handles this.
+- Respect `useReducedMotion()` and keep server/initial-client markup stable. Do not require delayed stat/content entrances, springs on controls, or animations for keyboard command activation.
+- Preserve existing gesture/editor exceptions and supported extension points; do not add a parallel animator.
 
 ## Charts
 
-Use Recharts loaded via `dynamic()` with `ssr: false`.
+Retain the existing chart engine and loading boundary. Some client-only charts use `dynamic(..., { ssr: false })`; that is an existing implementation choice, not a mandate to rewrite every chart.
 
-### Zinc Color Palette for Charts
+Use the shared `ChartContainer`, `ChartConfig`, tooltip, and legend APIs where the chart already follows them. The [Support bar chart](../../apps/admin/features/support-hub/components/reports/ReportBarChart.tsx) demonstrates semantic series and axes:
 
-```
-Recurring: #27272a (zinc-800) with gradient
-One-Time:  #71717a (zinc-500) with gradient
-Offline:   #d4d4d8 (zinc-300)
+```tsx
+config={{ value: { label: title, color: "var(--chart-1)" } }}
 ```
 
-### Chart Styling
-
-- `CartesianGrid`: `stroke="#f4f4f5"` (zinc-100), `vertical={false}`
-- `XAxis/YAxis`: `fontSize={10}`, `fontWeight={700}`, `stroke="#a1a1aa"` (zinc-400)
-- Tooltip: `borderRadius: 16`, `border: "1px solid #e4e4e7"`, deep shadow
-- Bar animation: staggered `animationBegin` (200/400/600ms), `800ms` duration, `ease-out`
-- Custom legend with dot indicators below chart
-
----
+Its series uses `var(--color-value)`, grid uses `var(--border)`, and axes use `var(--muted-foreground)`. Preserve actual calculations, labels, currency/units, date ranges, accessible summaries and zero values. Use existing loading/empty/error chart wrappers where appropriate. Do not prescribe raw hex palettes, custom tooltip appearance, or staggered bar animation.
 
 ## Empty States
 
-```tsx
-<div className="text-center py-32 bg-zinc-50/50 border-2 border-dashed border-zinc-200 rounded-[2.5rem]">
-  <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
-    <Icon className="size-10 text-zinc-200" />
-  </div>
-  <h3 className="text-2xl font-black text-zinc-900 tracking-tight">Title</h3>
-  <p className="text-sm text-zinc-500 mt-2 font-medium">Description</p>
-  <Button className="mt-8 ...">CTA</Button>
-</div>
-```
+Compose the shared `Empty`, `EmptyHeader`, `EmptyMedia`, `EmptyTitle`, `EmptyDescription`, and `EmptyContent` slots. State what actually happened: no records, no filter matches, unavailable service, permission denied, and loading are different states.
 
----
+Only offer actions the product supports. Preserve truthful scaffolding and existing retry/filter-reset behavior; do not invent records or activate unfinished integrations to make a screen appear complete.
 
 ## Icons
 
-- **Standard icons**: Import from `lucide-react`
-- **Animated icons**: `lucide-animated` installed for sidebar active states
-- **AppIcon wrapper**: Use `@asym/ui/components/shadcn/icons/AppIcon` for icons that need active animation
-- Icon size in sidebar: `size-4` (16px) via shadcn default
-- Icon size in buttons: `size-4` (16px)
-- Icon size in stat cards: not used (numbers speak for themselves)
-
----
+Import Lucide icons from `lucide-react`, or use the existing shared `AppIcon` API. Do not add another icon library for sidebar animation. Shared controls own their standard icon sizing; decorative icons are hidden from assistive technology, and icon-only controls have persistent accessible names.
 
 ## Accessibility
 
-- Visible focus on every interactive element (`:focus-visible` via globals.css)
-- Keyboard navigation in tables, dialogs, selects, popovers
-- `aria-label` on icon-only buttons
-- Semantic HTML: `<main>`, `<header>`, `<nav>` (via Sidebar)
-- Touch targets: minimum 44px on mobile (via `touch-target` utility)
+Check keyboard navigation, focus visibility/restoration, labels/errors, dialog dismissal, portal/scroll interactions, zoom/reflow, and touch behavior. Use native headings, landmarks, tables, and form associations, with Base UI behavior where appropriate.
 
----
+Prefer comfortable touch hit areas and spacing through supported owner sizes or native labeled wrappers; do not restyle a shared Button's dimensions to meet a target. Check compact targets against the accessibility requirements and actual narrow layout. Status/photo contrast must be verified in the rendered light/dark or supported app mode. Automated accessibility checks complement manual interaction review.
 
 ## Component Imports
-
-### From `@asym/ui` (shared package)
 
 ```tsx
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -468,52 +254,41 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
+import type {
+  ColumnDef,
+  Row,
+} from "@asym/ui/components/shadcn/data-table/tanstack";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Sheet, SheetContent } from "@asym/ui/components/shadcn/sheet";
 import { AppIcon } from "@asym/ui/components/shadcn/icons/AppIcon";
-import { cn } from "@asym/ui/lib/utils";
+import { SettingsCard } from "@asym/ui/components/settings";
 ```
 
-### From `@asym/lib` (shared library)
-
-```tsx
-import { motion } from "@asym/lib/motion";
-import { formatCurrency } from "@asym/lib/utils";
-```
-
-### Icons
-
-```tsx
-import { DollarSign, Users, ... } from "lucide-react";
-```
-
----
+Use `cn` from `@asym/ui/lib/utils` when merging allowed native/placement classes. Preserve actual business formatting imports rather than inventing a generic formatter. App feature compositions remain in their owning app; reusable controls belong in `packages/ui`.
 
 ## Pages NOT Following PageShell Pattern
 
-These pages use different layout paradigms and are excluded from the PageShell standard:
+| Surface                            | Existing boundary                                                                      |
+| ---------------------------------- | -------------------------------------------------------------------------------------- |
+| Email / PDF Studio                 | Dedicated editor chrome and supported runtime adapters                                 |
+| Web Studio                         | Payload/editor and preview layout; preserve the admin shell exception                  |
+| Sign Studio                        | TilePage composition                                                                   |
+| Login / Register                   | Shared auth flow                                                                       |
+| Other existing specialized layouts | Retain the established shell when PageShell would duplicate structure or remount state |
 
-| Page           | Reason                             |
-| -------------- | ---------------------------------- |
-| Email Studio   | Full-screen React Email editor     |
-| PDF Studio     | Full-screen legacy document editor |
-| Web Studio     | Editor + preview rail layout       |
-| Sign Studio    | TilePage-based layout              |
-| Login/Register | Auth flow                          |
-
----
+These exceptions preserve composition and engine ownership; their first-party chrome still follows semantic tokens, shared controls, accessibility, and supported motion.
 
 ## Checklist for New Pages
 
-- [ ] Uses `PageShell` wrapper
-- [ ] No `slate-*` classes (use `zinc-*`)
-- [ ] No hardcoded hex colors
-- [ ] Stat cards use neutral white style
-- [ ] Buttons follow primary/outline pattern
-- [ ] Motion entrance on stat cards and content
-- [ ] `font-mono` only on IDs, codes, and currency amounts
-- [ ] `tabular-nums` on all numbers
-- [ ] Responsive padding (`p-4 sm:p-6 lg:p-8` via PageShell)
-- [ ] No `max-w-*` constraint
-- [ ] Links use Next.js `Link` component
-- [ ] Icons from `lucide-react`
+- [ ] Exact Base UI + `base-maia` configuration, shared aliases/fonts/icons/tokens preserved.
+- [ ] Existing shell/provider/theme restriction retained; PageShell density or a justified existing specialized layout used.
+- [ ] Shared Button/Card/field/overlay APIs used without appearance overrides or raw palettes.
+- [ ] Real data, calculations, payloads, permissions, async states and supported actions preserved.
+- [ ] Active mobile cards show meaningful records and all applicable controlled selection/actions; table-only layouts scroll accessibly.
+- [ ] TanStack imports remain behind the Core boundary; manual/server operations and saved/URL state remain intact.
+- [ ] Forms, accessible names, keyboard/focus, touch, narrow/long-text and loading/empty/error/pending states verified.
+- [ ] Motion uses existing tokens, respects reduced motion and route boundaries, and does not add mandatory entrances.
+- [ ] Charts use semantic configuration and retain existing engine/formatting/loading boundaries.
+- [ ] Scoped design-system lint and relevant component/browser checks completed; shared changes checked across consumers.
+
+Follow the [design-system lint workflow](skills/moai-library-shadcn/references/design-system-lint.md) and [testing rules](rules/testing.md) for the applicable checks. Registry work also follows [ReUI guidance](skills/reui/SKILL.md), source rights, and controlled source/dependency review.

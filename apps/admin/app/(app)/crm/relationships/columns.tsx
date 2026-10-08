@@ -3,7 +3,6 @@
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
-import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 
 import type { CrmRelationshipRow } from "@asym/database/types";
@@ -29,24 +28,6 @@ function formatCommitment(row: CrmRelationshipRow) {
     : amount;
 }
 
-const DOMAIN_BADGE_CLASS: Record<CrmRelationshipRow["domain"], string> = {
-  activity: "border-sky-200 bg-sky-50 text-sky-700",
-  churches: "border-violet-200 bg-violet-50 text-violet-700",
-  households: "border-teal-200 bg-teal-50 text-teal-700",
-  organizations: "border-indigo-200 bg-indigo-50 text-indigo-700",
-  people: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  pledges: "border-amber-200 bg-amber-50 text-amber-700",
-};
-
-const AUTHORITY_BADGE_CLASS: Record<
-  CrmRelationshipRow["authorityScope"],
-  string
-> = {
-  care_excluded: "border-rose-200 bg-rose-50 text-rose-700",
-  crm_relationship: "border-zinc-200 bg-zinc-50 text-zinc-700",
-  finance_summary: "border-amber-200 bg-amber-50 text-amber-700",
-};
-
 export function getCrmRelationshipColumns(): ColumnDef<CrmRelationshipRow>[] {
   return [
     {
@@ -63,15 +44,7 @@ export function getCrmRelationshipColumns(): ColumnDef<CrmRelationshipRow>[] {
               <span className="truncate text-sm font-semibold">
                 {relationship.displayName}
               </span>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "h-5 rounded-md text-[9px] font-semibold uppercase shadow-none",
-                  DOMAIN_BADGE_CLASS[relationship.domain],
-                )}
-              >
-                {relationship.domain}
-              </Badge>
+              <Badge variant="secondary">{relationship.domain}</Badge>
             </div>
             {relationship.secondaryLabel ? (
               <p className="mt-1 truncate text-xs text-muted-foreground">
@@ -95,13 +68,7 @@ export function getCrmRelationshipColumns(): ColumnDef<CrmRelationshipRow>[] {
           <span className="text-xs font-medium">
             {row.original.sourceSystem}
           </span>
-          <Badge
-            variant="outline"
-            className={cn(
-              "block h-auto w-fit rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase shadow-none",
-              AUTHORITY_BADGE_CLASS[row.original.authorityScope],
-            )}
-          >
+          <Badge variant="outline">
             {row.original.authorityScope === "finance_summary"
               ? "Payment truth in Asym"
               : row.original.authorityScope === "care_excluded"

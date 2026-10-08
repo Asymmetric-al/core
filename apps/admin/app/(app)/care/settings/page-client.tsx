@@ -2,6 +2,7 @@
 
 import { siteConfig } from "@asym/config/site-client";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
+import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -84,30 +85,17 @@ const ALERT_PREFERENCES: AlertPreference[] = [
   },
 ];
 
-function CareSettingsHeader() {
-  return (
-    <div>
-      <h2 className="text-2xl font-semibold tracking-tight text-zinc-900 text-left">
-        Care Settings
-      </h2>
-      <p className="text-zinc-600 mt-1 text-sm font-medium text-left">
-        Configure regional defaults and care workflow integrations.
-      </p>
-    </div>
-  );
-}
-
 function RegionalLocalizationCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-4xl">
-      <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-border bg-muted/30">
         <div className="flex items-center gap-3">
-          <Globe className="size-5 text-zinc-400" />
+          <Globe className="size-5 text-muted-foreground" />
           <div>
-            <CardTitle className="text-lg font-semibold text-zinc-900">
+            <CardTitle className="text-lg font-semibold text-foreground">
               Regional Localization
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-zinc-500">
+            <CardDescription className="text-xs font-medium text-muted-foreground">
               Define your default focus area and timezone.
             </CardDescription>
           </div>
@@ -118,7 +106,7 @@ function RegionalLocalizationCard() {
           <div className="space-y-2 text-left">
             <Label
               htmlFor="region"
-              className="text-xs font-semibold uppercase tracking-wider text-zinc-400 px-1"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1"
             >
               Default Region
             </Label>
@@ -131,10 +119,7 @@ function RegionalLocalizationCard() {
               ]}
               defaultValue="se-asia"
             >
-              <SelectTrigger
-                id="region"
-                className="h-10 border-zinc-200 rounded-xl"
-              >
+              <SelectTrigger id="region">
                 <SelectValue placeholder="Select region" />
               </SelectTrigger>
               <SelectContent>
@@ -148,7 +133,7 @@ function RegionalLocalizationCard() {
           <div className="space-y-2 text-left">
             <Label
               htmlFor="timezone"
-              className="text-xs font-semibold uppercase tracking-wider text-zinc-400 px-1"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1"
             >
               My Timezone
             </Label>
@@ -161,10 +146,7 @@ function RegionalLocalizationCard() {
               ]}
               defaultValue="utc-5"
             >
-              <SelectTrigger
-                id="timezone"
-                className="h-10 border-zinc-200 rounded-xl"
-              >
+              <SelectTrigger id="timezone">
                 <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
               <SelectContent>
@@ -183,15 +165,15 @@ function RegionalLocalizationCard() {
 
 function ConnectedServicesCard() {
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-4xl">
-      <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-border bg-muted/30">
         <div className="flex items-center gap-3">
-          <LinkIcon className="size-5 text-zinc-400" />
+          <LinkIcon className="size-5 text-muted-foreground" />
           <div>
-            <CardTitle className="text-lg font-semibold text-zinc-900">
+            <CardTitle className="text-lg font-semibold text-foreground">
               Connected Services
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-zinc-500">
+            <CardDescription className="text-xs font-medium text-muted-foreground">
               Sync check-ins and appointments with external tools.
             </CardDescription>
           </div>
@@ -201,38 +183,27 @@ function ConnectedServicesCard() {
         {CONNECTED_SERVICES.map((service) => (
           <div
             key={service.name}
-            className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 bg-white group hover:border-zinc-200 transition-colors"
+            className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl border border-border bg-card group hover:border-border transition-colors"
           >
             <div className="space-y-1 text-left">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-zinc-900">
+                <span className="text-sm font-semibold text-foreground">
                   {service.name}
                 </span>
                 {service.connected && (
-                  <Check className="size-3 text-zinc-900" />
+                  <Check className="size-3 text-foreground" />
                 )}
               </div>
-              <p className="text-xs font-medium text-zinc-400">
+              <p className="text-xs font-medium text-muted-foreground">
                 {service.desc}
               </p>
             </div>
             {service.readonly ? (
-              <Badge
-                variant="secondary"
-                className="font-semibold uppercase tracking-widest bg-zinc-100 text-zinc-500 border-none"
-              >
-                System Link
-              </Badge>
+              <Badge variant="secondary">System Link</Badge>
             ) : (
               <Button
                 variant={service.connected ? "outline" : "default"}
                 size="sm"
-                className={cn(
-                  "h-8 font-semibold uppercase tracking-widest px-4 rounded-lg",
-                  service.connected
-                    ? "border-zinc-200 text-zinc-500 hover:text-zinc-900"
-                    : "bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200/50",
-                )}
               >
                 {service.connected ? "Disconnect" : "Connect"}
               </Button>
@@ -247,15 +218,15 @@ function ConnectedServicesCard() {
 function AlertPreferencesCard() {
   const preferenceId = React.useId();
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-4xl">
-      <CardHeader className="border-b border-zinc-50 bg-zinc-50/30">
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b border-border bg-muted/30">
         <div className="flex items-center gap-3">
-          <Bell className="size-5 text-zinc-400" />
+          <Bell className="size-5 text-muted-foreground" />
           <div>
-            <CardTitle className="text-lg font-semibold text-zinc-900">
+            <CardTitle className="text-lg font-semibold text-foreground">
               Alert Preferences
             </CardTitle>
-            <CardDescription className="text-xs font-medium text-zinc-500">
+            <CardDescription className="text-xs font-medium text-muted-foreground">
               Manage how you receive wellness and crisis updates.
             </CardDescription>
           </div>
@@ -263,21 +234,25 @@ function AlertPreferencesCard() {
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
         {ALERT_PREFERENCES.map((pref) => (
-          <div key={pref.label} className="flex items-center justify-between">
+          <div
+            key={pref.label}
+            className="flex items-center justify-between gap-4"
+          >
             <div className="space-y-0.5 text-left">
               <Label
                 htmlFor={`${preferenceId}-${pref.label.replace(/\W+/g, "-")}`}
-                className="text-sm font-semibold text-zinc-900"
+                className="text-sm font-semibold text-foreground"
               >
                 {pref.label}
               </Label>
-              <p className="text-xs font-medium text-zinc-400">{pref.desc}</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                {pref.desc}
+              </p>
             </div>
             <Switch
               id={`${preferenceId}-${pref.label.replace(/\W+/g, "-")}`}
               aria-label={pref.label}
               defaultChecked={pref.defaultChecked}
-              className="data-checked:bg-zinc-900"
             />
           </div>
         ))}
@@ -295,11 +270,11 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
   const pendingActionLabelId = useId();
 
   return (
-    <Card className="border-zinc-900 bg-zinc-900 text-white shadow-xl shadow-zinc-300/40 overflow-hidden rounded-2xl sticky top-6">
+    <Card className="sticky top-6 overflow-hidden">
       <CardContent className="p-6 space-y-5">
         <div className="space-y-2">
           <h3 className="font-semibold text-xl tracking-tight">Save Changes</h3>
-          <p className="text-xs font-medium text-zinc-300 leading-relaxed">
+          <p className="text-xs font-medium text-muted-foreground leading-relaxed">
             Update your global preferences. Changes apply immediately across the
             Member Care module.
           </p>
@@ -309,7 +284,7 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
           focusableWhenDisabled={saving}
           onClick={onSave}
           disabled={saving}
-          className="w-full bg-white text-zinc-900 hover:bg-zinc-100 font-semibold h-10 shadow-lg rounded-xl"
+          className="w-full"
         >
           <span id={`${pendingActionLabelId}-0`} className="sr-only">
             {saving ? "Updating..." : "Update Settings"}
@@ -322,9 +297,9 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
             </>
           )}
         </Button>
-        <div className="pt-5 border-t border-zinc-800 flex items-start gap-3">
-          <Shield className="size-4 text-zinc-300 shrink-0" />
-          <p className="text-xs font-medium text-zinc-300 text-left leading-relaxed">
+        <div className="pt-5 border-t border-border flex items-start gap-3">
+          <Shield className="size-4 text-muted-foreground shrink-0" />
+          <p className="text-xs font-medium text-muted-foreground text-left leading-relaxed">
             Your data access is restricted to authorized personnel records.
             Pastoral notes are stored securely.
           </p>
@@ -336,30 +311,30 @@ function SaveChangesCard({ saving, onSave }: SaveChangesCardProps) {
 
 function ModuleInfoCard() {
   return (
-    <Card className="border-zinc-200 bg-white shadow-sm overflow-hidden rounded-2xl">
+    <Card className="overflow-hidden">
       <CardContent className="p-6 space-y-5">
-        <div className="flex items-center gap-2 text-zinc-900">
+        <div className="flex items-center gap-2 text-foreground">
           <Info className="size-4" />
           <h4 className="text-sm font-semibold">Module Info</h4>
         </div>
         <div className="space-y-4 text-left">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-zinc-400 font-medium">Active Module</span>
-            <span className="font-semibold text-zinc-900">Member Care</span>
+            <span className="text-muted-foreground font-medium">
+              Active Module
+            </span>
+            <span className="font-semibold text-foreground">Member Care</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-zinc-500 font-medium">Status</span>
-            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 h-5 font-semibold shadow-none">
-              Active
-            </Badge>
+            <span className="text-muted-foreground font-medium">Status</span>
+            <Badge variant="success">Active</Badge>
           </div>
 
-          <div className="pt-4 border-t border-zinc-100 space-y-4">
+          <div className="pt-4 border-t border-border space-y-4">
             <div className="flex flex-col gap-1">
-              <span className="text-xs font-semibold text-zinc-500">
+              <span className="text-xs font-semibold text-muted-foreground">
                 Tenant Website
               </span>
-              <span className="text-xs font-semibold text-zinc-900">
+              <span className="text-xs font-semibold text-foreground">
                 {siteConfig.name}
               </span>
             </div>
@@ -368,8 +343,10 @@ function ModuleInfoCard() {
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                buttonVariants({ variant: "outline" }),
-                "w-full h-10 rounded-xl border-zinc-200 text-sm font-semibold text-zinc-900 group",
+                buttonVariants({
+                  variant: "outline",
+                  className: "group w-full",
+                }),
               )}
             >
               Visit Home Page
@@ -396,15 +373,17 @@ export default function CareSettingsPage() {
   };
 
   return (
-    <div
-      className={cn(
-        "p-6 space-y-6 pb-20",
-        !withinRouteVt && "animate-in fade-in duration-300",
-      )}
+    <PageShell
+      title="Care Settings"
+      description="Configure regional defaults and care workflow integrations."
+      density="compact"
     >
-      <CareSettingsHeader />
-
-      <div className="grid gap-6 lg:grid-cols-12">
+      <div
+        className={cn(
+          "grid gap-6 lg:grid-cols-12",
+          !withinRouteVt && "animate-in fade-in duration-300",
+        )}
+      >
         <div className="lg:col-span-8 space-y-6">
           <RegionalLocalizationCard />
           <ConnectedServicesCard />
@@ -416,6 +395,6 @@ export default function CareSettingsPage() {
           <ModuleInfoCard />
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

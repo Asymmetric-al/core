@@ -2,7 +2,7 @@
 export function WorkerStory({ description }: { description: string }) {
   return (
     <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed font-light">
-      <blockquote className="font-medium text-xl text-foreground leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic not-prose">
+      <blockquote className="font-medium text-xl text-foreground leading-relaxed mb-8 border-l-4 border-success pl-6 italic not-prose">
         &quot;{description}&quot;
       </blockquote>
       <h3>The Mission</h3>

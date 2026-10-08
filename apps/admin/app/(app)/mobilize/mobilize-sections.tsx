@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { STAGE_COLORS } from "./stage-colors";
+import { STAGE_VARIANTS } from "./stage-colors";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -92,13 +92,13 @@ const StatCard = ({
   color: string;
   context: string;
 }) => (
-  <div className="rounded-2xl border border-zinc-100 bg-white px-5 py-4 shadow-sm">
+  <div className="rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
     <div className="flex items-center justify-between">
       <div className="text-left">
-        <h3 className="text-3xl font-semibold tabular-nums tracking-tight text-zinc-900 mt-0.5">
+        <h3 className="text-3xl font-semibold tabular-nums tracking-tight text-foreground mt-0.5">
           {value}
         </h3>
-        <p className="mt-1 text-sm font-semibold text-zinc-900">{title}</p>
+        <p className="mt-1 text-sm font-semibold text-foreground">{title}</p>
         <p className="mt-0.5 text-xs font-medium text-muted-foreground">
           {context}
         </p>
@@ -131,7 +131,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
           title="New Applicants"
           value={stats.applied}
           icon={Users}
-          color="text-zinc-600"
+          color="text-muted-foreground"
           context="New files to triage"
         />
       </motion.div>
@@ -149,7 +149,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
           title="In Vetting"
           value={stats.vetting}
           icon={ClipboardCheck}
-          color="text-blue-600"
+          color="text-info"
           context="Active review workflow"
         />
       </motion.div>
@@ -167,7 +167,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
           title="In Training"
           value={stats.training}
           icon={GraduationCap}
-          color="text-purple-600"
+          color="text-info"
           context="Preparing for deployment"
         />
       </motion.div>
@@ -185,7 +185,7 @@ export function MobilizeStatsRow({ stats }: { stats: MobilizeStats }) {
           title="Ready"
           value={stats.ready}
           icon={Plane}
-          color="text-emerald-600"
+          color="text-success"
           context="Cleared for placement"
         />
       </motion.div>
@@ -225,16 +225,16 @@ export function MobilizePipelineTable({
             onClick={() => onSelectCandidate(row.original)}
             className="flex w-full items-center gap-2.5 py-1 text-left"
           >
-            <Avatar className="size-8 bg-zinc-100 border border-zinc-200 rounded-lg">
-              <AvatarFallback className="text-xs font-semibold text-zinc-600">
+            <Avatar className="size-8 bg-muted border border-border rounded-lg">
+              <AvatarFallback className="text-xs font-semibold text-muted-foreground">
                 {row.original.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="text-left">
-              <div className="text-sm font-semibold text-zinc-900 leading-tight">
+              <div className="text-sm font-semibold text-foreground leading-tight">
                 {row.original.name}
               </div>
-              <div className="mt-0.5 text-xs text-zinc-600 leading-tight">
+              <div className="mt-0.5 text-xs text-muted-foreground leading-tight">
                 {row.original.email}
               </div>
             </div>
@@ -248,10 +248,10 @@ export function MobilizePipelineTable({
         ),
         cell: ({ row }) => (
           <div className="flex flex-col text-left">
-            <span className="text-sm font-semibold text-zinc-800 leading-tight">
+            <span className="text-sm font-semibold text-foreground leading-tight">
               {row.original.role}
             </span>
-            <span className="text-xs text-zinc-600 flex items-center gap-1 mt-0.5">
+            <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <MapPin className="size-3" /> {row.original.location}
             </span>
           </div>
@@ -263,13 +263,7 @@ export function MobilizePipelineTable({
           <DataTableColumnHeader column={column} title="Stage" />
         ),
         cell: ({ row }) => (
-          <Badge
-            variant="outline"
-            className={cn(
-              "h-5 border px-2 py-0 text-xs font-semibold shadow-none",
-              STAGE_COLORS[row.original.stage],
-            )}
-          >
+          <Badge variant={STAGE_VARIANTS[row.original.stage]}>
             {row.original.stage}
           </Badge>
         ),
@@ -281,7 +275,7 @@ export function MobilizePipelineTable({
         ),
         cell: ({ row }) => (
           <div className="w-28 space-y-1.5">
-            <div className="flex justify-between text-xs font-semibold text-zinc-700">
+            <div className="flex justify-between text-xs font-semibold text-muted-foreground">
               <span>{row.original.readiness}% ready</span>
             </div>
             <Progress
@@ -303,7 +297,7 @@ export function MobilizePipelineTable({
               className="size-8 rounded-lg"
               onClick={() => onSelectCandidate(row.original)}
             >
-              <MoreHorizontal className="size-4 text-zinc-400" />
+              <MoreHorizontal className="size-4 text-muted-foreground" />
             </Button>
           </div>
         ),
@@ -313,8 +307,8 @@ export function MobilizePipelineTable({
   );
 
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm flex flex-col">
-      <div className="p-3 border-b border-zinc-100 flex flex-col lg:flex-row justify-between items-center gap-3 bg-zinc-50/50">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="p-3 border-b border-border flex flex-col lg:flex-row justify-between items-center gap-3 bg-muted/50">
         <Tabs
           value={activeTab}
           onValueChange={(value) => {
@@ -322,49 +316,24 @@ export function MobilizePipelineTable({
               onTabChange(value as MobilizeTab);
             }
           }}
-          className="w-full lg:w-auto"
+          className="w-full overflow-x-auto lg:w-auto"
         >
-          <TabsList className="bg-white border border-zinc-200 h-8 rounded-lg p-0.5">
-            <TabsTrigger
-              value="all"
-              className="h-7 px-3 text-xs font-semibold rounded-md"
-            >
-              All
-            </TabsTrigger>
-            <TabsTrigger
-              value="applied"
-              className="h-7 px-3 text-xs font-semibold rounded-md"
-            >
-              Applied
-            </TabsTrigger>
-            <TabsTrigger
-              value="vetting"
-              className="h-7 px-3 text-xs font-semibold rounded-md"
-            >
-              Vetting
-            </TabsTrigger>
-            <TabsTrigger
-              value="training"
-              className="h-7 px-3 text-xs font-semibold rounded-md"
-            >
-              Training
-            </TabsTrigger>
-            <TabsTrigger
-              value="ready"
-              className="h-7 px-3 text-xs font-semibold rounded-md"
-            >
-              Ready
-            </TabsTrigger>
+          <TabsList className="h-auto w-max min-w-full justify-start">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="applied">Applied</TabsTrigger>
+            <TabsTrigger value="vetting">Vetting</TabsTrigger>
+            <TabsTrigger value="training">Training</TabsTrigger>
+            <TabsTrigger value="ready">Ready</TabsTrigger>
           </TabsList>
         </Tabs>
 
         <div className="flex items-center gap-2 w-full lg:w-auto">
           <div className="relative flex-1 lg:w-60">
-            <Search className="absolute left-2.5 top-2 size-3.5 text-zinc-400" />
+            <Search className="absolute left-2.5 top-2 size-3.5 text-muted-foreground" />
             <Input
               aria-label="Search candidates"
               placeholder="Search candidates..."
-              className="pl-8 bg-white h-8 text-xs rounded-lg"
+              className="pl-8"
               value={searchTerm}
               onChange={(event) => onSearchTermChange(event.target.value)}
             />
@@ -373,9 +342,8 @@ export function MobilizePipelineTable({
             aria-label="Open candidate filters"
             variant="outline"
             size="icon"
-            className="bg-white border-zinc-200 shadow-none size-8 rounded-lg"
           >
-            <Filter className="size-3.5 text-zinc-500" />
+            <Filter className="size-3.5 text-muted-foreground" />
           </Button>
         </div>
       </div>
@@ -416,12 +384,13 @@ export function MobilizeAddCandidateSheet({
       <SheetContent className="w-full sm:max-w-xl p-0 gap-0 flex flex-col h-full">
         <SheetHeader className="px-6 py-5 bg-card border-b border-border">
           <SheetTitle className="text-xl font-semibold flex items-center gap-2">
-            <Plus className="size-5 text-zinc-600" /> New Candidate Profile
+            <Plus className="size-5 text-muted-foreground" /> New Candidate
+            Profile
           </SheetTitle>
           <SheetDescription>Start a new mobilization file.</SheetDescription>
         </SheetHeader>
-        <div className="p-6 flex flex-col gap-4 text-left">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6 text-left">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor={`${fieldId}-first-name`}>First Name</Label>
               <Input
@@ -457,16 +426,10 @@ export function MobilizeAddCandidateSheet({
           </div>
         </div>
         <SheetFooter className="p-6 border-t bg-card mt-auto">
-          <Button
-            variant="outline"
-            className="rounded-xl border-zinc-200 font-semibold uppercase tracking-widest"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest">
-            Create Profile
-          </Button>
+          <Button>Create Profile</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
@@ -484,7 +447,7 @@ export function MobilizeCandidateDetailSheet({
 }: MobilizeCandidateDetailSheetProps) {
   return (
     <Sheet open={Boolean(candidate)} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 overflow-hidden bg-zinc-50 shadow-2xl border-l border-zinc-200 flex flex-col h-full">
+      <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 overflow-hidden bg-muted shadow-2xl border-l border-border flex flex-col h-full">
         <SheetHeader className="sr-only">
           <SheetTitle>Candidate Profile: {candidate?.name}</SheetTitle>
           <SheetDescription>
@@ -494,39 +457,29 @@ export function MobilizeCandidateDetailSheet({
 
         {candidate && (
           <>
-            <div className="bg-white border-b border-zinc-200 p-8 pb-0">
+            <div className="bg-card border-b border-border p-8 pb-0">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex gap-5">
-                  <Avatar className="size-20 border-4 border-zinc-50 shadow-sm">
-                    <AvatarFallback className="text-xl bg-zinc-100 text-zinc-600 font-semibold">
+                  <Avatar className="size-20 border-4 border-border shadow-sm">
+                    <AvatarFallback className="text-xl bg-muted text-muted-foreground font-semibold">
                       {candidate.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-left">
-                    <h2 className="text-2xl font-semibold text-zinc-900">
+                    <h2 className="text-2xl font-semibold text-foreground">
                       {candidate.name}
                     </h2>
-                    <div className="flex items-center gap-2 text-zinc-500 mt-1">
+                    <div className="flex items-center gap-2 text-muted-foreground mt-1">
                       <MapPin className="size-4" /> {candidate.location}
-                      <span className="text-zinc-300">•</span>
+                      <span className="text-muted-foreground">•</span>
                       <span>{candidate.role}</span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <Badge
-                        variant="secondary"
-                        className={cn(
-                          "border shadow-none",
-                          STAGE_COLORS[candidate.stage],
-                        )}
-                      >
+                      <Badge variant={STAGE_VARIANTS[candidate.stage]}>
                         {candidate.stage}
                       </Badge>
                       {candidate.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="outline"
-                          className="bg-white text-zinc-600 border-zinc-200 shadow-none"
-                        >
+                        <Badge key={tag} variant="outline">
                           {tag}
                         </Badge>
                       ))}
@@ -537,13 +490,13 @@ export function MobilizeCandidateDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest"
+                    className="h-9 rounded-xl border-border font-semibold uppercase tracking-widest"
                   >
                     Edit
                   </Button>
                   <Button
                     size="sm"
-                    className="h-9 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest"
+                    className="h-9 rounded-xl bg-primary text-primary-foreground hover:bg-primary font-semibold uppercase tracking-widest"
                   >
                     Contact
                   </Button>
@@ -554,19 +507,19 @@ export function MobilizeCandidateDetailSheet({
                 <TabsList className="bg-transparent h-auto p-0 gap-6">
                   <TabsTrigger
                     value="overview"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-border data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-muted-foreground data-active:text-foreground transition-[color,border-color]"
                   >
                     Overview
                   </TabsTrigger>
                   <TabsTrigger
                     value="vetting"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-border data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-muted-foreground data-active:text-foreground transition-[color,border-color]"
                   >
                     Vetting Checklist
                   </TabsTrigger>
                   <TabsTrigger
                     value="placement"
-                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-border data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-muted-foreground data-active:text-foreground transition-[color,border-color]"
                   >
                     Placement
                   </TabsTrigger>
@@ -577,33 +530,33 @@ export function MobilizeCandidateDetailSheet({
             <div className="flex-1 overflow-y-auto p-8">
               <div className="space-y-6">
                 <Card className="text-left shadow-sm">
-                  <CardHeader className="pb-3 border-b border-zinc-100">
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+                  <CardHeader className="pb-3 border-b border-border">
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                       Contact Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-4 grid grid-cols-2 gap-6">
                     <div>
-                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-semibold mb-1">
+                      <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase font-semibold mb-1">
                         <Mail className="size-3" /> Email
                       </div>
-                      <div className="text-sm font-medium text-zinc-900">
+                      <div className="text-sm font-medium text-foreground">
                         {candidate.email}
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-semibold mb-1">
+                      <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase font-semibold mb-1">
                         <Phone className="size-3" /> Phone
                       </div>
-                      <div className="text-sm font-medium text-zinc-900">
+                      <div className="text-sm font-medium text-foreground">
                         {candidate.phone}
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 text-zinc-500 text-xs uppercase font-semibold mb-1">
+                      <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase font-semibold mb-1">
                         <Calendar className="size-3" /> Applied Date
                       </div>
-                      <div className="text-sm font-medium text-zinc-900">
+                      <div className="text-sm font-medium text-foreground">
                         {candidate.appliedDate}
                       </div>
                     </div>
@@ -611,17 +564,17 @@ export function MobilizeCandidateDetailSheet({
                 </Card>
 
                 <Card className="text-left shadow-sm">
-                  <CardHeader className="pb-3 border-b border-zinc-100">
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
+                  <CardHeader className="pb-3 border-b border-border">
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                       Readiness Score
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="flex items-end justify-between mb-2">
-                      <span className="text-3xl font-semibold text-zinc-900">
+                      <span className="text-3xl font-semibold text-foreground">
                         {candidate.readiness}%
                       </span>
-                      <span className="text-sm text-zinc-500 font-medium mb-1">
+                      <span className="text-sm text-muted-foreground font-medium mb-1">
                         Training Completion
                       </span>
                     </div>
@@ -630,7 +583,7 @@ export function MobilizeCandidateDetailSheet({
                       value={candidate.readiness}
                       className="h-3"
                     />
-                    <p className="text-xs text-zinc-500 mt-4">
+                    <p className="text-xs text-muted-foreground mt-4">
                       Based on completed modules, vetting interviews, and
                       document submission.
                     </p>
@@ -638,27 +591,27 @@ export function MobilizeCandidateDetailSheet({
                 </Card>
 
                 <div className="space-y-3 text-left">
-                  <h3 className="text-sm font-semibold text-zinc-900">
+                  <h3 className="text-sm font-semibold text-foreground">
                     Recent Activity
                   </h3>
-                  <div className="bg-white border border-zinc-200 rounded-lg p-4 flex gap-4 items-start shadow-sm">
-                    <div className="mt-1 size-2 rounded-full bg-blue-500 shrink-0" />
+                  <div className="bg-card border border-border rounded-lg p-4 flex gap-4 items-start shadow-sm">
+                    <div className="mt-1 size-2 rounded-full bg-info shrink-0" />
                     <div>
-                      <p className="text-sm text-zinc-900 font-medium">
+                      <p className="text-sm text-foreground font-medium">
                         Background Check Cleared
                       </p>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         2 days ago by Compliance Team
                       </p>
                     </div>
                   </div>
-                  <div className="bg-white border border-zinc-200 rounded-lg p-4 flex gap-4 items-start shadow-sm">
-                    <div className="mt-1 size-2 rounded-full bg-zinc-300 shrink-0" />
+                  <div className="bg-card border border-border rounded-lg p-4 flex gap-4 items-start shadow-sm">
+                    <div className="mt-1 size-2 rounded-full bg-muted-foreground shrink-0" />
                     <div>
-                      <p className="text-sm text-zinc-900 font-medium">
+                      <p className="text-sm text-foreground font-medium">
                         Application Submitted
                       </p>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         Oct 1, 2023
                       </p>
                     </div>
@@ -667,10 +620,10 @@ export function MobilizeCandidateDetailSheet({
               </div>
             </div>
 
-            <SheetFooter className="p-4 border-t bg-white flex justify-between items-center sm:justify-between">
+            <SheetFooter className="p-4 border-t bg-card flex justify-between items-center sm:justify-between">
               <Button
                 variant="outline"
-                className="rounded-xl font-semibold uppercase tracking-widest text-red-600 hover:text-red-700 border-red-100 hover:bg-red-50"
+                className="rounded-xl font-semibold uppercase tracking-widest text-destructive hover:text-destructive border-destructive/25 hover:bg-destructive/10"
               >
                 Reject
               </Button>
@@ -682,9 +635,7 @@ export function MobilizeCandidateDetailSheet({
                 >
                   Close
                 </Button>
-                <Button className="rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest">
-                  Advance Stage
-                </Button>
+                <Button>Advance Stage</Button>
               </div>
             </SheetFooter>
           </>

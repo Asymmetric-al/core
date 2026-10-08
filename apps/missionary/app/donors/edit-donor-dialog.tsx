@@ -52,12 +52,6 @@ export interface EditDonorDialogProps {
   open: boolean;
 }
 
-const LABEL_CLASS_NAME =
-  "text-xs font-semibold uppercase tracking-widest text-zinc-400";
-
-const FIELD_CLASS_NAME =
-  "h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5";
-
 async function updateDonor(donorId: string, value: EditDonorFormValues) {
   const outcome = await updateDonorDetails({ donorId, value });
   if (!outcome.ok) {
@@ -103,12 +97,12 @@ export function EditDonorDialog({
       }}
       open={open}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-175">
+      <DialogContent className="sm:max-w-175" scrollable>
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold tracking-tight">
             Edit Partner
           </DialogTitle>
-          <DialogDescription className="text-sm text-zinc-500">
+          <DialogDescription>
             Update {donor?.name}&apos;s information.
           </DialogDescription>
         </DialogHeader>
@@ -124,70 +118,37 @@ export function EditDonorDialog({
           <EditDonorIdentityFields form={form} />
 
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+            <h4 className="text-sm font-semibold text-foreground">
               Contact Information
             </h4>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <form.AppField name="email">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Email"
-                    labelClassName={LABEL_CLASS_NAME}
-                    type="email"
-                  />
-                )}
+                {(field) => <field.TextField label="Email" type="email" />}
               </form.AppField>
 
               <form.AppField name="phone">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Primary Phone"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
+                {(field) => <field.TextField label="Primary Phone" />}
               </form.AppField>
 
               <form.AppField name="mobile">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Mobile / Text"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
+                {(field) => <field.TextField label="Mobile / Text" />}
               </form.AppField>
 
               <form.AppField name="work_phone">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Work Phone"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
+                {(field) => <field.TextField label="Work Phone" />}
               </form.AppField>
 
               <form.AppField name="preferred_contact">
                 {(field) => (
                   <field.SelectField
                     label="Preferred Contact"
-                    labelClassName={LABEL_CLASS_NAME}
                     options={PREFERRED_CONTACT_OPTIONS}
-                    triggerClassName={FIELD_CLASS_NAME}
                   />
                 )}
               </form.AppField>
 
               <form.AppField name="website">
-                {(field) => (
-                  <field.TextField
-                    inputClassName={FIELD_CLASS_NAME}
-                    label="Website"
-                    labelClassName={LABEL_CLASS_NAME}
-                  />
-                )}
+                {(field) => <field.TextField label="Website" />}
               </form.AppField>
             </div>
           </div>
@@ -197,22 +158,11 @@ export function EditDonorDialog({
           <EditDonorPersonalFields form={form} />
 
           <form.AppField name="notes">
-            {(field) => (
-              <field.TextareaField
-                inputClassName="min-h-25 resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
-                label="Internal Notes"
-                labelClassName={LABEL_CLASS_NAME}
-              />
-            )}
+            {(field) => <field.TextareaField label="Internal Notes" />}
           </form.AppField>
 
           <DialogFooter className="gap-2 pt-4 sm:gap-0">
-            <Button
-              className="h-10 rounded-xl border-zinc-200 px-6"
-              onClick={handleClose}
-              type="button"
-              variant="outline"
-            >
+            <Button onClick={handleClose} type="button" variant="outline">
               Cancel
             </Button>
 
@@ -226,7 +176,6 @@ export function EditDonorDialog({
                 <Button
                   aria-labelledby={`${pendingActionLabelId}-22`}
                   focusableWhenDisabled={isSubmitting}
-                  className="h-10 rounded-xl px-6"
                   disabled={!canSubmit || isSubmitting}
                   type="submit"
                 >
@@ -255,40 +204,25 @@ function EditDonorIdentityFields({
 }) {
   return (
     <div className="space-y-4">
-      <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+      <h4 className="text-sm font-semibold text-foreground">
         Basic Information
       </h4>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <form.AppField name="name">
           {(field) => (
-            <field.TextField
-              className="col-span-2"
-              inputClassName={FIELD_CLASS_NAME}
-              label="Full Name"
-              labelClassName={LABEL_CLASS_NAME}
-            />
+            <field.TextField className="sm:col-span-2" label="Full Name" />
           )}
         </form.AppField>
 
         <form.AppField name="type">
           {(field) => (
-            <field.SelectField
-              label="Type"
-              labelClassName={LABEL_CLASS_NAME}
-              options={DONOR_TYPE_OPTIONS}
-              triggerClassName={FIELD_CLASS_NAME}
-            />
+            <field.SelectField label="Type" options={DONOR_TYPE_OPTIONS} />
           )}
         </form.AppField>
 
         <form.AppField name="status">
           {(field) => (
-            <field.SelectField
-              label="Status"
-              labelClassName={LABEL_CLASS_NAME}
-              options={DONOR_STATUS_OPTIONS}
-              triggerClassName={FIELD_CLASS_NAME}
-            />
+            <field.SelectField label="Status" options={DONOR_STATUS_OPTIONS} />
           )}
         </form.AppField>
       </div>
@@ -303,71 +237,42 @@ function EditDonorAddressFields({
 }) {
   return (
     <div className="space-y-4">
-      <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-        Address
-      </h4>
-      <div className="grid grid-cols-2 gap-4">
+      <h4 className="text-sm font-semibold text-foreground">Address</h4>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <form.AppField name="street">
           {(field) => (
-            <field.TextField
-              className="col-span-2"
-              inputClassName={FIELD_CLASS_NAME}
-              label="Street Address"
-              labelClassName={LABEL_CLASS_NAME}
-            />
+            <field.TextField className="sm:col-span-2" label="Street Address" />
           )}
         </form.AppField>
 
         <form.AppField name="street2">
           {(field) => (
             <field.TextField
-              className="col-span-2"
-              inputClassName={FIELD_CLASS_NAME}
+              className="sm:col-span-2"
               label="Apt, Suite, etc."
-              labelClassName={LABEL_CLASS_NAME}
             />
           )}
         </form.AppField>
 
         <form.AppField name="city">
-          {(field) => (
-            <field.TextField
-              inputClassName={FIELD_CLASS_NAME}
-              label="City"
-              labelClassName={LABEL_CLASS_NAME}
-            />
-          )}
+          {(field) => <field.TextField label="City" />}
         </form.AppField>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <form.AppField name="state">
-            {(field) => (
-              <field.TextField
-                inputClassName={FIELD_CLASS_NAME}
-                label="State"
-                labelClassName={LABEL_CLASS_NAME}
-              />
-            )}
+            {(field) => <field.TextField label="State" />}
           </form.AppField>
 
           <form.AppField name="zip">
-            {(field) => (
-              <field.TextField
-                inputClassName={FIELD_CLASS_NAME}
-                label="ZIP"
-                labelClassName={LABEL_CLASS_NAME}
-              />
-            )}
+            {(field) => <field.TextField label="ZIP" />}
           </form.AppField>
         </div>
 
         <form.AppField name="location">
           {(field) => (
             <field.TextField
-              className="col-span-2"
-              inputClassName={FIELD_CLASS_NAME}
+              className="sm:col-span-2"
               label="Display Location (e.g. Denver, CO)"
-              labelClassName={LABEL_CLASS_NAME}
               placeholder="City, State"
             />
           )}
@@ -384,60 +289,28 @@ function EditDonorPersonalFields({
 }) {
   return (
     <div className="space-y-4">
-      <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+      <h4 className="text-sm font-semibold text-foreground">
         Personal Details
       </h4>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <form.AppField name="organization">
-          {(field) => (
-            <field.TextField
-              inputClassName={FIELD_CLASS_NAME}
-              label="Organization"
-              labelClassName={LABEL_CLASS_NAME}
-            />
-          )}
+          {(field) => <field.TextField label="Organization" />}
         </form.AppField>
 
         <form.AppField name="title">
-          {(field) => (
-            <field.TextField
-              inputClassName={FIELD_CLASS_NAME}
-              label="Title / Role"
-              labelClassName={LABEL_CLASS_NAME}
-            />
-          )}
+          {(field) => <field.TextField label="Title / Role" />}
         </form.AppField>
 
         <form.AppField name="spouse">
-          {(field) => (
-            <field.TextField
-              inputClassName={FIELD_CLASS_NAME}
-              label="Spouse"
-              labelClassName={LABEL_CLASS_NAME}
-            />
-          )}
+          {(field) => <field.TextField label="Spouse" />}
         </form.AppField>
 
         <form.AppField name="birthday">
-          {(field) => (
-            <field.TextField
-              inputClassName={FIELD_CLASS_NAME}
-              label="Birthday"
-              labelClassName={LABEL_CLASS_NAME}
-              type="date"
-            />
-          )}
+          {(field) => <field.TextField label="Birthday" type="date" />}
         </form.AppField>
 
         <form.AppField name="anniversary">
-          {(field) => (
-            <field.TextField
-              inputClassName={FIELD_CLASS_NAME}
-              label="Anniversary"
-              labelClassName={LABEL_CLASS_NAME}
-              type="date"
-            />
-          )}
+          {(field) => <field.TextField label="Anniversary" type="date" />}
         </form.AppField>
       </div>
     </div>

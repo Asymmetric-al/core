@@ -23,36 +23,36 @@ export default function HelpAboutPage() {
   const licenseUrl = getGitHubLicenseUrl(build.ref);
 
   return (
-    <div className="bg-white min-h-dvh selection:bg-emerald-500/30">
+    <div className="bg-card min-h-dvh selection:bg-success/30">
       <section className="pt-28 pb-16 sm:pt-32 sm:pb-20">
         <div className="container-responsive max-w-3xl">
           <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-normal text-zinc-900">
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-normal text-foreground">
               About asymmetric.al
             </h1>
-            <p className="text-zinc-500">
+            <p className="text-muted-foreground">
               Build and licensing information for this deployment.
             </p>
           </div>
 
           <div className="mt-10">
-            <Card className="border-zinc-200 shadow-sm">
-              <CardHeader className="border-b border-zinc-100">
-                <CardTitle className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            <Card>
+              <CardHeader className="border-b border-border">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   Deployment
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6 pt-6 text-sm">
                 <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <dt className="text-zinc-500">Product</dt>
+                  <dt className="text-muted-foreground">Product</dt>
                   <dd className="font-medium sm:col-span-2">asymmetric.al</dd>
 
-                  <dt className="text-zinc-500">Version</dt>
+                  <dt className="text-muted-foreground">Version</dt>
                   <dd className="font-mono sm:col-span-2">
                     {build.displayRef}
                   </dd>
 
-                  <dt className="text-zinc-500">Build date</dt>
+                  <dt className="text-muted-foreground">Build date</dt>
                   <dd className="font-mono sm:col-span-2">
                     {build.buildDate ?? "unknown"}
                   </dd>
@@ -60,19 +60,19 @@ export default function HelpAboutPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
+                    <div className="text-muted-foreground text-sm font-medium ">
                       Source for this deployment
                     </div>
                     <a
                       href={sourceUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-1 block font-mono text-xs text-zinc-900 underline break-all"
+                      className="mt-1 block font-mono text-xs text-foreground underline break-all"
                     >
                       {sourceUrl}
                     </a>
                     {build.refSource === "fallback" && (
-                      <p className="text-xs text-zinc-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         This deployment did not expose a commit/tag; link falls
                         back to `{build.ref}`.
                       </p>
@@ -80,10 +80,10 @@ export default function HelpAboutPage() {
                   </div>
 
                   <div>
-                    <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
+                    <div className="text-muted-foreground text-sm font-medium ">
                       License
                     </div>
-                    <p className="text-zinc-700 text-sm mt-1">
+                    <p className="text-foreground text-sm mt-1">
                       This software is licensed under the GNU Affero General
                       Public License v3.0 only (AGPL-3.0-only).
                     </p>
@@ -91,17 +91,17 @@ export default function HelpAboutPage() {
                       href={licenseUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="mt-1 block font-mono text-xs text-zinc-900 underline break-all"
+                      className="mt-1 block font-mono text-xs text-foreground underline break-all"
                     >
                       {licenseUrl}
                     </a>
                   </div>
 
                   <div>
-                    <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">
+                    <div className="text-muted-foreground text-sm font-medium ">
                       Warranty
                     </div>
-                    <p className="text-zinc-700 text-sm mt-1">
+                    <p className="text-foreground text-sm mt-1">
                       This program comes with no warranty. We provide it as is,
                       without warranties or conditions of any kind, to the
                       extent permitted by law.

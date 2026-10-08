@@ -114,11 +114,11 @@ export function BusinessHoursForm({
           maxLength={60}
         />
       </SettingsRow>
-      <div className="rounded-xl border border-zinc-100">
-        <div className="border-b border-zinc-100 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+      <div className="rounded-xl border border-border">
+        <div className="border-b border-border px-3 py-2 text-sm font-medium text-muted-foreground">
           Weekly schedule
         </div>
-        <ul className="flex flex-col divide-y divide-zinc-100">
+        <ul className="flex flex-col divide-y divide-border">
           {DAYS.map((day) => {
             const entry =
               schedule.find((e) => e.day === day) ??
@@ -133,7 +133,7 @@ export function BusinessHoursForm({
                 key={day}
                 className="flex flex-wrap items-center gap-3 px-3 py-2"
               >
-                <span className="w-24 text-xs font-medium capitalize text-zinc-700">
+                <span className="w-24 text-xs font-medium capitalize text-foreground">
                   {day}
                 </span>
                 <Switch
@@ -159,7 +159,7 @@ export function BusinessHoursForm({
                   }
                   className="h-8 w-27.5 font-mono"
                 />
-                <span className="text-xs text-zinc-400">→</span>
+                <span className="text-xs text-muted-foreground">→</span>
                 <Input
                   type="time"
                   value={entry.closeTime}
@@ -179,9 +179,9 @@ export function BusinessHoursForm({
         </ul>
       </div>
 
-      <div className="rounded-xl border border-zinc-100">
-        <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-2">
-          <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+      <div className="rounded-xl border border-border">
+        <div className="flex items-center justify-between border-b border-border px-3 py-2">
+          <span className="text-sm font-medium text-muted-foreground">
             Holidays
           </span>
           <Button
@@ -208,11 +208,11 @@ export function BusinessHoursForm({
           </Button>
         </div>
         {holidays.length === 0 ? (
-          <p className="p-3 text-xs text-zinc-500">
+          <p className="p-3 text-xs text-muted-foreground">
             No holidays set, business hours apply year-round.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y divide-zinc-100">
+          <ul className="flex flex-col divide-y divide-border">
             {holidays.map((holiday, index) => (
               <li
                 key={holiday.id}
@@ -261,7 +261,7 @@ export function BusinessHoursForm({
                     })
                   }
                   aria-label="Remove holiday"
-                  className="size-7 text-rose-500 hover:bg-rose-50"
+                  className="size-7 text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -281,7 +281,7 @@ export function BusinessHoursForm({
             onCheckedChange={(value) => dispatch({ type: "isDefault", value })}
             aria-label="Default business hours"
           />
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {isDefault ? "Default" : "Not default"}
           </span>
         </div>
@@ -302,7 +302,7 @@ export function BusinessHoursForm({
         ) : (
           <span />
         )}
-        <Label className="inline-flex items-center gap-2 text-xs text-zinc-500">
+        <Label className="inline-flex items-center gap-2 text-xs text-muted-foreground">
           Times use 24-hour format.
         </Label>
       </div>

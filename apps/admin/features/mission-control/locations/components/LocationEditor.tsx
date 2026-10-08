@@ -131,35 +131,19 @@ export function LocationEditor({
           <form.AppField name="title">
             {(field) => (
               <field.TextField
-                inputClassName="rounded-xl border-zinc-200"
                 label="Location Title"
-                labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                 placeholder="e.g. Amazon Medical Center"
               />
             )}
           </form.AppField>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <form.AppField name="lat">
-              {(field) => (
-                <field.NumberField
-                  inputClassName="rounded-xl border-zinc-200"
-                  label="Latitude"
-                  labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                  step="any"
-                />
-              )}
+              {(field) => <field.NumberField label="Latitude" step="any" />}
             </form.AppField>
 
             <form.AppField name="lng">
-              {(field) => (
-                <field.NumberField
-                  inputClassName="rounded-xl border-zinc-200"
-                  label="Longitude"
-                  labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                  step="any"
-                />
-              )}
+              {(field) => <field.NumberField label="Longitude" step="any" />}
             </form.AppField>
           </div>
 
@@ -173,9 +157,8 @@ export function LocationEditor({
           <form.AppField name="summary">
             {(field) => (
               <field.TextareaField
-                inputClassName="min-h-25 resize-none rounded-xl border-zinc-200"
+                inputClassName="min-h-25 resize-none"
                 label="Summary"
-                labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                 placeholder="Brief description of work at this location..."
               />
             )}
@@ -184,15 +167,15 @@ export function LocationEditor({
           <form.Field name="status">
             {(field) => (
               <Field
-                className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-4"
+                className="rounded-xl border border-border bg-muted/30 p-4"
                 orientation="horizontal"
               >
                 <FieldLabel htmlFor={publishedId} className="flex-1">
                   <div className="space-y-0.5">
-                    <div className="text-xs font-black uppercase tracking-widest text-zinc-900">
+                    <div className="text-xs font-black uppercase tracking-widest text-foreground">
                       Published
                     </div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                       Visible on public map
                     </div>
                   </div>
@@ -212,7 +195,7 @@ export function LocationEditor({
             )}
           </form.Field>
 
-          <SheetFooter className="flex-col gap-3 border-t border-zinc-50 pt-6 sm:flex-col">
+          <SheetFooter className="flex-col gap-3 border-t border-border pt-6 sm:flex-col">
             <form.Subscribe
               selector={(state) => ({
                 canSubmit: state.canSubmit,
@@ -222,7 +205,7 @@ export function LocationEditor({
               {({ canSubmit, isSubmitting }) => (
                 <Button
                   focusableWhenDisabled={isSaving || isSubmitting}
-                  className="h-12 w-full rounded-xl bg-zinc-900 font-bold uppercase tracking-widest"
+                  className="w-full"
                   disabled={!canSubmit || isSaving || isSubmitting}
                   type="submit"
                 >
@@ -236,14 +219,14 @@ export function LocationEditor({
 
             {location?.id && onDelete ? (
               <Button
-                className="h-12 w-full rounded-xl border-red-100 font-bold uppercase tracking-widest text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                className="w-full"
                 onClick={() => {
                   if (location.id) {
                     onDelete(location.id);
                   }
                 }}
                 type="button"
-                variant="outline"
+                variant="destructive"
               >
                 <Trash2 className="mr-2 size-4" /> Delete Marker
               </Button>
@@ -275,11 +258,7 @@ function LocationTypeField({
             invalid={errors.length > 0}
             render={<Field data-invalid={errors.length > 0} />}
           >
-            <FieldPrimitive.Label
-              nativeLabel={false}
-              render={<FieldTitle />}
-              className="text-xs font-black uppercase tracking-widest text-zinc-400"
-            >
+            <FieldPrimitive.Label nativeLabel={false} render={<FieldTitle />}>
               Marker Type
             </FieldPrimitive.Label>
             <FieldContent>
@@ -299,10 +278,7 @@ function LocationTypeField({
                 }}
                 value={field.state.value}
               >
-                <SelectTrigger
-                  aria-label="Location type"
-                  className="rounded-xl border-zinc-200"
-                >
+                <SelectTrigger aria-label="Location type">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -351,7 +327,6 @@ function LocationLinkedEntityField({
                   <FieldPrimitive.Label
                     nativeLabel={false}
                     render={<FieldTitle />}
-                    className="text-xs font-black uppercase tracking-widest text-zinc-400"
                   >
                     Link to{" "}
                     {selectedType === "missionary" ? "Missionary" : "Project"}
@@ -386,7 +361,6 @@ function LocationLinkedEntityField({
                       }}
                       value={field.state.value ?? null}
                       aria-label={`Link to ${selectedType === "missionary" ? "Missionary" : "Project"}`}
-                      className="rounded-xl border-zinc-200"
                       placeholder={`Select ${selectedType}`}
                     />
                     <FieldPrimitive.Error

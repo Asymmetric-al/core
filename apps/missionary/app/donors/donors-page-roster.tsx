@@ -30,11 +30,10 @@ import {
   InputGroupInput,
 } from "@asym/ui/components/shadcn/input-group";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
-import { cn } from "@asym/ui/lib/utils";
 import { Search, Filter, ArrowDownUp, X } from "lucide-react";
 import * as React from "react";
 
-import { AVAILABLE_TAGS, getTagLabel, getTagStyle } from "./donors-model";
+import { AVAILABLE_TAGS, getTagLabel, getTagVariant } from "./donors-model";
 import { createDonorColumns } from "./donors-page-columns";
 import {
   scaleIn,
@@ -83,14 +82,10 @@ export function DonorsPageRoster() {
       transition={{ ...smoothTransition, delay: 0.2 }}
       className="lg:col-span-4 xl:col-span-3"
     >
-      <Card className="border-border bg-card rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
-        <CardHeader className="border-b flex flex-col gap-4 shrink-0">
+      <Card className="overflow-hidden h-full flex flex-col">
+        <CardHeader className="flex flex-col gap-4 shrink-0">
           <div className="flex items-center justify-between">
-            <CardTitle
-              role="heading"
-              aria-level={2}
-              className="text-xs text-muted-foreground"
-            >
+            <CardTitle role="heading" aria-level={2}>
               Partner List{" "}
               {hasActiveFilters && (
                 <span className="text-primary">({filteredDonors.length})</span>
@@ -170,25 +165,15 @@ function DonorRosterSorting({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Sort partners"
-            className="size-8 text-muted-foreground hover:text-foreground rounded-lg"
-          >
+          <Button variant="ghost" size="icon" aria-label="Sort partners">
             <ArrowDownUp data-icon="inline-start" />
           </Button>
         }
       />
-      <DropdownMenuContent
-        align="end"
-        className="w-48 rounded-xl border-border shadow-xl"
-      >
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Sort By
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+          <DropdownMenuSeparator />
           {[
             { value: "last_gift", label: "Last Gift Date" },
             { value: "total_given", label: "Total Given" },
@@ -199,16 +184,14 @@ function DonorRosterSorting({
               key={opt.value}
               checked={sortBy === opt.value}
               onCheckedChange={() => setSortBy(opt.value as SortOption)}
-              className="text-xs font-medium"
             >
               {opt.label}
             </DropdownMenuCheckboxItem>
           ))}
-          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuSeparator />
           <DropdownMenuCheckboxItem
             checked={sortAsc}
             onCheckedChange={toggleSortAsc}
-            className="text-xs font-medium"
           >
             Ascending
           </DropdownMenuCheckboxItem>
@@ -256,54 +239,39 @@ function DonorRosterFilterMenu({
       <DropdownMenuTrigger
         render={
           <Button
-            variant="ghost"
+            variant={hasActiveFilters ? "secondary" : "ghost"}
             size="icon"
             aria-label="Filter partners"
-            className={cn(
-              "size-8 rounded-lg",
-              hasActiveFilters
-                ? "text-primary bg-accent"
-                : "text-muted-foreground hover:text-foreground",
-            )}
           >
             <Filter data-icon="inline-start" />
           </Button>
         }
       />
-      <DropdownMenuContent
-        align="end"
-        className="w-56 rounded-xl border-border shadow-xl max-h-[400px] overflow-y-auto"
-      >
+      <DropdownMenuContent align="end">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Filter by Status
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+          <DropdownMenuSeparator />
           {["All", "Active", "New", "Lapsed", "At Risk", "Needs Attention"].map(
             (s) => (
               <DropdownMenuCheckboxItem
                 key={s}
                 checked={statusFilter === s}
                 onCheckedChange={() => setStatusFilter(s)}
-                className="text-xs font-medium"
               >
                 {s}
               </DropdownMenuCheckboxItem>
             ),
           )}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator className="bg-muted" />
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Filter by Recurring
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuLabel>Filter by Recurring</DropdownMenuLabel>
+          <DropdownMenuSeparator />
           {["All", "Active", "Inactive"].map((p) => (
             <DropdownMenuCheckboxItem
               key={p}
               checked={pledgeFilter === p}
               onCheckedChange={() => setPledgeFilter(p)}
-              className="text-xs font-medium"
             >
               {p === "Active"
                 ? "Has Recurring"
@@ -313,18 +281,15 @@ function DonorRosterFilterMenu({
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator className="bg-muted" />
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Filter by Tag
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-muted" />
+          <DropdownMenuLabel>Filter by Tag</DropdownMenuLabel>
+          <DropdownMenuSeparator />
           {AVAILABLE_TAGS.map((tag) => (
             <DropdownMenuCheckboxItem
               key={tag.id}
               checked={tagFilter.includes(tag.id)}
               onCheckedChange={() => toggleFilterTag(tag.id)}
-              className="text-xs font-medium"
             >
               {tag.label}
             </DropdownMenuCheckboxItem>
@@ -332,7 +297,7 @@ function DonorRosterFilterMenu({
         </DropdownMenuGroup>
         {hasActiveFilters && (
           <>
-            <DropdownMenuSeparator className="bg-muted" />
+            <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={clearAllFilters}>
                 Clear All Filters
@@ -361,7 +326,7 @@ function DonorRosterSearch({
       <FieldLabel htmlFor="partners-search" className="sr-only">
         Search partners
       </FieldLabel>
-      <InputGroup className="h-10 rounded-xl bg-muted border-border">
+      <InputGroup>
         <InputGroupInput
           id="partners-search"
           placeholder="Search partners..."
@@ -426,19 +391,18 @@ function DonorRosterActiveFilters({
               exit={scaleIn.exit}
               transition={springTransition}
             >
-              <Badge
-                variant="outline"
-                className="font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-muted text-muted-foreground border-border"
-              >
+              <Badge variant="outline">
                 {statusFilter}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-xs"
                   aria-label={`Clear ${statusFilter} status filter`}
                   onClick={() => setStatusFilter("All")}
-                  className="ml-1 hover:text-foreground"
+                  className="ml-1"
                 >
-                  <X className="size-2.5" />
-                </button>
+                  <X aria-hidden />
+                </Button>
               </Badge>
             </motion.div>
           )}
@@ -450,19 +414,18 @@ function DonorRosterActiveFilters({
               exit={scaleIn.exit}
               transition={springTransition}
             >
-              <Badge
-                variant="outline"
-                className="font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-accent text-primary border-border"
-              >
+              <Badge variant="outline">
                 {pledgeFilter === "Active" ? "Recurring" : "No Recurring"}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-xs"
                   aria-label="Clear recurring filter"
                   onClick={() => setPledgeFilter("All")}
-                  className="ml-1 hover:text-primary"
+                  className="ml-1"
                 >
-                  <X className="size-2.5" />
-                </button>
+                  <X aria-hidden />
+                </Button>
               </Badge>
             </motion.div>
           )}
@@ -475,35 +438,31 @@ function DonorRosterActiveFilters({
               exit={scaleIn.exit}
               transition={springTransition}
             >
-              <Badge
-                variant="outline"
-                className={cn(
-                  "font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                  getTagStyle(tag),
-                )}
-              >
+              <Badge variant={getTagVariant(tag)}>
                 {getTagLabel(tag)}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-xs"
                   aria-label={`Clear ${getTagLabel(tag)} tag filter`}
                   onClick={() => removeFilterTag(tag)}
                   className="ml-1"
                 >
-                  <X className="size-2.5" />
-                </button>
+                  <X aria-hidden />
+                </Button>
               </Badge>
             </motion.div>
           ))}
-          <motion.button
-            type="button"
-            layout
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={clearAllFilters}
-            className="text-xs font-semibold uppercase tracking-widest text-destructive hover:text-destructive px-2"
-          >
-            Clear All
-          </motion.button>
+          <motion.div layout>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+            >
+              Clear All
+            </Button>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -546,7 +505,7 @@ function DonorRosterResults({
       ) : isLoading ? (
         <DonorListSkeleton />
       ) : filteredDonors.length === 0 ? (
-        <Empty className="h-64 border-none">
+        <Empty className="h-64">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <Search />
@@ -560,12 +519,7 @@ function DonorRosterResults({
           </EmptyHeader>
           {hasActiveFilters ? (
             <EmptyContent>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllFilters}
-                className="h-8 rounded-xl text-xs"
-              >
+              <Button variant="outline" size="sm" onClick={clearAllFilters}>
                 Clear Filters
               </Button>
             </EmptyContent>
@@ -630,7 +584,7 @@ function DonorRosterLoadMore({
           size="sm"
           onClick={loadMoreDonors}
           disabled={isLoadingMoreDonors}
-          className="w-full h-9 rounded-xl font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+          className="w-full"
         >
           {isLoadingMoreDonors ? (
             <>

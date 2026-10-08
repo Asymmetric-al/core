@@ -20,13 +20,13 @@ const REGISTRATION_TRENDS = [
 function RegistrationTrendsChartFallback() {
   return (
     <Card className="col-span-4 overflow-hidden">
-      <CardHeader className="border-b border-zinc-100 bg-zinc-50/30">
+      <CardHeader className="border-b border-border bg-muted/30">
         <CardTitle className="text-base font-bold">
           Registration Trends
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="h-75 rounded-xl border border-zinc-100 bg-zinc-50/60" />
+        <div className="h-75 rounded-xl border border-border bg-muted/50" />
       </CardContent>
     </Card>
   );
@@ -47,7 +47,7 @@ const RegistrationTrendsChartContent = dynamic(
     function RegistrationTrendsChartContentInner() {
       return (
         <Card className="col-span-4 overflow-hidden">
-          <CardHeader className="border-b border-zinc-100 bg-zinc-50/30">
+          <CardHeader className="border-b border-border bg-muted/30">
             <CardTitle className="text-base font-bold">
               Registration Trends
             </CardTitle>

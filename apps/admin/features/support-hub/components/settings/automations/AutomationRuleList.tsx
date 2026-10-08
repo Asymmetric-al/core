@@ -78,28 +78,28 @@ export function AutomationRuleList() {
             description="Create a rule to auto-label, auto-assign, or snooze donor conversations."
           />
         ) : (
-          <ul className="flex flex-col divide-y divide-zinc-100">
+          <ul className="flex flex-col divide-y divide-border">
             {rules.map((rule) => (
               <li
                 key={rule.id}
                 className="flex flex-wrap items-start gap-3 py-3"
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                   <Zap className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-xs font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-foreground">
                     {rule.name}
-                    <span className="ml-2 inline-flex h-4 items-center rounded-md bg-zinc-100 px-1.5 text-xs font-black uppercase tracking-wider text-zinc-500">
+                    <span className="ml-2 inline-flex h-4 items-center rounded-md bg-muted px-1.5 text-xs font-black uppercase tracking-wider text-muted-foreground">
                       {rule.trigger.replace(/_/g, " ")}
                     </span>
                   </span>
                   {rule.description ? (
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-muted-foreground">
                       {rule.description}
                     </span>
                   ) : null}
-                  <span className="text-xs uppercase tracking-[0.2em] text-zinc-400">
+                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                     {rule.conditions.length} conditions · {rule.actions.length}{" "}
                     actions
                   </span>
@@ -110,7 +110,7 @@ export function AutomationRuleList() {
                     onCheckedChange={(value) => void handleToggle(rule, value)}
                     aria-label={`Toggle ${rule.name}`}
                   />
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-muted-foreground">
                     {rule.enabled ? "On" : "Off"}
                   </span>
                 </div>
@@ -120,7 +120,7 @@ export function AutomationRuleList() {
                   size="icon"
                   onClick={() => setEditing(rule)}
                   aria-label={`Edit ${rule.name}`}
-                  className="size-8 text-zinc-500 hover:text-zinc-900"
+                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
@@ -130,7 +130,7 @@ export function AutomationRuleList() {
                   size="icon"
                   onClick={() => void handleDelete(rule)}
                   aria-label={`Delete ${rule.name}`}
-                  className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Select,
   SelectContent,
@@ -120,10 +121,10 @@ export function SupportSubNav({ section }: SupportSubNavProps) {
               href={link.href}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "inline-flex h-9 items-center rounded-full px-3 text-xs font-black uppercase tracking-[0.2em] transition-colors",
-                isActive
-                  ? "bg-zinc-900 text-white"
-                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900",
+                buttonVariants({
+                  variant: isActive ? "default" : "ghost",
+                  size: "sm",
+                }),
               )}
             >
               {link.label}
@@ -146,10 +147,10 @@ export function SupportSubNav({ section }: SupportSubNavProps) {
                   href={tab.href}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "inline-flex h-10 items-center rounded-xl px-3 text-xs font-medium",
-                    isActive
-                      ? "bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200"
-                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50",
+                    buttonVariants({
+                      variant: isActive ? "secondary" : "ghost",
+                      size: "sm",
+                    }),
                   )}
                 >
                   {tab.label}
@@ -190,10 +191,7 @@ function MobileTabSelect({ tabs, activeHref }: MobileTabSelectProps) {
         onValueChange={handleChange}
         disabled={navigating}
       >
-        <SelectTrigger
-          aria-label="Support section"
-          className="h-10 rounded-xl border-zinc-200 bg-white font-medium"
-        >
+        <SelectTrigger aria-label="Support section">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

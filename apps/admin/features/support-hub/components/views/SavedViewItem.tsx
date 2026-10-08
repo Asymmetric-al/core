@@ -35,10 +35,10 @@ export function SavedViewItem({
   return (
     <div
       className={cn(
-        "inline-flex h-8 items-center gap-1 rounded-lg border bg-white px-1 text-xs font-medium",
+        "inline-flex h-8 items-center gap-1 rounded-lg border bg-card px-1 text-xs font-medium",
         isActive
-          ? "border-zinc-900 text-zinc-900 shadow-sm"
-          : "border-zinc-200 text-zinc-600 hover:border-zinc-300",
+          ? "border-primary text-foreground shadow-sm"
+          : "border-border text-muted-foreground hover:border-border",
       )}
     >
       <button
@@ -46,7 +46,9 @@ export function SavedViewItem({
         onClick={onSelect}
         className={cn(
           "rounded-md px-2 py-0.5",
-          isActive ? "text-zinc-900" : "text-zinc-600 hover:text-zinc-900",
+          isActive
+            ? "text-foreground"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
         <span className="truncate max-w-40 block">{view.name}</span>
@@ -58,7 +60,7 @@ export function SavedViewItem({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-6 text-zinc-400 hover:text-zinc-700"
+              className="size-6 text-muted-foreground hover:text-foreground"
               aria-label={`Saved view actions for ${view.name}`}
             >
               <MoreHorizontal className="size-3" />
@@ -73,7 +75,7 @@ export function SavedViewItem({
             }}
             className="text-xs"
           >
-            <Pencil className="size-3.5 text-zinc-500" />
+            <Pencil className="size-3.5 text-muted-foreground" />
             Rename / scope
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -82,7 +84,7 @@ export function SavedViewItem({
             onClick={() => {
               onDelete();
             }}
-            className="text-xs text-rose-600 focus:text-rose-600"
+            className="text-xs text-destructive focus:text-destructive"
           >
             <Trash2 className="size-3.5" />
             Delete

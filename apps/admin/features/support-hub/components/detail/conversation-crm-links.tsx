@@ -22,7 +22,7 @@ export function buildCrmLinks(
       key: "contact",
       label: "Profile",
       href: `/crm?contact=${encodeURIComponent(contact.contactId)}`,
-      icon: <UserPlus className="size-3 text-zinc-500" />,
+      icon: <UserPlus className="size-3 text-muted-foreground" />,
       description: `Open CRM profile ${contact.contactId}`,
     });
   } else if (donorEmail) {
@@ -30,7 +30,7 @@ export function buildCrmLinks(
       key: "contact-search",
       label: "Find in CRM",
       href: `/crm?email=${encodeURIComponent(donorEmail)}`,
-      icon: <UserPlus className="size-3 text-zinc-500" />,
+      icon: <UserPlus className="size-3 text-muted-foreground" />,
       description: `Search CRM for ${donorEmail}`,
     });
   }
@@ -40,7 +40,7 @@ export function buildCrmLinks(
       key: "donor",
       label: "Donor",
       href: `/contributions?donor=${encodeURIComponent(contact.donorId)}`,
-      icon: <Heart className="size-3 text-rose-400" />,
+      icon: <Heart className="size-3 text-destructive" />,
       description: `Open donor giving history for ${contact.donorId}`,
     });
   }
@@ -50,7 +50,7 @@ export function buildCrmLinks(
       key: "gift",
       label: "Gift",
       href: `/contributions?contribution=${encodeURIComponent(contact.contributionId)}`,
-      icon: <Receipt className="size-3 text-amber-500" />,
+      icon: <Receipt className="size-3 text-warning" />,
       description: `Open contribution ${contact.contributionId}`,
     });
   }
@@ -60,7 +60,7 @@ export function buildCrmLinks(
       key: "missionary",
       label: "Missionary",
       href: `/crm?missionary=${encodeURIComponent(contact.missionaryId)}`,
-      icon: <Sparkles className="size-3 text-violet-500" />,
+      icon: <Sparkles className="size-3 text-chart-3" />,
       description: `Open missionary ${contact.missionaryId}`,
     });
   }
@@ -70,7 +70,7 @@ export function buildCrmLinks(
       key: "church",
       label: "Church",
       href: `/crm?church=${encodeURIComponent(contact.churchId)}`,
-      icon: <Building2 className="size-3 text-zinc-500" />,
+      icon: <Building2 className="size-3 text-muted-foreground" />,
       description: `Open church ${contact.churchId}`,
     });
   }

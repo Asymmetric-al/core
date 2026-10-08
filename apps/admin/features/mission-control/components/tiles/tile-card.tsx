@@ -2,7 +2,7 @@
 "use no memo";
 
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -22,59 +22,51 @@ interface TileCardProps {
 
 export function TileCard({ tile }: TileCardProps) {
   return (
-    <Card className="group relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm hover-lift [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/50 hover:border-zinc-300">
-      <CardHeader className="relative z-10 p-6 pb-3 pointer-events-none">
-        <div className="flex items-start justify-between mb-5">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-md">
-            <DynamicIcon name={tile.icon} className="size-6" />
+    <Card className="group relative flex flex-col overflow-hidden border-border bg-card shadow-sm transition-colors hover:border-ring/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+      <CardHeader className="relative z-10 pointer-events-none">
+        <div className="mb-2 flex items-start justify-between">
+          <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground">
+            <DynamicIcon name={tile.icon} className="size-5" />
           </div>
-          <Link
-            href={resolveMissionControlHref(tile.route)}
-            aria-label={`Open ${tile.title}`}
-            className="flex size-8 items-center justify-center rounded-full bg-zinc-50 text-zinc-400  transition-[opacity,background-color,color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:bg-zinc-100 hover:text-zinc-900  pointer-events-auto"
+          <span
+            aria-hidden="true"
+            className="flex size-8 items-center justify-center rounded-full text-muted-foreground"
           >
             <ChevronRight className="size-4" />
-          </Link>
+          </span>
         </div>
-        <CardTitle className="text-lg font-bold text-zinc-900">
+        <CardTitle className="text-lg font-semibold text-foreground">
           {tile.title}
         </CardTitle>
-        <CardDescription className="text-sm font-medium text-zinc-500 line-clamp-2 mt-1.5 leading-relaxed">
+        <CardDescription className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
           {tile.purpose}
         </CardDescription>
       </CardHeader>
-      <CardContent className="relative z-10 flex flex-1 flex-col gap-5 p-6 pt-0 pointer-events-none">
+      <CardContent className="pointer-events-none relative z-10 flex flex-1 flex-col gap-4">
         <div className="flex-1">
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2.5">
+          <p className="text-xs mb-2 font-medium text-muted-foreground">
             Features
           </p>
-          <p className="text-sm font-medium text-zinc-600 leading-relaxed">
+          <p className="text-sm leading-6 text-muted-foreground">
             {tile.inside}
           </p>
         </div>
 
         {tile.quickActions.length > 0 && (
-          <div className="mt-auto pt-5 border-t border-zinc-50 pointer-events-auto group-hover:border-zinc-100 transition-colors">
+          <div className="pointer-events-auto mt-auto border-t border-border pt-3">
             <div className="flex flex-wrap gap-2">
               {tile.quickActions.slice(0, 3).map((action) => (
                 <Link
                   key={action.label}
                   href={resolveMissionControlHref(action.href)}
-                  className="w-full"
+                  className={buttonVariants({
+                    variant: "ghost",
+                    size: "sm",
+                    className: "w-full justify-start",
+                  })}
                 >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-xs font-bold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 px-2 rounded-xl"
-                  >
-                    {action.icon && (
-                      <DynamicIcon
-                        name={action.icon}
-                        className="mr-2 size-3.5"
-                      />
-                    )}
-                    {action.label}
-                  </Button>
+                  {action.icon && <DynamicIcon name={action.icon} />}
+                  {action.label}
                 </Link>
               ))}
             </div>
@@ -83,7 +75,7 @@ export function TileCard({ tile }: TileCardProps) {
       </CardContent>
       <Link
         href={resolveMissionControlHref(tile.route)}
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none"
         aria-label={`Open ${tile.title}`}
       >
         <span className="sr-only">Open {tile.title}</span>

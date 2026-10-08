@@ -111,8 +111,8 @@ export function ConversationComposer({
     <div
       ref={containerRef}
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm",
-        composer.mode === "note" && "border-amber-200 bg-amber-50/60",
+        "flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm",
+        composer.mode === "note" && "border-warning/30 bg-warning/5",
       )}
       aria-label="Conversation composer"
     >
@@ -139,7 +139,7 @@ export function ConversationComposer({
         afterToolbar={
           slots?.afterToolbar ?? (
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-muted-foreground">
                 {composer.mode === "reply"
                   ? "Type / for a canned response."
                   : "Type @ to mention a teammate."}
@@ -154,7 +154,7 @@ export function ConversationComposer({
           )
         }
         footer={
-          <div className="flex flex-col gap-2 border-t border-zinc-100 px-3 py-2">
+          <div className="flex flex-col gap-2 border-t border-border px-3 py-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <AttachmentChips
                 attachments={composer.attachments}
@@ -226,28 +226,22 @@ function ComposerTabs({ mode, onModeChange, donorName }: ComposerTabsProps) {
         value={mode}
         onValueChange={(next) => onModeChange(next as ComposerMode)}
       >
-        <TabsList className="h-9 gap-1 rounded-lg bg-zinc-100/60 p-1">
-          <TabsTrigger
-            value="reply"
-            className="h-7 gap-1.5 rounded-md px-2.5 font-medium data-active:bg-white data-active:text-zinc-900 data-active:shadow-sm"
-          >
-            <Mail className="size-3.5" />
+        <TabsList aria-label="Message type">
+          <TabsTrigger value="reply">
+            <Mail aria-hidden="true" />
             Reply
           </TabsTrigger>
-          <TabsTrigger
-            value="note"
-            className="h-7 gap-1.5 rounded-md px-2.5 font-medium data-active:bg-amber-100 data-active:text-amber-900 data-active:shadow-sm"
-          >
-            <StickyNote className="size-3.5" />
+          <TabsTrigger value="note">
+            <StickyNote aria-hidden="true" />
             Internal note
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-muted-foreground">
         {mode === "reply" ? (
           <>
             Replying to{" "}
-            <span className="font-medium text-zinc-700">{donorName}</span>
+            <span className="font-medium text-foreground">{donorName}</span>
           </>
         ) : (
           "Notes are visible to the team only."

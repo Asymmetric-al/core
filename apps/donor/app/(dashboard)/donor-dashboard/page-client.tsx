@@ -18,19 +18,19 @@ export default function DonorDashboardPage() {
         : "Could not load the dashboard.";
 
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-rose-100 bg-rose-50/80 py-16 text-center">
-        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-rose-100 bg-white">
-          <AlertCircle className="size-7 text-rose-500" />
+      <div className="flex flex-col items-center justify-center rounded-xl border border-destructive/10 bg-destructive/10 py-16 text-center">
+        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-destructive/10 bg-card">
+          <AlertCircle className="size-7 text-destructive" />
         </div>
-        <h3 className="text-sm font-semibold text-rose-900">Load failed</h3>
-        <p className="mt-2 max-w-sm text-xs font-medium text-rose-700/90">
+        <h3 className="text-sm font-semibold text-destructive">Load failed</h3>
+        <p className="mt-2 max-w-sm text-xs font-medium text-destructive/90">
           {message}
         </p>
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="mt-6 h-9 rounded-lg font-bold uppercase tracking-widest"
+          className="mt-6"
           onClick={() => void bootstrap.refetch()}
         >
           <RefreshCw className="mr-2 size-3.5" data-icon="inline-start" />

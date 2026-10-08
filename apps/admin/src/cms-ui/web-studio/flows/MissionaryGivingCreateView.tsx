@@ -2,7 +2,9 @@
 
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Field } from "@asym/ui/components/shadcn/field";
 import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
@@ -109,7 +111,14 @@ function MissionaryGivingCreateViewContent() {
           missionaryId: value.missionaryId,
           ...(isSuperAdmin ? { tenantId: value.tenantId } : {}),
         }),
-      });
+      }).catch(() => null);
+
+      if (!res) {
+        setSubmitError(
+          "Unable to create draft. Check your connection and try again.",
+        );
+        return;
+      }
 
       // Read the payload for both branches (409 conflicts and errors carry
       // data) with the status check made before the body is consumed.
@@ -181,6 +190,9 @@ function MissionaryGivingCreateViewContent() {
           className="mt-8 flex flex-col gap-6"
           onSubmit={(e) => {
             e.preventDefault();
+            if (form.state.isSubmitting) {
+              return;
+            }
             void form.handleSubmit();
           }}
         >
@@ -200,7 +212,7 @@ function MissionaryGivingCreateViewContent() {
 
           <form.Field name="missionaryId">
             {(field) => (
-              <div className="flex flex-col gap-2">
+              <Field>
                 <SearchableSelect
                   items={(missionaries ?? []).map((m) => ({
                     value: m.id,
@@ -220,7 +232,7 @@ function MissionaryGivingCreateViewContent() {
                   placeholder="Select missionary"
                   label="Missionary"
                 />
-              </div>
+              </Field>
             )}
           </form.Field>
 
@@ -242,9 +254,18 @@ function MissionaryGivingCreateViewContent() {
             </p>
           ) : null}
 
-          <Button type="submit" disabled={!templateId}>
-            Create draft
-          </Button>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button
+                type="submit"
+                disabled={!templateId || isSubmitting}
+                aria-busy={isSubmitting || undefined}
+              >
+                {isSubmitting ? <Spinner aria-hidden="true" /> : null}
+                {isSubmitting ? "Creating draft…" : "Create draft"}
+              </Button>
+            )}
+          </form.Subscribe>
         </form>
       </div>
     </StudioLayout>

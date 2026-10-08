@@ -3,7 +3,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
@@ -141,43 +140,22 @@ function gradientOverride(file: string, componentName: string): string {
 }
 
 describe("application gradient background regressions", () => {
+  // Only callers that still intentionally compose a gradient need to remove
+  // the opaque default. Resend and missionary feed avatars now use the native
+  // Maia surface in AL-1967; their former gradients are not public component
+  // contracts. The generic override guarantee above remains unchanged.
   it.each([
-    {
-      name: "Resend connection card",
-      file: "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
-      componentName: "Card",
-      defaultBackground: "bg-card",
-    },
     {
       name: "content moderation card",
       file: "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
       componentName: "MotionCard",
       defaultBackground: "bg-card",
     },
-    {
-      name: "missionary feed avatar",
-      file: "apps/missionary/app/feed/worker-feed-page-client.tsx",
-      componentName: "AvatarFallback",
-      defaultBackground: "bg-muted",
-    },
   ])(
     "preserves the transparent background of the $name",
     ({ file, componentName, defaultBackground }) => {
       const className = gradientOverride(file, componentName);
-      render(
-        componentName === "AvatarFallback" ? (
-          <Avatar>
-            <AvatarFallback
-              data-testid="gradient-surface"
-              className={className}
-            >
-              GF
-            </AvatarFallback>
-          </Avatar>
-        ) : (
-          <Card data-testid="gradient-surface" className={className} />
-        ),
-      );
+      render(<Card data-testid="gradient-surface" className={className} />);
       const classes = screen.getByTestId("gradient-surface").classList;
 
       expect(classes.contains(defaultBackground)).toBe(false);

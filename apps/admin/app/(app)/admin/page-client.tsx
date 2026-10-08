@@ -125,21 +125,16 @@ export default function AdminPage() {
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              className="h-10 rounded-xl border-zinc-200 font-semibold hover:bg-zinc-50"
               disabled
               aria-describedby={unavailableActionsDescriptionId}
             >
               <Activity
-                className="size-4 text-zinc-600"
+                className="size-4 text-muted-foreground"
                 data-icon="inline-start"
               />{" "}
               Audit Logs
             </Button>
-            <Button
-              className="h-10 rounded-xl bg-zinc-900 px-5 font-semibold text-white shadow-sm hover:bg-zinc-800"
-              disabled
-              aria-describedby={unavailableActionsDescriptionId}
-            >
+            <Button disabled aria-describedby={unavailableActionsDescriptionId}>
               <Shield className="size-4" data-icon="inline-start" /> Security
               Scan
             </Button>
@@ -168,21 +163,24 @@ export default function AdminPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
             >
-              <Link href={item.href} className="group block">
-                <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-zinc-200 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md">
+              <Link
+                href={item.href}
+                className="group block rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                <Card className="h-full overflow-hidden">
                   <CardHeader className="pb-3">
-                    <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white">
+                    <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                       <item.icon className="size-5" />
                     </div>
-                    <CardTitle className="text-base font-bold text-zinc-900 transition-colors group-hover:text-zinc-700 text-left">
+                    <CardTitle className="text-base font-bold text-foreground transition-colors group-hover:text-muted-foreground text-left">
                       {item.title}
                     </CardTitle>
-                    <CardDescription className="line-clamp-2 text-sm text-zinc-600 mt-1 text-left">
+                    <CardDescription className="line-clamp-2 text-sm text-muted-foreground mt-1 text-left">
                       {item.desc}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="flex items-center text-sm font-semibold text-zinc-600 group-hover:text-zinc-900 transition-colors mt-auto">
+                    <div className="flex items-center text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors mt-auto">
                       {item.action}
                       <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
                     </div>
@@ -195,29 +193,27 @@ export default function AdminPage() {
 
         {/* Service Status and Best Practices */}
         <div className="grid gap-4 md:grid-cols-2 text-left">
-          <Card className="rounded-2xl border border-zinc-100 bg-white shadow-sm">
+          <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-zinc-900">
+              <CardTitle className="text-base font-semibold text-foreground">
                 Service Operational Status
               </CardTitle>
-              <CardDescription className="text-zinc-600">
-                Real-time health check of primary integrations.
+              <CardDescription className="text-muted-foreground">
+                Integration status preview. Live health checks are not
+                connected.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {SERVICES.map((service) => (
                 <div
                   key={service.name}
-                  className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50/50 p-3"
+                  className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3"
                 >
-                  <span className="text-sm font-medium text-zinc-700">
+                  <span className="text-sm font-medium text-muted-foreground">
                     {service.name}
                   </span>
-                  <Badge
-                    variant="secondary"
-                    className="border-emerald-200 bg-emerald-50 text-emerald-700 shadow-none hover:bg-emerald-50"
-                  >
-                    <div className="mr-1.5 size-1.5 rounded-full bg-emerald-500" />
+                  <Badge variant="success">
+                    <div className="mr-1.5 size-1.5 rounded-full bg-success" />
                     {service.status}
                   </Badge>
                 </div>
@@ -225,23 +221,25 @@ export default function AdminPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border border-zinc-100 bg-white shadow-sm">
+          <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-zinc-900">
+              <CardTitle className="text-base font-semibold text-foreground">
                 Security Best Practices
               </CardTitle>
-              <CardDescription className="text-zinc-600">
+              <CardDescription className="text-muted-foreground">
                 Essential security measures for administrators.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-xl bg-zinc-50/50 border border-zinc-100 p-4 space-y-3">
+              <div className="rounded-xl bg-muted/30 border border-border p-4 space-y-3">
                 {SECURITY_TIPS.map((tip) => (
                   <div key={tip.id} className="flex items-start gap-3">
-                    <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 shadow-sm">
+                    <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground shadow-sm">
                       <span className="text-xs font-bold">{tip.order}</span>
                     </div>
-                    <span className="text-sm text-zinc-600">{tip.text}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {tip.text}
+                    </span>
                   </div>
                 ))}
               </div>

@@ -1,3 +1,10 @@
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@asym/ui/components/shadcn/card";
 import config from "@payload-config";
 import "@payloadcms/next/css";
 import { handleServerFunctions } from "@payloadcms/next/layouts";
@@ -200,30 +207,29 @@ function WebStudioDatabaseConfigurationError({
   error: PayloadDatabaseConfigurationError;
 }) {
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-zinc-50 p-6 text-zinc-950">
-      <section className="w-full max-w-130 rounded-lg border border-zinc-200 bg-white p-8 shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
-        <p className="mb-3 text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
-          Web Studio
-        </p>
-        <h1 className="mb-3 text-2xl font-semibold">
-          Payload database configuration needs attention
-        </h1>
-        <p className="m-0 text-sm leading-6 text-zinc-600">{error.message}</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
-            href="/"
-          >
+    <main className="flex min-h-dvh items-center justify-center bg-background p-6 text-foreground">
+      <Card className="w-full max-w-lg">
+        <CardHeader>
+          <p className="text-sm font-medium text-muted-foreground">
+            Web Studio
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Payload database configuration needs attention
+          </h1>
+          <CardDescription>{error.message}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Link className={buttonVariants()} href="/">
             Dashboard
           </Link>
           <Link
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800"
+            className={buttonVariants({ variant: "outline" })}
             href="/web-studio"
           >
             Retry
           </Link>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </main>
   );
 }

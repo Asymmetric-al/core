@@ -63,6 +63,16 @@ it("opens the actual missionary mobile sidebar with its named routes and restore
       within(sidebar).getByRole("link", { name }).getAttribute("href"),
     ).toBe(href);
   }
+  expect(
+    within(sidebar)
+      .getByRole("link", { name: "Tasks" })
+      .getAttribute("aria-current"),
+  ).toBe("page");
+  expect(
+    within(sidebar)
+      .getByRole("link", { name: "Profile" })
+      .hasAttribute("aria-current"),
+  ).toBe(false);
   expect(within(sidebar).queryByRole("link", { name: "Wallet" })).toBeNull();
   fireEvent.keyDown(sidebar, { key: "Escape" });
   await waitFor(() =>

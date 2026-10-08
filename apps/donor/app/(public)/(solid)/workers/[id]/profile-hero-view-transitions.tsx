@@ -25,7 +25,7 @@ export function WorkerProfileHeroWithViewTransitions({
       <SharedNamedViewTransition
         name={workerHeroImageTransitionName(worker.id)}
       >
-        <figure className="rounded-2xl overflow-hidden shadow-sm border border-zinc-200 bg-white aspect-video relative group">
+        <figure className="rounded-2xl overflow-hidden shadow-sm border border-border bg-card aspect-video relative group">
           <Image
             src={worker.image}
             alt={`${worker.title} - Missionary serving in ${worker.location}`}
@@ -36,12 +36,15 @@ export function WorkerProfileHeroWithViewTransitions({
             quality={85}
           />
           <div
-            className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"
+            className="absolute inset-0 bg-linear-to-t from-media-scrim/90 via-media-scrim/20 to-transparent"
             aria-hidden="true"
           />
-          <figcaption className="absolute bottom-5 left-5 text-white flex items-center gap-2">
-            <MapPin className="size-4 text-emerald-400" aria-hidden="true" />
-            <span className="font-medium tracking-wide drop-shadow-sm">
+          <figcaption className="absolute bottom-5 left-5 text-media-foreground flex items-center gap-2">
+            <MapPin
+              className="size-4 text-media-foreground"
+              aria-hidden="true"
+            />
+            <span className="font-medium drop-shadow-sm">
               {worker.location}
             </span>
           </figcaption>
@@ -51,9 +54,9 @@ export function WorkerProfileHeroWithViewTransitions({
       <div className="flex flex-col sm:flex-row gap-5 items-start">
         {/* No shared VT name: the workers list card renders no avatar, so
             this name has no pairing surface anywhere. */}
-        <Avatar className="size-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-14 sm:-mt-16 bg-white relative z-10 ring-1 ring-zinc-100">
+        <Avatar className="size-20 sm:h-24 sm:w-24 border-4 border-background shadow-sm -mt-14 sm:-mt-16 bg-card relative z-10 ring-1 ring-ring">
           <AvatarImage src={worker.image} alt="" className="object-cover" />
-          <AvatarFallback className="text-lg font-semibold bg-zinc-100 text-zinc-700">
+          <AvatarFallback className="text-lg font-semibold bg-muted text-foreground">
             {worker.title.substring(0, 2)}
           </AvatarFallback>
         </Avatar>
@@ -63,20 +66,17 @@ export function WorkerProfileHeroWithViewTransitions({
             <SharedNamedViewTransition
               name={workerTitleTransitionName(worker.id)}
             >
-              <h1 className="text-3xl sm:text-4xl font-semibold text-zinc-900 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight">
                 {worker.title}
               </h1>
             </SharedNamedViewTransition>
-            <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-full bg-success/10 text-success border border-success/10 text-sm font-medium ">
               <ShieldCheck className="size-3.5" aria-hidden="true" /> Verified
             </div>
           </div>
-          <div className="flex items-center gap-2 text-zinc-500 font-medium text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
             <span>{worker.category}</span>
-            <span
-              className="size-1 rounded-full bg-zinc-300"
-              aria-hidden="true"
-            />
+            <span className="size-1 rounded-full bg-muted" aria-hidden="true" />
             <span>Partner since 2019</span>
           </div>
         </div>

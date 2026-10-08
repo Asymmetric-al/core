@@ -9,6 +9,10 @@ import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import {
+  flexRender,
+  type Row,
+} from "@asym/ui/components/shadcn/data-table/tanstack";
+import {
   DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +21,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import {
   Select,
   SelectContent,
@@ -113,7 +121,7 @@ function historyFiltersReducer(
 function HistoryChartFallback() {
   return (
     <div
-      className="h-24 w-full rounded-md bg-white/5 animate-pulse"
+      className="h-24 w-full rounded-md bg-muted animate-pulse"
       aria-hidden="true"
     />
   );
@@ -144,7 +152,7 @@ function MonthlyGivingChart({
     return (
       <p
         role="status"
-        className="flex h-full items-center text-sm text-zinc-500"
+        className="flex h-full items-center text-sm text-muted-foreground"
       >
         No giving to chart yet.
       </p>
@@ -166,21 +174,21 @@ function MonthlyGivingChart({
           {data.map((entry) => (
             <Cell
               key={entry.month}
-              fill={entry.amount > 300 ? "#10b981" : "rgba(255,255,255,0.2)"}
+              fill={entry.amount > 300 ? "var(--chart-2)" : "var(--chart-1)"}
               className="transition-opacity duration-200 hover:opacity-80"
             />
           ))}
         </Bar>
         <RechartsTooltip
-          cursor={{ fill: "rgba(255,255,255,0.05)" }}
+          cursor={{ fill: "var(--muted)" }}
           contentStyle={{
-            background: "#09090b",
-            border: "1px solid #27272a",
+            background: "var(--popover)",
+            border: "1px solid var(--border)",
             borderRadius: "8px",
-            color: "#fff",
+            color: "var(--popover-foreground)",
             fontSize: "12px",
           }}
-          itemStyle={{ color: "#fff" }}
+          itemStyle={{ color: "var(--popover-foreground)" }}
           formatter={(value) =>
             typeof value === "number" ? [formatCurrency(value), "Given"] : null
           }
@@ -201,10 +209,10 @@ function HistoryPageHeader({
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 text-left">
       <div>
-        <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight uppercase">
+        <h1 className="text-3xl font-semibold text-foreground tracking-tight ">
           Giving History
         </h1>
-        <p className="text-zinc-500 mt-2 text-lg font-semibold text-xs">
+        <p className="text-muted-foreground mt-2 text-sm">
           Your complete record of impact and tax-deductible contributions.
         </p>
       </div>
@@ -225,11 +233,8 @@ function HistoryPageHeader({
               onYearFilterChange(value);
             }}
           >
-            <SelectTrigger
-              aria-label="Giving history year"
-              className="pl-10 bg-white border-zinc-200 shadow-sm"
-            >
-              <Calendar className="absolute left-3 top-2.5 size-4 text-zinc-500 z-10 pointer-events-none" />
+            <SelectTrigger aria-label="Giving history year">
+              <Calendar aria-hidden="true" />
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
@@ -243,10 +248,7 @@ function HistoryPageHeader({
         </div>
         <a
           href={`/api/donor/statements/${yearFilter}`}
-          className={cn(
-            buttonVariants(),
-            "bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-xs h-10 px-6 rounded-lg",
-          )}
+          className={buttonVariants()}
         >
           <DownloadCloud className="mr-2 size-4" /> Download Statement
         </a>
@@ -274,23 +276,22 @@ function HistoryStatsColumn({
 }) {
   return (
     <div className="lg:col-span-1 space-y-6">
-      <Card className="bg-zinc-950 text-white border-none shadow-2xl overflow-hidden relative group rounded-2xl">
-        <div className="absolute inset-0 bg-linear-to-br from-zinc-900 to-zinc-950 z-0" />
+      <Card className="overflow-hidden relative group">
         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
-          <TrendingUp className="size-40 text-emerald-400" />
+          <TrendingUp className="size-40 text-success" />
         </div>
 
         <CardContent className="p-8 relative z-10 text-left">
           <div className="flex items-center justify-between mb-6">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400 bg-white/5 px-2.5 py-1 rounded-md">
+            <span className="text-sm font-medium text-muted-foreground">
               Total Giving {yearFilter}
             </span>
-            <DollarSign className="size-5 text-emerald-400" />
+            <DollarSign className="size-5 text-success" />
           </div>
           <div className="text-5xl font-semibold tracking-tighter mb-2">
             {formatCurrency(totalGiven)}
           </div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-8">
+          <p className="text-sm font-medium text-muted-foreground mb-8">
             100% Tax Deductible
           </p>
 
@@ -305,28 +306,28 @@ function HistoryStatsColumn({
       </Card>
 
       <div className="grid grid-cols-2 gap-4">
-        <Card className="bg-white border-zinc-100 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow rounded-xl">
+        <Card className="transition-shadow">
           <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
-            <div className="size-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
+            <div className="size-10 rounded-full bg-background text-foreground flex items-center justify-center mb-3 border border-border shadow-sm">
               <FileText className="size-5" />
             </div>
-            <div className="text-2xl font-semibold text-zinc-900">
+            <div className="text-2xl font-semibold text-foreground">
               {receiptCount}
             </div>
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mt-1">
+            <p className="text-sm font-medium text-muted-foreground mt-1">
               Receipts
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-white border-zinc-100 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow rounded-xl">
+        <Card className="transition-shadow">
           <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
-            <div className="size-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
+            <div className="size-10 rounded-full bg-background text-foreground flex items-center justify-center mb-3 border border-border shadow-sm">
               <CheckCircle2 className="size-5" />
             </div>
-            <div className="text-2xl font-semibold text-zinc-900">
+            <div className="text-2xl font-semibold text-foreground">
               {filteredTransactionCount}
             </div>
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mt-1">
+            <p className="text-sm font-medium text-muted-foreground mt-1">
               Total Gifts
             </p>
           </CardContent>
@@ -353,27 +354,25 @@ function HistoryFiltersToolbar({
 }) {
   return (
     <div className="flex flex-col sm:flex-row gap-4">
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-3 size-4 text-zinc-400" />
-        <Input
+      <InputGroup className="flex-1">
+        <InputGroupAddon>
+          <Search aria-hidden="true" />
+        </InputGroupAddon>
+        <InputGroupInput
           placeholder="Search recipient or transaction ID..."
           aria-label="Search giving history"
-          className="pl-10 bg-white border-zinc-200 h-10 shadow-sm focus:ring-2 focus:ring-zinc-100 rounded-lg text-xs font-semibold uppercase tracking-tight"
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
         />
-      </div>
+      </InputGroup>
       <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button
-                variant="outline"
-                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm font-semibold uppercase tracking-widest rounded-lg"
-              >
+              <Button variant="outline">
                 <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
                 {typeFilter !== "All" && (
-                  <Badge variant="secondary" className="ml-2 h-4 px-1">
+                  <Badge variant="secondary" className="ml-2">
                     {typeFilter}
                   </Badge>
                 )}
@@ -382,29 +381,27 @@ function HistoryFiltersToolbar({
           />
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-                Filter by Type
-              </DropdownMenuLabel>
+              <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
 
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
                 checked={typeFilter === "All"}
                 onCheckedChange={() => onTypeFilterChange("All")}
-                className="text-xs font-semibold uppercase tracking-widest"
+                className="text-sm font-medium "
               >
                 All Types
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={typeFilter === "Recurring"}
                 onCheckedChange={() => onTypeFilterChange("Recurring")}
-                className="text-xs font-semibold uppercase tracking-widest"
+                className="text-sm font-medium "
               >
                 Recurring
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={typeFilter === "One-Time"}
                 onCheckedChange={() => onTypeFilterChange("One-Time")}
-                className="text-xs font-semibold uppercase tracking-widest"
+                className="text-sm font-medium "
               >
                 One-Time
               </DropdownMenuCheckboxItem>
@@ -415,13 +412,10 @@ function HistoryFiltersToolbar({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button
-                variant="outline"
-                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm font-semibold uppercase tracking-widest rounded-lg"
-              >
+              <Button variant="outline">
                 Status{" "}
                 {statusFilter !== "All" && (
-                  <Badge variant="secondary" className="ml-2 h-4 px-1">
+                  <Badge variant="secondary" className="ml-2">
                     {statusFilter}
                   </Badge>
                 )}
@@ -430,36 +424,34 @@ function HistoryFiltersToolbar({
           />
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-                Filter by Status
-              </DropdownMenuLabel>
+              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
 
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
                 checked={statusFilter === "All"}
                 onCheckedChange={() => onStatusFilterChange("All")}
-                className="text-xs font-semibold uppercase tracking-widest"
+                className="text-sm font-medium "
               >
                 All Statuses
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={statusFilter === "Succeeded"}
                 onCheckedChange={() => onStatusFilterChange("Succeeded")}
-                className="text-xs font-semibold uppercase tracking-widest text-emerald-600"
+                className="text-sm font-medium text-success"
               >
                 Succeeded
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={statusFilter === "Processing"}
                 onCheckedChange={() => onStatusFilterChange("Processing")}
-                className="text-xs font-semibold uppercase tracking-widest text-blue-600"
+                className="text-sm font-medium text-info"
               >
                 Processing
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={statusFilter === "Failed"}
                 onCheckedChange={() => onStatusFilterChange("Failed")}
-                className="text-xs font-semibold uppercase tracking-widest text-rose-600"
+                className="text-sm font-medium text-destructive"
               >
                 Failed
               </DropdownMenuCheckboxItem>
@@ -471,7 +463,48 @@ function HistoryFiltersToolbar({
   );
 }
 
-function HistoryTransactionsCard({
+function renderHistoryTransactionCard(row: Row<Transaction>) {
+  const renderCell = (columnId: string) => {
+    const cell = row.getAllCells().find((item) => item.column.id === columnId);
+    return cell
+      ? flexRender(cell.column.columnDef.cell, cell.getContext())
+      : null;
+  };
+
+  return (
+    <Card
+      role="article"
+      aria-label={`Contribution to ${row.original.recipient}`}
+    >
+      <CardContent className="space-y-4">
+        {renderCell("recipient")}
+        <dl className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <dt className="text-xs text-muted-foreground">Date</dt>
+            <dd>{renderCell("date")}</dd>
+          </div>
+          <div className="space-y-1 text-right">
+            <dt className="text-xs text-muted-foreground">Amount</dt>
+            <dd>{renderCell("amount")}</dd>
+          </div>
+          <div className="space-y-1">
+            <dt className="text-xs text-muted-foreground">Category</dt>
+            <dd>{renderCell("category")}</dd>
+          </div>
+          <div className="space-y-1 text-right">
+            <dt className="text-xs text-muted-foreground">Status</dt>
+            <dd>{renderCell("status")}</dd>
+          </div>
+        </dl>
+        <div className="border-t border-border pt-4">
+          {renderCell("actions")}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function HistoryTransactionsCard({
   filteredTransactions,
   isLoading,
 }: {
@@ -479,11 +512,12 @@ function HistoryTransactionsCard({
   isLoading?: boolean;
 }) {
   return (
-    <Card className="border-zinc-100 shadow-sm overflow-hidden flex-1 flex flex-col rounded-xl text-left bg-white">
+    <Card className="overflow-hidden flex-1 flex flex-col text-left">
       <DataTableResponsive
         columns={columns}
         data={filteredTransactions}
         isLoading={isLoading}
+        mobileCardConfig={{ renderCard: renderHistoryTransactionCard }}
         config={{
           enableRowSelection: false,
           enableColumnVisibility: true,
@@ -503,10 +537,10 @@ function HistoryTransactionsCard({
             aria-atomic="true"
             className="flex flex-col items-center justify-center py-12 text-center"
           >
-            <p className="font-semibold text-zinc-900 uppercase tracking-tighter">
+            <p className="font-semibold text-foreground tracking-tighter">
               No transactions found
             </p>
-            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mt-1">
+            <p className="text-sm font-medium text-muted-foreground mt-1">
               Try adjusting the current filters.
             </p>
           </div>

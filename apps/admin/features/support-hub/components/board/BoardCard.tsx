@@ -11,12 +11,9 @@ import { AlertTriangle, Clock, Mail, UserRound } from "lucide-react";
 import * as React from "react";
 
 import { formatRelative, isPastDue } from "../../lib/time";
+import { LABEL_BADGE_VARIANTS } from "../labels/label-badge-variants";
 
-import type {
-  SupportConversation,
-  SupportLabel,
-  SupportLabelTone,
-} from "../../types";
+import type { SupportConversation, SupportLabel } from "../../types";
 
 interface BoardCardProps {
   conversation: SupportConversation;
@@ -38,15 +35,6 @@ interface BoardCardProps {
     onDragEnd: () => void;
   };
 }
-
-const LABEL_TONE_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-muted text-foreground ring-border",
-  blue: "bg-blue-50 text-blue-700 ring-blue-200",
-  amber: "bg-amber-50 text-amber-700 ring-amber-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-};
 
 function boardCardAriaLabel({
   conversation,
@@ -129,7 +117,7 @@ function BoardCardAssignee({
       className={cn(
         "flex size-6 items-center justify-center rounded-full border border-dashed",
         isUnassigned
-          ? "border-amber-300 text-amber-600"
+          ? "border-warning/40 text-warning"
           : "border-border text-muted-foreground",
       )}
       aria-label="Unassigned"
@@ -156,13 +144,9 @@ function BoardCardFooter({
         {(conversation.priority === "urgent" ||
           conversation.priority === "high") && (
           <Badge
-            variant="outline"
-            className={cn(
-              "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
-              conversation.priority === "urgent"
-                ? "border-rose-200 bg-rose-50 text-rose-700"
-                : "border-amber-200 bg-amber-50 text-amber-700",
-            )}
+            variant={
+              conversation.priority === "urgent" ? "destructive" : "warning"
+            }
           >
             {conversation.priority}
           </Badge>
@@ -179,11 +163,11 @@ function BoardCardFooter({
 
       <div className="flex shrink-0 items-center gap-1.5">
         {isFirstReplyPastDue ? (
-          <Clock className="size-3 text-rose-500" aria-label="Past due" />
+          <Clock className="size-3 text-destructive" aria-label="Past due" />
         ) : null}
         {isEscalated ? (
           <AlertTriangle
-            className="size-3 text-rose-500"
+            className="size-3 text-destructive"
             aria-label="Escalated"
           />
         ) : null}
@@ -230,8 +214,8 @@ export function BoardCard({
       className={cn(
         "group rounded-2xl border bg-card shadow-sm transition-shadow",
         "border-border [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md focus-within:shadow-md",
-        isFirstReplyPastDue && "border-l-2 border-l-rose-300",
-        isEscalated && "ring-1 ring-rose-200",
+        isFirstReplyPastDue && "border-l-2 border-l-destructive/40",
+        isEscalated && "ring-1 ring-destructive/30",
         isSelected && "ring-1 ring-foreground",
         isDragging && "opacity-60",
       )}
@@ -270,14 +254,5 @@ export function BoardCard({
 }
 
 function LabelChip({ label }: { label: SupportLabel }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-xs font-semibold ring-1 ring-inset",
-        LABEL_TONE_CLASSES[label.tone],
-      )}
-    >
-      {label.name}
-    </span>
-  );
+  return <Badge variant={LABEL_BADGE_VARIANTS[label.tone]}>{label.name}</Badge>;
 }

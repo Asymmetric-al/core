@@ -32,10 +32,10 @@ const STATUS_LABELS: Record<SupportConversationStatus, string> = {
 };
 
 const STATUS_TRIGGER_TONES: Record<SupportConversationStatus, string> = {
-  open: "border-amber-200 bg-amber-50 text-amber-800",
-  pending: "border-zinc-200 bg-zinc-100 text-zinc-700",
-  snoozed: "border-violet-200 bg-violet-50 text-violet-700",
-  resolved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  open: "bg-warning",
+  pending: "bg-muted-foreground",
+  snoozed: "bg-chart-3",
+  resolved: "bg-success",
 };
 
 export function ConversationStatusMenu({
@@ -47,25 +47,22 @@ export function ConversationStatusMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={cn(
-              "h-8 gap-1.5 rounded-lg px-2.5 font-bold uppercase tracking-wider",
-              STATUS_TRIGGER_TONES[conversation.status],
-            )}
-          >
+          <Button type="button" variant="outline" size="sm">
+            <span
+              aria-hidden="true"
+              className={cn(
+                "size-2 rounded-full",
+                STATUS_TRIGGER_TONES[conversation.status],
+              )}
+            />
             {STATUS_LABELS[conversation.status]}
-            <ChevronDown className="size-3 opacity-70" />
+            <ChevronDown aria-hidden="true" />
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs uppercase tracking-widest text-zinc-400">
-            Set status
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Set status</DropdownMenuLabel>
 
           <DropdownMenuSeparator />
           {SUPPORT_CONVERSATION_STATUSES.map((status) => {
@@ -79,12 +76,12 @@ export function ConversationStatusMenu({
                     status,
                   })
                 }
-                className="gap-2 text-xs"
               >
                 <Check
+                  aria-hidden="true"
                   className={cn(
                     "size-3.5",
-                    isActive ? "text-zinc-900" : "text-transparent",
+                    isActive ? "text-foreground" : "text-transparent",
                   )}
                 />
                 {STATUS_LABELS[status]}

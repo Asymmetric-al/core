@@ -62,15 +62,12 @@ export default function MemberCareDashboardPage() {
       density="compact"
       actions={
         <>
-          <Button
-            variant="outline"
-            className="h-10 rounded-xl border-zinc-200 font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950"
-          >
+          <Button variant="outline">
             <BookOpen className="mr-2 size-4 text-muted-foreground" />
             <span className="hide-mobile">Knowledge Base</span>
             <span className="show-mobile-only">Docs</span>
           </Button>
-          <Button className="h-10 rounded-xl bg-zinc-900 font-semibold text-white shadow-sm hover:bg-zinc-800">
+          <Button>
             <Heart className="mr-2 size-4 fill-current" />
             New Care Record
           </Button>

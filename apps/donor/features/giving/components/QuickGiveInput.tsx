@@ -3,6 +3,12 @@
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { transitionStandard } from "@asym/lib/motion-presets";
 import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designations";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupButton,
+} from "@asym/ui/components/shadcn/input-group";
 import { cn } from "@asym/ui/lib/utils";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -25,7 +31,6 @@ export function QuickGiveInput({
 
   const [amount, setAmount] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   // Show the CTA if focused OR if there's an amount entered
   const isExpanded = isFocused || amount.length > 0;
@@ -79,34 +84,12 @@ export function QuickGiveInput({
   return (
     <motion.div
       ref={containerRef}
-      className={cn(
-        "relative h-12 rounded-2xl overflow-hidden cursor-text",
-        "bg-slate-900 shadow-xl shadow-slate-900/20",
-        "ring-1 ring-white/10",
-        "transition-[box-shadow,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
-        isFocused && "ring-white/25 shadow-2xl shadow-slate-900/40",
-        className,
-      )}
-      onClick={() => inputRef.current?.focus()}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={cn("w-full rounded-md bg-background", className)}
     >
-      <div className="relative size-full flex items-center justify-between">
-        <motion.div
-          layout
-          className="flex items-center h-full flex-1 px-4 min-w-0"
-        >
-          <motion.span
-            layout
-            className={cn(
-              "text-base font-semibold mr-1.5 transition-colors duration-300",
-              isExpanded ? "text-white" : "text-white/70",
-            )}
-          >
-            $
-          </motion.span>
-
-          <input
+      <InputGroup>
+        <InputGroupAddon aria-hidden="true">$</InputGroupAddon>
+        <motion.div layout className="flex-1 min-w-0">
+          <InputGroupInput
             ref={inputRef}
             type="text"
             inputMode="decimal"
@@ -114,61 +97,40 @@ export function QuickGiveInput({
             value={amount}
             onChange={handleAmountChange}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => {
-              if (!amount) setIsFocused(false);
+            onBlur={(event) => {
+              if (
+                !amount &&
+                !containerRef.current?.contains(event.relatedTarget)
+              ) {
+                setIsFocused(false);
+              }
             }}
             onKeyDown={handleKeyDown}
-            className={cn(
-              "bg-transparent border-none outline-none w-full",
-              "text-base font-semibold text-white",
-              "placeholder:text-white/70 placeholder:font-semibold",
-              "selection:bg-white/30",
-            )}
             aria-label="Donation amount"
           />
         </motion.div>
-
-        <AnimatePresence mode="popLayout" initial={false}>
-          {isExpanded && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={transitionStandard}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleGive();
-              }}
-              className={cn(
-                "h-full px-5 flex items-center gap-2",
-                "text-sm font-black uppercase tracking-widest whitespace-nowrap",
-                "transition-colors duration-300",
-                hasValidAmount
-                  ? "bg-white text-slate-900 hover:bg-slate-50"
-                  : "bg-white/10 text-white/30 cursor-not-allowed",
-              )}
-            >
-              <span className="relative z-10">Give</span>
+        <InputGroupAddon align="inline-end">
+          <AnimatePresence mode="popLayout" initial={false}>
+            {isExpanded && (
               <motion.div
-                animate={{ x: hasValidAmount && isHovered ? 3 : 0 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={transitionStandard}
               >
-                <ArrowRight className="size-4 stroke-[3]" />
+                <InputGroupButton
+                  variant="default"
+                  size="sm"
+                  onClick={handleGive}
+                >
+                  Give <ArrowRight aria-hidden="true" />
+                </InputGroupButton>
               </motion.div>
-            </motion.button>
-          )}
-        </AnimatePresence>
-
-        {!isExpanded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute right-4 pointer-events-none"
-          >
-            <ArrowRight className="size-4 text-white/50 stroke-[2.5]" />
-          </motion.div>
-        )}
-      </div>
+            )}
+          </AnimatePresence>
+          {!isExpanded && <ArrowRight aria-hidden="true" />}
+        </InputGroupAddon>
+      </InputGroup>
     </motion.div>
   );
 }

@@ -2,6 +2,15 @@
 
 import "./globals.css";
 
+import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@asym/ui/components/shadcn/card";
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
@@ -19,33 +28,39 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="m-0 bg-zinc-50 font-sans text-zinc-900">
+      <body className="m-0 bg-background font-sans text-foreground">
         <title>Missionary dashboard error</title>
         <main className="flex min-h-dvh items-center justify-center p-6">
-          <section className="w-full max-w-110 rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-[0_20px_45px_rgba(15,23,42,0.08)]">
-            <p className="mb-3 text-xs font-extrabold uppercase tracking-[0.14em] text-zinc-500">
-              Missionary Dashboard
-            </p>
-            <h1 className="mb-3 text-3xl font-semibold">
-              Something went wrong
-            </h1>
-            <p className="m-0 text-sm text-zinc-600">
-              We could not render this page. Try again, or return to your
-              dashboard if the problem continues.
-            </p>
-            {error.digest ? (
-              <p className="mt-5 text-xs text-zinc-500">
-                Reference: {error.digest}
-              </p>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => reset()}
-              className="mt-6 cursor-pointer rounded-[10px] border-0 bg-zinc-900 px-4.5 py-3 text-xs font-extrabold uppercase tracking-[0.08em] text-white"
-            >
-              Try again
-            </button>
-          </section>
+          <div className="w-full max-w-110 text-center">
+            <Card>
+              <CardHeader>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Missionary Dashboard
+                </p>
+                <CardTitle>
+                  <h1 className="text-2xl font-semibold tracking-tight">
+                    Something went wrong
+                  </h1>
+                </CardTitle>
+                <CardDescription>
+                  We could not render this page. Try again, or return to your
+                  dashboard if the problem continues.
+                </CardDescription>
+              </CardHeader>
+              {error.digest ? (
+                <CardContent>
+                  <p className="break-all text-xs text-muted-foreground">
+                    Reference: {error.digest}
+                  </p>
+                </CardContent>
+              ) : null}
+              <CardFooter className="justify-center">
+                <Button type="button" onClick={() => reset()}>
+                  Try again
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         </main>
       </body>
     </html>

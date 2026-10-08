@@ -1,7 +1,7 @@
 "use client";
 
 import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -28,18 +28,15 @@ export function TilePage({ tile, children }: TilePageProps) {
         description={tile.purpose}
         breadcrumbs={[{ label: tile.title }]}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {tile.quickActions.slice(0, 2).map((action) => (
               <Link
                 key={action.label}
                 href={resolveMissionControlHref(action.href)}
+                className={buttonVariants({ size: "sm" })}
               >
-                <Button size="sm">
-                  {action.icon && (
-                    <DynamicIcon name={action.icon} className="mr-2 size-4" />
-                  )}
-                  {action.label}
-                </Button>
+                {action.icon && <DynamicIcon name={action.icon} />}
+                {action.label}
               </Link>
             ))}
           </div>
@@ -64,17 +61,14 @@ export function TilePage({ tile, children }: TilePageProps) {
                 <Link
                   key={action.label}
                   href={resolveMissionControlHref(action.href)}
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                    className: "w-full justify-start",
+                  })}
                 >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start"
-                  >
-                    {action.icon && (
-                      <DynamicIcon name={action.icon} className="mr-2 size-4" />
-                    )}
-                    {action.label}
-                  </Button>
+                  {action.icon && <DynamicIcon name={action.icon} />}
+                  {action.label}
                 </Link>
               ))}
             </CardContent>

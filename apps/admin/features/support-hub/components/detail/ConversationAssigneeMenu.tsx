@@ -45,13 +45,13 @@ export function ConversationAssigneeMenu({
             type="button"
             variant="ghost"
             size="sm"
-            className="gap-2 rounded-lg px-2 text-zinc-700"
+            className="max-w-48"
             aria-label={
               assignee ? `Assigned to ${assignee.name}` : "Unassigned"
             }
           >
             {assignee ? (
-              <Avatar className="size-5 border border-zinc-100">
+              <Avatar className="size-5 border border-border">
                 <AvatarImage
                   src={assignee.avatarUrl ?? undefined}
                   alt={assignee.name}
@@ -61,21 +61,17 @@ export function ConversationAssigneeMenu({
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-amber-300 text-amber-600">
+              <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-warning/40 text-warning">
                 <UserRound className="size-3" />
               </span>
             )}
-            <span className="truncate text-xs">
-              {assignee?.name ?? "Unassigned"}
-            </span>
+            <span className="truncate">{assignee?.name ?? "Unassigned"}</span>
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-xs uppercase tracking-widest text-zinc-400">
-            Assign conversation
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Assign conversation</DropdownMenuLabel>
 
           <DropdownMenuSeparator />
           {currentAgentId ? (
@@ -86,9 +82,8 @@ export function ConversationAssigneeMenu({
                   assigneeAgentId: currentAgentId,
                 })
               }
-              className="gap-2 text-xs"
             >
-              <UserCheck className="size-3.5 text-zinc-500" />
+              <UserCheck className="size-3.5 text-muted-foreground" />
               Assign to me
             </DropdownMenuItem>
           ) : null}
@@ -99,9 +94,8 @@ export function ConversationAssigneeMenu({
                 assigneeAgentId: null,
               })
             }
-            className="gap-2 text-xs"
           >
-            <UserMinus className="size-3.5 text-zinc-500" />
+            <UserMinus className="size-3.5 text-muted-foreground" />
             Unassign
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -116,15 +110,14 @@ export function ConversationAssigneeMenu({
                     assigneeAgentId: agent.id,
                   })
                 }
-                className="gap-2 text-xs"
               >
                 <Check
                   className={cn(
                     "size-3.5",
-                    isActive ? "text-zinc-900" : "text-transparent",
+                    isActive ? "text-foreground" : "text-transparent",
                   )}
                 />
-                <Avatar className="size-5 border border-zinc-100">
+                <Avatar className="size-5 border border-border">
                   <AvatarImage
                     src={agent.avatarUrl ?? undefined}
                     alt={agent.name}

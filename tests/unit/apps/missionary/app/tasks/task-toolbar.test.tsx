@@ -121,3 +121,25 @@ it("keeps the named refresh control connected to the existing task refresh", () 
   expect(tasks.deleteTask).not.toHaveBeenCalled();
   expect(tasks.moveTask).not.toHaveBeenCalled();
 });
+
+it("exposes the current task filter on its summary controls", async () => {
+  render(<TasksPage />);
+
+  expect(
+    screen.getByRole("button", { name: "1 Active", pressed: true }),
+  ).toBeTruthy();
+  const completed = screen.getByRole("button", {
+    name: "0 Completed",
+    pressed: false,
+  });
+  fireEvent.click(completed);
+
+  expect(completed.getAttribute("aria-pressed")).toBe("true");
+  expect(
+    screen.getByRole("button", { name: "1 Active", pressed: false }),
+  ).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "List view" }));
+  expect(
+    await screen.findByRole("heading", { name: "All caught up" }),
+  ).toBeTruthy();
+});

@@ -2,6 +2,14 @@
 
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@asym/ui/components/shadcn/sheet";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -12,6 +20,7 @@ import { usePreferences } from "@payloadcms/ui";
 import {
   Clock3,
   LayoutDashboard,
+  Menu,
   PanelLeftClose,
   PanelLeft,
   Sparkles,
@@ -23,6 +32,7 @@ import { getEnabledWebStudioCollections } from "../collections/config";
 import { WEB_STUDIO_PREF_KEYS } from "../preferences/keys";
 import { Link, usePathname } from "../routing";
 
+import type { WebStudioCollectionConfig } from "../collections/config";
 import type { ComponentType } from "react";
 
 type RecentDocLink = {
@@ -38,6 +48,7 @@ type NavRailLinkProps = {
   href: string;
   icon: ComponentType<{ className?: string }>;
   title: string;
+  onNavigate?: () => void;
 };
 
 function isRecentDocLink(value: unknown): value is RecentDocLink {
@@ -186,8 +197,8 @@ function StudioNavRailHeader({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="size-8 shrink-0"
+              size="icon-sm"
+              className="shrink-0"
               onClick={() => void persistCollapsed(!collapsed)}
               aria-pressed={collapsed}
               aria-label={
@@ -214,8 +225,10 @@ function StudioNavRailHeader({
 
 function StudioNavRailRecentDocs({
   recentDocs,
+  onNavigate,
 }: {
   recentDocs: RecentDocLink[];
+  onNavigate?: () => void;
 }) {
   return (
     <div className="border-border border-t px-2 py-3">
@@ -228,6 +241,7 @@ function StudioNavRailRecentDocs({
           <Link
             key={`${doc.id}-${doc.href}`}
             href={doc.href}
+            onClick={onNavigate}
             title={doc.title}
             className={cn(
               buttonVariants({ variant: "ghost", size: "sm" }),
@@ -244,6 +258,7 @@ function StudioNavRailRecentDocs({
 
 export function StudioNavRail({ className }: { className?: string }) {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const {
     collapsed,
     enabledCollections,
@@ -253,63 +268,124 @@ export function StudioNavRail({ className }: { className?: string }) {
   } = useStudioNavRailState();
 
   return (
-    <aside
-      className={cn(
-        "hidden shrink-0 border-border border-r bg-card/40 md:flex md:flex-col",
-        collapsed ? "w-14" : "w-52",
-        className,
-      )}
-      data-collapsed={collapsed ? "true" : "false"}
-      data-hydrated={hydrated ? "true" : "false"}
-    >
-      <TooltipProvider delay={200}>
-        <StudioNavRailHeader
-          collapsed={collapsed}
-          persistCollapsed={persistCollapsed}
-        />
-        <nav className="flex flex-col gap-1 p-2">
-          <NavRailLink
-            active={pathname.startsWith("/web-studio/templates")}
-            collapsed={collapsed}
-            href="/web-studio/templates"
-            icon={Sparkles}
-            title="Templates"
+    <>
+      <div className="border-border border-b bg-card px-4 py-2 md:hidden">
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger
+            render={
+              <Button variant="outline" size="sm">
+                <Menu aria-hidden="true" className="size-4" />
+                Studio navigation
+              </Button>
+            }
+            aria-label="Open studio navigation"
           />
-          <NavRailLink
-            active={pathname.startsWith("/web-studio/missionaries")}
-            collapsed={collapsed}
-            href="/web-studio/missionaries"
-            icon={Users}
-            title="Missionaries"
-          />
-          {enabledCollections.map((collection) => {
-            const isActive =
-              pathname === collection.listPath ||
-              pathname.startsWith(`${collection.listPath}/`);
-
-            return (
-              <NavRailLink
-                key={collection.slug}
-                active={isActive}
-                collapsed={collapsed}
-                href={collection.listPath}
-                icon={collection.icon}
-                title={collection.titlePlural}
+          <SheetContent side="left">
+            <SheetHeader className="shrink-0">
+              <SheetTitle>Web Studio navigation</SheetTitle>
+              <SheetDescription>
+                Browse your content and recent documents.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <StudioNavRailSections
+                collapsed={false}
+                enabledCollections={enabledCollections}
+                pathname={pathname}
+                onNavigate={() => setMobileOpen(false)}
               />
-            );
-          })}
-          <NavRailLink
+              {recentDocs.length > 0 ? (
+                <StudioNavRailRecentDocs
+                  recentDocs={recentDocs}
+                  onNavigate={() => setMobileOpen(false)}
+                />
+              ) : null}
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+      <aside
+        className={cn(
+          "hidden shrink-0 border-border border-r bg-card/40 md:flex md:flex-col",
+          collapsed ? "w-14" : "w-52",
+          className,
+        )}
+        data-collapsed={collapsed ? "true" : "false"}
+        data-hydrated={hydrated ? "true" : "false"}
+      >
+        <TooltipProvider delay={200}>
+          <StudioNavRailHeader
             collapsed={collapsed}
-            href="/"
-            icon={LayoutDashboard}
-            title="Dashboard"
+            persistCollapsed={persistCollapsed}
           />
-        </nav>
-      </TooltipProvider>
-      {!collapsed && recentDocs.length > 0 ? (
-        <StudioNavRailRecentDocs recentDocs={recentDocs} />
-      ) : null}
-    </aside>
+          <StudioNavRailSections
+            collapsed={collapsed}
+            enabledCollections={enabledCollections}
+            pathname={pathname}
+          />
+        </TooltipProvider>
+        {!collapsed && recentDocs.length > 0 ? (
+          <StudioNavRailRecentDocs recentDocs={recentDocs} />
+        ) : null}
+      </aside>
+    </>
+  );
+}
+
+function StudioNavRailSections({
+  collapsed,
+  enabledCollections,
+  pathname,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  enabledCollections: WebStudioCollectionConfig[];
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav aria-label="Studio sections" className="flex flex-col gap-1 p-2">
+      <NavRailLink
+        active={pathname.startsWith("/web-studio/templates")}
+        collapsed={collapsed}
+        href="/web-studio/templates"
+        icon={Sparkles}
+        title="Templates"
+        onNavigate={onNavigate}
+      />
+      <NavRailLink
+        active={pathname.startsWith("/web-studio/missionaries")}
+        collapsed={collapsed}
+        href="/web-studio/missionaries"
+        icon={Users}
+        title="Missionaries"
+        onNavigate={onNavigate}
+      />
+      {enabledCollections.map((collection) => {
+        const isActive =
+          pathname === collection.listPath ||
+          pathname.startsWith(`${collection.listPath}/`);
+
+        return (
+          <NavRailLink
+            key={collection.slug}
+            active={isActive}
+            collapsed={collapsed}
+            href={collection.listPath}
+            icon={collection.icon}
+            title={collection.titlePlural}
+            onNavigate={onNavigate}
+          />
+        );
+      })}
+      <NavRailLink
+        collapsed={collapsed}
+        href="/"
+        icon={LayoutDashboard}
+        title="Dashboard"
+        onNavigate={onNavigate}
+      />
+    </nav>
   );
 }
 
@@ -319,11 +395,13 @@ function NavRailLink({
   href,
   icon: Icon,
   title,
+  onNavigate,
 }: NavRailLinkProps) {
   if (!collapsed) {
     return (
       <Link
         href={href}
+        onClick={onNavigate}
         title={title}
         aria-current={active ? "page" : undefined}
         className={cn(
@@ -346,6 +424,7 @@ function NavRailLink({
         render={
           <Link
             href={href}
+            onClick={onNavigate}
             title={title}
             aria-label={title}
             aria-current={active ? "page" : undefined}

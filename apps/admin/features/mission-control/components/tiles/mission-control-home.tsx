@@ -1,8 +1,7 @@
 "use client";
 
 import { useMC } from "@asym/lib/mission-control/context";
-import { resolveMissionControlHref } from "@asym/lib/mission-control/routes";
-import { TILES, WORKFLOWS } from "@asym/lib/mission-control/tiles";
+import { TILES } from "@asym/lib/mission-control/tiles";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -23,27 +22,23 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import {
   AlertTriangle,
-  ArrowRight,
   BarChart3,
   CheckCircle2,
   Clock3,
   GripVertical,
   LayoutGrid,
   Settings2,
-  Sparkles,
   Star,
 } from "lucide-react";
-import Link from "next/link";
 import { lazy, Suspense, useMemo, useState } from "react";
 
 import { QuickActionsRow } from "./quick-actions-row";
 import { TileCard } from "./tile-card";
 import { WorkflowsPanel } from "./workflows-panel";
 import { getIcon } from "../icon-map";
-import { DynamicIcon } from "../icons";
 
 import type { DashboardStats } from "@asym/api/reads/dashboard-stats";
-import type { Tile, Role, Workflow } from "@asym/lib/mission-control/types";
+import type { Tile, Role } from "@asym/lib/mission-control/types";
 
 const NUMBER_FORMATTER_1 = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -107,15 +102,15 @@ const WIDGET_LIBRARY = [
 function getMetricToneClass(tone: OverviewMetric["tone"]) {
   switch (tone) {
     case "success":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+      return "border-success/25 bg-success/10 text-success";
     case "warning":
-      return "border-amber-200 bg-amber-50 text-amber-700";
+      return "border-warning/25 bg-warning/10 text-warning";
     case "info":
-      return "border-blue-200 bg-blue-50 text-blue-700";
+      return "border-info/25 bg-info/10 text-info";
     case "neutral":
-      return "border-zinc-200 bg-zinc-50 text-zinc-700";
+      return "border-border bg-muted text-muted-foreground";
     default:
-      return "border-zinc-200 bg-zinc-50 text-zinc-700";
+      return "border-border bg-muted text-muted-foreground";
   }
 }
 
@@ -172,49 +167,6 @@ function buildOverviewMetrics(stats: DashboardStats | null): OverviewMetric[] {
   ];
 }
 
-function classifyTile(tile: Tile) {
-  if (tile.id === "support" || tile.id === "care") return "Attention";
-  if (tile.id === "contributions" || tile.id === "reports") return "Money";
-  if (tile.id === "mobilize" || tile.id === "events") return "Operations";
-  if (tile.id === "crm") return "Relationships";
-  if (tile.id === "admin") return "Admin";
-  return "Tools";
-}
-
-function TileSummaryCard({ tile }: { tile: Tile }) {
-  return (
-    <Link href={resolveMissionControlHref(tile.route)} className="group block">
-      <Card className="h-full border-border/70 bg-card shadow-sm transition-[border-color,box-shadow,transform] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover-lift hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/50">
-        <CardContent className="flex h-full flex-col gap-4 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-muted/40 text-foreground transition-[background-color,color,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:border-zinc-900 group-hover:bg-zinc-900 group-hover:text-white">
-              <DynamicIcon name={tile.icon} className="size-5" />
-            </div>
-            <Badge
-              variant="outline"
-              className="h-5 rounded-md bg-background px-1.5 font-semibold text-muted-foreground"
-            >
-              {classifyTile(tile)}
-            </Badge>
-          </div>
-          <div className="min-w-0 space-y-1">
-            <h3 className="text-sm font-semibold leading-tight text-foreground">
-              {tile.title}
-            </h3>
-            <p className="line-clamp-2 text-xs font-medium leading-5 text-muted-foreground">
-              {tile.purpose}
-            </p>
-          </div>
-          <div className="mt-auto flex items-center justify-between border-t border-border/60 pt-3 text-xs font-semibold text-muted-foreground">
-            <span>{tile.quickActions.length} quick actions</span>
-            <ArrowRight className="size-3.5 transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:translate-x-0.5" />
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
-
 export function MissionControlHome({
   dashboardMissionaryId: _dashboardMissionaryId,
   stats = null,
@@ -225,21 +177,22 @@ export function MissionControlHome({
   const visibleTiles = TILES.filter((tile) => tile.roles.includes(role));
   const allTiles = TILES;
   const overviewMetrics = useMemo(() => buildOverviewMetrics(stats), [stats]);
-  const primaryTiles = useMemo(() => {
+  const workspaceTiles = useMemo(() => {
     const byId = new Map(visibleTiles.map((tile) => [tile.id, tile]));
     const ordered = PRIMARY_TILE_IDS.flatMap((id) => {
       const tile = byId.get(id);
       return tile ? [tile] : [];
     });
-    return ordered.length > 0 ? ordered : visibleTiles.slice(0, 8);
+    const primaryIds = new Set<string>(PRIMARY_TILE_IDS);
+    return [
+      ...ordered,
+      ...visibleTiles.filter((tile) => !primaryIds.has(tile.id)),
+    ];
   }, [visibleTiles]);
-  const topWorkflows = WORKFLOWS.slice(0, 3);
 
   return (
-    <div className="relative isolate min-h-full px-4 pb-16 pt-5 sm:px-6 lg:px-7">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-linear-to-b from-zinc-50 via-background to-transparent" />
-
-      <div className="relative space-y-6">
+    <div className="min-h-full px-4 py-6 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-6">
         <MissionControlReadiness
           visibleTiles={visibleTiles}
           showAllTools={showAllTools}
@@ -249,8 +202,6 @@ export function MissionControlHome({
         />
 
         <MissionControlMetrics overviewMetrics={overviewMetrics} />
-
-        <MissionControlWorkflows />
 
         <section className="space-y-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -267,29 +218,23 @@ export function MissionControlHome({
           <QuickActionsRow />
         </section>
 
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">
-                Operational map
-              </h2>
-              <p className="text-sm font-medium text-zinc-500">
-                The most important Mission Control modules, grouped for fast
-                scanning.
-              </p>
-            </div>
+        <MissionControlWorkflows />
+
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold text-foreground">
+              Workspace tools
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Your enabled modules and their most useful shortcuts.
+            </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {primaryTiles.map((tile) => (
-              <TileSummaryCard key={tile.id} tile={tile} />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {workspaceTiles.map((tile) => (
+              <TileCard key={tile.id} tile={tile} />
             ))}
           </div>
         </section>
-
-        <MissionControlResources
-          visibleTiles={visibleTiles}
-          topWorkflows={topWorkflows}
-        />
 
         <WorkflowsPanel />
       </div>
@@ -311,38 +256,37 @@ function MissionControlReadiness({
   role: Role;
 }) {
   return (
-    <section className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
-      <Card className="overflow-hidden border-zinc-900 bg-zinc-950 text-white shadow-xl">
-        <CardContent className="relative p-5 sm:p-6">
-          <div className="pointer-events-none absolute right-0 top-0 size-64 translate-x-1/3 -translate-y-1/2 rounded-full bg-radial from-white/10 to-transparent" />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <Card className="overflow-hidden border-border bg-card text-card-foreground shadow-sm">
+        <CardContent className="p-5 sm:p-6">
+          <div className="flex flex-col gap-5">
             <div className="max-w-3xl space-y-3">
-              <Badge className="h-6 border-white/10 bg-white/10 font-semibold text-zinc-100 hover:bg-white/10">
+              <Badge variant="secondary" className="w-fit">
                 Mission Control dashboard
               </Badge>
               <div className="space-y-2">
-                <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
-                  Start here. See the whole ministry picture.
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                  Mission Control
                 </h1>
-                <p className="max-w-2xl text-sm font-medium leading-6 text-zinc-300">
+                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
                   A command-center view for attention, money, people,
                   mobilization, events, support, and admin readiness.
                 </p>
               </div>
             </div>
-            <div className="grid gap-2 sm:grid-cols-3 lg:w-115">
+            <div className="grid gap-3 sm:grid-cols-3">
               {DASHBOARD_GUIDE_ITEMS.map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-2xl border border-white/10 bg-white/[0.06] p-3"
+                  className="rounded-xl border border-border bg-muted/30 p-3"
                 >
-                  <p className="text-xs font-medium text-zinc-400">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {item.label}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-white">
+                  <p className="mt-1 text-sm font-semibold text-foreground">
                     {item.value}
                   </p>
-                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-zinc-400">
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     {item.detail}
                   </p>
                 </div>
@@ -356,10 +300,10 @@ function MissionControlReadiness({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Settings2 className="size-4 text-muted-foreground" />
-            Customizable workspace
+            Your workspace
           </CardTitle>
           <CardDescription>
-            Role-aware modules now form the starting map for daily work.
+            Explore the tools available to your current role.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -384,9 +328,9 @@ function MissionControlReadiness({
           <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
             <DialogTrigger
               render={
-                <Button className="h-10 w-full rounded-xl bg-zinc-900 font-semibold text-white hover:bg-zinc-800">
-                  <LayoutGrid className="mr-2 size-4" />
-                  Customize modules
+                <Button className="w-full">
+                  <LayoutGrid data-icon="inline-start" />
+                  Explore modules
                 </Button>
               }
             />
@@ -408,7 +352,7 @@ function MissionControlReadiness({
                       className={cn(
                         "flex items-start gap-3 rounded-2xl border p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
                         hasAccess
-                          ? "border-border bg-card shadow-sm hover:border-zinc-300"
+                          ? "border-border bg-card shadow-sm hover:border-ring/30"
                           : "border-border/60 bg-muted/30 opacity-70",
                       )}
                     >
@@ -426,15 +370,7 @@ function MissionControlReadiness({
                         <p className="text-sm font-semibold text-foreground">
                           {tile.title}
                         </p>
-                        <Badge
-                          variant="secondary"
-                          className={cn(
-                            "h-5 px-1.5 font-semibold",
-                            hasAccess
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-zinc-100 text-zinc-500",
-                          )}
-                        >
+                        <Badge variant={hasAccess ? "success" : "secondary"}>
                           {hasAccess ? "Available" : "Locked"}
                         </Badge>
                       </div>
@@ -456,7 +392,7 @@ function MissionControlMetrics({
   overviewMetrics: OverviewMetric[];
 }) {
   return (
-    <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <section className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="grid gap-3 sm:grid-cols-3">
         {overviewMetrics.map((metric) => (
           <Card key={metric.id} className="border-border bg-card shadow-sm">
@@ -494,7 +430,7 @@ function MissionControlMetrics({
       <Card className="border-border bg-card shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Clock3 className="size-4 text-amber-600" />
+            <Clock3 className="size-4 text-warning" />
             Priority scan
           </CardTitle>
           <CardDescription>
@@ -506,17 +442,17 @@ function MissionControlMetrics({
             {
               label: "Support and care",
               detail: "Review people-facing risk before routine work.",
-              tone: "text-rose-600 bg-rose-50 border-rose-100",
+              tone: "text-destructive bg-destructive/10 border-destructive/20",
             },
             {
               label: "Giving and reports",
               detail: "Check settled giving and operational signals.",
-              tone: "text-emerald-700 bg-emerald-50 border-emerald-100",
+              tone: "text-success bg-success/10 border-success/20",
             },
             {
               label: "Pipeline and events",
               detail: "Move candidates, sessions, and tasks forward.",
-              tone: "text-blue-700 bg-blue-50 border-blue-100",
+              tone: "text-info bg-info/10 border-info/20",
             },
           ].map((item) => (
             <div
@@ -563,11 +499,8 @@ function MissionControlWorkflows() {
         <Dialog>
           <DialogTrigger
             render={
-              <Button
-                variant="outline"
-                className="h-10 rounded-xl border-zinc-200 bg-white font-semibold hover:bg-zinc-50"
-              >
-                <LayoutGrid className="mr-2 size-4" />
+              <Button variant="outline">
+                <LayoutGrid data-icon="inline-start" />
                 Preview widgets
               </Button>
             }
@@ -678,66 +611,6 @@ function MissionControlWorkflows() {
           </CardContent>
         </Card>
       </div>
-    </section>
-  );
-}
-
-function MissionControlResources({
-  visibleTiles,
-  topWorkflows,
-}: {
-  visibleTiles: Tile[];
-  topWorkflows: Workflow[];
-}) {
-  return (
-    <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            Enabled tools
-          </h2>
-          <p className="text-sm font-medium text-muted-foreground">
-            Full module cards remain below for deeper navigation and quick
-            actions.
-          </p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {visibleTiles.map((tile) => (
-            <TileCard key={tile.id} tile={tile} />
-          ))}
-        </div>
-      </div>
-
-      <Card className="h-fit border-border bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Sparkles className="size-4 text-purple-600" />
-            Suggested workflows
-          </CardTitle>
-          <CardDescription>
-            Cross-module flows that explain what the dashboard connects.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {topWorkflows.map((workflow) => (
-            <Link
-              key={workflow.id}
-              href={resolveMissionControlHref(workflow.route)}
-              className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 transition-[border-color,background-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-zinc-300 hover:bg-muted/30"
-            >
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {workflow.title}
-                </p>
-                <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
-                  {workflow.description}
-                </p>
-              </div>
-              <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:translate-x-0.5 group-hover:text-foreground" />
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
     </section>
   );
 }

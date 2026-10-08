@@ -117,8 +117,11 @@ describe("UI route cleanup contracts", () => {
     );
 
     expect(source).toContain(
-      'title={post.saved ? "Remove from bookmarks" : "Save this post"}',
+      'aria-label={post.saved ? "Remove from bookmarks" : "Save this post"}',
     );
+    // The rendered save/remove names and Saved filtering are exercised in
+    // donor/feed-heading-structure.test.tsx; the icon toggle also exposes state.
+    expect(source).toContain("aria-pressed={Boolean(post.saved)}");
     expect(source).toContain("<ReactionBar");
     expect(source).not.toMatch(/aria-label="Open post actions"/);
     expect(source).not.toMatch(/aria-label="Share post"/);
@@ -140,9 +143,10 @@ describe("UI route cleanup contracts", () => {
     );
 
     // Chart colors must resolve from Maia/shadcn design tokens, never a
-    // one-off hex literal. Neutral segment/series colors stay on the
-    // foreground/muted token ramp.
-    expect(source).toMatch(/var\(--foreground\)/);
+    // one-off hex literal. Series use distinct central chart tokens; axis
+    // labels and the tooltip cursor retain their neutral semantic colors.
+    expect(source).toMatch(/var\(--chart-1\)/);
+    expect(source).toMatch(/var\(--chart-2\)/);
     expect(source).toMatch(/var\(--muted-foreground\)/);
     expect(source).toMatch(/var\(--muted\)/);
     // The mock "At Risk" donut segment (the former one-off #eab308 amber) was
@@ -194,8 +198,17 @@ describe("admin table routes stream behind a Suspense boundary", () => {
         /export default function Loading\(\)/,
       );
       // Either the shared `TablePageFallback` (which composes
-      // `DataTableSkeleton`) or a bespoke `Skeleton`-based fallback.
-      expect(loadingSource, route).toMatch(/TablePageFallback|Skeleton/);
+      // `DataTableSkeleton`) or a bespoke `Skeleton`-based fallback. The
+      // contributions route delegates its in-page skeleton to a shared local
+      // fallback inside PageShell; follow that import so delegation cannot
+      // conceal a missing skeleton or a new client-only loading boundary.
+      let skeletonSource = loadingSource;
+      if (loadingSource.includes("<ContributionsBoneyardFallback />")) {
+        expect(loadingSource, route).toMatch(/from "\.\/boneyard-fallback"/);
+        skeletonSource = readRepoFile(`${route}/boneyard-fallback.tsx`);
+        expect(skeletonSource, route).not.toMatch(/^["']use client["'];/m);
+      }
+      expect(skeletonSource, route).toMatch(/TablePageFallback|Skeleton/);
     }
   });
 });

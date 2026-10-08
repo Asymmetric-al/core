@@ -30,7 +30,7 @@ export function MacroPreviewLine({ actions }: MacroPreviewLineProps) {
         <li
           key={`${action.kind}-${index}`}
           className={cn(
-            "inline-flex h-5 items-center gap-1 rounded-md border border-zinc-200 bg-white px-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600",
+            "inline-flex h-5 items-center gap-1 rounded-md border border-border bg-card px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground",
           )}
         >
           {iconFor(action)}
@@ -44,31 +44,31 @@ export function MacroPreviewLine({ actions }: MacroPreviewLineProps) {
 function iconFor(action: SupportMacroAction) {
   switch (action.kind) {
     case "set_status":
-      return <Flag className="size-3 text-zinc-400" />;
+      return <Flag className="size-3 text-muted-foreground" />;
     case "set_priority":
-      return <Flag className="size-3 text-amber-500" />;
+      return <Flag className="size-3 text-warning" />;
     case "assign_agent":
-      return <UserCheck className="size-3 text-zinc-400" />;
+      return <UserCheck className="size-3 text-muted-foreground" />;
     case "assign_team":
-      return <Users className="size-3 text-zinc-400" />;
+      return <Users className="size-3 text-muted-foreground" />;
     case "add_label":
-      return <Tag className="size-3 text-zinc-400" />;
+      return <Tag className="size-3 text-muted-foreground" />;
     case "remove_label":
       return (
         <span className="relative inline-flex">
-          <Tag className="size-3 text-zinc-400" />
+          <Tag className="size-3 text-muted-foreground" />
           <X
             aria-hidden
-            className="absolute -right-0.5 -top-0.5 size-2 text-rose-500"
+            className="absolute -right-0.5 -top-0.5 size-2 text-destructive"
           />
         </span>
       );
     case "send_canned_response":
-      return <Wand2 className="size-3 text-zinc-400" />;
+      return <Wand2 className="size-3 text-muted-foreground" />;
     case "snooze":
-      return <Clock className="size-3 text-zinc-400" />;
+      return <Clock className="size-3 text-muted-foreground" />;
     case "add_private_note":
-      return <StickyNote className="size-3 text-amber-500" />;
+      return <StickyNote className="size-3 text-warning" />;
     default: {
       const _exhaustive: never = action;
       void _exhaustive;

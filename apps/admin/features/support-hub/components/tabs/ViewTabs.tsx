@@ -2,12 +2,11 @@
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
-import { cn } from "@asym/ui/lib/utils";
 
 import { useSupportConversations } from "../../hooks/use-support-conversations";
 import { useCurrentSupportAgentId } from "../../lib/current-agent";
 import { useSupportNow } from "../../lib/now";
-import { selectByView } from "../../lib/selectors";
+import { selectByView, selectConversations } from "../../lib/selectors";
 
 import type { SupportConversationFilter } from "../../lib/selectors";
 import type { SupportInboxView } from "../../types";
@@ -46,7 +45,14 @@ export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
   const conversations = useSupportConversations();
   const nowIso = useSupportNow();
 
-  const rows = conversations.data;
+  const effectiveNow = (baseFilter?.now as string | Date | undefined) ?? nowIso;
+  const rows = baseFilter
+    ? selectConversations(conversations.data, {
+        ...baseFilter,
+        view: "all",
+        now: effectiveNow,
+      })
+    : conversations.data;
   const counts: Record<SupportInboxView, number> = {
     all: 0,
     mine: 0,
@@ -55,7 +61,6 @@ export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
     escalated: 0,
   };
 
-  const effectiveNow = (baseFilter?.now as string | Date | undefined) ?? nowIso;
   for (const tab of TABS) {
     counts[tab.view] = selectByView(
       rows,
@@ -67,43 +72,30 @@ export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
 
   return (
     <Tabs
+      className="min-w-0"
       value={value}
       onValueChange={(next) => onValueChange(next as SupportInboxView)}
     >
-      <TabsList
-        aria-label="Inbox views"
-        className="h-10 gap-1 overflow-x-auto rounded-xl bg-zinc-100/60 p-1"
-      >
-        {TABS.map((tab) => {
-          const count = counts[tab.view];
-          const isActive = value === tab.view;
-          return (
-            <TabsTrigger
-              key={tab.view}
-              value={tab.view}
-              className={cn(
-                "h-8 gap-2 rounded-lg px-3 text-[13px] font-medium",
-                "data-active:bg-white data-active:text-zinc-900 data-active:shadow-sm",
-                "text-zinc-600",
-              )}
-            >
-              {tab.label}
-              <Badge
-                variant="secondary"
-                aria-hidden
-                className={cn(
-                  "h-5 min-w-[1.5rem] justify-center rounded-md border-transparent px-1.5 text-[11px] font-semibold tabular-nums",
-                  isActive
-                    ? "bg-zinc-900 text-white"
-                    : "bg-zinc-200 text-zinc-700",
-                )}
-              >
-                {count}
-              </Badge>
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
+      <div className="max-w-full overflow-x-auto p-1">
+        <TabsList aria-label="Inbox views">
+          {TABS.map((tab) => {
+            const count = counts[tab.view];
+            const isActive = value === tab.view;
+            return (
+              <TabsTrigger key={tab.view} value={tab.view}>
+                {tab.label}
+                <Badge
+                  variant={isActive ? "default" : "secondary"}
+                  aria-hidden
+                  className="min-w-6 tabular-nums"
+                >
+                  {count}
+                </Badge>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </div>
     </Tabs>
   );
 }

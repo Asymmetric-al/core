@@ -1,7 +1,11 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { Search, X } from "lucide-react";
 import * as React from "react";
 
@@ -38,31 +42,30 @@ export function InboxToolbar() {
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div className="relative w-full max-w-md">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400"
-          aria-hidden
-        />
-        <Input
+      <InputGroup className="w-full max-w-md">
+        <InputGroupAddon>
+          <Search aria-hidden="true" />
+        </InputGroupAddon>
+        <InputGroupInput
           value={searchDraft}
           onChange={(event) => setSearchDraft(event.target.value)}
           placeholder="Search by donor, subject, or email..."
-          className="h-10 rounded-xl border-zinc-200 bg-white pl-9 pr-9"
           aria-label="Search conversations"
         />
         {searchDraft.length > 0 ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Clear search"
-            onClick={() => setSearchDraft("")}
-            className="absolute right-1 top-1/2 size-8 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
-          >
-            <X className="size-3.5" />
-          </Button>
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Clear search"
+              onClick={() => setSearchDraft("")}
+            >
+              <X aria-hidden="true" />
+            </InputGroupButton>
+          </InputGroupAddon>
         ) : null}
-      </div>
+      </InputGroup>
 
       <div className="flex flex-wrap items-center gap-2">
         <StatusFilter

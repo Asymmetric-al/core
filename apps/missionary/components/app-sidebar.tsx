@@ -19,7 +19,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@asym/ui/components/shadcn/sidebar";
-import { cn } from "@asym/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -40,26 +39,24 @@ export function AppSidebar({
   const navItems = getNavItems(role);
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r border-zinc-200/60 bg-white"
-    >
+    <Sidebar collapsible="icon">
       <SidebarHeader className="p-3">
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link
+          href="/"
+          className="group flex min-w-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+        >
           {tenantLogo ? (
-            <Avatar className="size-7 rounded-md shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-shadow duration-200">
+            <Avatar className="size-8">
               <AvatarImage src={tenantLogo} alt={tenantName} />
-              <AvatarFallback className="rounded-md bg-zinc-900 text-white font-semibold text-xs">
-                {tenantName.charAt(0)}
-              </AvatarFallback>
+              <AvatarFallback>{tenantName.charAt(0)}</AvatarFallback>
             </Avatar>
           ) : (
-            <div className="flex size-7 items-center justify-center rounded-md bg-zinc-900 text-white font-semibold text-xs shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-shadow duration-200">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
               {tenantName.charAt(0)}
             </div>
           )}
-          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-xs font-semibold text-zinc-900 leading-tight tracking-tight">
+          <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-sm font-semibold leading-tight tracking-tight text-sidebar-foreground">
               {tenantName}
             </span>
           </div>
@@ -67,9 +64,7 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent className="px-2">
         <SidebarGroup className="p-0">
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wide text-zinc-400 px-2 mb-1 h-6">
-            Menu
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
               {navItems.map((item) => {
@@ -80,27 +75,14 @@ export function AppSidebar({
                       render={
                         <Link
                           href={item.href}
-                          className="flex items-center gap-2.5"
+                          aria-current={isActive ? "page" : undefined}
                         />
                       }
                       isActive={isActive}
                       tooltip={item.title}
-                      className={cn(
-                        "h-8 px-2 rounded-md transition-colors",
-                        isActive
-                          ? "bg-zinc-100 text-zinc-900 font-medium"
-                          : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50",
-                      )}
                     >
-                      <AppIcon
-                        icon={item.icon}
-                        animated={isActive}
-                        className={cn(
-                          "size-4 shrink-0",
-                          isActive ? "text-zinc-700" : "text-zinc-400",
-                        )}
-                      />
-                      <span className="text-xs truncate">{item.title}</span>
+                      <AppIcon icon={item.icon} animated={isActive} />
+                      <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -109,21 +91,19 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-3 mt-auto border-t border-zinc-100">
+      <SidebarFooter className="mt-auto p-3">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
           {/* No shared VT name here: the sidebar persists across routes, so it
               can never form a legal unmount/mount pair with the profile page's
               avatar (names must be mounted one-at-a-time). */}
-          <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
-            <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">
-              UN
-            </AvatarFallback>
+          <Avatar className="size-8">
+            <AvatarFallback>UN</AvatarFallback>
           </Avatar>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="text-xs font-medium text-zinc-900 truncate leading-tight">
+            <span className="truncate text-sm font-medium leading-tight text-sidebar-foreground">
               User Name
             </span>
-            <span className="text-xs text-zinc-500 truncate capitalize">
+            <span className="truncate text-xs capitalize text-muted-foreground">
               {role}
             </span>
           </div>

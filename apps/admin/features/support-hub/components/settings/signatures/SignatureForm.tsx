@@ -135,7 +135,7 @@ export function SignatureForm({
             onCheckedChange={setIsDefault}
             aria-label="Default signature"
           />
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {isDefault ? "Default" : "Not default"}
           </span>
         </div>
@@ -154,10 +154,10 @@ export function SignatureForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+        <Label className="text-sm font-medium text-muted-foreground">
           Preview
         </Label>
-        <div className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-3 font-mono text-xs text-zinc-700">
+        <div className="rounded-xl border border-border bg-muted/40 p-3 font-mono text-xs text-foreground">
           {bodyText.split("\n").map((line, index) => (
             <span key={index} className="block">
               {line.length === 0 ? "\u00A0" : line}

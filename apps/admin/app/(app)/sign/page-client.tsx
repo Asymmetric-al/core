@@ -36,7 +36,7 @@ export default function SignStudioPage() {
             <CardTitle className="text-2xl">142</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-emerald-600">all attached to CRM</p>
+            <p className="text-xs text-success">all attached to CRM</p>
           </CardContent>
         </Card>
         <Card>
@@ -60,7 +60,7 @@ export default function SignStudioPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               aria-label="Search documents"
               placeholder="Search by signer name, email, or document ID..."
@@ -74,7 +74,7 @@ export default function SignStudioPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-info/10 text-info">
               <FileText className="size-5" />
             </div>
             <CardTitle className="text-base">Packet Templates</CardTitle>
@@ -98,7 +98,7 @@ export default function SignStudioPage() {
 
         <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-warning/10 text-warning">
               <Send className="size-5" />
             </div>
             <CardTitle className="text-base">Active Sends</CardTitle>
@@ -120,7 +120,7 @@ export default function SignStudioPage() {
 
         <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
               <CheckCircle className="size-5" />
             </div>
             <CardTitle className="text-base">Completed Docs</CardTitle>
@@ -142,7 +142,7 @@ export default function SignStudioPage() {
 
         <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
               <Download className="size-5" />
             </div>
             <CardTitle className="text-base">Export</CardTitle>

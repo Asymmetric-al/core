@@ -26,12 +26,12 @@ export function PrivateNote({ message }: PrivateNoteProps) {
   const nowIso = useSupportNow();
   return (
     <article
-      className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4 shadow-sm ring-1 ring-amber-100"
+      className="rounded-2xl border border-warning/20 bg-warning/5 p-4 shadow-sm ring-1 ring-warning/20"
       aria-label="Internal note"
     >
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Avatar className="size-7 border border-amber-100">
+          <Avatar className="size-7 border border-warning/20">
             <AvatarImage
               src={message.author.avatarUrl ?? undefined}
               alt={message.author.name}
@@ -40,22 +40,19 @@ export function PrivateNote({ message }: PrivateNoteProps) {
               {message.author.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-xs font-semibold text-amber-900">
+          <span className="text-xs font-semibold text-warning">
             {message.author.name}
           </span>
-          <Badge
-            variant="outline"
-            className="h-5 rounded-md border-amber-300 bg-amber-100 px-1.5 font-bold uppercase tracking-wider text-amber-800"
-          >
-            <Lock className="size-3" />
+          <Badge variant="warning">
+            <Lock aria-hidden="true" />
             Internal note
           </Badge>
         </div>
-        <span className="font-mono text-xs tabular-nums text-amber-700/70">
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
           {formatRelative(message.postedAt, nowIso)}
         </span>
       </header>
-      <div className="mt-2 text-xs leading-relaxed text-amber-950">
+      <div className="mt-2 text-sm leading-relaxed text-foreground">
         <RichTextViewer value={renderableBody(message)} />
       </div>
     </article>

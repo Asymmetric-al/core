@@ -8,9 +8,10 @@ import {
   useDonorPortalSnapshot,
   useUpdateDonorPortal,
 } from "@asym/database/hooks";
-import { motion, AnimatePresence } from "@asym/lib/motion";
+import { motion } from "@asym/lib/motion";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
+import { SettingsCard, SettingsLayout } from "@asym/ui/components/settings";
 import {
   Avatar,
   AvatarFallback,
@@ -18,19 +19,24 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@asym/ui/components/shadcn/card";
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@asym/ui/components/shadcn/input-group";
 import { Label } from "@asym/ui/components/shadcn/label";
-import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Switch } from "@asym/ui/components/shadcn/switch";
+import { TabsContent } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 import {
   User,
@@ -43,7 +49,6 @@ import {
   Check,
   Loader2,
   Lock,
-  ChevronRight,
   Eye,
   EyeOff,
   Laptop,
@@ -89,32 +94,33 @@ const PasswordInput = ({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-zinc-700 font-medium">
+      <Label htmlFor={id} className="text-foreground font-medium">
         {label}
       </Label>
-      <div className="relative group">
-        <Input
+      <InputGroup>
+        <InputGroupInput
           id={id}
           type={isVisible ? "text" : "password"}
           value={value}
           onChange={onChange}
-          className="pr-10 bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-2 focus:ring-zinc-100 transition-colors duration-200"
           placeholder={placeholder}
         />
-        <button
-          type="button"
-          onClick={() => setIsVisible(!isVisible)}
-          aria-label={`${isVisible ? "Hide" : "Show"} ${label}`}
-          aria-pressed={isVisible}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors focus:outline-none"
-        >
-          {isVisible ? (
-            <EyeOff className="size-4" />
-          ) : (
-            <Eye className="size-4" />
-          )}
-        </button>
-      </div>
+        <InputGroupAddon align="inline-end">
+          <InputGroupButton
+            type="button"
+            size="icon-sm"
+            onClick={() => setIsVisible(!isVisible)}
+            aria-label={`${isVisible ? "Hide" : "Show"} ${label}`}
+            aria-pressed={isVisible}
+          >
+            {isVisible ? (
+              <EyeOff aria-hidden="true" />
+            ) : (
+              <Eye aria-hidden="true" />
+            )}
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
     </div>
   );
 };
@@ -142,7 +148,7 @@ function ProfileTabLoading() {
 
 function ProfileTabError({ onRetry }: { onRetry: () => void }) {
   return (
-    <Card className="border-destructive/40 text-left rounded-xl">
+    <Card className="text-left">
       <CardContent className="p-6 space-y-3">
         <p role="alert" className="text-sm font-medium text-destructive">
           We couldn&apos;t load your profile.
@@ -165,70 +171,61 @@ function ProfileAvatarCard({
   onAvatarUrlChange: (url: string) => void;
 }) {
   return (
-    <Card className="border-border shadow-sm overflow-hidden text-left rounded-xl">
-      <CardHeader className="bg-muted/40 border-b border-border pb-4">
-        <CardTitle className="text-lg">Public Avatar</CardTitle>
-        <CardDescription>
-          Displayed on your profile and interactions.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="flex flex-col sm:flex-row items-center gap-6">
-          <ImageUpload
-            value={avatarUrl}
-            onChange={onAvatarUrlChange}
-            path="avatars"
-            aspect={1}
-            triggerAriaLabel="Upload public avatar"
-          >
-            <div className="relative group cursor-pointer">
-              <Avatar className="size-20 border-4 border-background shadow-md ring-1 ring-border">
-                <AvatarImage src={avatarUrl} />
-                <AvatarFallback className="bg-foreground text-background text-2xl uppercase font-semibold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center   transition-opacity">
-                <Camera className="text-white size-6" />
-              </div>
-            </div>
-          </ImageUpload>
-          <div className="flex flex-col gap-3 text-center sm:text-left">
-            <div>
-              <h4 className="font-semibold text-foreground uppercase tracking-tight">
-                Profile Photo
-              </h4>
-              <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-widest">
-                JPG, GIF or PNG. Large files auto-optimized.
-              </p>
-            </div>
-            <div className="flex gap-3 justify-center sm:justify-start">
-              <ImageUpload
-                value={avatarUrl}
-                onChange={onAvatarUrlChange}
-                path="avatars"
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
-                >
-                  Upload New
-                </Button>
-              </ImageUpload>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onAvatarUrlChange("")}
-                className="text-destructive h-8 font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
-              >
-                Remove
-              </Button>
+    <SettingsCard
+      title="Public Avatar"
+      description="Displayed on your profile and interactions."
+    >
+      <div className="flex flex-col sm:flex-row items-center gap-6">
+        <ImageUpload
+          value={avatarUrl}
+          onChange={onAvatarUrlChange}
+          path="avatars"
+          aspect={1}
+          triggerAriaLabel="Upload public avatar"
+        >
+          <div className="relative group cursor-pointer">
+            <Avatar className="size-20 border-4 border-background shadow-md ring-1 ring-border">
+              <AvatarImage src={avatarUrl} />
+              <AvatarFallback className="bg-foreground text-background text-2xl font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 bg-media-scrim/60 rounded-full flex items-center justify-center   transition-opacity">
+              <Camera className="text-media-foreground size-6" />
             </div>
           </div>
+        </ImageUpload>
+        <div className="flex flex-col gap-3 text-center sm:text-left">
+          <div>
+            <h3 className="font-semibold text-foreground tracking-tight">
+              Profile Photo
+            </h3>
+            <p className="text-sm font-medium text-muted-foreground mt-1 ">
+              JPG, GIF or PNG. Large files auto-optimized.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-center sm:justify-start">
+            <ImageUpload
+              value={avatarUrl}
+              onChange={onAvatarUrlChange}
+              path="avatars"
+            >
+              <Button variant="outline" size="sm">
+                Upload New
+              </Button>
+            </ImageUpload>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onAvatarUrlChange("")}
+              className="text-destructive h-8 font-semibold hover:text-destructive rounded-lg px-4"
+            >
+              Remove
+            </Button>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </SettingsCard>
   );
 }
 
@@ -248,21 +245,47 @@ function ProfilePersonalInfoCard({
   success: boolean;
 }) {
   return (
-    <Card className="border-border shadow-sm text-left rounded-xl">
-      <CardHeader className="bg-muted/40 border-b border-border pb-4">
-        <CardTitle className="text-lg uppercase font-semibold tracking-tight">
-          Personal Information
-        </CardTitle>
-        <CardDescription className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Update your identity and contact details.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-6 space-y-6">
+    <SettingsCard
+      title="Personal Information"
+      description="Update your identity and contact details."
+      footer={
+        <div className="flex w-full flex-col-reverse sm:flex-row justify-between items-center gap-4">
+          <p role="status" aria-atomic="true" className="sr-only">
+            {saving ? "Saving profile…" : success ? "Profile saved." : ""}
+          </p>
+          <p
+            role={errorMessage ? "alert" : undefined}
+            className={cn(
+              "text-sm font-medium ",
+              errorMessage ? "text-destructive" : "text-muted-foreground",
+            )}
+          >
+            {errorMessage ?? "Changes sync to your giving record."}
+          </p>
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Button
+              onClick={onSave}
+              disabled={saving}
+              focusableWhenDisabled={saving}
+              className={cn("min-w-30 w-full sm:w-auto")}
+            >
+              {saving ? (
+                <Loader2 className="mr-2 size-3 animate-spin" />
+              ) : success ? (
+                <Check className="mr-2 size-3" />
+              ) : null}
+              {saving ? "Saving..." : success ? "Saved" : "Save Changes"}
+            </Button>
+          </div>
+        </div>
+      }
+    >
+      <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
             <Label
               htmlFor="firstName"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground"
             >
               First Name
             </Label>
@@ -273,13 +296,12 @@ function ProfilePersonalInfoCard({
               onChange={(event) =>
                 onFieldChange("firstName", event.target.value)
               }
-              className="focus:border-foreground transition-colors h-10 rounded-lg"
             />
           </div>
           <div className="space-y-2">
             <Label
               htmlFor="lastName"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground"
             >
               Last Name
             </Label>
@@ -290,7 +312,6 @@ function ProfilePersonalInfoCard({
               onChange={(event) =>
                 onFieldChange("lastName", event.target.value)
               }
-              className="focus:border-foreground transition-colors h-10 rounded-lg"
             />
           </div>
         </div>
@@ -299,22 +320,23 @@ function ProfilePersonalInfoCard({
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground"
             >
               Email Address
             </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />
-              <Input
+            <InputGroup>
+              <InputGroupAddon>
+                <Mail aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
                 id="email"
                 autoComplete="email"
                 type="email"
                 value={form.email}
                 disabled
                 aria-describedby="email-note"
-                className="pl-9 h-10 rounded-lg"
               />
-            </div>
+            </InputGroup>
             <p id="email-note" className="text-xs text-muted-foreground">
               Contact support to change your email.
             </p>
@@ -322,21 +344,22 @@ function ProfilePersonalInfoCard({
           <div className="space-y-2">
             <Label
               htmlFor="phone"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground"
             >
               Phone Number
             </Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 size-4 text-muted-foreground" />
-              <Input
+            <InputGroup>
+              <InputGroupAddon>
+                <Phone aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
                 id="phone"
                 autoComplete="tel"
                 type="tel"
                 value={form.phone}
                 onChange={(event) => onFieldChange("phone", event.target.value)}
-                className="pl-9 focus:border-foreground transition-colors h-10 rounded-lg"
               />
-            </div>
+            </InputGroup>
           </div>
         </div>
 
@@ -350,40 +373,37 @@ function ProfilePersonalInfoCard({
           <div className="flex items-center gap-2">
             <Label
               htmlFor="address"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground"
             >
               Street Address
             </Label>
-            <Badge variant="secondary" className="uppercase">
-              Coming soon
-            </Badge>
+            <Badge variant="secondary">Coming soon</Badge>
           </div>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-3 size-4 text-muted-foreground" />
-            <Input
+          <InputGroup>
+            <InputGroupAddon>
+              <MapPin aria-hidden="true" />
+            </InputGroupAddon>
+            <InputGroupInput
               id="address"
               autoComplete="street-address"
               placeholder="123 Mission Way"
-              className="pl-9 h-10 rounded-lg"
             />
-          </div>
+          </InputGroup>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             <Input
               placeholder="City"
               autoComplete="address-level2"
-              className="h-10 rounded-lg"
               aria-label="City"
             />
             <Input
               placeholder="State"
               autoComplete="address-level1"
-              className="h-10 rounded-lg"
               aria-label="State"
             />
             <Input
               placeholder="Postal Code"
               autoComplete="postal-code"
-              className="h-10 rounded-lg col-span-2 md:col-span-1"
+              className="col-span-2 md:col-span-1"
               aria-label="Postal code"
             />
           </div>
@@ -391,40 +411,8 @@ function ProfilePersonalInfoCard({
             {COMING_SOON}
           </p>
         </fieldset>
-      </CardContent>
-      <CardFooter className="bg-muted/40 border-t border-border p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-        <p role="status" aria-atomic="true" className="sr-only">
-          {saving ? "Saving profile…" : success ? "Profile saved." : ""}
-        </p>
-        <p
-          role={errorMessage ? "alert" : undefined}
-          className={cn(
-            "text-xs font-semibold uppercase tracking-widest",
-            errorMessage ? "text-destructive" : "text-muted-foreground",
-          )}
-        >
-          {errorMessage ?? "Changes sync to your giving record."}
-        </p>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <Button
-            onClick={onSave}
-            disabled={saving}
-            focusableWhenDisabled={saving}
-            className={cn(
-              "min-w-[120px] transition-colors w-full sm:w-auto h-9 font-semibold uppercase tracking-widest rounded-lg px-6",
-              success && "bg-emerald-600 hover:bg-emerald-700",
-            )}
-          >
-            {saving ? (
-              <Loader2 className="mr-2 size-3 animate-spin" />
-            ) : success ? (
-              <Check className="mr-2 size-3" />
-            ) : null}
-            {saving ? "Saving..." : success ? "Saved" : "Save Changes"}
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </SettingsCard>
   );
 }
 
@@ -580,7 +568,7 @@ const NotificationsTab = () => {
     {
       title: "Billing & Receipts",
       icon: Receipt,
-      color: "text-blue-600 bg-blue-50",
+      color: "text-info bg-info/10",
       items: [
         {
           key: "receipts",
@@ -597,7 +585,7 @@ const NotificationsTab = () => {
     {
       title: "Impact Updates",
       icon: Heart,
-      color: "text-rose-600 bg-rose-50",
+      color: "text-destructive bg-destructive/10",
       items: [
         {
           key: "fieldUpdates",
@@ -615,7 +603,7 @@ const NotificationsTab = () => {
     {
       title: "Organization",
       icon: Globe,
-      color: "text-emerald-600 bg-emerald-50",
+      color: "text-success bg-success/10",
       items: [
         {
           key: "newsletters",
@@ -632,113 +620,79 @@ const NotificationsTab = () => {
   ];
 
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 text-left rounded-xl">
-      <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg uppercase font-semibold tracking-tight">
-              Notification Preferences
-            </CardTitle>
-            <CardDescription className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-              Customize how you want to hear from us.
-            </CardDescription>
-          </div>
+    <SettingsCard
+      title="Notification Preferences"
+      description="Customize how you want to hear from us."
+      footer={
+        <div className="flex w-full flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-sm font-medium text-muted-foreground italic flex items-center gap-2 text-center sm:text-left">
+            <AlertTriangle className="size-3 text-warning" />
+            System alerts cannot be disabled.
+          </p>
+          <Button
+            aria-labelledby={`${pendingActionLabelId}-20`}
+            focusableWhenDisabled={loading}
+            onClick={handleSave}
+            disabled={loading || success}
+            className="min-w-35 w-full sm:w-auto"
+          >
+            {loading ? (
+              <Loader2 className="mr-2 size-3 animate-spin" />
+            ) : success ? (
+              <Check className="mr-2 size-3" />
+            ) : null}
+            <span id={`${pendingActionLabelId}-20`}>
+              {loading
+                ? "Saving..."
+                : success
+                  ? "Changes Saved"
+                  : "Save Preferences"}
+            </span>
+          </Button>
         </div>
-      </CardHeader>
-
-      <CardContent className="p-0">
-        <div className="divide-y divide-zinc-100">
-          {categories.map((category) => (
-            <div
-              key={category.title}
-              className="p-6 md:p-8 hover:bg-zinc-50/30 transition-colors"
-            >
-              <div className="flex flex-col md:flex-row md:gap-12 gap-6">
-                <div className="md:w-48 shrink-0 flex items-start gap-3">
-                  <div
-                    className={cn("p-2 rounded-lg shrink-0", category.color)}
-                  >
-                    <category.icon className="size-4" />
-                  </div>
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-900 mt-1.5">
-                    {category.title}
-                  </h3>
+      }
+    >
+      <div className="divide-y divide-border">
+        {categories.map((category) => (
+          <div key={category.title} className="py-6 first:pt-0 last:pb-0">
+            <div className="flex flex-col md:flex-row md:gap-12 gap-6">
+              <div className="md:w-48 shrink-0 flex items-start gap-3">
+                <div className={cn("p-2 rounded-lg shrink-0", category.color)}>
+                  <category.icon className="size-4" />
                 </div>
+                <h3 className="text-sm font-medium text-foreground mt-1.5">
+                  {category.title}
+                </h3>
+              </div>
 
-                <div className="flex-1 space-y-6">
-                  {category.items.map((item) => (
-                    <div
-                      key={item.key}
-                      className="flex items-start justify-between gap-4"
-                    >
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2 text-left">
-                          <Label
-                            htmlFor={item.key}
-                            className="text-sm font-semibold text-zinc-900 cursor-pointer uppercase tracking-tight"
-                          >
-                            {item.label}
-                          </Label>
-                          {item.recommended && (
-                            <Badge
-                              variant="secondary"
-                              className="bg-zinc-100 text-zinc-900 border-zinc-200 h-4 px-1.5 font-semibold uppercase tracking-widest"
-                            >
-                              Recommended
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs font-semibold uppercase tracking-tight text-zinc-400 leading-relaxed max-w-md">
-                          {item.desc}
-                        </p>
+              <div className="flex-1 space-y-6">
+                {category.items.map((item) => (
+                  <Field key={item.key} orientation="horizontal">
+                    <FieldContent>
+                      <div className="flex items-center gap-2">
+                        <FieldLabel htmlFor={item.key}>{item.label}</FieldLabel>
+                        {item.recommended && (
+                          <Badge variant="secondary">Recommended</Badge>
+                        )}
                       </div>
-                      <Switch
-                        id={item.key}
-                        checked={preferences[item.key]}
-                        onCheckedChange={() => handleToggle(item.key)}
-                        className="data-checked:bg-zinc-900 mt-1"
-                      />
-                    </div>
-                  ))}
-                </div>
+                      <FieldDescription id={`${item.key}-description`}>
+                        {item.desc}
+                      </FieldDescription>
+                    </FieldContent>
+                    <Switch
+                      id={item.key}
+                      aria-describedby={`${item.key}-description`}
+                      checked={preferences[item.key]}
+                      onCheckedChange={() => handleToggle(item.key)}
+                    />
+                  </Field>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
-
-      <CardFooter className="bg-zinc-50/50 border-t border-zinc-100 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 italic flex items-center gap-2 text-center sm:text-left">
-          <AlertTriangle className="size-3 text-amber-500" />
-          System alerts cannot be disabled.
-        </p>
-        <Button
-          aria-labelledby={`${pendingActionLabelId}-20`}
-          focusableWhenDisabled={loading}
-          onClick={handleSave}
-          disabled={loading || success}
-          className={cn(
-            "min-w-35 shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto uppercase tracking-widest rounded-lg px-6",
-            success
-              ? "bg-emerald-600 hover:bg-emerald-700"
-              : "bg-zinc-900 hover:bg-zinc-800",
-          )}
-        >
-          {loading ? (
-            <Loader2 className="mr-2 size-3 animate-spin" />
-          ) : success ? (
-            <Check className="mr-2 size-3" />
-          ) : null}
-          <span id={`${pendingActionLabelId}-20`}>
-            {loading
-              ? "Saving..."
-              : success
-                ? "Changes Saved"
-                : "Save Preferences"}
-          </span>
-        </Button>
-      </CardFooter>
-    </Card>
+          </div>
+        ))}
+      </div>
+    </SettingsCard>
   );
 };
 
@@ -766,10 +720,10 @@ const SecurityTab = () => {
   const strengthScore = getStrength(passwords.new);
   const strengthColor =
     strengthScore < 2
-      ? "bg-rose-500"
+      ? "bg-destructive"
       : strengthScore < 4
-        ? "bg-amber-500"
-        : "bg-emerald-500";
+        ? "bg-warning"
+        : "bg-success";
   const widthPercent = Math.min((strengthScore / 4) * 100, 100);
 
   const handleUpdate = () => {
@@ -790,204 +744,182 @@ const SecurityTab = () => {
       className="space-y-6 max-w-4xl text-left"
     >
       {/* 1. Login & Password Card */}
-      <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-xl">
-        <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 pb-4 text-left">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-lg flex items-center gap-2 font-semibold uppercase tracking-tight">
-                <Lock className="size-4 text-zinc-400" /> Login & Password
-              </CardTitle>
-              <CardDescription className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-                Manage your password to keep your account secure.
-              </CardDescription>
-            </div>
+      <SettingsCard
+        title={
+          <span className="flex items-center gap-2">
+            <Lock className="size-4" aria-hidden="true" />
+            Login &amp; Password
+          </span>
+        }
+        description="Manage your password to keep your account secure."
+        footer={
+          <div className="w-full flex justify-end">
+            <Button
+              aria-labelledby={`${pendingActionLabelId}-21`}
+              focusableWhenDisabled={loading}
+              onClick={handleUpdate}
+              disabled={
+                loading ||
+                strengthScore < 3 ||
+                passwords.new !== passwords.confirm
+              }
+              className="min-w-35 w-full sm:w-auto"
+            >
+              {loading ? (
+                <Loader2 className="mr-2 size-3 animate-spin" />
+              ) : success ? (
+                <Check className="mr-2 size-3" />
+              ) : null}
+              <span id={`${pendingActionLabelId}-21`}>
+                {loading
+                  ? "Updating..."
+                  : success
+                    ? "Password Updated"
+                    : "Update Password"}
+              </span>
+            </Button>
           </div>
-        </CardHeader>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+          {/* Left Col: Current Password */}
+          <div className="space-y-6">
+            <PasswordInput
+              id="current"
+              label="Current Password"
+              value={passwords.current}
+              onChange={(e) =>
+                setPasswords({ ...passwords, current: e.target.value })
+              }
+              placeholder="Enter current password"
+            />
 
-        <CardContent className="p-6 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-            {/* Left Col: Current Password */}
-            <div className="space-y-6">
-              <PasswordInput
-                id="current"
-                label="Current Password"
-                value={passwords.current}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, current: e.target.value })
-                }
-                placeholder="Enter current password"
-              />
-
-              <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-100 shadow-inner">
-                <div className="flex gap-3">
-                  <div className="p-1.5 bg-white rounded-lg shadow-sm text-zinc-900 border border-zinc-100 h-fit">
-                    <History className="size-3.5" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-900">
-                      Forgot your password?
-                    </h4>
-                    <Button
-                      variant="link"
-                      className="text-zinc-500 font-semibold p-0 h-auto uppercase tracking-widest hover:text-zinc-900"
-                    >
-                      Reset via Email
-                    </Button>
-                  </div>
+            <div className="bg-background rounded-xl p-4 border border-border shadow-inner">
+              <div className="flex gap-3">
+                <div className="p-1.5 bg-card rounded-lg shadow-sm text-foreground border border-border h-fit">
+                  <History className="size-3.5" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-medium text-foreground">
+                    Forgot your password?
+                  </h4>
+                  <Button variant="link">Reset via Email</Button>
                 </div>
               </div>
             </div>
-
-            {/* Right Col: New Password */}
-            <div className="space-y-5">
-              <PasswordInput
-                id="new"
-                label="New Password"
-                value={passwords.new}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, new: e.target.value })
-                }
-                placeholder="Enter new password"
-              />
-
-              {/* Strength Meter */}
-              <div className="space-y-1.5">
-                <div className="h-1 w-full bg-zinc-100 rounded-full overflow-hidden">
-                  {/* Animate transform: scaleX (GPU, no layout) instead of width */}
-                  <motion.div
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: Math.min(widthPercent, 100) / 100 }}
-                    className={cn(
-                      "h-full w-full origin-left transition-colors",
-                      strengthColor,
-                    )}
-                  />
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-zinc-300">
-                    Strength
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                    {strengthScore >= 4
-                      ? "Strong"
-                      : strengthScore >= 2
-                        ? "Medium"
-                        : "Weak"}
-                  </span>
-                </div>
-              </div>
-
-              <PasswordInput
-                id="confirm"
-                label="Confirm New Password"
-                value={passwords.confirm}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, confirm: e.target.value })
-                }
-                placeholder="Confirm new password"
-              />
-            </div>
           </div>
-        </CardContent>
-        <CardFooter className="bg-zinc-50/50 border-t border-zinc-100 p-4 flex justify-end">
-          <Button
-            aria-labelledby={`${pendingActionLabelId}-21`}
-            focusableWhenDisabled={loading}
-            onClick={handleUpdate}
-            disabled={
-              loading ||
-              strengthScore < 3 ||
-              passwords.new !== passwords.confirm
-            }
-            className={cn(
-              "min-w-35 h-9 shadow-sm transition-colors w-full sm:w-auto font-semibold uppercase tracking-widest rounded-lg px-6",
-              success
-                ? "bg-emerald-600 hover:bg-emerald-700"
-                : "bg-zinc-900 hover:bg-zinc-800",
-            )}
-          >
-            {loading ? (
-              <Loader2 className="mr-2 size-3 animate-spin" />
-            ) : success ? (
-              <Check className="mr-2 size-3" />
-            ) : null}
-            <span id={`${pendingActionLabelId}-21`}>
-              {loading
-                ? "Updating..."
-                : success
-                  ? "Password Updated"
-                  : "Update Password"}
-            </span>
-          </Button>
-        </CardFooter>
-      </Card>
+
+          {/* Right Col: New Password */}
+          <div className="space-y-5">
+            <PasswordInput
+              id="new"
+              label="New Password"
+              value={passwords.new}
+              onChange={(e) =>
+                setPasswords({ ...passwords, new: e.target.value })
+              }
+              placeholder="Enter new password"
+            />
+
+            {/* Strength Meter */}
+            <div className="space-y-1.5">
+              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                {/* Animate transform: scaleX (GPU, no layout) instead of width */}
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: Math.min(widthPercent, 100) / 100 }}
+                  className={cn(
+                    "h-full w-full origin-left transition-colors",
+                    strengthColor,
+                  )}
+                />
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Strength
+                </span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  {strengthScore >= 4
+                    ? "Strong"
+                    : strengthScore >= 2
+                      ? "Medium"
+                      : "Weak"}
+                </span>
+              </div>
+            </div>
+
+            <PasswordInput
+              id="confirm"
+              label="Confirm New Password"
+              value={passwords.confirm}
+              onChange={(e) =>
+                setPasswords({ ...passwords, confirm: e.target.value })
+              }
+              placeholder="Confirm new password"
+            />
+          </div>
+        </div>
+      </SettingsCard>
 
       {/* 2. Additional Security */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-zinc-200 shadow-sm flex flex-col rounded-xl text-left">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 font-semibold uppercase tracking-tight">
-              <Shield className="size-4 text-emerald-600" /> Two-Factor Auth
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <p className="text-xs font-semibold tracking-tight text-zinc-500 leading-relaxed mb-4">
-              Secure your account by requiring a verification code when signing
-              in.
-            </p>
-            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100 shadow-inner">
-              <span className="text-xs font-semibold uppercase tracking-widest text-zinc-900">
-                Status
-              </span>
-              <Badge
-                variant="outline"
-                className="font-semibold uppercase tracking-widest text-zinc-400 border-zinc-200"
-              >
-                Disabled
-              </Badge>
+        <SettingsCard
+          title={
+            <span className="flex items-center gap-2">
+              <Shield className="size-4" aria-hidden="true" />
+              Two-Factor Auth
+            </span>
+          }
+          footer={
+            <div className="w-full">
+              <Button variant="outline" className="w-full">
+                Configure 2FA
+              </Button>
             </div>
-          </CardContent>
-          <CardFooter className="pt-0 pb-4">
-            <Button
-              variant="outline"
-              className="w-full font-semibold uppercase tracking-widest rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
-            >
-              Configure 2FA
-            </Button>
-          </CardFooter>
-        </Card>
+          }
+        >
+          <p className="text-sm font-medium tracking-tight text-muted-foreground leading-relaxed mb-4">
+            Secure your account by requiring a verification code when signing
+            in.
+          </p>
+          <div className="flex items-center justify-between p-3 rounded-xl bg-background border border-border shadow-inner">
+            <span className="text-sm font-medium text-foreground">Status</span>
+            <Badge variant="outline">Disabled</Badge>
+          </div>
+        </SettingsCard>
 
-        <Card className="border-zinc-200 shadow-sm flex flex-col rounded-xl text-left">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 font-semibold uppercase tracking-tight">
-              <Laptop className="size-4 text-blue-600" /> Active Sessions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 flex-1">
+        <SettingsCard
+          title={
+            <span className="flex items-center gap-2">
+              <Laptop className="size-4" aria-hidden="true" />
+              Active Sessions
+            </span>
+          }
+          footer={
+            <div className="w-full">
+              <Button variant="ghost" className="w-full">
+                Sign out other devices
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-zinc-100 rounded-lg text-zinc-500 border border-zinc-200">
+              <div className="p-2 bg-muted rounded-lg text-muted-foreground border border-border">
                 <Laptop className="size-4" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
+                <p className="text-sm font-semibold text-foreground tracking-tight">
                   Macbook Pro
                 </p>
-                <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">
+                <p className="text-sm font-medium text-muted-foreground ">
                   San Francisco • Active now
                 </p>
               </div>
-              <div className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <div className="size-2 bg-success rounded-full animate-pulse shadow-sm" />
             </div>
-          </CardContent>
-          <CardFooter className="pt-0 pb-4">
-            <Button
-              variant="ghost"
-              className="w-full font-semibold uppercase tracking-widest text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
-            >
-              Sign out other devices
-            </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </SettingsCard>
       </div>
     </motion.div>
   );
@@ -1001,71 +933,48 @@ export default function DonorSettingsPage() {
   return (
     <div
       className={cn(
-        "max-w-5xl mx-auto space-y-8 pb-20 pt-4",
+        "max-w-5xl mx-auto space-y-8 pb-20 pt-4 text-left",
         !withinRouteVt && "animate-in fade-in duration-300",
       )}
     >
       {/* Header */}
       <div className="space-y-1.5 px-1 text-left">
-        <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight uppercase">
+        <h1 className="text-3xl font-semibold text-foreground tracking-tight ">
           Settings
         </h1>
-        <p className="text-zinc-500 text-lg font-semibold uppercase tracking-widest text-xs">
+        <p className="text-muted-foreground text-sm">
           Manage your profile and preferences.
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Responsive Sidebar Nav */}
-        <div className="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 h-fit z-10">
-          <ScrollArea className="w-full whitespace-nowrap lg:whitespace-normal">
-            <div className="flex lg:flex-col gap-2 p-1 bg-white rounded-xl border border-zinc-200 shadow-sm">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-35 lg:w-full",
-                    activeTab === tab.id
-                      ? "bg-zinc-900 text-white shadow-md shadow-zinc-200"
-                      : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900",
-                  )}
-                >
-                  <tab.icon
-                    className={cn(
-                      "size-4 relative z-10",
-                      activeTab === tab.id
-                        ? "text-white"
-                        : "text-zinc-400 group-hover:text-zinc-600",
-                    )}
-                  />
-                  <span className="relative z-10">{tab.label}</span>
-                  {activeTab === tab.id && (
-                    <ChevronRight className="size-3 ml-auto opacity-50 hidden lg:block relative z-10" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex-1 min-w-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              {activeTab === "profile" && <ProfileTab />}
-              {activeTab === "notifications" && <NotificationsTab />}
-              {activeTab === "security" && <SecurityTab />}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
+      <SettingsLayout
+        value={activeTab}
+        onValueChange={(value) => {
+          if (
+            value === "profile" ||
+            value === "notifications" ||
+            value === "security"
+          ) {
+            setActiveTab(value);
+          }
+        }}
+        ariaLabel="Settings sections"
+        tabs={TABS.map((tab) => ({
+          value: tab.id,
+          label: tab.label,
+          icon: <tab.icon aria-hidden="true" />,
+        }))}
+      >
+        <TabsContent value="profile">
+          {activeTab === "profile" && <ProfileTab />}
+        </TabsContent>
+        <TabsContent value="notifications">
+          {activeTab === "notifications" && <NotificationsTab />}
+        </TabsContent>
+        <TabsContent value="security">
+          {activeTab === "security" && <SecurityTab />}
+        </TabsContent>
+      </SettingsLayout>
     </div>
   );
 }

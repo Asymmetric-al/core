@@ -53,10 +53,10 @@ export function ReportFilters({
   const toInput = state.to.slice(0, 10);
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+          <Label className="text-sm font-medium text-muted-foreground">
             From
           </Label>
           <Input
@@ -68,7 +68,7 @@ export function ReportFilters({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+          <Label className="text-sm font-medium text-muted-foreground">
             To
           </Label>
           <Input
@@ -91,7 +91,7 @@ export function ReportFilters({
               if (value !== null) setState({ groupBy: value });
             }}
           >
-            <SelectControlLabel className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+            <SelectControlLabel className="text-sm font-medium text-muted-foreground">
               Group by
             </SelectControlLabel>
             <SelectTrigger className="h-9 w-35">
@@ -105,7 +105,7 @@ export function ReportFilters({
           </Select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+          <Label className="text-sm font-medium text-muted-foreground">
             Business hours only
           </Label>
           <div className="flex h-9 items-center gap-2 px-2">
@@ -116,7 +116,7 @@ export function ReportFilters({
               }
               aria-label="Business hours only"
             />
-            <span className="text-xs font-medium text-zinc-600">
+            <span className="text-xs font-medium text-muted-foreground">
               {state.businessHoursOnly ? "On" : "Off"}
             </span>
           </div>
@@ -128,7 +128,7 @@ export function ReportFilters({
             variant="ghost"
             size="sm"
             onClick={() => resetState()}
-            className="h-9 rounded-lg font-bold uppercase tracking-wider text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            className="h-9 rounded-lg font-bold uppercase tracking-wider text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <RotateCcw className="size-3.5" />
             Reset

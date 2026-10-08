@@ -96,44 +96,39 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
   return (
     <article className="group relative pl-8 pb-12 last:pb-0">
       <div
-        className="absolute left-2.75 top-3 bottom-0 w-px bg-zinc-100 group-last:hidden"
+        className="absolute left-2.75 top-3 bottom-0 w-px bg-muted group-last:hidden"
         aria-hidden="true"
       />
       <div
-        className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-emerald-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-[background-color,transform] duration-300"
+        className="absolute left-0 top-3 size-6 rounded-full border-4 border-background bg-muted flex items-center justify-center z-10 group-hover:bg-success/10 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-[background-color,transform] duration-300"
         aria-hidden="true"
       >
-        <div className="size-1.5 rounded-full bg-zinc-400 group-hover:bg-emerald-600 transition-colors" />
+        <div className="size-1.5 rounded-full bg-muted group-hover:bg-success transition-colors" />
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <time className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+          <time className="text-sm font-medium text-muted-foreground ">
             {update.date}
           </time>
-          <Badge
-            variant="secondary"
-            className="py-0 bg-zinc-100 text-zinc-600 border-none"
-          >
-            {update.type}
-          </Badge>
+          <Badge variant="secondary">{update.type}</Badge>
         </div>
 
-        <Card className="border-zinc-200 shadow-sm overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow duration-300 bg-white">
+        <Card className="overflow-hidden transition-shadow duration-300">
           <CardContent className="p-5">
             {update.title && (
-              <h4 className="font-semibold text-zinc-900 mb-2 text-lg">
+              <h4 className="font-semibold text-foreground mb-2 text-lg">
                 {update.title}
               </h4>
             )}
 
             <SafeHtml
-              className="prose prose-slate prose-sm max-w-none text-zinc-600 mb-4 leading-relaxed"
+              className="prose prose-slate prose-sm max-w-none text-muted-foreground mb-4 leading-relaxed"
               html={update.content}
             />
 
             {update.image && (
-              <figure className="rounded-xl overflow-hidden mb-4 border border-zinc-100 relative h-70">
+              <figure className="rounded-xl overflow-hidden mb-4 border border-border relative h-70">
                 <Image
                   src={update.image}
                   alt={`Visual from ${update.title}`}
@@ -145,13 +140,13 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
               </figure>
             )}
 
-            <div className="flex items-center justify-between pt-3 border-t border-zinc-100">
+            <div className="flex items-center justify-between pt-3 border-t border-border">
               <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-rose-500 cursor-pointer transition-colors">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive cursor-pointer transition-colors">
                   <Heart className="size-3.5" aria-hidden="true" />{" "}
                   {update.likes}
                 </span>
-                <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-600 cursor-pointer transition-colors">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-muted-foreground cursor-pointer transition-colors">
                   <MessageCircle className="size-3.5" aria-hidden="true" />{" "}
                   {update.comments}
                 </span>
@@ -176,22 +171,18 @@ async function UpdatesContent({ workerTitle }: { workerTitle: string }) {
     <>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h3 className="text-xl font-semibold text-zinc-900">
+          <h3 className="text-xl font-semibold text-foreground">
             Latest from the Field
           </h3>
-          <p className="text-zinc-500 text-sm mt-1 flex items-center gap-2">
+          <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
             <span className="relative flex size-2" aria-hidden="true">
-              <span className="animate-ping absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full size-2 bg-emerald-500" />
+              <span className="animate-ping absolute inline-flex size-full rounded-full bg-success opacity-75" />
+              <span className="relative inline-flex rounded-full size-2 bg-success" />
             </span>
             Updates posted directly by {workerTitle}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="hidden sm:flex rounded-full"
-        >
+        <Button variant="outline" size="sm" className="hidden sm:flex">
           <Rss className="mr-2 size-4" aria-hidden="true" /> Subscribe
         </Button>
       </div>
@@ -203,12 +194,7 @@ async function UpdatesContent({ workerTitle }: { workerTitle: string }) {
       </div>
 
       <div className="pt-8 text-center">
-        <Button
-          variant="ghost"
-          className="text-zinc-500 hover:text-zinc-900 rounded-full"
-        >
-          Load older updates
-        </Button>
+        <Button variant="ghost">Load older updates</Button>
       </div>
     </>
   );
@@ -216,23 +202,23 @@ async function UpdatesContent({ workerTitle }: { workerTitle: string }) {
 
 function GivingWidgetSkeleton() {
   return (
-    <Card className="border-none shadow-xl shadow-zinc-200/60 overflow-hidden relative bg-white ring-1 ring-zinc-100 rounded-3xl animate-pulse">
+    <Card className="overflow-hidden relative animate-pulse">
       <div className="p-6 sm:p-8 space-y-8">
         <div className="text-center space-y-2">
-          <div className="h-8 bg-zinc-200 rounded w-48 mx-auto" />
-          <div className="h-4 bg-zinc-100 rounded w-64 mx-auto" />
+          <div className="h-8 bg-muted rounded w-48 mx-auto" />
+          <div className="h-4 bg-muted rounded w-64 mx-auto" />
         </div>
-        <div className="h-12 bg-zinc-100 rounded-2xl" />
-        <div className="h-14 bg-zinc-200 rounded-xl" />
+        <div className="h-12 bg-muted rounded-2xl" />
+        <div className="h-14 bg-muted rounded-xl" />
         <div className="grid grid-cols-4 gap-2">
           {[1, 2, 3, 4].map((slot) => (
             <div
               key={`amount-slot-${slot}`}
-              className="h-10 bg-zinc-100 rounded-xl"
+              className="h-10 bg-muted rounded-xl"
             />
           ))}
         </div>
-        <div className="h-14 bg-zinc-900 rounded-2xl" />
+        <div className="h-14 bg-invert rounded-2xl" />
       </div>
     </Card>
   );
@@ -309,14 +295,14 @@ export default async function WorkerProfilePage({ params }: PageProps) {
       />
 
       <div
-        className="min-h-dvh bg-zinc-50 font-sans pt-16"
+        className="min-h-dvh bg-background font-sans pt-16"
         data-testid="worker-profile-route-shell"
       >
-        <div className="bg-white border-b border-zinc-100">
+        <div className="bg-card border-b border-border">
           <div className="container mx-auto px-4 h-12 flex items-center">
             <Link
               href="/workers"
-              className="inline-flex items-center text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="size-4 mr-2" aria-hidden="true" /> Back to
               Partners
@@ -345,10 +331,7 @@ export default async function WorkerProfilePage({ params }: PageProps) {
                 </Suspense>
 
                 <div className="flex gap-4 justify-center">
-                  <Button
-                    variant="ghost"
-                    className="text-zinc-500 hover:text-zinc-900 hover:bg-white rounded-full"
-                  >
+                  <Button variant="ghost">
                     <Share2 className="mr-2 size-4" aria-hidden="true" /> Share
                     Profile
                   </Button>

@@ -1,5 +1,4 @@
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { cn } from "@asym/ui/lib/utils";
 import {
   Briefcase,
   Building2,
@@ -41,62 +40,74 @@ export const AVAILABLE_TAGS = [
   {
     id: "major-donor",
     label: "Major Donor",
-    color: "bg-amber-50 text-amber-700 border-amber-200",
+    variant: "info",
+    color: "bg-info/10 text-info border-info/20",
   },
   {
     id: "monthly-partner",
     label: "Monthly Partner",
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    variant: "success",
+    color: "bg-success/10 text-success border-success/20",
   },
   {
     id: "prayer-partner",
     label: "Prayer Partner",
-    color: "bg-purple-50 text-purple-700 border-purple-200",
+    variant: "info",
+    color: "bg-info/10 text-info border-info/20",
   },
   {
     id: "church-contact",
     label: "Church Contact",
-    color: "bg-blue-50 text-blue-700 border-blue-200",
+    variant: "info",
+    color: "bg-info/10 text-info border-info/20",
   },
   {
     id: "family",
     label: "Family",
-    color: "bg-rose-50 text-rose-700 border-rose-200",
+    variant: "secondary",
+    color: "bg-muted text-muted-foreground border-border",
   },
   {
     id: "friend",
     label: "Friend",
-    color: "bg-cyan-50 text-cyan-700 border-cyan-200",
+    variant: "secondary",
+    color: "bg-muted text-muted-foreground border-border",
   },
   {
     id: "first-time-giver",
     label: "First-Time Giver",
-    color: "bg-primary/10 text-indigo-700 border-indigo-200",
+    variant: "info",
+    color: "bg-info/10 text-info border-info/20",
   },
   {
     id: "legacy-giver",
     label: "Legacy Giver",
-    color: "bg-zinc-100 text-zinc-700 border-zinc-200",
+    variant: "secondary",
+    color: "bg-muted text-muted-foreground border-border",
   },
   {
     id: "volunteer",
     label: "Volunteer",
-    color: "bg-orange-50 text-orange-700 border-orange-200",
+    variant: "info",
+    color: "bg-info/10 text-info border-info/20",
   },
   {
     id: "board-member",
     label: "Board Member",
-    color: "bg-zinc-100 text-zinc-700 border-zinc-200",
+    variant: "secondary",
+    color: "bg-muted text-muted-foreground border-border",
   },
   {
     id: "needs-followup",
     label: "Needs Follow-up",
-    color: "bg-red-50 text-red-700 border-red-200",
+    variant: "warning",
+    color: "bg-warning/10 text-warning border-warning/20",
   },
   {
     id: "lapsed-donor",
     label: "Lapsed Donor",
-    color: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    variant: "secondary",
+    color: "bg-muted text-muted-foreground border-border",
   },
 ] as const;
 
@@ -109,99 +120,81 @@ export function formatCurrency(value: number | null | undefined) {
 export function getStatusColor(status: string) {
   switch (status) {
     case "Active":
-      return "bg-emerald-500";
+      return "bg-success";
     case "Lapsed":
-      return "bg-zinc-400";
+      return "bg-muted-foreground";
     case "New":
-      return "bg-blue-500";
+      return "bg-info";
     case "At Risk":
-      return "bg-amber-500";
+      return "bg-warning";
     default:
-      return "bg-zinc-400";
+      return "bg-muted-foreground";
   }
 }
 
+type StatusBadgeVariant = "success" | "info" | "warning" | "secondary";
+
 export function getStatusBadge(status: string) {
-  const styles: Record<string, string> = {
-    Active: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    Lapsed: "bg-zinc-100 text-zinc-500 border-zinc-200",
-    New: "bg-blue-50 text-blue-700 border-blue-100",
-    "At Risk": "bg-amber-50 text-amber-700 border-amber-100",
+  const variants: Record<string, StatusBadgeVariant> = {
+    Active: "success",
+    Lapsed: "secondary",
+    New: "info",
+    "At Risk": "warning",
   };
 
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        "font-black border text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full",
-        styles[status] || styles.Lapsed,
-      )}
-    >
-      {status}
-    </Badge>
-  );
+  return <Badge variant={variants[status] ?? "secondary"}>{status}</Badge>;
 }
 
 export function getRecurringStatusBadge(status: RecurringStatus) {
-  const styles: Record<RecurringStatus, string> = {
-    active: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    completed: "bg-blue-50 text-blue-700 border-blue-100",
-    paused: "bg-amber-50 text-amber-700 border-amber-100",
-    cancelled: "bg-zinc-100 text-zinc-500 border-zinc-200",
+  const variants: Record<RecurringStatus, StatusBadgeVariant> = {
+    active: "success",
+    completed: "info",
+    paused: "warning",
+    cancelled: "secondary",
   };
 
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        "font-black border text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full",
-        styles[status],
-      )}
-    >
-      {status}
-    </Badge>
-  );
+  return <Badge variant={variants[status]}>{status}</Badge>;
 }
 
 export function getActivityIcon(type: ActivityType) {
   switch (type) {
     case "gift":
-      return <Heart className="size-3.5 text-white" />;
+      return <Heart className="size-3.5" />;
     case "call":
-      return <Phone className="size-3.5 text-white" />;
+      return <Phone className="size-3.5" />;
     case "email":
-      return <Mail className="size-3.5 text-white" />;
+      return <Mail className="size-3.5" />;
     case "note":
-      return <MessageSquare className="size-3.5 text-white" />;
+      return <MessageSquare className="size-3.5" />;
     case "meeting":
-      return <Briefcase className="size-3.5 text-white" />;
+      return <Briefcase className="size-3.5" />;
     case "pledge_started":
-      return <TrendingUp className="size-3.5 text-white" />;
+      return <TrendingUp className="size-3.5" />;
     case "pledge_completed":
-      return <Check className="size-3.5 text-white" />;
+      return <Check className="size-3.5" />;
     default:
-      return <Clock className="size-3.5 text-white" />;
+      return <Clock className="size-3.5" />;
   }
 }
 
 export function getActivityBg(type: ActivityType) {
   switch (type) {
     case "gift":
-      return "bg-rose-500";
+      return "bg-info text-info-foreground";
     case "call":
-      return "bg-blue-500";
+      return "bg-info text-info-foreground";
     case "email":
-      return "bg-purple-500";
+      return "bg-info text-info-foreground";
     case "note":
-      return "bg-zinc-600";
+      return "bg-muted text-muted-foreground";
     case "meeting":
-      return "bg-emerald-500";
+      return "bg-success text-success-foreground";
     case "pledge_started":
-      return "bg-indigo-500";
+      return "bg-info text-info-foreground";
     case "pledge_completed":
-      return "bg-teal-500";
+      return "bg-success text-success-foreground";
     default:
-      return "bg-zinc-400";
+      return "bg-muted text-muted-foreground";
   }
 }
 
@@ -227,21 +220,25 @@ export function getGiftTypeIcon(type: GiftType | string | undefined) {
 export function getPaymentMethodIcon(method: string | undefined) {
   switch (method) {
     case "Online":
-      return <CreditCard className="size-4 text-blue-500" />;
+      return <CreditCard className="size-4 text-info" />;
     case "Check":
-      return <Mail className="size-4 text-zinc-500" />;
+      return <Mail className="size-4 text-muted-foreground" />;
     case "Cash":
-      return <DollarSign className="size-4 text-emerald-500" />;
+      return <DollarSign className="size-4 text-success" />;
     case "Bank Transfer":
       return <Building2 className="size-4 text-primary" />;
     default:
-      return <CreditCard className="size-4 text-zinc-400" />;
+      return <CreditCard className="size-4 text-muted-foreground" />;
   }
 }
 
 export function getTagStyle(tagId: string) {
   const tag = AVAILABLE_TAGS.find((candidate) => candidate.id === tagId);
-  return tag?.color || "bg-zinc-100 text-zinc-600 border-zinc-200";
+  return tag?.color || "bg-muted text-muted-foreground border-border";
+}
+
+export function getTagVariant(tagId: string): StatusBadgeVariant {
+  return AVAILABLE_TAGS.find((tag) => tag.id === tagId)?.variant ?? "secondary";
 }
 
 export function getTagLabel(tagId: string) {
@@ -263,37 +260,37 @@ export const TASK_TYPE_CONFIG: Record<
   call: {
     label: "Call",
     icon: Phone,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
   email: {
     label: "Email",
     icon: Mail,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
   to_do: {
     label: "To-do",
     icon: CheckCircle2,
-    color: "text-zinc-600",
-    bgColor: "bg-zinc-100",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
   },
   follow_up: {
     label: "Follow Up",
     icon: User,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
   },
   thank_you: {
     label: "Thank You",
     icon: Heart,
-    color: "text-rose-600",
-    bgColor: "bg-rose-50",
+    color: "text-success",
+    bgColor: "bg-success/10",
   },
   meeting: {
     label: "Meeting",
     icon: Users,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50",
+    color: "text-info",
+    bgColor: "bg-info/10",
   },
 };

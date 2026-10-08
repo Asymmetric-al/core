@@ -9,7 +9,12 @@ import {
   AccordionTrigger,
 } from "@asym/ui/components/shadcn/accordion";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
-import { Input } from "@asym/ui/components/shadcn/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupButton,
+} from "@asym/ui/components/shadcn/input-group";
 import { cn } from "@asym/ui/lib/utils";
 import {
   HelpCircle,
@@ -20,9 +25,10 @@ import {
   Heart,
   Mail,
   Sparkles,
+  X,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -157,13 +163,13 @@ const FAQAccordionItem = ({
     <AccordionItem
       value={value}
       // Siblings below an opening panel slide to their new position with a
-      // transform; the panel fades instead of sweeping height.
+      // transform; the answer keeps stable initial markup instead of sweeping height.
       render={<motion.div layout="position" initial={false} />}
       className={cn(
         "border last:border-b rounded-2xl px-6 overflow-hidden transition-[border-color,background-color,box-shadow] duration-300",
         isOpen
-          ? "border-blue-200 bg-blue-50/30 shadow-sm"
-          : "border-zinc-200 bg-white hover:border-zinc-300",
+          ? "border-ring bg-accent shadow-sm"
+          : "border-border bg-card hover:border-border",
       )}
     >
       <AccordionTrigger>{item.question}</AccordionTrigger>
@@ -179,10 +185,10 @@ const FAQAccordionItem = ({
             )}
           />
         )}
-        className="pb-6 text-zinc-600 leading-relaxed font-light"
+        className="pb-6 text-muted-foreground leading-relaxed font-light"
       >
         <motion.div
-          initial={reducedMotion ? false : { opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={reducedMotion ? { duration: 0 } : transitionStandard}
         >
@@ -192,7 +198,7 @@ const FAQAccordionItem = ({
                 i % 2 === 1 ? (
                   <strong
                     key={`${item.question}-highlight-${part}`}
-                    className="font-semibold text-zinc-800"
+                    className="font-semibold text-foreground"
                   >
                     {part}
                   </strong>
@@ -213,6 +219,7 @@ const FAQAccordionItem = ({
 export function FAQPageClient() {
   const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const filteredData = useMemo<FAQItem[]>(() => {
@@ -229,11 +236,15 @@ export function FAQPageClient() {
   }, [searchQuery, activeCategory]);
 
   return (
-    <div className="bg-zinc-50 min-h-dvh pt-20 pb-32">
-      <section className="bg-white border-b border-zinc-200 pb-16 pt-12 relative overflow-hidden">
+    <div className="relative bg-background min-h-dvh pt-20 pb-32">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-invert"
+      />
+      <section className="bg-card border-b border-border pb-16 pt-12 relative overflow-hidden">
         <div className="absolute top-0 left-0 size-full overflow-hidden pointer-events-none opacity-[0.03]">
-          <div className="absolute -top-20 -right-20 size-96 bg-radial from-blue-600 to-transparent rounded-full" />
-          <div className="absolute top-40 -left-20 size-72 bg-radial from-emerald-500 to-transparent rounded-full" />
+          <div className="absolute -top-20 -right-20 size-96 bg-radial from-info to-transparent rounded-full" />
+          <div className="absolute top-40 -left-20 size-72 bg-radial from-success to-transparent rounded-full" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10 text-center max-w-3xl">
@@ -242,43 +253,45 @@ export function FAQPageClient() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center justify-center p-2 bg-zinc-50 border border-zinc-200 rounded-2xl mb-6 shadow-sm">
-              <div className="bg-white p-2 rounded-xl text-blue-600">
+            <div className="inline-flex items-center justify-center p-2 bg-background border border-border rounded-2xl mb-6 shadow-sm">
+              <div className="bg-card p-2 rounded-xl text-info">
                 <HelpCircle className="size-6" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-6xl font-semibold tracking-normal text-zinc-900 mb-6">
+            <h1 className="text-4xl md:text-6xl font-semibold tracking-normal text-foreground mb-6">
               How can we help?
             </h1>
-            <p className="text-xl text-zinc-500 font-light mb-10 text-balance">
+            <p className="text-xl text-muted-foreground font-light mb-10 text-balance">
               Transparency and trust are our currency. Everything you need to
               know about our mission, financials, and operations.
             </p>
 
-            <div className="relative max-w-lg mx-auto group">
-              <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white rounded-full shadow-sm shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100">
-                <Search className="ml-4 size-5 text-zinc-400" />
-                <Input
-                  aria-label="Search frequently asked questions"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-none shadow-none focus-visible:ring-0 h-12"
-                  placeholder="Search for answers..."
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="p-2 text-zinc-400 hover:text-zinc-600"
+            <InputGroup className="max-w-lg mx-auto">
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                ref={searchInputRef}
+                aria-label="Search frequently asked questions"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for answers..."
+              />
+              {searchQuery && (
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton
+                    size="icon-sm"
+                    aria-label="Clear"
+                    onClick={() => {
+                      setSearchQuery("");
+                      searchInputRef.current?.focus();
+                    }}
                   >
-                    <span className="sr-only">Clear</span>
-                    <div className="size-5 bg-zinc-100 rounded-full flex items-center justify-center">
-                      ×
-                    </div>
-                  </button>
-                )}
-              </div>
-            </div>
+                    <X aria-hidden="true" />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              )}
+            </InputGroup>
           </motion.div>
         </div>
       </section>
@@ -340,13 +353,13 @@ export function FAQPageClient() {
               animate={{ opacity: 1 }}
               className="text-center py-20"
             >
-              <div className="size-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-zinc-100">
-                <Search className="size-8 text-zinc-300" />
+              <div className="size-16 bg-card rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-border">
+                <Search className="size-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-zinc-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 No results found
               </h3>
-              <p className="text-zinc-500">
+              <p className="text-muted-foreground">
                 Try adjusting your search terms or browse by category.
               </p>
               <Button
@@ -355,7 +368,7 @@ export function FAQPageClient() {
                   setSearchQuery("");
                   setActiveCategory("All");
                 }}
-                className="mt-2 text-blue-600"
+                className="mt-2 text-info"
               >
                 View all questions
               </Button>
@@ -365,22 +378,22 @@ export function FAQPageClient() {
       </section>
 
       <section className="container mx-auto px-6 mt-24 max-w-5xl">
-        <div className="bg-zinc-900 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl shadow-zinc-900/20">
+        <div className="bg-invert rounded-3xl p-8 md:p-12 text-invert-foreground relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm ">
           <div
             className="absolute inset-0 opacity-10"
             style={{
               backgroundImage:
-                "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+                "radial-gradient(circle at 2px 2px, var(--invert-foreground) 1px, transparent 0)",
               backgroundSize: "32px 32px",
             }}
           />
-          <div className="absolute -top-24 -left-24 size-64 bg-radial from-blue-600 to-transparent rounded-full opacity-50" />
+          <div className="absolute -top-24 -left-24 size-64 bg-radial from-info to-transparent rounded-full opacity-50" />
 
           <div className="relative z-10 text-center md:text-left">
             <h2 className="text-3xl font-semibold mb-3 tracking-tight">
               Still have questions?
             </h2>
-            <p className="text-zinc-300 text-lg max-w-md font-light leading-relaxed">
+            <p className="text-invert-foreground/75 text-lg max-w-md font-light leading-relaxed">
               Can&apos;t find the answer you&apos;re looking for? Our Donor
               Relations team is here to help personally.
             </p>
@@ -389,10 +402,7 @@ export function FAQPageClient() {
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
             <Link
               href="/contact"
-              className={cn(
-                buttonVariants(),
-                "h-14 px-8 bg-white text-zinc-950 hover:bg-zinc-100 font-semibold text-base rounded-full shadow-lg hover-scale-subtle",
-              )}
+              className={cn(buttonVariants({ variant: "inverse", size: "lg" }))}
             >
               <Mail className="mr-2 size-5" /> Email Support
             </Link>

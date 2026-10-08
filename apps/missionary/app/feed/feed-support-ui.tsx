@@ -3,20 +3,19 @@
 import { useLastSynced } from "@asym/lib/hooks";
 import { motion } from "@asym/lib/motion";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Clock, Globe, Loader2, TriangleAlert } from "lucide-react";
+import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { Clock, Globe, TriangleAlert } from "lucide-react";
 
 import type { ElementType, ReactNode } from "react";
-
-const smoothTransition = {
-  duration: 0.25,
-  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
-};
-
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-};
 
 export function LastSyncedDisplay() {
   const lastSynced = useLastSynced();
@@ -26,7 +25,7 @@ export function LastSyncedDisplay() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.4 }}
-      className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground"
+      className="flex items-center gap-2 text-xs text-muted-foreground"
     >
       <Clock className="size-3.5" />
       {lastSynced ? `Last synced: ${lastSynced}` : "Syncing…"}
@@ -36,21 +35,30 @@ export function LastSyncedDisplay() {
 
 function LoadingState() {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center gap-4 py-16 sm:py-24"
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Loading Ministry Updates"
+      className="flex flex-col gap-4"
     >
-      <Loader2 className="spinner-essential size-10 text-muted-foreground/30 sm:h-12 sm:w-12" />
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50"
-      >
-        Loading Ministry Updates…
-      </motion.p>
-    </motion.div>
+      <span className="sr-only">Loading Ministry Updates…</span>
+      {[0, 1].map((index) => (
+        <Card key={index}>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-10 rounded-full" />
+              <div className="flex flex-1 flex-col gap-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
 
@@ -66,38 +74,18 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={smoothTransition}
-      className="rounded-2xl border-2 border-dashed border-border bg-muted/20 py-20 text-center sm:rounded-3xl sm:py-32"
-    >
-      <motion.div
-        initial={{ scale: 0.8 }}
-        animate={{ scale: 1 }}
-        transition={springTransition}
-        className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-card shadow-md sm:mb-6 sm:h-20 sm:w-20"
-      >
-        <Icon className="size-6 text-muted-foreground/30 sm:h-8 sm:w-8" />
-      </motion.div>
-      <motion.h3
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="text-lg font-semibold tracking-tight text-foreground sm:text-2xl"
-      >
-        {title}
-      </motion.h3>
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="mt-2 text-sm font-medium text-muted-foreground sm:text-base"
-      >
-        {description}
-      </motion.p>
-      {action ? <div className="mt-6">{action}</div> : null}
-    </motion.div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Icon aria-hidden />
+        </EmptyMedia>
+        <EmptyTitle role="heading" aria-level={3}>
+          {title}
+        </EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+      {action ? <EmptyContent>{action}</EmptyContent> : null}
+    </Empty>
   );
 }
 

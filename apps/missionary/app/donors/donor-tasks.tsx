@@ -22,6 +22,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -140,11 +148,11 @@ export function DonorTasks({
         initial={fadeInUp.initial}
         animate={fadeInUp.animate}
         exit={fadeInUp.exit}
-        className="flex items-center justify-between"
+        className="flex flex-wrap items-center justify-between gap-3"
       >
         <div>
-          <h3 className="text-sm font-semibold text-zinc-900">Tasks</h3>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <h3 className="text-sm font-semibold text-foreground">Tasks</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Follow-ups and actions for {donorName}
           </p>
         </div>
@@ -179,32 +187,29 @@ export function DonorTasks({
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="flex items-start gap-3 rounded-xl border bg-white p-4"
+              className="flex items-start gap-3 rounded-xl border bg-card p-4"
             >
-              <div className="mt-0.5 size-5 rounded-md bg-zinc-200" />
-              <div className="size-9 rounded-lg bg-zinc-200" />
+              <Skeleton className="mt-0.5 size-5 rounded-md" />
+              <Skeleton className="size-9 rounded-lg" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 rounded bg-zinc-200" />
-                <div className="h-3 w-1/2 rounded bg-zinc-200" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
               </div>
             </div>
           ))}
         </div>
       ) : filteredTasks.length === 0 ? (
-        <motion.div
-          initial={fadeInUp.initial}
-          animate={fadeInUp.animate}
-          exit={fadeInUp.exit}
-          className="flex flex-col items-center justify-center rounded-2xl border border-zinc-100 bg-zinc-50 py-12 text-center"
-        >
-          <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-white shadow-sm">
-            <ListTodo className="size-6 text-zinc-300" />
-          </div>
-          <p className="text-sm font-semibold text-zinc-900">No tasks yet</p>
-          <p className="mt-1 max-w-60 text-xs text-zinc-400">
-            Create a task to track follow-ups with this partner.
-          </p>
-        </motion.div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ListTodo aria-hidden />
+            </EmptyMedia>
+            <EmptyTitle>No tasks yet</EmptyTitle>
+            <EmptyDescription>
+              Create a task to track follow-ups with {donorName}.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <div className="space-y-4">
           {activeTasks.length > 0 ? (
@@ -304,7 +309,7 @@ function ActiveDonorTasks({
 }) {
   return (
     <div className="space-y-2">
-      <p className="px-1 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+      <p className="px-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         Active ({activeTasks.length})
       </p>
       {activeTasks.map((task, index) => {
@@ -328,7 +333,7 @@ function ActiveDonorTasks({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.03 }}
-            className="group flex items-start gap-3 rounded-xl border border-zinc-100 bg-white p-4 transition-colors hover:border-zinc-200"
+            className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-border"
           >
             <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
               <Checkbox
@@ -348,7 +353,7 @@ function ActiveDonorTasks({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold text-zinc-900">
+                <p className="text-sm font-semibold text-foreground">
                   {task.title}
                 </p>
                 {task.priority === "high" ? (
@@ -356,7 +361,7 @@ function ActiveDonorTasks({
                 ) : null}
               </div>
               {task.description ? (
-                <p className="mt-0.5 line-clamp-1 text-xs text-zinc-500">
+                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                   {task.description}
                 </p>
               ) : null}
@@ -365,10 +370,10 @@ function ActiveDonorTasks({
                   className={cn(
                     "mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wider",
                     isOverdue
-                      ? "border-rose-100 bg-rose-50 text-rose-600"
+                      ? "border-destructive/20 bg-destructive/10 text-destructive"
                       : isDueToday
-                        ? "border-amber-100 bg-amber-50 text-amber-600"
-                        : "border-zinc-200 bg-zinc-100 text-zinc-600",
+                        ? "border-warning/20 bg-warning/10 text-warning"
+                        : "border-border bg-muted text-muted-foreground",
                   )}
                 >
                   <Clock className="size-3" />
@@ -391,26 +396,22 @@ function ActiveDonorTasks({
                     </Button>
                   }
                 />
-                <DropdownMenuContent align="end" className="rounded-xl">
+                <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     onClick={() => {
                       setEditingTask(task);
                       setTaskDialogOpen(true);
                     }}
-                    className="text-xs font-medium"
                   >
                     <Pencil className="mr-2 size-3.5" /> Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleComplete(task)}
-                    className="text-xs font-medium"
-                  >
+                  <DropdownMenuItem onClick={() => handleComplete(task)}>
                     <CheckCircle2 className="mr-2 size-3.5" /> Complete
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => requestDelete(task)}
-                    className="text-xs font-medium text-destructive focus:text-destructive"
+                    variant="destructive"
                   >
                     <X className="mr-2 size-3.5" /> Delete
                   </DropdownMenuItem>
@@ -435,7 +436,7 @@ function CompletedDonorTasks({
 }) {
   return (
     <div className="space-y-2">
-      <p className="px-1 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+      <p className="px-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         Completed ({completedTasks.length})
       </p>
       {completedTasks.slice(0, 5).map((task, index) => {
@@ -453,7 +454,7 @@ function CompletedDonorTasks({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.03 }}
-            className="group flex items-start gap-3 rounded-xl border border-transparent bg-zinc-50/50 p-4"
+            className="group flex items-start gap-3 rounded-xl border border-transparent bg-muted/50 p-4"
           >
             <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
               <Checkbox
@@ -472,11 +473,11 @@ function CompletedDonorTasks({
               <Icon className="size-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-zinc-400 line-through">
+              <p className="text-sm font-medium text-muted-foreground line-through">
                 {task.title}
               </p>
               {task.completed_at ? (
-                <p className="mt-0.5 text-xs text-zinc-400">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   Completed{" "}
                   {formatDistanceToNow(makeDisplayDate(task.completed_at), {
                     addSuffix: true,
@@ -491,14 +492,14 @@ function CompletedDonorTasks({
                 aria-label={`Delete ${task.title}`}
                 onClick={(event) => requestDelete(task, event.currentTarget)}
               >
-                <X className="size-4 text-zinc-400" />
+                <X className="size-4 text-muted-foreground" />
               </Button>
             </div>
           </motion.div>
         );
       })}
       {completedTasks.length > 5 ? (
-        <p className="py-2 text-center text-xs text-zinc-400">
+        <p className="py-2 text-center text-xs text-muted-foreground">
           + {completedTasks.length - 5} more completed tasks
         </p>
       ) : null}

@@ -356,7 +356,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         type="number"
                         aria-label="Custom donation amount"
                         placeholder="0"
-                        className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+                        className="size-full bg-transparent border-none outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                         value={customAmount}
                         onChange={handleCustomAmountChange}
                         onFocus={() => setIsInputFocused(true)}

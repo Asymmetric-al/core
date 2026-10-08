@@ -15,12 +15,12 @@ import { SettingsPanel } from "../SettingsPanel";
 import type { SupportLabel, SupportLabelTone } from "../../../types";
 
 const TONE_DOT: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-400",
-  blue: "bg-blue-500",
-  amber: "bg-amber-500",
-  rose: "bg-rose-500",
-  emerald: "bg-emerald-500",
-  violet: "bg-violet-500",
+  zinc: "bg-muted-foreground",
+  blue: "bg-info",
+  amber: "bg-warning",
+  rose: "bg-destructive",
+  emerald: "bg-success",
+  violet: "bg-chart-3",
 };
 
 export function LabelsSettingsPanel() {
@@ -75,7 +75,7 @@ export function LabelsSettingsPanel() {
             description="Create the first label to start triaging donor questions."
           />
         ) : (
-          <ul className="flex flex-col divide-y divide-zinc-100">
+          <ul className="flex flex-col divide-y divide-border">
             {labels.map((label) => (
               <li key={label.id} className="flex items-center gap-3 py-2">
                 <span
@@ -86,11 +86,11 @@ export function LabelsSettingsPanel() {
                   )}
                 />
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-xs font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-foreground">
                     {label.name}
                   </span>
                   {label.description ? (
-                    <span className="truncate text-xs text-zinc-500">
+                    <span className="truncate text-xs text-muted-foreground">
                       {label.description}
                     </span>
                   ) : null}
@@ -101,7 +101,7 @@ export function LabelsSettingsPanel() {
                   size="icon"
                   onClick={() => setEditing(label)}
                   aria-label={`Edit ${label.name}`}
-                  className="size-8 text-zinc-500 hover:text-zinc-900"
+                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
@@ -111,7 +111,7 @@ export function LabelsSettingsPanel() {
                   size="icon"
                   onClick={() => void handleDelete(label)}
                   aria-label={`Delete ${label.name}`}
-                  className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

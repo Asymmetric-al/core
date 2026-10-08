@@ -111,3 +111,41 @@ it("closes the mobile Sheet at the desktop breakpoint while retaining the select
   });
   expect(reopened.getAttribute("data-slot")).toBe("sheet-content");
 });
+
+it("announces location search as a dialog and restores focus after dismissal", async () => {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  const scrollDescriptor = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "scrollIntoView",
+  );
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+    configurable: true,
+    value: vi.fn(),
+  });
+  render(<WhereWeWorkMap />);
+  const search = screen.getByRole("button", { name: /Search locations/ });
+  expect(search.getAttribute("aria-haspopup")).toBe("dialog");
+  expect(search.getAttribute("aria-expanded")).toBe("false");
+  search.focus();
+  fireEvent.click(search);
+  await screen.findByRole("dialog", { name: "Search Locations" });
+  expect(search.getAttribute("aria-expanded")).toBe("true");
+  fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  expect(search.getAttribute("aria-expanded")).toBe("false");
+  await waitFor(() => expect(document.activeElement).toBe(search));
+  if (scrollDescriptor)
+    Object.defineProperty(
+      HTMLElement.prototype,
+      "scrollIntoView",
+      scrollDescriptor,
+    );
+  else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+});

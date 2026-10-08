@@ -66,11 +66,8 @@ export default function Mobilize() {
       description="Recruitment pipeline and candidate management."
       density="compact"
       actions={
-        <Button
-          className="h-10 rounded-xl bg-zinc-900 font-semibold text-white shadow-sm hover:bg-zinc-800"
-          onClick={() => setIsAddSheetOpen(true)}
-        >
-          <Plus className="mr-2 size-4" /> Add Candidate
+        <Button onClick={() => setIsAddSheetOpen(true)}>
+          <Plus data-icon="inline-start" /> Add Candidate
         </Button>
       }
     >

@@ -79,25 +79,25 @@ export function SlaPolicyList() {
             description="Create a policy to set response and resolution targets."
           />
         ) : (
-          <ul className="flex flex-col divide-y divide-zinc-100">
+          <ul className="flex flex-col divide-y divide-border">
             {rows.map((row) => (
               <li
                 key={row.id}
                 className="flex flex-wrap items-center gap-3 py-2"
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                   <Gauge className="size-4" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-xs font-semibold text-zinc-900">
+                  <span className="text-xs font-semibold text-foreground">
                     {row.name}{" "}
                     {row.isDefault ? (
-                      <span className="ml-1 inline-flex h-4 items-center rounded-md bg-zinc-900 px-1.5 text-xs font-black uppercase tracking-wider text-white">
+                      <span className="ml-1 inline-flex h-4 items-center rounded-md bg-primary px-1.5 text-xs font-black uppercase tracking-wider text-primary-foreground">
                         Default
                       </span>
                     ) : null}
                   </span>
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-muted-foreground">
                     First {row.firstResponseMinutes}min · Next{" "}
                     {row.nextResponseMinutes}min · Resolve{" "}
                     {row.resolutionMinutes}min
@@ -110,7 +110,7 @@ export function SlaPolicyList() {
                     size="icon"
                     onClick={() => void handleMakeDefault(row)}
                     aria-label={`Make ${row.name} default`}
-                    className="size-8 text-amber-500 hover:bg-amber-50 hover:text-amber-700"
+                    className="size-8 text-warning hover:bg-warning/10 hover:text-warning"
                   >
                     <Star className="size-3.5" />
                   </Button>
@@ -121,7 +121,7 @@ export function SlaPolicyList() {
                   size="icon"
                   onClick={() => setEditing(row)}
                   aria-label={`Edit ${row.name}`}
-                  className="size-8 text-zinc-500 hover:text-zinc-900"
+                  className="size-8 text-muted-foreground hover:text-foreground"
                 >
                   <Pencil className="size-3.5" />
                 </Button>
@@ -131,7 +131,7 @@ export function SlaPolicyList() {
                   size="icon"
                   onClick={() => void handleDelete(row)}
                   aria-label={`Delete ${row.name}`}
-                  className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+                  className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

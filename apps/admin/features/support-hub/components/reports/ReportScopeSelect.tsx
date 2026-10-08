@@ -75,7 +75,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
               });
             }}
           >
-            <SelectControlLabel className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+            <SelectControlLabel className="text-sm font-medium text-muted-foreground">
               Scope
             </SelectControlLabel>
             <SelectTrigger className="h-9 w-35">
@@ -109,7 +109,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
             }}
             className="h-9 min-w-45"
             label={activeKind.charAt(0).toUpperCase() + activeKind.slice(1)}
-            labelClassName="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500"
+            labelClassName="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground"
           />
         </div>
       ) : null}

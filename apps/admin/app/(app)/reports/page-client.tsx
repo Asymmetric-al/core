@@ -10,6 +10,13 @@ import {
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { FileText, X, ClipboardList, AlertTriangle } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
@@ -38,9 +45,9 @@ function KpiSkeletonRow() {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {[0, 1, 2, 3].map((index) => (
-        <div
+        <Skeleton
           key={index}
-          className="h-23 animate-pulse rounded-2xl border border-border bg-muted/40"
+          className="h-23 rounded-2xl border border-border"
         />
       ))}
     </div>
@@ -118,7 +125,6 @@ export function ReportsPageView({
           <Button
             onClick={() => setSummary(buildReportSummary(report))}
             disabled={!canSummarize}
-            className="h-10 rounded-xl px-5 font-semibold shadow-md"
           >
             <ClipboardList className="size-4" />
             Quick Summary
@@ -177,15 +183,15 @@ export function ReportsPageView({
         )}
 
         {showEmptyState ? (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
-            <p className="text-base font-semibold text-foreground">
-              No completed giving to report yet
-            </p>
-            <p className="max-w-md text-sm font-medium text-muted-foreground">
-              This tenant has no completed gifts in the selected range. Reports
-              will populate once giving is recorded.
-            </p>
-          </div>
+          <Empty className="rounded-2xl border border-dashed">
+            <EmptyHeader>
+              <EmptyTitle>No completed giving to report yet</EmptyTitle>
+              <EmptyDescription>
+                This tenant has no completed gifts in the selected range.
+                Reports will populate once giving is recorded.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <ReportsCharts
             donors={donors}

@@ -188,7 +188,7 @@ export function SlaPolicyForm({
             onCheckedChange={setIsDefault}
             aria-label="Default SLA policy"
           />
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {isDefault ? "Default" : "Not default"}
           </span>
         </div>

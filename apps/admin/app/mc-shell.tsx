@@ -139,7 +139,7 @@ function NavSection({
   return (
     <SidebarGroup className="p-0">
       {label && (
-        <SidebarGroupLabel className="mb-1 h-6 px-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <SidebarGroupLabel className="mb-1 px-2 text-xs font-medium text-sidebar-foreground/70">
           {label}
         </SidebarGroupLabel>
       )}
@@ -165,10 +165,10 @@ function NavSection({
                         <SidebarMenuButton
                           tooltip={item.title}
                           className={cn(
-                            "h-8 rounded-md px-2 transition-colors",
+                            "h-9 transition-colors",
                             isActive
-                              ? "bg-zinc-100 text-zinc-950 font-semibold shadow-sm ring-1 ring-zinc-950/5"
-                              : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
+                              ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           )}
                         >
                           <AppIcon
@@ -176,11 +176,13 @@ function NavSection({
                             animated={isActive}
                             className={cn(
                               "size-4 shrink-0",
-                              isActive ? "text-zinc-800" : "text-zinc-500",
+                              isActive
+                                ? "text-sidebar-accent-foreground"
+                                : "text-muted-foreground",
                             )}
                           />
-                          <span className="text-xs truncate">{item.title}</span>
-                          <ChevronRight className="ml-auto size-3.5 text-zinc-500 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                          <span className="truncate text-sm">{item.title}</span>
+                          <ChevronRight className="ml-auto size-3.5 text-muted-foreground transition-transform duration-200 group-data-open/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       }
                     />
@@ -196,11 +198,11 @@ function NavSection({
                                 className={cn(
                                   "transition-colors",
                                   subActive
-                                    ? "font-semibold text-zinc-950"
-                                    : "text-zinc-600 hover:text-zinc-950",
+                                    ? "font-medium text-sidebar-accent-foreground"
+                                    : "text-sidebar-foreground/80 hover:text-sidebar-accent-foreground",
                                 )}
                               >
-                                <span className="text-xs truncate">
+                                <span className="truncate text-sm">
                                   {sub.title}
                                 </span>
                               </SidebarMenuSubButton>
@@ -226,10 +228,10 @@ function NavSection({
                   isActive={isActive}
                   tooltip={item.title}
                   className={cn(
-                    "h-8 rounded-md px-2 transition-colors",
+                    "h-9 transition-colors",
                     isActive
-                      ? "bg-zinc-100 text-zinc-950 font-semibold shadow-sm ring-1 ring-zinc-950/5"
-                      : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
+                      ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   )}
                 >
                   <AppIcon
@@ -237,10 +239,12 @@ function NavSection({
                     animated={isActive}
                     className={cn(
                       "size-4 shrink-0",
-                      isActive ? "text-zinc-800" : "text-zinc-500",
+                      isActive
+                        ? "text-sidebar-accent-foreground"
+                        : "text-muted-foreground",
                     )}
                   />
-                  <span className="text-xs truncate">{item.title}</span>
+                  <span className="truncate text-sm">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
@@ -259,24 +263,26 @@ function UserFooter() {
   const { user } = useMC();
 
   return (
-    <SidebarFooter className="p-3 border-t border-zinc-100">
+    <SidebarFooter className="border-t border-sidebar-border p-3">
       <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-        <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
+        <Avatar className="size-8 rounded-lg">
           <AvatarImage
             src={
               user?.avatarUrl ||
               "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
             }
           />
-          <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">
+          <AvatarFallback className="rounded-lg bg-sidebar-accent text-xs font-medium text-sidebar-accent-foreground">
             {user?.name?.charAt(0) || "U"}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-          <span className="text-xs font-medium text-zinc-900 truncate leading-tight">
+          <span className="truncate text-sm font-medium leading-tight text-sidebar-foreground">
             {user?.name || "User Name"}
           </span>
-          <span className="text-xs text-zinc-500 truncate">Missionary</span>
+          <span className="text-xs text-muted-foreground truncate">
+            Missionary
+          </span>
         </div>
       </div>
     </SidebarFooter>
@@ -293,18 +299,18 @@ function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-zinc-200/60 bg-white"
+      className="border-r border-sidebar-border bg-sidebar"
     >
       <SidebarHeader className="p-3">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex size-7 items-center justify-center rounded-md bg-zinc-900 text-white font-semibold text-xs shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-shadow">
+          <div className="flex size-8 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground">
             G
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-xs font-semibold text-zinc-900 leading-tight tracking-tight">
+            <span className="text-sm font-semibold leading-tight tracking-tight text-sidebar-foreground">
               Give Hope
             </span>
-            <span className="text-xs leading-tight text-zinc-500">
+            <span className="text-xs leading-tight text-muted-foreground">
               Mission Control
             </span>
           </div>
@@ -384,7 +390,7 @@ function AppHeader() {
                 className="relative size-8"
               >
                 <Bell className="size-4" />
-                <span className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
+                <span className="bg-destructive absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
               </Button>
             }
           />

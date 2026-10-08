@@ -169,7 +169,7 @@ export function AutomationRuleForm({
             onCheckedChange={setEnabled}
             aria-label="Enabled"
           />
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {enabled ? "Active" : "Disabled"}
           </span>
         </div>
@@ -204,9 +204,9 @@ export function AutomationRuleForm({
         </Select>
       </SettingsRow>
 
-      <div className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-white p-3">
+      <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+          <span className="text-sm font-medium text-muted-foreground">
             Conditions
           </span>
           <Button
@@ -221,7 +221,7 @@ export function AutomationRuleForm({
           </Button>
         </div>
         {conditions.length === 0 ? (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             No conditions, the rule fires for every event.
           </p>
         ) : (
@@ -248,9 +248,9 @@ export function AutomationRuleForm({
         )}
       </div>
 
-      <div className="flex flex-col gap-2 rounded-xl border border-zinc-100 bg-white p-3">
+      <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+          <span className="text-sm font-medium text-muted-foreground">
             Actions
           </span>
           <Button
@@ -265,7 +265,7 @@ export function AutomationRuleForm({
           </Button>
         </div>
         {actions.length === 0 ? (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             Add at least one action to save the rule.
           </p>
         ) : (

@@ -30,14 +30,14 @@ export function SettingsToolbar({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-2 rounded-xl border border-zinc-100 bg-zinc-50/60 px-3 py-2",
+        "flex flex-col gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
       <span
         className={cn(
           "inline-flex items-center gap-2 text-xs font-medium",
-          isDirty ? "text-amber-700" : "text-zinc-500",
+          isDirty ? "text-warning" : "text-muted-foreground",
         )}
       >
         {isDirty ? (
@@ -47,7 +47,7 @@ export function SettingsToolbar({
           </>
         ) : (
           <>
-            <Check className="size-3.5 text-emerald-600" />
+            <Check className="size-3.5 text-success" />
             {savedLabel}
           </>
         )}
@@ -59,7 +59,6 @@ export function SettingsToolbar({
           size="sm"
           disabled={!isDirty || isSaving}
           onClick={onCancel}
-          className="rounded-lg"
         >
           Discard
         </Button>
@@ -69,7 +68,6 @@ export function SettingsToolbar({
           size="sm"
           disabled={!isDirty || isSaving}
           onClick={onSave}
-          className="rounded-lg font-black uppercase tracking-wider"
         >
           {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : null}
           Save changes

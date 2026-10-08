@@ -34,7 +34,7 @@ export function AppShell({
   return (
     <SidebarProvider>
       <AppSidebar role={role} tenantLogo={tenantLogo} tenantName={tenantName} />
-      <SidebarInset className="flex flex-col min-h-svh">
+      <SidebarInset className="flex min-h-svh min-w-0 flex-col">
         <AppHeader title={title} navigation={navigation} />
         <RouteMainViewTransitionBoundary className="container-responsive flex-1 py-responsive-section">
           {children}

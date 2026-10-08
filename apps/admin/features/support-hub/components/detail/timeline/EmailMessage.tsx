@@ -28,7 +28,7 @@ const DELIVERY_TONES: Partial<
   Record<SupportMessageDeliveryState, { tone: string; label: string }>
 > = {
   draft: {
-    tone: "border-amber-200 bg-amber-50 text-amber-700",
+    tone: "border-warning/30 bg-warning/10 text-warning",
     label: "Draft",
   },
   queued: {
@@ -41,14 +41,17 @@ const DELIVERY_TONES: Partial<
   },
   sent: { tone: "border-border bg-muted text-foreground", label: "Sent" },
   delivered: {
-    tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    tone: "border-success/30 bg-success/10 text-success",
     label: "Delivered",
   },
   bounced: {
-    tone: "border-rose-200 bg-rose-50 text-rose-700",
+    tone: "border-destructive/30 bg-destructive/10 text-destructive",
     label: "Bounced",
   },
-  failed: { tone: "border-rose-200 bg-rose-50 text-rose-700", label: "Failed" },
+  failed: {
+    tone: "border-destructive/30 bg-destructive/10 text-destructive",
+    label: "Failed",
+  },
 };
 
 function emailMessageChrome(message: SupportMessage) {
@@ -64,9 +67,9 @@ function emailMessageChrome(message: SupportMessage) {
         ? "Outbound email"
         : "Inbound email",
     className: isDraft
-      ? "border-amber-200 bg-amber-50/40"
+      ? "border-warning/30 bg-warning/5"
       : isOutbound
-        ? "border-border border-l-2 border-l-emerald-200"
+        ? "border-border border-l-2 border-l-success/30"
         : "border-border border-l-2 border-l-border",
   };
 }
@@ -102,21 +105,15 @@ function EmailMessageHeader({
             </span>
           ) : null}
           {isDraft ? (
-            <Badge
-              variant="outline"
-              className="h-5 gap-1 rounded-md border-amber-200 bg-amber-100 px-1.5 font-bold uppercase tracking-wider text-amber-800"
-            >
-              <Save className="size-3" />
+            <Badge variant="warning">
+              <Save aria-hidden="true" />
               Draft
             </Badge>
           ) : null}
           {!isDraft && DELIVERY_TONES[message.deliveryState] ? (
             <Badge
               variant="outline"
-              className={cn(
-                "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
-                DELIVERY_TONES[message.deliveryState]?.tone,
-              )}
+              className={DELIVERY_TONES[message.deliveryState]?.tone}
             >
               {DELIVERY_TONES[message.deliveryState]?.label}
             </Badge>
@@ -208,7 +205,7 @@ const INBOUND_ATTACHMENT_TONES: Record<
     label: "Attachments retrying",
   },
   failed: {
-    tone: "border-amber-200 bg-amber-50 text-amber-700",
+    tone: "border-warning/30 bg-warning/10 text-warning",
     label: "Attachments unavailable",
   },
 };
@@ -264,13 +261,7 @@ function InboundAttachmentState({
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Badge
-        variant="outline"
-        className={cn(
-          "h-5 rounded-md px-1.5 font-bold uppercase tracking-wider",
-          config.tone,
-        )}
-      >
+      <Badge variant="outline" className={config.tone}>
         <Paperclip className="size-3" />
         {retryState === "requested" ? "Attachments retrying" : config.label}
       </Badge>
@@ -279,7 +270,6 @@ function InboundAttachmentState({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-5 gap-1 px-1.5 font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
           onClick={requestRetry}
           disabled={retryState === "requesting"}
           focusableWhenDisabled={retryState === "requesting"}
