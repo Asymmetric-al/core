@@ -2,6 +2,107 @@
 
 ## ADDED Requirements
 
+### Requirement: Phase 4 Preserves Permanent Unclaimed Donors And Optional Exact Claiming
+
+The platform MUST preserve a permanent, first-class unclaimed donor record
+without a login and MUST permit guest giving without forcing a claim. Contact
+capture and guest attribution MUST NOT create login, claim or protected access.
+Initial binding MUST require fresh, single-use, purpose-bound proof of control of
+the intended contact email/mailbox for the exact intended same-Tenant person and
+current owner claim/link policy. Native authentication, accepted historical claim
+proof, current contact-email revision
+and verification, and current authorization MUST remain distinct. An established
+claim MUST survive contact changes; a newly matching email MUST NOT displace a
+different established claim. Every protected request MUST independently satisfy
+current Phase 12 context, exact subject, purpose and source admission.
+
+#### Scenario: A donor gives while remaining permanently unclaimed
+
+- WHEN a donor captured offline gives online as a guest under eligible source rules
+- THEN the platform accepts the gift without requiring login or claim
+- AND attribution reveals no existing identity or private data and grants no access
+- AND the donor record may remain unclaimed indefinitely
+
+#### Scenario: Contact changes after an accepted claim
+
+- WHEN the claimed person's current contact address changes or its verification clears
+- THEN accepted historical claim proof remains separate and is not erased
+- AND the changed address inherits no old verification or protected access
+- AND a new email match cannot select or overwrite another established claim
+
+### Requirement: Phase 4 Path 2 Keeps Every Tenant Claim And Access Isolated
+
+The platform MUST maintain separate donor records, memberships and claims per
+Tenant even when native authentication uses a shared credential. The credential
+MUST authorize nothing on its own. Cross-Tenant donor linking, merge, dedupe and
+donor single-view MUST NOT occur. Protected access MUST independently prove one
+validated current context, exact personal or represented subject, purpose and
+source admission through the existing Phase 12 decision and Phase 3 projection
+boundary. Record-only or document admission MUST NOT widen to history, wallet
+or lists; an unrelated role or relationship MUST provide no fallback authority.
+
+#### Scenario: A credential from one Tenant attempts another Tenant's record
+
+- WHEN an authenticated person requests another Tenant's donor record without
+  exact current source admission in that Tenant
+- THEN the platform denies the request without revealing cross-Tenant existence
+- AND no donor, membership or claim is linked or merged across Tenants
+- AND a record-only grant cannot expose broader history, wallet or lists
+
+### Requirement: Phase 4 Identity Experiences Use The Verified Tenant Host And Account Brand
+
+Auth email, login, claim, verification, recovery and portal experiences MUST use
+the current verified Tenant Donor Portal Host and Tenant Donor Account Brand.
+Default or entry Site and untrusted context MUST NOT reskin identity or select
+Tenant, membership or authorization. Donors MUST see no platform chrome or
+cross-Tenant portal surface; required legal, merchant, processor, payment,
+security and accessibility disclosures MUST remain truthful. Host and brand
+MUST NOT grant access. Identity communications MUST retain the identity producer
+and purpose authority → Phase 17 immutable preparation and bounded sender →
+Phase 6 sole dispatch and history contract. Missing or wrong trusted context
+MUST fail closed with no default brand, default sender or direct-send fallback.
+Provider-owned consent MAY retain only IC05's qualified provider/application
+identity exception; it MUST NOT replace the Tenant identity experience.
+
+#### Scenario: Entry supplies the wrong brand or missing trusted context
+
+- WHEN an identity action or message has missing or wrong trusted Tenant/host
+  context, or an entry/default Site attempts to select the account brand
+- THEN the action or message fails closed on invalid context without fallback
+- AND valid entry uses the current verified Tenant host and account brand
+- AND no untrusted Site context selects authority or exposes another Tenant
+
+### Requirement: Phase 4 Claim Safety Is Independent Of Entry Method
+
+Every qualified claim method MUST enforce the same exact fresh, single-use,
+purpose-bound proof of control of the intended contact email/mailbox and current
+claim/link policy. The platform MUST recognize but never reveal eligible guest
+attribution and MUST keep public
+entry enumeration-safe in response shape and timing intent for known and unknown
+identities. Attribution, contact match, provider verified-email flag and staff
+action MUST NOT substitute for claim proof or current protected-access admission.
+A qualified email link and secondary code MUST consume one issuance once;
+authentication alone MUST NOT establish claim or reveal history or saved methods.
+Documenting a method MUST NOT activate it. Google, Apple and Facebook remain
+selected optional donor-entry scope, each blocked until unresolved native G01
+and its exact provider gates pass. Already-bound stable provider subject sign-in
+MUST remain distinct from new email-matching attachment; no broker/fork or
+email-only completion of selected scope is approved.
+
+#### Scenario: A match or provider flag arrives without qualified proof
+
+- WHEN an entry has only attribution, a matching contact, a provider email flag
+  or unproved staff action
+- THEN no claim binding or private disclosure occurs
+- AND public responses reveal neither donor nor cross-Tenant credential existence
+- AND native/provider qualification is not inferred from that match or flag
+
+#### Scenario: A claim proof is reused or has the wrong purpose
+
+- WHEN a consumed link/code issuance or wrong-purpose proof attempts a claim
+- THEN the platform rejects it without binding, membership or disclosure effects
+- AND consuming either qualified link or code leaves no reusable sibling proof
+
 ### Requirement: SiteStacker Parity Is An Outcome-Parity Program
 
 The platform MUST pursue SiteStacker parity as an outcome-parity program: it

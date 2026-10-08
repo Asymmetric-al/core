@@ -107,3 +107,17 @@ were absent from both the directory and pending-collision register. Existing
 identities are preserved. These records document accepted planning intent, not
 runtime implementation. Source: [AL-490](https://github.com/Asymmetric-al/core/issues/490)
 and the [amended Phase 3 PRD](../prds/sitestacker-parity/phase-03-minimum-permission-role-scoped-projection-foundation.md).
+
+## Accepted Phase 4 foundation records — AL-504
+
+- [0213-profile-claim-anchor-and-reserved-person-foundation.md](0213-profile-claim-anchor-and-reserved-person-foundation.md) records the profile claim anchor, separate historical proof/current access and reserved typed person migration target.
+- [0214-path2-tenant-isolation-with-shared-native-credential.md](0214-path2-tenant-isolation-with-shared-native-credential.md) records Path 2 isolation with a shared non-authorizing native credential.
+- [0215-guest-attribution-exact-claim-proof-and-current-access.md](0215-guest-attribution-exact-claim-proof-and-current-access.md) records quiet guest attribution, exact fresh claim proof and current source admission with native G01/provider gates outstanding.
+- [0216-non-destructive-source-governed-replayable-donor-merge.md](0216-non-destructive-source-governed-replayable-donor-merge.md) records source-approved mutable repairs, frozen history and governed replayable Undo.
+
+The directory ended at 0212 before these additions. Numbers 0213–0216 were absent
+from both the directory and pending-collision register; existing accepted records
+are preserved. These are accepted target decisions under
+[AL-504](https://github.com/Asymmetric-al/core/issues/504) and the
+[current Phase 4 owner PRD](../prds/sitestacker-parity/phase-04-identity-account-claiming-foundation.md),
+not implementation, native/provider qualification or activation evidence.
