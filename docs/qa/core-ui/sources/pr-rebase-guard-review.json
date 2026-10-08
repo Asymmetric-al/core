@@ -1,0 +1,102 @@
+{
+  "base": "180dde9e41b849e0c3a649aeef8989f3974bf4cd",
+  "upstream_next": "16.4.0 (retained from develop PR1964; not introduced by UI work)",
+  "capture_source_epoch": "5319246eb709a58b4f01d3cbce824087aeef7b3e / Next16.3.8",
+  "tips": [
+    {
+      "tip": "6327c1f339c89a27733c040d552085df9c05c2af",
+      "shadscan_entries": 119,
+      "shadscan_proof_checks": 370,
+      "shadscan_mismatches": [],
+      "upstream_checks": 243,
+      "upstream_mismatches": [],
+      "added_findings": [],
+      "removed_findings": [],
+      "remaining_finding_nonhash_metadata_changes": [],
+      "upstream_nonhash_metadata_identical": true,
+      "components_json_identical_to_develop": true,
+      "bun_lock_identical_to_develop": true,
+      "dependency_engine_changes_vs_develop": [],
+      "changed_guard_files": ["tooling/shadscan/findings.json"],
+      "reviewed_giving_removal_only": true,
+      "upstream_coverage": {
+        "files": 54,
+        "localOnly": 34,
+        "protectedSources": 34,
+        "proofSources": 121
+      }
+    },
+    {
+      "tip": "9b4d676ad8e8f4c0f78e03f9b0c25227dc783429",
+      "shadscan_entries": 119,
+      "shadscan_proof_checks": 370,
+      "shadscan_mismatches": [],
+      "upstream_checks": 243,
+      "upstream_mismatches": [],
+      "added_findings": [],
+      "removed_findings": [],
+      "remaining_finding_nonhash_metadata_changes": [],
+      "upstream_nonhash_metadata_identical": true,
+      "components_json_identical_to_develop": true,
+      "bun_lock_identical_to_develop": true,
+      "dependency_engine_changes_vs_develop": [],
+      "changed_guard_files": [
+        "tooling/shadcn/upstream-review-baseline.json",
+        "tooling/shadscan/findings.json"
+      ],
+      "reviewed_giving_removal_only": true,
+      "upstream_coverage": {
+        "files": 54,
+        "localOnly": 34,
+        "protectedSources": 34,
+        "proofSources": 121
+      }
+    },
+    {
+      "tip": "0cc25be9c47b5fd3ab739f8cf18c33bde3b90bb3",
+      "shadscan_entries": 118,
+      "shadscan_proof_checks": 368,
+      "shadscan_mismatches": [],
+      "upstream_checks": 243,
+      "upstream_mismatches": [],
+      "added_findings": [],
+      "removed_findings": [
+        {
+          "project": "apps/donor",
+          "rule": "focus-visible-not-suppressed",
+          "classification": "scanner-limitation",
+          "rationale": "Custom amount input focus sets isInputFocused, which adds a border-zinc-900 and ring-4 replacement on its surrounding control. The scanner examines only the input className. Existing actual GivingWidget tests exercise native labeled input and real preset arrow navigation; computed CSS replacement is source-reviewed, not yet separately browser asserted. Verification limit: Source review plus cited existing runtime seams; where tests exercise a shared primitive rather than this exact caller, the reason states that distinction.",
+          "verificationTests": ["tests/unit/apps/donor/giving-widget.test.tsx"],
+          "evidenceFingerprint": "efd24fe5a19cb912ef5117a61ae8a1e3927a944efdac7e88e593952cdddd671e",
+          "proof": [
+            {
+              "path": "apps/donor/app/(public)/(solid)/workers/[id]/giving-widget.tsx",
+              "sha256": "b12f3c7ef073ebd47093c94b17d425d469d6e8a7a748daad0e59397031bfda32"
+            },
+            {
+              "path": "tests/unit/apps/donor/giving-widget.test.tsx",
+              "sha256": "71e12d826ddd45c840fb5ef41326e412c49c881e894430756bb4adb3d17c1339"
+            }
+          ]
+        }
+      ],
+      "remaining_finding_nonhash_metadata_changes": [],
+      "upstream_nonhash_metadata_identical": true,
+      "components_json_identical_to_develop": true,
+      "bun_lock_identical_to_develop": true,
+      "dependency_engine_changes_vs_develop": [],
+      "changed_guard_files": [
+        "tooling/shadcn/upstream-review-baseline.json",
+        "tooling/shadscan/findings.json"
+      ],
+      "reviewed_giving_removal_only": true,
+      "upstream_coverage": {
+        "files": 54,
+        "localOnly": 34,
+        "protectedSources": 34,
+        "proofSources": 121
+      }
+    }
+  ],
+  "failures": []
+}

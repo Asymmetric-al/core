@@ -1,0 +1,68 @@
+{
+  "validatedLocalSourceTip": "5cce23208912e8606c00ced47389226307deab9c",
+  "tests": {
+    "filesPassed": 6,
+    "testsPassed": 101,
+    "readiness": 42,
+    "refresh": 32,
+    "otherSkillSafety": 27
+  },
+  "liveChecksPassed": 6,
+  "corrections": [
+    "Reject an explicitly disabled Codex ReUI server before network access",
+    "Reject synchronized canonical manifests without reviewed provenance; preserve dated legacy manifests",
+    "Update playbook authentication and persistent authenticated registry guidance"
+  ],
+  "checks": [
+    {
+      "localDiagnostic": "readiness-second-focused-tests.log",
+      "sha256": "8e021aafa4217f947219d1db1446d79780dedfeb7f3bc6565b8be175416e1ac3"
+    },
+    {
+      "localDiagnostic": "readiness-second-live.log",
+      "sha256": "dc7ba78eb734e640f421676940bdd474c645e7d04f671a0ab6e88ca729e8698d"
+    },
+    {
+      "localDiagnostic": "readiness-second-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "localDiagnostic": "readiness-second-format.log",
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "localDiagnostic": "readiness-second-skills-verify.log",
+      "sha256": "cd9f3e83234f8f03c9bf7801fbf5e557dbc1ca6a659c21b63715b8e88322dbad"
+    },
+    {
+      "localDiagnostic": "readiness-second-skills-nonmutation.log",
+      "sha256": "07a51149ab26e08917fc30bc4a79006d3d3b20611e813143f2dc16956a1f9516"
+    },
+    {
+      "localDiagnostic": "readiness-second-openspec.log",
+      "sha256": "4de8ebfaa4f91e4ac4f49768b993906640e986a806a51a4e36d794f67a575c99"
+    },
+    {
+      "localDiagnostic": "readiness-second-docs-check.log",
+      "sha256": "94178762d6cc71846781b409a3b2390218cbe755aec53295c648e88b4d138381"
+    },
+    {
+      "localDiagnostic": "readiness-disabled-server-red.log",
+      "sha256": "ce4e2c233e302606ce4f32b8e1af455df9c5820e6525a7d86f4e15340e997873"
+    },
+    {
+      "localDiagnostic": "readiness-disabled-server-green.log",
+      "sha256": "295559c1528fb4dff383dad8627bf856f52213376831c918d1e3aca600b0c740"
+    },
+    {
+      "localDiagnostic": "readiness-reviewed-manifest-red.log",
+      "sha256": "8de4352dc6a1f95559710a1cee0729f2929d8e4e8097ac07ed1ef7cddf9bdc81"
+    },
+    {
+      "localDiagnostic": "readiness-reviewed-manifest-green.log",
+      "sha256": "7a62044ca7ed860cc89ea1b1839c8e65556673cbcdeea333150d2c94b185e0ee"
+    }
+  ],
+  "independentReview": "All eight changed files reviewed; no remaining concrete P0/P1, offline verification/syntax/diff checks passed. No new application source or provider qualification claimed.",
+  "scope": "Focused local results and live Pro entitlement/source access; hosted current-head CI is separately checked."
+}

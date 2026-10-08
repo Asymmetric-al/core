@@ -1,0 +1,44 @@
+Compilation: build
+==> CI preflight: format
+==> PASS format
+==> CI preflight: skills-verify
+==> PASS skills-verify
+==> CI preflight: verify-phase25-spec
+==> PASS verify-phase25-spec
+==> CI preflight: openspec-validate
+==> PASS openspec-validate
+==> CI preflight: verify-openspec-deltas
+==> PASS verify-openspec-deltas
+==> CI preflight: lint
+==> PASS lint
+==> CI preflight: verify-data-boundary
+==> PASS verify-data-boundary
+==> CI preflight: verify-cms-public-sole-entry
+==> PASS verify-cms-public-sole-entry
+==> CI preflight: verify-workspace-contract
+==> PASS verify-workspace-contract
+==> CI preflight: verify-bun-lock-drift
+==> PASS verify-bun-lock-drift
+==> CI preflight: verify-eslint
+==> PASS verify-eslint
+==> CI preflight: verify-shadcn-config
+==> PASS verify-shadcn-config
+==> CI preflight: verify-shadcn-diff
+==> PASS verify-shadcn-diff
+==> CI preflight: verify-shadscan
+==> PASS verify-shadscan
+==> CI preflight: typecheck
+==> PASS typecheck
+==> CI preflight: build
+==> PASS shared packages
+==> PASS admin
+==> PASS donor
+==> PASS missionary
+==> PASS ci-build
+==> PASS build
+==> CI preflight: test-unit
+ Test Files  851 passed | 2 skipped (853)
+      Tests  6752 passed | 4 skipped (6756)
+   Duration  637.55s (transform 14.02s, setup 4.52s, import 163.76s, tests 301.00s, environment 58.53s)
+==> PASS test-unit
+==> PASS ci:preflight

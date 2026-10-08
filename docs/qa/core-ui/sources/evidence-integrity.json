@@ -1,0 +1,62 @@
+{
+  "method": "Deterministic evidence integration checks only; no artificial UI test or productive browser claim. Current source SHA256 values were compared with exact file bytes; explicit baseline values use original Git blobs. JSON detail pointers and local Markdown paths were resolved.",
+  "source_baseline": "f49fc2e03bce9246f5d3dc22c16d0a6c794a8304",
+  "current_source_identity_references": {
+    "shared_inventory": 279,
+    "donor_inventory": 89,
+    "missionary_inventory": 92,
+    "specialized_inventory": 207,
+    "general_admin_source_identity": 63,
+    "commercial_pro_derivatives": 3,
+    "total_references": 733,
+    "scope_limit": "These ledgers overlap; the count is not unique files or visually verified surfaces."
+  },
+  "route_detail_join": {
+    "records": 165,
+    "admin": 90,
+    "donor": 45,
+    "missionary": 30,
+    "primary_route_ledger_records": 131,
+    "separate_fallback_global_family_records": 7,
+    "additional_source_index_state_records": 27,
+    "specialized_admin_delegations": 40,
+    "unresolved": 0,
+    "scope_limit": "Global families overlap concrete source files; page/state/renderer counts are not unique visually verified screens."
+  },
+  "markdown_local_links": {
+    "checked": 64,
+    "missing": 0,
+    "scope": "Owned inventory/source-review Markdown and coverage.md; runtime/root-owned records validated by their owners."
+  },
+  "source_hash_mismatches": 0,
+  "json_detail_pointer_errors": 0,
+  "commercial_source_limits": "Three actual Pro derivatives match source provenance. Owner confirmed agreement covers public distribution/contributors; agreement document was not independently inspected, and Pro is not MIT. Account/authentication result is separately owned.",
+  "final_gate_limits": "Source identity and link checks do not establish local all-repository gates, application builds, browser states or productive provider availability. Root/runtime final evidence remains authoritative.",
+  "concrete_route_state_file_coverage": {
+    "files": 160,
+    "missing_source_disposition_joins": 0,
+    "scope": "Filesystem-discovered page/layout/loading/error/not-found/global-error/global-not-found TSX files under all three first-party app trees. Separate surface-family records remain overlapping coverage dimensions."
+  },
+  "json_detail_references_checked": 276,
+  "reviewed_image_identity_references": {
+    "records_checked": 211,
+    "scope_limit": "Overlapping reviewer ledgers and supplemental states; image identity does not imply complete runtime or productive provider coverage."
+  },
+  "all_indexed_image_integrity": {
+    "before": 297,
+    "after": 341,
+    "distinct_paths": 638,
+    "matching_pairs": 295,
+    "sha_path_byte_mismatches": 0,
+    "unindexed_disk_images": 0,
+    "capture_epoch_limit": "Actual Next16.3.8 pre-integration browser captures; source rebase/CI does not imply new Next16.4 runtime verification."
+  },
+  "accepted_late_surface_state_review_joins": 10,
+  "upstream_integration_supplemental_identities": {
+    "seven_overlap_current_refs": 7,
+    "two_untouched_upstream_pages": 2,
+    "limit": "Overlaps source inventories; not added as unique files or browser-verified surfaces."
+  },
+  "errors": [],
+  "verified_at_utc": "2026-10-07T22:44:57.377941+00:00"
+}

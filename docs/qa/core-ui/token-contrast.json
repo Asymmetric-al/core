@@ -1,0 +1,83 @@
+{
+  "method": "WCAG 2 relative luminance from OKLCH -> linear sRGB (D65), clamp out-of-gamut channels; contrast=(max(Y)+0.05)/(min(Y)+0.05). Tinted badges blend linear RGB at 10% status over surface. Browser review required for actual photo composites.",
+  "source": "https://reui.io/docs/styling",
+  "pairs": {
+    "light": {
+      "success": {
+        "oklch": [0.47, 0.13, 150],
+        "on_foreground": 6.152,
+        "on_background": 6.152,
+        "on_card": 6.423,
+        "on_background_10percent_tint": 5.637,
+        "on_card_10percent_tint": 5.881
+      },
+      "warning": {
+        "oklch": [0.46, 0.1, 70],
+        "on_foreground": 6.982,
+        "on_background": 6.982,
+        "on_card": 7.29,
+        "on_background_10percent_tint": 6.384,
+        "on_card_10percent_tint": 6.661
+      },
+      "info": {
+        "oklch": [0.47, 0.13, 250],
+        "on_foreground": 6.542,
+        "on_background": 6.542,
+        "on_card": 6.83,
+        "on_background_10percent_tint": 5.988,
+        "on_card_10percent_tint": 6.247
+      },
+      "invert": {
+        "oklch": [0.205, 0.015, 265],
+        "foreground": [0.985, 0.002, 265],
+        "contrast": 17.163
+      },
+      "media": {
+        "scrim": [0.1, 0.005, 265],
+        "foreground": [0.985, 0.002, 265],
+        "opaque_contrast": 19.719,
+        "photo_composited_contrast": "Requires browser verification on each used image/opacity combination."
+      }
+    },
+    "dark": {
+      "success": {
+        "oklch": [0.76, 0.13, 150],
+        "on_foreground": 8.779,
+        "on_background": 9.7,
+        "on_card": 9.216,
+        "on_background_10percent_tint": 5.187,
+        "on_card_10percent_tint": 5.059
+      },
+      "warning": {
+        "oklch": [0.8, 0.13, 85],
+        "on_foreground": 9.523,
+        "on_background": 10.522,
+        "on_card": 9.997,
+        "on_background_10percent_tint": 5.39,
+        "on_card_10percent_tint": 5.262
+      },
+      "info": {
+        "oklch": [0.76, 0.11, 250],
+        "on_foreground": 8.395,
+        "on_background": 9.275,
+        "on_card": 8.812,
+        "on_background_10percent_tint": 5.075,
+        "on_card_10percent_tint": 4.947
+      },
+      "invert": {
+        "oklch": [0.24, 0.01, 265],
+        "foreground": [0.985, 0.002, 265],
+        "contrast": 15.76
+      },
+      "media": {
+        "scrim": [0.1, 0.005, 265],
+        "foreground": [0.985, 0.002, 265],
+        "opaque_contrast": 19.719,
+        "photo_composited_contrast": "Requires browser verification on each used image/opacity combination."
+      }
+    }
+  },
+  "evidence_kind": "mathematical-token-estimate",
+  "qualification_limit": "This calculation is not a productive application browser test. Actual computed CSS, transparency, image context, focus indicators and supported light/dark states require separate browser evidence.",
+  "compositing_assumption": "The tint calculation uses the stated linear-RGB blending assumption. Browser CSS compositing must be measured separately; this table does not assert that every CSS color-mix/alpha path uses that assumption."
+}

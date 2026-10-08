@@ -1,0 +1,3333 @@
+{
+  "app": "missionary",
+  "checkout": "original source checkout",
+  "coverage": "All 15 page routes and first-party compositions inspected; all accepted app/package improvements implemented; all touched app/package files have zero raw design or code lint findings; scoped 45-file/245-test suite and format passed; actual after browser review owned by runtime agent",
+  "design_contract": {
+    "style": "base-maia",
+    "base": "Base UI",
+    "theme": "zinc semantic CSS variables",
+    "supported_app_mode": "forced light",
+    "shared_owner": "@asym/ui",
+    "preserved_provider_boundary": "app/layout.tsx ThemeProvider forced light, cacheComponents/partialPrefetching and app-shell route transition unchanged"
+  },
+  "routes": [
+    {
+      "route": "/login",
+      "entry": "app/(auth)/login/page.tsx",
+      "visible_surfaces": "shared LoginScreen with demo/credential modes and auth redirect gate",
+      "source_inspected": true,
+      "disposition": "retain",
+      "reason": "Shared ownership @asym/ui; preserve anonymous visitor gate, nextPath and enabled demo settings. Shared-auth owner handles improvements and matching loading skeleton.",
+      "consumers": [
+        "app/(auth)/login/page.tsx",
+        "app/(auth)/login/loading.tsx"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-login-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-login-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-login-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-login-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": []
+    },
+    {
+      "route": "/analytics",
+      "entry": "app/analytics/page.tsx",
+      "visible_surfaces": "KpiTile summary; Giving Trends BarChart; period Select; coming-soon segmentation and yearly charts",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Retain unavailable metrics and coming-soon cards honestly. Select overrides default geometry and raw zinc borders; 9px axis labels reduce legibility. Improve Maia controls and chart density through existing chart abstraction without chart engine/API/data changes.",
+      "consumers": [
+        "app/analytics/page-client.tsx",
+        "app/analytics/analytics-data.ts",
+        "app/analytics/loading.tsx"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-analytics-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-analytics-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-analytics-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-analytics-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [
+        {
+          "source": "c-chart-1",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-chart-1"
+        }
+      ],
+      "implementation_files": ["app/analytics/page-client.tsx"]
+    },
+    {
+      "route": "/boneyard/tasks",
+      "entry": "app/boneyard/tasks/page.tsx",
+      "visible_surfaces": "public deterministic task-list skeleton fixture capture",
+      "source_inspected": true,
+      "disposition": "retain",
+      "reason": "Capture-only route exempted from app chrome; retain fixture data, dimensions and supported Boneyard engine. Follow task-row visual changes only if generated capture refresh is justified.",
+      "consumers": [
+        "app/boneyard/tasks/page-client.tsx",
+        "app/tasks/boneyard-fixture.tsx",
+        "bones/missionary-tasks-list.bones.json"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {},
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-boneyard-tasks-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-boneyard-tasks-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": []
+    },
+    {
+      "route": "/donors",
+      "entry": "app/donors/page.tsx",
+      "visible_surfaces": "Partners stats, virtualized responsive roster, search/sort/filter/tag chips, Load More; detail tabs overview/activity, recurring, contact, task list; add/edit/tag/activity/task dialogs",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Main roster/detail semantic Maia UI and active safety change are already strong: retain DataTableResponsive virtualization, loaded-window disclosure, stable IDs, anonymity/edit guards, contact permissions and mutation boundaries. EditDonorDialog and DonorTasks retain raw zinc low-contrast section labels and inflated control overrides; improve presentation only. Active fix-missionary-partner-roster-safety governs compact/error/anonymous states.",
+      "consumers": [
+        "app/donors/donors-page-content.tsx",
+        "app/donors/donors-page-header.tsx",
+        "app/donors/donors-page-stats.tsx",
+        "app/donors/donors-page-roster.tsx",
+        "app/donors/donors-page-columns.tsx",
+        "app/donors/donors-page-detail.tsx",
+        "app/donors/donors-page-detail-overview.tsx",
+        "app/donors/donors-page-detail-recurring.tsx",
+        "app/donors/donors-page-detail-contact.tsx",
+        "app/donors/donors-page-dialogs.tsx",
+        "app/donors/edit-donor-dialog.tsx",
+        "app/donors/donor-tasks.tsx",
+        "packages/missionary/components/add-partner-dialog.tsx"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-donors-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-donors-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-donors-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-donors-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled.",
+        "detail_browser_limit": "Current local runtime cannot establish productive authenticated partner rows/details/note/tag dialog states without seeded local service credentials. Existing browser route state and focused anonymity/safety/tag-draft/mutation/unit contracts provide scoped evidence; no fabricated product records or hosted writes.",
+        "giving_mobile_regression": {
+          "test": "tests/unit/apps/missionary/donor-giving-responsive.test.tsx",
+          "red": "local-only diagnostic missionary-giving-mobile-red.log",
+          "red_result": "Desktop1440 reference passes; mobile390 missing gift content fails",
+          "green": "local-only diagnostic missionary-giving-mobile-green.log",
+          "green_result": "2/2 pass; two actual component fixture gift rows dates/method/currency/status/defaults visible, nongift note excluded, detail action labels/hrefs unchanged",
+          "browser": "Passed original/current actual DonorsPageDetail/ViewProvider/QueryProvider/MotionProvider fixture at1440/390 with labelled synthetic read/auth inputs and blocked application writes; original mobile blank cards and document414, current real formatted cards and document390. Productive authenticated partner rows remain unavailable.",
+          "rendering": "Existing row.getAllCells/flexRender via Core tanstack boundary; no new formatter/engine/operation state",
+          "browser_evidence": [
+            "docs/qa/core-ui/before-index.json metadata baseline-missionary-giving.json",
+            "local-only diagnostic after-missionary-giving.json"
+          ]
+        },
+        "giving_tab_focus_regression": {
+          "test": "tests/unit/apps/missionary/donor-giving-responsive.test.tsx",
+          "red": "local-only diagnostic missionary-giving-tab-reveal-red.log",
+          "red_result": "Actual narrow-browser rectangle replay: focused Giving right387.36 extends beyond native rail right373; existing two record/action tests pass",
+          "green": "local-only diagnostic missionary-giving-tab-reveal-green.log",
+          "green_result": "3/3 public actual-detail/provider/tab tests pass: both real formatted record views, keyboard focus reveals both rail edges, Base UI manual activation and original value handler retained, no page/vertical scroll",
+          "browser": "Passed final rebuilt actual DonorsPageDetail/ViewProvider/QueryProvider/MotionProvider synthetic read/auth component fixture at390: focused Giving becomes fully legible inside existing rail; manual Base UI activation and vertical page position preserved. Browser rounds scrollLeft to integer; trigger right373.359375 against rail373 is within documented1px tolerance.",
+          "implementation": "Native existing rail onFocusCapture adjusts only scrollLeft for focused role=tab, leaving all Base UI handlers/state/shared wrappers and vertical page position intact",
+          "before_browser_evidence": "local-only diagnostic after-giving-rail-clipped.json",
+          "after_browser_evidence": "local-only diagnostic after-giving-rail-keyboard.json",
+          "after_browser_image": "docs/qa/core-ui/after/shared-missionary-giving-keyboard-narrow.png",
+          "browser_metrics": {
+            "railScrollLeftBefore": 0,
+            "railScrollLeftAfter": 14,
+            "triggerRightBefore": 387.359375,
+            "triggerRightAfter": 373.359375,
+            "railRight": 373,
+            "pixelTolerance": 1,
+            "documentWidth": 390,
+            "viewport": 390,
+            "scrollYBefore": 0,
+            "scrollYAfter": 0,
+            "manualActivationPreserved": true
+          },
+          "app_commit": "5319246eb"
+        }
+      },
+      "candidate_comparisons": [
+        {
+          "source": "c-dialog-1",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-dialog-1"
+        },
+        {
+          "source": "c-empty-9",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-empty-9"
+        },
+        {
+          "source": "Existing Core DataTableResponsive renderCard API + Core TanStack Row/flexRender boundary + official shared Maia Card",
+          "disposition": "Retain exact current tableengine/formatters; add local native labeled financial card renderer for missing mobile display",
+          "license": "Existing Core AGPL source plus official shared shadcn wrapper; no new vendor/sourcepackage",
+          "comparison": "ReUI DataGrid/Filters replacement would introduce beta/state adapter migration without benefit for five bound read-only cells; current standard DataTableResponsive extension solves actual lostcontent without changing operations"
+        },
+        {
+          "source": "Core native horizontal partner detail rail + installed Base UI1.8 Tabs API",
+          "disposition": "minimal native focused-tab overflow correction",
+          "benefit": "Previously keyboard focus left active Giving14px clipped at390; preserve manual activation while revealing focused tab without page jump",
+          "license": "Existing Core AGPL source; no vendor source or new dependency imported",
+          "risk": "Native horizontal scroll only; original value/change handlers, table adapters, selected record actions and provider boundaries retained",
+          "acceptance": "Actual public component regression plus runtime measured focus/arrow geometry and unchanged page scroll"
+        }
+      ],
+      "implementation_files": [
+        "app/donors/edit-donor-dialog.tsx",
+        "app/donors/donor-tasks.tsx",
+        "app/donors/donors-model.tsx",
+        "app/donors/donors-page-roster.tsx",
+        "app/donors/donors-page-detail.tsx",
+        "app/donors/donors-page-dialogs.tsx"
+      ],
+      "retained_boundary": "DataTableResponsive virtualized roster, server/manual pagination and loaded-window disclosure, stable IDs, filter/search/sort/tag state, anonymity/contact/edit permissions and active roster safety change untouched; ReUI Filters/query migration not accepted.",
+      "material_benefit": "Core status/recurring badges now readable default typography with semantic success/info/warning/neutral variants; tag labels/IDs unchanged while tags use shared variants. Activity/status/task-type/payment icons centrally semantic. Note/tag/edit/task dialogs default Maia composition. Main DataTableResponsive model, filtering, mutation and permission semantics retained. Giving history now supplies a local mobile card renderer using exact existing Core TanStack cell output, preventing blank cards below768 without changing records/sort/pagination/actions.",
+      "remaining_raw_lint_findings": 0
+    },
+    {
+      "route": "/email-studio",
+      "entry": "app/email-studio/page.tsx",
+      "visible_surfaces": "coming-soon studio explanation, disabled notify button and feature cards",
+      "source_inspected": true,
+      "disposition": "retain",
+      "reason": "Intentional unfinished product, semantic shared cards and buttons. Do not enable delivery/integrations or fabricate campaigns. Maintain Next route transition and existing layout.",
+      "consumers": ["app/email-studio/page-client.tsx"],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-email-studio-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-email-studio-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-email-studio-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-email-studio-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": []
+    },
+    {
+      "route": "/feed",
+      "entry": "app/feed/page.tsx",
+      "visible_surfaces": "Ministry Updates editor/composer; published/drafts tabs; media carousel; settings/security dialog; follower approvals; post actions/reactions/comments",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Mostly semantic shared surfaces. Very low contrast opacity-30/-50 empty/loading icons/text and excessive all-caps labels impair reading. Improve existing Empty/Loading support presentation and consistent statuses; preserve post document format, visibility/security model, media handling, follower mutation, data ownership and request recovery.",
+      "consumers": [
+        "app/feed/worker-feed-page-client.tsx",
+        "app/feed/feed-support-ui.tsx",
+        "app/feed/use-worker-feed-page-view.ts"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-feed-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-feed-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-feed-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-feed-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [
+        {
+          "source": "c-dialog-1",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-dialog-1"
+        },
+        {
+          "source": "c-empty-9",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-empty-9"
+        }
+      ],
+      "implementation_files": [
+        "app/feed/worker-feed-page-client.tsx",
+        "app/feed/feed-support-ui.tsx",
+        "app/feed/feed-model.ts"
+      ]
+    },
+    {
+      "route": "/forgot-password",
+      "entry": "app/forgot-password/page.tsx",
+      "visible_surfaces": "account-help notice; Back to login link",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Intentional disabled reset flow and semantics retained; improve action via shared buttonVariants and Card composition so focus/affordance match Core. Do not add reset API.",
+      "consumers": ["app/forgot-password/page.tsx"],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-forgot-password-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-forgot-password-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-forgot-password-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-forgot-password-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": ["app/forgot-password/page.tsx"]
+    },
+    {
+      "route": "/help/about",
+      "entry": "app/help/about/page.tsx",
+      "visible_surfaces": "deployment metadata, source/license links and warranty card",
+      "source_inspected": true,
+      "disposition": "retain",
+      "reason": "Semantic Card, clear metadata definition list, wrapping URLs, disclosure of unknown build data. Low priority uppercase hierarchy retained unless browser evidence identifies issue.",
+      "consumers": ["app/help/about/page.tsx"],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {},
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-help-about-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-help-about-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": []
+    },
+    {
+      "route": "/ministry-updates",
+      "entry": "app/ministry-updates/page.tsx",
+      "visible_surfaces": "alias to complete feed surface",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Same component as /feed; audit and after evidence must cover reachable alias without duplicate implementation.",
+      "consumers": ["app/feed/worker-feed-page-client.tsx"],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {},
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-ministry-updates-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-ministry-updates-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [
+        {
+          "source": "c-dialog-1",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-dialog-1"
+        },
+        {
+          "source": "c-empty-9",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-empty-9"
+        }
+      ],
+      "implementation_files": [
+        "app/feed/worker-feed-page-client.tsx",
+        "app/feed/feed-support-ui.tsx",
+        "app/feed/feed-model.ts"
+      ]
+    },
+    {
+      "route": "/no-access",
+      "entry": "app/no-access/page.tsx",
+      "visible_surfaces": "permission-denied explanation and account/home actions",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Intentional auth boundary retained; improve shared Card/Button actions and narrow wrapping. Do not weaken role checks or initiate sign-out.",
+      "consumers": ["app/no-access/page.tsx"],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-no-access-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-no-access-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-no-access-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-no-access-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": ["app/no-access/page.tsx"]
+    },
+    {
+      "route": "/",
+      "entry": "app/page.tsx",
+      "visible_surfaces": "DashboardHome; MetricTiles; GivingBreakdownChart; support goal, updates, tasks/alerts",
+      "source_inspected": true,
+      "disposition": "retain",
+      "reason": "Already semantic Core Card/PageShell/chart abstractions with real portal snapshot and metric hooks, empty/loading/retry states. Extremely tight density should be browser-reviewed before accepting any spacing work. Preserve currency aggregation and task/update scaffolding.",
+      "consumers": [
+        "packages/missionary/components/dashboard-home.tsx",
+        "packages/missionary/components/metric-tiles.tsx",
+        "packages/missionary/components/giving-breakdown-chart.tsx",
+        "packages/missionary/internal/charts/giving-breakdown-view.tsx",
+        "packages/missionary/internal/charts/metric-sparkline.tsx"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-home-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-home-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-home-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-home-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": []
+    },
+    {
+      "route": "/profile",
+      "entry": "app/profile/page.tsx",
+      "visible_surfaces": "personal details and validation; avatar/cover uploads; social inputs; unsaved/discard/save/copy/public actions; mobile/desktop live preview",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Existing LabeledField names/errors and controlled view-model are strong. Raw zinc focus/color overrides and helper contrast should become semantic default Maia. Preserve dirty/touched values, autosave upload, payload validation, Save errors/pending and preview geometry. Preview visual brand/phone frame may legitimately keep specialized geometry but semantic surfaces preferred.",
+      "consumers": [
+        "app/profile/profile-page-client.tsx",
+        "app/profile/profile-form-column.tsx",
+        "app/profile/profile-primitives.tsx",
+        "app/profile/profile-preview.tsx",
+        "app/profile/use-profile-page-view.ts",
+        "features/giving/components/quick-give.tsx"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-profile-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-profile-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-profile-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-profile-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [
+        {
+          "source": "c-field-7",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-field-7"
+        }
+      ],
+      "implementation_files": [
+        "app/profile/profile-page-client.tsx",
+        "app/profile/profile-form-column.tsx",
+        "app/profile/profile-primitives.tsx",
+        "app/profile/profile-preview.tsx"
+      ],
+      "blocked_states": [
+        "Productive form browser screenshot unavailable: local runtime shows Admin endpoints are disabled because SUPABASE_SERVICE_ROLE_KEY is not configured. Loading/error shell captured; form labels, binding, validation/dirty/submission model and preview mode covered by unit tests. No Supabase/production mutations or fabricated data."
+      ],
+      "remaining_raw_lint_findings": 0
+    },
+    {
+      "route": "/register",
+      "entry": "app/register/page.tsx",
+      "visible_surfaces": "shared disabled RegisterScreen, invitation-only copy and login link",
+      "source_inspected": true,
+      "disposition": "retain",
+      "reason": "Intentional provisioned access retained; shared-auth owner handles any shared visual improvement. Preserve existing session redirect.",
+      "consumers": ["app/register/page.tsx", "app/register/loading.tsx"],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {},
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-register-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-register-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled."
+      },
+      "candidate_comparisons": [],
+      "implementation_files": []
+    },
+    {
+      "route": "/settings",
+      "entry": "app/settings/page.tsx",
+      "visible_surfaces": "Account Security scaffold; notification channel switches and local Save Preferences; website identity; integration scaffold; system preference toggles",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Most divergent visual system: 2.5rem cards and raw white/zinc overrides, uppercase low-contrast labels, excessive padding and fixed nested rows. Recompose with existing semantic Card/Field/Switch/Button, responsive gaps, readable normal-case section hierarchy. No backend activation; preserve existing local-only setting behavior and integration scaffolding. Hard-coded account/integration statuses are existing product incompleteness, not licensed to invent truth.",
+      "consumers": ["app/settings/page-client.tsx"],
+      "candidate_source": "Source-derived licensed @reui/settings-11 notification-preferences and @reui/settings-7 SettingsCard, through shared @asym/ui/components/settings and existing controlled Base UI Switches.",
+      "license": "ReUI Pro commercial block source; owner-confirmed separate agreement covers public AGPL source distribution and contributors. See docs/guides/development/reui-source-license.md",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-settings-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-settings-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-settings-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-settings-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1440,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "initial disabled Save",
+          "one-channel toggle",
+          "dirty Save",
+          "saved values retained",
+          "channel/row accessible names",
+          "keyboard focus",
+          "long descriptions",
+          "narrow390 and wide layout"
+        ],
+        "tests": "tests/unit/apps/missionary/settings-preferences.test.tsx: 2/2 passing; actual one-channel toggle preserves sibling values, localSave clearsdirty and preserves values; named table/channel-column/notification-row semantics, six rowheaders/18 Switches verified",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled.",
+        "browser_interactions": {
+          "evidence": "local-only diagnostic after-missionary-checks.json",
+          "keyboardSpaceToggle": true,
+          "SaveDirtyAndPreservedSelectedValue": true,
+          "document390table337NoOverflow": true,
+          "channels": 4,
+          "notification_rows": 6,
+          "named_switches": 18,
+          "matching_screenshot_review": "Before/after narrow reviewed directly; normal readable heading hierarchy, semantic neutral cards and aligned channel matrix improve legibility; sticky footer/scaffold retained"
+        }
+      },
+      "candidate_comparisons": [
+        {
+          "source": "settings-11",
+          "disposition": "licensed source structure adapted via shared NotificationPreferencesMatrix; actual Switches/state retained",
+          "provenance_ref": "settings-11"
+        },
+        {
+          "source": "settings-7",
+          "disposition": "licensed SettingsCard source anatomy adapted through default Core Maia slots",
+          "provenance_ref": "settings-7"
+        },
+        {
+          "source": "c-field-7",
+          "disposition": "retained Field/FieldGroup composition for account and system preferences",
+          "provenance_ref": "c-field-7"
+        }
+      ],
+      "implementation_files": ["app/settings/page-client.tsx"],
+      "material_benefit": "Aligned channel matrix with named channel column headers, semantic notification row headers, wrapped descriptions and retained icons; reusable source-derived SettingsCard anatomy with exact Core Maia defaults. Exact six setting categories, inApp/email/sms values, local dirty/save behavior, disabled account and integration scaffolding retained.",
+      "retained_boundary": "Core controlled Switch state remains owner of values; no uncontrolled Checkbox/defaultChecked transplant, vendor notification categories/Slack/demo data, backend persistence, auth or integration changes. Next Server/Client and view-transition boundary unchanged."
+    },
+    {
+      "route": "/tasks",
+      "entry": "app/tasks/page.tsx",
+      "visible_surfaces": "board/list mode; task stats/filter tabs; search/type/priority refine menu; active chips; kanban drag/drop; task row complete/edit/delete; TaskDialog dates/partner; delete retry/pending focus",
+      "source_inspected": true,
+      "disposition": "implemented",
+      "reason": "Raw white/zinc and palette statuses, oversized all-caps controls, nonwrapping top actions and min-width stat cards risk 320px overflow. Keep useTasks filtering/sort/date checks, board engine and persisted mutations; improve semantic Maia controls, wrap headers, meaningful Empty/error/loading presentation and 2-col narrow stats. Preserve delete initial/final focus, cancel blocking and failure recovery.",
+      "consumers": [
+        "app/tasks/page-client.tsx",
+        "app/tasks/loading.tsx",
+        "packages/missionary/components/task-dialog.tsx",
+        "packages/missionary/components/task-partner-select.tsx",
+        "packages/missionary/components/task-row.tsx",
+        "packages/missionary/components/task-kanban-board.tsx"
+      ],
+      "candidate_source": "Existing official shadcn Base UI/Maia wrappers plus MIT ReUI components/examples; live shortlist supplied by root research",
+      "license": "Existing Core source and public MIT ReUI examples; route-specific Pro commercial source is recorded separately where used.",
+      "compatibility_risks": [
+        "Preserve route/provider/Cache Components boundaries",
+        "Preserve data and mutation contracts",
+        "No new primitive/form/table/chart engines"
+      ],
+      "verification": {
+        "baseline_browser": {
+          "wide": "docs/qa/core-ui/before/missionary-tasks-wide.png",
+          "narrow": "docs/qa/core-ui/before/missionary-tasks-narrow.png"
+        },
+        "after_browser": {
+          "wide": "docs/qa/core-ui/after/missionary-tasks-wide.png",
+          "narrow": "docs/qa/core-ui/after/missionary-tasks-narrow.png",
+          "status": 200,
+          "page_errors": [],
+          "wide_overflow": {
+            "scrollWidth": 1648,
+            "viewport": 1440
+          },
+          "narrow_overflow": {
+            "scrollWidth": 390,
+            "viewport": 390
+          },
+          "data_availability": "Actual authorized local runtime fixture; productive profile/gift/account rows not inferred"
+        },
+        "viewports": [320, 390, 1440],
+        "states": [
+          "keyboard focus",
+          "loading",
+          "empty",
+          "error",
+          "disabled/pending",
+          "long text"
+        ],
+        "tests": "Existing unit and Playwright app/component tests; no class-string tests",
+        "unit_checks": "47 missionary scoped files /250 passing tests after final Giving mobile renderer, shell width and horizontal tab focus reveal; earlier scoped passes retained as historical logs",
+        "light_dark": "Forced-light product mode preserved. Shared tokens/controls dark review belongs shared owner; no new mode enabled.",
+        "desktop_overflow_fix": {
+          "source": "apps/missionary/components/app-shell.tsx",
+          "baseline": "docs/qa/core-ui/before-index.json metadata baseline-missionary.json: document1648/viewport1440, same preclosureafter",
+          "change": "Add min-w-0 to local SidebarInset flex item, allowing existing Kanban internal scroll to own the four fixedwidth columns",
+          "behavior_boundaries": "No changes to column sizes, DndKit sensors/coordinates/status/order/mutation, shellproviders/navigation/footer",
+          "after": "Pending actual route recapture/geometry from runtime agent"
+        },
+        "board_geometry": {
+          "evidence": "local-only diagnostic after-missionary-board-geometry.json",
+          "wide": {
+            "viewport": 1440,
+            "document": 1440,
+            "boardClientWidth": 1088,
+            "boardScrollWidth": 1328
+          },
+          "narrow": {
+            "viewport": 390,
+            "document": 390,
+            "boardClientWidth": 326,
+            "boardScrollWidth": 1328
+          },
+          "result": "passed; all four original320px columns retain native internal scroll, end-scroll reveals Done; productive mutations not exercised"
+        }
+      },
+      "candidate_comparisons": [
+        {
+          "source": "c-dialog-1",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-dialog-1"
+        },
+        {
+          "source": "c-empty-9",
+          "disposition": "adapted compatible composition through existing wrappers",
+          "provenance_ref": "c-empty-9"
+        }
+      ],
+      "implementation_files": [
+        "app/tasks/page-client.tsx",
+        "packages/missionary/components/task-dialog.tsx",
+        "packages/missionary/components/task-partner-select.tsx",
+        "packages/missionary/components/task-row.tsx",
+        "packages/missionary/components/task-kanban-board.tsx"
+      ],
+      "material_benefit": "Default Maia form/toolbar/stat/row/board geometry and semantic statuses; responsive 2-column stats and wrapping actions; selected summaries named; keyboard date clear preserves other date and restores trigger focus; submit pending remains named/busy while disabled and preserves single mutation."
+    }
+  ],
+  "global_surfaces": [
+    {
+      "surface": "AppShell/AppSidebar/AppHeader/DashboardFooter/navigation search",
+      "disposition": "implemented",
+      "files": [
+        "components/app-shell.tsx",
+        "components/app-sidebar.tsx",
+        "components/app-header.tsx",
+        "components/dashboard-footer.tsx",
+        "components/navigation-items.ts",
+        "components/navigation-search.tsx",
+        "app/_providers/missionary-layout-shell.tsx",
+        "app/layout.tsx"
+      ],
+      "reason": "Sidebar raw zinc/white bypasses sidebar tokens, 12px nav, 28px tenant/avatar, narrow brand lacks min-width/focus treatment; improve semantic shell while preserving role/nav/branding/footer/signout/search and route transition. Footer CURRENT_YEAR=2025 is stale but changing date behavior needs deterministic seam if addressed. Existing placeholder User Name retained as unfinished data binding.",
+      "implementation_review": "AppSidebar/Header/global fallbacks implemented through existing @asym/ui controls; AppShell provider/route transition/footer behavior retained."
+    },
+    {
+      "surface": "GlobalNotFound/GlobalError",
+      "disposition": "implemented",
+      "files": ["app/global-not-found.tsx", "app/global-error.tsx"],
+      "reason": "Raw zinc/white custom shadows/radii/native button bypass Maia; use existing Card/Button/buttonVariants preserving error capture/reset/digest/home and independent global HTML boundaries.",
+      "implementation_review": "AppSidebar/Header/global fallbacks implemented through existing @asym/ui controls; AppShell provider/route transition/footer behavior retained."
+    },
+    {
+      "surface": "Shared auth controls, primitives, ImageUpload/RichTextEditor/Reactions/comments",
+      "disposition": "retained_shared_consumer",
+      "reason": "First-party imports traced to @asym/ui; shared inventory agent owns implementation and common verification.",
+      "implementation_review": "Retained shared-consumer boundaries; shared owner implements generic primitives/auth/media/editor changes."
+    },
+    {
+      "surface": "Unused exported @asym/missionary alternate task/dashboard components",
+      "disposition": "retain",
+      "reason": "Not reachable through product route graph; reusable exports inspected for consumers. No opportunistic removal or rewrite. Relevant source may be tested in specialized fixtures.",
+      "implementation_review": "Retained dormant exports. Repository-wide rg across apps/packages found definitions and components/index.ts/tasks/index.ts re-exports only; no product module imports. TaskDetailsSheet/TaskTable are reached by scoped unit tests only, not app route graph. DashboardHome imports its own local semantic dashboard sections, MetricTiles and GivingBreakdownChart."
+    },
+    {
+      "surface": "Boneyard-generated bones/vendor editor runtime",
+      "disposition": "retain",
+      "reason": "Protected/capture output and supported specialized engine boundaries; preserve generation ownership.",
+      "implementation_review": "Retained generated/vendor internals. /boneyard/tasks is a supported fixture consumer of improved TaskRow; no generated skeleton source rewritten."
+    }
+  ],
+  "tests": {
+    "unit": [
+      "tests/unit/apps/missionary/**",
+      "tests/unit/packages/missionary/**",
+      "tests/unit/missionary-dashboard/**",
+      "tests/unit/missionary-analytics/**"
+    ],
+    "playwright": [
+      "tests/e2e/auth-login-screen-missionary.spec.ts",
+      "tests/e2e/auth-demo-missionary.spec.ts",
+      "tests/e2e/missionary-summary-layout.spec.ts",
+      "tests/e2e/missionary-dashboard-charts.spec.ts",
+      "tests/e2e/development-smoke/missionary.smoke.spec.ts",
+      "tests/fixtures/base-ui-compliance/specs/donor-task-refresh.spec.ts"
+    ],
+    "baseline": {
+      "command": "bunx vitest run tests/unit/apps/missionary tests/unit/packages/missionary tests/unit/missionary-dashboard tests/unit/missionary-analytics",
+      "result": "passed",
+      "files": 44,
+      "tests": 239,
+      "duration": "20.71s",
+      "log": "local-only diagnostic missionary-baseline-unit.log"
+    }
+  },
+  "first_party_source_index": [
+    {
+      "path": "apps/missionary/app/(auth)/login/loading.tsx",
+      "imports": ["@asym/ui/components/shadcn/skeleton"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/0"],
+      "baseline_source_sha256": "84426242235c7d945bd09f9ab90e5dc1775bddbdd48eb487616ce319e8cb9223",
+      "current_source_sha256": "84426242235c7d945bd09f9ab90e5dc1775bddbdd48eb487616ce319e8cb9223",
+      "current_source_lines": 15
+    },
+    {
+      "path": "apps/missionary/app/(auth)/login/page.tsx",
+      "imports": [
+        "@asym/auth/auth-screen",
+        "@asym/env",
+        "@asym/ui/components/auth/LoginScreen",
+        "next"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/0"],
+      "baseline_source_sha256": "21a9116d070990f4c973423cf236b54faf46a19c6dc3b2a75bb354f0cd0201f2",
+      "current_source_sha256": "21a9116d070990f4c973423cf236b54faf46a19c6dc3b2a75bb354f0cd0201f2",
+      "current_source_lines": 33
+    },
+    {
+      "path": "apps/missionary/app/_providers/boneyard-registry.tsx",
+      "imports": ["../../bones/registry"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "65f066b0b20d65f2f63340d365ddd1c96d63cb1bba3a39d4091d627698a61ad5",
+      "current_source_sha256": "65f066b0b20d65f2f63340d365ddd1c96d63cb1bba3a39d4091d627698a61ad5",
+      "current_source_lines": 11
+    },
+    {
+      "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
+      "imports": [
+        "next/navigation",
+        "react",
+        "@/components/app-shell",
+        "@/components/navigation-search",
+        "@/lib/route-policy"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/global_surfaces/0"],
+      "baseline_source_sha256": "722a7775da9f64604fc2a00c637a8d97a70755d90db3d1154dc26dafa70c054b",
+      "current_source_sha256": "722a7775da9f64604fc2a00c637a8d97a70755d90db3d1154dc26dafa70c054b",
+      "current_source_lines": 36
+    },
+    {
+      "path": "apps/missionary/app/analytics/layout.tsx",
+      "imports": ["next", "react"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "2afee383df3f20af1a1171b6bcf0655cddbf5a3a5aa52f9a12291ae85d49a113",
+      "current_source_sha256": "2afee383df3f20af1a1171b6bcf0655cddbf5a3a5aa52f9a12291ae85d49a113",
+      "current_source_lines": 11
+    },
+    {
+      "path": "apps/missionary/app/analytics/loading.tsx",
+      "imports": ["@asym/ui/components/shadcn/skeleton"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/1"],
+      "baseline_source_sha256": "fe02a8e460a274b58d00bf299815611f40bf1f9eadecec6c05a84c1d808aaffb",
+      "current_source_sha256": "fe02a8e460a274b58d00bf299815611f40bf1f9eadecec6c05a84c1d808aaffb",
+      "current_source_lines": 30
+    },
+    {
+      "path": "apps/missionary/app/analytics/page-client.tsx",
+      "imports": [
+        "@asym/lib/hooks",
+        "@asym/lib/view-transitions",
+        "@asym/ui/components/page-header",
+        "@asym/ui/components/primitives/chart-wrappers",
+        "@asym/ui/components/shadcn/select",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "next/dynamic",
+        "react",
+        "./analytics-data"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/1"],
+      "baseline_source_sha256": "fd682bf3d792a23fe570e8d722a2de2c62b96e9d42c76644d7c1edf40764087c",
+      "current_source_sha256": "da1211f0590d8b98abe638aa9bb1961c64bb26a83eb4be25bb7404b1b5e4800a",
+      "current_source_lines": 224
+    },
+    {
+      "path": "apps/missionary/app/analytics/page.tsx",
+      "imports": ["./page-client", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/1"],
+      "baseline_source_sha256": "dea5bb0ff31045ccbf7eb9a88e61c5d60f798892a3705aa56648027e39f727a6",
+      "current_source_sha256": "dea5bb0ff31045ccbf7eb9a88e61c5d60f798892a3705aa56648027e39f727a6",
+      "current_source_lines": 12
+    },
+    {
+      "path": "apps/missionary/app/apple-icon.tsx",
+      "imports": ["next/og"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "ccb618b373d895f77c7031b16715a468ae7b23a0edad94b76f8a731a87303e3e",
+      "current_source_sha256": "ccb618b373d895f77c7031b16715a468ae7b23a0edad94b76f8a731a87303e3e",
+      "current_source_lines": 31
+    },
+    {
+      "path": "apps/missionary/app/boneyard/tasks/layout.tsx",
+      "imports": ["next", "react"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "8c37574b92ccc554fba72765f97f7f5f51e91e80845f2bf780cffab0004ed564",
+      "current_source_sha256": "8c37574b92ccc554fba72765f97f7f5f51e91e80845f2bf780cffab0004ed564",
+      "current_source_lines": 23
+    },
+    {
+      "path": "apps/missionary/app/boneyard/tasks/page-client.tsx",
+      "imports": [
+        "@asym/ui/components/boneyard-skeleton",
+        "@asym/ui/components/primitives/page-shell",
+        "@asym/ui/components/shadcn/skeleton",
+        "react",
+        "../../tasks/boneyard-fixture"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/2"],
+      "baseline_source_sha256": "9355ba8231bd85f420b145a9f7838e8e9bce301efdc2dce36075339c48aa34bb",
+      "current_source_sha256": "9355ba8231bd85f420b145a9f7838e8e9bce301efdc2dce36075339c48aa34bb",
+      "current_source_lines": 54
+    },
+    {
+      "path": "apps/missionary/app/boneyard/tasks/page.tsx",
+      "imports": ["./page-client", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/2"],
+      "baseline_source_sha256": "599a8f14d3e6fd66d3122b069ca13c3a86b5510f719b5997998f52c82b3a4dc0",
+      "current_source_sha256": "599a8f14d3e6fd66d3122b069ca13c3a86b5510f719b5997998f52c82b3a4dc0",
+      "current_source_lines": 12
+    },
+    {
+      "path": "apps/missionary/app/donors/donor-tasks.tsx",
+      "imports": [
+        "@asym/lib/hooks",
+        "@asym/lib/motion",
+        "@asym/missionary/components/task-dialog",
+        "@asym/ui/components/shadcn/alert-dialog",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/checkbox",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "react",
+        "./donors-model",
+        "@asym/lib/hooks/use-tasks"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "a8f0ba30c0c8cf44b83a3995a6bfa98cd343da1c900194cad58b3e423e530fd4",
+      "current_source_sha256": "adccbdd0b62f6960a119bcbff9821750157bfcd851814db43e0d95471710c43b",
+      "current_source_lines": 508
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-model.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "./donor-types",
+        "react",
+        "./donor-types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "573f0a34e9879c8c7b190ebd56b158e47d7f7bb901c75a17daebc9aacefa6b68",
+      "current_source_sha256": "d92466e86495fac54287085906163bd9bad1fc70c9fd479739fe257287e47579",
+      "current_source_lines": 296
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-client.tsx",
+      "imports": ["./donors-page-content", "./use-donors-page-view"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "cc363f5ca96dd03324dd1e369ad3d1dc7d7a7ebd66740ede66891e9aee65780c",
+      "current_source_sha256": "cc363f5ca96dd03324dd1e369ad3d1dc7d7a7ebd66740ede66891e9aee65780c",
+      "current_source_lines": 12
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-columns.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/data-table",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "./donors-model",
+        "./donors-page-dates",
+        "./donor-types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "d10b85be362647fe759663577de2a18c0cf3d23def3d57b1d11c6cb7dbd6fff8",
+      "current_source_sha256": "d10b85be362647fe759663577de2a18c0cf3d23def3d57b1d11c6cb7dbd6fff8",
+      "current_source_lines": 190
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-content.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "./donors-page-detail",
+        "./donors-page-dialogs",
+        "./donors-page-header",
+        "./donors-page-roster",
+        "./donors-page-stats"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "9464b93118c3a9413d13579731a08efb85f336a806cbbcc815329bd74474ec0f",
+      "current_source_sha256": "9464b93118c3a9413d13579731a08efb85f336a806cbbcc815329bd74474ec0f",
+      "current_source_lines": 28
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-detail-contact.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "./donors-page-dates",
+        "./donors-page-motion",
+        "./use-donors-page-view"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "52b52c0d6d4ed92d1661fc8706b72ec1bab5f444f1733065b147a625f1bb9ea6",
+      "current_source_sha256": "52b52c0d6d4ed92d1661fc8706b72ec1bab5f444f1733065b147a625f1bb9ea6",
+      "current_source_lines": 481
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-detail-overview.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/empty",
+        "@asym/ui/components/shadcn/field",
+        "@asym/ui/components/shadcn/spinner",
+        "@asym/ui/components/shadcn/textarea",
+        "@asym/ui/components/shadcn/toggle-group",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "./donors-model",
+        "./donors-page-dates",
+        "./donors-page-motion",
+        "./use-donors-page-view",
+        "./donor-types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "19bab862ab206d7f1e2d116ba5dde065c3075a01af89df1b9d4450fb975195c6",
+      "current_source_sha256": "19bab862ab206d7f1e2d116ba5dde065c3075a01af89df1b9d4450fb975195c6",
+      "current_source_lines": 210
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-detail-recurring.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/empty",
+        "@asym/ui/components/shadcn/progress",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "./donors-model",
+        "./donors-page-dates",
+        "./donors-page-motion",
+        "./use-donors-page-view",
+        "./donor-types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "04d011fd65710278b828b1fcf1b133a57bff0a635eb870ad13a19450552b1387",
+      "current_source_sha256": "04d011fd65710278b828b1fcf1b133a57bff0a635eb870ad13a19450552b1387",
+      "current_source_lines": 245
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-detail.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/missionary/components/add-partner-dialog",
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/data-table",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/components/shadcn/empty",
+        "@asym/ui/components/shadcn/scroll-area",
+        "@asym/ui/components/shadcn/tabs",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "react",
+        "./donor-tasks",
+        "./donors-model",
+        "./donors-page-columns",
+        "./donors-page-dates",
+        "./donors-page-detail-contact",
+        "./donors-page-detail-overview",
+        "./donors-page-detail-recurring",
+        "./donors-page-model",
+        "./donors-page-motion",
+        "./use-donors-page-view"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "bbf161acd7ae1e51bf9c4ca80c8535d6233cf3663681fb9d1e622017db0efd0e",
+      "prior_late_current_source_sha256": "a19b59db7d1fbf2d99476fd71f8c14a4763a98013f5f33d8b5f04af579b1a11a",
+      "current_source_sha256": "943f4ded2db5a9a9f1aa66960c7c56de5df3d597a15d524a92cd08a0837afc65",
+      "current_source_lines": 680
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-dialogs.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/checkbox",
+        "@asym/ui/components/shadcn/dialog",
+        "@asym/ui/components/shadcn/field",
+        "@asym/ui/components/shadcn/spinner",
+        "@asym/ui/components/shadcn/textarea",
+        "./donors-model",
+        "./edit-donor-dialog",
+        "./use-donors-page-view"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "d9f8fb9ed3178e9671214e740614c829b9386ceedebde25e3f57da456df702f2",
+      "current_source_sha256": "d9c93fac8c1924403947a2d2d81c2cd0870899cba87a01e639e16f0f38e57b24",
+      "current_source_lines": 166
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-header.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/missionary/components/add-partner-dialog",
+        "@asym/ui/components/page-header",
+        "@asym/ui/components/shadcn/button",
+        "lucide-react",
+        "./use-donors-page-view"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "0cf33a9456b1e0690164df9112525ef146b2d43e1b92fc89d465dcb313216dc5",
+      "current_source_sha256": "0cf33a9456b1e0690164df9112525ef146b2d43e1b92fc89d465dcb313216dc5",
+      "current_source_lines": 49
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-roster.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/data-table",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/components/shadcn/empty",
+        "@asym/ui/components/shadcn/field",
+        "@asym/ui/components/shadcn/input-group",
+        "@asym/ui/components/shadcn/spinner",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "react",
+        "./donors-model",
+        "./donors-page-columns",
+        "./donors-page-motion",
+        "./donors-page-states",
+        "./use-donors-page-view",
+        "./donors-list-model"
+      ],
+      "native_controls": ["button"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "75a90c3f942f859d94f5a4835d00125da15c386a1a2d9e1410b5ef29c874ef2e",
+      "current_source_sha256": "a9db73d6ca9aad955d86296f8ce224d917a24cfa2fca473ad67dfbb7d0b93ade",
+      "current_source_lines": 601
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-states.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/alert",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/skeleton",
+        "lucide-react",
+        "./donors-page-motion"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "27bc84a956f1e6f9473004f303d8f48d02be24b02d51ea58cf80f51556e95e81",
+      "current_source_sha256": "27bc84a956f1e6f9473004f303d8f48d02be24b02d51ea58cf80f51556e95e81",
+      "current_source_lines": 75
+    },
+    {
+      "path": "apps/missionary/app/donors/donors-page-stats.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "react",
+        "./donors-model",
+        "./donors-page-motion",
+        "./use-donors-page-view"
+      ],
+      "native_controls": ["button"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "1d06f6b4a1581f9898b8ceb685499f8ddd7ec97420137d6dc9ce40bc0ccfca4f",
+      "current_source_sha256": "1d06f6b4a1581f9898b8ceb685499f8ddd7ec97420137d6dc9ce40bc0ccfca4f",
+      "current_source_lines": 166
+    },
+    {
+      "path": "apps/missionary/app/donors/edit-donor-dialog.tsx",
+      "imports": [
+        "@asym/ui/components/primitives/tanstack-form",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/dialog",
+        "lucide-react",
+        "react",
+        "sonner",
+        "./donor-mutation-client",
+        "./edit-donor-form-model"
+      ],
+      "native_controls": ["form"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "cc7802d49ac31630dc5c13951ff8d8263df0db6c0a43a79fbc86c1cdddee8317",
+      "current_source_sha256": "4ccbd90c8296f8b30edea4ac38895003f34d2b15cc8c5413e292ad42475e1724",
+      "current_source_lines": 351
+    },
+    {
+      "path": "apps/missionary/app/donors/page.tsx",
+      "imports": ["next", "./donors-page-client"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "6ca6fc43ed6c9fadad85083dfcb378b8504f0fef328a21978f6e25c22100daf4",
+      "current_source_sha256": "6ca6fc43ed6c9fadad85083dfcb378b8504f0fef328a21978f6e25c22100daf4",
+      "current_source_lines": 12
+    },
+    {
+      "path": "apps/missionary/app/donors/use-donors-page-view.tsx",
+      "imports": [
+        "@asym/database/hooks",
+        "@asym/database/query-keys",
+        "@asym/lib/hooks",
+        "@tanstack/react-query",
+        "react",
+        "sonner",
+        "./donor-mutation-client",
+        "./donors-list-model",
+        "./donors-page-model",
+        "./tag-draft",
+        "./donor-types",
+        "@asym/database/types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "d506a6ca0ffdcdfc7be99ac896c05658c0ee2e4146c1164225532ccbddd381a6",
+      "current_source_sha256": "d506a6ca0ffdcdfc7be99ac896c05658c0ee2e4146c1164225532ccbddd381a6",
+      "current_source_lines": 462
+    },
+    {
+      "path": "apps/missionary/app/email-studio/layout.tsx",
+      "imports": ["next", "react"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "e8f8495a991cdeeedd0b37bc019073fc06e15059f3d10a9af2680172d890d9d0",
+      "current_source_sha256": "e8f8495a991cdeeedd0b37bc019073fc06e15059f3d10a9af2680172d890d9d0",
+      "current_source_lines": 15
+    },
+    {
+      "path": "apps/missionary/app/email-studio/page-client.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/lib/view-transitions",
+        "@asym/ui/components/page-header",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/icons"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/4"],
+      "baseline_source_sha256": "d4df38448b366bc0306e11c608a7362cc6be3dd16114b30dea8def45f90e6e90",
+      "current_source_sha256": "d4df38448b366bc0306e11c608a7362cc6be3dd16114b30dea8def45f90e6e90",
+      "current_source_lines": 138
+    },
+    {
+      "path": "apps/missionary/app/email-studio/page.tsx",
+      "imports": ["./page-client", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/4"],
+      "baseline_source_sha256": "802646c28b78d51747c7abde13c62335af32bc823eb09725d44414ae8f277977",
+      "current_source_sha256": "802646c28b78d51747c7abde13c62335af32bc823eb09725d44414ae8f277977",
+      "current_source_lines": 12
+    },
+    {
+      "path": "apps/missionary/app/feed/feed-support-ui.tsx",
+      "imports": [
+        "@asym/lib/hooks",
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/button",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/5", "#/routes/8"],
+      "baseline_source_sha256": "2a0ac46d01ce33beb8cc4afdcb1c7cedc3014b3782dc1427cd333b5e7decfa7a",
+      "current_source_sha256": "2b2f5e5c6990baa4103df0ea7ab18069d40b5218a777d3ca41a988cef29431d0",
+      "current_source_lines": 149
+    },
+    {
+      "path": "apps/missionary/app/feed/page.tsx",
+      "imports": ["next", "./worker-feed-page-client"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/5"],
+      "baseline_source_sha256": "9d67f12b75148a4a6cd4b1532b052ab289a232107e6945b23cae627120351ebc",
+      "current_source_sha256": "9d67f12b75148a4a6cd4b1532b052ab289a232107e6945b23cae627120351ebc",
+      "current_source_lines": 8
+    },
+    {
+      "path": "apps/missionary/app/feed/worker-feed-page-client.tsx",
+      "imports": [
+        "@asym/lib/hooks",
+        "@asym/lib/http/fetch-result",
+        "@asym/lib/motion",
+        "@asym/ui/components/ministry-update",
+        "@asym/ui/components/page-header",
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/carousel",
+        "@asym/ui/components/shadcn/dialog",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/components/shadcn/label",
+        "@asym/ui/components/shadcn/rich-text-editor",
+        "@asym/ui/components/shadcn/switch",
+        "@asym/ui/components/shadcn/tabs",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "next/dynamic",
+        "next/image",
+        "react",
+        "sonner",
+        "./feed-model",
+        "./feed-support-ui",
+        "./use-worker-feed-page-view",
+        "./feed-model",
+        "@asym/database/types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/5", "#/routes/8"],
+      "baseline_source_sha256": "968e4a3080e842c34d46a7212f7d566db61f08d4dbc80294a414a9e128949339",
+      "current_source_sha256": "d2fe98ce9d975376da8b91d572f02e8c1c363e05175e3b765d376e8db24d4cee",
+      "current_source_lines": 1567
+    },
+    {
+      "path": "apps/missionary/app/forgot-password/page.tsx",
+      "imports": ["next/link", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/6"],
+      "baseline_source_sha256": "a77f44a39079ec6b045cff421ab89307f8c93ff2cf7e9d263c7bd3dad506ee16",
+      "current_source_sha256": "f5385fd05faa76ebf4e0577cb61a50ad1f350f353c563045022724d77afab732",
+      "current_source_lines": 45
+    },
+    {
+      "path": "apps/missionary/app/global-error.tsx",
+      "imports": ["./globals.css", "@sentry/nextjs", "react"],
+      "native_controls": ["button"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/global_surfaces/1"],
+      "baseline_source_sha256": "7e7593bcb944952cdb9b9ff6076d5d31db38a1129f842b57ca67f28abd80ce8f",
+      "current_source_sha256": "d2c2abe684f30dcb1a43f8f0d52a403d91c4160c0392ebe0aec55a3134d29eac",
+      "current_source_lines": 68
+    },
+    {
+      "path": "apps/missionary/app/global-not-found.tsx",
+      "imports": ["./globals.css", "next/link", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/global_surfaces/1"],
+      "baseline_source_sha256": "cfb1c2b066920cf93456acb0ba70eb345637d3e2897b25bc2678eed9c7696a52",
+      "current_source_sha256": "b8330d317cdfe3c709714063fb49c275064283120a3234d155e6ffc936931e8d",
+      "current_source_lines": 49
+    },
+    {
+      "path": "apps/missionary/app/help/about/page.tsx",
+      "imports": [
+        "@asym/lib/build-info",
+        "@asym/ui/components/shadcn/card",
+        "next"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/7"],
+      "baseline_source_sha256": "452386752d4a7f72e236e8f0f5a459f56704ea60723254474b78ddfcafdc3ead",
+      "current_source_sha256": "452386752d4a7f72e236e8f0f5a459f56704ea60723254474b78ddfcafdc3ead",
+      "current_source_lines": 110
+    },
+    {
+      "path": "apps/missionary/app/layout.tsx",
+      "imports": [
+        "@asym/env",
+        "@asym/auth/context",
+        "@asym/auth/redirects",
+        "@asym/config/site",
+        "@asym/database/providers",
+        "@asym/database/supabase/config",
+        "@asym/lib/motion-provider",
+        "@asym/ui/components/shadcn/sonner",
+        "@asym/ui/components/shadcn/tooltip",
+        "@asym/ui/fonts",
+        "@asym/ui/lib/theme-provider",
+        "next/headers",
+        "next/navigation",
+        "nuqs/adapters/next/app",
+        "react",
+        "next",
+        "@/app/_providers/boneyard-registry",
+        "@/app/_providers/missionary-layout-shell",
+        "@/app/access",
+        "@/lib/route-policy",
+        "./globals.css"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/global_surfaces/0"],
+      "baseline_source_sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902",
+      "current_source_sha256": "d50435c25172cb4e774e90f6310c86a8b03fda6909edbc912c90ff1312e32902",
+      "current_source_lines": 161
+    },
+    {
+      "path": "apps/missionary/app/ministry-updates/page.tsx",
+      "imports": ["next", "../feed/worker-feed-page-client"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/8"],
+      "baseline_source_sha256": "401a3975531934bf1d744398acbb2f2f76730a172198f3d012227f31095bffa6",
+      "current_source_sha256": "401a3975531934bf1d744398acbb2f2f76730a172198f3d012227f31095bffa6",
+      "current_source_lines": 8
+    },
+    {
+      "path": "apps/missionary/app/no-access/page.tsx",
+      "imports": ["next/link", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/9"],
+      "baseline_source_sha256": "96c5b719f600cf359e89964292fb911611c44640784882f26397e8844a7de713",
+      "current_source_sha256": "76a825c7803c83dcab451db5620e55003d04c9136a15f7a6c368611d087aad5a",
+      "current_source_lines": 44
+    },
+    {
+      "path": "apps/missionary/app/page.tsx",
+      "imports": ["@asym/missionary/components/dashboard-home", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/10"],
+      "baseline_source_sha256": "0736c1dd5bcd7b155a7c61e702c7046691768ccb3220d38746b74fea56c12794",
+      "current_source_sha256": "0736c1dd5bcd7b155a7c61e702c7046691768ccb3220d38746b74fea56c12794",
+      "current_source_lines": 16
+    },
+    {
+      "path": "apps/missionary/app/profile/page.tsx",
+      "imports": ["./profile-page-client", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/11"],
+      "baseline_source_sha256": "8a56fa9d86ca74012bc7ca3b8cc38068d8073272921e4311d2cf3c86224193a9",
+      "current_source_sha256": "8a56fa9d86ca74012bc7ca3b8cc38068d8073272921e4311d2cf3c86224193a9",
+      "current_source_lines": 12
+    },
+    {
+      "path": "apps/missionary/app/profile/profile-form-column.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/primitives/image-upload",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/icons",
+        "@asym/ui/components/shadcn/input",
+        "@asym/ui/components/shadcn/label",
+        "@asym/ui/components/shadcn/textarea",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "./profile-model",
+        "./profile-motion",
+        "./profile-primitives",
+        "./profile-model"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/11"],
+      "baseline_source_sha256": "6e6f2c5cf84c591a20c1d23030014c6184a35e3c0eb8638902ed69537b3034d0",
+      "current_source_sha256": "72654b2d16e35deacbbc94d050bc7de1c7f5876b979443e498e81f6d888d0fdb",
+      "current_source_lines": 329
+    },
+    {
+      "path": "apps/missionary/app/profile/profile-page-client.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/lib/view-transitions",
+        "@asym/ui/components/page-header",
+        "@asym/ui/components/shadcn/button",
+        "lucide-react",
+        "./profile-form-column",
+        "./profile-motion",
+        "./profile-preview",
+        "./profile-primitives",
+        "./use-profile-page-view"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/11"],
+      "baseline_source_sha256": "697da8374f16df280f4dcfbe193857eed350d6afce389065653b37e8b853040f",
+      "current_source_sha256": "65bafb9803aded09e032f2fd239ab8246921dfe91a3fb8c24823c742f3888eed",
+      "current_source_lines": 104
+    },
+    {
+      "path": "apps/missionary/app/profile/profile-preview.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/tabs",
+        "lucide-react",
+        "next/image",
+        "react",
+        "./profile-model",
+        "./profile-motion",
+        "./profile-primitives",
+        "./profile-model",
+        "@/features/giving/components/quick-give"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/11"],
+      "baseline_source_sha256": "8a7738b3ca71b181a8c15f6438a697f565b07373154fb8e5e8b1a06c4fcda0f6",
+      "current_source_sha256": "63e43f0faf404e7342974ca171e4b4494f428f885be696d54aa6bfe5145fde83",
+      "current_source_lines": 365
+    },
+    {
+      "path": "apps/missionary/app/profile/profile-primitives.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/primitives/labeled-field",
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/icons",
+        "@asym/ui/components/shadcn/skeleton",
+        "@asym/ui/components/shadcn/tooltip",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "react",
+        "./profile-model",
+        "./profile-motion",
+        "./profile-model"
+      ],
+      "native_controls": ["button"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/11"],
+      "baseline_source_sha256": "824aadb268eb298d2d2ffca6881f528536341d7c8d10ac891943b0e1caa20e6c",
+      "current_source_sha256": "9a7b5d22a01edd47b92b7cbe468edcc09b7504ed188fe81a50b7dc8c60f0fb36",
+      "current_source_lines": 591
+    },
+    {
+      "path": "apps/missionary/app/register/loading.tsx",
+      "imports": ["@asym/ui/components/shadcn/skeleton"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/12"],
+      "baseline_source_sha256": "f2c809f5e3ed6440745b2cc9e53da9642ea047cee200218efd48f4a591abf385",
+      "current_source_sha256": "f2c809f5e3ed6440745b2cc9e53da9642ea047cee200218efd48f4a591abf385",
+      "current_source_lines": 20
+    },
+    {
+      "path": "apps/missionary/app/register/page.tsx",
+      "imports": [
+        "@asym/auth/demo-login",
+        "@asym/database/supabase/server",
+        "@asym/ui/components/auth/RegisterScreen",
+        "next/navigation",
+        "next"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/12"],
+      "baseline_source_sha256": "ed63658a84b07e7745f26b7ca7f3cec2c1cc2668f10a013685c9e4f11507d275",
+      "current_source_sha256": "ed63658a84b07e7745f26b7ca7f3cec2c1cc2668f10a013685c9e4f11507d275",
+      "current_source_lines": 32
+    },
+    {
+      "path": "apps/missionary/app/settings/page-client.tsx",
+      "imports": [
+        "@asym/config/site-client",
+        "@asym/lib/view-transitions",
+        "@asym/ui/components/page-header",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/input",
+        "@asym/ui/components/shadcn/label",
+        "@asym/ui/components/shadcn/switch",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/13"],
+      "baseline_source_sha256": "def669514b23e874ffaa8d05975df697aae2f9c1180de23209433a3eea6f31ab",
+      "current_source_sha256": "366a27aa7c697fc2cffd83109f6cfc845d73e8475cec302babc3e283c3b0f452",
+      "current_source_lines": 325
+    },
+    {
+      "path": "apps/missionary/app/settings/page.tsx",
+      "imports": ["./page-client"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/13"],
+      "baseline_source_sha256": "fcca424cd51fc1a3a9f5b7e9145be8cbc05cc706e7fe2b4cb747319226f86b9e",
+      "current_source_sha256": "fcca424cd51fc1a3a9f5b7e9145be8cbc05cc706e7fe2b4cb747319226f86b9e",
+      "current_source_lines": 5
+    },
+    {
+      "path": "apps/missionary/app/tasks/boneyard-fixture.tsx",
+      "imports": [
+        "@asym/missionary/components/task-row",
+        "@asym/missionary/types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/2"],
+      "baseline_source_sha256": "be60686b2b8d1ef1e97ba6ccb950c53fd252c2a97530674277c5a8d6689a222f",
+      "current_source_sha256": "be60686b2b8d1ef1e97ba6ccb950c53fd252c2a97530674277c5a8d6689a222f",
+      "current_source_lines": 135
+    },
+    {
+      "path": "apps/missionary/app/tasks/loading.tsx",
+      "imports": ["@asym/ui/components/shadcn/skeleton"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/14"],
+      "baseline_source_sha256": "fa1440068395b09fb7050d3e64dd35fe803d7db43911078cac8f57e67c078a18",
+      "current_source_sha256": "fa1440068395b09fb7050d3e64dd35fe803d7db43911078cac8f57e67c078a18",
+      "current_source_lines": 39
+    },
+    {
+      "path": "apps/missionary/app/tasks/page-client.tsx",
+      "imports": [
+        "@asym/lib/hooks",
+        "@asym/lib/motion",
+        "@asym/missionary/components/task-dialog",
+        "@asym/missionary/components/task-kanban-board",
+        "@asym/missionary/components/task-row",
+        "@asym/ui/components/boneyard-skeleton",
+        "@asym/ui/components/primitives/filter-bar",
+        "@asym/ui/components/primitives/page-shell",
+        "@asym/ui/components/shadcn/alert-dialog",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/components/shadcn/skeleton",
+        "@asym/ui/components/shadcn/tabs",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "react",
+        "react",
+        "./boneyard-fixture",
+        "./task-search-match",
+        "@asym/lib/hooks/use-tasks"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/14"],
+      "baseline_source_sha256": "956b9dbcdab1179270d1ff40e4352505aac9165fb01a79ec02cbc9a8f0828f80",
+      "current_source_sha256": "1d613d13490bb3ec213e9ae9fb0c0a9716d42d6f9d356448d9d6c14b71c1dcdf",
+      "current_source_lines": 1107
+    },
+    {
+      "path": "apps/missionary/app/tasks/page.tsx",
+      "imports": ["./page-client", "next"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/14"],
+      "baseline_source_sha256": "feed7b38d1472dcdffa4aad10833f879831c0a7c9371844bafc62e33ce1e0bff",
+      "current_source_sha256": "feed7b38d1472dcdffa4aad10833f879831c0a7c9371844bafc62e33ce1e0bff",
+      "current_source_lines": 12
+    },
+    {
+      "path": "apps/missionary/components/app-header.tsx",
+      "imports": [
+        "@asym/auth/client-session",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/components/shadcn/separator",
+        "@asym/ui/components/shadcn/sidebar",
+        "lucide-react",
+        "next/link",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/global_surfaces/0"],
+      "baseline_source_sha256": "7734349776a8e9889beb8b0a48975aa39db0f3453ca383ce035aeda25302e4a1",
+      "current_source_sha256": "18b4acbcd82ace4c133ad28b01bbf6fcd19e6998561284894f3f33fa7d8b6833",
+      "current_source_lines": 82
+    },
+    {
+      "path": "apps/missionary/components/app-shell.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/sidebar",
+        "@asym/ui/components/view-transitions",
+        "./app-header",
+        "./app-sidebar",
+        "./dashboard-footer",
+        "./navigation-items"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/global_surfaces/0"],
+      "baseline_source_sha256": "f187d67bab5a47777bc40d889c8a9669c92bf1470cfb984ee00e693536c77799",
+      "current_source_sha256": "4f1653e47453eae914275307deeec61efce230dd57ebdbfb8d1e665145ba83da",
+      "current_source_lines": 46
+    },
+    {
+      "path": "apps/missionary/components/app-sidebar.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/icons/AppIcon",
+        "@asym/ui/components/shadcn/sidebar",
+        "@asym/ui/lib/utils",
+        "next/link",
+        "next/navigation",
+        "./navigation-items"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/global_surfaces/0"],
+      "baseline_source_sha256": "8c494f62cb01f3d92b23db09b3a17c0359fda4dc7fb068ea93108908bee7f6ca",
+      "current_source_sha256": "3937b22a087dca88e4ab0831d6225c8c2b79ac067f9d15907c282acb677b1fc2",
+      "current_source_lines": 115
+    },
+    {
+      "path": "apps/missionary/components/dashboard-footer.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/breadcrumb",
+        "@asym/ui/lib/utils",
+        "next/link",
+        "next/navigation",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/global_surfaces/0"],
+      "baseline_source_sha256": "37c7298f7cf97532bcd0eaf3a64d56bcebe26b56ed6fb0fb225e30805eac4317",
+      "current_source_sha256": "37c7298f7cf97532bcd0eaf3a64d56bcebe26b56ed6fb0fb225e30805eac4317",
+      "current_source_lines": 130
+    },
+    {
+      "path": "apps/missionary/components/navigation-search.tsx",
+      "imports": [
+        "@asym/ui/components/primitives/navigation-command-palette",
+        "next/navigation",
+        "./navigation-items"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/global_surfaces/0"],
+      "baseline_source_sha256": "399d3460e62be0152df978cbb3fa83823cf7164d7fd16f6164c240dfb2641c87",
+      "current_source_sha256": "399d3460e62be0152df978cbb3fa83823cf7164d7fd16f6164c240dfb2641c87",
+      "current_source_lines": 22
+    },
+    {
+      "path": "apps/missionary/features/feed/components/comments-dialog.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/dialog",
+        "@asym/ui/components/shadcn/input",
+        "@asym/ui/components/shadcn/scroll-area",
+        "@asym/ui/components/shadcn/spinner",
+        "@tanstack/react-query",
+        "date-fns",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": ["form"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "ac09028d55bdf2023d044bb7826afae8a857cb120cf6bb863075d97a41cc7406",
+      "current_source_sha256": "ac09028d55bdf2023d044bb7826afae8a857cb120cf6bb863075d97a41cc7406",
+      "current_source_lines": 164
+    },
+    {
+      "path": "apps/missionary/features/feed/components/new-post-dialog.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/dialog",
+        "@asym/ui/components/shadcn/spinner",
+        "@asym/ui/components/shadcn/textarea",
+        "@tanstack/react-query",
+        "lucide-react",
+        "next/image",
+        "react",
+        "@asym/database/types"
+      ],
+      "native_controls": ["input"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "977db0f3332057e4011d2fd928e59bc485d0fd682eaef8992efa007e0bddb233",
+      "current_source_sha256": "977db0f3332057e4011d2fd928e59bc485d0fd682eaef8992efa007e0bddb233",
+      "current_source_lines": 195
+    },
+    {
+      "path": "apps/missionary/features/giving/components/quick-give.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/lib/payments/checkout-designations",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "next/navigation",
+        "react"
+      ],
+      "native_controls": ["input"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/11"],
+      "baseline_source_sha256": "e9eaadc59078a7adf1740816186939903712b371cf51918b460bb55b5413a001",
+      "current_source_sha256": "e9eaadc59078a7adf1740816186939903712b371cf51918b460bb55b5413a001",
+      "current_source_lines": 270
+    },
+    {
+      "path": "packages/missionary/components/activity-feed.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "next/link",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-dormant-export",
+      "disposition_reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "owner_evidence_refs": ["#/dormant_surface_evidence"],
+      "baseline_source_sha256": "4d7bf0d09c29710c2ab7f8ade279e3301b8051c4c9b39a9e2773b6f7d8b9a69d",
+      "current_source_sha256": "4d7bf0d09c29710c2ab7f8ade279e3301b8051c4c9b39a9e2773b6f7d8b9a69d",
+      "current_source_lines": 97
+    },
+    {
+      "path": "packages/missionary/components/add-partner-dialog.tsx",
+      "imports": [
+        "@asym/database/supabase",
+        "@asym/ui/components/primitives/tanstack-form",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/dialog",
+        "@asym/ui/components/shadcn/field",
+        "lucide-react",
+        "react",
+        "sonner",
+        "./add-partner-form-model"
+      ],
+      "native_controls": ["form"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/3"],
+      "baseline_source_sha256": "1cb74888275fa53bcd24c4685c3340f6893150de694036c4a305faedee318674",
+      "current_source_sha256": "1cb74888275fa53bcd24c4685c3340f6893150de694036c4a305faedee318674",
+      "current_source_lines": 224
+    },
+    {
+      "path": "packages/missionary/components/alerts-section.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/card",
+        "lucide-react",
+        "next/link",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-dormant-export",
+      "disposition_reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "owner_evidence_refs": ["#/dormant_surface_evidence"],
+      "baseline_source_sha256": "8e1183129b1066a48b0cc3da64e17ca48d2b6551ae6ae70151bec7af7027fa0e",
+      "current_source_sha256": "8e1183129b1066a48b0cc3da64e17ca48d2b6551ae6ae70151bec7af7027fa0e",
+      "current_source_lines": 70
+    },
+    {
+      "path": "packages/missionary/components/balance-card.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "dc57678b949f3139a73913a8b5db9b42507569d61c6edb7d037bc1e6f8ba0ca0",
+      "current_source_sha256": "dc57678b949f3139a73913a8b5db9b42507569d61c6edb7d037bc1e6f8ba0ca0",
+      "current_source_lines": 46
+    },
+    {
+      "path": "packages/missionary/components/dashboard-home.tsx",
+      "imports": [
+        "@asym/auth/constants",
+        "@asym/database/hooks",
+        "@asym/lib/hooks",
+        "@asym/ui/components/primitives/page-shell",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/skeleton",
+        "lucide-react",
+        "react",
+        "./dashboard-view",
+        "./giving-breakdown-chart",
+        "./metric-tiles",
+        "@asym/lib/hooks/use-locale-format"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/10"],
+      "baseline_source_sha256": "f9a5d81a76c47b1359657a83743fe28c7b609161c64024ed26030731587faa96",
+      "current_source_sha256": "f9a5d81a76c47b1359657a83743fe28c7b609161c64024ed26030731587faa96",
+      "current_source_lines": 472
+    },
+    {
+      "path": "packages/missionary/components/funding-progress.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/card",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "9f21efc24b32078d0fff4ffc29a920ee4f4c624c1fe903671c716ce8667fb946",
+      "current_source_sha256": "9f21efc24b32078d0fff4ffc29a920ee4f4c624c1fe903671c716ce8667fb946",
+      "current_source_lines": 100
+    },
+    {
+      "path": "packages/missionary/components/giving-breakdown-chart.tsx",
+      "imports": [
+        "@asym/lib/hooks",
+        "@asym/ui/components/shadcn/skeleton",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/10"],
+      "baseline_source_sha256": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
+      "current_source_sha256": "3e34e6908b5c2a575078ea34a8c4bb4114393021da7dd08c1dfcde74aed807be",
+      "current_source_lines": 99
+    },
+    {
+      "path": "packages/missionary/components/metric-card.tsx",
+      "imports": ["@asym/ui/components/shadcn/card", "react", "lucide-react"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-dormant-export",
+      "disposition_reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "owner_evidence_refs": ["#/dormant_surface_evidence"],
+      "baseline_source_sha256": "20a1325444e48ab9b885f0df9c44a04b5ad60fd99d60e601bf6428b3e1de45a7",
+      "current_source_sha256": "20a1325444e48ab9b885f0df9c44a04b5ad60fd99d60e601bf6428b3e1de45a7",
+      "current_source_lines": 39
+    },
+    {
+      "path": "packages/missionary/components/metric-tiles.tsx",
+      "imports": [
+        "@asym/lib/hooks",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/skeleton",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/10"],
+      "baseline_source_sha256": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
+      "current_source_sha256": "1fff7e9b5e68d4d3d284669dd8ae27a47b6e905e5a3d1a97324d0c78ae368be7",
+      "current_source_lines": 163
+    },
+    {
+      "path": "packages/missionary/components/page-header.tsx",
+      "imports": ["@asym/ui/lib/utils"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "95edd9bd3043247df8e23f8f27a76ec5bfbe0e4ff3ae301736912a47a72704b3",
+      "current_source_sha256": "95edd9bd3043247df8e23f8f27a76ec5bfbe0e4ff3ae301736912a47a72704b3",
+      "current_source_lines": 38
+    },
+    {
+      "path": "packages/missionary/components/quick-actions.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/card",
+        "next/link",
+        "react",
+        "lucide-react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-dormant-export",
+      "disposition_reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "owner_evidence_refs": ["#/dormant_surface_evidence"],
+      "baseline_source_sha256": "c60b8741cfbdf8f9dc95157d14cbee74b531c25e9f2411db88cc6d3398fcce19",
+      "current_source_sha256": "c60b8741cfbdf8f9dc95157d14cbee74b531c25e9f2411db88cc6d3398fcce19",
+      "current_source_lines": 52
+    },
+    {
+      "path": "packages/missionary/components/skeletons.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/components/shadcn/skeleton"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "691b5f6b7c6b4961bdb1a6240259ddc7ee3bf384982672a8ea24bc2adb20586b",
+      "current_source_sha256": "691b5f6b7c6b4961bdb1a6240259ddc7ee3bf384982672a8ea24bc2adb20586b",
+      "current_source_lines": 84
+    },
+    {
+      "path": "packages/missionary/components/task-dialog.tsx",
+      "imports": [
+        "@asym/database/supabase",
+        "@asym/lib/hooks",
+        "@asym/ui/components/primitives/tanstack-form",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/calendar",
+        "@asym/ui/components/shadcn/dialog",
+        "@asym/ui/components/shadcn/popover",
+        "@asym/ui/components/shadcn/scroll-area",
+        "@asym/ui/components/shadcn/select",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "react",
+        "sonner",
+        "./task-form-model",
+        "./task-partner-select",
+        "./task-partner-select",
+        "../types"
+      ],
+      "native_controls": ["form"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/14"],
+      "baseline_source_sha256": "efe6ae40ec6db5df8dc18cf71cde915fa3167b734f25d8c600b5e385c3ba2852",
+      "current_source_sha256": "2a0ea4d39e487e9a6800a56b47780130eecf65f878c21614227dd53c6b986e64",
+      "current_source_lines": 721
+    },
+    {
+      "path": "packages/missionary/components/task-kanban-board.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/lib/utils",
+        "@dnd-kit/core",
+        "@dnd-kit/sortable",
+        "@dnd-kit/utilities",
+        "date-fns",
+        "lucide-react",
+        "react",
+        "../types",
+        "@dnd-kit/core"
+      ],
+      "native_controls": ["button"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/14"],
+      "baseline_source_sha256": "3ef37c6fa2cd11aa86462a370d6295f7772cbae59f66a27abd1e366167b486c5",
+      "current_source_sha256": "398f6943f529249f34381e49e01c30bc910ff4b296644186dd71fa2fc7571246",
+      "current_source_lines": 440
+    },
+    {
+      "path": "packages/missionary/components/task-partner-select.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/combobox",
+        "@asym/ui/components/shadcn/input-group",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/14"],
+      "baseline_source_sha256": "9f8a42f653b5978b7f9096ea0211f78a2d84b567c2796fad28066a06a6d9c368",
+      "current_source_sha256": "4819c63990760e2e846c03d5bad4066b29c4bb7537ad919a36c1b66b33690436",
+      "current_source_lines": 203
+    },
+    {
+      "path": "packages/missionary/components/task-row.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/lib/motion-presets",
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/checkbox",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "next/link",
+        "react",
+        "../types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "improved",
+      "disposition_reason": "Actual source change in the owning presentation slice; preserve existing model, mutation, provider and engine contracts. Route/global records and focused behavior checks identify the specific accepted benefit.",
+      "owner_evidence_refs": ["#/routes/14"],
+      "baseline_source_sha256": "3d7f03ed604372d0e7ba3890a3ec10555f672d04e5bf849c213a5eb1f1654e60",
+      "current_source_sha256": "05dfa7dbf91977aadc43ac71a0440c11fe79fe797b8e5ee1be5ec5b79052beda",
+      "current_source_lines": 437
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-bulk-actions-bar.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "lucide-react",
+        "react",
+        "../../types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "9ffe5c9fb7cce70136171ae90acefb0ed3c79e135b26580967f5ddce52e71c41",
+      "current_source_sha256": "9ffe5c9fb7cce70136171ae90acefb0ed3c79e135b26580967f5ddce52e71c41",
+      "current_source_lines": 108
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-details-sheet.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/scroll-area",
+        "@asym/ui/components/shadcn/separator",
+        "@asym/ui/components/shadcn/sheet",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "react",
+        "./task-config",
+        "../../types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-dormant-export",
+      "disposition_reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "owner_evidence_refs": ["#/dormant_surface_evidence"],
+      "baseline_source_sha256": "cea8d811cf290fcd4e6e633e332f2b1948efe5db45ca6de904073616fe34c0b0",
+      "current_source_sha256": "cea8d811cf290fcd4e6e633e332f2b1948efe5db45ca6de904073616fe34c0b0",
+      "current_source_lines": 409
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-empty-state.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/button",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "57e04c094ff4ce83663cc66b8ff2073b5ccfca63395f9642cb0e065f596c651e",
+      "current_source_sha256": "57e04c094ff4ce83663cc66b8ff2073b5ccfca63395f9642cb0e065f596c651e",
+      "current_source_lines": 65
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-error-state.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/button",
+        "lucide-react",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "c6225c10efd4dc6e9311e86395cfd52ca1ac79a2724f1cc45ffcab495ba3d11c",
+      "current_source_sha256": "c6225c10efd4dc6e9311e86395cfd52ca1ac79a2724f1cc45ffcab495ba3d11c",
+      "current_source_lines": 39
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-list-skeleton.tsx",
+      "imports": ["@asym/ui/components/shadcn/skeleton", "react"],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "8c4670a19657cc8db381d7c0c93df3305a856317efa299d1d2ebb5faba9ad034",
+      "current_source_sha256": "8c4670a19657cc8db381d7c0c93df3305a856317efa299d1d2ebb5faba9ad034",
+      "current_source_lines": 33
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-row.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/checkbox",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "next/link",
+        "react",
+        "./task-config",
+        "../../types"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "a5ee8c9e074a5f901c2689d1fadbb6cfc3bf8a5fd8079a152d47eebe6224ac4e",
+      "current_source_sha256": "a5ee8c9e074a5f901c2689d1fadbb6cfc3bf8a5fd8079a152d47eebe6224ac4e",
+      "current_source_lines": 232
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-stats.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/lib/motion-presets",
+        "@asym/ui/lib/utils",
+        "react"
+      ],
+      "native_controls": ["button"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "971f323d712334ad84dd28a7c26e43bbaf211c2236fcf1c08ccbf27799e7ff61",
+      "current_source_sha256": "971f323d712334ad84dd28a7c26e43bbaf211c2236fcf1c08ccbf27799e7ff61",
+      "current_source_lines": 136
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-table.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/avatar",
+        "@asym/ui/components/shadcn/badge",
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/checkbox",
+        "@asym/ui/components/shadcn/dropdown-menu",
+        "@asym/ui/lib/utils",
+        "date-fns",
+        "lucide-react",
+        "react",
+        "./task-config",
+        "../../types"
+      ],
+      "native_controls": ["button", "table"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-dormant-export",
+      "disposition_reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "owner_evidence_refs": ["#/dormant_surface_evidence"],
+      "baseline_source_sha256": "a706fd6cf44a6d94a4468a2baf74e117162dd88ffb2e65c6c8a8d6720a0e2c2a",
+      "current_source_sha256": "a706fd6cf44a6d94a4468a2baf74e117162dd88ffb2e65c6c8a8d6720a0e2c2a",
+      "current_source_lines": 316
+    },
+    {
+      "path": "packages/missionary/components/tasks/task-view-tabs.tsx",
+      "imports": ["@asym/lib/motion", "@asym/ui/lib/utils", "react"],
+      "native_controls": ["button"],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-source-inspected",
+      "disposition_reason": "Owner static control/import/composition scan recorded no independent accepted material change. Retain unchanged library/layout/model boundary; this classification does not assert route rendering or productive browser verification.",
+      "owner_evidence_refs": [],
+      "baseline_source_sha256": "03160415da6d5f8248d9092eb4cbec1de84c43488ce37e21b1b79830498ddd1e",
+      "current_source_sha256": "03160415da6d5f8248d9092eb4cbec1de84c43488ce37e21b1b79830498ddd1e",
+      "current_source_lines": 100
+    },
+    {
+      "path": "packages/missionary/components/tasks-preview.tsx",
+      "imports": [
+        "@asym/ui/components/shadcn/button",
+        "@asym/ui/components/shadcn/card",
+        "@asym/ui/lib/utils",
+        "lucide-react",
+        "next/link",
+        "react"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-dormant-export",
+      "disposition_reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens.",
+      "owner_evidence_refs": ["#/dormant_surface_evidence"],
+      "baseline_source_sha256": "ee0cfa0449d6b5841ffa7c174d91855d3654be2dddb6d0b5081a6bbf18f9cb6e",
+      "current_source_sha256": "ee0cfa0449d6b5841ffa7c174d91855d3654be2dddb6d0b5081a6bbf18f9cb6e",
+      "current_source_lines": 85
+    },
+    {
+      "path": "packages/missionary/internal/charts/giving-breakdown-view.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/chart",
+        "react",
+        "recharts",
+        "@asym/lib/hooks",
+        "@asym/ui/components/shadcn/chart"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/10"],
+      "baseline_source_sha256": "035a8c4c9e1ada27f0b76aa4c1c4879e300cd4eac1ee01608685a189d755d48a",
+      "current_source_sha256": "035a8c4c9e1ada27f0b76aa4c1c4879e300cd4eac1ee01608685a189d755d48a",
+      "current_source_lines": 257
+    },
+    {
+      "path": "packages/missionary/internal/charts/metric-sparkline.tsx",
+      "imports": [
+        "@asym/lib/motion",
+        "@asym/ui/components/shadcn/chart",
+        "recharts",
+        "@asym/lib/hooks"
+      ],
+      "native_controls": [],
+      "composition_review": "route consumer or exported library surface inspected statically; generated/capture output excluded from edits",
+      "disposition": "retained-owner-boundary",
+      "disposition_reason": "Unchanged source remains a strong route/loading/shared composition or stable model/engine boundary; accepted owning-route improvements are implemented at other listed seams. Owner-specific retention reasons are linked.",
+      "owner_evidence_refs": ["#/routes/10"],
+      "baseline_source_sha256": "a46f640941967ecffbc54918bc00fe3295373ee8918fdd00c0722bb1e07652d1",
+      "current_source_sha256": "a46f640941967ecffbc54918bc00fe3295373ee8918fdd00c0722bb1e07652d1",
+      "current_source_lines": 51
+    }
+  ],
+  "implementation_checkout": "isolated implementation worktree",
+  "verification_results": [
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary tests/unit/packages/missionary tests/unit/missionary-dashboard tests/unit/missionary-analytics",
+      "checkout": "original source checkout",
+      "result": "passed",
+      "files": 44,
+      "tests": 239,
+      "evidence": "local-only diagnostic missionary-baseline-unit.log"
+    },
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary tests/unit/packages/missionary tests/unit/missionary-dashboard tests/unit/missionary-analytics",
+      "checkout": "isolated implementation worktree",
+      "result": "passed",
+      "files": 45,
+      "tests": 245,
+      "evidence": "local-only diagnostic missionary-final-unit.log"
+    },
+    {
+      "command": "bunx --no-install turbo run typecheck --filter=@asym/missionary-app --filter=@asym/missionary",
+      "result": "Earlier scoped pass: 11/11 tasks before last donor display slice; latest rerun blocked by concurrent shared navbar unused cn import. Root final aggregate typecheck pending.",
+      "tasks": 11,
+      "evidence": "local-only diagnostic missionary-typecheck-shared-navbar-blocked.log (latest rerun); earlier success recorded in agent tool output"
+    },
+    {
+      "command": "Focused tests after final native-wrapper/default-control layout cleanup",
+      "result": "passed",
+      "files": 8,
+      "tests": 43,
+      "evidence": "local-only diagnostic missionary-last-layout-checks.log"
+    },
+    {
+      "command": "Scoped Prettier --check and git diff --check",
+      "result": "passed again after final closure; log updated by final scoped check",
+      "evidence": "local-only diagnostic missionary-final-format.log"
+    },
+    {
+      "command": "bunx --no-install turbo run lint typecheck --filter=@asym/missionary-app --filter=@asym/missionary",
+      "result": "blocked by stale resolved suppression counts, not permission to widen rules",
+      "evidence": "local-only diagnostic missionary-iteration-gates.log",
+      "owner": "root consolidates reviewed resolved suppression removals"
+    },
+    {
+      "command": "Focused donor anonymity/safety/view-model/tag-draft/edit-form/date/module contract suite after semantic status/tag slice",
+      "result": "passed",
+      "evidence": "local-only diagnostic missionary-donors-green.log",
+      "files": 10,
+      "tests": 45
+    },
+    {
+      "command": "Task pending creation/update, preserved controls and form model TDD follow-up",
+      "result": "passed",
+      "files": 3,
+      "tests": 10,
+      "evidence": "local-only diagnostic missionary-task-pending-green.log"
+    },
+    {
+      "command": "WCAG token/alpha contrast calculation for steady camera chip on worst-case white photography",
+      "result": "passed",
+      "ratio": 6.47,
+      "minimum": 3,
+      "evidence": "docs/qa/core-ui/missionary-camera-contrast.json",
+      "limit": "Mathematical contrast evidence; productive browser upload not verified"
+    },
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary/settings-preferences.test.tsx",
+      "checkout": "isolated implementation worktree",
+      "result": "passed",
+      "files": 1,
+      "tests": 2,
+      "evidence": "local-only diagnostic missionary-pro-settings-green.log"
+    },
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary tests/unit/packages/missionary tests/unit/missionary-dashboard tests/unit/missionary-analytics",
+      "checkout": "isolated implementation worktree",
+      "result": "passed after Pro settings integration",
+      "files": 46,
+      "tests": 247,
+      "evidence": "local-only diagnostic missionary-pro-final-unit.log"
+    },
+    {
+      "command": "node tooling/eslint-config/lint.mjs apps/missionary/app/settings/page-client.tsx --raw --format json --output-file local-only diagnostic missionary-pro-settings-ui-lint.json",
+      "result": "passed, 0 actual findings; previous other touched files0 closure retained",
+      "evidence": "local-only diagnostic missionary-pro-settings-ui-lint.json"
+    },
+    {
+      "command": "Scoped Prettier --check and owned git diff --check after licensed settings integration",
+      "result": "passed",
+      "evidence": "local-only diagnostic missionary-pro-settings-format.log"
+    },
+    {
+      "command": "bunx --no-install turbo run lint typecheck --filter=@asym/missionary-app --filter=@asym/missionary",
+      "result": "passed after licensed Pro integration; 13/13 tasks,0cache; existing Next no-html-link-for-pages pages-directory warning (nonfatal)",
+      "tasks": 13,
+      "evidence": "local-only diagnostic missionary-pro-final-gates.log"
+    },
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary/donor-giving-responsive.test.tsx",
+      "result": "passed",
+      "files": 1,
+      "tests": 2,
+      "evidence": "local-only diagnostic missionary-giving-mobile-green.log"
+    },
+    {
+      "command": "Raw design-system lint donors-page-detail.tsx after mobile renderer",
+      "result": "passed,0 findings",
+      "evidence": "local-only diagnostic missionary-giving-mobile-lint.json"
+    },
+    {
+      "command": "Required missionary lint/typecheck combined rerun after giving renderer",
+      "result": "Stopped at packages/missionary stale resolved suppression counts;7successful/11total, no suppression widening/removal by this agent; root consolidates reviewed resolved removals",
+      "evidence": "local-only diagnostic missionary-giving-final-gates.log"
+    },
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary tests/unit/packages/missionary tests/unit/missionary-dashboard tests/unit/missionary-analytics",
+      "result": "passed after finalmobileGiving/shellwidth closure",
+      "files": 47,
+      "tests": 249,
+      "evidence": "local-only diagnostic missionary-final-mobile-unit.log"
+    },
+    {
+      "command": "bunx --no-install turbo run typecheck --filter=@asym/missionary-app --filter=@asym/missionary",
+      "result": "passed after finalmobileGiving/shellwidth closure",
+      "tasks": 11,
+      "cached": 0,
+      "evidence": "local-only diagnostic missionary-final-mobile-typecheck.log"
+    },
+    {
+      "command": "Raw lint local AppShell minwidth addition",
+      "result": "passed,0 findings",
+      "evidence": "local-only diagnostic missionary-shell-width-lint.json"
+    },
+    {
+      "command": "Scoped Prettier --check and owned gitdiff--check final mobileclosure",
+      "result": "passed",
+      "evidence": "local-only diagnostic missionary-final-mobile-format.log"
+    },
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary/donor-giving-responsive.test.tsx",
+      "result": "passed after local horizontal tab focus reveal; original desktop/mobile real record and actions tests retained",
+      "files": 1,
+      "tests": 3,
+      "evidence": "local-only diagnostic missionary-giving-tab-reveal-green.log"
+    },
+    {
+      "command": "bunx vitest run tests/unit/apps/missionary tests/unit/packages/missionary tests/unit/missionary-dashboard tests/unit/missionary-analytics",
+      "result": "passed after final local horizontal tab focus reveal",
+      "files": 47,
+      "tests": 250,
+      "duration": "26.66s",
+      "evidence": "local-only diagnostic missionary-final-tab-reveal-unit.log"
+    },
+    {
+      "command": "bunx --no-install turbo run typecheck --filter=@asym/missionary-app --filter=@asym/missionary",
+      "result": "passed after final local horizontal tab focus reveal; changed app task freshly executed",
+      "tasks": 11,
+      "cached": 10,
+      "duration": "7.263s",
+      "evidence": "local-only diagnostic missionary-final-tab-reveal-typecheck.log"
+    },
+    {
+      "command": "bun run lint:ui apps/missionary/app/donors/donors-page-detail.tsx --raw --format json --output-file local-only diagnostic missionary-giving-tab-reveal-lint.json",
+      "result": "passed,0errors/0warnings",
+      "evidence": "local-only diagnostic missionary-giving-tab-reveal-lint.json"
+    },
+    {
+      "command": "Scoped Prettier --check and owned git diff --check after final local horizontal tab focus reveal",
+      "result": "passed",
+      "evidence": "local-only diagnostic missionary-final-tab-reveal-format.log"
+    },
+    {
+      "command": "Actual rebuilt Giving component browser focus then ArrowLeft/ArrowRight at390",
+      "result": "passed; focused trigger fully legible within1px native rounding, original Base UI manual activation retained, document390 and windowScrollY0 unchanged",
+      "evidence": "local-only diagnostic after-giving-rail-keyboard.json",
+      "image": "docs/qa/core-ui/after/shared-missionary-giving-keyboard-narrow.png",
+      "limit": "Actual component fixture uses synthetic read/auth inputs with writes blocked; productive authenticated partner data unavailable"
+    }
+  ],
+  "behavior_tests": [
+    {
+      "seam": "Mobile sidebar current-route announcement plus Escape/focus restoration",
+      "test": "tests/unit/apps/missionary/shadscan-mobile-sidebar.test.tsx",
+      "red": "local-only diagnostic missionary-navigation-red.log",
+      "green": "local-only diagnostic missionary-navigation-green.log"
+    },
+    {
+      "seam": "Task stat selection updates the actual list filter",
+      "test": "tests/unit/apps/missionary/app/tasks/task-toolbar.test.tsx",
+      "red": "local-only diagnostic missionary-task-filter-red.log",
+      "green": "local-only diagnostic missionary-task-filter-green.log"
+    },
+    {
+      "seam": "Due date clear changes only due date and restores trigger focus; reminder retained",
+      "test": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
+      "red": "local-only diagnostic missionary-task-date-red.log",
+      "green": "local-only diagnostic missionary-task-date-green.log"
+    },
+    {
+      "seam": "Profile preview selected mode announcement preserves existing callback",
+      "test": "tests/unit/apps/missionary/shadscan-profile-fields.test.tsx",
+      "red": "local-only diagnostic missionary-profile-preview-red.log",
+      "green": "local-only diagnostic missionary-profile-green.log"
+    },
+    {
+      "seam": "Media action accessible name remains discoverable on narrow screens and upload pending disables repeat callback",
+      "test": "tests/unit/apps/missionary/worker-feed-composer-actions.test.tsx",
+      "red": "local-only diagnostic missionary-media-action-red.log",
+      "green": "local-only diagnostic missionary-last-layout-checks.log"
+    },
+    {
+      "seam": "Task creation/update pending button remains named and busy, is disabled against repeat writes, submits the same title/missionary payload and completes once",
+      "test": "tests/unit/packages/missionary/task-submit-pending.test.tsx",
+      "red": "local-only diagnostic missionary-task-pending-red.log",
+      "green": "local-only diagnostic missionary-task-pending-green.log"
+    },
+    {
+      "seam": "Actual settings one-channel controlled toggle preserves all siblings; local Save clearsdirty and preserves selected values; matrix channel/notification semantic naming",
+      "test": "tests/unit/apps/missionary/settings-preferences.test.tsx",
+      "red": "local-only diagnostic missionary-pro-settings-red.log",
+      "red_result": "1 existing behavior characterization passes; 1 new named table/header/row semantic check fails because current layout lacks table",
+      "green": "local-only diagnostic missionary-pro-settings-green.log",
+      "green_result": "2/2 passing; full scope46files/247tests passing"
+    },
+    {
+      "seam": "Actual selected partner detail Giving preserves dates/title/method/currency/status on desktop+mobile and detail actions while excluding nongift rows",
+      "test": "tests/unit/apps/missionary/donor-giving-responsive.test.tsx",
+      "red": "local-only diagnostic missionary-giving-mobile-red.log",
+      "green": "local-only diagnostic missionary-giving-mobile-green.log",
+      "qualification": "Actual component and real view/query providers, mocked data-read/auth boundary with labelled synthetic records; no productive business data claim"
+    },
+    {
+      "seam": "Actual selected-partner detail keyboard focus reveals both ends of its horizontal tab rail while preserving Base UI manual tab activation, selected gift values and vertical page position",
+      "test": "tests/unit/apps/missionary/donor-giving-responsive.test.tsx",
+      "red": "local-only diagnostic missionary-giving-tab-reveal-red.log",
+      "green": "local-only diagnostic missionary-giving-tab-reveal-green.log",
+      "layout_boundary": "jsdom DOMRect platform mocks replay actual browser geometry; actual browser evidence is separately attributed"
+    }
+  ],
+  "source_provenance": [
+    {
+      "name": "c-field-7",
+      "url": "https://reui.io/r/styles/base-maia/c-field-7.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "registry_sha256": "c420002a29ae259388871efebaec5ed946ec90d1e1b63a9cbaebcae80738f56c",
+      "license": "Public MIT ReUI example; root records required notice",
+      "adaptation": "Adapted FieldGroup + Field/FieldContent/FieldLabel/FieldDescription + horizontal Switch structure into account/system preferences and existing form layouts; notification rows now use licensed settings-11 matrix. Core values and form stack retained.",
+      "dependencies_added": []
+    },
+    {
+      "name": "c-dialog-1",
+      "url": "https://reui.io/r/styles/base-maia/c-dialog-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "registry_sha256": "e78e386ebd7b078507cd69d715722d81a349164ebdc062aa71daaa72710c74b4",
+      "license": "Public MIT ReUI example; root records required notice",
+      "adaptation": "Adapted DialogHeader/Description, FieldGroup and default footer controls via existing shared Base UI wrappers in TaskDialog, EditDonorDialog and feed security dialog; kept Core TanStack Form/Zod, resets, payloads, pending focus and supported scrollable wrapper.",
+      "dependencies_added": []
+    },
+    {
+      "name": "c-sidebar-1",
+      "url": "https://reui.io/r/styles/base-maia/c-sidebar-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "registry_sha256": "da9d28788a03576bb3c6b5ac4c9596b11dfd3cfcd1c76460e85425a17f9a040a",
+      "license": "Public MIT ReUI example; root records required notice",
+      "adaptation": "Compared default Sidebar anatomy/menu sizing/Avatar identity; reused its standard SidebarHeader/Content/Group/Menu/Footer geometry through Core shared wrappers, retaining actual Core role-aware routes, tenant branding, providers and footer. Did not import demo workspaces/breadcrumb/account actions.",
+      "dependencies_added": []
+    },
+    {
+      "name": "c-empty-9",
+      "url": "https://reui.io/r/styles/base-maia/c-empty-9.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "registry_sha256": "8f4d53f789fd05d84cb0f56940b7172ea44ca9755e676a4fcbad05b18e54a226",
+      "license": "Public MIT ReUI example; root records required notice",
+      "adaptation": "Adapted EmptyHeader/EmptyMedia variant icon/EmptyTitle/EmptyDescription composition to existing feed/task/donor-task empties; retained meaningful live error vs successful empty branches and actual retry/action callbacks.",
+      "dependencies_added": []
+    },
+    {
+      "name": "c-chart-1",
+      "url": "https://reui.io/r/styles/base-maia/c-chart-1.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "registry_sha256": "33427180531cfac138185e58e51db3f93295f65790553be6ca0d6cf701885634",
+      "license": "Public MIT ReUI example; root records required notice",
+      "adaptation": "Compared same Card+ChartContainer+Recharts BarChart composition; retained existing Core chart abstraction and real calculations/formatters, used semantic chart-1/chart-2 fills and readable tick fonts. No demo revenue metrics, Badge fork or chart package install.",
+      "dependencies_added": []
+    },
+    {
+      "name": "settings-11",
+      "url": "https://reui.io/r/styles/base-maia/settings-11.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "registry_sha256": "c42a085a5091b8d12fba6005491a223be1824077959228d0b4d0f3c2fe1a54f8",
+      "source_path": "notification-preferences.tsx",
+      "source_sha256": "66d1ad091745e6c90695f91e09350794a77d0c074772eb76b583bf21092eee0b",
+      "license": "ReUI Pro commercial source, not MIT; owner-confirmed separate agreement covers this public AGPL repo/contributors",
+      "permission_reference": "docs/guides/development/reui-source-license.md",
+      "adaptation": "Adapted actual notification-preferences table/header/row/centered-controls structure into shared NotificationPreferencesMatrix; missionary composes original six labels/descriptions/icons and exact controlled Switch values/handlers inApp,email,sms. No vendor demo tabs/categories/Slack or uncontrolled Checkbox copied.",
+      "shared_owner": "ui_shared_inventory",
+      "shared_module": "@asym/ui/components/settings",
+      "dependencies_added": []
+    },
+    {
+      "name": "settings-7",
+      "url": "https://reui.io/r/styles/base-maia/settings-7.json?v=dpl_DEcWbDEap8UuDo5vtPZYzyfdChok",
+      "registry_sha256": "6bf3d5b1a9c6dd6c5dc1ecfef5b3debc7d89f518ddf3da7f614087b260f7466e",
+      "source_path": "settings-card.tsx",
+      "source_sha256": "6358f4ece0e4edd29965f47124e82925ac3ac4421bd98b088d459f6ded03359a",
+      "license": "ReUI Pro commercial source, not MIT; owner-confirmed separate agreement covers this public AGPL repo/contributors",
+      "permission_reference": "docs/guides/development/reui-source-license.md",
+      "adaptation": "Adapted actual SettingsCard Card/Header/Title/Description/Content/optionalFooter anatomy into shared default Maia SettingsCard; missionary wraps all five existing sections and retains identity links, account/integration/system scaffold and controls. Vendor padding/theme overrides and new business capabilities omitted.",
+      "shared_owner": "ui_shared_inventory",
+      "shared_module": "@asym/ui/components/settings",
+      "dependencies_added": []
+    }
+  ],
+  "limits": [
+    "Licensed settings-7/settings-11 commercial source is used under owner confirmation recorded in docs/guides/development/reui-source-license.md; private agreement document was not supplied or independently reviewed. This does not grant Ultimate or template rights.",
+    "No active ReUI MCP tool set was visible to this sub-agent; root owns OAuth/status evidence and official-doc/registry fallback research.",
+    "No productive profile or live authenticated business mutations verified without local seeded service credentials. Existing supported fixture/test bypass only.",
+    "All 15 page routes are statically inventoried. Browser screenshots are only claimed for files present in the matching evidence map, not inferred repository-wide coverage.",
+    "Root owns final builds/Playwright/CI/preflight/skill sync/PRs and consolidated lint-suppression pruning; latest missionary lint/typecheck13/13 and scopedtests46/247 passed. This ledger records scoped checks only."
+  ],
+  "dormant_surface_evidence": {
+    "command": "rg -n \"TaskDetailsSheet|TaskTable|TasksPreview|ActivityFeed|AlertsSection|QuickActions|MetricCard|task-details-sheet|task-table|tasks-preview|activity-feed|alerts-section|quick-actions|metric-card\" apps packages tests/unit --glob \"*.{ts,tsx}\" --glob \"!**/node_modules/**\"",
+    "product_route_consumers": [
+      "apps/missionary/app/page.tsx -> @asym/missionary/components/dashboard-home -> MetricTiles, GivingBreakdownChart and local DashboardTasksSection/DashboardUpdatesSection/DashboardAlertsSection",
+      "apps/missionary/app/tasks/page-client.tsx -> TaskDialog, TaskKanbanBoard, TaskRow",
+      "apps/missionary/app/donors/donor-tasks.tsx -> TaskDialog",
+      "apps/missionary/app/donors/donors-page-{header,detail}.tsx -> AddPartnerDialog"
+    ],
+    "dormant_exports": [
+      "packages/missionary/components/tasks/task-details-sheet.tsx",
+      "packages/missionary/components/tasks/task-table.tsx",
+      "packages/missionary/components/tasks-preview.tsx",
+      "packages/missionary/components/activity-feed.tsx",
+      "packages/missionary/components/alerts-section.tsx",
+      "packages/missionary/components/quick-actions.tsx",
+      "packages/missionary/components/metric-card.tsx"
+    ],
+    "reason": "Definitions/barrel exports plus test or documentation references; no first-party product import or dynamic loader references. Retain exported library contracts and tests instead of rewriting unavailable screens."
+  },
+  "lint_delta_evidence": "local-only diagnostic missionary-lint-delta.json",
+  "remaining_findings_review": [
+    {
+      "category": "Donor roster/detail primitive skin and typography overrides",
+      "paths": [
+        "apps/missionary/app/donors/donors-page-roster.tsx",
+        "apps/missionary/app/donors/donors-page-detail.tsx"
+      ],
+      "materiality": "Tiny all-caps badges, divergent Cards/Avatars/Menu/Tabs/Buttons and narrow multi-tab layout materially drifted from Maia. Raw counterpart originally covered most of the 273 remaining touched findings.",
+      "disposition": "repaired",
+      "implementation": "Default shared wrappers and explicit Badge variants; selected filter uses secondary variant; direct clear-chip controls use icon-xs shared Buttons; detail Tabs use native horizontal scroll around default shared TabsList to keep all five sections reachable on narrow screens. No DataTable/query/permission/mutation changes."
+    },
+    {
+      "category": "Profile preview controls vs physical frame geometry",
+      "paths": [
+        "apps/missionary/app/profile/profile-preview.tsx",
+        "apps/missionary/app/profile/profile-primitives.tsx"
+      ],
+      "materiality": "Custom tabs/color/focus suppression and avatar typography replaced shared control contracts. Physical phone/window width/height/scaling is valid specialized layout and must remain.",
+      "disposition": "repaired controls, retained evidenced layout",
+      "implementation": "Shared line Tabs/default triggers/content focus and default Avatars; physical MOBILE_PREVIEW_WIDTH/HEIGHT and DESKTOP_PREVIEW_WIDTH/HEIGHT constants/scaling retained; native phone border widths and radii now use Tailwind scale tokens. Steady media-scrim/65 camera chip guarantees contrast on bright uploaded photography; upload/crop callback untouched."
+    },
+    {
+      "category": "Feed inline media carousel placement and native transition literals",
+      "paths": ["apps/missionary/app/feed/worker-feed-page-client.tsx"],
+      "materiality": "Default outside carousel arrows would be clipped by media/card boundary; keeping inside placement is necessary. Caller colors/shadow/border/motion need shared ownership.",
+      "disposition": "repaired through owner API",
+      "implementation": "Shared owner added CarouselPrevious/Next placement=\"inside\" preserving existing default outside placement and outline Button geometry; feed consumes it without caller appearance overrides. Native broad transition literals use standard transition-colors."
+    },
+    {
+      "category": "Mobile shell toggle geometry",
+      "paths": ["apps/missionary/components/app-header.tsx"],
+      "materiality": "Legacy custom size/touch-target/icon selectors conflicted with caller ownership. Default SidebarTrigger forced size7 and ignored passed Button size.",
+      "disposition": "repaired through existing owner size API",
+      "implementation": "SidebarTrigger size=\"icon-lg\" (40px); shared owner applies legacy size7 only when size is omitted, preserving default behavior and merged click-cancellation semantics. No caller appearance override."
+    },
+    {
+      "category": "Task row transition literal",
+      "paths": ["packages/missionary/components/task-row.tsx"],
+      "materiality": "Native per-row transition declaration duplicated custom literal; no component/engine migration needed.",
+      "disposition": "repaired",
+      "implementation": "On-scale standard transition-shadow with existing Core timing/ease tokens, existing reduced-motion branch unchanged."
+    }
+  ],
+  "lint_closure": {
+    "touched_previous_native_suppression_count": 1631,
+    "current_touched_raw_findings": 0,
+    "current_touched_non_design_findings": 0,
+    "evidence": "local-only diagnostic missionary-lint-delta.json",
+    "suppressions_modified": false,
+    "remaining_scope": "Untouched/dormant modules deliberately retained with source/import evidence; root owns consolidated suppression prune and final all-repo checks."
+  },
+  "independent_review": {
+    "reviewer": "ui_specialized_inventory",
+    "scope": [
+      "apps/missionary/app/settings/page-client.tsx",
+      "tests/unit/apps/missionary/settings-preferences.test.tsx"
+    ],
+    "result": "No material correctness issue found",
+    "preserved": [
+      "same six categories/18 initial booleans",
+      "one-field controlled mutation",
+      "localSave clearsdirty and preserves selected values",
+      "channel-specific IDs/names",
+      "NextClient/view-transition boundary",
+      "inherited account/integration scaffold stays unfinished"
+    ],
+    "limit": "Actual narrow/focus browser review remains runtime owner evidence"
+  },
+  "browser_review": {
+    "scope": "Runtime agent captured all15 source routes + nonexistent fallback wide1440/narrow390, create-task dialog/datepopup/clearfocus/periodselect/mobile-nav and Pro settings initial/dirty/saved states",
+    "evidence": [
+      "local-only diagnostic after-missionary-main.json",
+      "local-only diagnostic after-missionary-interactions.json",
+      "local-only diagnostic after-missionary-checks.json",
+      "local-only diagnostic after-missionary-board-geometry.json",
+      "docs/qa/core-ui/before-index.json metadata baseline-missionary-giving.json",
+      "local-only diagnostic after-missionary-giving.json",
+      "local-only diagnostic after-giving-rail-keyboard.json"
+    ],
+    "verified": "Zero page errors across all16 route captures; all narrow document widths390. Settings keyboardSpace/localSave and named table semantics confirmed. DueDate clear restoresfocus. Final native task route board geometry passes document1440/390 with internal board1328 scroll and all four columns preserved. Corrected original/current Giving fixture uses actual Core MotionProvider with opacity1 guards, actual detail/providers/cells and synthetic read/auth inputs; cards now show all real input fields at390 without document overflow. Final rebuilt Giving focus/ArrowLeft/ArrowRight check passes: railScrollLeft0to14, triggerRight387.359375to373.359375 against railRight373 within1px native rounding; document390, windowScrollY0to0, manual activation retained.",
+    "retained_limits": [
+      "Productive profile form/photo unavailable because local service credential absent",
+      "Task browser pending not reached: local auth no productiveprofileId, no write request attempted; stable public form unit proof remains separate",
+      "Productive authenticated Giving partner rows unavailable; separately labelled actual component synthetic input original/current fixture passes, with writes blocked"
+    ],
+    "finding": "Final actual task width/internal scroll and matched Giving mobile record fixture pass; runtime-confirmed14px keyboard-focused tab clipping repaired and rebuilt actual-component focus geometry verified. Productive profile/pending/Giving availability limits remain explicit.",
+    "direct_visual_review": [
+      "Matched settings before/after narrow: clearer headings/neutralMaiaCards/channelcolumns; no newoverflow; semanticalllabels and originalvalues retained",
+      "Final taskswide image now stays at1440 and preserves all four columns via internal board scroll; native wide/narrow geometry and end-scroll are verified by runtime agent",
+      "CreateTask narrow: shared field hierarchy/focus/date controls readable, longbody scrollable; submitpending notverifiedbecause productiveauthId unavailable",
+      "Analytics narrow: readable metriclabels and honestunavailable/empty/comingsoon states; periodmenu standardSelect; no fabricatedmetrics",
+      "Feed narrow: typecontrols wrap, nativeeditor stayssupported, empty/error differ; unchangedlocalruntimefeederror500 acknowledged",
+      "Reviewed all15 page routes at narrow390 plus globalnotfound/mobile-navigation captures: source/data scaffolding honest, shared typography/token/control hierarchy consistent, long links/text fit, no visible new material issue beyond separately corrected taskwide overflow and Givingdata omission; productive profile/error screenshot remains explicitly data-blocked",
+      "Settings wide1440 reviewed: clear five original sections, all six notification descriptions visible, aligned controlled channels and preserveddisabled account/integration/system scaffold",
+      "Direct corrected matched Givingnarrow and final keyboard-focused image review: original blank cards now show date/type/method/amount/status through default Maia Cards and native definition lists; actual MotionProvider exposes all bodies atopacity1. Focused Giving label is now fully legible, native focus indication visible, all original five sections retained; geometry remains within390 document with native rounding tolerance1px."
+    ],
+    "durable_runtime_refs": [
+      "docs/qa/core-ui/after-index.json#/metadata/after-missionary-main.json",
+      "docs/qa/core-ui/after-index.json#/metadata/after-missionary-interactions.json",
+      "docs/qa/core-ui/after-index.json#/metadata/after-missionary-board-geometry.json",
+      "docs/qa/core-ui/before-index.json#/metadata/baseline-missionary-giving.json",
+      "docs/qa/core-ui/after-index.json#/metadata/after-missionary-giving.json",
+      "docs/qa/core-ui/after-index.json#/metadata/after-giving-rail-keyboard.json"
+    ]
+  },
+  "final_mobile_source_hashes": [
+    {
+      "path": "apps/missionary/app/donors/donors-page-detail.tsx",
+      "sha256": "943f4ded2db5a9a9f1aa66960c7c56de5df3d597a15d524a92cd08a0837afc65"
+    },
+    {
+      "path": "apps/missionary/components/app-shell.tsx",
+      "sha256": "4f1653e47453eae914275307deeec61efce230dd57ebdbfb8d1e665145ba83da"
+    },
+    {
+      "path": "tests/unit/apps/missionary/donor-giving-responsive.test.tsx",
+      "sha256": "b42ea279f45116d16561c8866e5d47b990cb1326968acf2054384464aa63e341"
+    }
+  ],
+  "final_mobile_independent_review": {
+    "reviewer": "ui_cross_review",
+    "scope": [
+      "GivingHistoryCard/localmobileCardConfig and substantive donor-giving-responsive.test.tsx",
+      "localAppShellSidebarInsetmin-w-0"
+    ],
+    "result": "No source issue found",
+    "preserved": [
+      "Exact current cell/date/currency/default formatting and gift-only data bindings",
+      "Real provider/action test seam",
+      "Shell providers/route boundary/footer"
+    ],
+    "limit": "Runtime visual proof is separately owner/root attributed; Giving matched fixture, actual task width/internal-scroll and final rebuilt native tab focus geometry pass; productive data/mutations remain unverified."
+  },
+  "final_tab_focus_independent_review": {
+    "reviewer": "ui_cross_review",
+    "scope": [
+      "apps/missionary/app/donors/donors-page-detail.tsx local native rail onFocusCapture",
+      "tests/unit/apps/missionary/donor-giving-responsive.test.tsx third actual provider/Base UI keyboard test"
+    ],
+    "result": "No material source issue found",
+    "preserved": [
+      "Only focused role=tab HTMLElement adjusts this rail.scrollLeft",
+      "No selection, keyboard handler, vertical reveal/scroll or shared behavior change",
+      "Actual Base UI arrow/wrap behavior retains manual selected Giving while Overview focused, then click activates",
+      "Exact giving record/action/formatter and vertical scroll state retained"
+    ],
+    "limit": "Final rebuilt actual component browser geometry separately confirmed passed by runtime owner; labelled synthetic read/auth inputs and blocked writes do not establish productive authenticated partner availability."
+  },
+  "final_browser_closure": {
+    "owner": "ui_runtime_baseline",
+    "source_reviewed_by": "ui_missionary_inventory",
+    "artifact": "local-only diagnostic after-giving-rail-keyboard.json",
+    "passed": true,
+    "services": "Runtime owner confirms all owned services stopped; no further source edits queued",
+    "source_commit": "5319246eb",
+    "scope": "Actual rebuilt Giving fixture focus geometry, with unchanged final_mobile_source_hashes"
+  },
+  "evidence_snapshot": {
+    "source_baseline": "f49fc2e03bce9246f5d3dc22c16d0a6c794a8304",
+    "source_index_hashes": "Original inventory scans/hashes describe the baseline unless an explicit current/after field says otherwise. Final dispositions describe source at integration, not productive browser coverage.",
+    "browser_authority": "runtime-owned before-index.json, after-index.json and after-seam-checks.json; no whole-repository visual pass inferred.",
+    "local_diagnostics": "Named local diagnostic logs are execution artifacts, not committed links. Final aggregate gates belong verification.md.",
+    "license_authority": "Owner-confirmed commercial permission: docs/guides/development/reui-source-license.md. Actual Pro source is not MIT; its exact provenance is in sources/reui-pro-research.json.",
+    "source_identity": "Explicit baseline_source_sha256 and current_source_sha256 fields were checked against exact baseline Git blobs and current source bytes. Retained import/control/line scan fields describe owner inventory snapshots; prior intermediate after hashes remain labelled separately.",
+    "owner_handoff_status_note": "Original per-surface pending/browser/check strings retain their owner-handoff chronology. Explicit later final_* fields, supplemental source reviews and the exact runtime metadata references establish current closure and limits; those earlier strings are not outstanding source findings or current gate verdicts.",
+    "current_runtime_authority": "docs/qa/core-ui/after-index.json metadata and after-seam-checks.json; actual routes may show honest unavailable/error/loading states. Component fixtures and source review never imply productive provider availability.",
+    "current_source_epoch": "0cc25be9c47b5fd3ab739f8cf18c33bde3b90bb3",
+    "captured_ui_source_epoch": "5319246eb709a58b4f01d3cbce824087aeef7b3e",
+    "capture_framework": "Next16.3.8 before later develop/Next16.4 integration",
+    "upstream_integration": "docs/qa/core-ui/sources/upstream-integration-review.json; current source identities include the root-reviewed merge. Captured pixels/interactions remain their actual pre-integration epoch."
+  },
+  "source_disposition_summary": {
+    "retained-owner-boundary": 38,
+    "retained-source-inspected": 21,
+    "improved": 26,
+    "retained-dormant-export": 7
+  }
+}

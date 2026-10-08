@@ -1,0 +1,61 @@
+{
+  "foundation_tip": "10667cfb3935af86a05431b6da17e2b2cb06e608",
+  "merge_commit": "4c464da24",
+  "readiness_forward": "10667cfb3935af86a05431b6da17e2b2cb06e608",
+  "source_hashes": {
+    "packages/missionary/components/task-kanban-board.tsx": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
+    "packages/ui/components/shadcn/chart.tsx": "f943c0318b306417163bbcc9e9d2dd5c2a2c1102c89071478a0298a8e1314d4a",
+    "packages/ui/components/shadcn/data-grid/data-grid.tsx": "4d1a75f5a684551aa374408f8efb9dd31ffec79a44aa8373ac7ffa8402482fe9",
+    "packages/ui/components/ministry-update/reaction-bar.tsx": "ff2538fcf50f33e3a0c78c20e8cb75638647f4d4c47c82d9b4b075644106eab9",
+    "packages/ui/package.json": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd",
+    "tests/unit/packages/ui/ui-improvement-floating-actions.test.tsx": "2f2eeba5146969ac55876365bd43a2fb34757849133b75c7b1df1111676e8c5a",
+    "tests/unit/packages/ui/data-grid-row-processing.test.tsx": "5dfc84fba4bb3c2059efafc4dc053b6ae95c3ff85c7870ddbe159512d91b10fb"
+  },
+  "node": "24.21.0",
+  "bun": "1.4.2",
+  "checks": {
+    "initial_floating_red": {
+      "source": "parent recorded",
+      "result": "3 failures: removed helper"
+    },
+    "floating_green": {
+      "result": "3 passed",
+      "log": "new-cohort-floating-green.log"
+    },
+    "focused_initial": {
+      "result": "29 passed, 1 failed: semantic header count assumption",
+      "log": "new-cohort-foundation-focused.log"
+    },
+    "compatibility_green": {
+      "result": "4 passed: floating actions and DataGrid complete-row/search result",
+      "log": "new-cohort-foundation-compatibility-green.log"
+    },
+    "shadcn_diff": {
+      "result": "PASS: 53 components, 54 file diffs, 34 local adapters",
+      "log": "new-cohort-foundation-shadcn-diff.log"
+    },
+    "shadscan": {
+      "result": "PASS: unchanged floors43/59/47",
+      "log": "new-cohort-foundation-shadscan.log"
+    },
+    "normal_commit_hooks": {
+      "result": "PASS: eslint/prettier + staged shadscan",
+      "log": "new-cohort-foundation-merge-commit.log"
+    },
+    "all_proof_sources": {
+      "result": "zero mismatches after hooks"
+    },
+    "whitespace": {
+      "result": "PASS outside inherited Bun adapter .patch; patch context whitespace retained byte-identical to approved upstream"
+    },
+    "new_cohort_browser": {
+      "result": "not run by this subagent"
+    }
+  },
+  "policy_review": {
+    "baseline_non_hash_fields_identical": true,
+    "findings_non_hash_fields_identical": true
+  },
+  "source_edits_finished": true,
+  "worktree_clean": true
+}

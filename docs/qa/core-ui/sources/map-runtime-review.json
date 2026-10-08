@@ -1,0 +1,167 @@
+{
+  "scope": "Supplemental route-level control placement fix and separately attributed actual native browser/source review; no map engine, provider, data, selection or dependency change.",
+  "disposition": "Retained unchanged MapLibre engine. Corrected proven first-party Back/Search/count occlusion with three app-wrapper top offsets; actual before/after geometry and keyboard/touch interactions pass. Narrow/wide first-mount map geography visually verified; productive location workflows remain unavailable.",
+  "evidence": {
+    "before_narrow": "docs/qa/core-ui/before/donor-where-we-work-narrow.png",
+    "before_narrow_visual": "Stored original narrow image clearly renders Carto geography. Do not describe this saved baseline as blank.",
+    "after_narrow": "docs/qa/core-ui/after/donor-where-we-work-narrow.png",
+    "after_narrow_visual": "Fresh target-viewport narrow-first original/current browser contexts visibly render Carto geography; final canonical runtime image and before/after control captures supersede the earlier blank attempt. Productive selected-location workflow remains unverified.",
+    "after_wide": "docs/qa/core-ui/after/donor-where-we-work-wide.png",
+    "after_wide_visual": "Stored wide image renders Carto geography.",
+    "final_runtime_metrics": "local-only diagnostic after-map-disposition.json",
+    "metrics": {
+      "source": "actual map engine at native app route; no engine props or data modified",
+      "waitMs": 10000,
+      "metrics": {
+        "documentWidth": 390,
+        "viewport": 390,
+        "canvas": [
+          {
+            "width": 390,
+            "height": 844,
+            "cssWidth": 390,
+            "cssHeight": 844
+          }
+        ],
+        "motion": [
+          {
+            "tag": "DIV",
+            "opacity": "1",
+            "text": "Search locations…⌘K"
+          },
+          {
+            "tag": "DIV",
+            "opacity": "1",
+            "text": "00"
+          },
+          {
+            "tag": "DIV",
+            "opacity": "1",
+            "text": "Scroll down for more"
+          }
+        ]
+      },
+      "requests": [],
+      "errors": [],
+      "canvasExists": true,
+      "renderedTiles": "Historical 10-second blank attempt only; superseded by fresh original/current first-mount geography evidence. Earlier capture cause remains unresolved and no source regression is established.",
+      "productiveLocationRecords": "unavailable local datasource",
+      "passedMapWorkflow": false
+    },
+    "baseline_console": "before-index.json /where-we-work records two generic Object errors. Serialized evidence is insufficient to attribute them to provider, WebGL, or source.",
+    "capture_conditions": "Baseline helper uses fullPage screenshot with animations disabled; final narrow check uses a fresh Chromium page, reducedMotion reduce, 10-second wait, fullPage screenshot with animations allow. These are not controlled engine/provider/pixel equivalence checks.",
+    "historical_capture_note": "Initial before/current image inspections and blank-attempt metrics below are historical diagnostics. Fresh matching target-viewport first mounts render geography. Their metadata and final control tests supersede those capture questions; productive selected-location workflow remains unavailable.",
+    "historical_after_narrow_visual": "Final narrow map surface remains blank while native controls render.",
+    "historical_after_narrow_visual_scope": "Superseded transient capture at the canonical after path, not a description of the final replaced image. The saved original narrow capture already contained geography."
+  },
+  "source_findings": [
+    "Shared MapLibre integration is byte-identical to baseline; default Carto URLs, worker URL, constructor options, initialization/error handlers, theme handling and map APIs are retained.",
+    "Route/page fixed inset/full-screen structure is byte-identical to baseline. Actual parent has definite 100dvh height; shared container h-full/min-h-100/w-full resolves to captured390x844 dimensions.",
+    "Current wrapper removes an absolute inset size-full override and reuses the shared size contract. Measured390x844 CSS and backing canvas do not support a zero-size or stale-size diagnosis.",
+    "Dynamic ssr:false module mounts immediately with a full-height loading state, with no intersection-observer or lazy viewport visibility gate.",
+    "Installed and lockfile-pinned MapLibre6.10.0 has trackResize:true by default and observes the map container using ResizeObserver; callback resizes and redraws. A duplicate manual resize/observer would not address a proved defect.",
+    "Map controls rendered through mapLoaded show existing engine readiness condition was reached; readiness is not proof of successful tile drawing.",
+    "No failed Carto/map/tiles requests or map console/page errors observed in final attempt does not prove all requests succeeded, styles/tiles were loaded, WebGL context retained, or screenshot pixels represented the displayed canvas."
+  ],
+  "boundaries_preserved": [
+    "MapLibre6.10.0 engine and public extension points",
+    "worker asset transport",
+    "Carto style and tile providers",
+    "usePublicLocations and tenant/data ownership",
+    "marker IDs, selection, flyTo, responsive Sheet/Dialog and checkout/profile links",
+    "Next dynamic client boundary and route transitions"
+  ],
+  "unverified": [
+    "Productive location selection/search and navigation against real records; local public locations unavailable",
+    "Root cause of previous transient blank screenshot; current fresh firstmount rendering succeeds"
+  ],
+  "next_diagnostic_if_runtime_reopened": "Reproduce before/after in matching fresh browser contexts and matching screenshot mode; inspect map loaded/isStyleLoaded/areTilesLoaded/idle plus webglcontextlost/restored, successful style/tile responses and viewport-only screenshots. Use existing supported Map onLoad/useMap extension points for read-only diagnostics. Do not change engine, providers, credentials, preserveDrawingBuffer, or resize handling without evidence.",
+  "recommended_action": "Integrate verified three-wrapper offset fix; preserve engine/providers/data/state. Report map geographic rendering and accessible empty search as verified in local environment, while productive real-location search/selection/navigation and cause of earlier transient blank screenshot remain not verified.",
+  "sources": [
+    {
+      "path": "packages/ui/components/primitives/map.tsx",
+      "sha256": "3858c566f73483f900354c4ef52d3bcc7ff7f161698b8a5ed0d663db9080a192",
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "apps/donor/app/(public)/(solid)/where-we-work/layout.tsx",
+      "sha256": "187cbca470aed4b3a281433a08dd2caab3a04c132a7df0281c91c6736ce07933",
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "apps/donor/app/(public)/(solid)/where-we-work/page.tsx",
+      "sha256": "6cde7c8ebd6b1aea345177bf585aaa2cdbd369c542c8743455d234bf2c504526",
+      "unchanged_from_baseline": true
+    },
+    {
+      "path": "apps/donor/app/(public)/(solid)/where-we-work/map-wrapper.tsx",
+      "sha256": "1a57b2aa3356e6a88a4715ca2b1db3566c1b376923278509bd730763ed3591e3",
+      "unchanged_from_baseline": false
+    },
+    {
+      "path": "apps/donor/app/(public)/(solid)/where-we-work/where-we-work-client.tsx",
+      "sha256": "ba7ddab4971f625b7192b1ee50d386ab4e828f50fb6333c322fddc4ed0e35da0",
+      "unchanged_from_baseline": false
+    }
+  ],
+  "installed_engine_source": [
+    {
+      "path": "node_modules/.bun/maplibre-gl@6.10.0/node_modules/maplibre-gl/src/ui/map.ts",
+      "lines": [527, 1557, 4086, 4099]
+    }
+  ],
+  "layout_fix": {
+    "candidate": "D14 supplementary public map control discoverability",
+    "path": "apps/donor/app/(public)/(solid)/where-we-work/map-wrapper.tsx",
+    "before_sha256": "5bf7860386486a6456f81efcdabbe969a073143fb8d145ce03ee44efc1b7a526",
+    "after_sha256": "1a57b2aa3356e6a88a4715ca2b1db3566c1b376923278509bd730763ed3591e3",
+    "exact_delta": "Three MapHeaderControls absolute offsets top-4 -> top-20. No other source changes by this agent.",
+    "reason": "Existing opaque fixed Navbar z50 overlaps top16 controls z30. Original measured navbar bottom61/69 and Back16..56/Search17..61 centers hit navbar. Reserve existing80px public chrome spacing so controls remain visible and pointer-reachable.",
+    "baselines": "docs/qa/core-ui/before-index.json metadata baseline-map-controls.json + runtime-owned matching donor-map-controls images",
+    "other_overlays": "No selected sidebar exists. Desktop selection uses shared Dialog; narrow selection uses shared bottom Sheet max85dvh. SelectedLocationPill bottom6 and MapControls/Legend/style toggle bottom offsets unchanged. Productive selected browser state unavailable due empty local locations; existing 390/1280 dialog and resize public seam tests pass.",
+    "verification": [
+      {
+        "command": "bunx --no-install vitest run tests/unit/apps/donor/shadscan-map-actions.test.tsx --maxWorkers=1 --reporter=dot",
+        "result": "PASS: 1 file,4 tests",
+        "log": "local-only diagnostic map-controls-unit.log"
+      },
+      {
+        "command": "bun run typecheck:donor",
+        "result": "PASS:11 tasks",
+        "log": "local-only diagnostic map-controls-typecheck.log"
+      },
+      {
+        "command": "bun run lint:donor",
+        "result": "PASS:1 task, no suppression change",
+        "log": "local-only diagnostic map-controls-lint.log"
+      },
+      {
+        "command": "bunx --no-install prettier --check map-wrapper.tsx",
+        "result": "PASS"
+      },
+      {
+        "command": "Direct raw ESLint before/after-offset-fix stdin comparison",
+        "result": "15 retained findings both states, identical rule/message sets, no introduced finding; normal native lint passes existing unchanged debt contract",
+        "log": "local-only diagnostic map-controls-raw-lint-comparison.json"
+      }
+    ],
+    "browser_after": {
+      "path": "local-only diagnostic after-map-controls.json",
+      "results": "Both390 and1440 controls start80/81px, belownavbar61/69px. Back/Search centerhit-tests reachtheirnativecontrols; widecountstrip80..114 visibleandunoccluded; narrowcountsintentionallyhidden. Zero horizontaloverflow. KeyboardEnteropenssearch, unmatchedinputshowsrealemptylist, keyboardclearretainsinputempty, Escape restores triggerfocus, tapreopens. Bothcasespass; nofake/productiverecordsinserted."
+    },
+    "preserved": "All current map props, engine source/lifecycle, data hooks, tenant/auth, marker IDs, search callbacks, selection, zoom, dialogs/sheets, routing/provider/theme boundaries unchanged.",
+    "before_sha256_scope": "Exact immediately prior UI worktree source bytes, not the original develop Git baseline; original baseline SHA is preserved in inventory/donor.json."
+  },
+  "fresh_runtime_evidence": {
+    "current": "local-only diagnostic after-map-firstmount.json",
+    "current_visual": "Independently viewed first-mount390 screenshot: geography visibly rendered across Europe/Africa. Matching original runtime owner also reports visible geography. Current390 firstmount CSS/backing390x844, opacity1,17successfulmapresponses, zero maprequest failures/pageerrors/WebGLcontext events. Non-map placeholder realtime errors and ReadPixels warnings remain recorded separately.",
+    "original": "docs/qa/core-ui/before-index.json metadata baseline-map-firstmount.json",
+    "paired_visual_review": "Viewed actual saved original narrow image and final new first-mount narrow image: both render Carto Europe/Africa geography. Currentwidealso rendersgeography. Baseline/current fresh-firstmount metadata and screenshots are runtime-owned."
+  },
+  "durable_runtime_refs": [
+    "before-index.json#/metadata/baseline-map-controls.json",
+    "after-index.json#/metadata/after-map-controls.json",
+    "before-index.json#/metadata/baseline-map-firstmount.json",
+    "after-index.json#/metadata/after-map-firstmount.json"
+  ]
+}

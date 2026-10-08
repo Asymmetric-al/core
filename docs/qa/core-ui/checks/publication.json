@@ -1,0 +1,17 @@
+{
+  "pullRequests": {
+    "READINESS_PR_URL": "https://github.com/Asymmetric-al/core/pull/1970",
+    "FOUNDATION_PR_URL": "https://github.com/Asymmetric-al/core/pull/1971",
+    "CORE_UI_PR_URL": "https://github.com/Asymmetric-al/core/pull/1972",
+    "EVIDENCE_PR_URL": "https://github.com/Asymmetric-al/core/pull/1973"
+  },
+  "attachedToTask": true,
+  "initialPush": {
+    "exitCode": 0,
+    "requiredNativePreflight": "all17stages passed; all3builds;851files/6752tests;2files/4tests skipped",
+    "unitDurationSeconds": 632.06,
+    "completeLocalLogSha256": "a576bdfb15a64954f75530a63f2a134c65a36abaea500773887b4fdbe90c77e6"
+  },
+  "hostedCi": "Separate status on each PR; no independent hosted pass inferred from local complete-stack checks.",
+  "mergeOrDeployment": false
+}

@@ -1,0 +1,125 @@
+{
+  "integratedDevelop": "a7b216d141c17ea2d7f9514fdb28ce4db6f4fb68",
+  "upstreamChange": "https://github.com/Asymmetric-al/core/pull/1969",
+  "validatedLocalSourceTip": "e8f84269b646d6725781de985b33958702a07f51",
+  "localSourceTips": {
+    "readiness": "517d8bf78485d8492884aa0d38ad5a651295f6a4",
+    "foundation": "82334fe462d72f40e5a04147f4d03643dc5d1989",
+    "application": "e99ce01a574bbc62bccf38c38b8c6852b2a21dba"
+  },
+  "versions": {
+    "bun": "1.4.2",
+    "node": "24.21.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "baseUI": "1.8.0",
+    "table": "9.2.6",
+    "recharts": "3.10.1",
+    "vitest": "5.0.3",
+    "playwright": "1.64.0",
+    "shadcn": "4.21.4",
+    "shadcnRegistry": "0.1.3",
+    "motion": "14.0.0"
+  },
+  "readinessTests": {
+    "filesPassed": 8,
+    "testsPassed": 117,
+    "liveProChecksPassed": 6,
+    "scope": "Initial focused eight-suite result before the final two nullable-transport regressions; all are included in the final complete unit gate."
+  },
+  "guidanceTests": {
+    "filesPassed": 3,
+    "testsPassed": 46
+  },
+  "compatibilityTests": {
+    "floatingActions": 3,
+    "gridProcessing": 1,
+    "appSeams": 7,
+    "assertions": "Removed obsolete harness APIs, explicitly separated semantic grid header, preserved/strengthened record identity and actual search assertions."
+  },
+  "sourceSha256": {
+    "packages/ui/components/shadcn/chart.tsx": "f943c0318b306417163bbcc9e9d2dd5c2a2c1102c89071478a0298a8e1314d4a",
+    "packages/ui/components/shadcn/data-grid/data-grid.tsx": "4d1a75f5a684551aa374408f8efb9dd31ffec79a44aa8373ac7ffa8402482fe9",
+    "packages/missionary/components/task-kanban-board.tsx": "4a788a329cde31fc22e52a328a9bf784b5f42226eb22068ec1655cd6ed6ae672",
+    "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx": "8162573ef739c0a90b3979180bf7680ab5b20308b6ba8802e00213e877bda6b7",
+    "tests/unit/packages/ui/ui-improvement-floating-actions.test.tsx": "2f2eeba5146969ac55876365bd43a2fb34757849133b75c7b1df1111676e8c5a",
+    "tests/unit/packages/ui/data-grid-row-processing.test.tsx": "5dfc84fba4bb3c2059efafc4dc053b6ae95c3ff85c7870ddbe159512d91b10fb",
+    "tests/unit/apps/admin/features/support-hub/components/mobile-card-selection.test.tsx": "5f551e5eedaad90c5576760dcb0586c334a5a90fd66f198fa1a2165e2b726bc3",
+    "packages/ui/styles/globals.css": "25b7c076b52d7cdc5b16dd27fca9fa29a77bac8ac6dfb1fe4fcb6d993c622d1c"
+  },
+  "motion": "PASS: 2064 files scanned",
+  "tokenDrift": {
+    "mode": "report-only; always exits zero, not a gate",
+    "scannedFiles": 726,
+    "rawPaletteHits": 284,
+    "reportableHits": 275
+  },
+  "logs": [
+    {
+      "localDiagnostic": "new-cohort-readiness.log",
+      "sha256": "966ad6521fa15f51c231da227dae78c1acda03dce4bbf76acba4e317f6daa530"
+    },
+    {
+      "localDiagnostic": "new-cohort-live.log",
+      "sha256": "f3191ea35841027f0e79894af5a2a5f10ddd92d5ea6bd1d876686f8096f79e58"
+    },
+    {
+      "localDiagnostic": "new-cohort-floating-red.log",
+      "sha256": "71d70c604f5dc5cca543a3fdceeeedf3eb9f1d657fcb980108a00df9ec748f01"
+    },
+    {
+      "localDiagnostic": "new-cohort-floating-green.log",
+      "sha256": "85db5d4070befc8de40055115d774aad68ee64cc5d316be24985a9fb5ff7c6f4"
+    },
+    {
+      "localDiagnostic": "new-cohort-foundation-focused.log",
+      "sha256": "b5622572b6317b66af2e304a17d0101c73e9c790ae4ff04f0d6dbea7c55a3e62"
+    },
+    {
+      "localDiagnostic": "new-cohort-foundation-compatibility-green.log",
+      "sha256": "7fc707210878dd24517a3312a0f2f4f98d34c0ac9f0eb60bdc02c51a88b881a8"
+    },
+    {
+      "localDiagnostic": "new-cohort-mobile-red.log",
+      "sha256": "1def7c857e520f7670c87e3d21b6333fcd165bc9097dbcc90649cd1ce54b3213"
+    },
+    {
+      "localDiagnostic": "new-cohort-app-seams-green.log",
+      "sha256": "9bac287bb822eda49b4b9baa5742221a4930aad316c955f5f8f4895cc2e819bc"
+    },
+    {
+      "localDiagnostic": "new-cohort-chart-preview.log",
+      "sha256": "4ffb958d81be49218f0c0221dcff5b9525aa54b8d2d273cba7b85865c7de6726"
+    },
+    {
+      "localDiagnostic": "new-cohort-foundation-shadcn-diff.log",
+      "sha256": "1f17cc68a33ed862bb3492655d2f9b64ed1940d26cb464674d4d3361378f14b7"
+    },
+    {
+      "localDiagnostic": "new-cohort-motion.log",
+      "sha256": "10a1a2a4e8ac8729a010c643df10610ab63fc7c954f46385cc6d266869394f14"
+    },
+    {
+      "localDiagnostic": "new-cohort-token-drift.log",
+      "sha256": "10c7d144c38969e5775fb78bad357e2fbe262c6e38f3c5613da723cd12deac78"
+    },
+    {
+      "localDiagnostic": "vitest5-routing-tests.log",
+      "sha256": "a7d77f12b5062956fb67387124503977616fe0458f4a038db9e772ea833bab2a"
+    },
+    {
+      "localDiagnostic": "vitest5-guidance-contract.log",
+      "sha256": "f0b4bbbb36fce8e94d5563c711b0c91e1b667084a4b3b2320802ce3ed2d690f4"
+    }
+  ],
+  "scope": "Approved upstream dependency integration plus narrow compatibility and guidance fixes. Historical screenshots remain historical; new component/browser and full local qualification are separate records. Current hosted merge/CI status is verified independently.",
+  "initialIntegratedLocalSourceTip": "c28a5eb7fc2be27f756040237718a894ea2e01a5",
+  "substantiveFollowUp": "pending-submission-verification.json",
+  "preNullishValidatedLocalSourceTip": "30d0712cf6ccb09d8738905b041e5bec1d701e21",
+  "finalReadinessRegressionTests": {
+    "filesPassed": 1,
+    "testsPassed": 44,
+    "evidence": "readiness-nullish-verification.json"
+  },
+  "additionalFollowUp": "readiness-nullish-verification.json"
+}

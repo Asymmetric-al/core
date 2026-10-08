@@ -1,0 +1,45 @@
+{
+  "validatedLocalTip": "0f7121c1c68236b47423d0a93e9e7a41aa9a30cc",
+  "validatedLocalTree": "3e99bb08282ca9196a75fbb293712f444c93e2a8",
+  "integratedDevelop": "289c16317eee9807dfcebb412a20ebccbcfcd012",
+  "command": "VITEST_MAX_WORKERS=2 bun run ci:preflight -- --full",
+  "exitCode": 0,
+  "stagesPassed": [
+    "format",
+    "skills-verify",
+    "verify-phase25-spec",
+    "openspec-validate",
+    "verify-openspec-deltas",
+    "lint",
+    "verify-data-boundary",
+    "verify-cms-public-sole-entry",
+    "verify-workspace-contract",
+    "verify-bun-lock-drift",
+    "verify-eslint",
+    "verify-shadcn-config",
+    "verify-shadcn-diff",
+    "verify-shadscan",
+    "typecheck",
+    "build",
+    "test-unit"
+  ],
+  "applicationBuildsPassed": ["admin", "donor", "missionary"],
+  "unitFilesPassed": 851,
+  "unitFilesSkipped": 2,
+  "unitTestsPassed": 6839,
+  "unitTestsSkipped": 4,
+  "logSha256": "676cfb2a4a4a04e52c85bd1423327fb8b35c424170a4050450444bb12e4f404b",
+  "additionalGuards": [
+    {
+      "command": "bun run verify:shadcn-token-drift",
+      "exitCode": 0,
+      "logSha256": "10c7d144c38969e5775fb78bad357e2fbe262c6e38f3c5613da723cd12deac78"
+    },
+    {
+      "command": "bun run check:motion",
+      "exitCode": 0,
+      "logSha256": "c39d693a1ae19d071ca4a8889a6dbf77decbdfb1b3c50a1b3b0684d49e28e249"
+    }
+  ],
+  "scope": "Local integrated preflight. Later evidence metadata uses targeted formatting and source/image integrity checks. Hosted current-head CI and merge readiness are checked separately on each PR."
+}

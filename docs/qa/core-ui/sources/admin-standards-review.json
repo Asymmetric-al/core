@@ -1,0 +1,18 @@
+{
+  "scope": "Documentation only: existing Admin UX standards reconciled with canonical owner rules and current source; no source/dependency/architecture changes or invented business capabilities.",
+  "file": "docs/ai/ADMIN-UX-STANDARDS.md",
+  "current_source_sha256": "01e1ee927fcd59d184cc84a07876784a81502623a3c5349d8f99e0aa8fdfda12",
+  "checks": {
+    "format": "prettier --check passed",
+    "local_link_destinations": 42,
+    "link_errors": []
+  },
+  "accepted_clarifications": [
+    "Canonical packages/ui/AGENTS.md, frontend rulebook and source configuration outrank historical appearance prescriptions.",
+    "Exact Base UI + base-maia geometry/semantic tokens/shared ownership; no app-local primitive forks, initialization or alternate design system.",
+    "Enabled mobile card views require real record field mappings or existing-cell renderCard; intentional table-only consumers retain their current mode.",
+    "Custom card renderers explicitly own controlled real Row selection outside their separate open action, preserving existing bulk payloads.",
+    "Current AppIcon animated mode has stable initial=false markup; removed historical active-route spring-entrance instruction."
+  ],
+  "limit": "Documentation reconciliation only. Source/table/motion behavior is verified at the owning component/app seams; this does not widen policy, change architecture or create functionality."
+}
