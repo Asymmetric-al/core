@@ -7,6 +7,7 @@ import { getDefaultProjectTestIgnore } from "../../playwright.config";
 
 describe("getDefaultProjectTestIgnore", () => {
   const defaultProjectIgnores = [
+    "**/missionary-account-frame.spec.ts",
     "**/upload-crop.spec.ts",
     "**/donor-giving-history.spec.ts",
     "**/mc-contributions-live-query.spec.ts",

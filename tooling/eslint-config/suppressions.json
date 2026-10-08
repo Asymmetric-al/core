@@ -1162,11 +1162,6 @@
       "count": 2
     }
   },
-  "apps/missionary/app/(auth)/login/loading.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
-    }
-  },
   "apps/missionary/app/donors/donors-page-columns.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 1
@@ -1225,11 +1220,6 @@
   "apps/missionary/app/help/about/page.tsx": {
     "shadcn/no-restyle": {
       "count": 2
-    }
-  },
-  "apps/missionary/app/register/loading.tsx": {
-    "shadcn/no-arbitrary-values": {
-      "count": 1
     }
   },
   "apps/missionary/components/dashboard-footer.tsx": {

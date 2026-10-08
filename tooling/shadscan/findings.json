@@ -1047,7 +1047,7 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "722a7775da9f64604fc2a00c637a8d97a70755d90db3d1154dc26dafa70c054b"
+          "sha256": "2f3c8f952941189599eb25579cbe43aca8355b55a3a801958f19e717b966028d"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
@@ -1114,7 +1114,7 @@
         },
         {
           "path": "apps/missionary/app/_providers/missionary-layout-shell.tsx",
-          "sha256": "722a7775da9f64604fc2a00c637a8d97a70755d90db3d1154dc26dafa70c054b"
+          "sha256": "2f3c8f952941189599eb25579cbe43aca8355b55a3a801958f19e717b966028d"
         },
         {
           "path": "apps/missionary/components/app-shell.tsx",
