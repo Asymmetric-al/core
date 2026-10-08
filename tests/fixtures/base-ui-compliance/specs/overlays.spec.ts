@@ -315,6 +315,22 @@ test("visual hints keep independently accessible triggers and image semantics", 
   ).toHaveAttribute("aria-orientation", "horizontal");
 });
 
+test("fixture navigation renders the configured color scheme from startup", async ({
+  page,
+}, testInfo) => {
+  await page.addInitScript(() => {
+    document.addEventListener("DOMContentLoaded", () => {
+      document.documentElement.dataset.fixtureColorSchemeAtReady =
+        getComputedStyle(document.documentElement).colorScheme;
+    });
+  });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-fixture-color-scheme-at-ready",
+    testInfo.project.use.colorScheme ?? "light",
+  );
+});
+
 test("resting fixture has no WCAG A or AA violations", async ({
   page,
 }, testInfo) => {

@@ -23,17 +23,25 @@ export const test = base.extend<{ runtimeErrors: string[] }>({
           await route.abort();
         }
       });
+      await page.addInitScript((dark) => {
+        const applyTheme = () => {
+          if (!document.documentElement) return false;
+          document.documentElement.classList.toggle("dark", dark);
+          return true;
+        };
+        if (!applyTheme()) {
+          const observer = new MutationObserver(() => {
+            if (applyTheme()) observer.disconnect();
+          });
+          observer.observe(document, { childList: true });
+        }
+      }, testInfo.project.use.colorScheme === "dark");
       await page.goto("/");
       expect(
         await page.evaluate(
           () => matchMedia("(prefers-reduced-motion: reduce)").matches,
         ),
       ).toBe(testInfo.project.use.contextOptions?.reducedMotion === "reduce");
-      if (testInfo.project.use.colorScheme === "dark") {
-        await page
-          .locator("html")
-          .evaluate((element) => element.classList.add("dark"));
-      }
       await expect(
         page.getByRole("heading", { name: "Base UI contracts", exact: true }),
       ).toBeVisible();

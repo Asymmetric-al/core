@@ -2553,7 +2553,7 @@
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/overlays.spec.ts",
-      "sha256": "9b8a09ab77333bca2cbe88cee7f09b65885543c7acc5e7479d5a20260d0b26bc"
+      "sha256": "2a226936acd5c5abf0e40a7dc6b646c30d640724f537829c819034889fab3e86"
     },
     {
       "path": "tests/fixtures/base-ui-compliance/specs/shadscan-readiness.spec.ts",
