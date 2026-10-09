@@ -453,7 +453,7 @@ describe("collection capabilities stay true to the real Payload configs", () => 
 describe("parity guard: the choke-point serialization equals the shipped published output", () => {
   it("serializes a published page identically to the shipped serializer", () => {
     const packageOutput = JSON.parse(
-      JSON.stringify(serializePublicPage(PUBLISHED_PAGE_DOC)),
+      JSON.stringify(serializePublicPage(context(), PUBLISHED_PAGE_DOC)),
     );
     const shippedOutput = JSON.parse(
       JSON.stringify(serializePublishedPageLike(PUBLISHED_PAGE_DOC)),

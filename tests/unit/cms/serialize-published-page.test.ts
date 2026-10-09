@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { serializePublishedPageLike } from "../../../apps/admin/src/cms/public/serialize-published-page";
+import type { PublicRequestContext } from "../../../packages/api/src/cms/public/context";
+
+const context: PublicRequestContext = {
+  operationalTenantId: "tenant-op-1",
+  cmsTenantId: 7,
+  siteId: null,
+};
 
 describe("serializePublishedPageLike", () => {
   it("maps known fields and stringifies id", () => {
@@ -143,7 +150,9 @@ describe("serializePublishedPageLike", () => {
     };
 
     const shipped = JSON.parse(JSON.stringify(serializePublishedPageLike(doc)));
-    const packaged = JSON.parse(JSON.stringify(serializePublicPage(doc)));
+    const packaged = JSON.parse(
+      JSON.stringify(serializePublicPage(context, doc)),
+    );
 
     const shippedMedia = shipped.layout[0].media;
     expect(shippedMedia.filename).toBe("jane.jpg");

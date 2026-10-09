@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
   buildPublishedReadCacheTags,
@@ -25,13 +25,26 @@ import {
   PUBLISHED_UPDATES_DEFAULT_LIMIT,
   PUBLISHED_UPDATES_MAX_LIMIT,
 } from "../../src/cms/public/reader";
+import {
+  serializePublicNavigation,
+  serializePublicPage,
+  serializePublicUpdate,
+} from "../../src/cms/public/serializer";
 
-import type { CheckoutHandoffDraft } from "../../src/cms/public/checkout-handoff";
+import type {
+  CheckoutHandoff,
+  CheckoutHandoffDraft,
+} from "../../src/cms/public/checkout-handoff";
 import type { PublicRequestContext } from "../../src/cms/public/context";
 import type {
   PublicPageTypeConfig,
   PublishedContentReader,
 } from "../../src/cms/public/reader";
+import type {
+  SerializedPublicNavigation,
+  SerializedPublicPage,
+  SerializedPublicUpdate,
+} from "../../src/cms/public/serialized";
 
 /**
  * Type-contract tests (Phase 5 #522): the reader/serializer/cache/handoff
@@ -45,6 +58,38 @@ const context: PublicRequestContext = {
   cmsTenantId: 7,
   siteId: null,
 };
+
+describe("context-required public signatures", () => {
+  it("requires the resolved context on serializers, locale tags, and checkout parameters", () => {
+    expectTypeOf(serializePublicPage).toEqualTypeOf<
+      (
+        context: PublicRequestContext,
+        doc: Record<string, unknown>,
+      ) => SerializedPublicPage
+    >();
+    expectTypeOf(serializePublicNavigation).toEqualTypeOf<
+      (
+        context: PublicRequestContext,
+        doc: Record<string, unknown>,
+      ) => SerializedPublicNavigation
+    >();
+    expectTypeOf(serializePublicUpdate).toEqualTypeOf<
+      (
+        context: PublicRequestContext,
+        doc: Record<string, unknown>,
+      ) => SerializedPublicUpdate
+    >();
+    expectTypeOf(publicLocaleCacheTag).toEqualTypeOf<
+      (context: PublicRequestContext, locale: string | null) => string | null
+    >();
+    expectTypeOf(checkoutHandoffSearchParams).toEqualTypeOf<
+      (
+        context: PublicRequestContext,
+        handoff: CheckoutHandoff,
+      ) => URLSearchParams
+    >();
+  });
+});
 
 describe("PublicRequestContext", () => {
   it("carries the reserved siteId and both tenant ids", () => {
@@ -111,7 +156,7 @@ describe("checkout handoff contract", () => {
       orgType: "church",
     });
 
-    const params = checkoutHandoffSearchParams(handoff);
+    const params = checkoutHandoffSearchParams(siteContext, handoff);
 
     expect(params.get("fund_id")).toBe("fund_1");
     expect(params.get("amount")).toBe("100");
@@ -133,7 +178,7 @@ describe("checkout handoff contract", () => {
 
   it("never emits a party_type parameter (Phase 9 C2 amendment)", () => {
     const handoff = buildCheckoutHandoff(context, { partyKind: "person" });
-    const params = checkoutHandoffSearchParams(handoff);
+    const params = checkoutHandoffSearchParams(context, handoff);
 
     expect(params.has("party_type")).toBe(false);
     expect(Object.values(CHECKOUT_HANDOFF_PARAM_NAMES)).not.toContain(
@@ -148,7 +193,7 @@ describe("checkout handoff contract", () => {
     const handoff = buildCheckoutHandoff(context, {
       target: { missionaryId: "mis_1" },
     });
-    const params = checkoutHandoffSearchParams(handoff);
+    const params = checkoutHandoffSearchParams(context, handoff);
 
     expect([...params.keys()].sort()).toEqual(
       ["entry_method", "missionary_id", "party_kind"].sort(),
@@ -256,7 +301,7 @@ describe("cache-tag scheme", () => {
     expect(withReserved).toContain("public-cms:locale:en-us");
 
     expect(publicSiteCacheTag(context)).toBeNull();
-    expect(publicLocaleCacheTag(null)).toBeNull();
+    expect(publicLocaleCacheTag(context, null)).toBeNull();
   });
 
   it("names a bounded cacheLife profile (never 'never')", () => {

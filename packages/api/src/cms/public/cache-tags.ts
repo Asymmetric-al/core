@@ -79,7 +79,10 @@ export function publicSiteCacheTag(
  * Reserved Phase 2 dimension: per-locale invalidation. Returns `null` until
  * locale values ship (#483).
  */
-export function publicLocaleCacheTag(locale: string | null): string | null {
+export function publicLocaleCacheTag(
+  _context: PublicRequestContext,
+  locale: string | null,
+): string | null {
   if (!locale) {
     return null;
   }
@@ -121,7 +124,7 @@ export function buildPublishedReadCacheTags(
     tags.push(siteTag);
   }
 
-  const localeTag = publicLocaleCacheTag(locale ?? null);
+  const localeTag = publicLocaleCacheTag(context, locale ?? null);
   if (localeTag !== null) {
     tags.push(localeTag);
   }

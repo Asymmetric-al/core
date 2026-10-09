@@ -3,6 +3,7 @@ import {
   sanitizePublicCmsHref,
 } from "@asym/lib/cms/public-page";
 
+import type { PublicRequestContext } from "./context";
 import type {
   SerializedPublicFaqItem,
   SerializedPublicImpactStat,
@@ -33,7 +34,14 @@ type PageCtaContext = {
   fundId: string | null;
 };
 
-export function serializePublicPage(doc: UnknownRecord): SerializedPublicPage {
+/**
+ * The context is a reserved signature seam. This serializer does not enforce
+ * tenant or site ownership; callers must pass an authorized page document.
+ */
+export function serializePublicPage(
+  _context: PublicRequestContext,
+  doc: UnknownRecord,
+): SerializedPublicPage {
   const pageType = readOptionalString(doc.pageType);
   const missionaryId = readOptionalString(doc.missionaryId);
   const fundId = readOptionalString(doc.fundId);
@@ -63,7 +71,12 @@ export function serializePublicPage(doc: UnknownRecord): SerializedPublicPage {
   return page;
 }
 
+/**
+ * The context is a reserved signature seam. This serializer does not enforce
+ * tenant or site ownership; callers must pass an authorized navigation document.
+ */
 export function serializePublicNavigation(
+  _context: PublicRequestContext,
   doc: UnknownRecord,
 ): SerializedPublicNavigation {
   const rawItems = Array.isArray(doc.items) ? doc.items : [];
@@ -85,7 +98,12 @@ export function serializePublicNavigation(
   return navigation;
 }
 
+/**
+ * The context is a reserved signature seam. This serializer does not enforce
+ * tenant or site ownership; callers must pass an authorized update document.
+ */
 export function serializePublicUpdate(
+  _context: PublicRequestContext,
   doc: UnknownRecord,
 ): SerializedPublicUpdate {
   const update: SerializedPublicUpdate = {
