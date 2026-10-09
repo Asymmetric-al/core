@@ -366,7 +366,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-moderation-composition.test.tsx",
@@ -438,7 +438,7 @@
         },
         {
           "path": "apps/admin/package.json",
-          "sha256": "04cb59e0cc1cab591eb8ca1b59361b3f16538dcfd860c3c8683638591204b6d4"
+          "sha256": "e725e59b9c6130ba50f3c95054a5d937e3458b20a77e28367001d64fd8883e8f"
         },
         {
           "path": "tests/unit/apps/admin/shadscan-cms-boundaries.test.ts",
@@ -597,7 +597,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -625,7 +625,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -795,7 +795,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -974,7 +974,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1002,7 +1002,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1285,7 +1285,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -1318,7 +1318,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -1526,7 +1526,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -1554,7 +1554,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         },
         {
           "path": "tests/unit/apps/shadscan-framework-contracts.test.tsx",
@@ -2187,7 +2187,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",
@@ -2219,7 +2219,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -2374,7 +2374,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         }
       ]
     },
@@ -2391,7 +2391,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         }
       ]
     },
@@ -2452,7 +2452,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         }
       ]
     },
@@ -2469,7 +2469,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         }
       ]
     },
@@ -2505,7 +2505,7 @@
       "proof": [
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "packages/ui/components/shadcn/menubar.tsx",
@@ -2642,7 +2642,7 @@
         },
         {
           "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-          "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+          "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
         },
         {
           "path": "tests/unit/packages/ui/shadscan-readiness.test.tsx",
@@ -2663,7 +2663,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         }
       ]
     },
@@ -2712,7 +2712,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         }
       ]
     },
@@ -2729,7 +2729,7 @@
         },
         {
           "path": "packages/ui/package.json",
-          "sha256": "d9cedd834cad0d036fee2757a396e09b70ac44f80322f26c476044680bcfaccd"
+          "sha256": "8544b8910f225f8ef3637df64b160a921d20bf71ad968e249665b00c4b86e321"
         }
       ]
     },

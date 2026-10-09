@@ -980,12 +980,16 @@
       "path": "components/shadcn/dropdown-menu.tsx",
       "diffComponent": "dropdown-menu",
       "owners": ["dropdown-menu", "menubar"],
-      "localSha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac",
-      "diffSha256": "792b013f319b28c83dd2e10ff1c99210a3d936520c58c6be46afbe50e2574f53",
-      "reason": "Preserve Core menu label context, shared item callback ownership and submenu APIs; upstream changes compound-menu presentation/composition. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c",
+      "diffSha256": "a574cad1a35dbef3aa16fa15a19425cd9b0428bcdc4f8de392887b00ae8ca965",
+      "reason": "Preserve Core menu label context, shared item callback ownership, submenu APIs and Base UI 1.9 FilterProvider/Input/List/Clear/Empty parts with virtual highlighted styles. Official stock overwrite removes these filtering exports and state callback merging, changes popup/item geometry and motion, moves selection indicators and replaces radio circles. Core retains its semantic tokens and InputGroup render/ref/style composition; focused shared and real merge-tag tests qualify keyboard, empty, clearing, controlled query and close-reset behavior.",
       "proofs": [
         "packages/ui/components/shadcn/dropdown-menu.tsx",
-        "docs/ai/rules/frontend.md"
+        "docs/ai/rules/frontend.md",
+        "packages/ui/components/studio/EmailStudioMergeTagMenu.tsx",
+        "tests/unit/packages/ui/base-ui-menu-filtering.test.tsx",
+        "tests/unit/packages/ui/studio/email-studio-merge-tag-menu.test.tsx",
+        "tests/fixtures/base-ui-compliance/specs/menu-filtering.spec.ts"
       ],
       "localPath": "components/shadcn/dropdown-menu.tsx"
     },
@@ -2313,7 +2317,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
-      "sha256": "a08b7c87498f3f1315046274aa1d65e39a887a1ab15577a51e67b8ec056195ac"
+      "sha256": "746440eea5f7a2d040c573643385a0cd68d4c48ec2389fafe2b4f6df3e7a045c"
     },
     {
       "path": "packages/ui/components/shadcn/empty.tsx",
@@ -2524,6 +2528,10 @@
       "sha256": "25b3ee4479e5a98b6a2501f1cc07419673d57221ed85e551651e45a8fc3237a8"
     },
     {
+      "path": "packages/ui/components/studio/EmailStudioMergeTagMenu.tsx",
+      "sha256": "a0318c36c39858d1242c0a302597a26df34da42999ea0235c6f3d6292be7222b"
+    },
+    {
       "path": "packages/ui/hooks/use-mobile.ts",
       "sha256": "0aa90e87120c1be7d6e2bd97e194f3b89249a5234c6bd50b60b0231b59d1cc32"
     },
@@ -2552,6 +2560,10 @@
       "sha256": "ba62390b22ce19b8cf4dd53e4c58d815439f7ec5f14d71d7f975937fe01e948f"
     },
     {
+      "path": "tests/fixtures/base-ui-compliance/specs/menu-filtering.spec.ts",
+      "sha256": "b8036b98d85a7aeabaabfe4f9b53e1b43f4e7112fc01309d2c63eecc8d20ff56"
+    },
+    {
       "path": "tests/fixtures/base-ui-compliance/specs/overlays.spec.ts",
       "sha256": "2a226936acd5c5abf0e40a7dc6b646c30d640724f537829c819034889fab3e86"
     },
@@ -2570,6 +2582,10 @@
     {
       "path": "tests/unit/packages/ui/base-ui-loading-button.test.tsx",
       "sha256": "e2afa17416abbf5c99e7c3827180db0203817510a327d97a77c8e31e20cca112"
+    },
+    {
+      "path": "tests/unit/packages/ui/base-ui-menu-filtering.test.tsx",
+      "sha256": "2c50d423f3a945cae9d6084c1c6e7571f0b547be8abfbb53e2284f19f09b9f2e"
     },
     {
       "path": "tests/unit/packages/ui/base-ui-navigation.test.tsx",
@@ -2618,6 +2634,10 @@
     {
       "path": "tests/unit/packages/ui/shared-control-exports.test.ts",
       "sha256": "e1bb7ccf714c5061403adac1366d3bafeea3717bc353f208b6a1ba98a9f23ee0"
+    },
+    {
+      "path": "tests/unit/packages/ui/studio/email-studio-merge-tag-menu.test.tsx",
+      "sha256": "b0b5fbf222974f01122f6f386bb8ac0518a18707eb8bedee8190216107382fe6"
     },
     {
       "path": "tests/unit/packages/ui/tanstack-form-accessibility.test.tsx",
