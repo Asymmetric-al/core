@@ -233,7 +233,7 @@ export function createPayloadPublishedContentReader(
 
         return {
           status: "found",
-          page: serializePublicPage(sanitizeRichTextPassThroughs(doc)),
+          page: serializePublicPage(context, sanitizeRichTextPassThroughs(doc)),
           tenant,
         };
       } catch {
@@ -270,7 +270,7 @@ export function createPayloadPublishedContentReader(
         const doc = docs[0];
         return {
           status: "found",
-          navigation: doc ? serializePublicNavigation(doc) : null,
+          navigation: doc ? serializePublicNavigation(context, doc) : null,
           tenant,
         };
       } catch {
@@ -304,7 +304,7 @@ export function createPayloadPublishedContentReader(
         return {
           status: "found",
           updates: docs.map((doc) =>
-            serializePublicUpdate(sanitizeRichTextPassThroughs(doc)),
+            serializePublicUpdate(context, sanitizeRichTextPassThroughs(doc)),
           ),
           tenant,
         };

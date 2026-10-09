@@ -6,6 +6,14 @@ import {
   serializePublicUpdate,
 } from "../../src/cms/public/serializer";
 
+import type { PublicRequestContext } from "../../src/cms/public/context";
+
+const context: PublicRequestContext = {
+  operationalTenantId: "tenant-op-1",
+  cmsTenantId: 7,
+  siteId: null,
+};
+
 /**
  * The public serializer is an ALLOWLIST (Phase 5 A5): only named public-safe
  * fields and typed layout blocks are emitted; adding an unknown field to a
@@ -36,7 +44,7 @@ describe("serializePublicPage", () => {
       createdAt: "2026-01-01T00:00:00.000Z",
     };
 
-    const page = serializePublicPage(doc);
+    const page = serializePublicPage(context, doc);
 
     expect(page).toEqual({
       id: "42",
@@ -115,7 +123,7 @@ describe("serializePublicPage", () => {
       ],
     };
 
-    const page = serializePublicPage(doc);
+    const page = serializePublicPage(context, doc);
     const layout = page.layout ?? [];
 
     expect(layout).toHaveLength(7);
@@ -195,7 +203,7 @@ describe("serializePublicPage", () => {
       ],
     };
 
-    const page = serializePublicPage(doc);
+    const page = serializePublicPage(context, doc);
 
     expect(page.layout).toEqual([]);
   });
@@ -235,7 +243,7 @@ describe("serializePublicPage", () => {
       ],
     };
 
-    const page = serializePublicPage(doc);
+    const page = serializePublicPage(context, doc);
     const block = (page.layout ?? [])[0] as { media: unknown };
 
     expect(block.media).toEqual({
@@ -274,7 +282,7 @@ describe("serializePublicPage", () => {
       ],
     };
 
-    const page = serializePublicPage(doc);
+    const page = serializePublicPage(context, doc);
     const block = (page.layout ?? [])[0] as { media: Record<string, unknown> };
 
     expect("filename" in block.media).toBe(false);
@@ -295,7 +303,7 @@ describe("serializePublicPage", () => {
       ],
     };
 
-    const page = serializePublicPage(doc);
+    const page = serializePublicPage(context, doc);
     const hero = (page.layout ?? [])[0] as { backgroundImage: unknown };
 
     expect(hero.backgroundImage).toBe(15);
@@ -304,7 +312,7 @@ describe("serializePublicPage", () => {
 
 describe("serializePublicNavigation", () => {
   it("emits only label/items and sanitizes hrefs", () => {
-    const navigation = serializePublicNavigation({
+    const navigation = serializePublicNavigation(context, {
       id: 3,
       label: "Main",
       tenant: "cms-tenant-1",
@@ -340,7 +348,7 @@ describe("serializePublicNavigation", () => {
 
 describe("serializePublicUpdate", () => {
   it("emits the named fields and reduces the missionary relationship to an id", () => {
-    const update = serializePublicUpdate({
+    const update = serializePublicUpdate(context, {
       id: "u1",
       title: "Field news",
       slug: "field-news",
@@ -366,13 +374,13 @@ describe("serializePublicUpdate", () => {
   });
 
   it("passes a bare missionary id through and nulls a missing one", () => {
-    const withBareId = serializePublicUpdate({
+    const withBareId = serializePublicUpdate(context, {
       id: "u2",
       title: "t",
       slug: "s",
       missionary: "mis_2",
     });
-    const withoutMissionary = serializePublicUpdate({
+    const withoutMissionary = serializePublicUpdate(context, {
       id: "u3",
       title: "t",
       slug: "s",
