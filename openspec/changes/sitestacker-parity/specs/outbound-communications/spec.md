@@ -38,10 +38,17 @@ Signed delivery evidence MUST attach, never create, a communication. The verifie
 connection revision MUST fix scope before exact internal/provider-message lookup
 through `{scope_kind, scope_owner_id, connection_revision, provider_email_id}`.
 Ambiguous, unresolved or crossed evidence MUST be quarantined safely; only later
-proved same-scope correlation MAY attach it. Monotonic terminal outcomes MUST
-prevent lower-precedence late evidence regressing status; complaint may follow
-delivery. Engagement MUST remain separate from delivery and in-product `available`
-MUST NOT imply provider delivery/read truth.
+proved same-scope correlation MAY attach it. Provider reduction MUST preserve
+independent dispatch, submission, mail-server delivery, reputation, advisory
+engagement and evidence-health axes, alongside separately authoritative consent/
+contact and provider-suppression facts. Duplicate and out-of-order evidence MUST
+be retained without terminal regression; only owner-permitted non-conflicting
+transitions MAY advance an axis. Contradictory terminal delivery facts MUST
+quarantine and open one deterministic repair case rather than overwrite or
+discard either fact. Complaint MUST update separate reputation; it MAY establish
+delivered from pending/delayed under the Phase 17 reducer but MUST NOT overwrite
+a conflicting terminal delivery fact. In-product `available` MUST NOT imply
+provider delivery/read truth.
 
 Support Hub/member-care payloads MUST remain permanently owned by their typed
 detail tables, with atomic canonical reference emission, one-event support
