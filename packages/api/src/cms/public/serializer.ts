@@ -34,6 +34,10 @@ type PageCtaContext = {
   fundId: string | null;
 };
 
+/**
+ * The context is a reserved signature seam. This serializer does not enforce
+ * tenant or site ownership; callers must pass an authorized page document.
+ */
 export function serializePublicPage(
   _context: PublicRequestContext,
   doc: UnknownRecord,
@@ -67,6 +71,10 @@ export function serializePublicPage(
   return page;
 }
 
+/**
+ * The context is a reserved signature seam. This serializer does not enforce
+ * tenant or site ownership; callers must pass an authorized navigation document.
+ */
 export function serializePublicNavigation(
   _context: PublicRequestContext,
   doc: UnknownRecord,
@@ -90,6 +98,10 @@ export function serializePublicNavigation(
   return navigation;
 }
 
+/**
+ * The context is a reserved signature seam. This serializer does not enforce
+ * tenant or site ownership; callers must pass an authorized update document.
+ */
 export function serializePublicUpdate(
   _context: PublicRequestContext,
   doc: UnknownRecord,
