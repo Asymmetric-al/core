@@ -12,8 +12,12 @@ import {
   DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuEmpty,
+  DropdownMenuFilterProvider,
+  DropdownMenuInput,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuList,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
@@ -46,61 +50,67 @@ export function EmailStudioMergeTagMenu({
   }, [query]);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className=""
-            disabled={disabled}
-          >
-            <Braces className="size-3.5" />
-            Merge tag
-          </Button>
-        }
-      />
-      <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Insert merge tag</DropdownMenuLabel>
+    <DropdownMenuFilterProvider
+      filter={null}
+      value={query}
+      onValueChange={setQuery}
+    >
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className=""
+              disabled={disabled}
+            >
+              <Braces className="size-3.5" />
+              Merge tag
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" aria-label="Insert merge tag">
           <div className="w-72 px-2 pb-2">
             <InputGroup>
               <InputGroupAddon>
                 <Search aria-hidden="true" />
               </InputGroupAddon>
-              <InputGroupInput
+              <DropdownMenuInput
                 aria-label="Search merge tags"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search tags"
+                render={<InputGroupInput />}
               />
             </InputGroup>
           </div>
 
           <DropdownMenuSeparator />
+          <DropdownMenuEmpty>No matching tags</DropdownMenuEmpty>
           <div className="max-h-80 overflow-y-auto">
-            {tags.map((tag) => (
-              <DropdownMenuItem key={tag.key} onClick={() => onInsert(tag.key)}>
-                <div className="flex flex-col items-start gap-0.5">
-                  <span className="font-medium">{tag.label}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {"{{"}
-                    {tag.key}
-                    {"}}"} · {tag.category}
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-            {tags.length === 0 && (
-              <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                No matching tags
-              </div>
-            )}
+            <DropdownMenuList>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Insert merge tag</DropdownMenuLabel>
+                {tags.map((tag) => (
+                  <DropdownMenuItem
+                    key={tag.key}
+                    onClick={() => onInsert(tag.key)}
+                  >
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className="font-medium">{tag.label}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {"{{"}
+                        {tag.key}
+                        {"}}"} · {tag.category}
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
+            </DropdownMenuList>
           </div>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </DropdownMenuFilterProvider>
   );
 }
 

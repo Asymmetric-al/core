@@ -11,6 +11,7 @@ import { SearchDelegationContracts } from "./search-delegation-contracts";
 import { ShadscanContracts } from "./shadscan-contracts";
 import { SupportSuggestionContracts } from "./support-suggestion-contracts";
 import { ToolbarContracts } from "./toolbar-contracts";
+import { EmailStudioMergeTagMenu } from "../../../packages/ui/components/studio/EmailStudioMergeTagMenu";
 import {
   Accordion,
   AccordionItem,
@@ -73,6 +74,7 @@ import {
 import "virtual:base-ui-styles";
 function App() {
   const [count, setCount] = useState(1);
+  const [insertedTag, setInsertedTag] = useState("");
   return (
     <main id="main-content" className="app-root" style={{ padding: 24 }}>
       <div
@@ -83,6 +85,11 @@ function App() {
       <SupportSuggestionContracts />
       <DrawerContracts />
       <h1>Base UI contracts</h1>
+      <section aria-label="Merge tag filtering">
+        <h2>Email merge tags</h2>
+        <EmailStudioMergeTagMenu onInsert={setInsertedTag} />
+        <output aria-label="Inserted merge tag">{insertedTag}</output>
+      </section>
       <Button onClick={() => setCount(count === 1 ? 30 : 1)}>
         Toggle rows
       </Button>

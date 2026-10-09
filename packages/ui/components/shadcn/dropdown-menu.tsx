@@ -4,9 +4,10 @@ import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 import * as React from "react";
 
-import { cn } from "@asym/ui/lib/utils";
-
+import { buttonVariants } from "./button";
 import { mergeBaseUIClassName } from "../../lib/base-ui";
+import { inputStyles } from "../../lib/input-styles";
+import { cn } from "../../lib/utils";
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
@@ -18,6 +19,60 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
 
 function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
   return <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />;
+}
+
+function DropdownMenuFilterProvider({
+  ...props
+}: MenuPrimitive.FilterProvider.Props) {
+  return <MenuPrimitive.FilterProvider {...props} />;
+}
+
+function DropdownMenuInput({
+  className,
+  render,
+  ...props
+}: MenuPrimitive.Input.Props) {
+  return (
+    <MenuPrimitive.Input
+      {...(!render ? { "data-slot": "dropdown-menu-input" } : {})}
+      className={mergeBaseUIClassName(
+        render ? undefined : inputStyles,
+        className,
+      )}
+      render={render}
+      {...props}
+    />
+  );
+}
+
+function DropdownMenuList({ ...props }: MenuPrimitive.List.Props) {
+  return <MenuPrimitive.List data-slot="dropdown-menu-list" {...props} />;
+}
+
+function DropdownMenuClear({ className, ...props }: MenuPrimitive.Clear.Props) {
+  return (
+    <MenuPrimitive.Clear
+      data-slot="dropdown-menu-clear"
+      className={mergeBaseUIClassName(
+        buttonVariants({ variant: "ghost", size: "xs" }),
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function DropdownMenuEmpty({ className, ...props }: MenuPrimitive.Empty.Props) {
+  return (
+    <MenuPrimitive.Empty
+      data-slot="dropdown-menu-empty"
+      className={mergeBaseUIClassName(
+        "px-2 py-1.5 text-sm text-muted-foreground",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 function DropdownMenuContent({
@@ -73,7 +128,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={mergeBaseUIClassName(
-        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-foreground data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-foreground dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-foreground data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-foreground data-[variant=destructive]:data-highlighted:bg-destructive/10 data-[variant=destructive]:data-highlighted:text-foreground dark:data-[variant=destructive]:focus:bg-destructive/20 dark:data-[variant=destructive]:data-highlighted:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className,
       )}
       {...props}
@@ -91,7 +146,7 @@ function DropdownMenuCheckboxItem({
     <MenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={mergeBaseUIClassName(
-        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       checked={checked}
@@ -125,7 +180,7 @@ function DropdownMenuRadioItem({
     <MenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={mergeBaseUIClassName(
-        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
@@ -206,7 +261,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={mergeBaseUIClassName(
-        "flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-popup-open:bg-accent data-popup-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+        "flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground data-[inset]:pl-8 data-popup-open:bg-accent data-popup-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         className,
       )}
       {...props}
@@ -245,6 +300,11 @@ export {
   DropdownMenu,
   DropdownMenuPortal,
   DropdownMenuTrigger,
+  DropdownMenuFilterProvider,
+  DropdownMenuInput,
+  DropdownMenuList,
+  DropdownMenuClear,
+  DropdownMenuEmpty,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuLabel,
