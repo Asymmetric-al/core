@@ -10,6 +10,19 @@ platform boundaries already warn against.
 
 ## What Changes
 
+- **Amended 2026-10-08 (Phase 6 foundation, AL-551):** externalize the
+  **first build** of Mission Control's already-declared **communications**
+  capability in the existing outbound-communications delta. Preserve one
+  body-free Asym interaction spine, exact closed Party/contact/no-Party/platform
+  recipient branches, exclusive scope and connection revision, sole gateway
+  capture, attach-not-create delivery/quarantine, safe role projections,
+  suppression provenance and current export eligibility. Keep permanent
+  support/care payload ownership distinct from bounded legacy email migration
+  and writer fencing. Seven new Phase 6 ADRs and the
+  [future portal build recipe](../../../docs/prds/sitestacker-parity/phase-06-communication-views-build-pattern.md)
+  record current owner intent and supersede conflicting July wording. This
+  docs-only foundation does not implement #552–#565, claim #560/#561/#562
+  shipped, qualify providers or activate any reserved integration/UI/channel.
 - Add one durable requirement to `platform-product-intent` recording the
   SiteStacker parity program: it means **outcome parity** (match what an org can
   accomplish, built our way — not UI cloning), governed by the existing platform

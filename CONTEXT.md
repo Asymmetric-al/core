@@ -4,6 +4,30 @@ This context captures shared product language for Asymmetric.al's connected
 missions operations platform. It defines terms that must stay consistent across
 staff operations, donor experience, missionary workspace, and background work.
 
+## Communication foundation language
+
+These definitions externalize [Phase 6](docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md)
+and the [October 8 AL-551 reconciliation](https://github.com/Asymmetric-al/core/issues/551).
+They describe accepted target intent, not deployed schema, tested read slices or activation.
+The earlier operational-key-only and blanket “adapt, not migrate” wording is
+superseded: donor/missionary IDs are same-Party compatibility projections;
+Support Hub/member-care payload ownership is permanent, but legacy email
+logs/events require bounded migration/adapters and writer fencing into one history.
+
+- **Communication event:** the Asym-owned `communication_events` body-free interaction-fact header, with exact exclusive tenant/platform scope and authoritative same-tenant Party/contact revision, explicitly permitted no-Party authority kind/id/revision, or exact service-only platform authority; no body, transport address or personalized subject is durable, and typed payload truth remains with its owner.
+- **Delivery event:** normalized signed provider outcome attaching to an existing exact scoped internal/provider message identity and connection revision, never creating communication history; legacy `email_events` is a bounded migration/adapter source, and addresses/tags/payloads select neither recipient nor owner.
+- **Message intent / Message kind:** intent is durable recipient-specific pre-dispatch work; an event records a happened interaction, while kind classifies purpose (such as receipt or support) and cannot infer new business, money or delivery truth.
+- **Consent snapshot:** immutable versioned evidence of the existing gate's actual send-time verdict and bounded evaluated inputs/revisions, never a second consent store or view-time recomputation; future sends consult current authority.
+- **Suppression / Unsubscribe / Bounce / Complaint:** suppression is a typed contact/delivery restriction in authoritative `email_suppressions` with provenance; unsubscribe is an opt-out fact, bounce a delivery-failure fact and complaint a provider abuse signal, with distinct `suppression_type` values rather than interchangeable consent verdicts; provider removal never automatically restores product consent.
+- **Retention class:** the header's purpose classification—official at least seven years/prefer permanent, operational or ephemeral—while restricted raw provider evidence, encrypted preparation and Recent sent copies retain their separate bounded ceilings and source-owned immutable financial/document snapshots follow their own schedules.
+- **Visibility scope:** staff-only (`staff_only`) by default, with explicit `donor_visible` and `missionary_visible` allowlists through Phase 3's fail-closed role/record projection and current access checks; a relation, identity link or visibility flag alone grants no access.
+- **Provider link:** an identity/account association in Phase 4's `crm_record_links`, distinct from the immutable scoped per-message preparation/submission/provider-correlation identity; neither selects recipient or owner from an address.
+- **Quarantined event:** safely retained minimized delivery evidence that cannot resolve to one existing exact scoped message/communication, never fabricated history; later proved same-scope correlation may reconcile attachment.
+- **Export eligibility:** `isExportEligible` is the future contact-export contract consulting current consent, typed suppression provenance and governed Phase 3 projection/export policy; a historical send allow cannot authorize re-export, and newsletter/Mailchimp remains a reserved integration seam, never an executable communication channel.
+
+[Build recipe and prerequisite/owner links](docs/prds/sitestacker-parity/phase-06-communication-views-build-pattern.md)
+map these terms to the seven canonical Phase 6 ADRs and planned read slices.
+
 ## Language
 
 **Tenant**:
