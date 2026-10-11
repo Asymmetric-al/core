@@ -487,6 +487,124 @@ describe("apps/admin/app/(app)/crm gift detail entry", () => {
     });
   }, 90_000);
 
+  it.each([
+    { amountCents: 1, currencyCode: "USD", display: "$0.01" },
+    { amountCents: 1234, currencyCode: "USD", display: "$12.34" },
+    { amountCents: 7500, currencyCode: "USD", display: "$75.00" },
+    { amountCents: 1234, currencyCode: "EUR", display: "€12.34" },
+  ])(
+    "shows a $amountCents-cent gift consistently in history and activity",
+    async ({ amountCents, currencyCode, display }) => {
+      mockSearch = `donor=${DONOR_RECORD_ID}`;
+      useAdminCrmRecordDetailMock.mockReturnValue(
+        mockQuery({
+          data: {
+            ...crmDonorDetail,
+            giftHistory: [
+              {
+                ...crmDonorDetail.giftHistory[0],
+                amountCents,
+                currencyCode,
+                shared: { ...sharedGiftFields, amountCents, currencyCode },
+              },
+            ],
+            timeline: [
+              {
+                amountCents,
+                currencyCode,
+                description: "Clean Water Initiative",
+                id: `gift:${DONATION_ID}`,
+                kind: "gift",
+                occurredAt: "2026-05-01T00:00:00.000Z",
+                source: "platform",
+                title: "Gift received",
+                visibility: "standard",
+              },
+            ],
+          },
+        }),
+      );
+
+      const view = render(
+        <QueryProvider>
+          <CrmPage />
+        </QueryProvider>,
+      );
+
+      expect(
+        await view.findByRole("button", {
+          name: `Open gift detail for ${display} to Clean Water Initiative`,
+        }),
+      ).toBeTruthy();
+      expect(view.getByText(`+${display}`)).toBeTruthy();
+    },
+  );
+
+  it.each([0, null])(
+    "does not show an activity amount when its cents value is %s",
+    async (amountCents) => {
+      mockSearch = `donor=${DONOR_RECORD_ID}`;
+      useAdminCrmRecordDetailMock.mockReturnValue(
+        mockQuery({
+          data: {
+            ...crmDonorDetail,
+            timeline: [
+              {
+                amountCents,
+                currencyCode: null,
+                description: null,
+                id: "activity:no-amount",
+                kind: "activity",
+                occurredAt: "2026-05-01T00:00:00.000Z",
+                source: "platform",
+                title: "Call logged",
+                visibility: "standard",
+              },
+            ],
+          },
+        }),
+      );
+
+      const view = render(
+        <QueryProvider>
+          <CrmPage />
+        </QueryProvider>,
+      );
+
+      expect(await view.findByText("Call logged")).toBeTruthy();
+      expect(view.queryByText(/^\+\$/)).toBeNull();
+    },
+  );
+
+  it("treats fallback activity amounts as integer cents", async () => {
+    const { DetailDrawer } =
+      await import("../../../../../apps/admin/app/(app)/crm/detail-drawer");
+    useAdminCrmRecordDetailMock.mockReturnValue(mockQuery({ data: undefined }));
+
+    const view = render(
+      <QueryProvider>
+        <DetailDrawer
+          contact={{
+            ...crmGridRow,
+            activities: [
+              {
+                id: "activity:1",
+                type: "gift",
+                date: "2026-05-01T00:00:00.000Z",
+                title: "Gift received",
+                amount: 1234,
+              },
+            ],
+          }}
+          onClose={vi.fn()}
+          onOpenGift={vi.fn()}
+        />
+      </QueryProvider>,
+    );
+
+    expect(await view.findByText("+$12.34")).toBeTruthy();
+  });
+
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
     mockSearch = `donor=${DONOR_RECORD_ID}`;
     const fetchMock = vi.fn().mockResolvedValue({

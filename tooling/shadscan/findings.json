@@ -1727,7 +1727,7 @@
       "proof": [
         {
           "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
-          "sha256": "416bfde8a46c575e9f8491e1054722fd58a04d7f80e397d19284eb86246ceff4"
+          "sha256": "9235f6012e270886e99e63e5362256fa9f39470dd6b8368afe854ccc638d1c50"
         },
         {
           "path": "packages/database/hooks/admin-crm-detail.ts",
