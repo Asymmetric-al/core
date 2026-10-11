@@ -1,0 +1,288 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "isolation_level": "read committed",
+  "completed": true,
+  "passed": 8,
+  "total": 8,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "captured membership remains finite across filter change; duplicate candidate yields one scoped membership",
+      "pass": true,
+      "observed": {
+        "initial_filter": [
+          1,
+          2
+        ],
+        "later_filter": [
+          1,
+          3
+        ],
+        "capture": [
+          {
+            "party_id": 1,
+            "expected_revision": 0
+          },
+          {
+            "party_id": 2,
+            "expected_revision": 0
+          }
+        ],
+        "result": [
+          {
+            "outcome": "included",
+            "party_id": 1
+          },
+          {
+            "outcome": "included",
+            "party_id": 2
+          }
+        ],
+        "duplicate_error": "23505"
+      }
+    },
+    {
+      "test": "absent-to-excluded tombstone wins: waiting stale bulk add records conflict, never resurrects",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 162,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            154
+          ]
+        },
+        "outcome": [
+          {
+            "outcome": "conflict",
+            "party_id": 1
+          }
+        ],
+        "state": {
+          "members": [
+            {
+              "state": "excluded",
+              "party_id": 1,
+              "revision": 1,
+              "scope_id": 2,
+              "appeal_id": 1
+            }
+          ],
+          "history": [
+            {
+              "state": "excluded",
+              "party_id": 1,
+              "revision": 1,
+              "scope_id": 2,
+              "appeal_id": 1,
+              "command_key": "exclude"
+            }
+          ],
+          "receipts": 2,
+          "batches": 1
+        }
+      }
+    },
+    {
+      "test": "add wins then current explicit exclusion: old accepted batch replay cannot undo the later exclusion",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 198,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            190
+          ]
+        },
+        "old_result": [
+          {
+            "outcome": "included",
+            "party_id": 1
+          }
+        ],
+        "current_member": {
+          "state": "excluded",
+          "party_id": 1,
+          "revision": 2,
+          "scope_id": 3,
+          "appeal_id": 1
+        },
+        "history": [
+          {
+            "state": "included",
+            "party_id": 1,
+            "revision": 1,
+            "scope_id": 3,
+            "appeal_id": 1,
+            "command_key": "add-first"
+          },
+          {
+            "state": "excluded",
+            "party_id": 1,
+            "revision": 2,
+            "scope_id": 3,
+            "appeal_id": 1,
+            "command_key": "exclude-current"
+          }
+        ]
+      }
+    },
+    {
+      "test": "partial batch keeps item outcomes; exact retry after eligibility change and removal neither expands nor reapplies",
+      "pass": true,
+      "observed": {
+        "original_result": [
+          {
+            "outcome": "included",
+            "party_id": 1
+          },
+          {
+            "outcome": "unavailable",
+            "party_id": 2
+          },
+          {
+            "outcome": "not_included",
+            "party_id": 4
+          },
+          {
+            "outcome": "unavailable",
+            "party_id": 99
+          }
+        ],
+        "replayed_result": [
+          {
+            "outcome": "included",
+            "party_id": 1
+          },
+          {
+            "outcome": "unavailable",
+            "party_id": 2
+          },
+          {
+            "outcome": "not_included",
+            "party_id": 4
+          },
+          {
+            "outcome": "unavailable",
+            "party_id": 99
+          }
+        ],
+        "current_members": [
+          {
+            "state": "removed",
+            "party_id": 1,
+            "revision": 2,
+            "scope_id": 4,
+            "appeal_id": 1
+          },
+          {
+            "state": "removed",
+            "party_id": 4,
+            "revision": 1,
+            "scope_id": 4,
+            "appeal_id": 1
+          }
+        ]
+      }
+    },
+    {
+      "test": "late durable-receipt failure rolls back all proposed member and history writes; accepted capture remains recoverable",
+      "pass": true,
+      "observed": {
+        "error": "23514",
+        "state_unchanged": true,
+        "state": {
+          "members": [],
+          "history": [],
+          "receipts": 0,
+          "batches": 1
+        }
+      }
+    },
+    {
+      "test": "plain add skips recorded exclusion; explicit current return retains history and old return replay cannot undo later removal",
+      "pass": true,
+      "observed": {
+        "plain_add": [
+          {
+            "outcome": "not_included",
+            "party_id": 1
+          }
+        ],
+        "historic_return": {
+          "state": "included",
+          "party_id": 1,
+          "revision": 2
+        },
+        "stale_return": "40001",
+        "current_member": {
+          "state": "removed",
+          "party_id": 1,
+          "revision": 3,
+          "scope_id": 6,
+          "appeal_id": 1
+        }
+      }
+    },
+    {
+      "test": "same command normalizes order and duplicate IDs, but changing finite identities or conflicting observed versions cannot mutate it",
+      "pass": true,
+      "observed": {
+        "normalized": [
+          {
+            "party_id": 1,
+            "expected_revision": 0
+          },
+          {
+            "party_id": 2,
+            "expected_revision": 0
+          }
+        ],
+        "changed_identity_error": "23514",
+        "conflicting_duplicate_version": "22023"
+      }
+    },
+    {
+      "test": "concurrent exact membership batch retry returns one durable result with one member and one history entry",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 455,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            448
+          ]
+        },
+        "result": [
+          {
+            "outcome": "included",
+            "party_id": 1
+          }
+        ],
+        "state": {
+          "members": [
+            {
+              "state": "included",
+              "party_id": 1,
+              "revision": 1,
+              "scope_id": 8,
+              "appeal_id": 1
+            }
+          ],
+          "history": [
+            {
+              "state": "included",
+              "party_id": 1,
+              "revision": 1,
+              "scope_id": 8,
+              "appeal_id": 1,
+              "command_key": "same-batch"
+            }
+          ],
+          "receipts": 1,
+          "batches": 1
+        }
+      }
+    }
+  ]
+}

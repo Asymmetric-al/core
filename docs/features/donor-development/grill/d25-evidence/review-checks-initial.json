@@ -1,0 +1,1513 @@
+{
+  "checked_at_utc": "2026-10-10T19:04:43.584734+00:00",
+  "record_date": "2026-10-11",
+  "record_timezone": "Asia/Bangkok",
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "scope": "D25 selected A full adversarial research and exact amendments; no subsequent explicit ratification claimed. Documentation/provenance checks are distinct from the bounded new consumer-resolution experiment and real product qualification. No earlier experiment rerun or product/formal specification/live state changed.",
+  "pass": false,
+  "checks": [
+    {
+      "name": "Selected A and exact disposition recorded without subsequent ratification claim",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All 22 categories independently report material concern, grade, evidence, effect and prevention",
+      "pass": true,
+      "detail": {
+        "count": 22
+      }
+    },
+    {
+      "name": "Exact 19 requirements and 32 outcome acceptance cases present",
+      "pass": true,
+      "detail": {
+        "requirements": 19,
+        "acceptance_criteria": 32
+      }
+    },
+    {
+      "name": "All seven governing adversarial prompts answered",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Single intake and explicit owner extension without mandatory precursor",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Recorder, reported handling and responsibility are distinct",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent recording/handling and loss-after-posting correction preserved",
+      "pass": false,
+      "detail": null
+    },
+    {
+      "name": "Scoped unknown facts, exact reference and permission safeguards recorded",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No pending money, images, duplicate queues or automatic external contact",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Concrete accessible mobile and supported finance-grid boundary",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Source extension and monitoring have ordered qualification and accountable triggers",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Question, log and glossary trace reviewed D25 and preserve formal-work boundary",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Six evidence appendices exist and independent challenge resolved",
+      "pass": true,
+      "detail": {
+        "appendices": [
+          "docs/features/donor-development/grill/d25-evidence/ownership.md",
+          "docs/features/donor-development/grill/d25-evidence/authorization.md",
+          "docs/features/donor-development/grill/d25-evidence/implementation.md",
+          "docs/features/donor-development/grill/d25-evidence/ux.md",
+          "docs/features/donor-development/grill/d25-evidence/practice.md",
+          "docs/features/donor-development/grill/d25-evidence/independent-review.md"
+        ]
+      }
+    },
+    {
+      "name": "All prior decision/evidence files preserved outside three authorized record updates",
+      "pass": true,
+      "detail": {
+        "baseline_files": 305,
+        "allowed_changes": [
+          "CONTEXT.md",
+          "docs/features/donor-development/grill/phase27-grill-log.md",
+          "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md"
+        ],
+        "unexpected_changes": []
+      }
+    },
+    {
+      "name": "New research files confined to D25 review and evidence",
+      "pass": true,
+      "detail": {
+        "new_files": [
+          "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+          "docs/features/donor-development/grill/d25-evidence/implementation.md",
+          "docs/features/donor-development/grill/d25-evidence/authorization.md",
+          "docs/features/donor-development/grill/d25-evidence/practice.md",
+          "docs/features/donor-development/grill/d25-evidence/independent-review.md",
+          "docs/features/donor-development/grill/d25-evidence/ownership.md",
+          "docs/features/donor-development/grill/d25-evidence/ux.md",
+          "docs/features/donor-development/grill/d25-evidence/handoff-probe/README.md",
+          "docs/features/donor-development/grill/d25-evidence/handoff-probe/run-metadata.json",
+          "docs/features/donor-development/grill/d25-evidence/handoff-probe/mechanics.py",
+          "docs/features/donor-development/grill/d25-evidence/handoff-probe/results.json",
+          "docs/features/donor-development/grill/d25-evidence/handoff-probe/run-lab.py",
+          "docs/features/donor-development/grill/d25-evidence/handoff-probe/setup.sql"
+        ]
+      }
+    },
+    {
+      "name": "New probe reports seven completed passing invariant cases",
+      "pass": true,
+      "detail": {
+        "passed": 7,
+        "total": 7,
+        "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+        "isolation": "read committed"
+      }
+    },
+    {
+      "name": "Three schedules observed actual separate backend blocking",
+      "pass": true,
+      "detail": [
+        {
+          "waiter_pid": 291,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            284
+          ]
+        },
+        {
+          "waiter_pid": 340,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            334
+          ]
+        },
+        {
+          "waiter_pid": 463,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            456
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Executed fixture input hashes remain unchanged",
+      "pass": true,
+      "detail": {
+        "setup.sql": "62d581d1c296c289b36b9bc1185cbfda959515daba3c65a1e06c022acdf87fdd",
+        "mechanics.py": "dc23f74e2b07a28d279f65494cdb68debfa614790daa1dab6524ad9b5ebdf2fe",
+        "run-lab.py": "9cb5c119ff4ffb77e6b8e72adb9eb31fc6af0cd00089367dc4b6c7444e4f59a4"
+      }
+    },
+    {
+      "name": "Python fixture syntax parses without executing or rerunning",
+      "pass": true,
+      "detail": [
+        "mechanics.py",
+        "run-lab.py"
+      ]
+    },
+    {
+      "name": "Recorded experiment isolated with pinned image and no network or mounts",
+      "pass": true,
+      "detail": {
+        "network_mode": "none",
+        "port_bindings": {},
+        "binds": null,
+        "tmpfs": {
+          "/var/lib/postgresql/data": "rw,size=128m"
+        },
+        "mounts": []
+      }
+    },
+    {
+      "name": "Exact experiment container independently confirmed removed",
+      "pass": true,
+      "detail": {
+        "id": "77e3d3c451fd5604e90d70398fa08a19add81d9e09091f87552bcd437d93f5da",
+        "inspect_exit_code": 1,
+        "inspect_stderr": "Error response from daemon: No such container: 77e3d3c451fd5604e90d70398fa08a19add81d9e09091f87552bcd437d93f5da"
+      }
+    },
+    {
+      "name": "Synthetic proof limits explicit and prior experiments not rerun",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Local links, anchors and line references resolve",
+      "pass": true,
+      "detail": {
+        "count": 247,
+        "bad": []
+      }
+    },
+    {
+      "name": "All eleven reviewed Markdown files pass formatting",
+      "pass": true,
+      "detail": "Checking formatting...\nAll matched files use Prettier code style!\n"
+    },
+    {
+      "name": "Tracked whitespace check passes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Work remains in authorized documentation scope",
+      "pass": true,
+      "detail": [
+        " M CONTEXT.md",
+        "?? docs/features/donor-development/"
+      ]
+    }
+  ],
+  "markdown_files": [
+    {
+      "path": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "sha256": "01ac19e567dcdba40c5dfd9065df4e5a1098d37a8d8b4f38411ab03f5dda333b"
+    },
+    {
+      "path": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "sha256": "a848a4bd9bc19096c0217fd51fab9c5c1ce80cdb77004e820661c5a82cdf60f9"
+    },
+    {
+      "path": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "sha256": "aed02099cd3b6f5618d5df5ce6a82cf329383e3ceeb6310fc3fd9f802647e5ff"
+    },
+    {
+      "path": "CONTEXT.md",
+      "sha256": "a84a9e31b045cac0efdf21397110d6382122740966c0e7b31a08c6e8aa5ee2c9"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "sha256": "2978b9c8bb7906a3a391829284296b58888000ae0d5f39c6462669be68a5c2f6"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "sha256": "20549895737dee35f19982528126c5445bd33b3c37950b9ca5b498ac6dd97f26"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "sha256": "2b9a3e32d64b0791dd964db4b169333560249dd38cbfc69b0632580201fb4226"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "sha256": "fcb45e74e16cdb36b5821f29a6533f9d0894d4c40f104fb6fb698d851077f5d5"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d25-evidence/practice.md",
+      "sha256": "1d74f8e0807ca09cb4dd9f8f17579baf3b34030b6fcb6d05a57d6344c012e4b3"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d25-evidence/independent-review.md",
+      "sha256": "c5a3a9811601930e3545f94612d3dec9569410a5489d6129f5a706a8b50b39b4"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d25-evidence/handoff-probe/README.md",
+      "sha256": "34d785ea118caeee24143b5bc7ad90341f4cf67a536b00dc50e79d0f9dc1794a"
+    }
+  ],
+  "local_links": [
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/implementation.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/roadmap.md#phase-27-open-decisions",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:431",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1885",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:2000",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1101",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "../../../adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:76",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/handoff-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/handoff-probe/results.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/handoff-probe/run-metadata.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d25-adversarial-review.md",
+      "target": "d25-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "../../../prds/sitestacker-parity/roadmap.md#phase-27-open-decisions",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "phase27-financial-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:58",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1955",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:2000",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1101",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "../../../../packages/api/src/admin/contributions/offline-dependencies.ts:30",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "d24-ratification-q25-validation.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "d25-evidence/handoff-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "d25-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q25-gift-handoff-visibility.md",
+      "target": "d25-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q3-purpose-boundary.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d3-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d6-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d7-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d8-reopening-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d9-recorded-stage-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q11-stage-entry-requirements.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d18-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d19-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d20-current-stage-clearing-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q21-stage-edits-while-paused.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d21-paused-updates-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q22-partnership-request-scope.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d22-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d23-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d1-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q1-ministry-check.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d2-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d23-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/implementation.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/implementation.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/membership-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/implementation.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/handoff-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-program-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-crm-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-financial-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-privacy-support-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-fundraising-practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-ministry-practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d2-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d18-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d19-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d20-current-stage-clearing-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d21-paused-updates-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d22-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d6-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d7-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d8-reopening-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d9-recorded-stage-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q10-stage-customization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q11-stage-entry-requirements.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q12-stage-movement.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q13-initial-stage.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q14-additional-stage-lists.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q15-retiring-stage-lists.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q16-list-applicability.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q17-initial-list-choice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q18-changing-saved-list.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d18-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q19-stage-on-list-change.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d19-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q20-clearing-current-stage.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d20-current-stage-clearing-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q21-stage-edits-while-paused.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d21-paused-updates-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q22-partnership-request-scope.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d22-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q23-request-review-policy.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d23-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q24-appeal-working-audience.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-ratification-q25-validation.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q25-gift-handoff-visibility.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d3-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "CONTEXT.md",
+      "target": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md",
+      "valid": true
+    },
+    {
+      "from": "CONTEXT.md",
+      "target": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/glossary.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../phase27-q25-gift-handoff-visibility.md:26",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:429",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:531",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:389",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1955",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-07-receipt-statement-compliance-and-donor-credit.md:246",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-07-receipt-statement-compliance-and-donor-credit.md:305",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md:19",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../../openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md:3",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../adr/0007-undeposited-funds-deposit-model.md:22",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-20-accounting-exports-reconciliation.md:409",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-20-accounting-exports-reconciliation.md:903",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../../openspec/specs/donation-lifecycle/spec.md:44",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1101",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:74",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:252",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:100",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:271",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:24",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:71",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../phase27-d22-adversarial-review.md:22",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../phase27-d23-adversarial-review.md:21",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../phase27-q24-appeal-working-audience.md:62",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1993",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1421",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:120",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../phase27-q25-gift-handoff-visibility.md:33",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1885",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1955",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-07-receipt-statement-compliance-and-donor-credit.md:13",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1552",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1619",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:2846",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-03-minimum-permission-role-scoped-projection-foundation.md:273",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-10-sensitive-data-safety.md:100",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/admin/contributions/offline-route.ts:39",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/admin/contribution-operations/permissions.ts:25",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/admin/contributions/offline-dependencies.ts:36",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/admin/contributions/staged-gifts.ts:106",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/giving/staged-gifts.ts:35",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260512190000_phase_03_giving_pipeline.sql:64",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/schemas/contributions-offline.ts:75",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:143",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/email/assets.ts:146",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260511024000_email_assets_storage_bucket.sql:1",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:57",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:737",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260512190000_phase_03_giving_pipeline.sql:412",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260513173739_expose_phase_03_service_tables_to_rest.sql:9",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260513173938_add_phase_03_rest_visibility_deny_policies.sql:16",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/admin/contributions/offline-dependencies.ts:12",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/admin/contributions/offline-route.ts:32",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:58",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/admin/contributions/offline-entry.ts:86",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/admin/contributions/offline-logic.ts:31",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/giving/staged-gifts.ts:12",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/giving/staged-gifts.ts:313",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/giving/staged-gifts.ts:123",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/admin/contributions/staged-gifts.ts:25",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/giving/staged-gifts.ts:477",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../packages/api/src/giving/staged-gifts.ts:400",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../supabase/migrations/20260707220134_atomic_staged_gift_allocation_replace.sql:1",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../supabase/migrations/20260512190000_phase_03_giving_pipeline.sql:64",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../supabase/migrations/20260818010000_retire_twenty_crm_runtime.sql:39",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../../supabase/migrations/20260820001000_begin_donation_saga_fee_extras.sql:46",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:58",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:600",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:1955",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:2000",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1101",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "../../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:983",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/implementation.md",
+      "target": "handoff-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../phase27-q25-gift-handoff-visibility.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/main-body.tsx>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../../../../../packages/api/src/admin/contributions/offline-dependencies.ts",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog.tsx>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/offline-gift/offline-gift-form-model.ts>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../../../../../packages/api/src/money/index.ts",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/needs-attention-panel.tsx>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/batch-continuation.ts>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/freshness-indicator.tsx>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/main-body.tsx>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../../../../../packages/ui/components/primitives/tanstack-form.tsx",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../../../../../packages/ui/components/shadcn/dialog.tsx",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../../../../../packages/ui/components.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/ux.md",
+      "target": "../../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/independent-review.md",
+      "target": "../phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/independent-review.md",
+      "target": "ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/independent-review.md",
+      "target": "handoff-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/handoff-probe/README.md",
+      "target": "setup.sql",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/handoff-probe/README.md",
+      "target": "mechanics.py",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/handoff-probe/README.md",
+      "target": "run-lab.py",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/handoff-probe/README.md",
+      "target": "results.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d25-evidence/handoff-probe/README.md",
+      "target": "run-metadata.json",
+      "valid": true
+    }
+  ]
+}

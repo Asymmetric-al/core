@@ -36,6 +36,33 @@ A Studio role resolution cannot independently mutate shared task authority. Appl
 - IG-11: reject unsupported authority/bypass fields while validating legitimate source-specific selectors. Proposed paths and capability strings are not discovered runtime inventory.
 - IG-12: reference JSON/schema validation is structural evidence only; all unbound source contracts remain unavailable. Phase 43/44 adapters are optional extensions, not backward prerequisites.
 
+### P27-D22-D25-D29-2026-10-11 — DON-15 scoped source successor
+
+The ratified Phase 27 D22–D25/D29 contract supersedes only DON-15's captured
+trigger, coordination steps, permitted configuration, protected/evidence clauses,
+clock, semantic idempotency and exception handling. The canonical recipe records
+this exact amendment; its three existing acceptance IDs retain their identity and
+specified-not-executed status with explicit successor scenarios. The immutable
+September 22 source remains provenance, not an authorization for conflicting
+current behavior.
+
+DON-15 consumes common financial/nonfinancial Requests and deliberate appeal work.
+D23 review applies only when the effective source policy requires it; a finite
+selection summary is not proposal approval. Discovery filters never rewrite D24
+membership. Current review/terms/authority and membership-dependent validity are
+checked at the actual owning action/dispatch-admission boundary. Native and optional
+coordination share one permanent source-purpose effect identity. P15 alone owns
+reported intake and independent recording/handling resolution.
+
+This binding introduces no default clock, reminder, escalation, review ceremony,
+guessed recipient or fallback queue. Source-owned due/review dates and any separately
+qualified, deliberately configured optional schedule retain their own meaning.
+Missing eligible responsibility has an owned source recovery exception; uncertainty
+blocks its dependent action without inventing source facts or reviving ended work.
+These narrower DON-15 rules do not change any other recipe or general Studio timing
+and queue contract. The recipe remains disabled and its exact source binding remains
+unqualified until real owner evidence and deliberate activation exist.
+
 ## Qualification register
 
 Every row must gain an exact contract/version, accountable owner, allowed purpose/data, failure and cancellation semantics, proof artifact and requalification trigger before that capability is activated. No row is resolved by this document. Keep incompatible owner changes as explicit successor decisions.

@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-10-10T15:17:10.475213+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d17-default-lab-157241",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d17-default-lab-157241",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "Controlled default-set/withdrawal schedules with exact pg_blocking_pids barriers plus atomic disposition, restoration replay and pinned-intent checks; not load testing",
+  "input_sha256": {
+    "setup.sql": "aa4cefd212f9a1daa4f7995fea3e4748f42d52aef9a5188f3a58992cdf79b111",
+    "mechanics.py": "d32224c9a5fa2380becb6f114d579bcd27b53f61b98e27c3139ddee3acbbd9da",
+    "run-lab.py": "0f4fd0d78e8801c1e0e56419539af934bce17e7e82e57b3f40ce833e58918542"
+  },
+  "container_id": "3a941b689d58f0a18f612a40e429b1b254f9c4232abe45643e027ee8272b12fe",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 1,
+  "test_stdout": "",
+  "test_stderr": "Traceback (most recent call last):\n  File \"/workspace/core/docs/features/donor-development/grill/d17-evidence/default-probe/mechanics.py\", line 166, in <module>\n    withdrawal_result=json.loads(readline(first));marker(first,'held')\n                                                  ^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/core/docs/features/donor-development/grill/d17-evidence/default-probe/mechanics.py\", line 75, in marker\n    actual = readline(process)\n             ^^^^^^^^^^^^^^^^^\n  File \"/workspace/core/docs/features/donor-development/grill/d17-evidence/default-probe/mechanics.py\", line 67, in readline\n    raise RuntimeError(\"Transaction output barrier timeout\")\nRuntimeError: Transaction output barrier timeout",
+  "cleanup_exit_code": 0,
+  "container_removed": true,
+  "finished_at": "2026-10-10T15:17:24.223995+00:00"
+}

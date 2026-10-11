@@ -1686,15 +1686,15 @@ All 96 recipes retain their source identity and full requirements. Delivery owne
 
 **subject:** development_case
 
-**trigger:** Development owner opens a proposal or approved appeal cohort
+**trigger:** P27 accepts a deliberate Request or appeal coordination source occurrence under current authority; membership or a saved-filter change alone does not create source work.
 
-**steps:** Prepare supporting facts; request required human review; assign outreach; observe source responses; schedule stewardship
+**steps:** Read currently permitted Request terms, actual response and relevant source facts; Request D23 internal review only when the effective source policy requires it, bound to exact terms and eligible reviewer; Create or continue only actual source-qualified next work under its permanent identity shared with native follow-through; Admit supported outward action through its owner with current review, terms, authority and applicable appeal membership/closure fences; Observe actual source responses and outcomes without manufacturing agreement, money, consent, booking or revived ended effects
 
-**editable:** Source-permitted reviewer routing, audience filters, cadence
+**editable:** Source-permitted reviewer routing and discovery filters; filters never rewrite recorded membership. Any optional cadence requires separate source qualification and deliberate tenant configuration.
 
-**protected:** Never-ask/contact restrictions and explicit currency/entity remain binding
+**protected:** P27 D22-D25/D29 govern one financial/nonfinancial Request and recorded appeal plan. A selection summary is not proposal approval. Current never-ask/contact, exact field/purpose authority, relevant currency/entity, review applicability and membership-dependent dispatch-admission fences remain binding. No automatic enrollment, financial result or general appeal approval is inferred.
 
-**evidence:** Exact proposal/appeal approval and source response
+**evidence:** Exact source Request/terms and actual presentation/response; effective review requirement and decision only when applicable; deliberate membership and source work/dispatch disposition. P15 alone supplies exact intake lineage and recording/handling outcomes. No synthetic appeal approval or copied money authority.
 
 **sourceDependencyLabels:** contributions; crm; recognition; tasks; messages; communications
 
@@ -1702,13 +1702,13 @@ All 96 recipes retain their source identity and full requirements. Delivery owne
 
 **default_activation:** disabled
 
-**clock_policy:** Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.
+**clock_policy:** P27 has no binding-default reminder, clock or escalation. Use the exact source-owned due/review dates or a separately qualified and deliberately configured optional schedule. No three-business-day fallback, outward reminder or internal escalation is introduced by this binding.
 
 **audience:** Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.
 
-**idempotency:** Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.
+**idempotency:** Use the qualified permanent source-purpose business-effect identity shared with native work; recipe adoption or replay cannot create another task or delivery. Preserve tenant/environment/source occurrence and the exact recipient where its owning contract requires it; reauthorize current result disclosure.
 
-**exception_policy:** Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.
+**exception_policy:** Use current eligible source-owned responsibility or an explicit owned actionable recovery exception. No guessed queue, administrator or broadcast; no auto-approval. Unknown facts, policy or outcome block only the dependent action for source reconciliation; completed source history remains truthful and ended work does not revive.
 
 **acceptance_ids:** T-DON-15-01; T-DON-15-02; T-DON-15-03
 

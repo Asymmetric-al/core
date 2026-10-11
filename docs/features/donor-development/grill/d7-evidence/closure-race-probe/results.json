@@ -1,0 +1,36 @@
+{
+  "version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "scope": "Six controlled PostgreSQL mechanics checks only; no Core schema, auth, runtime, load or D7 implementation qualification",
+  "results": [
+    {
+      "test": "FK child admission succeeds while parent NO KEY UPDATE lock is held",
+      "pass": true,
+      "observed": "child_committed"
+    },
+    {
+      "test": "stale no-obligations precheck can close a scope containing new work",
+      "pass": true,
+      "observed": "false,1"
+    },
+    {
+      "test": "participating work writer blocks behind closure fence",
+      "pass": true,
+      "observed": "pg_stat_activity Lock wait observed"
+    },
+    {
+      "test": "closure first prevents later admission after current-state recheck",
+      "pass": true,
+      "observed": "false,0"
+    },
+    {
+      "test": "participating closure writer blocks behind work fence",
+      "pass": true,
+      "observed": "pg_stat_activity Lock wait observed"
+    },
+    {
+      "test": "work first prevents closure through current obligation check",
+      "pass": true,
+      "observed": "true,1"
+    }
+  ]
+}

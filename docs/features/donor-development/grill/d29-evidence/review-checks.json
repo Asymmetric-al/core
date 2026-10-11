@@ -1,0 +1,1488 @@
+{
+  "checked_at_utc": "2026-10-11T08:27:17.273970+00:00",
+  "record_date": "2026-10-11",
+  "record_timezone": "Asia/Bangkok",
+  "repo_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "scope": "D29 selected A review with required amendments; all 22 categories, 16 exact clauses, 36 acceptance criteria, five focused appendices and independent challenge. These checks establish document structure, links, formatting and prior source preservation only. No later ratification, product implementation, formal owner edit, issue publication, live DB change, old probe rerun, production performance test or observed usability qualification.",
+  "pass": true,
+  "checks": [
+    {
+      "name": "Selected A and review disposition consistent without implied ratification",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Question preserved as history; no false unanswered current state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Corrected decision and final disposition present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All sixteen exact requirements numbered once",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All thirty-six acceptance outcomes numbered once",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All twenty-two categories independently dispositioned",
+      "pass": true,
+      "detail": {
+        "categories": [
+          "Problem validity, necessity and alternatives",
+          "Brittleness",
+          "Technical debt",
+          "Edge cases",
+          "Footguns",
+          "Tenant safety",
+          "Database, RLS and authorization safety",
+          "Overengineering",
+          "UX/UI and user friction",
+          "Source of truth, ownership and invariants",
+          "Hidden coupling",
+          "Failure modes",
+          "Lifecycle, time, concurrency and idempotency",
+          "Data integrity",
+          "Security and privacy",
+          "Scalability and performance",
+          "Operational burden",
+          "Observability and auditability",
+          "Dependency and integration risks",
+          "Migration, rollout and upgrade",
+          "Testability, traceability and proof",
+          "Other development hazards"
+        ]
+      }
+    },
+    {
+      "name": "Concern rows contain severity likelihood evidence impact and exact prevention",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Chosen scope remains small with credible no-build and narrower alternatives",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Financial nonfinancial responses execution and planning are independent",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Source-qualified response correction is resolved in main and independent review",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Cardinality source references and historic association meaning explicit",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Exact financial distinctions coverage correction and coherent revisions preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Counts denominators zero unknown and overlaps are truthful",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Authority RLS grants constraints and private derivatives covered",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Closure revocation retry timing and independent work requirements explicit",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "UI shared system board accessibility mobile and recovery clauses present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent optional owners do not block nonfinancial work",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Formal owner reconciliation is explicit and not claimed executed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Monitoring gives signals thresholds owners responses and assigned-operator gate",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Primary evidence dates and present behavior versus target proof distinguished",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Actual implementation reuse gaps documented without production vulnerability claims",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No false runtime pilot or implementation proof",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Prior 357-file baseline preserved outside three authorized live records",
+      "pass": true,
+      "detail": {
+        "baseline_files": 357,
+        "preserved_files": 354,
+        "allowed_changes": [
+          "CONTEXT.md",
+          "docs/features/donor-development/grill/phase27-grill-log.md",
+          "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md"
+        ],
+        "unexpected_changes": []
+      }
+    },
+    {
+      "name": "Every D28 decision evidence and ratification artifact unchanged",
+      "pass": true,
+      "detail": {
+        "preserved_files": 10
+      }
+    },
+    {
+      "name": "Glossary changed only the Development appeal definition",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Only planned D29 review and evidence paths added",
+      "pass": true,
+      "detail": {
+        "new_paths": [
+          "docs/features/donor-development/grill/d29-evidence/authorization.md",
+          "docs/features/donor-development/grill/d29-evidence/financial.md",
+          "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+          "docs/features/donor-development/grill/d29-evidence/ownership.md",
+          "docs/features/donor-development/grill/d29-evidence/practice.md",
+          "docs/features/donor-development/grill/d29-evidence/review-checks.json",
+          "docs/features/donor-development/grill/d29-evidence/ux.md",
+          "docs/features/donor-development/grill/phase27-d29-adversarial-review.md"
+        ],
+        "unexpected": []
+      }
+    },
+    {
+      "name": "All local links anchors and source line references resolve",
+      "pass": true,
+      "detail": {
+        "count": 246,
+        "bad": []
+      }
+    },
+    {
+      "name": "Ten Markdown artifacts pass formatting",
+      "pass": true,
+      "detail": "Checking formatting...\nAll matched files use Prettier code style!\n"
+    },
+    {
+      "name": "Tracked whitespace check passes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Workspace changes remain authorized documentation only",
+      "pass": true,
+      "detail": [
+        " M CONTEXT.md",
+        "?? docs/features/donor-development/"
+      ]
+    }
+  ],
+  "markdown_files": [
+    {
+      "path": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "sha256": "5e6d4f5cb29163086af2064b40482b063efe6f681eaba9ae88eec98279a2438e"
+    },
+    {
+      "path": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "sha256": "d486b69a5ad451865f147c4d078e474093b115ad12e7e8ca9a1a7411e238d531"
+    },
+    {
+      "path": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "sha256": "c3d6f4ca90e4e02a4107f4469ccc0965a4f577c6fe63b45e421198ba18338197"
+    },
+    {
+      "path": "CONTEXT.md",
+      "sha256": "4b35787a4f238ccaec9ac5f2c857611e216ca530e02e2f34e71a1deacfefe3c4"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d29-evidence/practice.md",
+      "sha256": "8b195cd54a52c6f29d2ad7f4bda577f225948f9b722f18e5696754407de6924e"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "sha256": "f45b68c3b152b9af057c32548d7c293c4f4e96a80443bf441155c13fba61ac4a"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "sha256": "e067ca171fff04b4247d3fe87039b1e3279123dc60b66198b9202795b6428490"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "sha256": "49cccb29e99235610ae06009753b1a4ba84a60b6cc2b0237aa13cc85fbba14ce"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "sha256": "32e14c60492733793c68a49a6a565e6b7184dc497820f561e40e40dd361ef6a3"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+      "sha256": "2d53be7572bd79da83799fcf923015d71447361f87b21bd17a660006a09cab03"
+    }
+  ],
+  "local_links": [
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/financial.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "phase27-d22-adversarial-review.md#exact-decision-recorded",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "phase27-d24-adversarial-review.md#exact-decision-recorded",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/roadmap.md#phase-27-what-it-covers",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "../../../prds/program-roadmap/owner-constraints.md#phase-27",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "../../../adr/0027-one-notification-presentation-and-engagement-model.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d29-adversarial-review.md",
+      "target": "d29-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "target": "phase27-d22-adversarial-review.md#exact-decision-recorded",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "target": "phase27-d24-adversarial-review.md#exact-decision-recorded",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "target": "../../../prds/sitestacker-parity/roadmap.md#phase-27-what-it-covers",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "target": "../../../prds/program-roadmap/owner-constraints.md#phase-27",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "target": "phase27-d29-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q29-appeal-purpose-scope.md",
+      "target": "d29-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q3-purpose-boundary.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d3-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d6-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d7-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d8-reopening-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d9-recorded-stage-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q11-stage-entry-requirements.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d18-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d19-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d20-current-stage-clearing-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q21-stage-edits-while-paused.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d21-paused-updates-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q22-partnership-request-scope.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d22-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d23-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d26-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d27-contact-recency-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d1-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q1-ministry-check.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d2-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d23-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/implementation.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/implementation.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/membership-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/implementation.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/independent-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/handoff-probe/README.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d29-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q28-relationship-attention.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d28-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d26-adversarial-review.md#explicit-owner-reconciliation",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-program-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-crm-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-financial-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-privacy-support-research.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-fundraising-practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-ministry-practice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d2-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d18-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d19-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d20-current-stage-clearing-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d21-paused-updates-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d26-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d27-contact-recency-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d28-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d29-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d22-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d6-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d7-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d8-reopening-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d9-recorded-stage-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q10-stage-customization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q11-stage-entry-requirements.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q12-stage-movement.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q13-initial-stage.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q14-additional-stage-lists.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q15-retiring-stage-lists.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q16-list-applicability.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q17-initial-list-choice.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q18-changing-saved-list.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d18-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q19-stage-on-list-change.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d19-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q20-clearing-current-stage.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d20-current-stage-clearing-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q21-stage-edits-while-paused.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d21-paused-updates-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q22-partnership-request-scope.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d22-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q23-request-review-policy.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d23-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d23-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q24-appeal-working-audience.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d24-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d24-ratification-q25-validation.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q25-gift-handoff-visibility.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d25-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d25-ratification-q26-validation.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q26-shared-partnership-updates.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d26-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d26-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d26-ratification-q27-validation.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q27-meaningful-contact.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d27-contact-recency-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d27-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d27-ratification-q28-validation.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q28-relationship-attention.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d28-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d28-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d28-ratification-q29-validation.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q29-appeal-purpose-scope.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d29-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "d29-evidence/review-checks.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d3-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "CONTEXT.md",
+      "target": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md",
+      "valid": true
+    },
+    {
+      "from": "CONTEXT.md",
+      "target": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/glossary.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../phase27-d22-adversarial-review.md:295",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../phase27-d22-adversarial-review.md:404",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../phase27-d24-adversarial-review.md:22",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../phase27-d25-adversarial-review.md:24",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../phase27-d28-adversarial-review.md:25",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md:780",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../prds/sitestacker-parity/phase-14-donor-credit-operations.md:316",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:983",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../prds/sitestacker-parity/phase-25-donor-dashboard-depth/contracts/financial.md:125",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../prds/sitestacker-parity/roadmap.md:4603",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../../packages/database/types/crm-reports.ts:1",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../../packages/api/src/admin/crm/reports/service.ts:53",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../../packages/api/src/admin/crm/reports/service.ts:79",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../../packages/api/src/admin/crm/reports/service.ts:155",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/financial.md",
+      "target": "../../../../../packages/api/src/admin/contribution-shared/effective-values.ts:85",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-q29-appeal-purpose-scope.md#founder-question--a-selected",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-q29-appeal-purpose-scope.md#original-question-boundaries--preserved-history",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/roadmap.md:4093",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../../../../prds/program-roadmap/owner-constraints.md:35",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-q24-appeal-working-audience.md:27",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d22-adversarial-review.md:22",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d22-adversarial-review.md:295",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d24-adversarial-review.md:24",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d24-adversarial-review.md:142",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md:1620",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d22-adversarial-review.md:152",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d25-adversarial-review.md:46",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d24-adversarial-review.md:136",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:24",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:71",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d7-adversarial-review.md:45",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d26-adversarial-review.md:144",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../phase27-d28-adversarial-review.md:20",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:1213",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ownership.md",
+      "target": "../../../../../openspec/specs/platform-boundaries/spec.md:188",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../phase27-d22-adversarial-review.md:22",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../phase27-d23-adversarial-review.md:28",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../phase27-d24-adversarial-review.md:206",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../phase27-d25-adversarial-review.md:24",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../phase27-d26-adversarial-review.md:38",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md:1619",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:24",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../packages/database/collections/admin-workspace.ts:10",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260214090000_foundation_1_schema.sql:9",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260216153000_demo_readonly_rls.sql:13",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/admin/crm/reports/service.ts:79",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/admin/crm/reports/export.ts:9",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/admin/crm/notes/service.ts:256",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/crm/commands/log.ts:46",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../packages/api/src/email/consent.ts:178",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260818000000_crm_notes.sql:39",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260513173938_add_phase_03_rest_visibility_deny_policies.sql:1",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../supabase/migrations/20260707220134_atomic_staged_gift_allocation_replace.sql:22",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../tests/unit/packages/api/admin/contributions/staged-gifts-allocations.test.ts:55",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/authorization.md",
+      "target": "../../../../../tests/unit/packages/api/admin/contribution-viewer-projection.test.ts:98",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../phase27-q29-appeal-purpose-scope.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../phase27-d22-adversarial-review.md#exact-decision-recorded",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../phase27-d24-adversarial-review.md#exact-decision-recorded",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../phase27-d25-adversarial-review.md#exact-corrected-decision",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../phase27-d26-adversarial-review.md#exact-corrected-decision",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../phase27-d28-adversarial-review.md#exact-corrected-decision",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/ui/components/shadcn/data-table/data-table-body.tsx",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/ui/components/shadcn/data-table/data-table-action-bar.tsx",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/database/hooks/admin-crm-infinite.ts",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/ui/components/shadcn/data-table/utils/export.ts",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/crm/detail-drawer.tsx>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "<../../../../../apps/admin/app/(app)/contributions/main-body.tsx>",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/ui/components/primitives/tanstack-form.tsx",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/ui/components/shadcn/dialog.tsx",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/ui/components.json",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/ux.md",
+      "target": "../../../../../packages/api/src/money/index.ts",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+      "target": "../phase27-d29-adversarial-review.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+      "target": "ownership.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+      "target": "financial.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+      "target": "authorization.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+      "target": "ux.md",
+      "valid": true
+    },
+    {
+      "from": "docs/features/donor-development/grill/d29-evidence/independent-review.md",
+      "target": "practice.md",
+      "valid": true
+    }
+  ]
+}

@@ -1,0 +1,4861 @@
+{
+  "version": "phase27-ratified-spec-2026-10-11-v1",
+  "authority": "stories.json owns stories; normative Markdown volumes own requirements and acceptance; this index and OpenSpec are generated",
+  "counts": {
+    "stories": 193,
+    "requirements": 193,
+    "acceptance": 711,
+    "projectedScenarios": 1038
+  },
+  "stories": [
+    {
+      "id": "US27-P01",
+      "requirements": ["REQ27-P01", "REQ27-P02"],
+      "acceptance": [
+        "AC27-P01-01",
+        "AC27-P01-02",
+        "AC27-P01-03",
+        "AC27-P01-04",
+        "AC27-P01-05",
+        "AC27-P02-01",
+        "AC27-P02-02",
+        "AC27-P02-03",
+        "AC27-P02-04",
+        "AC27-P02-05"
+      ]
+    },
+    {
+      "id": "US27-P02",
+      "requirements": ["REQ27-P01"],
+      "acceptance": [
+        "AC27-P01-01",
+        "AC27-P01-02",
+        "AC27-P01-03",
+        "AC27-P01-04",
+        "AC27-P01-05"
+      ]
+    },
+    {
+      "id": "US27-P03",
+      "requirements": ["REQ27-P01", "REQ27-P03"],
+      "acceptance": [
+        "AC27-P01-01",
+        "AC27-P01-02",
+        "AC27-P01-03",
+        "AC27-P01-04",
+        "AC27-P01-05",
+        "AC27-P03-01",
+        "AC27-P03-02",
+        "AC27-P03-03",
+        "AC27-P03-04",
+        "AC27-P03-05"
+      ]
+    },
+    {
+      "id": "US27-P04",
+      "requirements": ["REQ27-P02", "REQ27-P31"],
+      "acceptance": [
+        "AC27-P02-01",
+        "AC27-P02-02",
+        "AC27-P02-03",
+        "AC27-P02-04",
+        "AC27-P02-05",
+        "AC27-P31-01",
+        "AC27-P31-02",
+        "AC27-P31-03",
+        "AC27-P31-04",
+        "AC27-P31-05",
+        "AC27-P31-06",
+        "AC27-P31-07"
+      ]
+    },
+    {
+      "id": "US27-P05",
+      "requirements": ["REQ27-P02"],
+      "acceptance": [
+        "AC27-P02-01",
+        "AC27-P02-02",
+        "AC27-P02-03",
+        "AC27-P02-04",
+        "AC27-P02-05"
+      ]
+    },
+    {
+      "id": "US27-P06",
+      "requirements": ["REQ27-P03"],
+      "acceptance": [
+        "AC27-P03-01",
+        "AC27-P03-02",
+        "AC27-P03-03",
+        "AC27-P03-04",
+        "AC27-P03-05"
+      ]
+    },
+    {
+      "id": "US27-P07",
+      "requirements": ["REQ27-P03", "REQ27-P13"],
+      "acceptance": [
+        "AC27-P03-01",
+        "AC27-P03-02",
+        "AC27-P03-03",
+        "AC27-P03-04",
+        "AC27-P03-05",
+        "AC27-P13-01",
+        "AC27-P13-02",
+        "AC27-P13-03",
+        "AC27-P13-04",
+        "AC27-P13-05",
+        "AC27-P13-06",
+        "AC27-P13-07",
+        "AC27-P13-08",
+        "AC27-P13-09"
+      ]
+    },
+    {
+      "id": "US27-P08",
+      "requirements": ["REQ27-P04"],
+      "acceptance": [
+        "AC27-P04-01",
+        "AC27-P04-02",
+        "AC27-P04-03",
+        "AC27-P04-04",
+        "AC27-P04-05",
+        "AC27-P04-06",
+        "AC27-P04-07"
+      ]
+    },
+    {
+      "id": "US27-P09",
+      "requirements": ["REQ27-P04"],
+      "acceptance": [
+        "AC27-P04-01",
+        "AC27-P04-02",
+        "AC27-P04-03",
+        "AC27-P04-04",
+        "AC27-P04-05",
+        "AC27-P04-06",
+        "AC27-P04-07"
+      ]
+    },
+    {
+      "id": "US27-P10",
+      "requirements": ["REQ27-P04", "REQ27-P13", "REQ27-P30"],
+      "acceptance": [
+        "AC27-P04-01",
+        "AC27-P04-02",
+        "AC27-P04-03",
+        "AC27-P04-04",
+        "AC27-P04-05",
+        "AC27-P04-06",
+        "AC27-P04-07",
+        "AC27-P13-01",
+        "AC27-P13-02",
+        "AC27-P13-03",
+        "AC27-P13-04",
+        "AC27-P13-05",
+        "AC27-P13-06",
+        "AC27-P13-07",
+        "AC27-P13-08",
+        "AC27-P13-09",
+        "AC27-P30-01",
+        "AC27-P30-02",
+        "AC27-P30-03",
+        "AC27-P30-04",
+        "AC27-P30-05",
+        "AC27-P30-06",
+        "AC27-P30-07"
+      ]
+    },
+    {
+      "id": "US27-P11",
+      "requirements": ["REQ27-P05"],
+      "acceptance": [
+        "AC27-P05-01",
+        "AC27-P05-02",
+        "AC27-P05-03",
+        "AC27-P05-04",
+        "AC27-P05-05"
+      ]
+    },
+    {
+      "id": "US27-P12",
+      "requirements": ["REQ27-P05", "REQ27-P07", "REQ27-P10"],
+      "acceptance": [
+        "AC27-P05-01",
+        "AC27-P05-02",
+        "AC27-P05-03",
+        "AC27-P05-04",
+        "AC27-P05-05",
+        "AC27-P07-01",
+        "AC27-P07-02",
+        "AC27-P07-03",
+        "AC27-P07-04",
+        "AC27-P07-05",
+        "AC27-P07-06",
+        "AC27-P10-01",
+        "AC27-P10-02",
+        "AC27-P10-03",
+        "AC27-P10-04",
+        "AC27-P10-05",
+        "AC27-P10-06",
+        "AC27-P10-07",
+        "AC27-P10-08"
+      ]
+    },
+    {
+      "id": "US27-P13",
+      "requirements": ["REQ27-P06"],
+      "acceptance": [
+        "AC27-P06-01",
+        "AC27-P06-02",
+        "AC27-P06-03",
+        "AC27-P06-04",
+        "AC27-P06-05",
+        "AC27-P06-06"
+      ]
+    },
+    {
+      "id": "US27-P14",
+      "requirements": ["REQ27-P06"],
+      "acceptance": [
+        "AC27-P06-01",
+        "AC27-P06-02",
+        "AC27-P06-03",
+        "AC27-P06-04",
+        "AC27-P06-05",
+        "AC27-P06-06"
+      ]
+    },
+    {
+      "id": "US27-P15",
+      "requirements": ["REQ27-P07"],
+      "acceptance": [
+        "AC27-P07-01",
+        "AC27-P07-02",
+        "AC27-P07-03",
+        "AC27-P07-04",
+        "AC27-P07-05",
+        "AC27-P07-06"
+      ]
+    },
+    {
+      "id": "US27-P16",
+      "requirements": ["REQ27-P07"],
+      "acceptance": [
+        "AC27-P07-01",
+        "AC27-P07-02",
+        "AC27-P07-03",
+        "AC27-P07-04",
+        "AC27-P07-05",
+        "AC27-P07-06"
+      ]
+    },
+    {
+      "id": "US27-P17",
+      "requirements": ["REQ27-P08"],
+      "acceptance": [
+        "AC27-P08-01",
+        "AC27-P08-02",
+        "AC27-P08-03",
+        "AC27-P08-04",
+        "AC27-P08-05",
+        "AC27-P08-06"
+      ]
+    },
+    {
+      "id": "US27-P18",
+      "requirements": ["REQ27-P08", "REQ27-P11"],
+      "acceptance": [
+        "AC27-P08-01",
+        "AC27-P08-02",
+        "AC27-P08-03",
+        "AC27-P08-04",
+        "AC27-P08-05",
+        "AC27-P08-06",
+        "AC27-P11-01",
+        "AC27-P11-02",
+        "AC27-P11-03",
+        "AC27-P11-04",
+        "AC27-P11-05",
+        "AC27-P11-06",
+        "AC27-P11-07",
+        "AC27-P11-08"
+      ]
+    },
+    {
+      "id": "US27-P19",
+      "requirements": ["REQ27-P08", "REQ27-P09"],
+      "acceptance": [
+        "AC27-P08-01",
+        "AC27-P08-02",
+        "AC27-P08-03",
+        "AC27-P08-04",
+        "AC27-P08-05",
+        "AC27-P08-06",
+        "AC27-P09-01",
+        "AC27-P09-02",
+        "AC27-P09-03",
+        "AC27-P09-04",
+        "AC27-P09-05",
+        "AC27-P09-06"
+      ]
+    },
+    {
+      "id": "US27-P20",
+      "requirements": ["REQ27-P09"],
+      "acceptance": [
+        "AC27-P09-01",
+        "AC27-P09-02",
+        "AC27-P09-03",
+        "AC27-P09-04",
+        "AC27-P09-05",
+        "AC27-P09-06"
+      ]
+    },
+    {
+      "id": "US27-P21",
+      "requirements": ["REQ27-P10"],
+      "acceptance": [
+        "AC27-P10-01",
+        "AC27-P10-02",
+        "AC27-P10-03",
+        "AC27-P10-04",
+        "AC27-P10-05",
+        "AC27-P10-06",
+        "AC27-P10-07",
+        "AC27-P10-08"
+      ]
+    },
+    {
+      "id": "US27-P22",
+      "requirements": ["REQ27-P10"],
+      "acceptance": [
+        "AC27-P10-01",
+        "AC27-P10-02",
+        "AC27-P10-03",
+        "AC27-P10-04",
+        "AC27-P10-05",
+        "AC27-P10-06",
+        "AC27-P10-07",
+        "AC27-P10-08"
+      ]
+    },
+    {
+      "id": "US27-P23",
+      "requirements": ["REQ27-P11"],
+      "acceptance": [
+        "AC27-P11-01",
+        "AC27-P11-02",
+        "AC27-P11-03",
+        "AC27-P11-04",
+        "AC27-P11-05",
+        "AC27-P11-06",
+        "AC27-P11-07",
+        "AC27-P11-08"
+      ]
+    },
+    {
+      "id": "US27-P24",
+      "requirements": ["REQ27-P11", "REQ27-P31"],
+      "acceptance": [
+        "AC27-P11-01",
+        "AC27-P11-02",
+        "AC27-P11-03",
+        "AC27-P11-04",
+        "AC27-P11-05",
+        "AC27-P11-06",
+        "AC27-P11-07",
+        "AC27-P11-08",
+        "AC27-P31-01",
+        "AC27-P31-02",
+        "AC27-P31-03",
+        "AC27-P31-04",
+        "AC27-P31-05",
+        "AC27-P31-06",
+        "AC27-P31-07"
+      ]
+    },
+    {
+      "id": "US27-P25",
+      "requirements": ["REQ27-P12"],
+      "acceptance": [
+        "AC27-P12-01",
+        "AC27-P12-02",
+        "AC27-P12-03",
+        "AC27-P12-04",
+        "AC27-P12-05",
+        "AC27-P12-06",
+        "AC27-P12-07"
+      ]
+    },
+    {
+      "id": "US27-P26",
+      "requirements": ["REQ27-P12"],
+      "acceptance": [
+        "AC27-P12-01",
+        "AC27-P12-02",
+        "AC27-P12-03",
+        "AC27-P12-04",
+        "AC27-P12-05",
+        "AC27-P12-06",
+        "AC27-P12-07"
+      ]
+    },
+    {
+      "id": "US27-P27",
+      "requirements": ["REQ27-P14"],
+      "acceptance": ["AC27-P14-01", "AC27-P14-02", "AC27-P14-03"]
+    },
+    {
+      "id": "US27-P28",
+      "requirements": ["REQ27-P15"],
+      "acceptance": [
+        "AC27-P15-01",
+        "AC27-P15-02",
+        "AC27-P15-03",
+        "AC27-P15-04",
+        "AC27-P15-05"
+      ]
+    },
+    {
+      "id": "US27-P29",
+      "requirements": ["REQ27-P16"],
+      "acceptance": ["AC27-P16-01", "AC27-P16-02", "AC27-P16-03", "AC27-P16-04"]
+    },
+    {
+      "id": "US27-P30",
+      "requirements": ["REQ27-P17"],
+      "acceptance": [
+        "AC27-P17-01",
+        "AC27-P17-02",
+        "AC27-P17-03",
+        "AC27-P17-04",
+        "AC27-P17-05",
+        "AC27-P17-06",
+        "AC27-P17-07",
+        "AC27-P17-08",
+        "AC27-P17-09"
+      ]
+    },
+    {
+      "id": "US27-P31",
+      "requirements": ["REQ27-P18"],
+      "acceptance": [
+        "AC27-P18-01",
+        "AC27-P18-02",
+        "AC27-P18-03",
+        "AC27-P18-04",
+        "AC27-P18-05",
+        "AC27-P18-06",
+        "AC27-P18-07",
+        "AC27-P18-08",
+        "AC27-P18-09",
+        "AC27-P18-10",
+        "AC27-P18-11",
+        "AC27-P18-12",
+        "AC27-P18-13"
+      ]
+    },
+    {
+      "id": "US27-P32",
+      "requirements": ["REQ27-P19"],
+      "acceptance": [
+        "AC27-P19-01",
+        "AC27-P19-02",
+        "AC27-P19-03",
+        "AC27-P19-04",
+        "AC27-P19-05",
+        "AC27-P19-06",
+        "AC27-P19-07",
+        "AC27-P19-08",
+        "AC27-P19-09"
+      ]
+    },
+    {
+      "id": "US27-P33",
+      "requirements": ["REQ27-P19"],
+      "acceptance": [
+        "AC27-P19-01",
+        "AC27-P19-02",
+        "AC27-P19-03",
+        "AC27-P19-04",
+        "AC27-P19-05",
+        "AC27-P19-06",
+        "AC27-P19-07",
+        "AC27-P19-08",
+        "AC27-P19-09"
+      ]
+    },
+    {
+      "id": "US27-P34",
+      "requirements": ["REQ27-P20"],
+      "acceptance": [
+        "AC27-P20-01",
+        "AC27-P20-02",
+        "AC27-P20-03",
+        "AC27-P20-04",
+        "AC27-P20-05",
+        "AC27-P20-06"
+      ]
+    },
+    {
+      "id": "US27-P35",
+      "requirements": ["REQ27-P20"],
+      "acceptance": [
+        "AC27-P20-01",
+        "AC27-P20-02",
+        "AC27-P20-03",
+        "AC27-P20-04",
+        "AC27-P20-05",
+        "AC27-P20-06"
+      ]
+    },
+    {
+      "id": "US27-P36",
+      "requirements": ["REQ27-P21"],
+      "acceptance": [
+        "AC27-P21-01",
+        "AC27-P21-02",
+        "AC27-P21-03",
+        "AC27-P21-04",
+        "AC27-P21-05",
+        "AC27-P21-06",
+        "AC27-P21-07",
+        "AC27-P21-08"
+      ]
+    },
+    {
+      "id": "US27-P37",
+      "requirements": ["REQ27-P21", "REQ27-P26"],
+      "acceptance": [
+        "AC27-P21-01",
+        "AC27-P21-02",
+        "AC27-P21-03",
+        "AC27-P21-04",
+        "AC27-P21-05",
+        "AC27-P21-06",
+        "AC27-P21-07",
+        "AC27-P21-08",
+        "AC27-P26-01",
+        "AC27-P26-02",
+        "AC27-P26-03",
+        "AC27-P26-04",
+        "AC27-P26-05",
+        "AC27-P26-06",
+        "AC27-P26-07",
+        "AC27-P26-08",
+        "AC27-P26-09",
+        "AC27-P26-10",
+        "AC27-P26-11",
+        "AC27-P26-12",
+        "AC27-P26-13",
+        "AC27-P26-14",
+        "AC27-P26-15"
+      ]
+    },
+    {
+      "id": "US27-P38",
+      "requirements": ["REQ27-P22"],
+      "acceptance": [
+        "AC27-P22-01",
+        "AC27-P22-02",
+        "AC27-P22-03",
+        "AC27-P22-04",
+        "AC27-P22-05",
+        "AC27-P22-06",
+        "AC27-P22-07",
+        "AC27-P22-08",
+        "AC27-P22-09",
+        "AC27-P22-10",
+        "AC27-P22-11"
+      ]
+    },
+    {
+      "id": "US27-P39",
+      "requirements": ["REQ27-P22"],
+      "acceptance": [
+        "AC27-P22-01",
+        "AC27-P22-02",
+        "AC27-P22-03",
+        "AC27-P22-04",
+        "AC27-P22-05",
+        "AC27-P22-06",
+        "AC27-P22-07",
+        "AC27-P22-08",
+        "AC27-P22-09",
+        "AC27-P22-10",
+        "AC27-P22-11"
+      ]
+    },
+    {
+      "id": "US27-P40",
+      "requirements": ["REQ27-P13", "REQ27-P23"],
+      "acceptance": [
+        "AC27-P13-01",
+        "AC27-P13-02",
+        "AC27-P13-03",
+        "AC27-P13-04",
+        "AC27-P13-05",
+        "AC27-P13-06",
+        "AC27-P13-07",
+        "AC27-P13-08",
+        "AC27-P13-09",
+        "AC27-P23-01",
+        "AC27-P23-02",
+        "AC27-P23-03",
+        "AC27-P23-04",
+        "AC27-P23-05",
+        "AC27-P23-06",
+        "AC27-P23-07",
+        "AC27-P23-08",
+        "AC27-P23-09",
+        "AC27-P23-10",
+        "AC27-P23-11",
+        "AC27-P23-12",
+        "AC27-P23-13",
+        "AC27-P23-14",
+        "AC27-P23-15",
+        "AC27-P23-16",
+        "AC27-P23-17",
+        "AC27-P23-18",
+        "AC27-P23-19",
+        "AC27-P23-20",
+        "AC27-P23-21",
+        "AC27-P23-22",
+        "AC27-P23-23",
+        "AC27-P23-24",
+        "AC27-P23-25"
+      ]
+    },
+    {
+      "id": "US27-P41",
+      "requirements": ["REQ27-P24"],
+      "acceptance": [
+        "AC27-P24-01",
+        "AC27-P24-02",
+        "AC27-P24-03",
+        "AC27-P24-04",
+        "AC27-P24-05",
+        "AC27-P24-06",
+        "AC27-P24-07",
+        "AC27-P24-08",
+        "AC27-P24-09",
+        "AC27-P24-10",
+        "AC27-P24-11",
+        "AC27-P24-12",
+        "AC27-P24-13",
+        "AC27-P24-14",
+        "AC27-P24-15",
+        "AC27-P24-16",
+        "AC27-P24-17",
+        "AC27-P24-18",
+        "AC27-P24-19",
+        "AC27-P24-20",
+        "AC27-P24-21",
+        "AC27-P24-22",
+        "AC27-P24-23",
+        "AC27-P24-24",
+        "AC27-P24-25",
+        "AC27-P24-26",
+        "AC27-P24-27",
+        "AC27-P24-28",
+        "AC27-P24-29",
+        "AC27-P24-30",
+        "AC27-P24-31",
+        "AC27-P24-32",
+        "AC27-P24-33",
+        "AC27-P24-34",
+        "AC27-P24-35",
+        "AC27-P24-36"
+      ]
+    },
+    {
+      "id": "US27-P42",
+      "requirements": ["REQ27-P25", "REQ27-P30"],
+      "acceptance": [
+        "AC27-P25-01",
+        "AC27-P25-02",
+        "AC27-P25-03",
+        "AC27-P25-04",
+        "AC27-P25-05",
+        "AC27-P25-06",
+        "AC27-P25-07",
+        "AC27-P25-08",
+        "AC27-P25-09",
+        "AC27-P25-10",
+        "AC27-P25-11",
+        "AC27-P25-12",
+        "AC27-P25-13",
+        "AC27-P25-14",
+        "AC27-P25-15",
+        "AC27-P25-16",
+        "AC27-P25-17",
+        "AC27-P25-18",
+        "AC27-P25-19",
+        "AC27-P25-20",
+        "AC27-P25-21",
+        "AC27-P25-22",
+        "AC27-P25-23",
+        "AC27-P25-24",
+        "AC27-P25-25",
+        "AC27-P25-26",
+        "AC27-P25-27",
+        "AC27-P25-28",
+        "AC27-P25-29",
+        "AC27-P25-30",
+        "AC27-P25-31",
+        "AC27-P25-32",
+        "AC27-P30-01",
+        "AC27-P30-02",
+        "AC27-P30-03",
+        "AC27-P30-04",
+        "AC27-P30-05",
+        "AC27-P30-06",
+        "AC27-P30-07"
+      ]
+    },
+    {
+      "id": "US27-P43",
+      "requirements": ["REQ27-P25", "REQ27-P31"],
+      "acceptance": [
+        "AC27-P25-01",
+        "AC27-P25-02",
+        "AC27-P25-03",
+        "AC27-P25-04",
+        "AC27-P25-05",
+        "AC27-P25-06",
+        "AC27-P25-07",
+        "AC27-P25-08",
+        "AC27-P25-09",
+        "AC27-P25-10",
+        "AC27-P25-11",
+        "AC27-P25-12",
+        "AC27-P25-13",
+        "AC27-P25-14",
+        "AC27-P25-15",
+        "AC27-P25-16",
+        "AC27-P25-17",
+        "AC27-P25-18",
+        "AC27-P25-19",
+        "AC27-P25-20",
+        "AC27-P25-21",
+        "AC27-P25-22",
+        "AC27-P25-23",
+        "AC27-P25-24",
+        "AC27-P25-25",
+        "AC27-P25-26",
+        "AC27-P25-27",
+        "AC27-P25-28",
+        "AC27-P25-29",
+        "AC27-P25-30",
+        "AC27-P25-31",
+        "AC27-P25-32",
+        "AC27-P31-01",
+        "AC27-P31-02",
+        "AC27-P31-03",
+        "AC27-P31-04",
+        "AC27-P31-05",
+        "AC27-P31-06",
+        "AC27-P31-07"
+      ]
+    },
+    {
+      "id": "US27-P44",
+      "requirements": ["REQ27-P26"],
+      "acceptance": [
+        "AC27-P26-01",
+        "AC27-P26-02",
+        "AC27-P26-03",
+        "AC27-P26-04",
+        "AC27-P26-05",
+        "AC27-P26-06",
+        "AC27-P26-07",
+        "AC27-P26-08",
+        "AC27-P26-09",
+        "AC27-P26-10",
+        "AC27-P26-11",
+        "AC27-P26-12",
+        "AC27-P26-13",
+        "AC27-P26-14",
+        "AC27-P26-15"
+      ]
+    },
+    {
+      "id": "US27-P45",
+      "requirements": ["REQ27-P27", "REQ27-P32"],
+      "acceptance": [
+        "AC27-P27-01",
+        "AC27-P27-02",
+        "AC27-P27-03",
+        "AC27-P27-04",
+        "AC27-P27-05",
+        "AC27-P27-06",
+        "AC27-P27-07",
+        "AC27-P27-08",
+        "AC27-P27-09",
+        "AC27-P27-10",
+        "AC27-P27-11",
+        "AC27-P27-12",
+        "AC27-P27-13",
+        "AC27-P27-14",
+        "AC27-P27-15",
+        "AC27-P27-16",
+        "AC27-P27-17",
+        "AC27-P27-18",
+        "AC27-P27-19",
+        "AC27-P27-20",
+        "AC27-P27-21",
+        "AC27-P27-22",
+        "AC27-P27-23",
+        "AC27-P27-24",
+        "AC27-P27-25",
+        "AC27-P27-26",
+        "AC27-P27-27",
+        "AC27-P27-28",
+        "AC27-P32-01",
+        "AC27-P32-02",
+        "AC27-P32-03",
+        "AC27-P32-04",
+        "AC27-P32-05",
+        "AC27-P32-06",
+        "AC27-P32-07",
+        "AC27-P32-08",
+        "AC27-P32-09",
+        "AC27-P32-10"
+      ]
+    },
+    {
+      "id": "US27-P46",
+      "requirements": ["REQ27-P28"],
+      "acceptance": [
+        "AC27-P28-01",
+        "AC27-P28-02",
+        "AC27-P28-03",
+        "AC27-P28-04",
+        "AC27-P28-05",
+        "AC27-P28-06",
+        "AC27-P28-07",
+        "AC27-P28-08",
+        "AC27-P28-09",
+        "AC27-P28-10"
+      ]
+    },
+    {
+      "id": "US27-P47",
+      "requirements": ["REQ27-P29"],
+      "acceptance": [
+        "AC27-P29-01",
+        "AC27-P29-02",
+        "AC27-P29-03",
+        "AC27-P29-04",
+        "AC27-P29-05"
+      ]
+    },
+    {
+      "id": "US27-P48",
+      "requirements": ["REQ27-P31"],
+      "acceptance": [
+        "AC27-P31-01",
+        "AC27-P31-02",
+        "AC27-P31-03",
+        "AC27-P31-04",
+        "AC27-P31-05",
+        "AC27-P31-06",
+        "AC27-P31-07"
+      ]
+    },
+    {
+      "id": "US27-P49",
+      "requirements": ["REQ27-P10", "REQ27-P32"],
+      "acceptance": [
+        "AC27-P10-01",
+        "AC27-P10-02",
+        "AC27-P10-03",
+        "AC27-P10-04",
+        "AC27-P10-05",
+        "AC27-P10-06",
+        "AC27-P10-07",
+        "AC27-P10-08",
+        "AC27-P32-01",
+        "AC27-P32-02",
+        "AC27-P32-03",
+        "AC27-P32-04",
+        "AC27-P32-05",
+        "AC27-P32-06",
+        "AC27-P32-07",
+        "AC27-P32-08",
+        "AC27-P32-09",
+        "AC27-P32-10"
+      ]
+    },
+    {
+      "id": "US27-P50",
+      "requirements": ["REQ27-P33"],
+      "acceptance": [
+        "AC27-P33-01",
+        "AC27-P33-02",
+        "AC27-P33-03",
+        "AC27-P33-04",
+        "AC27-P33-05",
+        "AC27-P33-06",
+        "AC27-P33-07",
+        "AC27-P33-08",
+        "AC27-P33-09",
+        "AC27-P33-10",
+        "AC27-P33-11",
+        "AC27-P33-12",
+        "AC27-P33-13",
+        "AC27-P33-14"
+      ]
+    },
+    {
+      "id": "US27-P51",
+      "requirements": ["REQ27-P33"],
+      "acceptance": [
+        "AC27-P33-01",
+        "AC27-P33-02",
+        "AC27-P33-03",
+        "AC27-P33-04",
+        "AC27-P33-05",
+        "AC27-P33-06",
+        "AC27-P33-07",
+        "AC27-P33-08",
+        "AC27-P33-09",
+        "AC27-P33-10",
+        "AC27-P33-11",
+        "AC27-P33-12",
+        "AC27-P33-13",
+        "AC27-P33-14"
+      ]
+    },
+    {
+      "id": "US27-F01",
+      "requirements": [
+        "REQ27-F01",
+        "REQ27-F04",
+        "REQ27-F13",
+        "REQ27-F07",
+        "REQ27-F15"
+      ],
+      "acceptance": ["AC27-F01-01", "AC27-F04-02"]
+    },
+    {
+      "id": "US27-F02",
+      "requirements": ["REQ27-F02", "REQ27-F15"],
+      "acceptance": ["AC27-F02-01"]
+    },
+    {
+      "id": "US27-F03",
+      "requirements": ["REQ27-F03", "REQ27-F17", "REQ27-F08", "REQ27-F10"],
+      "acceptance": ["AC27-F03-01", "AC27-F03-02"]
+    },
+    {
+      "id": "US27-F04",
+      "requirements": [
+        "REQ27-F04",
+        "REQ27-F10",
+        "REQ27-F11",
+        "REQ27-F05",
+        "REQ27-F15"
+      ],
+      "acceptance": ["AC27-F04-01", "AC27-F04-04"]
+    },
+    {
+      "id": "US27-F05",
+      "requirements": ["REQ27-F05", "REQ27-F06", "REQ27-F13", "REQ27-F09"],
+      "acceptance": ["AC27-F05-01", "AC27-F05-03"]
+    },
+    {
+      "id": "US27-F06",
+      "requirements": ["REQ27-F05", "REQ27-F06", "REQ27-F15"],
+      "acceptance": ["AC27-F05-02", "AC27-F05-04"]
+    },
+    {
+      "id": "US27-F07",
+      "requirements": ["REQ27-F06", "REQ27-F12", "REQ27-F14"],
+      "acceptance": ["AC27-F06-01"]
+    },
+    {
+      "id": "US27-F08",
+      "requirements": ["REQ27-F07", "REQ27-F08", "REQ27-F12", "REQ27-F15"],
+      "acceptance": ["AC27-F07-01", "AC27-F07-02", "AC27-F07-03"]
+    },
+    {
+      "id": "US27-F09",
+      "requirements": ["REQ27-F04", "REQ27-F14", "REQ27-F08"],
+      "acceptance": ["AC27-F04-03", "AC27-F08-01"]
+    },
+    {
+      "id": "US27-F10",
+      "requirements": ["REQ27-F10", "REQ27-F11", "REQ27-F12"],
+      "acceptance": [
+        "AC27-F10-01",
+        "AC27-F10-02",
+        "AC27-F12-01",
+        "AC27-F10-03",
+        "AC27-F11-01"
+      ]
+    },
+    {
+      "id": "US27-F11",
+      "requirements": ["REQ27-F09", "REQ27-F16", "REQ27-F13", "REQ27-F14"],
+      "acceptance": ["AC27-F09-01", "AC27-F09-02", "AC27-F09-03"]
+    },
+    {
+      "id": "US27-F12",
+      "requirements": [
+        "REQ27-F13",
+        "REQ27-F14",
+        "REQ27-F18",
+        "REQ27-F07",
+        "REQ27-F16",
+        "REQ27-F17"
+      ],
+      "acceptance": [
+        "AC27-F13-01",
+        "AC27-F13-02",
+        "AC27-F18-01",
+        "AC27-F07-04",
+        "AC27-F17-01"
+      ]
+    },
+    {
+      "id": "US27-F13",
+      "requirements": [
+        "REQ27-F19",
+        "REQ27-F32",
+        "REQ27-F34",
+        "REQ27-F20",
+        "REQ27-F24"
+      ],
+      "acceptance": ["AC27-F19-01", "AC27-F19-02", "AC27-F19-03"]
+    },
+    {
+      "id": "US27-F14",
+      "requirements": [
+        "REQ27-F19",
+        "REQ27-F21",
+        "REQ27-F32",
+        "REQ27-F20",
+        "REQ27-F28",
+        "REQ27-F29"
+      ],
+      "acceptance": ["AC27-F19-04", "AC27-F20-02"]
+    },
+    {
+      "id": "US27-F15",
+      "requirements": ["REQ27-F22", "REQ27-F23", "REQ27-F24"],
+      "acceptance": ["AC27-F22-01", "AC27-F22-02"]
+    },
+    {
+      "id": "US27-F16",
+      "requirements": ["REQ27-F22", "REQ27-F23", "REQ27-F30", "REQ27-F33"],
+      "acceptance": ["AC27-F22-03", "AC27-F23-01"]
+    },
+    {
+      "id": "US27-F17",
+      "requirements": ["REQ27-F20", "REQ27-F21", "REQ27-F29", "REQ27-F31"],
+      "acceptance": ["AC27-F20-01", "AC27-F21-01"]
+    },
+    {
+      "id": "US27-F18",
+      "requirements": [
+        "REQ27-F24",
+        "REQ27-F25",
+        "REQ27-F26",
+        "REQ27-F30",
+        "REQ27-F21"
+      ],
+      "acceptance": ["AC27-F24-01", "AC27-F24-02", "AC27-F21-02"]
+    },
+    {
+      "id": "US27-F19",
+      "requirements": [
+        "REQ27-F21",
+        "REQ27-F23",
+        "REQ27-F27",
+        "REQ27-F30",
+        "REQ27-F28",
+        "REQ27-F34"
+      ],
+      "acceptance": ["AC27-F21-03", "AC27-F27-02"]
+    },
+    {
+      "id": "US27-F20",
+      "requirements": [
+        "REQ27-F29",
+        "REQ27-F30",
+        "REQ27-F31",
+        "REQ27-F27",
+        "REQ27-F28",
+        "REQ27-F33",
+        "REQ27-F32"
+      ],
+      "acceptance": ["AC27-F29-01", "AC27-F27-01", "AC27-F28-01", "AC27-F30-01"]
+    },
+    {
+      "id": "US27-F21",
+      "requirements": ["REQ27-F32", "REQ27-F28", "REQ27-F37"],
+      "acceptance": ["AC27-F32-01", "AC27-F28-02", "AC27-F32-02"]
+    },
+    {
+      "id": "US27-F22",
+      "requirements": [
+        "REQ27-F20",
+        "REQ27-F28",
+        "REQ27-F29",
+        "REQ27-F25",
+        "REQ27-F26",
+        "REQ27-F33",
+        "REQ27-F27",
+        "REQ27-F30",
+        "REQ27-F31",
+        "REQ27-F34",
+        "REQ27-F35"
+      ],
+      "acceptance": ["AC27-F20-03", "AC27-F25-01", "AC27-F27-03"]
+    },
+    {
+      "id": "US27-F23",
+      "requirements": [
+        "REQ27-F29",
+        "REQ27-F36",
+        "REQ27-F28",
+        "REQ27-F33",
+        "REQ27-F25",
+        "REQ27-F27",
+        "REQ27-F34",
+        "REQ27-F30",
+        "REQ27-F35",
+        "REQ27-F37"
+      ],
+      "acceptance": ["AC27-F29-02", "AC27-F28-03", "AC27-F25-02", "AC27-F29-03"]
+    },
+    {
+      "id": "US27-F24",
+      "requirements": [
+        "REQ27-F38",
+        "REQ27-F39",
+        "REQ27-F40",
+        "REQ27-F48",
+        "REQ27-F51",
+        "REQ27-F52",
+        "REQ27-F41"
+      ],
+      "acceptance": ["AC27-F38-01", "AC27-F38-03"]
+    },
+    {
+      "id": "US27-F25",
+      "requirements": [
+        "REQ27-F38",
+        "REQ27-F44",
+        "REQ27-F51",
+        "REQ27-F53",
+        "REQ27-F45",
+        "REQ27-F46",
+        "REQ27-F55"
+      ],
+      "acceptance": ["AC27-F38-02", "AC27-F44-03"]
+    },
+    {
+      "id": "US27-F26",
+      "requirements": [
+        "REQ27-F40",
+        "REQ27-F42",
+        "REQ27-F44",
+        "REQ27-F45",
+        "REQ27-F46",
+        "REQ27-F41",
+        "REQ27-F51"
+      ],
+      "acceptance": ["AC27-F40-01", "AC27-F41-02", "AC27-F44-02"]
+    },
+    {
+      "id": "US27-F27",
+      "requirements": [
+        "REQ27-F42",
+        "REQ27-F43",
+        "REQ27-F50",
+        "REQ27-F51",
+        "REQ27-F53"
+      ],
+      "acceptance": ["AC27-F42-01", "AC27-F42-02"]
+    },
+    {
+      "id": "US27-F28",
+      "requirements": [
+        "REQ27-F39",
+        "REQ27-F41",
+        "REQ27-F43",
+        "REQ27-F48",
+        "REQ27-F42",
+        "REQ27-F46",
+        "REQ27-F47"
+      ],
+      "acceptance": ["AC27-F39-01", "AC27-F41-01"]
+    },
+    {
+      "id": "US27-F29",
+      "requirements": ["REQ27-F39", "REQ27-F48", "REQ27-F47", "REQ27-F52"],
+      "acceptance": ["AC27-F39-02", "AC27-F39-03"]
+    },
+    {
+      "id": "US27-F30",
+      "requirements": [
+        "REQ27-F43",
+        "REQ27-F45",
+        "REQ27-F46",
+        "REQ27-F47",
+        "REQ27-F52",
+        "REQ27-F53"
+      ],
+      "acceptance": ["AC27-F43-01", "AC27-F45-01"]
+    },
+    {
+      "id": "US27-F31",
+      "requirements": [
+        "REQ27-F39",
+        "REQ27-F40",
+        "REQ27-F42",
+        "REQ27-F43",
+        "REQ27-F46",
+        "REQ27-F49",
+        "REQ27-F41",
+        "REQ27-F50",
+        "REQ27-F54"
+      ],
+      "acceptance": ["AC27-F39-04", "AC27-F40-03", "AC27-F41-03"]
+    },
+    {
+      "id": "US27-F32",
+      "requirements": [
+        "REQ27-F40",
+        "REQ27-F41",
+        "REQ27-F42",
+        "REQ27-F43",
+        "REQ27-F45",
+        "REQ27-F50",
+        "REQ27-F44",
+        "REQ27-F46",
+        "REQ27-F51"
+      ],
+      "acceptance": ["AC27-F40-02", "AC27-F42-03", "AC27-F42-04"]
+    },
+    {
+      "id": "US27-F33",
+      "requirements": ["REQ27-F51", "REQ27-F50", "REQ27-F55"],
+      "acceptance": ["AC27-F51-01", "AC27-F50-01", "AC27-F51-02"]
+    },
+    {
+      "id": "US27-F34",
+      "requirements": [
+        "REQ27-F44",
+        "REQ27-F45",
+        "REQ27-F46",
+        "REQ27-F47",
+        "REQ27-F38",
+        "REQ27-F39",
+        "REQ27-F40",
+        "REQ27-F41",
+        "REQ27-F42",
+        "REQ27-F43",
+        "REQ27-F48",
+        "REQ27-F49",
+        "REQ27-F50",
+        "REQ27-F54",
+        "REQ27-F52"
+      ],
+      "acceptance": [
+        "AC27-F44-01",
+        "AC27-F38-04",
+        "AC27-F40-04",
+        "AC27-F47-01",
+        "AC27-F38-05"
+      ]
+    },
+    {
+      "id": "US27-F35",
+      "requirements": [
+        "REQ27-F56",
+        "REQ27-F57",
+        "REQ27-F58",
+        "REQ27-F59",
+        "REQ27-F65",
+        "REQ27-F71",
+        "REQ27-F60",
+        "REQ27-F63"
+      ],
+      "acceptance": ["AC27-F56-01", "AC27-F57-01"]
+    },
+    {
+      "id": "US27-F36",
+      "requirements": ["REQ27-F58", "REQ27-F59", "REQ27-F60", "REQ27-F68"],
+      "acceptance": ["AC27-F58-01"]
+    },
+    {
+      "id": "US27-F37",
+      "requirements": [
+        "REQ27-F56",
+        "REQ27-F59",
+        "REQ27-F61",
+        "REQ27-F70",
+        "REQ27-F57",
+        "REQ27-F58",
+        "REQ27-F63"
+      ],
+      "acceptance": ["AC27-F56-02", "AC27-F57-04"]
+    },
+    {
+      "id": "US27-F38",
+      "requirements": [
+        "REQ27-F61",
+        "REQ27-F62",
+        "REQ27-F63",
+        "REQ27-F68",
+        "REQ27-F60",
+        "REQ27-F64",
+        "REQ27-F67"
+      ],
+      "acceptance": ["AC27-F61-01", "AC27-F60-01"]
+    },
+    {
+      "id": "US27-F39",
+      "requirements": [
+        "REQ27-F59",
+        "REQ27-F60",
+        "REQ27-F61",
+        "REQ27-F62",
+        "REQ27-F68",
+        "REQ27-F63",
+        "REQ27-F64",
+        "REQ27-F67"
+      ],
+      "acceptance": ["AC27-F59-01", "AC27-F59-02"]
+    },
+    {
+      "id": "US27-F40",
+      "requirements": [
+        "REQ27-F57",
+        "REQ27-F62",
+        "REQ27-F63",
+        "REQ27-F64",
+        "REQ27-F65",
+        "REQ27-F70",
+        "REQ27-F61",
+        "REQ27-F68"
+      ],
+      "acceptance": ["AC27-F57-02", "AC27-F61-02"]
+    },
+    {
+      "id": "US27-F41",
+      "requirements": [
+        "REQ27-F57",
+        "REQ27-F62",
+        "REQ27-F63",
+        "REQ27-F64",
+        "REQ27-F65",
+        "REQ27-F66",
+        "REQ27-F68",
+        "REQ27-F61",
+        "REQ27-F69",
+        "REQ27-F72"
+      ],
+      "acceptance": ["AC27-F57-03", "AC27-F62-01", "AC27-F61-06"]
+    },
+    {
+      "id": "US27-F42",
+      "requirements": [
+        "REQ27-F58",
+        "REQ27-F59",
+        "REQ27-F60",
+        "REQ27-F67",
+        "REQ27-F68",
+        "REQ27-F69",
+        "REQ27-F65",
+        "REQ27-F66",
+        "REQ27-F70"
+      ],
+      "acceptance": ["AC27-F58-02", "AC27-F59-03", "AC27-F59-04", "AC27-F59-05"]
+    },
+    {
+      "id": "US27-F43",
+      "requirements": [
+        "REQ27-F61",
+        "REQ27-F62",
+        "REQ27-F66",
+        "REQ27-F67",
+        "REQ27-F63",
+        "REQ27-F64",
+        "REQ27-F72"
+      ],
+      "acceptance": ["AC27-F61-03", "AC27-F61-04", "AC27-F61-05", "AC27-F61-07"]
+    },
+    {
+      "id": "US27-F44",
+      "requirements": [
+        "REQ27-F70",
+        "REQ27-F67",
+        "REQ27-F69",
+        "REQ27-F57",
+        "REQ27-F58",
+        "REQ27-F63",
+        "REQ27-F74"
+      ],
+      "acceptance": ["AC27-F70-01", "AC27-F67-01", "AC27-F57-06"]
+    },
+    {
+      "id": "US27-F45",
+      "requirements": [
+        "REQ27-F57",
+        "REQ27-F63",
+        "REQ27-F68",
+        "REQ27-F71",
+        "REQ27-F56",
+        "REQ27-F65",
+        "REQ27-F69",
+        "REQ27-F72"
+      ],
+      "acceptance": ["AC27-F57-05", "AC27-F56-03"]
+    },
+    {
+      "id": "US27-F46",
+      "requirements": [
+        "REQ27-F64",
+        "REQ27-F67",
+        "REQ27-F69",
+        "REQ27-F72",
+        "REQ27-F60",
+        "REQ27-F61",
+        "REQ27-F62",
+        "REQ27-F66",
+        "REQ27-F73",
+        "REQ27-F65",
+        "REQ27-F70",
+        "REQ27-F57",
+        "REQ27-F63",
+        "REQ27-F56",
+        "REQ27-F74"
+      ],
+      "acceptance": [
+        "AC27-F64-01",
+        "AC27-F60-02",
+        "AC27-F64-02",
+        "AC27-F57-07",
+        "AC27-F56-04"
+      ]
+    },
+    {
+      "id": "US27-F47",
+      "requirements": ["REQ27-F75", "REQ27-F87", "REQ27-F88"],
+      "acceptance": ["AC27-F75-01", "AC27-F75-02"]
+    },
+    {
+      "id": "US27-F48",
+      "requirements": ["REQ27-F76", "REQ27-F87", "REQ27-F86"],
+      "acceptance": ["AC27-F76-01", "AC27-F76-02", "AC27-F76-03", "AC27-F76-04"]
+    },
+    {
+      "id": "US27-F49",
+      "requirements": ["REQ27-F77", "REQ27-F83", "REQ27-F85", "REQ27-F86"],
+      "acceptance": ["AC27-F77-01", "AC27-F77-02"]
+    },
+    {
+      "id": "US27-F50",
+      "requirements": ["REQ27-F78", "REQ27-F79", "REQ27-F88", "REQ27-F86"],
+      "acceptance": ["AC27-F78-01", "AC27-F78-03"]
+    },
+    {
+      "id": "US27-F51",
+      "requirements": ["REQ27-F84", "REQ27-F85", "REQ27-F86", "REQ27-F83"],
+      "acceptance": ["AC27-F84-01", "AC27-F83-01", "AC27-F84-02"]
+    },
+    {
+      "id": "US27-F52",
+      "requirements": [
+        "REQ27-F85",
+        "REQ27-F87",
+        "REQ27-F79",
+        "REQ27-F86",
+        "REQ27-F76"
+      ],
+      "acceptance": ["AC27-F85-01", "AC27-F79-01", "AC27-F76-05"]
+    },
+    {
+      "id": "US27-F53",
+      "requirements": [
+        "REQ27-F80",
+        "REQ27-F81",
+        "REQ27-F78",
+        "REQ27-F82",
+        "REQ27-F85"
+      ],
+      "acceptance": ["AC27-F80-01", "AC27-F78-02", "AC27-F80-02", "AC27-F80-03"]
+    },
+    {
+      "id": "US27-F54",
+      "requirements": [
+        "REQ27-F85",
+        "REQ27-F90",
+        "REQ27-F80",
+        "REQ27-F84",
+        "REQ27-F86"
+      ],
+      "acceptance": ["AC27-F85-02", "AC27-F80-04", "AC27-F85-03", "AC27-F85-05"]
+    },
+    {
+      "id": "US27-F55",
+      "requirements": ["REQ27-F83", "REQ27-F85", "REQ27-F75"],
+      "acceptance": ["AC27-F83-02", "AC27-F75-03"]
+    },
+    {
+      "id": "US27-F56",
+      "requirements": ["REQ27-F87", "REQ27-F90", "REQ27-F85", "REQ27-F88"],
+      "acceptance": ["AC27-F87-01", "AC27-F87-02", "AC27-F87-03", "AC27-F85-04"]
+    },
+    {
+      "id": "US27-F57",
+      "requirements": ["REQ27-F79", "REQ27-F88", "REQ27-F90"],
+      "acceptance": ["AC27-F79-02", "AC27-F88-01"]
+    },
+    {
+      "id": "US27-F58",
+      "requirements": ["REQ27-F82", "REQ27-F90", "REQ27-F89"],
+      "acceptance": ["AC27-F82-01", "AC27-F89-01", "AC27-F89-02", "AC27-F89-03"]
+    },
+    {
+      "id": "US27-C01",
+      "requirements": ["REQ27-C01"],
+      "acceptance": ["AC27-C01-01", "AC27-C01-02", "AC27-C01-03"]
+    },
+    {
+      "id": "US27-C02",
+      "requirements": ["REQ27-C02"],
+      "acceptance": ["AC27-C02-01", "AC27-C02-02", "AC27-C02-03"]
+    },
+    {
+      "id": "US27-C03",
+      "requirements": ["REQ27-C03"],
+      "acceptance": ["AC27-C03-01", "AC27-C03-02", "AC27-C03-03", "AC27-C03-04"]
+    },
+    {
+      "id": "US27-C04",
+      "requirements": ["REQ27-C04"],
+      "acceptance": ["AC27-C04-01", "AC27-C04-02", "AC27-C04-03", "AC27-C04-04"]
+    },
+    {
+      "id": "US27-C05",
+      "requirements": ["REQ27-C05"],
+      "acceptance": ["AC27-C05-01", "AC27-C05-02", "AC27-C05-03", "AC27-C05-04"]
+    },
+    {
+      "id": "US27-C06",
+      "requirements": ["REQ27-C06"],
+      "acceptance": ["AC27-C06-01", "AC27-C06-02", "AC27-C06-03", "AC27-C06-04"]
+    },
+    {
+      "id": "US27-C07",
+      "requirements": ["REQ27-C07"],
+      "acceptance": ["AC27-C07-01", "AC27-C07-02", "AC27-C07-03", "AC27-C07-04"]
+    },
+    {
+      "id": "US27-C08",
+      "requirements": ["REQ27-C08"],
+      "acceptance": ["AC27-C08-01", "AC27-C08-02", "AC27-C08-03", "AC27-C08-04"]
+    },
+    {
+      "id": "US27-C09",
+      "requirements": ["REQ27-C09"],
+      "acceptance": ["AC27-C09-01", "AC27-C09-02", "AC27-C09-03", "AC27-C09-04"]
+    },
+    {
+      "id": "US27-C10",
+      "requirements": ["REQ27-C10"],
+      "acceptance": ["AC27-C10-01", "AC27-C10-02", "AC27-C10-03", "AC27-C10-04"]
+    },
+    {
+      "id": "US27-C11",
+      "requirements": ["REQ27-C11"],
+      "acceptance": ["AC27-C11-01", "AC27-C11-02", "AC27-C11-03", "AC27-C11-04"]
+    },
+    {
+      "id": "US27-C12",
+      "requirements": ["REQ27-C12"],
+      "acceptance": ["AC27-C12-01", "AC27-C12-02", "AC27-C12-03", "AC27-C12-04"]
+    },
+    {
+      "id": "US27-C13",
+      "requirements": ["REQ27-C13"],
+      "acceptance": ["AC27-C13-01", "AC27-C13-02", "AC27-C13-03", "AC27-C13-04"]
+    },
+    {
+      "id": "US27-C14",
+      "requirements": ["REQ27-C14"],
+      "acceptance": ["AC27-C14-01", "AC27-C14-02", "AC27-C14-03", "AC27-C14-04"]
+    },
+    {
+      "id": "US27-C15",
+      "requirements": ["REQ27-C15"],
+      "acceptance": ["AC27-C15-01", "AC27-C15-02", "AC27-C15-03", "AC27-C15-04"]
+    },
+    {
+      "id": "US27-C16",
+      "requirements": ["REQ27-C16"],
+      "acceptance": ["AC27-C16-01", "AC27-C16-02", "AC27-C16-03", "AC27-C16-04"]
+    },
+    {
+      "id": "US27-C17",
+      "requirements": ["REQ27-C17"],
+      "acceptance": ["AC27-C17-01", "AC27-C17-02", "AC27-C17-03", "AC27-C17-04"]
+    },
+    {
+      "id": "US27-C18",
+      "requirements": ["REQ27-C18"],
+      "acceptance": ["AC27-C18-01", "AC27-C18-02", "AC27-C18-03", "AC27-C18-04"]
+    },
+    {
+      "id": "US27-C19",
+      "requirements": ["REQ27-C19"],
+      "acceptance": ["AC27-C19-01", "AC27-C19-02", "AC27-C19-03", "AC27-C19-04"]
+    },
+    {
+      "id": "US27-C20",
+      "requirements": ["REQ27-C20"],
+      "acceptance": ["AC27-C20-01", "AC27-C20-02", "AC27-C20-03", "AC27-C20-04"]
+    },
+    {
+      "id": "US27-C21",
+      "requirements": ["REQ27-C21"],
+      "acceptance": ["AC27-C21-01", "AC27-C21-02", "AC27-C21-03", "AC27-C21-04"]
+    },
+    {
+      "id": "US27-C22",
+      "requirements": ["REQ27-C22"],
+      "acceptance": ["AC27-C22-01", "AC27-C22-02", "AC27-C22-03", "AC27-C22-04"]
+    },
+    {
+      "id": "US27-C23",
+      "requirements": ["REQ27-C23"],
+      "acceptance": ["AC27-C23-01", "AC27-C23-02", "AC27-C23-03", "AC27-C23-04"]
+    },
+    {
+      "id": "US27-C24",
+      "requirements": ["REQ27-C24"],
+      "acceptance": ["AC27-C24-01", "AC27-C24-02", "AC27-C24-03", "AC27-C24-04"]
+    },
+    {
+      "id": "US27-C25",
+      "requirements": ["REQ27-C25"],
+      "acceptance": ["AC27-C25-01", "AC27-C25-02", "AC27-C25-03", "AC27-C25-04"]
+    },
+    {
+      "id": "US27-C26",
+      "requirements": ["REQ27-C26"],
+      "acceptance": ["AC27-C26-01", "AC27-C26-02", "AC27-C26-03", "AC27-C26-04"]
+    },
+    {
+      "id": "US27-C27",
+      "requirements": ["REQ27-C27"],
+      "acceptance": ["AC27-C27-01", "AC27-C27-02", "AC27-C27-03", "AC27-C27-04"]
+    },
+    {
+      "id": "US27-C28",
+      "requirements": ["REQ27-C28"],
+      "acceptance": ["AC27-C28-01", "AC27-C28-02", "AC27-C28-03", "AC27-C28-04"]
+    },
+    {
+      "id": "US27-C29",
+      "requirements": ["REQ27-C29"],
+      "acceptance": ["AC27-C29-01", "AC27-C29-02", "AC27-C29-03", "AC27-C29-04"]
+    },
+    {
+      "id": "US27-C30",
+      "requirements": ["REQ27-C30"],
+      "acceptance": ["AC27-C30-01", "AC27-C30-02", "AC27-C30-03", "AC27-C30-04"]
+    },
+    {
+      "id": "US27-C31",
+      "requirements": ["REQ27-C31"],
+      "acceptance": ["AC27-C31-01", "AC27-C31-02", "AC27-C31-03", "AC27-C31-04"]
+    },
+    {
+      "id": "US27-C32",
+      "requirements": ["REQ27-C32"],
+      "acceptance": ["AC27-C32-01", "AC27-C32-02", "AC27-C32-03", "AC27-C32-04"]
+    },
+    {
+      "id": "US27-C33",
+      "requirements": ["REQ27-C33"],
+      "acceptance": ["AC27-C33-01", "AC27-C33-02", "AC27-C33-03", "AC27-C33-04"]
+    },
+    {
+      "id": "US27-C34",
+      "requirements": ["REQ27-C34"],
+      "acceptance": ["AC27-C34-01", "AC27-C34-02", "AC27-C34-03", "AC27-C34-04"]
+    },
+    {
+      "id": "US27-C35",
+      "requirements": ["REQ27-C35"],
+      "acceptance": ["AC27-C35-01", "AC27-C35-02", "AC27-C35-03", "AC27-C35-04"]
+    },
+    {
+      "id": "US27-C36",
+      "requirements": ["REQ27-C36"],
+      "acceptance": ["AC27-C36-01", "AC27-C36-02", "AC27-C36-03", "AC27-C36-04"]
+    },
+    {
+      "id": "US27-A01",
+      "requirements": ["REQ27-A01"],
+      "acceptance": ["AC27-A01-01"]
+    },
+    {
+      "id": "US27-A02",
+      "requirements": ["REQ27-A01", "REQ27-A02", "REQ27-A04"],
+      "acceptance": ["AC27-A01-02", "AC27-A04-01"]
+    },
+    {
+      "id": "US27-A03",
+      "requirements": ["REQ27-A01", "REQ27-A02", "REQ27-A09"],
+      "acceptance": ["AC27-A01-03"]
+    },
+    {
+      "id": "US27-A04",
+      "requirements": ["REQ27-A02", "REQ27-A09"],
+      "acceptance": ["AC27-A02-01", "AC27-A02-02"]
+    },
+    {
+      "id": "US27-A05",
+      "requirements": ["REQ27-A02", "REQ27-A07"],
+      "acceptance": ["AC27-A02-01", "AC27-A07-01", "AC27-A02-02"]
+    },
+    {
+      "id": "US27-A06",
+      "requirements": ["REQ27-A02", "REQ27-A15"],
+      "acceptance": ["AC27-A02-03"]
+    },
+    {
+      "id": "US27-A07",
+      "requirements": ["REQ27-A03", "REQ27-A10"],
+      "acceptance": ["AC27-A03-01", "AC27-A03-02", "AC27-A03-03"]
+    },
+    {
+      "id": "US27-A08",
+      "requirements": ["REQ27-A03", "REQ27-A07", "REQ27-A10", "REQ27-A11"],
+      "acceptance": ["AC27-A03-02", "AC27-A07-03"]
+    },
+    {
+      "id": "US27-A09",
+      "requirements": ["REQ27-A04"],
+      "acceptance": ["AC27-A04-01", "AC27-A04-02"]
+    },
+    {
+      "id": "US27-A10",
+      "requirements": ["REQ27-A04", "REQ27-A11"],
+      "acceptance": ["AC27-A04-02", "AC27-A04-04"]
+    },
+    {
+      "id": "US27-A11",
+      "requirements": ["REQ27-A04", "REQ27-A07"],
+      "acceptance": ["AC27-A04-03", "AC27-A07-01"]
+    },
+    {
+      "id": "US27-A12",
+      "requirements": ["REQ27-A01", "REQ27-A05", "REQ27-A14"],
+      "acceptance": ["AC27-A05-01", "AC27-A01-04", "AC27-A05-03"]
+    },
+    {
+      "id": "US27-A13",
+      "requirements": ["REQ27-A05", "REQ27-A06"],
+      "acceptance": ["AC27-A05-01", "AC27-A05-02", "AC27-A06-01"]
+    },
+    {
+      "id": "US27-A14",
+      "requirements": ["REQ27-A05", "REQ27-A06", "REQ27-A14"],
+      "acceptance": ["AC27-A05-02", "AC27-A01-04", "AC27-A14-01"]
+    },
+    {
+      "id": "US27-A15",
+      "requirements": ["REQ27-A06", "REQ27-A11", "REQ27-A15", "REQ27-A16"],
+      "acceptance": ["AC27-A05-02", "AC27-A06-01"]
+    },
+    {
+      "id": "US27-A16",
+      "requirements": ["REQ27-A05", "REQ27-A11", "REQ27-A12"],
+      "acceptance": ["AC27-A01-01", "AC27-A11-02", "AC27-A05-03", "AC27-A12-01"]
+    },
+    {
+      "id": "US27-A17",
+      "requirements": ["REQ27-A05", "REQ27-A11", "REQ27-A12"],
+      "acceptance": ["AC27-A04-04", "AC27-A11-02", "AC27-A05-03"]
+    },
+    {
+      "id": "US27-A18",
+      "requirements": ["REQ27-A07", "REQ27-A08", "REQ27-A09"],
+      "acceptance": ["AC27-A08-01", "AC27-A07-02", "AC27-A07-03"]
+    },
+    {
+      "id": "US27-A19",
+      "requirements": ["REQ27-A07", "REQ27-A08"],
+      "acceptance": ["AC27-A07-02"]
+    },
+    {
+      "id": "US27-A20",
+      "requirements": ["REQ27-A07", "REQ27-A08", "REQ27-A09"],
+      "acceptance": ["AC27-A09-01", "AC27-A07-02", "AC27-A07-03"]
+    },
+    {
+      "id": "US27-A21",
+      "requirements": ["REQ27-A09", "REQ27-A10", "REQ27-A11"],
+      "acceptance": ["AC27-A09-01", "AC27-A09-02", "AC27-A09-04"]
+    },
+    {
+      "id": "US27-A22",
+      "requirements": ["REQ27-A09", "REQ27-A11"],
+      "acceptance": ["AC27-A09-01", "AC27-A04-04", "AC27-A11-02"]
+    },
+    {
+      "id": "US27-A23",
+      "requirements": ["REQ27-A09", "REQ27-A13"],
+      "acceptance": ["AC27-A09-03", "AC27-A09-04", "AC27-A10-02"]
+    },
+    {
+      "id": "US27-A24",
+      "requirements": ["REQ27-A11", "REQ27-A13", "REQ27-A14"],
+      "acceptance": ["AC27-A01-04", "AC27-A09-04", "AC27-A11-03"]
+    },
+    {
+      "id": "US27-A25",
+      "requirements": ["REQ27-A10", "REQ27-A11", "REQ27-A16"],
+      "acceptance": ["AC27-A09-02", "AC27-A10-01"]
+    },
+    {
+      "id": "US27-A26",
+      "requirements": ["REQ27-A11", "REQ27-A12", "REQ27-A16"],
+      "acceptance": ["AC27-A10-01", "AC27-A11-01", "AC27-A06-01"]
+    },
+    {
+      "id": "US27-A27",
+      "requirements": ["REQ27-A03", "REQ27-A04", "REQ27-A12"],
+      "acceptance": ["AC27-A03-04", "AC27-A11-01", "AC27-A03-05"]
+    },
+    {
+      "id": "US27-A28",
+      "requirements": ["REQ27-A03", "REQ27-A04", "REQ27-A12", "REQ27-A17"],
+      "acceptance": ["AC27-A03-01", "AC27-A03-04", "AC27-A03-05", "AC27-A17-01"]
+    },
+    {
+      "id": "US27-A29",
+      "requirements": ["REQ27-A14", "REQ27-A18"],
+      "acceptance": ["AC27-A14-01", "AC27-A14-02", "AC27-A14-03", "AC27-A11-03"]
+    },
+    {
+      "id": "US27-A30",
+      "requirements": ["REQ27-A13", "REQ27-A15", "REQ27-A16", "REQ27-A18"],
+      "acceptance": [
+        "AC27-A10-01",
+        "AC27-A06-01",
+        "AC27-A10-02",
+        "AC27-A15-01",
+        "AC27-A18-01"
+      ]
+    },
+    {
+      "id": "US27-A31",
+      "requirements": ["REQ27-A12", "REQ27-A17"],
+      "acceptance": ["AC27-A11-02", "AC27-A03-05", "AC27-A17-01", "AC27-A12-01"]
+    },
+    {
+      "id": "US27-A32",
+      "requirements": ["REQ27-A18"],
+      "acceptance": ["AC27-A18-01"]
+    },
+    {
+      "id": "US27-Q01",
+      "requirements": ["REQ27-Q01"],
+      "acceptance": ["AC27-Q01-01", "AC27-Q01-02"]
+    },
+    {
+      "id": "US27-Q02",
+      "requirements": ["REQ27-Q02"],
+      "acceptance": ["AC27-Q02-01", "AC27-Q02-02"]
+    },
+    {
+      "id": "US27-Q03",
+      "requirements": ["REQ27-Q03"],
+      "acceptance": ["AC27-Q03-01", "AC27-Q03-02"]
+    },
+    {
+      "id": "US27-Q04",
+      "requirements": ["REQ27-Q04"],
+      "acceptance": ["AC27-Q04-01", "AC27-Q04-02"]
+    },
+    {
+      "id": "US27-Q05",
+      "requirements": ["REQ27-Q05"],
+      "acceptance": ["AC27-Q05-01", "AC27-Q05-02"]
+    },
+    {
+      "id": "US27-Q06",
+      "requirements": ["REQ27-Q06"],
+      "acceptance": ["AC27-Q06-01", "AC27-Q06-02"]
+    },
+    {
+      "id": "US27-Q07",
+      "requirements": ["REQ27-Q07"],
+      "acceptance": ["AC27-Q07-01", "AC27-Q07-02"]
+    },
+    {
+      "id": "US27-Q08",
+      "requirements": ["REQ27-Q08"],
+      "acceptance": ["AC27-Q08-01", "AC27-Q08-02"]
+    },
+    {
+      "id": "US27-Q09",
+      "requirements": ["REQ27-Q09"],
+      "acceptance": ["AC27-Q09-01", "AC27-Q09-02"]
+    },
+    {
+      "id": "US27-Q10",
+      "requirements": ["REQ27-Q10"],
+      "acceptance": ["AC27-Q10-01", "AC27-Q10-02"]
+    },
+    {
+      "id": "US27-Q11",
+      "requirements": ["REQ27-Q11"],
+      "acceptance": ["AC27-Q11-01", "AC27-Q11-02"]
+    },
+    {
+      "id": "US27-Q12",
+      "requirements": ["REQ27-Q12"],
+      "acceptance": ["AC27-Q12-01", "AC27-Q12-02"]
+    },
+    {
+      "id": "US27-Q13",
+      "requirements": ["REQ27-Q13"],
+      "acceptance": ["AC27-Q13-01", "AC27-Q13-02"]
+    },
+    {
+      "id": "US27-Q14",
+      "requirements": ["REQ27-Q14"],
+      "acceptance": ["AC27-Q14-01", "AC27-Q14-02"]
+    },
+    {
+      "id": "US27-Q15",
+      "requirements": ["REQ27-Q15"],
+      "acceptance": ["AC27-Q15-01", "AC27-Q15-02"]
+    },
+    {
+      "id": "US27-Q16",
+      "requirements": ["REQ27-Q16"],
+      "acceptance": ["AC27-Q16-01", "AC27-Q16-02"]
+    }
+  ],
+  "requirements": {
+    "REQ27-P01": {
+      "volume": "partnerships",
+      "title": "Continuing work belongs to an identified relationship purpose"
+    },
+    "REQ27-P02": {
+      "volume": "partnerships",
+      "title": "One ordinary enrollment and a bounded independent-purpose exception"
+    },
+    "REQ27-P03": {
+      "volume": "partnerships",
+      "title": "Deliberate contextual admission and safe reuse"
+    },
+    "REQ27-P04": {
+      "volume": "partnerships",
+      "title": "Finite reviewed group intent and recoverable member outcomes"
+    },
+    "REQ27-P05": {
+      "volume": "partnerships",
+      "title": "Visible, eligible partnership responsibility"
+    },
+    "REQ27-P06": {
+      "volume": "partnerships",
+      "title": "Source changes and corrections preserve real intent and history"
+    },
+    "REQ27-P07": {
+      "volume": "partnerships",
+      "title": "Source-owned next actions and independently meaningful obligations"
+    },
+    "REQ27-P08": {
+      "volume": "partnerships",
+      "title": "Deliberate pause and truthful internal review occurrences"
+    },
+    "REQ27-P09": {
+      "volume": "partnerships",
+      "title": "Review dates retain their calendar meaning"
+    },
+    "REQ27-P10": {
+      "volume": "partnerships",
+      "title": "Qualified review routing and minimal in-product attention"
+    },
+    "REQ27-P11": {
+      "volume": "partnerships",
+      "title": "Closure requires complete bounded readiness and preserves independent work"
+    },
+    "REQ27-P12": {
+      "volume": "partnerships",
+      "title": "Genuine return reopens the same work without reviving children"
+    },
+    "REQ27-P13": {
+      "volume": "partnerships",
+      "title": "One trusted mutation boundary, scope-safe results and durable source evidence"
+    },
+    "REQ27-P14": {
+      "volume": "partnerships",
+      "title": "Stable organization-owned catalogs and history"
+    },
+    "REQ27-P15": {
+      "volume": "partnerships",
+      "title": "Stage retirement, restoration and usable catalogs"
+    },
+    "REQ27-P16": {
+      "volume": "partnerships",
+      "title": "Additional complete distinguishable lists"
+    },
+    "REQ27-P17": {
+      "volume": "partnerships",
+      "title": "List withdrawal and retained-work continuity"
+    },
+    "REQ27-P18": {
+      "volume": "partnerships",
+      "title": "Shared eligible-list choice and exact new-work intent"
+    },
+    "REQ27-P19": {
+      "volume": "partnerships",
+      "title": "Optional usual list and bounded initializer"
+    },
+    "REQ27-P20": {
+      "volume": "partnerships",
+      "title": "Advisory guidance and direct stage assessment"
+    },
+    "REQ27-P21": {
+      "volume": "partnerships",
+      "title": "Optional assessment and honest absence projections"
+    },
+    "REQ27-P22": {
+      "volume": "partnerships",
+      "title": "Deliberate same-work list transfer with optional target stage"
+    },
+    "REQ27-P23": {
+      "volume": "partnerships",
+      "title": "Current authorization, privacy and disclosure"
+    },
+    "REQ27-P24": {
+      "volume": "partnerships",
+      "title": "Relational integrity, atomicity, concurrency and replay"
+    },
+    "REQ27-P25": {
+      "volume": "partnerships",
+      "title": "Coherent accessible UI, history and truthful recovery"
+    },
+    "REQ27-P26": {
+      "volume": "partnerships",
+      "title": "Independent facts, accountable work and effect ownership"
+    },
+    "REQ27-P27": {
+      "volume": "partnerships",
+      "title": "Migration, bounded operation, evidence and release gates"
+    },
+    "REQ27-P28": {
+      "volume": "partnerships",
+      "title": "Deliberate same-list clearing preserves current absence and earlier assessments"
+    },
+    "REQ27-P29": {
+      "volume": "partnerships",
+      "title": "Paused work remains editable without changing the pause"
+    },
+    "REQ27-P30": {
+      "volume": "partnerships",
+      "title": "Clear shared UI and honest recovery across ordinary work"
+    },
+    "REQ27-P31": {
+      "volume": "partnerships",
+      "title": "Authoritative projections retain coverage and domain distinctions"
+    },
+    "REQ27-P32": {
+      "volume": "partnerships",
+      "title": "Qualified activation, migration, restore and operating proof"
+    },
+    "REQ27-P33": {
+      "volume": "partnerships",
+      "title": "Actual exchanges, outreach and agreed follow-up remain distinct"
+    },
+    "REQ27-F01": {
+      "volume": "requests",
+      "title": "Scope"
+    },
+    "REQ27-F02": {
+      "volume": "requests",
+      "title": "Independent decisions"
+    },
+    "REQ27-F03": {
+      "volume": "requests",
+      "title": "Responsibility and follow-through"
+    },
+    "REQ27-F04": {
+      "volume": "requests",
+      "title": "Relevant monetary facts"
+    },
+    "REQ27-F05": {
+      "volume": "requests",
+      "title": "Presentation, revision and forecast history"
+    },
+    "REQ27-F06": {
+      "volume": "requests",
+      "title": "Honest response"
+    },
+    "REQ27-F07": {
+      "volume": "requests",
+      "title": "Owner boundaries"
+    },
+    "REQ27-F08": {
+      "volume": "requests",
+      "title": "Lifecycle independence"
+    },
+    "REQ27-F09": {
+      "volume": "requests",
+      "title": "Atomic source mutation and replay"
+    },
+    "REQ27-F10": {
+      "volume": "requests",
+      "title": "Tenant and actor safety"
+    },
+    "REQ27-F11": {
+      "volume": "requests",
+      "title": "All database paths"
+    },
+    "REQ27-F12": {
+      "volume": "requests",
+      "title": "Minimized disclosure"
+    },
+    "REQ27-F13": {
+      "volume": "requests",
+      "title": "Clear accessible UX"
+    },
+    "REQ27-F14": {
+      "volume": "requests",
+      "title": "Lossless conditional editing"
+    },
+    "REQ27-F15": {
+      "volume": "requests",
+      "title": "Financial reporting"
+    },
+    "REQ27-F16": {
+      "volume": "requests",
+      "title": "Recoverable secondary effects"
+    },
+    "REQ27-F17": {
+      "volume": "requests",
+      "title": "Bounded implementation and operations"
+    },
+    "REQ27-F18": {
+      "volume": "requests",
+      "title": "Safe adoption and traceability"
+    },
+    "REQ27-F19": {
+      "volume": "requests",
+      "title": "Bounded policy"
+    },
+    "REQ27-F20": {
+      "volume": "requests",
+      "title": "Authority separation"
+    },
+    "REQ27-F21": {
+      "volume": "requests",
+      "title": "Reviewer eligibility"
+    },
+    "REQ27-F22": {
+      "volume": "requests",
+      "title": "Exact review target"
+    },
+    "REQ27-F23": {
+      "volume": "requests",
+      "title": "Deliberate lifecycle"
+    },
+    "REQ27-F24": {
+      "volume": "requests",
+      "title": "Current applicability"
+    },
+    "REQ27-F25": {
+      "volume": "requests",
+      "title": "Domain boundaries"
+    },
+    "REQ27-F26": {
+      "volume": "requests",
+      "title": "Historical truth"
+    },
+    "REQ27-F27": {
+      "volume": "requests",
+      "title": "Shared work"
+    },
+    "REQ27-F28": {
+      "volume": "requests",
+      "title": "Minimal disclosure"
+    },
+    "REQ27-F29": {
+      "volume": "requests",
+      "title": "Database invariants"
+    },
+    "REQ27-F30": {
+      "volume": "requests",
+      "title": "Atomic acceptance and races"
+    },
+    "REQ27-F31": {
+      "volume": "requests",
+      "title": "Durable retry"
+    },
+    "REQ27-F32": {
+      "volume": "requests",
+      "title": "Clear accessible UI"
+    },
+    "REQ27-F33": {
+      "volume": "requests",
+      "title": "History and correction"
+    },
+    "REQ27-F34": {
+      "volume": "requests",
+      "title": "Independent native operation"
+    },
+    "REQ27-F35": {
+      "volume": "requests",
+      "title": "Bounded operational qualification"
+    },
+    "REQ27-F36": {
+      "volume": "requests",
+      "title": "Safe rollout"
+    },
+    "REQ27-F37": {
+      "volume": "requests",
+      "title": "Proof and traceability"
+    },
+    "REQ27-F38": {
+      "volume": "requests",
+      "title": "Recorded planning intent"
+    },
+    "REQ27-F39": {
+      "volume": "requests",
+      "title": "Separate facts"
+    },
+    "REQ27-F40": {
+      "volume": "requests",
+      "title": "Stable scoped identity"
+    },
+    "REQ27-F41": {
+      "volume": "requests",
+      "title": "Deliberate dispositions"
+    },
+    "REQ27-F42": {
+      "volume": "requests",
+      "title": "Current authority"
+    },
+    "REQ27-F43": {
+      "volume": "requests",
+      "title": "Current restrictions"
+    },
+    "REQ27-F44": {
+      "volume": "requests",
+      "title": "Finite group intent"
+    },
+    "REQ27-F45": {
+      "volume": "requests",
+      "title": "Atomic member outcomes"
+    },
+    "REQ27-F46": {
+      "volume": "requests",
+      "title": "Concurrency and idempotency"
+    },
+    "REQ27-F47": {
+      "volume": "requests",
+      "title": "Precise outward effect"
+    },
+    "REQ27-F48": {
+      "volume": "requests",
+      "title": "Existing work and historical facts"
+    },
+    "REQ27-F49": {
+      "volume": "requests",
+      "title": "Identity repair"
+    },
+    "REQ27-F50": {
+      "volume": "requests",
+      "title": "Minimal governed data"
+    },
+    "REQ27-F51": {
+      "volume": "requests",
+      "title": "Clear accessible interface"
+    },
+    "REQ27-F52": {
+      "volume": "requests",
+      "title": "Native bounded operation"
+    },
+    "REQ27-F53": {
+      "volume": "requests",
+      "title": "Measurement and operations"
+    },
+    "REQ27-F54": {
+      "volume": "requests",
+      "title": "Safe upgrade and restore"
+    },
+    "REQ27-F55": {
+      "volume": "requests",
+      "title": "Traceability and proof"
+    },
+    "REQ27-F56": {
+      "volume": "requests",
+      "title": "Single intake owner"
+    },
+    "REQ27-F57": {
+      "volume": "requests",
+      "title": "Explicit receipt evidence"
+    },
+    "REQ27-F58": {
+      "volume": "requests",
+      "title": "Honest incomplete intake"
+    },
+    "REQ27-F59": {
+      "volume": "requests",
+      "title": "Separate authority"
+    },
+    "REQ27-F60": {
+      "volume": "requests",
+      "title": "Scoped identity and evidence"
+    },
+    "REQ27-F61": {
+      "volume": "requests",
+      "title": "Same-item continuation"
+    },
+    "REQ27-F62": {
+      "volume": "requests",
+      "title": "Exact resolution"
+    },
+    "REQ27-F63": {
+      "volume": "requests",
+      "title": "Independent dimensions"
+    },
+    "REQ27-F64": {
+      "volume": "requests",
+      "title": "Truthful exceptions/history"
+    },
+    "REQ27-F65": {
+      "volume": "requests",
+      "title": "Eligible native work"
+    },
+    "REQ27-F66": {
+      "volume": "requests",
+      "title": "Atomic local effects"
+    },
+    "REQ27-F67": {
+      "volume": "requests",
+      "title": "Concurrency and retry"
+    },
+    "REQ27-F68": {
+      "volume": "requests",
+      "title": "Honest money"
+    },
+    "REQ27-F69": {
+      "volume": "requests",
+      "title": "Minimal protected data"
+    },
+    "REQ27-F70": {
+      "volume": "requests",
+      "title": "Clear accessible flow"
+    },
+    "REQ27-F71": {
+      "volume": "requests",
+      "title": "Applicable bounded capability"
+    },
+    "REQ27-F72": {
+      "volume": "requests",
+      "title": "Safe rollout and restore"
+    },
+    "REQ27-F73": {
+      "volume": "requests",
+      "title": "Measured operations"
+    },
+    "REQ27-F74": {
+      "volume": "requests",
+      "title": "Traceable proof"
+    },
+    "REQ27-F75": {
+      "volume": "requests",
+      "title": "Scope and composition"
+    },
+    "REQ27-F76": {
+      "volume": "requests",
+      "title": "Independent meanings"
+    },
+    "REQ27-F77": {
+      "volume": "requests",
+      "title": "Exact relationships"
+    },
+    "REQ27-F78": {
+      "volume": "requests",
+      "title": "Honest measures"
+    },
+    "REQ27-F79": {
+      "volume": "requests",
+      "title": "Financial truth"
+    },
+    "REQ27-F80": {
+      "volume": "requests",
+      "title": "Authority at every boundary"
+    },
+    "REQ27-F81": {
+      "volume": "requests",
+      "title": "Database safety"
+    },
+    "REQ27-F82": {
+      "volume": "requests",
+      "title": "Private-by-scope participation"
+    },
+    "REQ27-F83": {
+      "volume": "requests",
+      "title": "Real work and source effects"
+    },
+    "REQ27-F84": {
+      "volume": "requests",
+      "title": "Lifecycle and closure"
+    },
+    "REQ27-F85": {
+      "volume": "requests",
+      "title": "Correctness under concurrency"
+    },
+    "REQ27-F86": {
+      "volume": "requests",
+      "title": "Temporal and correction meaning"
+    },
+    "REQ27-F87": {
+      "volume": "requests",
+      "title": "Coherent accessible interface"
+    },
+    "REQ27-F88": {
+      "volume": "requests",
+      "title": "Bounded reads and integrations"
+    },
+    "REQ27-F89": {
+      "volume": "requests",
+      "title": "Safe delivery and rollout"
+    },
+    "REQ27-F90": {
+      "volume": "requests",
+      "title": "Evidence and operations"
+    },
+    "REQ27-C01": {
+      "volume": "context",
+      "title": "Voluntary missionary contribution and independent obligations"
+    },
+    "REQ27-C02": {
+      "volume": "context",
+      "title": "New eligible shared content and truthful private alternatives"
+    },
+    "REQ27-C03": {
+      "volume": "context",
+      "title": "Exact ongoing audience and historical access"
+    },
+    "REQ27-C04": {
+      "volume": "context",
+      "title": "Qualified source, attribution and mutation invariants"
+    },
+    "REQ27-C05": {
+      "volume": "context",
+      "title": "Atomic shared-update acceptance and current-authority recovery"
+    },
+    "REQ27-C06": {
+      "volume": "context",
+      "title": "Calm composition and context-bound drafts"
+    },
+    "REQ27-C07": {
+      "volume": "context",
+      "title": "Truthful history, dates and correction without lifecycle side effects"
+    },
+    "REQ27-C08": {
+      "volume": "context",
+      "title": "Shared-history privacy, retention and safe restoration"
+    },
+    "REQ27-C09": {
+      "volume": "context",
+      "title": "Native shared-history delivery and measured capacity"
+    },
+    "REQ27-C10": {
+      "volume": "context",
+      "title": "Actual personal exchange qualification and separate outreach"
+    },
+    "REQ27-C11": {
+      "volume": "context",
+      "title": "Complete, correctable exchange recency and honest uncertainty"
+    },
+    "REQ27-C12": {
+      "volume": "context",
+      "title": "One exchange meaning across permitted surfaces"
+    },
+    "REQ27-C13": {
+      "volume": "context",
+      "title": "Facts first, tenant-optional financial ratings"
+    },
+    "REQ27-C14": {
+      "volume": "context",
+      "title": "Bounded understandable financial configuration"
+    },
+    "REQ27-C15": {
+      "volume": "context",
+      "title": "Financial basis and distinct source occurrence"
+    },
+    "REQ27-C16": {
+      "volume": "context",
+      "title": "Qualified received monetary basis and excluded substitutes"
+    },
+    "REQ27-C17": {
+      "volume": "context",
+      "title": "Exact RFM arithmetic and empty-period meaning"
+    },
+    "REQ27-C18": {
+      "volume": "context",
+      "title": "Financial time windows and explicit observation cutoff"
+    },
+    "REQ27-C19": {
+      "volume": "context",
+      "title": "Complete numeric bands and atomic policy validation"
+    },
+    "REQ27-C20": {
+      "volume": "context",
+      "title": "Financial correction and distinct coverage states"
+    },
+    "REQ27-C21": {
+      "volume": "context",
+      "title": "Current staff financial authority on every derivative"
+    },
+    "REQ27-C22": {
+      "volume": "context",
+      "title": "One policy command and authoritative activation fence"
+    },
+    "REQ27-C23": {
+      "volume": "context",
+      "title": "Real Off semantics for current views, exports and saved predicates"
+    },
+    "REQ27-C24": {
+      "volume": "context",
+      "title": "Fresh comparable baselines instead of manufactured change"
+    },
+    "REQ27-C25": {
+      "volume": "context",
+      "title": "Finite separately enabled internal-review predicate"
+    },
+    "REQ27-C26": {
+      "volume": "context",
+      "title": "One durable review episode per observed re-entry"
+    },
+    "REQ27-C27": {
+      "volume": "context",
+      "title": "Source-owned review responsibility and action"
+    },
+    "REQ27-C28": {
+      "volume": "context",
+      "title": "Disablement withdraws only solely automatic unresolved work"
+    },
+    "REQ27-C29": {
+      "volume": "context",
+      "title": "Rating failure and reconciliation preserve source truth"
+    },
+    "REQ27-C30": {
+      "volume": "context",
+      "title": "Rating integrity, actual authorization and minimal audit"
+    },
+    "REQ27-C31": {
+      "volume": "context",
+      "title": "Efficient rating delivery, legacy census and safe rollout"
+    },
+    "REQ27-C32": {
+      "volume": "context",
+      "title": "Deterministic source-linked meeting preparation"
+    },
+    "REQ27-C33": {
+      "volume": "context",
+      "title": "Church and organization context without identity or permission conflation"
+    },
+    "REQ27-C34": {
+      "volume": "context",
+      "title": "Useful native measures with explicit analytical grain"
+    },
+    "REQ27-C35": {
+      "volume": "context",
+      "title": "Clear shared UI and inclusive cross-surface experience"
+    },
+    "REQ27-C36": {
+      "volume": "context",
+      "title": "Independent acceptance proof, accountable release and monitors"
+    },
+    "REQ27-A01": {
+      "volume": "assignments",
+      "title": "Scope and default"
+    },
+    "REQ27-A02": {
+      "volume": "assignments",
+      "title": "Bounded rule evaluation"
+    },
+    "REQ27-A03": {
+      "volume": "assignments",
+      "title": "Source identity and cardinality"
+    },
+    "REQ27-A04": {
+      "volume": "assignments",
+      "title": "Durable manual intent"
+    },
+    "REQ27-A05": {
+      "volume": "assignments",
+      "title": "Prospective policy and finite application"
+    },
+    "REQ27-A06": {
+      "volume": "assignments",
+      "title": "Reviewed proposals and bulk effects"
+    },
+    "REQ27-A07": {
+      "volume": "assignments",
+      "title": "No-match and loss of eligibility"
+    },
+    "REQ27-A08": {
+      "volume": "assignments",
+      "title": "Independent work and handoff"
+    },
+    "REQ27-A09": {
+      "volume": "assignments",
+      "title": "Tenant and authority everywhere"
+    },
+    "REQ27-A10": {
+      "volume": "assignments",
+      "title": "Data and database invariants"
+    },
+    "REQ27-A11": {
+      "volume": "assignments",
+      "title": "Atomicity, ordering and durable effect identity"
+    },
+    "REQ27-A12": {
+      "volume": "assignments",
+      "title": "Disable, return and correction"
+    },
+    "REQ27-A13": {
+      "volume": "assignments",
+      "title": "Permission-safe explanations and privacy"
+    },
+    "REQ27-A14": {
+      "volume": "assignments",
+      "title": "Clear accessible interaction"
+    },
+    "REQ27-A15": {
+      "volume": "assignments",
+      "title": "Bounded execution and performance"
+    },
+    "REQ27-A16": {
+      "volume": "assignments",
+      "title": "Operational recovery and observability"
+    },
+    "REQ27-A17": {
+      "volume": "assignments",
+      "title": "Migration and rollout"
+    },
+    "REQ27-A18": {
+      "volume": "assignments",
+      "title": "Proof and traceability"
+    },
+    "REQ27-Q01": {
+      "volume": "proof",
+      "title": "One authoritative command boundary"
+    },
+    "REQ27-Q02": {
+      "volume": "proof",
+      "title": "Current authority across all paths"
+    },
+    "REQ27-Q03": {
+      "volume": "proof",
+      "title": "Database constraints and effective RLS"
+    },
+    "REQ27-Q04": {
+      "volume": "proof",
+      "title": "Durable effects and truthful retries"
+    },
+    "REQ27-Q05": {
+      "volume": "proof",
+      "title": "Concurrent intent and temporal correctness"
+    },
+    "REQ27-Q06": {
+      "volume": "proof",
+      "title": "Complete permission-safe projections"
+    },
+    "REQ27-Q07": {
+      "volume": "proof",
+      "title": "Operational follow-through without coercion"
+    },
+    "REQ27-Q08": {
+      "volume": "proof",
+      "title": "Native integration independence"
+    },
+    "REQ27-Q09": {
+      "volume": "proof",
+      "title": "Clear composed interface and accessible alternatives"
+    },
+    "REQ27-Q10": {
+      "volume": "proof",
+      "title": "International and sensitive context"
+    },
+    "REQ27-Q11": {
+      "volume": "proof",
+      "title": "Migration and safe activation"
+    },
+    "REQ27-Q12": {
+      "volume": "proof",
+      "title": "Measured capacity and bounded work"
+    },
+    "REQ27-Q13": {
+      "volume": "proof",
+      "title": "Separate business evidence and operational signals"
+    },
+    "REQ27-Q14": {
+      "volume": "proof",
+      "title": "Confirmed test seam and independently verifiable stories"
+    },
+    "REQ27-Q15": {
+      "volume": "proof",
+      "title": "Financial owner gates E7 and C-01"
+    },
+    "REQ27-Q16": {
+      "volume": "proof",
+      "title": "Truthful release evidence and staff pilot"
+    }
+  },
+  "acceptance": {
+    "AC27-P01-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P01-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P01-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P01-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P01-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P02-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P02-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P02-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P02-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P02-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P03-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P03-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P03-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P03-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P03-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P04-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P04-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P04-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P04-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P04-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P04-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P04-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P05-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P05-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P05-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P05-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P05-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P06-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P06-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P06-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P06-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P06-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P06-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P07-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P07-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P07-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P07-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P07-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P07-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P08-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P08-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P08-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P08-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P08-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P08-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P09-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P09-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P09-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P09-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P09-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P09-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P10-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P11-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P12-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P12-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P12-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P12-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P12-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P12-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P12-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P13-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P14-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P14-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P14-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P15-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P15-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P15-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P15-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P15-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P16-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P16-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P16-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P16-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P17-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-12": {
+      "volume": "partnerships"
+    },
+    "AC27-P18-13": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P19-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P20-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P20-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P20-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P20-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P20-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P20-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P21-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P22-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-12": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-13": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-14": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-15": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-16": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-17": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-18": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-19": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-20": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-21": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-22": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-23": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-24": {
+      "volume": "partnerships"
+    },
+    "AC27-P23-25": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-12": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-13": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-14": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-15": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-16": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-17": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-18": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-19": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-20": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-21": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-22": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-23": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-24": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-25": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-26": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-27": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-28": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-29": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-30": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-31": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-32": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-33": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-34": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-35": {
+      "volume": "partnerships"
+    },
+    "AC27-P24-36": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-12": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-13": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-14": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-15": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-16": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-17": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-18": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-19": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-20": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-21": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-22": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-23": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-24": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-25": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-26": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-27": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-28": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-29": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-30": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-31": {
+      "volume": "partnerships"
+    },
+    "AC27-P25-32": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-12": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-13": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-14": {
+      "volume": "partnerships"
+    },
+    "AC27-P26-15": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-12": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-13": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-14": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-15": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-16": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-17": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-18": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-19": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-20": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-21": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-22": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-23": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-24": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-25": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-26": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-27": {
+      "volume": "partnerships"
+    },
+    "AC27-P27-28": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P28-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P29-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P29-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P29-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P29-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P29-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P30-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P30-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P30-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P30-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P30-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P30-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P30-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P31-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P31-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P31-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P31-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P31-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P31-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P31-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P32-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-01": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-02": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-03": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-04": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-05": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-06": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-07": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-08": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-09": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-10": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-11": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-12": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-13": {
+      "volume": "partnerships"
+    },
+    "AC27-P33-14": {
+      "volume": "partnerships"
+    },
+    "AC27-F01-01": {
+      "volume": "requests"
+    },
+    "AC27-F02-01": {
+      "volume": "requests"
+    },
+    "AC27-F03-01": {
+      "volume": "requests"
+    },
+    "AC27-F04-01": {
+      "volume": "requests"
+    },
+    "AC27-F04-02": {
+      "volume": "requests"
+    },
+    "AC27-F05-01": {
+      "volume": "requests"
+    },
+    "AC27-F05-02": {
+      "volume": "requests"
+    },
+    "AC27-F06-01": {
+      "volume": "requests"
+    },
+    "AC27-F05-03": {
+      "volume": "requests"
+    },
+    "AC27-F07-01": {
+      "volume": "requests"
+    },
+    "AC27-F07-02": {
+      "volume": "requests"
+    },
+    "AC27-F07-03": {
+      "volume": "requests"
+    },
+    "AC27-F05-04": {
+      "volume": "requests"
+    },
+    "AC27-F04-03": {
+      "volume": "requests"
+    },
+    "AC27-F08-01": {
+      "volume": "requests"
+    },
+    "AC27-F03-02": {
+      "volume": "requests"
+    },
+    "AC27-F10-01": {
+      "volume": "requests"
+    },
+    "AC27-F10-02": {
+      "volume": "requests"
+    },
+    "AC27-F12-01": {
+      "volume": "requests"
+    },
+    "AC27-F09-01": {
+      "volume": "requests"
+    },
+    "AC27-F09-02": {
+      "volume": "requests"
+    },
+    "AC27-F10-03": {
+      "volume": "requests"
+    },
+    "AC27-F11-01": {
+      "volume": "requests"
+    },
+    "AC27-F04-04": {
+      "volume": "requests"
+    },
+    "AC27-F13-01": {
+      "volume": "requests"
+    },
+    "AC27-F13-02": {
+      "volume": "requests"
+    },
+    "AC27-F09-03": {
+      "volume": "requests"
+    },
+    "AC27-F18-01": {
+      "volume": "requests"
+    },
+    "AC27-F07-04": {
+      "volume": "requests"
+    },
+    "AC27-F17-01": {
+      "volume": "requests"
+    },
+    "AC27-F19-01": {
+      "volume": "requests"
+    },
+    "AC27-F19-02": {
+      "volume": "requests"
+    },
+    "AC27-F19-03": {
+      "volume": "requests"
+    },
+    "AC27-F22-01": {
+      "volume": "requests"
+    },
+    "AC27-F22-02": {
+      "volume": "requests"
+    },
+    "AC27-F22-03": {
+      "volume": "requests"
+    },
+    "AC27-F23-01": {
+      "volume": "requests"
+    },
+    "AC27-F24-01": {
+      "volume": "requests"
+    },
+    "AC27-F19-04": {
+      "volume": "requests"
+    },
+    "AC27-F20-01": {
+      "volume": "requests"
+    },
+    "AC27-F20-02": {
+      "volume": "requests"
+    },
+    "AC27-F21-01": {
+      "volume": "requests"
+    },
+    "AC27-F29-01": {
+      "volume": "requests"
+    },
+    "AC27-F27-01": {
+      "volume": "requests"
+    },
+    "AC27-F24-02": {
+      "volume": "requests"
+    },
+    "AC27-F21-02": {
+      "volume": "requests"
+    },
+    "AC27-F21-03": {
+      "volume": "requests"
+    },
+    "AC27-F28-01": {
+      "volume": "requests"
+    },
+    "AC27-F27-02": {
+      "volume": "requests"
+    },
+    "AC27-F30-01": {
+      "volume": "requests"
+    },
+    "AC27-F32-01": {
+      "volume": "requests"
+    },
+    "AC27-F28-02": {
+      "volume": "requests"
+    },
+    "AC27-F20-03": {
+      "volume": "requests"
+    },
+    "AC27-F25-01": {
+      "volume": "requests"
+    },
+    "AC27-F27-03": {
+      "volume": "requests"
+    },
+    "AC27-F29-02": {
+      "volume": "requests"
+    },
+    "AC27-F28-03": {
+      "volume": "requests"
+    },
+    "AC27-F25-02": {
+      "volume": "requests"
+    },
+    "AC27-F32-02": {
+      "volume": "requests"
+    },
+    "AC27-F29-03": {
+      "volume": "requests"
+    },
+    "AC27-F38-01": {
+      "volume": "requests"
+    },
+    "AC27-F38-02": {
+      "volume": "requests"
+    },
+    "AC27-F40-01": {
+      "volume": "requests"
+    },
+    "AC27-F38-03": {
+      "volume": "requests"
+    },
+    "AC27-F42-01": {
+      "volume": "requests"
+    },
+    "AC27-F39-01": {
+      "volume": "requests"
+    },
+    "AC27-F41-01": {
+      "volume": "requests"
+    },
+    "AC27-F39-02": {
+      "volume": "requests"
+    },
+    "AC27-F42-02": {
+      "volume": "requests"
+    },
+    "AC27-F43-01": {
+      "volume": "requests"
+    },
+    "AC27-F39-03": {
+      "volume": "requests"
+    },
+    "AC27-F39-04": {
+      "volume": "requests"
+    },
+    "AC27-F40-02": {
+      "volume": "requests"
+    },
+    "AC27-F44-01": {
+      "volume": "requests"
+    },
+    "AC27-F41-02": {
+      "volume": "requests"
+    },
+    "AC27-F42-03": {
+      "volume": "requests"
+    },
+    "AC27-F44-02": {
+      "volume": "requests"
+    },
+    "AC27-F51-01": {
+      "volume": "requests"
+    },
+    "AC27-F50-01": {
+      "volume": "requests"
+    },
+    "AC27-F40-03": {
+      "volume": "requests"
+    },
+    "AC27-F41-03": {
+      "volume": "requests"
+    },
+    "AC27-F38-04": {
+      "volume": "requests"
+    },
+    "AC27-F42-04": {
+      "volume": "requests"
+    },
+    "AC27-F45-01": {
+      "volume": "requests"
+    },
+    "AC27-F40-04": {
+      "volume": "requests"
+    },
+    "AC27-F47-01": {
+      "volume": "requests"
+    },
+    "AC27-F38-05": {
+      "volume": "requests"
+    },
+    "AC27-F51-02": {
+      "volume": "requests"
+    },
+    "AC27-F44-03": {
+      "volume": "requests"
+    },
+    "AC27-F56-01": {
+      "volume": "requests"
+    },
+    "AC27-F57-01": {
+      "volume": "requests"
+    },
+    "AC27-F58-01": {
+      "volume": "requests"
+    },
+    "AC27-F56-02": {
+      "volume": "requests"
+    },
+    "AC27-F61-01": {
+      "volume": "requests"
+    },
+    "AC27-F60-01": {
+      "volume": "requests"
+    },
+    "AC27-F59-01": {
+      "volume": "requests"
+    },
+    "AC27-F57-02": {
+      "volume": "requests"
+    },
+    "AC27-F57-03": {
+      "volume": "requests"
+    },
+    "AC27-F61-02": {
+      "volume": "requests"
+    },
+    "AC27-F62-01": {
+      "volume": "requests"
+    },
+    "AC27-F59-02": {
+      "volume": "requests"
+    },
+    "AC27-F58-02": {
+      "volume": "requests"
+    },
+    "AC27-F61-03": {
+      "volume": "requests"
+    },
+    "AC27-F61-04": {
+      "volume": "requests"
+    },
+    "AC27-F59-03": {
+      "volume": "requests"
+    },
+    "AC27-F61-05": {
+      "volume": "requests"
+    },
+    "AC27-F61-06": {
+      "volume": "requests"
+    },
+    "AC27-F59-04": {
+      "volume": "requests"
+    },
+    "AC27-F57-04": {
+      "volume": "requests"
+    },
+    "AC27-F70-01": {
+      "volume": "requests"
+    },
+    "AC27-F67-01": {
+      "volume": "requests"
+    },
+    "AC27-F59-05": {
+      "volume": "requests"
+    },
+    "AC27-F57-05": {
+      "volume": "requests"
+    },
+    "AC27-F61-07": {
+      "volume": "requests"
+    },
+    "AC27-F64-01": {
+      "volume": "requests"
+    },
+    "AC27-F56-03": {
+      "volume": "requests"
+    },
+    "AC27-F60-02": {
+      "volume": "requests"
+    },
+    "AC27-F64-02": {
+      "volume": "requests"
+    },
+    "AC27-F57-06": {
+      "volume": "requests"
+    },
+    "AC27-F57-07": {
+      "volume": "requests"
+    },
+    "AC27-F56-04": {
+      "volume": "requests"
+    },
+    "AC27-F75-01": {
+      "volume": "requests"
+    },
+    "AC27-F76-01": {
+      "volume": "requests"
+    },
+    "AC27-F75-02": {
+      "volume": "requests"
+    },
+    "AC27-F76-02": {
+      "volume": "requests"
+    },
+    "AC27-F76-03": {
+      "volume": "requests"
+    },
+    "AC27-F76-04": {
+      "volume": "requests"
+    },
+    "AC27-F77-01": {
+      "volume": "requests"
+    },
+    "AC27-F77-02": {
+      "volume": "requests"
+    },
+    "AC27-F78-01": {
+      "volume": "requests"
+    },
+    "AC27-F84-01": {
+      "volume": "requests"
+    },
+    "AC27-F83-01": {
+      "volume": "requests"
+    },
+    "AC27-F84-02": {
+      "volume": "requests"
+    },
+    "AC27-F85-01": {
+      "volume": "requests"
+    },
+    "AC27-F79-01": {
+      "volume": "requests"
+    },
+    "AC27-F76-05": {
+      "volume": "requests"
+    },
+    "AC27-F80-01": {
+      "volume": "requests"
+    },
+    "AC27-F78-02": {
+      "volume": "requests"
+    },
+    "AC27-F80-02": {
+      "volume": "requests"
+    },
+    "AC27-F80-03": {
+      "volume": "requests"
+    },
+    "AC27-F85-02": {
+      "volume": "requests"
+    },
+    "AC27-F80-04": {
+      "volume": "requests"
+    },
+    "AC27-F85-03": {
+      "volume": "requests"
+    },
+    "AC27-F83-02": {
+      "volume": "requests"
+    },
+    "AC27-F75-03": {
+      "volume": "requests"
+    },
+    "AC27-F87-01": {
+      "volume": "requests"
+    },
+    "AC27-F87-02": {
+      "volume": "requests"
+    },
+    "AC27-F87-03": {
+      "volume": "requests"
+    },
+    "AC27-F85-04": {
+      "volume": "requests"
+    },
+    "AC27-F79-02": {
+      "volume": "requests"
+    },
+    "AC27-F85-05": {
+      "volume": "requests"
+    },
+    "AC27-F78-03": {
+      "volume": "requests"
+    },
+    "AC27-F82-01": {
+      "volume": "requests"
+    },
+    "AC27-F88-01": {
+      "volume": "requests"
+    },
+    "AC27-F89-01": {
+      "volume": "requests"
+    },
+    "AC27-F89-02": {
+      "volume": "requests"
+    },
+    "AC27-F89-03": {
+      "volume": "requests"
+    },
+    "AC27-C01-01": {
+      "volume": "context"
+    },
+    "AC27-C01-02": {
+      "volume": "context"
+    },
+    "AC27-C01-03": {
+      "volume": "context"
+    },
+    "AC27-C02-01": {
+      "volume": "context"
+    },
+    "AC27-C02-02": {
+      "volume": "context"
+    },
+    "AC27-C02-03": {
+      "volume": "context"
+    },
+    "AC27-C03-01": {
+      "volume": "context"
+    },
+    "AC27-C03-02": {
+      "volume": "context"
+    },
+    "AC27-C03-03": {
+      "volume": "context"
+    },
+    "AC27-C03-04": {
+      "volume": "context"
+    },
+    "AC27-C04-01": {
+      "volume": "context"
+    },
+    "AC27-C04-02": {
+      "volume": "context"
+    },
+    "AC27-C04-03": {
+      "volume": "context"
+    },
+    "AC27-C04-04": {
+      "volume": "context"
+    },
+    "AC27-C05-01": {
+      "volume": "context"
+    },
+    "AC27-C05-02": {
+      "volume": "context"
+    },
+    "AC27-C05-03": {
+      "volume": "context"
+    },
+    "AC27-C05-04": {
+      "volume": "context"
+    },
+    "AC27-C06-01": {
+      "volume": "context"
+    },
+    "AC27-C06-02": {
+      "volume": "context"
+    },
+    "AC27-C06-03": {
+      "volume": "context"
+    },
+    "AC27-C06-04": {
+      "volume": "context"
+    },
+    "AC27-C07-01": {
+      "volume": "context"
+    },
+    "AC27-C07-02": {
+      "volume": "context"
+    },
+    "AC27-C07-03": {
+      "volume": "context"
+    },
+    "AC27-C07-04": {
+      "volume": "context"
+    },
+    "AC27-C08-01": {
+      "volume": "context"
+    },
+    "AC27-C08-02": {
+      "volume": "context"
+    },
+    "AC27-C08-03": {
+      "volume": "context"
+    },
+    "AC27-C08-04": {
+      "volume": "context"
+    },
+    "AC27-C09-01": {
+      "volume": "context"
+    },
+    "AC27-C09-02": {
+      "volume": "context"
+    },
+    "AC27-C09-03": {
+      "volume": "context"
+    },
+    "AC27-C09-04": {
+      "volume": "context"
+    },
+    "AC27-C10-01": {
+      "volume": "context"
+    },
+    "AC27-C10-02": {
+      "volume": "context"
+    },
+    "AC27-C10-03": {
+      "volume": "context"
+    },
+    "AC27-C10-04": {
+      "volume": "context"
+    },
+    "AC27-C11-01": {
+      "volume": "context"
+    },
+    "AC27-C11-02": {
+      "volume": "context"
+    },
+    "AC27-C11-03": {
+      "volume": "context"
+    },
+    "AC27-C11-04": {
+      "volume": "context"
+    },
+    "AC27-C12-01": {
+      "volume": "context"
+    },
+    "AC27-C12-02": {
+      "volume": "context"
+    },
+    "AC27-C12-03": {
+      "volume": "context"
+    },
+    "AC27-C12-04": {
+      "volume": "context"
+    },
+    "AC27-C13-01": {
+      "volume": "context"
+    },
+    "AC27-C13-02": {
+      "volume": "context"
+    },
+    "AC27-C13-03": {
+      "volume": "context"
+    },
+    "AC27-C13-04": {
+      "volume": "context"
+    },
+    "AC27-C14-01": {
+      "volume": "context"
+    },
+    "AC27-C14-02": {
+      "volume": "context"
+    },
+    "AC27-C14-03": {
+      "volume": "context"
+    },
+    "AC27-C14-04": {
+      "volume": "context"
+    },
+    "AC27-C15-01": {
+      "volume": "context"
+    },
+    "AC27-C15-02": {
+      "volume": "context"
+    },
+    "AC27-C15-03": {
+      "volume": "context"
+    },
+    "AC27-C15-04": {
+      "volume": "context"
+    },
+    "AC27-C16-01": {
+      "volume": "context"
+    },
+    "AC27-C16-02": {
+      "volume": "context"
+    },
+    "AC27-C16-03": {
+      "volume": "context"
+    },
+    "AC27-C16-04": {
+      "volume": "context"
+    },
+    "AC27-C17-01": {
+      "volume": "context"
+    },
+    "AC27-C17-02": {
+      "volume": "context"
+    },
+    "AC27-C17-03": {
+      "volume": "context"
+    },
+    "AC27-C17-04": {
+      "volume": "context"
+    },
+    "AC27-C18-01": {
+      "volume": "context"
+    },
+    "AC27-C18-02": {
+      "volume": "context"
+    },
+    "AC27-C18-03": {
+      "volume": "context"
+    },
+    "AC27-C18-04": {
+      "volume": "context"
+    },
+    "AC27-C19-01": {
+      "volume": "context"
+    },
+    "AC27-C19-02": {
+      "volume": "context"
+    },
+    "AC27-C19-03": {
+      "volume": "context"
+    },
+    "AC27-C19-04": {
+      "volume": "context"
+    },
+    "AC27-C20-01": {
+      "volume": "context"
+    },
+    "AC27-C20-02": {
+      "volume": "context"
+    },
+    "AC27-C20-03": {
+      "volume": "context"
+    },
+    "AC27-C20-04": {
+      "volume": "context"
+    },
+    "AC27-C21-01": {
+      "volume": "context"
+    },
+    "AC27-C21-02": {
+      "volume": "context"
+    },
+    "AC27-C21-03": {
+      "volume": "context"
+    },
+    "AC27-C21-04": {
+      "volume": "context"
+    },
+    "AC27-C22-01": {
+      "volume": "context"
+    },
+    "AC27-C22-02": {
+      "volume": "context"
+    },
+    "AC27-C22-03": {
+      "volume": "context"
+    },
+    "AC27-C22-04": {
+      "volume": "context"
+    },
+    "AC27-C23-01": {
+      "volume": "context"
+    },
+    "AC27-C23-02": {
+      "volume": "context"
+    },
+    "AC27-C23-03": {
+      "volume": "context"
+    },
+    "AC27-C23-04": {
+      "volume": "context"
+    },
+    "AC27-C24-01": {
+      "volume": "context"
+    },
+    "AC27-C24-02": {
+      "volume": "context"
+    },
+    "AC27-C24-03": {
+      "volume": "context"
+    },
+    "AC27-C24-04": {
+      "volume": "context"
+    },
+    "AC27-C25-01": {
+      "volume": "context"
+    },
+    "AC27-C25-02": {
+      "volume": "context"
+    },
+    "AC27-C25-03": {
+      "volume": "context"
+    },
+    "AC27-C25-04": {
+      "volume": "context"
+    },
+    "AC27-C26-01": {
+      "volume": "context"
+    },
+    "AC27-C26-02": {
+      "volume": "context"
+    },
+    "AC27-C26-03": {
+      "volume": "context"
+    },
+    "AC27-C26-04": {
+      "volume": "context"
+    },
+    "AC27-C27-01": {
+      "volume": "context"
+    },
+    "AC27-C27-02": {
+      "volume": "context"
+    },
+    "AC27-C27-03": {
+      "volume": "context"
+    },
+    "AC27-C27-04": {
+      "volume": "context"
+    },
+    "AC27-C28-01": {
+      "volume": "context"
+    },
+    "AC27-C28-02": {
+      "volume": "context"
+    },
+    "AC27-C28-03": {
+      "volume": "context"
+    },
+    "AC27-C28-04": {
+      "volume": "context"
+    },
+    "AC27-C29-01": {
+      "volume": "context"
+    },
+    "AC27-C29-02": {
+      "volume": "context"
+    },
+    "AC27-C29-03": {
+      "volume": "context"
+    },
+    "AC27-C29-04": {
+      "volume": "context"
+    },
+    "AC27-C30-01": {
+      "volume": "context"
+    },
+    "AC27-C30-02": {
+      "volume": "context"
+    },
+    "AC27-C30-03": {
+      "volume": "context"
+    },
+    "AC27-C30-04": {
+      "volume": "context"
+    },
+    "AC27-C31-01": {
+      "volume": "context"
+    },
+    "AC27-C31-02": {
+      "volume": "context"
+    },
+    "AC27-C31-03": {
+      "volume": "context"
+    },
+    "AC27-C31-04": {
+      "volume": "context"
+    },
+    "AC27-C32-01": {
+      "volume": "context"
+    },
+    "AC27-C32-02": {
+      "volume": "context"
+    },
+    "AC27-C32-03": {
+      "volume": "context"
+    },
+    "AC27-C32-04": {
+      "volume": "context"
+    },
+    "AC27-C33-01": {
+      "volume": "context"
+    },
+    "AC27-C33-02": {
+      "volume": "context"
+    },
+    "AC27-C33-03": {
+      "volume": "context"
+    },
+    "AC27-C33-04": {
+      "volume": "context"
+    },
+    "AC27-C34-01": {
+      "volume": "context"
+    },
+    "AC27-C34-02": {
+      "volume": "context"
+    },
+    "AC27-C34-03": {
+      "volume": "context"
+    },
+    "AC27-C34-04": {
+      "volume": "context"
+    },
+    "AC27-C35-01": {
+      "volume": "context"
+    },
+    "AC27-C35-02": {
+      "volume": "context"
+    },
+    "AC27-C35-03": {
+      "volume": "context"
+    },
+    "AC27-C35-04": {
+      "volume": "context"
+    },
+    "AC27-C36-01": {
+      "volume": "context"
+    },
+    "AC27-C36-02": {
+      "volume": "context"
+    },
+    "AC27-C36-03": {
+      "volume": "context"
+    },
+    "AC27-C36-04": {
+      "volume": "context"
+    },
+    "AC27-A01-01": {
+      "volume": "assignments"
+    },
+    "AC27-A01-02": {
+      "volume": "assignments"
+    },
+    "AC27-A01-03": {
+      "volume": "assignments"
+    },
+    "AC27-A04-01": {
+      "volume": "assignments"
+    },
+    "AC27-A04-02": {
+      "volume": "assignments"
+    },
+    "AC27-A04-03": {
+      "volume": "assignments"
+    },
+    "AC27-A02-01": {
+      "volume": "assignments"
+    },
+    "AC27-A07-01": {
+      "volume": "assignments"
+    },
+    "AC27-A02-02": {
+      "volume": "assignments"
+    },
+    "AC27-A02-03": {
+      "volume": "assignments"
+    },
+    "AC27-A03-01": {
+      "volume": "assignments"
+    },
+    "AC27-A03-02": {
+      "volume": "assignments"
+    },
+    "AC27-A03-03": {
+      "volume": "assignments"
+    },
+    "AC27-A03-04": {
+      "volume": "assignments"
+    },
+    "AC27-A05-01": {
+      "volume": "assignments"
+    },
+    "AC27-A05-02": {
+      "volume": "assignments"
+    },
+    "AC27-A01-04": {
+      "volume": "assignments"
+    },
+    "AC27-A09-01": {
+      "volume": "assignments"
+    },
+    "AC27-A09-02": {
+      "volume": "assignments"
+    },
+    "AC27-A09-03": {
+      "volume": "assignments"
+    },
+    "AC27-A09-04": {
+      "volume": "assignments"
+    },
+    "AC27-A10-01": {
+      "volume": "assignments"
+    },
+    "AC27-A11-01": {
+      "volume": "assignments"
+    },
+    "AC27-A08-01": {
+      "volume": "assignments"
+    },
+    "AC27-A07-02": {
+      "volume": "assignments"
+    },
+    "AC27-A04-04": {
+      "volume": "assignments"
+    },
+    "AC27-A11-02": {
+      "volume": "assignments"
+    },
+    "AC27-A06-01": {
+      "volume": "assignments"
+    },
+    "AC27-A05-03": {
+      "volume": "assignments"
+    },
+    "AC27-A07-03": {
+      "volume": "assignments"
+    },
+    "AC27-A03-05": {
+      "volume": "assignments"
+    },
+    "AC27-A14-01": {
+      "volume": "assignments"
+    },
+    "AC27-A14-02": {
+      "volume": "assignments"
+    },
+    "AC27-A14-03": {
+      "volume": "assignments"
+    },
+    "AC27-A11-03": {
+      "volume": "assignments"
+    },
+    "AC27-A10-02": {
+      "volume": "assignments"
+    },
+    "AC27-A15-01": {
+      "volume": "assignments"
+    },
+    "AC27-A17-01": {
+      "volume": "assignments"
+    },
+    "AC27-A12-01": {
+      "volume": "assignments"
+    },
+    "AC27-A18-01": {
+      "volume": "assignments"
+    },
+    "AC27-Q01-01": {
+      "volume": "proof"
+    },
+    "AC27-Q01-02": {
+      "volume": "proof"
+    },
+    "AC27-Q02-01": {
+      "volume": "proof"
+    },
+    "AC27-Q02-02": {
+      "volume": "proof"
+    },
+    "AC27-Q03-01": {
+      "volume": "proof"
+    },
+    "AC27-Q03-02": {
+      "volume": "proof"
+    },
+    "AC27-Q04-01": {
+      "volume": "proof"
+    },
+    "AC27-Q04-02": {
+      "volume": "proof"
+    },
+    "AC27-Q05-01": {
+      "volume": "proof"
+    },
+    "AC27-Q05-02": {
+      "volume": "proof"
+    },
+    "AC27-Q06-01": {
+      "volume": "proof"
+    },
+    "AC27-Q06-02": {
+      "volume": "proof"
+    },
+    "AC27-Q07-01": {
+      "volume": "proof"
+    },
+    "AC27-Q07-02": {
+      "volume": "proof"
+    },
+    "AC27-Q08-01": {
+      "volume": "proof"
+    },
+    "AC27-Q08-02": {
+      "volume": "proof"
+    },
+    "AC27-Q09-01": {
+      "volume": "proof"
+    },
+    "AC27-Q09-02": {
+      "volume": "proof"
+    },
+    "AC27-Q10-01": {
+      "volume": "proof"
+    },
+    "AC27-Q10-02": {
+      "volume": "proof"
+    },
+    "AC27-Q11-01": {
+      "volume": "proof"
+    },
+    "AC27-Q11-02": {
+      "volume": "proof"
+    },
+    "AC27-Q12-01": {
+      "volume": "proof"
+    },
+    "AC27-Q12-02": {
+      "volume": "proof"
+    },
+    "AC27-Q13-01": {
+      "volume": "proof"
+    },
+    "AC27-Q13-02": {
+      "volume": "proof"
+    },
+    "AC27-Q14-01": {
+      "volume": "proof"
+    },
+    "AC27-Q14-02": {
+      "volume": "proof"
+    },
+    "AC27-Q15-01": {
+      "volume": "proof"
+    },
+    "AC27-Q15-02": {
+      "volume": "proof"
+    },
+    "AC27-Q16-01": {
+      "volume": "proof"
+    },
+    "AC27-Q16-02": {
+      "volume": "proof"
+    }
+  }
+}

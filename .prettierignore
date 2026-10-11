@@ -80,5 +80,9 @@ supabase/.temp/
 # Immutable founder-supplied roadmap and original reference assets (hash verified)
 docs/prds/program-roadmap/source-2026-09-22/
 
+# Preserved Phase 27 grill decisions, captured probes and dated evidence.
+# Exact source hashes are retained in the formal Phase 27 source/publication manifests.
+docs/features/donor-development/grill/
+
 # Exact MIT upstream bytes used by refresh regression tests; provenance hashes are checked.
 tests/fixtures/skills/emil-upstream/

@@ -10,43 +10,47 @@ the complete prior wording. New phase ownership below is reconciled explicitly.
 
 ## Phase 27 — donor-development
 
-- **Portfolios as derived views** over active staff-assignment edges (roles
-  as data: donor_rep / regional_rep / church_relations / mobilizer) —
-  rule-based auto-assignment + manual override, assignment history, **no
-  stored portfolio table**.
-- **Pipeline enrollments** carrying cultivation stage — one enrollment
-  primitive with **stage presets**: staff preset (identification →
-  qualification → cultivation → solicitation → stewardship) and the
-  missionary MPD preset (Phase 28 reuses this object, different preset;
-  never fork the model per surface).
-- **Ask/proposal records**: asked/expected/funded amounts + status + owner
-  (the RE NXT opportunity pattern), tied to Phase 13 campaigns/designations;
-  pipeline rollups by status and owner; projection-accuracy metrics. Every
-  monetary ask carries an explicit currency and Legal Entity/campaign scope.
-  Rollups remain same-currency and same-entity unless Phase 33 supplies a
-  visibly labelled reporting conversion.
-- **Next-action discipline**: every active enrollment has a next task with a
-  due date; **portfolio health metrics** (untouched prospects, stage aging,
-  overdue actions) — research shows 55–65% of prospects in naive portfolios
-  are never visited; health metrics are the fix, not bigger lists.
-- **Engagement scoring v1**: transparent RFM bands recomputed on schedule,
-  score-drop alerts as tasks; advisory input to stage, never the stage.
-  (Fills the Phase 9 Overview socket that ships with placeholder data.)
-- **Appeals (org-scope)**: goal + Excluded/Asked/Committed/Received/Given
-  buckets (MPDX model; collapse Received/Given if same-database processing
-  makes the distinction moot — decide at grooming), list + kanban views,
-  segment export. Goals and buckets use explicit currency lanes; Phase 27
-  never sums unlike currencies into one scalar.
-- **Church-partnership development**: org-party pipelines (sending/
-  supporting church cultivation) as a first-class preset.
-- **Donor brief**: pre-meeting summary generated from the party record
-  (giving, commitments, interactions, relationships).
+The Phase 27 [formal specification](../sitestacker-parity/phase-27-donor-development.md)
+reconciles the following retained obligations with D1–D30; the earlier v2 source
+capture remains historical evidence.
 
-**Boundaries & guardrails.** Cultivation stage is never a lifecycle status
-and never authorization. Asks are never edges or custom fields. Suppression
-(never-ask, do_not_contact) blocks ask suggestions and appeal inclusion via
-the one consent authority. AI next-best-action/wealth screening explicitly
-deferred post-parity — deterministic cadence first.
+- **Derived portfolios:** active P9 role-qualified assignments and saved views,
+  multiple assignees/one primary, reviewed existing-transfer default and bounded
+  tenant Auto with protected deliberate and unknown-provenance choices (D30).
+- **One partnership model:** deliberate identified-ministry/purpose admission;
+  direct optional assessment; tenant-approved customizable lists; stable history;
+  safe pause, closure, same-context return and deliberate list changes (D1–D21).
+  Stage remains separate from Party lifecycle, permission and source work.
+- **Common Requests:** financial and significant nonfinancial invitations, relevant
+  fields, independent original/revised terms, responses, forecasts and source-owned
+  fulfillment; bounded native review when required (D22/D23).
+- **Native follow-through:** next due shared task or actionable owned exception for
+  deliberately active work, truthful overdue/stage time and separate actual-exchange
+  recency/outreach. No unverified untouched-portfolio percentage becomes policy and
+  no mandatory logging or automatic solicitation follows from sparse records.
+- **Financial giving patterns:** D28 foundational facts plus tenant-optional separate
+  explained R/F/M bands, initially Off; distinct opt-in internal review, complete
+  calculation/coverage and generation fences. No composite relationship-value score.
+- **Coordinated appeals:** optional goals, financial/nonfinancial/mixed Requests,
+  recorded deliberately changed membership, Request-level board and governed export
+  (D24/D29). P15's single qualified intake separately tracks gifts awaiting finance;
+  recording and physical handling finish independently (D25). No synthetic
+  Excluded/Asked/Committed/Received/Given linear money state is authorized.
+- **Church partnership:** shared organization-Party model, distinct actual contacts,
+  sending/supporting relationships and legal giving/recognition; no church/member
+  access or financial collapse.
+- **Briefs and shared history:** deterministic source-linked authorized screen;
+  source-owned documents; newly authored D26 interaction exception only, exact
+  current audience/history and voluntary missionary contribution. No protected-note
+  republication or compulsory coaching/task effects.
+
+**Boundaries & guardrails.** Responsibilities, stages, lists and appeal membership
+never grant access or consent. Current source contact restrictions stop prohibited
+suggestions/inclusion/dispatch while lawful internal duties remain visible.
+Requested, expected, committed, received and physical possession retain independent
+meaning; all money uses exact entity/currency/period/coverage. E7 and C-01 remain
+financial-owner gates. Native work remains independent of optional Studio/Eve;
+wealth screening and autonomous next-best-action are outside this phase.
 
 <a id="phase-28"></a>
 
@@ -74,10 +78,13 @@ deferred post-parity — deterministic cadence first.
   generated task/send. Phase 28 owns task and audience purpose; Phase 16 owns
   communication eligibility, Phase 17 owns governed content and sender
   profile, and Phase 6 owns dispatch and communication history.
-- **Personal appeals + referrals**: appeals over their supporters (five-
-  bucket model shared with 27); referrals as "referred by" **edges in the
-  Phase 9 graph** (never a text field) with expiry timeout and source
-  reporting.
+- **Personal appeals + referrals**: appeals over their permitted supporters
+  reuse Phase 27's deliberately recorded working list and independent Requests,
+  responses, applicable Phase 15 intake and qualified source outcomes. These are
+  separate dimensions, never exclusive person-wide five-bucket stages; inclusion
+  creates no outreach, consent, money or automatic task. Referrals remain
+  "referred by" **edges in the Phase 9 graph** (never a text field), with expiry
+  timeout and source reporting.
 - **Newsletter list management**: Physical/Email/Both/None per contact +
   invalid-address flags; clean segment exports (print partners) and
   consent-gated sends through Phases 17 and 6; **newsletter-preference seam**
@@ -108,12 +115,16 @@ deferred post-parity — deterministic cadence first.
   period-level components—without resolving profiles or recalculating
   assessment from gifts. Phase 28 never recomputes or relabels these facts from
   gifts, commitments, support-raising goals, or accounting records.
-- **Coaching/accountability views** with **PII redaction by design**
+- **Separately deliberate, invited coaching views** with **PII redaction by design**
   (coach sees weekly appointments vs target, dials, new partners, support
   gained/lost, trends — initials + amounts only; read-only, invite-based;
   weekly qualitative self-report) — redaction enforced in the Phase 3
   projection layer, not component code; targets org-configurable, not
-  hard-coded to one org's methodology.
+  hard-coded to one org's methodology. Under P27 D26, shared history remains
+  voluntary: no compulsory logs, reporting quotas, missing-log penalties,
+  performance ranking or automatic coaching enrollment. Qualitative check-ins
+  and goals require separately deliberate qualified assistance; absent shared
+  records do not establish performance.
 - **Goal setting**: the Phase 28 Support-Raising Goal Version owns the
   fundraising/coaching goal, MPD start/end dates, and weekly targets—the
   denominators for coaching metrics. An authorized user may explicitly create

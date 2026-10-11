@@ -430,7 +430,35 @@ Glossary anchors used below: _gift-entry batch_, _quick entry_, _validate=post_,
 
 **Normative rule (D1, non-negotiable).** Every staff-entered offline gift is created inside a **gift-entry batch**. A single gift entered on its own is a _batch of one_ — the same staging model, the same validation engine, the same atomic commit service, the same audit spine. Nothing in the system writes offline contribution money except the batch commit path. There is no second write door, no direct-insert dialog, no bypass endpoint.
 
-The product surfaces this one domain as **two experiences over one pipeline**:
+**Ratified Phase 27 D25 operational-intake extension.** Before complete financial
+entry, P15 also owns the bounded report of a gift actually received and awaiting
+finance. This is an operational intake envelope, not a contribution, staged-money
+row, escrow, custody ledger or second posting door. It may exist outside a valid
+batch while donor, amount, intended Legal Entity or allocation remains honestly
+unknown; tenant, trusted recording actor, receipt assertion with time/precision,
+reported holder (including explicitly unknown) and current accountable next work
+remain explicit. No fake donor,
+currency, entity or noncash value is supplied, and every actual financial root
+still proves its complete required entity/currency/source scope. Existing qualified
+P15 entry does not acquire a compulsory preliminary report.
+
+Reporting/read/correction/routing have separately qualified P12 capabilities;
+reporting does not grant finance access or power. Normal finance entry continues
+or exactly reconciles the same intake, preserving lineage across drafts, batches,
+correction and qualified split/carry-forward. Duplicate reports preserve both
+origins under one source resolution; no heuristic financial match or repost is
+allowed. Current source evidence resolves only the covered item/work. Recording
+and physical handling complete independently in either order; remaining real
+handling survives posting, appeal closure, draft cleanup and staff departure.
+Mistake, duplicate, return, loss, dispute and rejection use explicit source-owned
+dispositions, not money outcomes. Existing qualified shared work is reused with
+its stable source identity and current permitted recipient; reporting creates no
+external donor reminder. Qualify this narrow lane's report, audience, lineage,
+correction and failure recovery before activation without requiring all future
+finance or Studio products. Full observable requirements are in Phase 27's Request
+and finance-intake volume; posted-correction gate C-01 remains separate.
+
+The product surfaces the financial-entry domain as **two experiences over one pipeline**:
 
 - **New batch** — the multi-row workbench (specified in the workbench section) for a stack of physical gifts (a mail run, a Sunday cash count, a church remittance).
 - **Quick entry** — auto-creates a one-row gift-entry batch with template defaults prefilled and the word "batch" hidden from casual staff. Quick entry is a _skin over the batch pipeline_, not a separate code path. Its expected totals are auto-derived (1 item; the entered gift amount). Tenant policy decides whether a quick-entry gift posts immediately or routes to review, exactly as for a multi-row batch.

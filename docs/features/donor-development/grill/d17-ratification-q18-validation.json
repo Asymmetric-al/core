@@ -1,0 +1,462 @@
+{
+  "checked_at_utc": "2026-10-10T15:50:28.191787+00:00",
+  "head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "scope": "D17 explicit ratification and one unanswered Q18; no new behavior or runtime qualification",
+  "pass": true,
+  "checks": [
+    {
+      "name": "Ratified exact D17 unchanged",
+      "pass": true,
+      "detail": "496c9993fd1a80383570a39a0039ce816a72839bd2978124e3695912752a24fb"
+    },
+    {
+      "name": "D17 explicit ratification aligned",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "One new question remains unanswered",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Question distinguishes mandatory correction from optional general switching",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All D17 categories and contracts retained",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Glossary semantics unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Dated D17 evidence unchanged",
+      "pass": true,
+      "detail": {
+        "files": 27,
+        "prior_validation_sha256": "47ac0b9221ff5a0640bf132d203f8f7084c5a2dcbf103018ed718ad7416902c4",
+        "scope": "Existing experiments and prior status/hash evidence retained verbatim; no new runtime checks."
+      }
+    },
+    {
+      "name": "Local links resolve",
+      "pass": true,
+      "detail": {
+        "count": 92,
+        "missing": [],
+        "limit": "Path existence; independent owner review establishes decision scope."
+      }
+    },
+    {
+      "name": "Changed Markdown formatted",
+      "pass": true,
+      "detail": "Checking formatting...\nAll matched files use Prettier code style!"
+    },
+    {
+      "name": "Tracked whitespace check",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Working tree remains documentation-only",
+      "pass": true,
+      "detail": [
+        " M CONTEXT.md",
+        "?? docs/features/donor-development/"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "sha256": "48b0f86e4d5cd3e8fef49176db173c8feeb5c231221080cc05e77290e55b3955"
+    },
+    {
+      "path": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "sha256": "c73614bdf9cb6bc33e395e6214874989933f274c107d17fa434b748c0bb327ad"
+    },
+    {
+      "path": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "sha256": "290ee1da8c066477371844b9f5fabb5920b4b243b6de0fef6b9b410eff082dd0"
+    },
+    {
+      "path": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "sha256": "729ab3161740b946ad98a65807445508a890ef89e51c02c792a010957ce98a8e"
+    }
+  ],
+  "local_links": [
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "phase27-q18-changing-saved-list.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "phase27-q17-initial-list-choice.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/ownership.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/authorization.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/implementation.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/ux.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/practice.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "../../../../openspec/specs/crm-core/spec.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/roadmap.md:4087"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "../../../prds/program-roadmap/owner-constraints.md:17"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "../../../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "../../../../openspec/specs/platform-boundaries/spec.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "../../../guides/architecture/data-access-boundary.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/source-probe/README.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/default-probe/README.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-evidence/review-checks.json"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-d17-adversarial-review.md",
+      "target": "d17-ratification-q18-validation.json"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "phase27-d16-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "phase27-d4-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "phase27-d16-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "phase27-d15-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "phase27-d13-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "d16-evidence/ux.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "phase27-d17-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q17-initial-list-choice.md",
+      "target": "phase27-q18-changing-saved-list.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q3-purpose-boundary.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d3-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d6-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d7-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d8-reopening-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d9-recorded-stage-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q11-stage-entry-requirements.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d1-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q1-ministry-check.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d2-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-program-research.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-crm-research.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-financial-research.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-privacy-support-research.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-fundraising-practice.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-ministry-practice.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d2-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d6-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d7-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d8-reopening-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d9-recorded-stage-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q10-stage-customization.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d10-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q11-stage-entry-requirements.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d11-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q12-stage-movement.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d12-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q13-initial-stage.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d13-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q14-additional-stage-lists.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d14-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q15-retiring-stage-lists.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d15-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q16-list-applicability.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d16-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q17-initial-list-choice.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d17-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-q18-changing-saved-list.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d3-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "target": "phase27-d4-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "target": "phase27-d17-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "target": "phase27-d3-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "target": "phase27-d14-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "target": "phase27-d15-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "target": "phase27-d16-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "target": "phase27-d17-adversarial-review.md"
+    },
+    {
+      "from": "docs/features/donor-development/grill/phase27-q18-changing-saved-list.md",
+      "target": "phase27-d13-adversarial-review.md"
+    }
+  ]
+}

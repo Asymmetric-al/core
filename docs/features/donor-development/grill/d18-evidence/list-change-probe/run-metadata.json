@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-10T16:01:53.326790+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d18-list-change-lab-163674",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d18-list-change-lab-163674",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "docker_version": "28.4.0",
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "Controlled existing-journey stage-edit/list-switch and target-withdrawal schedules with exact pg_blocking_pids barriers; atomic history/receipt, ABA and old-result replay; not load testing",
+  "input_sha256": {
+    "setup.sql": "ce18704ec76525c9f80ead8d77a5d7c00e46ff4a8b3ae19d5c5703400a036171",
+    "mechanics.py": "f450f492e1a4496908453f5789aac0c4cf5e8dedd89d249098e0d8bba8cc8049",
+    "run-lab.py": "0368af9abae615fdd776034a0cf011cc4ae4488b5a76b2c1edcc2a970c0bc440"
+  },
+  "container_id": "86b295d1b27b3b9d9e8dd823f6a2d4ca60273b4d82703ee14bf9984afa7d8c86",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 8, \"total\": 8, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "cleanup_stdout": "86b295d1b27b3b9d9e8dd823f6a2d4ca60273b4d82703ee14bf9984afa7d8c86",
+  "post_cleanup_inspect_exit_code": 1,
+  "post_cleanup_inspect_stderr": "Error response from daemon: No such container: 86b295d1b27b3b9d9e8dd823f6a2d4ca60273b4d82703ee14bf9984afa7d8c86",
+  "container_removed": true,
+  "finished_at": "2026-10-10T16:01:59.341966+00:00"
+}

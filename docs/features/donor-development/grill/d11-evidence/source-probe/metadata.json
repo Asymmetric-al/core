@@ -1,0 +1,32 @@
+{
+  "recorded_at_utc": "2026-10-10T11:10:34.250632+00:00",
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "command": "node node_modules/vitest/vitest.mjs run --config docs/features/donor-development/grill/d11-evidence/source-probe/vitest.config.mjs --reporter=json --outputFile=docs/features/donor-development/grill/d11-evidence/source-probe/results.json",
+  "exit_code": 0,
+  "tests_total": 3,
+  "tests_passed": 3,
+  "tests_failed": 0,
+  "environment": "jsdom selected by existing test file directive; real shared control/Base UI",
+  "installed_versions": {
+    "node": "24.19.0",
+    "vitest": "4.1.4",
+    "react": "19.2.3",
+    "base_ui": "1.8.0",
+    "jsdom": "26.1.0",
+    "vite_plugin_react": "6.0.1"
+  },
+  "manifest_versions": {
+    "vitest": "5.0.3",
+    "ui_react_dev_dependency": "19.3.0",
+    "ui_base_ui": "1.8.0"
+  },
+  "sha256": {
+    "tests/unit/packages/ui/searchable-select.test.tsx": "7fa924fd73891c0ccb7dc4ab6c10b6a3f21a93dd6ed66ff9d213edbecbf81d3d",
+    "packages/ui/components/shadcn/searchable-select.tsx": "8998cde4bd8ab7e90d66e79a9f0dea848eb399a5117372fa40c02361b7f03cc1",
+    "packages/ui/components/shadcn/combobox.ts": "193c1402b6a11ae738f33c2edd9f404443222530a64ae4391dd41d94016a3710",
+    "packages/ui/components/shadcn/combobox-component.tsx": "a13cc150c43228f57b50d1a18883c1bd6ce8bff97356212229fa81d8ea24f80b",
+    "tests/setup/unit-env.ts": "acc4377808599a115e73d611a6398b2a86028d3bcedf944b5128dadddd1e0109",
+    "docs/features/donor-development/grill/d11-evidence/source-probe/vitest.config.mjs": "074e155758e2e5f04819c8ba942e45e8f908f4151c5c4149834d10019e16168d"
+  },
+  "qualification": "Existing focused source tests only; isolated config, not full gate, real browser or D11 application flow."
+}

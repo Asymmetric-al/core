@@ -1,0 +1,344 @@
+{
+  "version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "checks": 13,
+  "completed": true,
+  "all_passed": true,
+  "observations": [
+    {
+      "test": "counterexample: journey plus target stage loses a real second visit",
+      "pass": true,
+      "observed": {
+        "attempted_occurrences": 3,
+        "retained_rows": [
+          {
+            "journey_id": 1,
+            "target_code": "B",
+            "effect_key": "visit-1"
+          },
+          {
+            "journey_id": 1,
+            "target_code": "A",
+            "effect_key": "visit-2"
+          }
+        ]
+      }
+    },
+    {
+      "test": "A to B to A retains two distinct direct transitions",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 1,
+          "stage_code": "A",
+          "revision": 2,
+          "entered_at": "2026-10-10T12:20:52.41668+00:00"
+        },
+        "events": [
+          {
+            "id": 1,
+            "journey_id": 1,
+            "from_code": "A",
+            "to_code": "B",
+            "accepted_revision": 1,
+            "accepted_at": "2026-10-10T12:20:52.354524+00:00",
+            "effect_key": "visit-1"
+          },
+          {
+            "id": 2,
+            "journey_id": 1,
+            "from_code": "B",
+            "to_code": "A",
+            "accepted_revision": 2,
+            "accepted_at": "2026-10-10T12:20:52.41668+00:00",
+            "effect_key": "visit-2"
+          }
+        ],
+        "receipts": 2
+      }
+    },
+    {
+      "test": "old accepted B receipt is historical; current A remains unchanged",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 1,
+          "revision": 2,
+          "entered_at": "2026-10-10T12:20:52.41668+00:00",
+          "stage_code": "A"
+        },
+        "receipt": {
+          "from": "A",
+          "kind": "changed",
+          "stage": "B",
+          "revision": 1,
+          "accepted_at": "2026-10-10T12:20:52.354524+00:00",
+          "transition_id": 1
+        },
+        "replayed": true
+      }
+    },
+    {
+      "test": "new B occurrence is not deduplicated by destination",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 1,
+          "stage_code": "B",
+          "revision": 3,
+          "entered_at": "2026-10-10T12:20:52.636063+00:00"
+        },
+        "events": [
+          {
+            "id": 1,
+            "journey_id": 1,
+            "from_code": "A",
+            "to_code": "B",
+            "accepted_revision": 1,
+            "accepted_at": "2026-10-10T12:20:52.354524+00:00",
+            "effect_key": "visit-1"
+          },
+          {
+            "id": 2,
+            "journey_id": 1,
+            "from_code": "B",
+            "to_code": "A",
+            "accepted_revision": 2,
+            "accepted_at": "2026-10-10T12:20:52.41668+00:00",
+            "effect_key": "visit-2"
+          },
+          {
+            "id": 3,
+            "journey_id": 1,
+            "from_code": "A",
+            "to_code": "B",
+            "accepted_revision": 3,
+            "accepted_at": "2026-10-10T12:20:52.636063+00:00",
+            "effect_key": "visit-3"
+          }
+        ],
+        "receipts": 3
+      }
+    },
+    {
+      "test": "same-value fresh intent writes no transition and resets no stage clock",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 1,
+          "stage_code": "B",
+          "revision": 3,
+          "entered_at": "2026-10-10T12:20:52.636063+00:00"
+        },
+        "events": [
+          {
+            "id": 1,
+            "journey_id": 1,
+            "from_code": "A",
+            "to_code": "B",
+            "accepted_revision": 1,
+            "accepted_at": "2026-10-10T12:20:52.354524+00:00",
+            "effect_key": "visit-1"
+          },
+          {
+            "id": 2,
+            "journey_id": 1,
+            "from_code": "B",
+            "to_code": "A",
+            "accepted_revision": 2,
+            "accepted_at": "2026-10-10T12:20:52.41668+00:00",
+            "effect_key": "visit-2"
+          },
+          {
+            "id": 3,
+            "journey_id": 1,
+            "from_code": "A",
+            "to_code": "B",
+            "accepted_revision": 3,
+            "accepted_at": "2026-10-10T12:20:52.636063+00:00",
+            "effect_key": "visit-3"
+          }
+        ],
+        "receipts": 4
+      }
+    },
+    {
+      "test": "replaying an earlier no-op after another visit does not select its old target",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 1,
+          "revision": 4,
+          "entered_at": "2026-10-10T12:20:52.867127+00:00",
+          "stage_code": "C"
+        },
+        "receipt": {
+          "kind": "no_op",
+          "stage": "B",
+          "revision": 3
+        },
+        "replayed": true
+      }
+    },
+    {
+      "test": "same receipt key with changed intent conflicts without mutation",
+      "pass": true,
+      "observed": {
+        "sqlstate": "22023",
+        "state_unchanged": true
+      }
+    },
+    {
+      "test": "new intent with stale expected revision rejects without history or receipt",
+      "pass": true,
+      "observed": {
+        "sqlstate": "P0001",
+        "state_unchanged": true
+      }
+    },
+    {
+      "test": "A directly to D records one transition and no fictional B or C visits",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 2,
+          "stage_code": "D",
+          "revision": 1,
+          "entered_at": "2026-10-10T12:20:53.405739+00:00"
+        },
+        "events": [
+          {
+            "id": 5,
+            "journey_id": 2,
+            "from_code": "A",
+            "to_code": "D",
+            "accepted_revision": 1,
+            "accepted_at": "2026-10-10T12:20:53.405739+00:00",
+            "effect_key": "skip-direct"
+          }
+        ],
+        "receipts": 1
+      }
+    },
+    {
+      "test": "changed display order is not a transition path or semantic direction",
+      "pass": true,
+      "observed": {
+        "display_order": [
+          "D",
+          "C",
+          "B",
+          "A"
+        ],
+        "accepted": {
+          "current": {
+            "id": 3,
+            "revision": 1,
+            "entered_at": "2026-10-10T12:20:53.571491+00:00",
+            "stage_code": "D"
+          },
+          "receipt": {
+            "from": "A",
+            "kind": "changed",
+            "stage": "D",
+            "revision": 1,
+            "accepted_at": "2026-10-10T12:20:53.571491+00:00",
+            "transition_id": 6
+          },
+          "replayed": false
+        }
+      }
+    },
+    {
+      "test": "transaction failure after result construction rolls back current value history and receipt",
+      "pass": true,
+      "observed": {
+        "sqlstate": "22012",
+        "state_unchanged": true
+      }
+    },
+    {
+      "test": "blocked competing writer rechecks revision after winner commits",
+      "pass": true,
+      "observed": {
+        "barrier": {
+          "waiter_pid": 321,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            315
+          ]
+        },
+        "sqlstate": "P0001",
+        "state": {
+          "current": {
+            "id": 5,
+            "stage_code": "B",
+            "revision": 1,
+            "entered_at": "2026-10-10T12:20:53.968547+00:00"
+          },
+          "events": [
+            {
+              "id": 8,
+              "journey_id": 5,
+              "from_code": "A",
+              "to_code": "B",
+              "accepted_revision": 1,
+              "accepted_at": "2026-10-10T12:20:53.968547+00:00",
+              "effect_key": "race-winner"
+            }
+          ],
+          "receipts": 1
+        }
+      }
+    },
+    {
+      "test": "concurrent same-effect delivery returns one original accepted result",
+      "pass": true,
+      "observed": {
+        "barrier": {
+          "waiter_pid": 350,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            343
+          ]
+        },
+        "duplicate": {
+          "current": {
+            "id": 6,
+            "revision": 1,
+            "entered_at": "2026-10-10T12:20:54.184308+00:00",
+            "stage_code": "B"
+          },
+          "receipt": {
+            "from": "A",
+            "kind": "changed",
+            "stage": "B",
+            "revision": 1,
+            "accepted_at": "2026-10-10T12:20:54.184308+00:00",
+            "transition_id": 9
+          },
+          "replayed": true
+        },
+        "state": {
+          "current": {
+            "id": 6,
+            "stage_code": "B",
+            "revision": 1,
+            "entered_at": "2026-10-10T12:20:54.184308+00:00"
+          },
+          "events": [
+            {
+              "id": 9,
+              "journey_id": 6,
+              "from_code": "A",
+              "to_code": "B",
+              "accepted_revision": 1,
+              "accepted_at": "2026-10-10T12:20:54.184308+00:00",
+              "effect_key": "duplicate-effect"
+            }
+          ],
+          "receipts": 1
+        }
+      }
+    }
+  ]
+}

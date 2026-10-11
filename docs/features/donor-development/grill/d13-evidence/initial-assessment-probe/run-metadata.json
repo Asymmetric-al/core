@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-10-10T13:17:42.707191+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d13-assessment-lab-128764",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d13-assessment-lab-128764",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "One controlled competing-first-assessment schedule with exact pg_blocking_pids barriers; not load testing",
+  "input_sha256": {
+    "setup.sql": "79d7481bc0d1252fd74a93812989791aaa1eba1a8b9debae508272370c0a4fce",
+    "mechanics.py": "0e54c4c240f319efef314c6530eb69970e0b710a316138639873720a4f5c3d49",
+    "run-lab.py": "187fffca1b9d981ff5e4d84046447d9331960228415433b24ef71853c37844b3"
+  },
+  "container_id": "edfb036eea01532cf436c2b1910c104918779f2f8c018a80e0d9aef3b7ed9b7f",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 15, \"total\": 15, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "container_removed": true,
+  "finished_at": "2026-10-10T13:17:48.475905+00:00"
+}

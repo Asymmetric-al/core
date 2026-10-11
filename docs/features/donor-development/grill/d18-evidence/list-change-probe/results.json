@@ -1,0 +1,173 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "isolation_level": "read committed",
+  "completed": true,
+  "passed": 8,
+  "total": 8,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "late receipt failure rolls back binding/history; pending accepted switch is invisible until atomic commit",
+      "pass": true,
+      "observed": {
+        "fault_code": "23514",
+        "rollback_preserved_all_rows": true,
+        "observer_saw_complete_old_state": true,
+        "accepted": {
+          "id": 100,
+          "list_id": 20,
+          "purpose": "same continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 1,
+          "stage_id": 201,
+          "tenant_id": 1,
+          "ministry_id": 300
+        },
+        "history_count": 1,
+        "receipt_count": 1
+      }
+    },
+    {
+      "test": "stage edit first: competing list switch waits and cannot overwrite newer assessment",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 146,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            139
+          ]
+        },
+        "stale_error": "40001",
+        "current": {
+          "id": 100,
+          "list_id": 10,
+          "purpose": "same continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 2,
+          "stage_id": 102,
+          "tenant_id": 1,
+          "ministry_id": 300
+        }
+      }
+    },
+    {
+      "test": "list switch first: old-list stage edit waits and cannot restore old list or stage",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 175,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            168
+          ]
+        },
+        "stale_error": "40001",
+        "current": {
+          "id": 100,
+          "list_id": 20,
+          "purpose": "same continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 3,
+          "stage_id": 201,
+          "tenant_id": 1,
+          "ministry_id": 300
+        }
+      }
+    },
+    {
+      "test": "target withdrawal first: waiting switch observes unavailable target and leaves old binding/history intact",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 211,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            203
+          ]
+        },
+        "denial": "23514",
+        "journey_state_unchanged": true
+      }
+    },
+    {
+      "test": "list switch first: later withdrawal waits, then preserves the already accepted attachment and history",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 246,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            239
+          ]
+        },
+        "target_withdrawn": "t",
+        "current": {
+          "id": 100,
+          "list_id": 20,
+          "purpose": "same continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 5,
+          "stage_id": 201,
+          "tenant_id": 1,
+          "ministry_id": 300
+        }
+      }
+    },
+    {
+      "test": "A to B to A defeats value-only freshness; old accepted replay reports history without reapplying and changed meaning conflicts",
+      "pass": true,
+      "observed": {
+        "stale_error": "40001",
+        "payload_conflict": "23514",
+        "historical_receipt": {
+          "id": 100,
+          "list_id": 20,
+          "purpose": "same continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 6,
+          "stage_id": 201,
+          "tenant_id": 1,
+          "ministry_id": 300
+        },
+        "current": {
+          "id": 100,
+          "list_id": 10,
+          "purpose": "same continuing purpose",
+          "party_id": 200,
+          "revision": 3,
+          "scope_id": 6,
+          "stage_id": 101,
+          "tenant_id": 1,
+          "ministry_id": 300
+        },
+        "history_count": 2,
+        "replay_preserved_all_rows": true
+      }
+    },
+    {
+      "test": "switch history retains old source references and recorded meaning; catalog rename cannot rewrite snapshots or cascade-delete old stage",
+      "pass": true,
+      "observed": {
+        "delete_error": "23503",
+        "historic_from_label": "Original",
+        "current_catalog_label": "Renamed",
+        "history_unchanged": true
+      }
+    },
+    {
+      "test": "every accepted fixture change retains journey, party, ministry, continuing purpose and scope without another journey row",
+      "pass": true,
+      "observed": {
+        "journeys": 7,
+        "changed_identity_rows": 0,
+        "history_identity_mismatches": 0
+      }
+    }
+  ]
+}
