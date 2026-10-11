@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-10T18:51:57.645497+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d25-handoff-lab-190020",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d25-handoff-lab-190020",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "docker_version": "28.4.0",
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "D25 source-confirmed handoff consumption versus material revision and duplicate delivery; independent finance already posted, owner fixture not P12 or posting integration proof",
+  "input_sha256": {
+    "setup.sql": "62d581d1c296c289b36b9bc1185cbfda959515daba3c65a1e06c022acdf87fdd",
+    "mechanics.py": "dc23f74e2b07a28d279f65494cdb68debfa614790daa1dab6524ad9b5ebdf2fe",
+    "run-lab.py": "9cb5c119ff4ffb77e6b8e72adb9eb31fc6af0cd00089367dc4b6c7444e4f59a4"
+  },
+  "container_id": "77e3d3c451fd5604e90d70398fa08a19add81d9e09091f87552bcd437d93f5da",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 7, \"total\": 7, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "cleanup_stdout": "77e3d3c451fd5604e90d70398fa08a19add81d9e09091f87552bcd437d93f5da",
+  "post_cleanup_inspect_exit_code": 1,
+  "post_cleanup_inspect_stderr": "Error response from daemon: No such container: 77e3d3c451fd5604e90d70398fa08a19add81d9e09091f87552bcd437d93f5da",
+  "container_removed": true,
+  "finished_at": "2026-10-10T18:52:04.254774+00:00"
+}

@@ -1,0 +1,310 @@
+{
+  "postgres_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "completed": true,
+  "passed": 15,
+  "total": 15,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "counterexample: MATCH SIMPLE skips scope validation when stage is null",
+      "pass": true,
+      "observed": {
+        "tenant_id": 1,
+        "preset_code": "missing-preset",
+        "stage_code": null
+      }
+    },
+    {
+      "test": "counterexample: blanket MATCH FULL rejects a valid optional stage",
+      "pass": true,
+      "observed": "23503"
+    },
+    {
+      "test": "mandatory scope stays enforced independently of nullable stage",
+      "pass": true,
+      "observed": {
+        "omitted_tenant": "23502",
+        "null_entity": "23502",
+        "null_preset": "23502",
+        "foreign_entity": "23503",
+        "foreign_preset": "23503",
+        "missing_preset": "23503"
+      }
+    },
+    {
+      "test": "counterexample OR-null policy exposes another tenant; fixed scope does not",
+      "pass": true,
+      "observed": {
+        "bad_visible_ids": [
+          1,
+          2
+        ],
+        "fixed_visible_ids": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7,
+          8
+        ]
+      }
+    },
+    {
+      "test": "nonowner nullable rows retain old-row and resulting-row RLS checks",
+      "pass": true,
+      "observed": {
+        "role": {
+          "user": "lab_member",
+          "superuser": false,
+          "bypassrls": false
+        },
+        "new_row_error": "42501",
+        "hidden_old_row_updated": 0,
+        "policy": "FOR ALL USING (tenant_id=1); omitted WITH CHECK inherits USING"
+      }
+    },
+    {
+      "test": "JSON extraction alone collapses omitted and explicit null intent",
+      "pass": true,
+      "observed": [
+        {
+          "input": {},
+          "has_stage": false,
+          "extracted": null,
+          "json_type": null
+        },
+        {
+          "input": {
+            "stage": null
+          },
+          "has_stage": true,
+          "extracted": null,
+          "json_type": "null"
+        },
+        {
+          "input": {
+            "stage": "A"
+          },
+          "has_stage": true,
+          "extracted": "A",
+          "json_type": "string"
+        }
+      ]
+    },
+    {
+      "test": "LEFT JOIN preserves unassessed; a missing joined stage is not proof of no assessment",
+      "pass": true,
+      "observed": {
+        "left_join_rows": [
+          {
+            "id": 1,
+            "source_stage": null,
+            "joined_stage": null,
+            "classification": "not_assessed"
+          },
+          {
+            "id": 2,
+            "source_stage": "A",
+            "joined_stage": "A",
+            "classification": "assessed"
+          },
+          {
+            "id": 3,
+            "source_stage": "R",
+            "joined_stage": null,
+            "classification": "unavailable_reference"
+          },
+          {
+            "id": 4,
+            "source_stage": "H",
+            "joined_stage": null,
+            "classification": "unavailable_reference"
+          }
+        ],
+        "inner_join_ids": [
+          2
+        ]
+      }
+    },
+    {
+      "test": "counts include missing assessments; no measured duration differs from measured zero",
+      "pass": true,
+      "observed": {
+        "counts": {
+          "total": 4,
+          "assigned": 3,
+          "not_assessed": 1
+        },
+        "unknown_duration": {
+          "rows": 1,
+          "known": 0,
+          "average": null,
+          "coalesced_average": 0
+        },
+        "measured_zero_duration": {
+          "rows": 1,
+          "known": 1,
+          "average": 0.0
+        }
+      }
+    },
+    {
+      "test": "unassessed admission fixture has receipt but no invented stage event or assessment time",
+      "pass": true,
+      "observed": {
+        "current": {
+          "tenant_id": 1,
+          "id": 1,
+          "entity_id": 10,
+          "preset_code": "p",
+          "stage_code": null,
+          "revision": 0,
+          "assessed_at": null
+        },
+        "events": [],
+        "receipts": 1
+      }
+    },
+    {
+      "test": "first accepted assessment records exactly null-to-A and one current revision",
+      "pass": true,
+      "observed": {
+        "current": {
+          "tenant_id": 1,
+          "id": 1,
+          "entity_id": 10,
+          "preset_code": "p",
+          "stage_code": "A",
+          "revision": 1,
+          "assessed_at": "2026-10-10T13:17:47.279896+00:00"
+        },
+        "events": [
+          {
+            "id": 1,
+            "tenant_id": 1,
+            "journey_id": 1,
+            "from_code": null,
+            "to_code": "A",
+            "accepted_revision": 1,
+            "accepted_at": "2026-10-10T13:17:47.279896+00:00",
+            "effect_key": "first-assessment"
+          }
+        ],
+        "receipts": 2
+      }
+    },
+    {
+      "test": "old unassessed start receipt never clears a later assessment",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 1,
+          "revision": 1,
+          "entity_id": 10,
+          "tenant_id": 1,
+          "stage_code": "A",
+          "assessed_at": "2026-10-10T13:17:47.279896+00:00",
+          "preset_code": "p"
+        },
+        "receipt": {
+          "kind": "started",
+          "stage": null,
+          "revision": 0
+        },
+        "replayed": true
+      }
+    },
+    {
+      "test": "first-assessment retry returns its accepted receipt without a second history event",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 1,
+          "revision": 1,
+          "entity_id": 10,
+          "tenant_id": 1,
+          "stage_code": "A",
+          "assessed_at": "2026-10-10T13:17:47.279896+00:00",
+          "preset_code": "p"
+        },
+        "receipt": {
+          "from": null,
+          "kind": "assigned",
+          "stage": "A",
+          "revision": 1,
+          "accepted_at": "2026-10-10T13:17:47.279896+00:00",
+          "transition_id": 1
+        },
+        "replayed": true
+      }
+    },
+    {
+      "test": "optional initial assessment does not imply clearing, omitted version or retired first choice",
+      "pass": true,
+      "observed": {
+        "null_target": "22023",
+        "missing_expected_revision": "22023",
+        "retired_target": "22023"
+      }
+    },
+    {
+      "test": "failed first-assessment transaction rolls back current value, event and receipt",
+      "pass": true,
+      "observed": {
+        "sqlstate": "22012",
+        "after": {
+          "current": {
+            "tenant_id": 1,
+            "id": 7,
+            "entity_id": 10,
+            "preset_code": "p",
+            "stage_code": null,
+            "revision": 0,
+            "assessed_at": null
+          },
+          "events": [],
+          "receipts": 0
+        }
+      }
+    },
+    {
+      "test": "competing first assessments serialize; stale loser cannot overwrite winner",
+      "pass": true,
+      "observed": {
+        "lock_barrier": {
+          "waiter_pid": 388,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            381
+          ]
+        },
+        "loser_sqlstate": "P0001",
+        "after": {
+          "current": {
+            "tenant_id": 1,
+            "id": 6,
+            "entity_id": 10,
+            "preset_code": "p",
+            "stage_code": "A",
+            "revision": 1,
+            "assessed_at": "2026-10-10T13:17:48.164461+00:00"
+          },
+          "events": [
+            {
+              "id": 3,
+              "tenant_id": 1,
+              "journey_id": 6,
+              "from_code": null,
+              "to_code": "A",
+              "accepted_revision": 1,
+              "accepted_at": "2026-10-10T13:17:48.164461+00:00",
+              "effect_key": "competing-first-A"
+            }
+          ],
+          "receipts": 1
+        }
+      }
+    }
+  ]
+}

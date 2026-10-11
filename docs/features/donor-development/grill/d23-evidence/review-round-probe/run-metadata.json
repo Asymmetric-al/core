@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-10T18:01:38.880797+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d23-review-round-lab-176967",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d23-review-round-lab-176967",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "docker_version": "28.4.0",
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "D23 controlled review/revision, duplicate/competing decisions and material-policy/action-start ordering with exact backend blocking; owner fixture, not P12/P6 or load proof",
+  "input_sha256": {
+    "setup.sql": "aef321bc8109c9abb843b282a2479c6f6a285f14f84d8fa2ec24d91d9d4f9098",
+    "mechanics.py": "3e48e27826c245ac583aafc8bc0679a06f491f821d391c0aca03254e1aeb8a5b",
+    "run-lab.py": "b0b381b8e9e0f957eeb897307458fb7177a22a78f1d61dbebaa1756593c422f6"
+  },
+  "container_id": "3cdf124e72c0b42bca9934a32c4d8e030ccb2381e6109edc86e253908903ae35",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 10, \"total\": 10, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "cleanup_stdout": "3cdf124e72c0b42bca9934a32c4d8e030ccb2381e6109edc86e253908903ae35",
+  "post_cleanup_inspect_exit_code": 1,
+  "post_cleanup_inspect_stderr": "Error response from daemon: No such container: 3cdf124e72c0b42bca9934a32c4d8e030ccb2381e6109edc86e253908903ae35",
+  "container_removed": true,
+  "finished_at": "2026-10-10T18:01:45.513999+00:00"
+}

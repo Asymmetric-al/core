@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-10-10T13:54:51.747587+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d14-list-lab-137468",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d14-list-lab-137468",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "One controlled concurrent-create retry schedule with exact pg_blocking_pids barriers; not load testing",
+  "input_sha256": {
+    "setup.sql": "3fcbd90218107419a98dbbbd4deb7e99bd25f00c984d1da2f037fb3179a1ccba",
+    "mechanics.py": "815b2457cb1897a4c590665ee1f718767de81da50d4c58d4f18b874d4fb16db4",
+    "run-lab.py": "ac660668dbd6971067bcbf204f91446bbbf9f8ddb362b8f223d113111d898c16"
+  },
+  "container_id": "4d09d1d1ce40860c75383fa5cf65ba8ace1ef128ee7151b6a9445c21f7494f59",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 14, \"total\": 14, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "container_removed": true,
+  "finished_at": "2026-10-10T13:54:56.969930+00:00"
+}

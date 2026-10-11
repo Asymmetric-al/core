@@ -1,0 +1,35 @@
+{
+  "scope": "IANA calendar counterexamples only; not Core timing qualification",
+  "checks": [
+    {
+      "name": "spring calendar day is not always 24 hours",
+      "actual": 23.0,
+      "expected": 23,
+      "passed": true
+    },
+    {
+      "name": "fall calendar day is not always 24 hours",
+      "actual": 25.0,
+      "expected": 25,
+      "passed": true
+    },
+    {
+      "name": "UTC midnight can display the previous local date",
+      "actual": "2027-01-14",
+      "expected": "2027-01-14",
+      "passed": true
+    },
+    {
+      "name": "saved zone defines the chosen day independently of a travelling viewer",
+      "actual": "2027-01-14T17:00:00+00:00",
+      "expected": "2027-01-14T17:00:00+00:00",
+      "passed": true
+    },
+    {
+      "name": "another viewer can have a different local day at the same instant",
+      "actual": "2027-01-14",
+      "expected": "2027-01-14",
+      "passed": true
+    }
+  ]
+}

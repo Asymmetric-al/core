@@ -1,0 +1,1551 @@
+{
+  "D26/R01": {
+    "requirements": ["REQ27-C01"],
+    "acceptance": ["AC27-C01-01", "AC27-C01-02", "AC27-C01-03"]
+  },
+  "D26/R02": {
+    "requirements": ["REQ27-C01", "REQ27-C27", "REQ27-C28"],
+    "acceptance": [
+      "AC27-C01-01",
+      "AC27-C01-02",
+      "AC27-C01-03",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04",
+      "AC27-C28-01",
+      "AC27-C28-02",
+      "AC27-C28-03",
+      "AC27-C28-04"
+    ]
+  },
+  "D26/R03": {
+    "requirements": ["REQ27-C02", "REQ27-C08", "REQ27-C09"],
+    "acceptance": [
+      "AC27-C02-01",
+      "AC27-C02-02",
+      "AC27-C02-03",
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04",
+      "AC27-C09-01",
+      "AC27-C09-02",
+      "AC27-C09-03",
+      "AC27-C09-04"
+    ]
+  },
+  "D26/R04": {
+    "requirements": ["REQ27-C03", "REQ27-C04"],
+    "acceptance": [
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C04-01",
+      "AC27-C04-02",
+      "AC27-C04-03",
+      "AC27-C04-04"
+    ]
+  },
+  "D26/R05": {
+    "requirements": ["REQ27-C03", "REQ27-C08"],
+    "acceptance": [
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04"
+    ]
+  },
+  "D26/R06": {
+    "requirements": ["REQ27-C03", "REQ27-C06"],
+    "acceptance": [
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C06-01",
+      "AC27-C06-02",
+      "AC27-C06-03",
+      "AC27-C06-04"
+    ]
+  },
+  "D26/R07": {
+    "requirements": ["REQ27-C04", "REQ27-C07", "REQ27-C12", "REQ27-C32"],
+    "acceptance": [
+      "AC27-C04-01",
+      "AC27-C04-02",
+      "AC27-C04-03",
+      "AC27-C04-04",
+      "AC27-C07-01",
+      "AC27-C07-02",
+      "AC27-C07-03",
+      "AC27-C07-04",
+      "AC27-C12-01",
+      "AC27-C12-02",
+      "AC27-C12-03",
+      "AC27-C12-04",
+      "AC27-C32-01",
+      "AC27-C32-02",
+      "AC27-C32-03",
+      "AC27-C32-04"
+    ]
+  },
+  "D26/R08": {
+    "requirements": ["REQ27-C04", "REQ27-C30"],
+    "acceptance": [
+      "AC27-C04-01",
+      "AC27-C04-02",
+      "AC27-C04-03",
+      "AC27-C04-04",
+      "AC27-C30-01",
+      "AC27-C30-02",
+      "AC27-C30-03",
+      "AC27-C30-04"
+    ]
+  },
+  "D26/R09": {
+    "requirements": ["REQ27-C05"],
+    "acceptance": ["AC27-C05-01", "AC27-C05-02", "AC27-C05-03", "AC27-C05-04"]
+  },
+  "D26/R10": {
+    "requirements": ["REQ27-C07", "REQ27-C10", "REQ27-C11", "REQ27-C12"],
+    "acceptance": [
+      "AC27-C07-01",
+      "AC27-C07-02",
+      "AC27-C07-03",
+      "AC27-C07-04",
+      "AC27-C10-01",
+      "AC27-C10-02",
+      "AC27-C10-03",
+      "AC27-C10-04",
+      "AC27-C11-01",
+      "AC27-C11-02",
+      "AC27-C11-03",
+      "AC27-C11-04",
+      "AC27-C12-01",
+      "AC27-C12-02",
+      "AC27-C12-03",
+      "AC27-C12-04"
+    ]
+  },
+  "D26/R11": {
+    "requirements": ["REQ27-C02", "REQ27-C06", "REQ27-C35"],
+    "acceptance": [
+      "AC27-C02-01",
+      "AC27-C02-02",
+      "AC27-C02-03",
+      "AC27-C06-01",
+      "AC27-C06-02",
+      "AC27-C06-03",
+      "AC27-C06-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04"
+    ]
+  },
+  "D26/R12": {
+    "requirements": ["REQ27-C05", "REQ27-C06", "REQ27-C35"],
+    "acceptance": [
+      "AC27-C05-01",
+      "AC27-C05-02",
+      "AC27-C05-03",
+      "AC27-C05-04",
+      "AC27-C06-01",
+      "AC27-C06-02",
+      "AC27-C06-03",
+      "AC27-C06-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04"
+    ]
+  },
+  "D26/R13": {
+    "requirements": ["REQ27-C35"],
+    "acceptance": ["AC27-C35-01", "AC27-C35-02", "AC27-C35-03", "AC27-C35-04"]
+  },
+  "D26/R14": {
+    "requirements": ["REQ27-C02", "REQ27-C08", "REQ27-C32"],
+    "acceptance": [
+      "AC27-C02-01",
+      "AC27-C02-02",
+      "AC27-C02-03",
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04",
+      "AC27-C32-01",
+      "AC27-C32-02",
+      "AC27-C32-03",
+      "AC27-C32-04"
+    ]
+  },
+  "D26/R15": {
+    "requirements": ["REQ27-C05", "REQ27-C08", "REQ27-C09"],
+    "acceptance": [
+      "AC27-C05-01",
+      "AC27-C05-02",
+      "AC27-C05-03",
+      "AC27-C05-04",
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04",
+      "AC27-C09-01",
+      "AC27-C09-02",
+      "AC27-C09-03",
+      "AC27-C09-04"
+    ]
+  },
+  "D26/R16": {
+    "requirements": ["REQ27-C09"],
+    "acceptance": ["AC27-C09-01", "AC27-C09-02", "AC27-C09-03", "AC27-C09-04"]
+  },
+  "D26/R17": {
+    "requirements": ["REQ27-C09"],
+    "acceptance": ["AC27-C09-01", "AC27-C09-02", "AC27-C09-03", "AC27-C09-04"]
+  },
+  "D26/R18": {
+    "requirements": ["REQ27-C09", "REQ27-C36"],
+    "acceptance": [
+      "AC27-C09-01",
+      "AC27-C09-02",
+      "AC27-C09-03",
+      "AC27-C09-04",
+      "AC27-C36-01",
+      "AC27-C36-02",
+      "AC27-C36-03",
+      "AC27-C36-04"
+    ]
+  },
+  "D26/R19": {
+    "requirements": ["REQ27-C36"],
+    "acceptance": ["AC27-C36-01", "AC27-C36-02", "AC27-C36-03", "AC27-C36-04"]
+  },
+  "D26/R20": {
+    "requirements": ["REQ27-C36"],
+    "acceptance": ["AC27-C36-01", "AC27-C36-02", "AC27-C36-03", "AC27-C36-04"]
+  },
+  "D27/R01": {
+    "requirements": ["REQ27-C10"],
+    "acceptance": ["AC27-C10-01", "AC27-C10-02", "AC27-C10-03", "AC27-C10-04"]
+  },
+  "D27/R02": {
+    "requirements": ["REQ27-C07", "REQ27-C10", "REQ27-C12", "REQ27-C35"],
+    "acceptance": [
+      "AC27-C07-01",
+      "AC27-C07-02",
+      "AC27-C07-03",
+      "AC27-C07-04",
+      "AC27-C10-01",
+      "AC27-C10-02",
+      "AC27-C10-03",
+      "AC27-C10-04",
+      "AC27-C12-01",
+      "AC27-C12-02",
+      "AC27-C12-03",
+      "AC27-C12-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04"
+    ]
+  },
+  "D27/R03": {
+    "requirements": ["REQ27-C11"],
+    "acceptance": ["AC27-C11-01", "AC27-C11-02", "AC27-C11-03", "AC27-C11-04"]
+  },
+  "D27/R04": {
+    "requirements": ["REQ27-C03", "REQ27-C08", "REQ27-C12"],
+    "acceptance": [
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04",
+      "AC27-C12-01",
+      "AC27-C12-02",
+      "AC27-C12-03",
+      "AC27-C12-04"
+    ]
+  },
+  "D27/R05": {
+    "requirements": ["REQ27-C06", "REQ27-C10", "REQ27-C35"],
+    "acceptance": [
+      "AC27-C06-01",
+      "AC27-C06-02",
+      "AC27-C06-03",
+      "AC27-C06-04",
+      "AC27-C10-01",
+      "AC27-C10-02",
+      "AC27-C10-03",
+      "AC27-C10-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04"
+    ]
+  },
+  "D27/R06": {
+    "requirements": ["REQ27-C05", "REQ27-C06", "REQ27-C11", "REQ27-C35"],
+    "acceptance": [
+      "AC27-C05-01",
+      "AC27-C05-02",
+      "AC27-C05-03",
+      "AC27-C05-04",
+      "AC27-C06-01",
+      "AC27-C06-02",
+      "AC27-C06-03",
+      "AC27-C06-04",
+      "AC27-C11-01",
+      "AC27-C11-02",
+      "AC27-C11-03",
+      "AC27-C11-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04"
+    ]
+  },
+  "D27/R07": {
+    "requirements": ["REQ27-C35"],
+    "acceptance": ["AC27-C35-01", "AC27-C35-02", "AC27-C35-03", "AC27-C35-04"]
+  },
+  "D27/R08": {
+    "requirements": ["REQ27-C01", "REQ27-C10", "REQ27-C12"],
+    "acceptance": [
+      "AC27-C01-01",
+      "AC27-C01-02",
+      "AC27-C01-03",
+      "AC27-C10-01",
+      "AC27-C10-02",
+      "AC27-C10-03",
+      "AC27-C10-04",
+      "AC27-C12-01",
+      "AC27-C12-02",
+      "AC27-C12-03",
+      "AC27-C12-04"
+    ]
+  },
+  "D28/R01": {
+    "requirements": ["REQ27-C13"],
+    "acceptance": ["AC27-C13-01", "AC27-C13-02", "AC27-C13-03", "AC27-C13-04"]
+  },
+  "D28/R02": {
+    "requirements": ["REQ27-C13", "REQ27-C14", "REQ27-C19", "REQ27-C25"],
+    "acceptance": [
+      "AC27-C13-01",
+      "AC27-C13-02",
+      "AC27-C13-03",
+      "AC27-C13-04",
+      "AC27-C14-01",
+      "AC27-C14-02",
+      "AC27-C14-03",
+      "AC27-C14-04",
+      "AC27-C19-01",
+      "AC27-C19-02",
+      "AC27-C19-03",
+      "AC27-C19-04",
+      "AC27-C25-01",
+      "AC27-C25-02",
+      "AC27-C25-03",
+      "AC27-C25-04"
+    ]
+  },
+  "D28/R03": {
+    "requirements": ["REQ27-C15"],
+    "acceptance": ["AC27-C15-01", "AC27-C15-02", "AC27-C15-03", "AC27-C15-04"]
+  },
+  "D28/R04": {
+    "requirements": ["REQ27-C15", "REQ27-C16", "REQ27-C17", "REQ27-C20"],
+    "acceptance": [
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C17-01",
+      "AC27-C17-02",
+      "AC27-C17-03",
+      "AC27-C17-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04"
+    ]
+  },
+  "D28/R05": {
+    "requirements": ["REQ27-C17", "REQ27-C18", "REQ27-C20"],
+    "acceptance": [
+      "AC27-C17-01",
+      "AC27-C17-02",
+      "AC27-C17-03",
+      "AC27-C17-04",
+      "AC27-C18-01",
+      "AC27-C18-02",
+      "AC27-C18-03",
+      "AC27-C18-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04"
+    ]
+  },
+  "D28/R06": {
+    "requirements": ["REQ27-C21", "REQ27-C32"],
+    "acceptance": [
+      "AC27-C21-01",
+      "AC27-C21-02",
+      "AC27-C21-03",
+      "AC27-C21-04",
+      "AC27-C32-01",
+      "AC27-C32-02",
+      "AC27-C32-03",
+      "AC27-C32-04"
+    ]
+  },
+  "D28/R07": {
+    "requirements": ["REQ27-C22", "REQ27-C29"],
+    "acceptance": [
+      "AC27-C22-01",
+      "AC27-C22-02",
+      "AC27-C22-03",
+      "AC27-C22-04",
+      "AC27-C29-01",
+      "AC27-C29-02",
+      "AC27-C29-03",
+      "AC27-C29-04"
+    ]
+  },
+  "D28/R08": {
+    "requirements": ["REQ27-C22", "REQ27-C23", "REQ27-C28"],
+    "acceptance": [
+      "AC27-C22-01",
+      "AC27-C22-02",
+      "AC27-C22-03",
+      "AC27-C22-04",
+      "AC27-C23-01",
+      "AC27-C23-02",
+      "AC27-C23-03",
+      "AC27-C23-04",
+      "AC27-C28-01",
+      "AC27-C28-02",
+      "AC27-C28-03",
+      "AC27-C28-04"
+    ]
+  },
+  "D28/R09": {
+    "requirements": ["REQ27-C18", "REQ27-C20", "REQ27-C24", "REQ27-C26"],
+    "acceptance": [
+      "AC27-C18-01",
+      "AC27-C18-02",
+      "AC27-C18-03",
+      "AC27-C18-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04",
+      "AC27-C24-01",
+      "AC27-C24-02",
+      "AC27-C24-03",
+      "AC27-C24-04",
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04"
+    ]
+  },
+  "D28/R10": {
+    "requirements": ["REQ27-C25", "REQ27-C27"],
+    "acceptance": [
+      "AC27-C25-01",
+      "AC27-C25-02",
+      "AC27-C25-03",
+      "AC27-C25-04",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04"
+    ]
+  },
+  "D28/R11": {
+    "requirements": ["REQ27-C26", "REQ27-C27", "REQ27-C28"],
+    "acceptance": [
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04",
+      "AC27-C28-01",
+      "AC27-C28-02",
+      "AC27-C28-03",
+      "AC27-C28-04"
+    ]
+  },
+  "D28/R12": {
+    "requirements": ["REQ27-C20", "REQ27-C26", "REQ27-C29"],
+    "acceptance": [
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04",
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04",
+      "AC27-C29-01",
+      "AC27-C29-02",
+      "AC27-C29-03",
+      "AC27-C29-04"
+    ]
+  },
+  "D28/R13": {
+    "requirements": ["REQ27-C22", "REQ27-C30"],
+    "acceptance": [
+      "AC27-C22-01",
+      "AC27-C22-02",
+      "AC27-C22-03",
+      "AC27-C22-04",
+      "AC27-C30-01",
+      "AC27-C30-02",
+      "AC27-C30-03",
+      "AC27-C30-04"
+    ]
+  },
+  "D28/R14": {
+    "requirements": ["REQ27-C21", "REQ27-C30"],
+    "acceptance": [
+      "AC27-C21-01",
+      "AC27-C21-02",
+      "AC27-C21-03",
+      "AC27-C21-04",
+      "AC27-C30-01",
+      "AC27-C30-02",
+      "AC27-C30-03",
+      "AC27-C30-04"
+    ]
+  },
+  "D28/R15": {
+    "requirements": ["REQ27-C23", "REQ27-C30"],
+    "acceptance": [
+      "AC27-C23-01",
+      "AC27-C23-02",
+      "AC27-C23-03",
+      "AC27-C23-04",
+      "AC27-C30-01",
+      "AC27-C30-02",
+      "AC27-C30-03",
+      "AC27-C30-04"
+    ]
+  },
+  "D28/R16": {
+    "requirements": ["REQ27-C31", "REQ27-C34"],
+    "acceptance": [
+      "AC27-C31-01",
+      "AC27-C31-02",
+      "AC27-C31-03",
+      "AC27-C31-04",
+      "AC27-C34-01",
+      "AC27-C34-02",
+      "AC27-C34-03",
+      "AC27-C34-04"
+    ]
+  },
+  "D28/R17": {
+    "requirements": ["REQ27-C31"],
+    "acceptance": ["AC27-C31-01", "AC27-C31-02", "AC27-C31-03", "AC27-C31-04"]
+  },
+  "D28/R18": {
+    "requirements": ["REQ27-C13", "REQ27-C14", "REQ27-C35", "REQ27-C36"],
+    "acceptance": [
+      "AC27-C13-01",
+      "AC27-C13-02",
+      "AC27-C13-03",
+      "AC27-C13-04",
+      "AC27-C14-01",
+      "AC27-C14-02",
+      "AC27-C14-03",
+      "AC27-C14-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04",
+      "AC27-C36-01",
+      "AC27-C36-02",
+      "AC27-C36-03",
+      "AC27-C36-04"
+    ]
+  },
+  "D26/AC01": {
+    "requirements": ["REQ27-C01"],
+    "acceptance": ["AC27-C01-01"]
+  },
+  "D26/AC02": {
+    "requirements": ["REQ27-C01"],
+    "acceptance": ["AC27-C01-02"]
+  },
+  "D26/AC03": {
+    "requirements": ["REQ27-C01"],
+    "acceptance": ["AC27-C01-03"]
+  },
+  "D26/AC04": {
+    "requirements": ["REQ27-C02"],
+    "acceptance": ["AC27-C02-01", "AC27-C02-02"]
+  },
+  "D26/AC05": {
+    "requirements": ["REQ27-C03", "REQ27-C04"],
+    "acceptance": ["AC27-C03-01", "AC27-C04-02"]
+  },
+  "D26/AC06": {
+    "requirements": ["REQ27-C03"],
+    "acceptance": ["AC27-C03-02"]
+  },
+  "D26/AC07": {
+    "requirements": ["REQ27-C03", "REQ27-C05"],
+    "acceptance": ["AC27-C03-03", "AC27-C05-04"]
+  },
+  "D26/AC08": {
+    "requirements": ["REQ27-C03", "REQ27-C04"],
+    "acceptance": ["AC27-C03-01", "AC27-C04-03"]
+  },
+  "D26/AC09": {
+    "requirements": ["REQ27-C04", "REQ27-C12"],
+    "acceptance": ["AC27-C04-01", "AC27-C12-01"]
+  },
+  "D26/AC10": {
+    "requirements": ["REQ27-C04", "REQ27-C08", "REQ27-C32"],
+    "acceptance": ["AC27-C04-01", "AC27-C08-01", "AC27-C32-04"]
+  },
+  "D26/AC11": {
+    "requirements": ["REQ27-C07", "REQ27-C10", "REQ27-C12"],
+    "acceptance": ["AC27-C07-02", "AC27-C10-01", "AC27-C12-01"]
+  },
+  "D26/AC12": {
+    "requirements": ["REQ27-C07"],
+    "acceptance": ["AC27-C07-01", "AC27-C07-04"]
+  },
+  "D26/AC13": {
+    "requirements": ["REQ27-C07"],
+    "acceptance": ["AC27-C07-03"]
+  },
+  "D26/AC14": {
+    "requirements": ["REQ27-C04", "REQ27-C30"],
+    "acceptance": ["AC27-C04-03", "AC27-C30-01"]
+  },
+  "D26/AC15": {
+    "requirements": ["REQ27-C05"],
+    "acceptance": ["AC27-C05-01"]
+  },
+  "D26/AC16": {
+    "requirements": ["REQ27-C04", "REQ27-C05"],
+    "acceptance": ["AC27-C04-04", "AC27-C05-04"]
+  },
+  "D26/AC17": {
+    "requirements": ["REQ27-C05"],
+    "acceptance": ["AC27-C05-02"]
+  },
+  "D26/AC18": {
+    "requirements": ["REQ27-C30", "REQ27-C36"],
+    "acceptance": ["AC27-C30-01", "AC27-C36-02"]
+  },
+  "D26/AC19": {
+    "requirements": ["REQ27-C06"],
+    "acceptance": ["AC27-C06-02"]
+  },
+  "D26/AC20": {
+    "requirements": ["REQ27-C06"],
+    "acceptance": ["AC27-C06-03", "AC27-C06-04"]
+  },
+  "D26/AC21": {
+    "requirements": ["REQ27-C03", "REQ27-C06"],
+    "acceptance": ["AC27-C03-04", "AC27-C06-01"]
+  },
+  "D26/AC22": {
+    "requirements": ["REQ27-C08"],
+    "acceptance": ["AC27-C08-01"]
+  },
+  "D26/AC23": {
+    "requirements": ["REQ27-C08"],
+    "acceptance": ["AC27-C08-02", "AC27-C08-03"]
+  },
+  "D26/AC24": {
+    "requirements": ["REQ27-C05"],
+    "acceptance": ["AC27-C05-03"]
+  },
+  "D26/AC25": {
+    "requirements": ["REQ27-C02", "REQ27-C09"],
+    "acceptance": ["AC27-C02-01", "AC27-C09-02"]
+  },
+  "D26/AC26": {
+    "requirements": ["REQ27-C09"],
+    "acceptance": ["AC27-C09-01"]
+  },
+  "D26/AC27": {
+    "requirements": ["REQ27-C35"],
+    "acceptance": ["AC27-C35-02"]
+  },
+  "D26/AC28": {
+    "requirements": ["REQ27-C11", "REQ27-C35"],
+    "acceptance": ["AC27-C11-04", "AC27-C35-03"]
+  },
+  "D26/AC29": {
+    "requirements": ["REQ27-C36"],
+    "acceptance": ["AC27-C36-03"]
+  },
+  "D26/AC30": {
+    "requirements": ["REQ27-C09", "REQ27-C36"],
+    "acceptance": ["AC27-C09-03", "AC27-C36-04"]
+  },
+  "D26/AC31": {
+    "requirements": ["REQ27-C36"],
+    "acceptance": ["AC27-C36-01"]
+  },
+  "D26/AC32": {
+    "requirements": ["REQ27-C36"],
+    "acceptance": ["AC27-C36-04"]
+  },
+  "D27/AC01": {
+    "requirements": ["REQ27-C10"],
+    "acceptance": ["AC27-C10-01"]
+  },
+  "D27/AC02": {
+    "requirements": ["REQ27-C10"],
+    "acceptance": ["AC27-C10-02"]
+  },
+  "D27/AC03": {
+    "requirements": ["REQ27-C10"],
+    "acceptance": ["AC27-C10-01", "AC27-C10-03"]
+  },
+  "D27/AC04": {
+    "requirements": ["REQ27-C10"],
+    "acceptance": ["AC27-C10-03", "AC27-C10-04"]
+  },
+  "D27/AC05": {
+    "requirements": ["REQ27-C04", "REQ27-C12"],
+    "acceptance": ["AC27-C04-01", "AC27-C12-01"]
+  },
+  "D27/AC06": {
+    "requirements": ["REQ27-C07", "REQ27-C11"],
+    "acceptance": ["AC27-C07-01", "AC27-C11-02", "AC27-C11-03"]
+  },
+  "D27/AC07": {
+    "requirements": ["REQ27-C11"],
+    "acceptance": ["AC27-C11-01"]
+  },
+  "D27/AC08": {
+    "requirements": ["REQ27-C12"],
+    "acceptance": ["AC27-C12-02"]
+  },
+  "D27/AC09": {
+    "requirements": ["REQ27-C12"],
+    "acceptance": ["AC27-C12-03"]
+  },
+  "D27/AC10": {
+    "requirements": ["REQ27-C01", "REQ27-C12"],
+    "acceptance": ["AC27-C01-01", "AC27-C12-04"]
+  },
+  "D27/AC11": {
+    "requirements": ["REQ27-C06", "REQ27-C10", "REQ27-C35"],
+    "acceptance": ["AC27-C06-01", "AC27-C10-04", "AC27-C35-01"]
+  },
+  "D27/AC12": {
+    "requirements": ["REQ27-C11"],
+    "acceptance": ["AC27-C11-04"]
+  },
+  "D27/AC13": {
+    "requirements": ["REQ27-C05", "REQ27-C06"],
+    "acceptance": ["AC27-C05-01", "AC27-C06-02", "AC27-C06-03", "AC27-C06-04"]
+  },
+  "D27/AC14": {
+    "requirements": ["REQ27-C35"],
+    "acceptance": ["AC27-C35-02", "AC27-C35-03"]
+  },
+  "D27/AC15": {
+    "requirements": ["REQ27-C12", "REQ27-C13"],
+    "acceptance": ["AC27-C12-04", "AC27-C13-04"]
+  },
+  "D27/AC16": {
+    "requirements": ["REQ27-C36"],
+    "acceptance": ["AC27-C36-03"]
+  },
+  "D28/AC01": {
+    "requirements": ["REQ27-C13"],
+    "acceptance": ["AC27-C13-01"]
+  },
+  "D28/AC02": {
+    "requirements": ["REQ27-C13", "REQ27-C21"],
+    "acceptance": ["AC27-C13-02", "AC27-C21-01", "AC27-C21-02"]
+  },
+  "D28/AC03": {
+    "requirements": ["REQ27-C13", "REQ27-C25"],
+    "acceptance": ["AC27-C13-02", "AC27-C25-01"]
+  },
+  "D28/AC04": {
+    "requirements": ["REQ27-C13", "REQ27-C28"],
+    "acceptance": ["AC27-C13-01", "AC27-C28-02"]
+  },
+  "D28/AC05": {
+    "requirements": ["REQ27-C15", "REQ27-C17", "REQ27-C18"],
+    "acceptance": ["AC27-C15-03", "AC27-C17-02", "AC27-C18-01"]
+  },
+  "D28/AC06": {
+    "requirements": ["REQ27-C15"],
+    "acceptance": ["AC27-C15-01"]
+  },
+  "D28/AC07": {
+    "requirements": ["REQ27-C15", "REQ27-C16"],
+    "acceptance": ["AC27-C15-02", "AC27-C16-02"]
+  },
+  "D28/AC08": {
+    "requirements": ["REQ27-C20"],
+    "acceptance": ["AC27-C20-01", "AC27-C20-03"]
+  },
+  "D28/AC09": {
+    "requirements": ["REQ27-C16", "REQ27-C19"],
+    "acceptance": ["AC27-C16-01", "AC27-C19-02"]
+  },
+  "D28/AC10": {
+    "requirements": ["REQ27-C17", "REQ27-C19"],
+    "acceptance": ["AC27-C17-01", "AC27-C19-01", "AC27-C19-02", "AC27-C19-03"]
+  },
+  "D28/AC11": {
+    "requirements": ["REQ27-C17", "REQ27-C20"],
+    "acceptance": ["AC27-C17-01", "AC27-C17-04", "AC27-C20-02", "AC27-C20-04"]
+  },
+  "D28/AC12": {
+    "requirements": ["REQ27-C18"],
+    "acceptance": ["AC27-C18-01", "AC27-C18-02", "AC27-C18-03"]
+  },
+  "D28/AC13": {
+    "requirements": ["REQ27-C14"],
+    "acceptance": ["AC27-C14-02"]
+  },
+  "D28/AC14": {
+    "requirements": ["REQ27-C21"],
+    "acceptance": ["AC27-C21-02"]
+  },
+  "D28/AC15": {
+    "requirements": ["REQ27-C30"],
+    "acceptance": ["AC27-C30-01", "AC27-C30-02"]
+  },
+  "D28/AC16": {
+    "requirements": ["REQ27-C21"],
+    "acceptance": ["AC27-C21-03"]
+  },
+  "D28/AC17": {
+    "requirements": ["REQ27-C22", "REQ27-C23"],
+    "acceptance": ["AC27-C22-02", "AC27-C23-01"]
+  },
+  "D28/AC18": {
+    "requirements": ["REQ27-C22"],
+    "acceptance": ["AC27-C22-01"]
+  },
+  "D28/AC19": {
+    "requirements": ["REQ27-C24", "REQ27-C28"],
+    "acceptance": ["AC27-C24-01", "AC27-C28-03"]
+  },
+  "D28/AC20": {
+    "requirements": ["REQ27-C24"],
+    "acceptance": ["AC27-C24-02", "AC27-C24-03"]
+  },
+  "D28/AC21": {
+    "requirements": ["REQ27-C25", "REQ27-C27"],
+    "acceptance": ["AC27-C25-01", "AC27-C27-01"]
+  },
+  "D28/AC22": {
+    "requirements": ["REQ27-C26"],
+    "acceptance": ["AC27-C26-01", "AC27-C26-02"]
+  },
+  "D28/AC23": {
+    "requirements": ["REQ27-C27"],
+    "acceptance": ["AC27-C27-02"]
+  },
+  "D28/AC24": {
+    "requirements": ["REQ27-C28"],
+    "acceptance": ["AC27-C28-01"]
+  },
+  "D28/AC25": {
+    "requirements": ["REQ27-C28"],
+    "acceptance": ["AC27-C28-02"]
+  },
+  "D28/AC26": {
+    "requirements": ["REQ27-C27"],
+    "acceptance": ["AC27-C27-03", "AC27-C27-04"]
+  },
+  "D28/AC27": {
+    "requirements": ["REQ27-C28", "REQ27-C29"],
+    "acceptance": ["AC27-C29-02", "AC27-C28-04"]
+  },
+  "D28/AC28": {
+    "requirements": ["REQ27-C29"],
+    "acceptance": ["AC27-C29-01"]
+  },
+  "D28/AC29": {
+    "requirements": ["REQ27-C23"],
+    "acceptance": ["AC27-C23-02"]
+  },
+  "D28/AC30": {
+    "requirements": ["REQ27-C23"],
+    "acceptance": ["AC27-C23-03"]
+  },
+  "D28/AC31": {
+    "requirements": ["REQ27-C14", "REQ27-C35", "REQ27-C36"],
+    "acceptance": ["AC27-C14-01", "AC27-C35-01", "AC27-C36-03"]
+  },
+  "D28/AC32": {
+    "requirements": ["REQ27-C35"],
+    "acceptance": ["AC27-C35-02", "AC27-C35-03"]
+  },
+  "D28/AC33": {
+    "requirements": ["REQ27-C29"],
+    "acceptance": ["AC27-C29-04"]
+  },
+  "D28/AC34": {
+    "requirements": ["REQ27-C31"],
+    "acceptance": ["AC27-C31-01", "AC27-C31-02"]
+  },
+  "D28/AC35": {
+    "requirements": ["REQ27-C31"],
+    "acceptance": ["AC27-C31-03", "AC27-C31-04"]
+  },
+  "D28/AC36": {
+    "requirements": ["REQ27-C12", "REQ27-C13", "REQ27-C36"],
+    "acceptance": ["AC27-C13-04", "AC27-C12-04", "AC27-C36-01"]
+  },
+  "D28/F01": {
+    "requirements": ["REQ27-C15"],
+    "acceptance": ["AC27-C15-01", "AC27-C15-02", "AC27-C15-03", "AC27-C15-04"]
+  },
+  "D28/F02": {
+    "requirements": ["REQ27-C15", "REQ27-C17"],
+    "acceptance": [
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C17-01",
+      "AC27-C17-02",
+      "AC27-C17-03",
+      "AC27-C17-04"
+    ]
+  },
+  "D28/F03": {
+    "requirements": ["REQ27-C16", "REQ27-C17"],
+    "acceptance": [
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C17-01",
+      "AC27-C17-02",
+      "AC27-C17-03",
+      "AC27-C17-04"
+    ]
+  },
+  "D28/F04": {
+    "requirements": ["REQ27-C16", "REQ27-C20"],
+    "acceptance": [
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04"
+    ]
+  },
+  "D28/F05": {
+    "requirements": ["REQ27-C15", "REQ27-C16", "REQ27-C25"],
+    "acceptance": [
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C25-01",
+      "AC27-C25-02",
+      "AC27-C25-03",
+      "AC27-C25-04"
+    ]
+  },
+  "D28/F06": {
+    "requirements": ["REQ27-C14", "REQ27-C18", "REQ27-C19"],
+    "acceptance": [
+      "AC27-C14-01",
+      "AC27-C14-02",
+      "AC27-C14-03",
+      "AC27-C14-04",
+      "AC27-C18-01",
+      "AC27-C18-02",
+      "AC27-C18-03",
+      "AC27-C18-04",
+      "AC27-C19-01",
+      "AC27-C19-02",
+      "AC27-C19-03",
+      "AC27-C19-04"
+    ]
+  },
+  "D28/F07": {
+    "requirements": ["REQ27-C18", "REQ27-C20", "REQ27-C24", "REQ27-C26"],
+    "acceptance": [
+      "AC27-C18-01",
+      "AC27-C18-02",
+      "AC27-C18-03",
+      "AC27-C18-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04",
+      "AC27-C24-01",
+      "AC27-C24-02",
+      "AC27-C24-03",
+      "AC27-C24-04",
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04"
+    ]
+  },
+  "D26/owner-amendment-1": {
+    "requirements": ["REQ27-C02", "REQ27-C03", "REQ27-C04"],
+    "acceptance": [
+      "AC27-C02-01",
+      "AC27-C02-02",
+      "AC27-C02-03",
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C04-01",
+      "AC27-C04-02",
+      "AC27-C04-03",
+      "AC27-C04-04"
+    ]
+  },
+  "D26/owner-amendment-2": {
+    "requirements": ["REQ27-C03", "REQ27-C04", "REQ27-C21"],
+    "acceptance": [
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C04-01",
+      "AC27-C04-02",
+      "AC27-C04-03",
+      "AC27-C04-04",
+      "AC27-C21-01",
+      "AC27-C21-02",
+      "AC27-C21-03",
+      "AC27-C21-04"
+    ]
+  },
+  "D26/owner-amendment-3": {
+    "requirements": ["REQ27-C01", "REQ27-C07"],
+    "acceptance": [
+      "AC27-C01-01",
+      "AC27-C01-02",
+      "AC27-C01-03",
+      "AC27-C07-01",
+      "AC27-C07-02",
+      "AC27-C07-03",
+      "AC27-C07-04"
+    ]
+  },
+  "D26/owner-amendment-4": {
+    "requirements": ["REQ27-C01"],
+    "acceptance": ["AC27-C01-01", "AC27-C01-02", "AC27-C01-03"]
+  },
+  "D26/owner-amendment-5": {
+    "requirements": ["REQ27-C03"],
+    "acceptance": ["AC27-C03-01", "AC27-C03-02", "AC27-C03-03", "AC27-C03-04"]
+  },
+  "D28/source-amendment-1": {
+    "requirements": ["REQ27-C13", "REQ27-C14", "REQ27-C25"],
+    "acceptance": [
+      "AC27-C13-01",
+      "AC27-C13-02",
+      "AC27-C13-03",
+      "AC27-C13-04",
+      "AC27-C14-01",
+      "AC27-C14-02",
+      "AC27-C14-03",
+      "AC27-C14-04",
+      "AC27-C25-01",
+      "AC27-C25-02",
+      "AC27-C25-03",
+      "AC27-C25-04"
+    ]
+  },
+  "D28/source-amendment-2": {
+    "requirements": ["REQ27-C15", "REQ27-C31"],
+    "acceptance": [
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C31-01",
+      "AC27-C31-02",
+      "AC27-C31-03",
+      "AC27-C31-04"
+    ]
+  },
+  "D28/source-amendment-3": {
+    "requirements": ["REQ27-C21"],
+    "acceptance": ["AC27-C21-01", "AC27-C21-02", "AC27-C21-03", "AC27-C21-04"]
+  },
+  "D28/source-amendment-4": {
+    "requirements": ["REQ27-C15", "REQ27-C16", "REQ27-C20"],
+    "acceptance": [
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04"
+    ]
+  },
+  "D28/source-amendment-5": {
+    "requirements": ["REQ27-C26", "REQ27-C27", "REQ27-C28"],
+    "acceptance": [
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04",
+      "AC27-C28-01",
+      "AC27-C28-02",
+      "AC27-C28-03",
+      "AC27-C28-04"
+    ]
+  },
+  "D28/source-amendment-6": {
+    "requirements": ["REQ27-C23", "REQ27-C31", "REQ27-C34"],
+    "acceptance": [
+      "AC27-C23-01",
+      "AC27-C23-02",
+      "AC27-C23-03",
+      "AC27-C23-04",
+      "AC27-C31-01",
+      "AC27-C31-02",
+      "AC27-C31-03",
+      "AC27-C31-04",
+      "AC27-C34-01",
+      "AC27-C34-02",
+      "AC27-C34-03",
+      "AC27-C34-04"
+    ]
+  },
+  "D28/precise-financial-calculation": {
+    "requirements": [
+      "REQ27-C15",
+      "REQ27-C16",
+      "REQ27-C17",
+      "REQ27-C18",
+      "REQ27-C19",
+      "REQ27-C20"
+    ],
+    "acceptance": [
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C17-01",
+      "AC27-C17-02",
+      "AC27-C17-03",
+      "AC27-C17-04",
+      "AC27-C18-01",
+      "AC27-C18-02",
+      "AC27-C18-03",
+      "AC27-C18-04",
+      "AC27-C19-01",
+      "AC27-C19-02",
+      "AC27-C19-03",
+      "AC27-C19-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04"
+    ]
+  },
+  "D28/precise-review-episodes": {
+    "requirements": [
+      "REQ27-C24",
+      "REQ27-C25",
+      "REQ27-C26",
+      "REQ27-C27",
+      "REQ27-C28"
+    ],
+    "acceptance": [
+      "AC27-C24-01",
+      "AC27-C24-02",
+      "AC27-C24-03",
+      "AC27-C24-04",
+      "AC27-C25-01",
+      "AC27-C25-02",
+      "AC27-C25-03",
+      "AC27-C25-04",
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04",
+      "AC27-C28-01",
+      "AC27-C28-02",
+      "AC27-C28-03",
+      "AC27-C28-04"
+    ]
+  },
+  "D28/UX-re-enable": {
+    "requirements": ["REQ27-C13", "REQ27-C24", "REQ27-C29"],
+    "acceptance": [
+      "AC27-C13-01",
+      "AC27-C13-02",
+      "AC27-C13-03",
+      "AC27-C13-04",
+      "AC27-C24-01",
+      "AC27-C24-02",
+      "AC27-C24-03",
+      "AC27-C24-04",
+      "AC27-C29-01",
+      "AC27-C29-02",
+      "AC27-C29-03",
+      "AC27-C29-04"
+    ]
+  },
+  "D26/concrete-UX": {
+    "requirements": [
+      "REQ27-C02",
+      "REQ27-C03",
+      "REQ27-C06",
+      "REQ27-C07",
+      "REQ27-C08",
+      "REQ27-C35"
+    ],
+    "acceptance": [
+      "AC27-C02-01",
+      "AC27-C02-02",
+      "AC27-C02-03",
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C06-01",
+      "AC27-C06-02",
+      "AC27-C06-03",
+      "AC27-C06-04",
+      "AC27-C07-01",
+      "AC27-C07-02",
+      "AC27-C07-03",
+      "AC27-C07-04",
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04"
+    ]
+  },
+  "D27/experience-and-edge-cases": {
+    "requirements": ["REQ27-C10", "REQ27-C11", "REQ27-C12", "REQ27-C35"],
+    "acceptance": [
+      "AC27-C10-01",
+      "AC27-C10-02",
+      "AC27-C10-03",
+      "AC27-C10-04",
+      "AC27-C11-01",
+      "AC27-C11-02",
+      "AC27-C11-03",
+      "AC27-C11-04",
+      "AC27-C12-01",
+      "AC27-C12-02",
+      "AC27-C12-03",
+      "AC27-C12-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04"
+    ]
+  },
+  "Original brief/churches-167-175": {
+    "requirements": ["REQ27-C33"],
+    "acceptance": ["AC27-C33-01", "AC27-C33-02", "AC27-C33-03", "AC27-C33-04"]
+  },
+  "Original brief/deterministic-brief-179-187": {
+    "requirements": ["REQ27-C32"],
+    "acceptance": ["AC27-C32-01", "AC27-C32-02", "AC27-C32-03", "AC27-C32-04"]
+  },
+  "Original brief/measures-189-203": {
+    "requirements": [
+      "REQ27-C13",
+      "REQ27-C14",
+      "REQ27-C15",
+      "REQ27-C16",
+      "REQ27-C17",
+      "REQ27-C18",
+      "REQ27-C19",
+      "REQ27-C20",
+      "REQ27-C24",
+      "REQ27-C25",
+      "REQ27-C34"
+    ],
+    "acceptance": [
+      "AC27-C13-01",
+      "AC27-C13-02",
+      "AC27-C13-03",
+      "AC27-C13-04",
+      "AC27-C14-01",
+      "AC27-C14-02",
+      "AC27-C14-03",
+      "AC27-C14-04",
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C17-01",
+      "AC27-C17-02",
+      "AC27-C17-03",
+      "AC27-C17-04",
+      "AC27-C18-01",
+      "AC27-C18-02",
+      "AC27-C18-03",
+      "AC27-C18-04",
+      "AC27-C19-01",
+      "AC27-C19-02",
+      "AC27-C19-03",
+      "AC27-C19-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04",
+      "AC27-C24-01",
+      "AC27-C24-02",
+      "AC27-C24-03",
+      "AC27-C24-04",
+      "AC27-C25-01",
+      "AC27-C25-02",
+      "AC27-C25-03",
+      "AC27-C25-04",
+      "AC27-C34-01",
+      "AC27-C34-02",
+      "AC27-C34-03",
+      "AC27-C34-04"
+    ]
+  },
+  "Original brief/product-and-security-221-235": {
+    "requirements": [
+      "REQ27-C04",
+      "REQ27-C05",
+      "REQ27-C06",
+      "REQ27-C08",
+      "REQ27-C21",
+      "REQ27-C22",
+      "REQ27-C30",
+      "REQ27-C31",
+      "REQ27-C35",
+      "REQ27-C36"
+    ],
+    "acceptance": [
+      "AC27-C04-01",
+      "AC27-C04-02",
+      "AC27-C04-03",
+      "AC27-C04-04",
+      "AC27-C05-01",
+      "AC27-C05-02",
+      "AC27-C05-03",
+      "AC27-C05-04",
+      "AC27-C06-01",
+      "AC27-C06-02",
+      "AC27-C06-03",
+      "AC27-C06-04",
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04",
+      "AC27-C21-01",
+      "AC27-C21-02",
+      "AC27-C21-03",
+      "AC27-C21-04",
+      "AC27-C22-01",
+      "AC27-C22-02",
+      "AC27-C22-03",
+      "AC27-C22-04",
+      "AC27-C30-01",
+      "AC27-C30-02",
+      "AC27-C30-03",
+      "AC27-C30-04",
+      "AC27-C31-01",
+      "AC27-C31-02",
+      "AC27-C31-03",
+      "AC27-C31-04",
+      "AC27-C35-01",
+      "AC27-C35-02",
+      "AC27-C35-03",
+      "AC27-C35-04",
+      "AC27-C36-01",
+      "AC27-C36-02",
+      "AC27-C36-03",
+      "AC27-C36-04"
+    ]
+  },
+  "Original brief/native-integration-207-217": {
+    "requirements": [
+      "REQ27-C09",
+      "REQ27-C13",
+      "REQ27-C26",
+      "REQ27-C27",
+      "REQ27-C34"
+    ],
+    "acceptance": [
+      "AC27-C09-01",
+      "AC27-C09-02",
+      "AC27-C09-03",
+      "AC27-C09-04",
+      "AC27-C13-01",
+      "AC27-C13-02",
+      "AC27-C13-03",
+      "AC27-C13-04",
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04",
+      "AC27-C34-01",
+      "AC27-C34-02",
+      "AC27-C34-03",
+      "AC27-C34-04"
+    ]
+  },
+  "post-D30/E7-C-01-safe-boundary": {
+    "requirements": ["REQ27-C15", "REQ27-C16", "REQ27-C20", "REQ27-C34"],
+    "acceptance": [
+      "AC27-C15-01",
+      "AC27-C15-02",
+      "AC27-C15-03",
+      "AC27-C15-04",
+      "AC27-C16-01",
+      "AC27-C16-02",
+      "AC27-C16-03",
+      "AC27-C16-04",
+      "AC27-C20-01",
+      "AC27-C20-02",
+      "AC27-C20-03",
+      "AC27-C20-04",
+      "AC27-C34-01",
+      "AC27-C34-02",
+      "AC27-C34-03",
+      "AC27-C34-04"
+    ]
+  },
+  "ADR0031/body-free-history": {
+    "requirements": ["REQ27-C08", "REQ27-C12"],
+    "acceptance": [
+      "AC27-C08-01",
+      "AC27-C08-02",
+      "AC27-C08-03",
+      "AC27-C08-04",
+      "AC27-C12-01",
+      "AC27-C12-02",
+      "AC27-C12-03",
+      "AC27-C12-04"
+    ]
+  },
+  "ADR0183/source-owned-work": {
+    "requirements": ["REQ27-C26", "REQ27-C27", "REQ27-C28"],
+    "acceptance": [
+      "AC27-C26-01",
+      "AC27-C26-02",
+      "AC27-C26-03",
+      "AC27-C26-04",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04",
+      "AC27-C28-01",
+      "AC27-C28-02",
+      "AC27-C28-03",
+      "AC27-C28-04"
+    ]
+  },
+  "ADR0027/notification-presentation": {
+    "requirements": ["REQ27-C07", "REQ27-C27", "REQ27-C28"],
+    "acceptance": [
+      "AC27-C07-01",
+      "AC27-C07-02",
+      "AC27-C07-03",
+      "AC27-C07-04",
+      "AC27-C27-01",
+      "AC27-C27-02",
+      "AC27-C27-03",
+      "AC27-C27-04",
+      "AC27-C28-01",
+      "AC27-C28-02",
+      "AC27-C28-03",
+      "AC27-C28-04"
+    ]
+  },
+  "ADR0211/projection-widening": {
+    "requirements": ["REQ27-C03", "REQ27-C04", "REQ27-C14", "REQ27-C21"],
+    "acceptance": [
+      "AC27-C03-01",
+      "AC27-C03-02",
+      "AC27-C03-03",
+      "AC27-C03-04",
+      "AC27-C04-01",
+      "AC27-C04-02",
+      "AC27-C04-03",
+      "AC27-C04-04",
+      "AC27-C14-01",
+      "AC27-C14-02",
+      "AC27-C14-03",
+      "AC27-C14-04",
+      "AC27-C21-01",
+      "AC27-C21-02",
+      "AC27-C21-03",
+      "AC27-C21-04"
+    ]
+  }
+}

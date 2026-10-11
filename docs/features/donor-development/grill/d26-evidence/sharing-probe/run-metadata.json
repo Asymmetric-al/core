@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-10T19:35:49.791223+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d26-sharing-lab-200775",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d26-sharing-lab-200775",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "docker_version": "28.4.0",
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "D26 synthetic nonowner RLS retarget counterexample and owner command audience/save/replay mechanics; not Core P12/RLS or client security proof",
+  "input_sha256": {
+    "setup.sql": "c78e3b68334f1fb6f979c7717fb5f60c3f1738c88868f48584fa99d103050f6d",
+    "mechanics.py": "0203e1dbf12a7a36165f2ed31df6c6888fe5241186050f7bfcdcba9150b2201d",
+    "run-lab.py": "0e806992fd0855910bcb123ad3654a246b7611c2eaf8025a035246be70ad0b2c"
+  },
+  "container_id": "1e6d114f491e7b9992021d49e1a17dd767879adcfb02e13e8414170ea2b91991",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 7, \"total\": 7, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "cleanup_stdout": "1e6d114f491e7b9992021d49e1a17dd767879adcfb02e13e8414170ea2b91991",
+  "post_cleanup_inspect_exit_code": 1,
+  "post_cleanup_inspect_stderr": "Error response from daemon: No such container: 1e6d114f491e7b9992021d49e1a17dd767879adcfb02e13e8414170ea2b91991",
+  "container_removed": true,
+  "finished_at": "2026-10-10T19:35:55.808793+00:00"
+}

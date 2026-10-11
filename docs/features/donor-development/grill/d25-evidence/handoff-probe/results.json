@@ -1,0 +1,283 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "isolation_level": "read committed",
+  "completed": true,
+  "passed": 7,
+  "total": 7,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "only exact scoped owner confirmation can resolve: draft, other handoff/scope, absent or empty proof and equal-amount substitutes fail",
+      "pass": true,
+      "observed": {
+        "denials": {
+          "draft": "23514",
+          "wrong_handoff": "23514",
+          "other_scope_only": "23514",
+          "null_source": "22023",
+          "empty_claim": "22023",
+          "empty_source_set": "23514",
+          "same_amount_wrong_ref": "23514"
+        },
+        "consumer_unchanged": true,
+        "finance_unchanged": true
+      }
+    },
+    {
+      "test": "one owner-confirmed reference set attaches atomically without creating money or forcing a single posted reference",
+      "pass": true,
+      "observed": {
+        "result": {
+          "handoff": 1,
+          "posted_refs": [
+            11,
+            12
+          ],
+          "confirmation": 1,
+          "resolved_revision": 1,
+          "confirmation_revision": 1
+        },
+        "state": {
+          "head": {
+            "id": 1,
+            "revision": 1,
+            "scope_id": 2,
+            "last_resolution_revision": 1
+          },
+          "resolutions": [
+            {
+              "scope_id": 2,
+              "handoff_id": 1,
+              "posted_refs": [
+                11,
+                12
+              ],
+              "confirmation_id": 1,
+              "handoff_revision": 1,
+              "confirmation_revision": 1
+            }
+          ],
+          "history": [
+            {
+              "kind": "source_resolution_attached",
+              "detail": {
+                "handoff": 1,
+                "posted_refs": [
+                  11,
+                  12
+                ],
+                "confirmation": 1,
+                "resolved_revision": 1,
+                "confirmation_revision": 1
+              },
+              "event_id": 1,
+              "revision": 1,
+              "scope_id": 2,
+              "handoff_id": 1
+            }
+          ],
+          "receipts": 1
+        },
+        "finance_unchanged": true
+      }
+    },
+    {
+      "test": "late consumer failure rolls back linkage/history/result while independent posted evidence survives; exact retry recovers without reposting",
+      "pass": true,
+      "observed": {
+        "error": "23514",
+        "consumer_rolled_back": true,
+        "recovered": {
+          "handoff": 1,
+          "posted_refs": [
+            11,
+            12
+          ],
+          "confirmation": 1,
+          "resolved_revision": 1,
+          "confirmation_revision": 1
+        },
+        "finance_unchanged": true
+      }
+    },
+    {
+      "test": "material handoff revision wins: waiting old confirmation cannot overwrite the corrected report; posted money remains",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 291,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            284
+          ]
+        },
+        "error": "40001",
+        "state": {
+          "head": {
+            "id": 1,
+            "revision": 2,
+            "scope_id": 4,
+            "last_resolution_revision": null
+          },
+          "resolutions": [],
+          "history": [
+            {
+              "kind": "material_report_revision",
+              "detail": {
+                "prior_revision": 1
+              },
+              "event_id": 4,
+              "revision": 2,
+              "scope_id": 4,
+              "handoff_id": 1
+            }
+          ],
+          "receipts": 0
+        },
+        "finance_unchanged": true
+      }
+    },
+    {
+      "test": "resolution wins then report revision: historical acceptance survives but cannot silently cover new report terms or be reapplied",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 340,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            334
+          ]
+        },
+        "historic_result": {
+          "handoff": 1,
+          "posted_refs": [
+            11,
+            12
+          ],
+          "confirmation": 1,
+          "resolved_revision": 1,
+          "confirmation_revision": 1
+        },
+        "head": {
+          "id": 1,
+          "revision": 2,
+          "scope_id": 5,
+          "last_resolution_revision": 1
+        },
+        "old_proof_for_new_head": "23514",
+        "finance_unchanged": true
+      }
+    },
+    {
+      "test": "later financial/source correction does not erase historic resolution or let its replay reapply; changed reference payload conflicts",
+      "pass": true,
+      "observed": {
+        "historic_result": {
+          "handoff": 1,
+          "posted_refs": [
+            11,
+            12
+          ],
+          "confirmation": 1,
+          "resolved_revision": 1,
+          "confirmation_revision": 1
+        },
+        "changed_payload": "23514",
+        "current_finance": {
+          "posted": [
+            {
+              "id": 11,
+              "scope_id": 6,
+              "amount_minor": 10000
+            },
+            {
+              "id": 12,
+              "scope_id": 6,
+              "amount_minor": 10000
+            },
+            {
+              "id": 99,
+              "scope_id": 6,
+              "amount_minor": 10000
+            }
+          ],
+          "adjustments": [
+            {
+              "id": 1,
+              "scope_id": 6,
+              "posted_id": 11,
+              "delta_minor": -10000
+            }
+          ],
+          "effective_minor": 20000
+        },
+        "consumer_unchanged": true
+      }
+    },
+    {
+      "test": "concurrent duplicate source-confirmation consumption records one resolution/history/result and zero additional money",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 463,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            456
+          ]
+        },
+        "result": {
+          "handoff": 1,
+          "posted_refs": [
+            11,
+            12
+          ],
+          "confirmation": 1,
+          "resolved_revision": 1,
+          "confirmation_revision": 1
+        },
+        "state": {
+          "head": {
+            "id": 1,
+            "revision": 1,
+            "scope_id": 7,
+            "last_resolution_revision": 1
+          },
+          "resolutions": [
+            {
+              "scope_id": 7,
+              "handoff_id": 1,
+              "posted_refs": [
+                11,
+                12
+              ],
+              "confirmation_id": 1,
+              "handoff_revision": 1,
+              "confirmation_revision": 1
+            }
+          ],
+          "history": [
+            {
+              "kind": "source_resolution_attached",
+              "detail": {
+                "handoff": 1,
+                "posted_refs": [
+                  11,
+                  12
+                ],
+                "confirmation": 1,
+                "resolved_revision": 1,
+                "confirmation_revision": 1
+              },
+              "event_id": 8,
+              "revision": 1,
+              "scope_id": 7,
+              "handoff_id": 1
+            }
+          ],
+          "receipts": 1
+        },
+        "finance_unchanged": true
+      }
+    }
+  ]
+}

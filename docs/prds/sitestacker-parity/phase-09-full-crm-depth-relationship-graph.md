@@ -354,8 +354,17 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   per edge (NPSP-style mirrored pairs are a documented bug factory), from/to
   composite tenant FKs → parties, `relationship_type_id`, optional
   `relationship_role`, `started_at`/`ended_at` (**time-bound, never
-  hard-deleted**), partial unique on active `(from, to, type)`, indexes
-  `(tenant, from)` + `(tenant, to)`. (D2.)
+  hard-deleted**), partial unique on active `(from, to, type)` for ordinary
+  relationship families, indexes `(tenant, from)` + `(tenant, to)`. For the
+  staff-assignment family, ratified Phase 27 D30 narrows active logical identity
+  to the exact tenant-scoped role-qualified relationship: the same staff and
+  Party may hold multiple distinct roles; the same role may have multiple staff;
+  a duplicate of the same active role-qualified edge is forbidden. Preserve
+  the shared header's one-primary invariant independently. Role changes retain
+  attributable assignment history and cannot overwrite another role. The exact
+  constraint representation must prove these outcomes; this amendment creates
+  neither another assignment store nor a generic responsibility-slot object.
+  Other edge families retain their existing identity. (D2; P27 D30.)
 
 - **A5 — Seeded type catalog; derived kinds structurally blocked from it.**
   `crm_relationship_types` is a seeded data catalog (key, forward/inverse
@@ -491,7 +500,14 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   next-action stay **server-computed contract fields**; (e) **GUARDRAILS:
   cultivation stage is NEVER a `lifecycleStatus` value; asks are NEVER edges
   or custom fields.** Portfolios are derived views over active assignment
-  edges — no stored portfolio table in Phase 9, ever. (D4b.)
+  edges — no stored portfolio table in Phase 9, ever. Ratified Phase 27 D30
+  adds reviewed existing-role transfers by default and tenant-optional bounded
+  Auto for source-proved rule-managed assignments. Manual choices, deliberate
+  unassignment and unknown imported provenance remain protected. Transfers name
+  one exact existing role/responsibility lineage, preserve other roles and
+  independently owned work, and never grant access. P27 D27's Last recorded
+  exchange is source-qualified actual conversation/exchange occurrence evidence;
+  generic `lastTouchAt` is not that metric. (D4b; P27 D27/D30.)
 
 - **A13 — Routes: one engine, kind routes as pinned views.** `/crm` (all
   records + global search) · `/crm/people` · `/crm/churches` (pins
@@ -902,7 +918,13 @@ derived edges, B4 roles view, B7 timeline, B10 predicates).
   missionary-workspace-browsing, and donor-portal-internals stop
   conditions):** (1) a
   `household_members` row grants **zero** portal visibility; (2) party
-  notes/activity never appear in any missionary-workspace projection; (3)
+  general notes/private activity never appear in missionary-workspace projections.
+  The ratified P27 D26 exception permits only newly authored, sharing-eligible
+  partnership interaction from the qualified P9 source, with exact current
+  audience, permitted fields, purpose and explicit historical-access scope.
+  It cannot relabel, import, migrate or summarize protected notes into shared
+  content. Assignment/linking alone grants no current or earlier history;
+  removal/revocation applies to later reads and result recovery. (3)
   the missionary workspace cannot enumerate CRM parties beyond its permitted
   slice; (4) donor-portal projections contain no CRM internals (notes,
   tasks, edges, assignments, duplicate flags).

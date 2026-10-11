@@ -1,0 +1,338 @@
+{
+  "postgres_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "completed": true,
+  "passed": 14,
+  "total": 14,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "counterexample: independent list and stage references permit a same-tenant wrong-list stage",
+      "pass": true,
+      "observed": {
+        "journey_list": 1,
+        "stage_list": 2
+      }
+    },
+    {
+      "test": "composite membership rejects wrong-list stage and foreign list without changing source",
+      "pass": true,
+      "observed": {
+        "same_tenant_wrong_list": "23503",
+        "foreign_list": "23503"
+      }
+    },
+    {
+      "test": "counterexample: label-based duplicate success silently merges two distinct create intents",
+      "pass": true,
+      "observed": {
+        "attempted_intents": 2,
+        "persisted_rows": [
+          {
+            "tenant_id": 1,
+            "label": "Shared label",
+            "creation_intent": "intent-one"
+          }
+        ]
+      }
+    },
+    {
+      "test": "one create stores new list, independent stage IDs, configuration history and matching receipt",
+      "pass": true,
+      "observed": {
+        "receipt": {
+          "receipt": {
+            "label": "New process",
+            "stages": [
+              {
+                "id": 4,
+                "label": "Listen",
+                "order": 1
+              },
+              {
+                "id": 5,
+                "label": "Agree",
+                "order": 2
+              }
+            ],
+            "list_id": 4,
+            "tenant_id": 1
+          },
+          "replayed": false
+        },
+        "stage_rows": [
+          {
+            "tenant_id": 1,
+            "list_id": 4,
+            "id": 4,
+            "label": "Listen",
+            "display_order": 1
+          },
+          {
+            "tenant_id": 1,
+            "list_id": 4,
+            "id": 5,
+            "label": "Agree",
+            "display_order": 2
+          }
+        ],
+        "configuration_events": [
+          {
+            "tenant_id": 1,
+            "list_id": 4,
+            "effect_key": "create-1",
+            "snapshot": {
+              "label": "New process",
+              "stages": [
+                {
+                  "id": 4,
+                  "label": "Listen",
+                  "order": 1
+                },
+                {
+                  "id": 5,
+                  "label": "Agree",
+                  "order": 2
+                }
+              ],
+              "list_id": 4,
+              "tenant_id": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "test": "ambiguous completed create retry returns the same identities without new records",
+      "pass": true,
+      "observed": {
+        "receipt": {
+          "label": "New process",
+          "stages": [
+            {
+              "id": 4,
+              "label": "Listen",
+              "order": 1
+            },
+            {
+              "id": 5,
+              "label": "Agree",
+              "order": 2
+            }
+          ],
+          "list_id": 4,
+          "tenant_id": 1
+        },
+        "replayed": true
+      }
+    },
+    {
+      "test": "existing effect key cannot silently accept changed list or stage intent",
+      "pass": true,
+      "observed": {
+        "changed_label_error": "22023",
+        "changed_stage_error": "22023"
+      }
+    },
+    {
+      "test": "distinct create intent with same label is not mistaken for the original request",
+      "pass": true,
+      "observed": {
+        "first": {
+          "label": "New process",
+          "stages": [
+            {
+              "id": 4,
+              "label": "Listen",
+              "order": 1
+            },
+            {
+              "id": 5,
+              "label": "Agree",
+              "order": 2
+            }
+          ],
+          "list_id": 4,
+          "tenant_id": 1
+        },
+        "second": {
+          "label": "New process",
+          "stages": [
+            {
+              "id": 6,
+              "label": "Discover",
+              "order": 1
+            }
+          ],
+          "list_id": 5,
+          "tenant_id": 1
+        },
+        "limit": "Fixture deliberately permits equal labels; no product label-uniqueness rule is selected."
+      }
+    },
+    {
+      "test": "failure inside stage insertion rolls back claimed receipt, list, stages and configuration history",
+      "pass": true,
+      "observed": {
+        "sqlstate": "23502",
+        "source_record_counts": {
+          "lists": 5,
+          "stages": 6,
+          "receipts": 2,
+          "configuration_events": 2
+        }
+      }
+    },
+    {
+      "test": "error after complete creation but before commit leaves no successful list or receipt",
+      "pass": true,
+      "observed": {
+        "sqlstate": "22012"
+      }
+    },
+    {
+      "test": "separate configuration privilege does not inherently grant journey read or write",
+      "pass": true,
+      "observed": {
+        "role": {
+          "user": "lab_config",
+          "superuser": false,
+          "bypassrls": false
+        },
+        "config_rows_updated": 1,
+        "journey_read": "42501",
+        "journey_write": "42501"
+      }
+    },
+    {
+      "test": "label-only grouping merges distinct list meanings; identity-aware grouping preserves both",
+      "pass": true,
+      "observed": {
+        "label_groups": [
+          {
+            "label": "Engaged",
+            "journeys": 2
+          }
+        ],
+        "scoped_groups": [
+          {
+            "list_id": 1,
+            "stage_id": 1,
+            "journeys": 1
+          },
+          {
+            "list_id": 2,
+            "stage_id": 2,
+            "journeys": 1
+          }
+        ]
+      }
+    },
+    {
+      "test": "concurrent duplicate creation waits, sees no partial committed list and yields one complete result",
+      "pass": true,
+      "observed": {
+        "exact_lock_barrier": {
+          "waiter_pid": 314,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            299
+          ]
+        },
+        "no_uncommitted_records_visible": true,
+        "first": {
+          "receipt": {
+            "label": "Concurrent process",
+            "stages": [
+              {
+                "id": 10,
+                "label": "First",
+                "order": 1
+              },
+              {
+                "id": 11,
+                "label": "Second",
+                "order": 2
+              }
+            ],
+            "list_id": 8,
+            "tenant_id": 1
+          },
+          "replayed": false
+        },
+        "retry": {
+          "receipt": {
+            "label": "Concurrent process",
+            "stages": [
+              {
+                "id": 10,
+                "label": "First",
+                "order": 1
+              },
+              {
+                "id": 11,
+                "label": "Second",
+                "order": 2
+              }
+            ],
+            "list_id": 8,
+            "tenant_id": 1
+          },
+          "replayed": true
+        }
+      }
+    },
+    {
+      "test": "same intent token in another tenant has an independent scoped receipt and list",
+      "pass": true,
+      "observed": {
+        "receipt": {
+          "label": "New process",
+          "stages": [
+            {
+              "id": 12,
+              "label": "Other scope",
+              "order": 1
+            }
+          ],
+          "list_id": 9,
+          "tenant_id": 2
+        },
+        "replayed": false
+      }
+    },
+    {
+      "test": "configuration creation never reassigns existing journeys or invents journey history",
+      "pass": true,
+      "observed": {
+        "journeys": [
+          {
+            "tenant_id": 1,
+            "id": 1,
+            "list_id": 1,
+            "stage_id": 1,
+            "revision": 1
+          },
+          {
+            "tenant_id": 1,
+            "id": 2,
+            "list_id": 2,
+            "stage_id": 2,
+            "revision": 1
+          }
+        ],
+        "events": [
+          {
+            "tenant_id": 1,
+            "journey_id": 1,
+            "description": "Existing source history"
+          },
+          {
+            "tenant_id": 1,
+            "journey_id": 2,
+            "description": "Other source history"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1008 @@
+{
+  "notation": "A -> B means B is blocked by A",
+  "internal": [
+    {
+      "from": "P27-A01",
+      "to": "P27-A02",
+      "contract": "Current role-qualified assignment/control projection, protected manual/unknown provenance and canonical source access",
+      "reason": "A real safe preview must consume the delivered source facts; inherited Party/catalog owners are already prerequisites of A01."
+    },
+    {
+      "from": "P27-A01",
+      "to": "P27-A09",
+      "contract": "Role-qualified identity, protected control and attributed correction source",
+      "reason": "Migration targets the real accepted model and must preserve its constraints and receipt meaning."
+    },
+    {
+      "from": "P27-S01",
+      "to": "P27-C01",
+      "contract": "Canonical tenant/Party/identified MinistryAssignment and qualified P9 context source identity; no admission into managed cultivation is required to write a voluntary eligible update",
+      "reason": "Updates must attach to the same exact partnership without enrolling managed work merely to write."
+    },
+    {
+      "from": "P27-C04",
+      "to": "P27-C05",
+      "contract": "Exact current qualified financial tuple/coverage and raw separate axes",
+      "reason": "Bands classify those source facts; they cannot repair or invent missing financial meaning."
+    },
+    {
+      "from": "P27-F12",
+      "to": "P27-F13",
+      "contract": "Tenant-scoped appeal shell, responsible authority and history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-S01",
+      "to": "P27-P01",
+      "contract": "Canonical eligible Ministry Assignment and participant source, exact scope and current lifecycle",
+      "reason": "P27 must reference a real independent ministry, not missionary profile."
+    },
+    {
+      "from": "P27-P14",
+      "to": "P27-P01",
+      "contract": "Usable organization catalog and current eligible list/stage identities",
+      "reason": "First enrollment needs a valid list binding without constructing fake stage data."
+    },
+    {
+      "from": "P27-A02",
+      "to": "P27-A03",
+      "contract": "Revisioned draft policy, deterministic evaluator and safe preview",
+      "reason": "Activation must bind the rule revision and matching semantics already shown to staff."
+    },
+    {
+      "from": "P27-C01",
+      "to": "P27-C02",
+      "contract": "One attributed shared update source, current audience/history authority, atomic acceptance and durable receipt",
+      "reason": "Correction/restriction must preserve and revise accepted entries without a second source."
+    },
+    {
+      "from": "P27-C05",
+      "to": "P27-C06",
+      "contract": "Authoritative enabled policy/generation, comparable baseline and qualified explained bands",
+      "reason": "Review cannot be inferred from placeholders, incompatible snapshots or a disabled generation."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-C06",
+      "contract": "The first bounded ADR0183 native Tasks adapter implementation contract: source occurrence identity, current action/recipient ceiling, source completion, No longer required projection and durable reconciliation; consume the adapter without requiring cultivation enrollment",
+      "reason": "One review must reach existing Tasks and end through its source without a copied task/notification authority."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-F01",
+      "contract": "Delivered bounded native ADR0183 source-work adapter: exact actionable source occurrence, identifier-only atomic durable intent, typed source action, current recipient ceiling, semantic receipt/replay/recovery and My tasks projection.",
+      "reason": "A technical producer prerequisite only. This Request or reported-intake use does NOT require or create cultivation enrollment; it registers its own source purpose and applicability."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-F21",
+      "contract": "Delivered bounded native ADR0183 source-work adapter: exact actionable source occurrence, identifier-only atomic durable intent, typed source action, current recipient ceiling, semantic receipt/replay/recovery and My tasks projection.",
+      "reason": "A technical producer prerequisite only. This Request or reported-intake use does NOT require or create cultivation enrollment; it registers its own source purpose and applicability."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-P02",
+      "contract": "Ordinary identity, semantic admission/reuse and independent source work",
+      "reason": "Exception must preserve the ordinary default and reuse path."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-P03",
+      "contract": "Qualified single-member command and stable source receipt",
+      "reason": "Group executor must call authoritative same-intent member action."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-P04",
+      "contract": "Existing work and source responsibility meaning",
+      "reason": "Handoff operates on real work without a shadow portfolio."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-P05",
+      "contract": "Immutable identity/history and current source command",
+      "reason": "Correction cannot become raw FK reassignment."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-P08",
+      "contract": "Current enrollment and atomic source/work receipt",
+      "reason": "Pause requires one real work identity."
+    },
+    {
+      "from": "P27-P01",
+      "to": "P27-P15",
+      "contract": "One ordinary partnership admission/reuse boundary with exact Party/ministry/purpose identity, responsibility and source-owned next-work obligation; this slice extends its visible list/stage intent.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-A03",
+      "to": "P27-A04",
+      "contract": "Current per-responsibility proposals/evaluator and qualified initial routing",
+      "reason": "Current matches are reviewed source facts, not a live query that can change population."
+    },
+    {
+      "from": "P27-C02",
+      "to": "P27-C03",
+      "contract": "Qualified encounter/update source with attributed occurrence, correction/restriction and current body-free evidence authority",
+      "reason": "The recency result must move backward or become uncertain when source history changes; immutable maximum or copied source is unacceptable."
+    },
+    {
+      "from": "P27-C06",
+      "to": "P27-C07",
+      "contract": "Current financial policy/output generations and source review episode reconciliation including Off withdrawal",
+      "reason": "Refresh and restore proof must demonstrate both correct rated output and absence of duplicate/resurrected review effects; simple arithmetic-only refresh is insufficient."
+    },
+    {
+      "from": "P27-F01",
+      "to": "P27-F02",
+      "contract": "Authoritative contextual Request save/read/history and current source authority",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F01",
+      "to": "P27-F08",
+      "contract": "Current source Request identity, scope and history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F21",
+      "to": "P27-F22",
+      "contract": "P15 intake identity, report-only projection and actual source recovery work",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-P08",
+      "to": "P27-P10",
+      "contract": "Exact review occurrence/schedule and typed applicability",
+      "reason": "Attention must reference real current source work."
+    },
+    {
+      "from": "P27-P04",
+      "to": "P27-P10",
+      "contract": "Current eligible review recipient and responsibility generation",
+      "reason": "Do not use creator/finance/Party representative default."
+    },
+    {
+      "from": "P27-P15",
+      "to": "P27-P16",
+      "contract": "A persisted scoped list binding with valid optional current assessment and ordinary admission history.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-P08",
+      "to": "P27-P16",
+      "contract": "Actual paused/current revision/review source behavior, preserving pause on ordinary stage edit",
+      "reason": "Basic direct stage editing requires actual pause semantics, not the later complete closure/readiness workflow."
+    },
+    {
+      "from": "P27-P15",
+      "to": "P27-P18",
+      "contract": "Concrete eligible-list choice and exact submitted admission intent with no hidden defaults.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-F02",
+      "to": "P27-F03",
+      "contract": "One Request source with relevant monetary/noncash terms and honest unknowns",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F22",
+      "to": "P27-F23",
+      "contract": "Same-item P15 staging/posting coverage and safe result projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F22",
+      "to": "P27-F24",
+      "contract": "Exact recorded-finance lineage and remaining intake identity",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-P16",
+      "to": "P27-P17",
+      "contract": "Actual direct stage assessment/history and paused stage-edit commands; catalog changes preserve those accepted facts and stage-selection/retirement races are real. Actual close/reopen composition is proved by P21.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-F03",
+      "to": "P27-F04",
+      "contract": "Presented Request versions and independently attributed responses",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F03",
+      "to": "P27-F05",
+      "contract": "Actual Request responses and native source work identity",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F13",
+      "to": "P27-F14",
+      "contract": "Canonical membership identity/disposition and source fence",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F03",
+      "to": "P27-F14",
+      "contract": "Actual Request/response facts remain independently recordable",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-P17",
+      "to": "P27-P19",
+      "contract": "Stable stages, safe retirement/restoration and retained-list usable-stage invariant.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-P18",
+      "to": "P27-P19",
+      "contract": "Authoritative optional usual reference and distinct configuration/application powers; withdrawal must atomically clear only an expressly included matching reference.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-A01",
+      "to": "P27-A05",
+      "contract": "Named responsibility mutation and safe blocked-work boundary",
+      "reason": "The handoff condition must fence the actual assignment acceptance, not a later UI check."
+    },
+    {
+      "from": "P27-P04",
+      "to": "P27-A05",
+      "contract": "Partnership responsibility handoff and the inherited P27-P01 bounded source-work adapter",
+      "reason": "The acceptance path must inspect and preserve actual current partnership ownership and task predicates, not generic qualifications or a simulated handoff."
+    },
+    {
+      "from": "P27-F05",
+      "to": "P27-A05",
+      "contract": "Actual Request readiness, responsibility and covered source work",
+      "reason": "The transfer cannot claim real Request-work validity without the Request owner state and next-work contract."
+    },
+    {
+      "from": "P27-C03",
+      "to": "P27-C08",
+      "contract": "Current exact exchange/outreach/qualified shared-history projection",
+      "reason": "Brief must show the same actual encounter and preserve current history authority."
+    },
+    {
+      "from": "P27-C04",
+      "to": "P27-C08",
+      "contract": "Qualified separate financial lenses and explicit coverage tuple",
+      "reason": "Brief cannot reconstruct giving from donor aggregates."
+    },
+    {
+      "from": "P27-F04",
+      "to": "P27-C08",
+      "contract": "Current identified Request terms, actual presented-version/response history and independently editable forecast",
+      "reason": "The brief must not present a newer draft as the terms previously accepted."
+    },
+    {
+      "from": "P27-F05",
+      "to": "P27-C08",
+      "contract": "Current Request responsibility, complete source-owned next work and separate continuing obligations",
+      "reason": "A useful brief must expose actual eligible next actions without recreating tasks or making reply equivalent to money."
+    },
+    {
+      "from": "P27-F05",
+      "to": "P27-C09",
+      "contract": "Separate nonfinancial invitations/actual response and deliberate qualified next work",
+      "reason": "Budget/visit/prayer context must lead to existing relevant work, not a new event engine."
+    },
+    {
+      "from": "P27-C04",
+      "to": "P27-C09",
+      "contract": "Distinct current legal/recognition financial views and scope",
+      "reason": "Church/member financial context cannot be inferred from shared mailbox or relationship labels."
+    },
+    {
+      "from": "P27-F04",
+      "to": "P27-F06",
+      "contract": "Exact Request terms and actual attributed response history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F04",
+      "to": "P27-F09",
+      "contract": "Stable meaningful terms versions and true Request history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F08",
+      "to": "P27-F09",
+      "contract": "Effective review policy and separately authorized configuration",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F14",
+      "to": "P27-F15",
+      "contract": "Deliberate single-member commands and current disposition/fence",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F04",
+      "to": "P27-F18",
+      "contract": "Canonical actual/presented Request identity and revision history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F12",
+      "to": "P27-F18",
+      "contract": "Actual financial, nonfinancial and mixed appeal source shell and permitted context.",
+      "reason": "This slice composes the independent Request source with real appeal views; ordinary Request response has no appeal prerequisite."
+    },
+    {
+      "from": "P27-F05",
+      "to": "P27-P06",
+      "contract": "Source-evidenced represented persons/restrictions/current future obligations",
+      "reason": "Determine impacted future work from actual owner facts, never guessed labels."
+    },
+    {
+      "from": "P27-F05",
+      "to": "P27-P07",
+      "contract": "Complete permission-safe obligation enumeration and typed disposition",
+      "reason": "Several due requests/promises must survive selected next action."
+    },
+    {
+      "from": "P27-A03",
+      "to": "P27-A06",
+      "contract": "Prospective revision ordering, evaluator and one qualified source effect",
+      "reason": "Auto must consume the same currently qualified rule/source intent, not invent another assignment path."
+    },
+    {
+      "from": "P27-A05",
+      "to": "P27-A06",
+      "contract": "Current independent-work validity and exact handoff gates",
+      "reason": "Automatic execution must satisfy the same affected-work acceptance boundary as a staff transfer."
+    },
+    {
+      "from": "P27-F18",
+      "to": "P27-F07",
+      "contract": "Exact multi-appeal Request association history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F09",
+      "to": "P27-F10",
+      "contract": "Exact one-round review and source task/decision receipt",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-P08",
+      "to": "P27-P09",
+      "contract": "Current dated source review occurrence and schedule history",
+      "reason": "Actual review resolves occurrence rather than rescheduling it."
+    },
+    {
+      "from": "P27-P07",
+      "to": "P27-P09",
+      "contract": "Complete independently meaningful obligation facts",
+      "reason": "Resume must account for legitimate next work."
+    },
+    {
+      "from": "P27-A06",
+      "to": "P27-A07",
+      "contract": "Both current Review and Auto acceptance semantics with generation/control fencing",
+      "reason": "The same deliberate release must truthfully disclose and execute either already-qualified mode."
+    },
+    {
+      "from": "P27-F10",
+      "to": "P27-F11",
+      "contract": "Current review applicability, exact target and prospective revocation",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F07",
+      "to": "P27-F20",
+      "contract": "Explicit request/nonfinancial measure grain, denominator and goal history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F22",
+      "to": "P27-F20",
+      "contract": "Exact pending-versus-recorded P15 intake projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-P09",
+      "to": "P27-P11",
+      "contract": "Actual review source outcome versus reschedule",
+      "reason": "Review→End must preserve truthful completion meaning."
+    },
+    {
+      "from": "P27-A04",
+      "to": "P27-A08",
+      "contract": "Finite-group result/receipt and proposal surfaces",
+      "reason": "Recovery must cover actual group results and partial outcomes, not a simulated list."
+    },
+    {
+      "from": "P27-A07",
+      "to": "P27-A08",
+      "contract": "Complete control-mode and protection-release journey",
+      "reason": "Compose actual Apply/Keep/Use rules again/current-mode recovery rather than placeholder UI."
+    },
+    {
+      "from": "P27-F14",
+      "to": "P27-F16",
+      "contract": "Atomic member removal/exclusion/Return and original purpose identity",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F11",
+      "to": "P27-F16",
+      "contract": "Qualified action-start review/authority adapter shared by P27 outward purposes",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-P11",
+      "to": "P27-P12",
+      "contract": "Closed source state and complete history/end receipts",
+      "reason": "Real reopening extends actual closed work; not generic Undo."
+    },
+    {
+      "from": "P27-P11",
+      "to": "P27-P13",
+      "contract": "Current/closed enrollment source truth and preserved history",
+      "reason": "Read model must cover actual lifecycle meaning."
+    },
+    {
+      "from": "P27-C03",
+      "to": "P27-P13",
+      "contract": "Actual-exchange source-complete recency projection",
+      "reason": "Retain generic operational last-touch separately; do not label donor.updated_at or linked task edits Last recorded exchange."
+    },
+    {
+      "from": "P27-F20",
+      "to": "P27-C10",
+      "contract": "Exact current/historical Request forecast, source-qualified financial/nonfinancial outcome grain and explicit overlap/denominators",
+      "reason": "Reports must consume the adopted source associations, not recreate funding allocation or collapse response into received."
+    },
+    {
+      "from": "P27-P13",
+      "to": "P27-C10",
+      "contract": "Authorized owner/stage/lifecycle list facts and complete scope/count contract",
+      "reason": "Native totals need real source membership and honest unassessed/retired/history meaning."
+    },
+    {
+      "from": "P27-C04",
+      "to": "P27-C10",
+      "contract": "Exact separate legal/recognition financial tuple and coverage",
+      "reason": "No alternative local money calculation or cross-currency total is permitted."
+    },
+    {
+      "from": "P27-F16",
+      "to": "P27-F17",
+      "contract": "Current membership/disposition identity plus actual producer dispatch fence for post-merge and backup-restore reconciliation.",
+      "reason": "Identity repair must prove restored actual outward consumers cannot resurrect later-excluded outreach; the earlier single-membership slice is inherited."
+    },
+    {
+      "from": "P27-F05",
+      "to": "P27-F19",
+      "contract": "Complete bounded Request obligation readiness and continuation fence",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F16",
+      "to": "P27-F19",
+      "contract": "Actual membership-dependent dispatch admission and irreversible narrowing",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F18",
+      "to": "P27-F19",
+      "contract": "Canonical linked Request scope/history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "P27-F21",
+      "to": "P27-F19",
+      "contract": "Actual narrow P15 reported-intake source readiness, accountable obligation identity and creating-writer fence.",
+      "reason": "AC27-F83-01 closes around real outstanding intake work; this requires only the intake source, not finance posting, deposit, clearance or a whole finance phase. Nonfinancial appeals remain operable with no active finance product."
+    },
+    {
+      "from": "P27-P19",
+      "to": "P27-P20",
+      "contract": "Retained withdrawn-list use, continued work eligibility and stable absence-aware source/history semantics.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-P12",
+      "to": "P27-P20",
+      "contract": "The actual same-work close/reopen source operation must preserve current absence and history for AC27-P28-08.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-P20",
+      "to": "P27-P21",
+      "contract": "Qualified absence/current-history projections and explicit same-list clearing distinction; P27-P20 transitively supplies direct assessment, withdrawal and initial/default choice.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "P27-P03",
+      "to": "P27-P21",
+      "contract": "Actual finite reviewed-group intent, per-member admission receipts and cancellation/recovery boundary",
+      "reason": "Full combined list/default/withdrawal/group acceptance must execute actual group commands, not synthetic sealed-member data. Basic single-list selection has no group blocker."
+    },
+    {
+      "from": "P27-A08",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-A09",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C07",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C08",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C09",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C10",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F06",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F15",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F17",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F19",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F23",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F24",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P02",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P05",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P06",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P10",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P21",
+      "to": "P27-Q01",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-A08",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-A09",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C07",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C08",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C09",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-C10",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F06",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F15",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F17",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F19",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F23",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-F24",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P02",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P05",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P06",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P10",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-P21",
+      "to": "P27-Q02",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "P27-Q01",
+      "to": "P27-Q03",
+      "contract": "Candidate-bound migration/disable/restore evidence",
+      "reason": "A bounded pilot cannot be called operationally safe without proving preservation and recovery after its new-model writes."
+    },
+    {
+      "from": "P27-Q02",
+      "to": "P27-Q03",
+      "contract": "Measured admitted envelope, named operators and exercised runbooks",
+      "reason": "Pilot qualification needs an admitted cohort/environment and concrete owners/recovery, not guessed capacity or monitoring."
+    },
+    {
+      "from": "P27-F12",
+      "to": "P27-F23",
+      "contract": "Canonical same-Tenant appeal identity and authorized appeal read shell, consumed only by explicit same-intake/multiple-appeal projections. Basic report and finance continuation remain independent of appeal enrollment.",
+      "reason": "F23 already owns AC27-F61-01 displaying one intake through two authorized appeals; transferred F61-02 checks partial pending/recorded intake views on that same actual appeal source."
+    }
+  ],
+  "existing_issue": [
+    {
+      "from": "#607",
+      "to": "P27-A01",
+      "contract": "Canonical stored relationship/catalog primitives with staff-family role-aware identity",
+      "reason": "Consumes the existing P9 owner; does not build a second graph. Its old uniqueness/re-role wording needs the scoped D30 reconciliation identified below."
+    },
+    {
+      "from": "#620",
+      "to": "P27-A01",
+      "contract": "Qualified local CRM transaction, audit and activity contract",
+      "reason": "The assignment extension must atomically include protected intent, receipt and required durable intent; legacy client-only double-submit cannot satisfy this behavior."
+    },
+    {
+      "from": "#613",
+      "to": "P27-A01",
+      "contract": "Shared Party record shell, assignment header and B6 subject-access read boundary",
+      "reason": "Mounts the named-role command and renders canonical current/history results without an independent donor-detail authority."
+    },
+    {
+      "from": "#723",
+      "to": "P27-C04",
+      "contract": "Existing #723 canonical P14 effective_seq recognition fold: admitted legal-vs-recognition split, MAX per Party/gift root across overlapping credit roles, qualified gift-date household attribution and exact effective scoped amount/coverage.",
+      "reason": "The recognition lens must reuse the sole owner aggregator rather than count credit rows as gifts."
+    },
+    {
+      "from": "#606",
+      "to": "P27-S01",
+      "contract": "Canonical Tenant-scoped Party spine and source identity/lifecycle/tombstone references",
+      "reason": "Membership must point to a real Party; no profile/person shadow subject."
+    },
+    {
+      "from": "#610",
+      "to": "P27-A09",
+      "contract": "P9/Phase4 source-owned merge/unmerge and exact replay references",
+      "reason": "Assignment merge repair extends that owner; a P27 duplicate merge engine would contradict the contract."
+    },
+    {
+      "from": "#669",
+      "to": "P27-A03",
+      "contract": "Current human/NHI Tenant context and live human-owner ceiling",
+      "reason": "Source event processing must use an actual admitted executor context, not a cached author session."
+    },
+    {
+      "from": "#773",
+      "to": "P27-F22",
+      "contract": "P15 sole-commit clean-row/carry-forward source identities with exact row conservation; #764/#763 are inherited source predecessors",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "#891",
+      "to": "P27-P10",
+      "contract": "Exact in-product projection and engagement policy over source identity",
+      "reason": "Reuse Phase17 owner, not build bell model."
+    },
+    {
+      "from": "#780",
+      "to": "P27-F24",
+      "contract": "P15 separate gift-grain deposit membership/return evidence and independent P20 clearance projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "#625",
+      "to": "P27-C09",
+      "contract": "Canonical organization/person identities, typed role/capacity relationships and historical participants",
+      "reason": "Current pastor/contact must not replace actual earlier speakers or grant member access."
+    },
+    {
+      "from": "#697",
+      "to": "P27-F06",
+      "contract": "P13 source-owned payment/review and coherent effective-money/downstream projections",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "#823",
+      "to": "P27-F06",
+      "contract": "P16 exact-line conserved fulfillment projection and current source/target coverage",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "#897",
+      "to": "P27-F11",
+      "contract": "Actual Phase17 provider-boundary admission fence before outbound I/O, current live safety validation, source-independent truthful provider outcomes and bounded identical recovery.",
+      "reason": "Review clearance must be proved at real action start, not queueing. Qualify the exact consumed component and its true prepared-submission producer; the existing stale #888 dependency description is not proof of delivered preparation authority."
+    },
+    {
+      "from": "#697",
+      "to": "P27-F20",
+      "contract": "Coherent source effective-money/state projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "#610",
+      "to": "P27-F17",
+      "contract": "Actual P9 typed Party merge/unmerge engine with replayable merge_operations, tenant/kind prechecks, source tombstone and qualified identity-change events.",
+      "reason": "Appeal membership repair must consume actual source identity history; #514 UI or fabricated survivor IDs cannot prove current restrictions. Extend only this consumer's typed linkage without applying generic survivor-wins to conflicting current appeal intentions."
+    }
+  ],
+  "topological_order": [
+    "P27-A01",
+    "P27-C04",
+    "P27-F12",
+    "P27-P14",
+    "P27-S01",
+    "P27-A02",
+    "P27-A09",
+    "P27-C01",
+    "P27-C05",
+    "P27-F13",
+    "P27-P01",
+    "P27-A03",
+    "P27-C02",
+    "P27-C06",
+    "P27-F01",
+    "P27-F21",
+    "P27-P02",
+    "P27-P03",
+    "P27-P04",
+    "P27-P05",
+    "P27-P08",
+    "P27-P15",
+    "P27-A04",
+    "P27-C03",
+    "P27-C07",
+    "P27-F02",
+    "P27-F08",
+    "P27-F22",
+    "P27-P10",
+    "P27-P16",
+    "P27-P18",
+    "P27-F03",
+    "P27-F23",
+    "P27-F24",
+    "P27-P17",
+    "P27-F04",
+    "P27-F05",
+    "P27-F14",
+    "P27-P19",
+    "P27-A05",
+    "P27-C08",
+    "P27-C09",
+    "P27-F06",
+    "P27-F09",
+    "P27-F15",
+    "P27-F18",
+    "P27-P06",
+    "P27-P07",
+    "P27-A06",
+    "P27-F07",
+    "P27-F10",
+    "P27-P09",
+    "P27-A07",
+    "P27-F11",
+    "P27-F20",
+    "P27-P11",
+    "P27-A08",
+    "P27-F16",
+    "P27-P12",
+    "P27-P13",
+    "P27-C10",
+    "P27-F17",
+    "P27-F19",
+    "P27-P20",
+    "P27-P21",
+    "P27-Q01",
+    "P27-Q02",
+    "P27-Q03"
+  ],
+  "source_frontier": ["P27-A01", "P27-C04", "P27-F12", "P27-P14", "P27-S01"],
+  "qualification_inputs": [
+    "P27-A08",
+    "P27-A09",
+    "P27-C07",
+    "P27-C08",
+    "P27-C09",
+    "P27-C10",
+    "P27-F06",
+    "P27-F15",
+    "P27-F17",
+    "P27-F19",
+    "P27-F23",
+    "P27-F24",
+    "P27-P02",
+    "P27-P05",
+    "P27-P06",
+    "P27-P10",
+    "P27-P21"
+  ],
+  "specification_integration": "https://github.com/Asymmetric-al/core/pull/1993",
+  "parent_hierarchy": {
+    "P27-A01": 1992,
+    "P27-C04": 1992,
+    "P27-F12": 1992,
+    "P27-P14": 1992,
+    "P27-S01": 604,
+    "P27-A02": 1992,
+    "P27-A09": 1992,
+    "P27-C01": 1992,
+    "P27-C05": 1992,
+    "P27-F13": 1992,
+    "P27-P01": 1992,
+    "P27-A03": 1992,
+    "P27-C02": 1992,
+    "P27-C06": 1992,
+    "P27-F01": 1992,
+    "P27-F21": 1992,
+    "P27-P02": 1992,
+    "P27-P03": 1992,
+    "P27-P04": 1992,
+    "P27-P05": 1992,
+    "P27-P08": 1992,
+    "P27-P15": 1992,
+    "P27-A04": 1992,
+    "P27-C03": 1992,
+    "P27-C07": 1992,
+    "P27-F02": 1992,
+    "P27-F08": 1992,
+    "P27-F22": 1992,
+    "P27-P10": 1992,
+    "P27-P16": 1992,
+    "P27-P18": 1992,
+    "P27-F03": 1992,
+    "P27-F23": 1992,
+    "P27-F24": 1992,
+    "P27-P17": 1992,
+    "P27-F04": 1992,
+    "P27-F05": 1992,
+    "P27-F14": 1992,
+    "P27-P19": 1992,
+    "P27-A05": 1992,
+    "P27-C08": 1992,
+    "P27-C09": 1992,
+    "P27-F06": 1992,
+    "P27-F09": 1992,
+    "P27-F15": 1992,
+    "P27-F18": 1992,
+    "P27-P06": 1992,
+    "P27-P07": 1992,
+    "P27-A06": 1992,
+    "P27-F07": 1992,
+    "P27-F10": 1992,
+    "P27-P09": 1992,
+    "P27-A07": 1992,
+    "P27-F11": 1992,
+    "P27-F20": 1992,
+    "P27-P11": 1992,
+    "P27-A08": 1992,
+    "P27-F16": 1992,
+    "P27-P12": 1992,
+    "P27-P13": 1992,
+    "P27-C10": 1992,
+    "P27-F17": 1992,
+    "P27-F19": 1992,
+    "P27-P20": 1992,
+    "P27-P21": 1992,
+    "P27-Q01": 1992,
+    "P27-Q02": 1992,
+    "P27-Q03": 1992
+  }
+}

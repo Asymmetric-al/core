@@ -10,6 +10,7 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "format", script: "format:check" },
   { id: "skills-verify", script: "skills:verify" },
   { id: "verify-phase25-spec", script: "verify:phase25-spec" },
+  { id: "verify-phase27-spec", script: "verify:phase27-spec" },
   { id: "openspec-validate", script: "openspec:validate" },
   { id: "verify-openspec-deltas", script: "verify:openspec-deltas" },
   { id: "lint", script: "lint" },
@@ -85,6 +86,19 @@ describe("ci-preflight contract", () => {
 
   it("mirrors blocking ci.yml stage order documented in docs/ci.md", () => {
     expect(stages).toEqual(EXPECTED_STAGES);
+  });
+
+  it("checks Phase 27 projections in the blocking integrity job", () => {
+    const steps = integritySteps();
+    const phase25 = steps.findIndex((step) =>
+      step.includes("run: bun run verify:phase25-spec"),
+    );
+    const phase27 = steps.findIndex((step) =>
+      step.includes("run: bun run verify:phase27-spec"),
+    );
+    expect(phase25).toBeGreaterThanOrEqual(0);
+    expect(phase27).toBe(phase25 + 1);
+    expect(steps[phase27]).not.toMatch(/(?:^|\n)\s*(?:if|continue-on-error):/);
   });
 
   it("audits the primary workspace before any auxiliary checkout can duplicate its projects", () => {

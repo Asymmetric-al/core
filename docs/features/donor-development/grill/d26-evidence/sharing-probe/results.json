@@ -1,0 +1,135 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "isolation_level": "read committed",
+  "completed": true,
+  "passed": 7,
+  "total": 7,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "actual synthetic nonowner RLS USING/WITH CHECK permits source retarget when both contexts are writable: row policy alone is insufficient",
+      "pass": true,
+      "observed": {
+        "role": "d26_fixture_editor",
+        "context": 2,
+        "body": "existing source A"
+      }
+    },
+    {
+      "test": "shared default admission needs explicit qualified context/source; existing note origin remains fixed even when destination is writable",
+      "pass": true,
+      "observed": {
+        "denials": {
+          "missing_context": "22023",
+          "unqualified_context": "42501",
+          "ineligible_source": "42501",
+          "retarget_despite_destination_access": "23514"
+        },
+        "rejections_left_source_unchanged": true,
+        "accepted": {
+          "context": 1,
+          "note_id": 2,
+          "accepted_revision": 1,
+          "audience_generation": 1
+        }
+      }
+    },
+    {
+      "test": "source/audience invalidation wins: waiting save cannot publish under stale permission or silently choose another audience",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 174,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            168
+          ]
+        },
+        "save_denied": "42501",
+        "read_denied": "42501",
+        "content_history_receipts_unchanged": true
+      }
+    },
+    {
+      "test": "save wins before invalidation: lawful history remains, while later read and exact receipt retry recheck current disclosure",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 212,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            204
+          ]
+        },
+        "accepted": {
+          "context": 1,
+          "note_id": 1,
+          "accepted_revision": 2,
+          "audience_generation": 1
+        },
+        "read_denied": "42501",
+        "replay_denied": "42501",
+        "retained_history": true
+      }
+    },
+    {
+      "test": "exact result recovery is not a new write: readable historical receipt survives write-only revocation; changed content/audience identity conflicts",
+      "pass": true,
+      "observed": {
+        "historical_result": {
+          "context": 1,
+          "note_id": 1,
+          "accepted_revision": 2,
+          "audience_generation": 1
+        },
+        "changed_body": "23514",
+        "changed_audience": "23514",
+        "new_write_denied": "42501"
+      }
+    },
+    {
+      "test": "late required-evidence failure rolls back shared content/history/receipt, and exact recovery accepts once",
+      "pass": true,
+      "observed": {
+        "failure": "23514",
+        "rolled_back": true,
+        "recovered": {
+          "context": 1,
+          "note_id": 1,
+          "accepted_revision": 2,
+          "audience_generation": 1
+        },
+        "state": {
+          "notes": [
+            {
+              "id": 1,
+              "body": "routine update",
+              "revision": 2,
+              "scope_id": 5,
+              "context_id": 1,
+              "encounter_id": 1
+            }
+          ],
+          "history": 1,
+          "receipts": 1
+        }
+      }
+    },
+    {
+      "test": "read admitted before narrowing has explicit source order; a later read cannot reuse the old authorization",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 354,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            347
+          ]
+        },
+        "read_before_invalidation": "original lawful source content",
+        "later_read_denied": "42501",
+        "limit": "database admission order only, not recall of delivered bytes or client cache proof"
+      }
+    }
+  ]
+}

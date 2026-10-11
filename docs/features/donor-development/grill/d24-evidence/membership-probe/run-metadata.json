@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-10T18:25:07.376848+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d24-membership-lab-182263",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d24-membership-lab-182263",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "docker_version": "28.4.0",
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "D24 captured membership commands, exclusion ordering, durable partial results and no resurrection on replay; owner fixture, not P12/P6 or load proof",
+  "input_sha256": {
+    "setup.sql": "b8b34b32c23723f5265cc1b1bd8d7c563d1c82b304655ed4bd79d8b1d59a7ddd",
+    "mechanics.py": "5129089deecddd668e59694d6db9ed56aa6f468b5564a04c373fac5a0103b599",
+    "run-lab.py": "7715f8e58ce54b2d713976d17af9e799710952c9e3e276785ae731425a042631"
+  },
+  "container_id": "3a9603949f1399120e7e98007712476bb9636bbc4a9fb5d451d6bc9e7126f64c",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 8, \"total\": 8, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "cleanup_stdout": "3a9603949f1399120e7e98007712476bb9636bbc4a9fb5d451d6bc9e7126f64c",
+  "post_cleanup_inspect_exit_code": 1,
+  "post_cleanup_inspect_stderr": "Error response from daemon: No such container: 3a9603949f1399120e7e98007712476bb9636bbc4a9fb5d451d6bc9e7126f64c",
+  "container_removed": true,
+  "finished_at": "2026-10-10T18:25:13.354005+00:00"
+}

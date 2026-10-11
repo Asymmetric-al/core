@@ -1,0 +1,781 @@
+{
+  "decision": "D30",
+  "status": "Ratified product decision formalized after user-confirmed to-spec test approach; no runtime or publication claim",
+  "source": {
+    "path": "docs/features/donor-development/grill/phase27-d30-adversarial-review.md",
+    "sha256": "35121144cc4466cb2e9ca17eb1e239e272973369b643c1b7418b7215ac8cc6e7"
+  },
+  "requirements": [
+    {
+      "source": "D30-R01",
+      "target": "REQ27-A01",
+      "title": "Scope and default",
+      "source_text_sha256": "c6dab578e186813c44de93dc96b431a5f78702e0191571f6c9ebf8f6ff3b1406",
+      "acceptance": [
+        "AC27-A01-01",
+        "AC27-A01-02",
+        "AC27-A01-03",
+        "AC27-A01-04"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R02",
+      "target": "REQ27-A02",
+      "title": "Bounded rule evaluation",
+      "source_text_sha256": "9f21bb47aaf94c63f643c5d96b3379e45cef2e6bd74ba11663aa1b42f8f4efe0",
+      "acceptance": [
+        "AC27-A01-02",
+        "AC27-A01-03",
+        "AC27-A02-01",
+        "AC27-A02-02",
+        "AC27-A02-03"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R03",
+      "target": "REQ27-A03",
+      "title": "Source identity and cardinality",
+      "source_text_sha256": "c570498c2243a3a6d5a33ffeeea0f1681feb0940eba675864d9ea8550d583695",
+      "acceptance": [
+        "AC27-A03-01",
+        "AC27-A03-02",
+        "AC27-A03-03",
+        "AC27-A03-04",
+        "AC27-A03-05"
+      ],
+      "disposition": "Preserved normative meaning; R03 duplicate identity qualified to exact staff-person/Party/role rather than one assignee per role; R18 documentary status updated for authorized formalization"
+    },
+    {
+      "source": "D30-R04",
+      "target": "REQ27-A04",
+      "title": "Durable manual intent",
+      "source_text_sha256": "718fe5eac9196b60dc10ede8c642ab8c800dbb974f0f0d6d736be413c2425490",
+      "acceptance": [
+        "AC27-A04-01",
+        "AC27-A04-02",
+        "AC27-A04-03",
+        "AC27-A03-04",
+        "AC27-A04-04",
+        "AC27-A03-05"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R05",
+      "target": "REQ27-A05",
+      "title": "Prospective policy and finite application",
+      "source_text_sha256": "92e4db2ad2b192d3199c422413ee481d1bc9362a957b2ec1f07804c0e37923d2",
+      "acceptance": ["AC27-A05-01", "AC27-A05-02", "AC27-A05-03"],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R06",
+      "target": "REQ27-A06",
+      "title": "Reviewed proposals and bulk effects",
+      "source_text_sha256": "85baf9c8da59a747c4ecd7ccc377111a245084b590737549f72aab8f73078816",
+      "acceptance": ["AC27-A05-02", "AC27-A06-01"],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R07",
+      "target": "REQ27-A07",
+      "title": "No-match and loss of eligibility",
+      "source_text_sha256": "db454f2c43e239597b83929fd5774b409a46b6ce43a3312a1941596634a5ee59",
+      "acceptance": [
+        "AC27-A04-03",
+        "AC27-A07-01",
+        "AC27-A07-02",
+        "AC27-A07-03"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R08",
+      "target": "REQ27-A08",
+      "title": "Independent work and handoff",
+      "source_text_sha256": "0519fa0dc2723466789530fe15bd8224f57a5d7005c9bc06eb2ff90374599970",
+      "acceptance": ["AC27-A08-01", "AC27-A07-02", "AC27-A07-03"],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R09",
+      "target": "REQ27-A09",
+      "title": "Tenant and authority everywhere",
+      "source_text_sha256": "ff61a077a4817ba954522ce1e198e768bc45a9255c0d9572355652769dfc242c",
+      "acceptance": [
+        "AC27-A01-03",
+        "AC27-A02-02",
+        "AC27-A03-03",
+        "AC27-A09-01",
+        "AC27-A09-02",
+        "AC27-A09-03",
+        "AC27-A09-04",
+        "AC27-A08-01",
+        "AC27-A07-03"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R10",
+      "target": "REQ27-A10",
+      "title": "Data and database invariants",
+      "source_text_sha256": "1b790bddb52ec40ca0b92c194e0470f5fd4edb3f47e615fa0b0f60ded7bb93ea",
+      "acceptance": [
+        "AC27-A03-01",
+        "AC27-A03-02",
+        "AC27-A09-01",
+        "AC27-A09-02",
+        "AC27-A10-01",
+        "AC27-A10-02"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R11",
+      "target": "REQ27-A11",
+      "title": "Atomicity, ordering and durable effect identity",
+      "source_text_sha256": "aabcf76f1af478bbac04766eb53ac61bfa935936c377a688c09db9aa7c610180",
+      "acceptance": [
+        "AC27-A04-02",
+        "AC27-A03-02",
+        "AC27-A09-01",
+        "AC27-A09-04",
+        "AC27-A10-01",
+        "AC27-A11-01",
+        "AC27-A04-04",
+        "AC27-A11-02",
+        "AC27-A06-01",
+        "AC27-A05-03",
+        "AC27-A11-03"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R12",
+      "target": "REQ27-A12",
+      "title": "Disable, return and correction",
+      "source_text_sha256": "c2d34fbd2d529371a18bea92b9e7d498bcbb608ca1c5dd76224416cc6c385005",
+      "acceptance": [
+        "AC27-A03-04",
+        "AC27-A11-01",
+        "AC27-A04-04",
+        "AC27-A11-02",
+        "AC27-A05-03",
+        "AC27-A03-05",
+        "AC27-A12-01"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R13",
+      "target": "REQ27-A13",
+      "title": "Permission-safe explanations and privacy",
+      "source_text_sha256": "c411321bd8301ada7b97d94a3034571ba6eb31cdd4bc55ad6caa27f658145424",
+      "acceptance": [
+        "AC27-A09-03",
+        "AC27-A09-04",
+        "AC27-A11-03",
+        "AC27-A10-02"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R14",
+      "target": "REQ27-A14",
+      "title": "Clear accessible interaction",
+      "source_text_sha256": "8976c74f63d846ec5e5a09a8d03f25bcc94d7e66788115cef64dbd2c4832b42e",
+      "acceptance": [
+        "AC27-A05-01",
+        "AC27-A01-04",
+        "AC27-A14-01",
+        "AC27-A14-02",
+        "AC27-A14-03",
+        "AC27-A11-03"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R15",
+      "target": "REQ27-A15",
+      "title": "Bounded execution and performance",
+      "source_text_sha256": "ef1499fd27b98c697cc737b85b9f7b9d39a1fd6926d9ebbabd6f193a02ee0c39",
+      "acceptance": ["AC27-A02-03", "AC27-A06-01", "AC27-A15-01"],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R16",
+      "target": "REQ27-A16",
+      "title": "Operational recovery and observability",
+      "source_text_sha256": "813284c77f5583fd2077800276d53f2cfc3efe0f2941a240ccbebae0cf0a4a30",
+      "acceptance": ["AC27-A10-01", "AC27-A06-01", "AC27-A10-02"],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R17",
+      "target": "REQ27-A17",
+      "title": "Migration and rollout",
+      "source_text_sha256": "1ed396df32d66c68e28132b8742e4e4b1fbc1cd9d115aa0d952927e06b671451",
+      "acceptance": [
+        "AC27-A11-02",
+        "AC27-A03-05",
+        "AC27-A17-01",
+        "AC27-A12-01"
+      ],
+      "disposition": "Preserved normative meaning"
+    },
+    {
+      "source": "D30-R18",
+      "target": "REQ27-A18",
+      "title": "Proof and traceability",
+      "source_text_sha256": "5df553eafffef7ef17132649266d953afa807a29015778752c831b77848d9e7b",
+      "acceptance": ["AC27-A14-01", "AC27-A18-01"],
+      "disposition": "Preserved normative meaning; R03 duplicate identity qualified to exact staff-person/Party/role rather than one assignee per role; R18 documentary status updated for authorized formalization"
+    }
+  ],
+  "acceptance": [
+    {
+      "source": "D30-AC01",
+      "target": "AC27-A01-01",
+      "requirements": ["REQ27-A01"],
+      "source_outcome": "New tenant uses reviewed existing-assignment transfers; tenant can explicitly enable Auto for a declared bounded scope and safely return to Review. Other scopes keep their own stated mode.",
+      "given": "a new Tenant and two independently declared assignment-policy scopes",
+      "when": "an authorized administrator reads the saved mode, enables automatic changes for one scope, then returns that scope to Review changes",
+      "then": "New tenant uses reviewed existing-assignment transfers; tenant can explicitly enable Auto for a declared bounded scope and safely return to Review. Other scopes keep their own stated mode.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC02",
+      "target": "AC27-A01-02",
+      "requirements": ["REQ27-A01", "REQ27-A02"],
+      "source_outcome": "Native rule-based initial assignment and ordinary manual/bulk edits work without configuring a territory engine or automatic existing-assignment transfers.",
+      "given": "qualified initial-routing criteria and ordinary staff transfer authority, with automatic replacement disabled",
+      "when": "staff route a genuinely eligible new or unassigned responsibility and perform individual and finite reviewed-group transfers",
+      "then": "Native rule-based initial assignment and ordinary manual/bulk edits work without configuring a territory engine or automatic existing-assignment transfers.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC03",
+      "target": "AC27-A01-03",
+      "requirements": ["REQ27-A01", "REQ27-A02", "REQ27-A09"],
+      "source_outcome": "Studio, ratings, optional reports and directory services being unavailable do not block independently safe native assignment; no rule uses unauthorized external authority.",
+      "given": "native assignment prerequisites are qualified while Studio, giving ratings, optional reporting or directory services are unavailable",
+      "when": "an authorized actor or bounded native executor performs an independently safe assignment operation",
+      "then": "Studio, ratings, optional reports and directory services being unavailable do not block independently safe native assignment; no rule uses unauthorized external authority.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC04",
+      "target": "AC27-A04-01",
+      "requirements": ["REQ27-A04"],
+      "source_outcome": "A manually assigned record, deliberately unassigned role and imported unknown-provenance record are not moved or refilled by initial routing, Auto, rule edit or replay.",
+      "given": "one protected manual assignment, one intentional vacancy and one imported responsibility with unknown management provenance",
+      "when": "initial routing, automatic replacement, rule edits and delayed retries encounter those responsibilities",
+      "then": "A manually assigned record, deliberately unassigned role and imported unknown-provenance record are not moved or refilled by initial routing, Auto, rule edit or replay.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC05",
+      "target": "AC27-A04-02",
+      "requirements": ["REQ27-A04", "REQ27-A11"],
+      "source_outcome": "Keep current person creates durable protected intent despite an unchanged assignee ID; concurrent/queued automation cannot erase it.",
+      "given": "a person is currently assigned and an automatic transfer has been evaluated or queued",
+      "when": "authorized staff select Keep this assignment without changing the current person and the queued operation subsequently attempts acceptance",
+      "then": "Keep current person creates durable protected intent despite an unchanged assignee ID; concurrent/queued automation cannot erase it.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC06",
+      "target": "AC27-A04-03",
+      "requirements": ["REQ27-A04", "REQ27-A07"],
+      "source_outcome": "Use rules again clearly releases protection: Review produces a current proposal; Auto can apply the displayed current eligible result. No match does not silently clear valid responsibility.",
+      "given": "a protected manual assignment and a visible current rule result",
+      "when": "authorized staff choose Use rules again under Review changes, under Apply changes automatically and with no qualified match",
+      "then": "Use rules again clearly releases protection: Review produces a current proposal; Auto can apply the displayed current eligible result. No match does not silently clear valid responsibility.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC07",
+      "target": "AC27-A02-01",
+      "requirements": ["REQ27-A02"],
+      "source_outcome": "Ordered overlapping rules produce the first proved matching rule; unknown earlier predicates and ineligible selected targets do not silently fall through.",
+      "given": "ordered overlapping rules, including a known-false predicate, an unknown higher-priority predicate and a first-true rule whose target is ineligible",
+      "when": "the source evaluates each case against current authorized input",
+      "then": "Ordered overlapping rules produce the first proved matching rule; unknown earlier predicates and ineligible selected targets do not silently fall through.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC08",
+      "target": "AC27-A07-01",
+      "requirements": ["REQ27-A07"],
+      "source_outcome": "No match or missing target preserves eligible current responsibility and exposes a permitted reason/repair action; missing current responsibility is not called healthy.",
+      "given": "a current assignment that is eligible, or a separate case with missing or ineligible current responsibility",
+      "when": "evaluation finds no rule, an unavailable required input or a missing or ineligible selected target",
+      "then": "No match or missing target preserves eligible current responsibility and exposes a permitted reason/repair action; missing current responsibility is not called healthy.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC09",
+      "target": "AC27-A02-02",
+      "requirements": ["REQ27-A02", "REQ27-A09"],
+      "source_outcome": "Target choices obey current staff/role/tenant/source eligibility and qualified deterministic resolution; multiple candidates are not resolved by database order.",
+      "given": "candidate staff differ in Tenant, role eligibility, current access and supported target-resolution basis",
+      "when": "staff search/select or a rule resolves a receiving person, including an ambiguous multi-candidate result",
+      "then": "Target choices obey current staff/role/tenant/source eligibility and qualified deterministic resolution; multiple candidates are not resolved by database order.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC10",
+      "target": "AC27-A02-03",
+      "requirements": ["REQ27-A02", "REQ27-A15"],
+      "source_outcome": "Assignment outputs cannot trigger cyclic routing; duplicate irrelevant source updates do not produce new transfers/proposals/tasks.",
+      "given": "an attempted output-dependent policy, duplicate events and irrelevant source-field changes",
+      "when": "configuration is validated and admitted source events are processed repeatedly",
+      "then": "Assignment outputs cannot trigger cyclic routing; duplicate irrelevant source updates do not produce new transfers/proposals/tasks.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC11",
+      "target": "AC27-A03-01",
+      "requirements": ["REQ27-A03", "REQ27-A10"],
+      "source_outcome": "Same staff/Party can hold distinct roles; replacing one does not erase the other. Duplicate same-role source identities and cross-tenant references fail at admitted database paths.",
+      "given": "one staff person holds two roles for one Party and multiple staff legitimately share a role",
+      "when": "one named responsibility is transferred, a duplicate copy or cross-Tenant reference is attempted, and a target already holding a compatible assignment is encountered",
+      "then": "Same staff/Party can hold distinct roles; replacing one does not erase the other. Duplicate same-role source identities and cross-tenant references fail at admitted database paths.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC12",
+      "target": "AC27-A03-02",
+      "requirements": ["REQ27-A03", "REQ27-A10", "REQ27-A11"],
+      "source_outcome": "Concurrent primary/replacement/removal produces one valid source result or conflict; primary remains a valid assignee, or the source's honest unassigned/repair state is used.",
+      "given": "a current primary and several assignments, plus a separate case losing its final eligible assignee",
+      "when": "independent source connections concurrently change primary, replace an assignment or remove responsibility",
+      "then": "Concurrent primary/replacement/removal produces one valid source result or conflict; primary remains a valid assignee, or the source's honest unassigned/repair state is used.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC13",
+      "target": "AC27-A03-03",
+      "requirements": ["REQ27-A03", "REQ27-A09"],
+      "source_outcome": "No writer or read model treats legacy missionary ID, membership role, display Owner or a saved portfolio view as P9 assignment authority.",
+      "given": "legacy missionary assignment, role membership, a generic Owner display and saved portfolio views coexist with canonical assignment edges",
+      "when": "every supported assignment writer and read projection identifies or changes staff responsibility",
+      "then": "No writer or read model treats legacy missionary ID, membership role, display Owner or a saved portfolio view as P9 assignment authority.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC14",
+      "target": "AC27-A03-04",
+      "requirements": ["REQ27-A03", "REQ27-A04", "REQ27-A12"],
+      "source_outcome": "Ended assignments and prior manual protections retain lawful actor/time/role history; correction and return are new transitions, not edits to historical identity.",
+      "given": "ended assignments, previous manual protections and intervening later decisions exist",
+      "when": "a permitted reader inspects history or authorized staff correct responsibility and later return to a previously assigned person",
+      "then": "Ended assignments and prior manual protections retain lawful actor/time/role history; correction and return are new transitions, not edits to historical identity.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC15",
+      "target": "AC27-A05-01",
+      "requirements": ["REQ27-A05", "REQ27-A14"],
+      "source_outcome": "Draft save, activation, current-population application and mode change have the exact disclosed effects; enabling does not silently move all current matches.",
+      "given": "editable rule drafts, an active policy and existing matching assignments",
+      "when": "staff save a draft, activate or edit policy, change mode and separately review application to current assignments",
+      "then": "Draft save, activation, current-population application and mode change have the exact disclosed effects; enabling does not silently move all current matches.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC16",
+      "target": "AC27-A05-02",
+      "requirements": ["REQ27-A05", "REQ27-A06"],
+      "source_outcome": "A reviewed group contains only its finite original identities and intended results; filter/rule/target changes cannot substitute records or enlarge scope before apply.",
+      "given": "a reviewed finite group with captured identities, expected revisions and intended destinations",
+      "when": "the filter, rule, target or matching population changes before acceptance or retry",
+      "then": "A reviewed group contains only its finite original identities and intended results; filter/rule/target changes cannot substitute records or enlarge scope before apply.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC17",
+      "target": "AC27-A01-04",
+      "requirements": ["REQ27-A01", "REQ27-A14"],
+      "source_outcome": "Concurrent settings refresh preserves an edited authorized draft and shows conflict; unreadable settings never render as the saved default or authorize Auto.",
+      "given": "an authorized edited settings draft and an independently changing saved policy",
+      "when": "a background refresh returns a newer version or settings retrieval fails",
+      "then": "Concurrent settings refresh preserves an edited authorized draft and shows conflict; unreadable settings never render as the saved default or authorize Auto.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC18",
+      "target": "AC27-A09-01",
+      "requirements": ["REQ27-A09", "REQ27-A10", "REQ27-A11"],
+      "source_outcome": "API, direct admitted DB role, RPC, import, worker and service-role tests reject forged tenant/actor/role/primary/policy IDs and unauthorized current-state changes. Revoked NHI owner authority blocks automatic execution despite historical policy approval.",
+      "given": "real authenticated principals, an automatic executor with a qualified human owner and all admitted mutation entry points",
+      "when": "API, direct database role, RPC, import, worker and privileged-service callers forge authority fields or execute after their authority is revoked",
+      "then": "API, direct admitted DB role, RPC, import, worker and service-role tests reject forged tenant/actor/role/primary/policy IDs and unauthorized current-state changes. Revoked NHI owner authority blocks automatic execution despite historical policy approval.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC19",
+      "target": "AC27-A09-02",
+      "requirements": ["REQ27-A09", "REQ27-A10"],
+      "source_outcome": "A permitted old-row update cannot create an unauthorized new tenant, subject, recipient, role, control state or scope; effective USING/WITH CHECK, grants and bypass paths are proved.",
+      "given": "a caller may reach an existing row but may not produce every possible resulting assignment state",
+      "when": "direct admitted-role and service-path updates attempt forbidden Tenant, subject, recipient, role, control or scope changes",
+      "then": "A permitted old-row update cannot create an unauthorized new tenant, subject, recipient, role, control state or scope; effective USING/WITH CHECK, grants and bypass paths are proved.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC20",
+      "target": "AC27-A09-03",
+      "requirements": ["REQ27-A09", "REQ27-A13"],
+      "source_outcome": "Target search, preview counts/differences, reasons, sorting, history, exports, caches, AI/briefs and notifications reveal no unauthorized people, work or rule inputs.",
+      "given": "some candidate staff, work, matching inputs and history are unavailable to the current viewer",
+      "when": "the viewer searches, filters, counts, orders, previews, explains, exports or consumes cached/derived assignment data",
+      "then": "Target search, preview counts/differences, reasons, sorting, history, exports, caches, AI/briefs and notifications reveal no unauthorized people, work or rule inputs.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC21",
+      "target": "AC27-A09-04",
+      "requirements": ["REQ27-A09", "REQ27-A11", "REQ27-A13"],
+      "source_outcome": "Tenant switch, revoked permission and expired session between preview and apply/download narrow or reject current output; cached drafts/receipts cannot leak or replay across tenants.",
+      "given": "a permitted preview, resumable draft or operation receipt exists",
+      "when": "Tenant context changes, permissions are revoked or the session expires before apply, result recovery, export or download",
+      "then": "Tenant switch, revoked permission and expired session between preview and apply/download narrow or reject current output; cached drafts/receipts cannot leak or replay across tenants.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC22",
+      "target": "AC27-A10-01",
+      "requirements": ["REQ27-A10", "REQ27-A11", "REQ27-A16"],
+      "source_outcome": "Fault injection before authoritative commit proves assignment/control/primary/history/receipt/effect intent all-or-none; after-commit projection failure preserves source truth.",
+      "given": "a valid transfer includes required assignment, control, primary, history, receipt and durable effect intent",
+      "when": "failure is injected before authoritative commit, then in a separate case after commit but before projection publication",
+      "then": "Fault injection before authoritative commit proves assignment/control/primary/history/receipt/effect intent all-or-none; after-commit projection failure preserves source truth.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC23",
+      "target": "AC27-A11-01",
+      "requirements": ["REQ27-A11", "REQ27-A12"],
+      "source_outcome": "Retrying a lost response returns the same current-authorized operation result and creates one business effect; a later legitimate transfer remains possible.",
+      "given": "a transfer was accepted but its response was lost, followed by a later valid assignment or protection change",
+      "when": "the original intent is retried and a distinct later legitimate transfer is subsequently requested",
+      "then": "Retrying a lost response returns the same current-authorized operation result and creates one business effect; a later legitimate transfer remains possible.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC24",
+      "target": "AC27-A08-01",
+      "requirements": ["REQ27-A08", "REQ27-A09"],
+      "source_outcome": "Representative transfer does not move partnership/Request/task ownership, grant access, start cultivation, send donor messages or generate a task for every proposal.",
+      "given": "a Party has independently owned partnership work, Requests, tasks, access and financial obligations",
+      "when": "a representative transfer is accepted or a transfer proposal is created",
+      "then": "Representative transfer does not move partnership/Request/task ownership, grant access, start cultivation, send donor messages or generate a task for every proposal.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC25",
+      "target": "AC27-A07-02",
+      "requirements": ["REQ27-A07", "REQ27-A08"],
+      "source_outcome": "Where affected required work would lose eligible responsibility, require lawful source disposition/durable owned handoff. Source-required pre-transfer acceptance gates assignment commit; subsequent acknowledgment remains visibly outstanding after lawful assignment plus durable intent. Neither acknowledgment nor handoff completion is fabricated.",
+      "given": "affected work has a qualified owner condition requiring acceptance before transfer, or a different condition allowing acknowledgment afterward",
+      "when": "the proposed representative change is attempted with and without the exact prerequisite or durable owned handoff disposition",
+      "then": "Where affected required work would lose eligible responsibility, require lawful source disposition/durable owned handoff. Source-required pre-transfer acceptance gates assignment commit; subsequent acknowledgment remains visibly outstanding after lawful assignment plus durable intent. Neither acknowledgment nor handoff completion is fabricated.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC26",
+      "target": "AC27-A04-04",
+      "requirements": ["REQ27-A04", "REQ27-A11", "REQ27-A12"],
+      "source_outcome": "Race manual Keep/unassign/transfer against Auto; race policy edit/disable and revocation against commit using independent connections. Only an outcome valid under the proved serialization order survives.",
+      "given": "manual Keep, intentional unassignment, transfer, policy edit/disable and revocation can race with automatic acceptance",
+      "when": "independent database connections force each relevant competing commit order",
+      "then": "Race manual Keep/unassign/transfer against Auto; race policy edit/disable and revocation against commit using independent connections. Only an outcome valid under the proved serialization order survives.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC27",
+      "target": "AC27-A11-02",
+      "requirements": ["REQ27-A11", "REQ27-A12", "REQ27-A17"],
+      "source_outcome": "Disable/re-enable, stale queued events, duplicate/out-of-order callbacks and replay after restore cannot apply old desired-owner decisions or revive old grants/tasks.",
+      "given": "queued decisions and callbacks from earlier policy generations exist, including a restored snapshot",
+      "when": "automatic changes are disabled and re-enabled, and stale, duplicate or out-of-order work is delivered",
+      "then": "Disable/re-enable, stale queued events, duplicate/out-of-order callbacks and replay after restore cannot apply old desired-owner decisions or revive old grants/tasks.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC28",
+      "target": "AC27-A06-01",
+      "requirements": ["REQ27-A06", "REQ27-A11", "REQ27-A15", "REQ27-A16"],
+      "source_outcome": "Bulk partial success, cancel, retry and timeout expose exact permitted member results, preserve committed changes and resume without duplicates or unseen expansion.",
+      "given": "a finite reviewed group contains successful, conflicting, failed and unattempted members",
+      "when": "execution times out, is canceled, resumes or receives duplicate delivery after partial acceptance",
+      "then": "Bulk partial success, cancel, retry and timeout expose exact permitted member results, preserve committed changes and resume without duplicates or unseen expansion.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC29",
+      "target": "AC27-A05-03",
+      "requirements": ["REQ27-A05", "REQ27-A11", "REQ27-A12"],
+      "source_outcome": "Delay workers for source events committed before and after policy activation: the earlier event cannot execute the retired policy or be rebound to the new policy; the later qualified event may use the current policy after revalidation. Explicit current-application/Use rules again is distinct. Backdated business dates and transport arrival cannot change the authoritative source order or invent historical responsibility.",
+      "given": "one source event is admitted before activation of policy P2 and another after activation",
+      "when": "their workers are delayed or reordered, including updates with earlier business occurrence dates and separate explicit current-application or Use rules again operations",
+      "then": "Delay workers for source events committed before and after policy activation: the earlier event cannot execute the retired policy or be rebound to the new policy; the later qualified event may use the current policy after revalidation. Explicit current-application/Use rules again is distinct. Backdated business dates and transport arrival cannot change the authoritative source order or invent historical responsibility.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC30",
+      "target": "AC27-A07-03",
+      "requirements": ["REQ27-A07", "REQ27-A08", "REQ27-A09"],
+      "source_outcome": "Staff departure/revocation acts immediately despite pending review/handoff; no successor is inferred from directory fields and no ineligible assignee appears as healthy current coverage.",
+      "given": "a staff member has active responsibility and outstanding work or handoff",
+      "when": "the identity or permission owner deactivates the person or revokes the applicable authority while transfer review is incomplete",
+      "then": "Staff departure/revocation acts immediately despite pending review/handoff; no successor is inferred from directory fields and no ineligible assignee appears as healthy current coverage.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC31",
+      "target": "AC27-A03-05",
+      "requirements": ["REQ27-A03", "REQ27-A04", "REQ27-A12", "REQ27-A17"],
+      "source_outcome": "Merge/import/legacy provenance conflicts preserve protected choices and source work; do not mark every surviving edge rule-managed or guess a primary.",
+      "given": "merged Parties or imported/legacy rows contain conflicting manual, unknown and rule-managed provenance",
+      "when": "qualified source identity repair, migration or merge/Undo handles the affected assignment references",
+      "then": "Merge/import/legacy provenance conflicts preserve protected choices and source work; do not mark every surviving edge rule-managed or guess a primary.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC32",
+      "target": "AC27-A14-01",
+      "requirements": ["REQ27-A14", "REQ27-A18"],
+      "source_outcome": "Representative staff correctly identify current versus proposed assignee, role, manual protection, Auto scope and effects of Apply/Keep/Use rules again/disable without facilitator correction. Any critical meaning/action error blocks pilot acceptance.",
+      "given": "representative staff and administrators use the qualified complete assignment interface",
+      "when": "they identify current/proposed responsibility, policy scope and manual protection and perform Apply, Keep, Use rules again and disable without facilitator correction",
+      "then": "Representative staff correctly identify current versus proposed assignee, role, manual protection, Auto scope and effects of Apply/Keep/Use rules again/disable without facilitator correction. Any critical meaning/action error blocks pilot acceptance.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC33",
+      "target": "AC27-A14-02",
+      "requirements": ["REQ27-A14"],
+      "source_outcome": "Keyboard/focus and screen-reader checks cover settings, ordering, previews, grouped apply, conflict, partial results and recovery; automated checks supplement manual verification.",
+      "given": "the actual composed settings, ordered rules, preview and transfer/recovery interfaces are available",
+      "when": "keyboard and screen-reader users complete individual and finite-group workflows, including conflict and partial success",
+      "then": "Keyboard/focus and screen-reader checks cover settings, ordering, previews, grouped apply, conflict, partial results and recovery; automated checks supplement manual verification.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC34",
+      "target": "AC27-A14-03",
+      "requirements": ["REQ27-A14"],
+      "source_outcome": "At applicable 320 CSS px reflow/zoom, long Unicode/RTL/translated names and labels stay readable; target sizes and light/dark contrast meet WCAG 2.2 AA without drag-only or color-only operation.",
+      "given": "actual interfaces contain long Unicode names, translated and RTL labels and light/dark themes",
+      "when": "users zoom or work at applicable 320 CSS-pixel reflow and operate all controls by keyboard and touch",
+      "then": "At applicable 320 CSS px reflow/zoom, long Unicode/RTL/translated names and labels stay readable; target sizes and light/dark contrast meet WCAG 2.2 AA without drag-only or color-only operation.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC35",
+      "target": "AC27-A11-03",
+      "requirements": ["REQ27-A11", "REQ27-A13", "REQ27-A14"],
+      "source_outcome": "Throttled/mobile and lost-response journeys keep essential context/actions usable, preserve permitted edits and reconcile without duplicate transfer; access loss clears disallowed local data.",
+      "given": "a mobile or throttled connection and an authorized in-progress edit or transfer",
+      "when": "requests slow, responses arrive late or are lost, navigation/reconnect occurs and access is subsequently removed",
+      "then": "Throttled/mobile and lost-response journeys keep essential context/actions usable, preserve permitted edits and reconcile without duplicate transfer; access loss clears disallowed local data.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC36",
+      "target": "AC27-A10-02",
+      "requirements": ["REQ27-A10", "REQ27-A13", "REQ27-A16"],
+      "source_outcome": "Logs/notifications omit sensitive rule input and work content; lawful retention/redaction/export/backup recovery does not resurrect deleted protected text.",
+      "given": "source history and diagnostics include assignment reasons and references to protected information",
+      "when": "logs, notifications, lawful exports, retention/redaction and backup recovery are exercised",
+      "then": "Logs/notifications omit sensitive rule input and work content; lawful retention/redaction/export/backup recovery does not resurrect deleted protected text.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC37",
+      "target": "AC27-A15-01",
+      "requirements": ["REQ27-A15"],
+      "source_outcome": "Publish a measured envelope for tenant/role/rule counts, overlap, largest portfolio, concurrent editing/bulk, p95/error/freshness and indexed query plans using real source authorization; incomplete preview coverage is disclosed.",
+      "given": "production-shaped source data and real authorization represent the proposed deployment envelope",
+      "when": "the qualification team measures policy evaluation, proposal paging, preview aggregation, concurrent editing and finite-group application",
+      "then": "Publish a measured envelope for tenant/role/rule counts, overlap, largest portfolio, concurrent editing/bulk, p95/error/freshness and indexed query plans using real source authorization; incomplete preview coverage is disclosed.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC38",
+      "target": "AC27-A17-01",
+      "requirements": ["REQ27-A17"],
+      "source_outcome": "Retained-data census and idempotent backfill preserve unknown/manual provenance and roles, cause no assignment/outward/access effects, and safely handle old/new readers and writers.",
+      "given": "retained assignment data, old readers/writers, role collisions and unknown provenance have been inventoried",
+      "when": "compatible constraints/readers are installed and resumable idempotent backfill and mixed-version transition are exercised",
+      "then": "Retained-data census and idempotent backfill preserve unknown/manual provenance and roles, cause no assignment/outward/access effects, and safely handle old/new readers and writers.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC39",
+      "target": "AC27-A12-01",
+      "requirements": ["REQ27-A12", "REQ27-A17"],
+      "source_outcome": "Pilot disable/kill switch, mixed-version rollback and restore after new writes retain history/manual protections, fence stale work and preserve independent obligations.",
+      "given": "a bounded pilot has accepted new assignments and protected manual choices under the new model",
+      "when": "operators disable automatic acceptance, roll back compatible components and restore retained state",
+      "then": "Pilot disable/kill switch, mixed-version rollback and restore after new writes retain history/manual protections, fence stale work and preserve independent obligations.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    },
+    {
+      "source": "D30-AC40",
+      "target": "AC27-A18-01",
+      "requirements": ["REQ27-A18"],
+      "source_outcome": "Trace Q30 → D30 → glossary → exact owner/OpenSpec amendments → design/tasks/issues → source/security/concurrency/UI tests → release evidence, distinguishing selected/reviewed/ratified/implemented/qualified states.",
+      "given": "the ratified decision, glossary, formal owners and this specification are versioned",
+      "when": "an independent reviewer follows every D30 requirement and acceptance outcome through design, future delivery work and release evidence",
+      "then": "Trace Q30 → D30 → glossary → exact owner/OpenSpec amendments → design/tasks/issues → source/security/concurrency/UI tests → release evidence, distinguishing selected/reviewed/ratified/implemented/qualified states.",
+      "disposition": "Complete source outcome retained with independently executable Given/When context"
+    }
+  ],
+  "monitors": [
+    {
+      "source": "D30-monitor-01",
+      "target_index": 0,
+      "decision": "D30",
+      "signal": "Unauthorized/cross-tenant assignment or private-data disclosure",
+      "threshold": "Any confirmed occurrence",
+      "owner": "Security lead + P9 source owner",
+      "response": "Disable the affected mutation/egress path, contain access and repair through the source; requalify before enabling.",
+      "disposition": "Preserved signal, threshold, role and response; named operators and actual measured release envelope remain required"
+    },
+    {
+      "source": "D30-monitor-02",
+      "target_index": 1,
+      "decision": "D30",
+      "signal": "Manual protection overwritten, stale Auto after disable or invalid primary/role result",
+      "threshold": "Any confirmed invariant failure",
+      "owner": "P9/P27 engineering owner",
+      "response": "Stop affected automatic writes, reconcile exact receipts/source history, correct lawfully and prove the failed schedule before resume.",
+      "disposition": "Preserved signal, threshold, role and response; named operators and actual measured release envelope remain required"
+    },
+    {
+      "source": "D30-monitor-03",
+      "target_index": 2,
+      "decision": "D30",
+      "signal": "Required work loses accountable eligible responsibility without lawful disposition",
+      "threshold": "Any confirmed occurrence",
+      "owner": "Development operations owner + affected work owner",
+      "response": "Surface source repair, stop affected transfer path and restore qualified responsibility without resurrecting access or fabricating completion.",
+      "disposition": "Preserved signal, threshold, role and response; named operators and actual measured release envelope remain required"
+    },
+    {
+      "source": "D30-monitor-04",
+      "target_index": 3,
+      "decision": "D30",
+      "signal": "Repeated reassignment for unchanged authoritative basis",
+      "threshold": "More than one non-no-op transfer for the same responsibility and input/policy basis",
+      "owner": "Assignment service owner",
+      "response": "Fence that policy scope, inspect duplicate/cyclic input and repair history/effects; do not hide churn with a longer polling interval.",
+      "disposition": "Preserved signal, threshold, role and response; named operators and actual measured release envelope remain required"
+    },
+    {
+      "source": "D30-monitor-05",
+      "target_index": 4,
+      "decision": "D30",
+      "signal": "Projection/preview freshness",
+      "threshold": "Any output represented as current beyond its predeclared source budget",
+      "owner": "Source projection owner",
+      "response": "Immediately mark Updating/unavailable, stop unsafe dependent application and reconcile source versions.",
+      "disposition": "Preserved signal, threshold, role and response; named operators and actual measured release envelope remain required"
+    },
+    {
+      "source": "D30-monitor-06",
+      "target_index": 5,
+      "decision": "D30",
+      "signal": "Performance outside qualified envelope",
+      "threshold": "p95 or error rate exceeds release-manifest numeric bound for two consecutive five-minute windows",
+      "owner": "Application operations owner",
+      "response": "Bound bulk concurrency or disable affected enhancement, inspect query/worker load, requalify; preserve safe ordinary reads/edits.",
+      "disposition": "Preserved signal, threshold, role and response; named operators and actual measured release envelope remain required"
+    },
+    {
+      "source": "D30-monitor-07",
+      "target_index": 6,
+      "decision": "D30",
+      "signal": "Critical staff misunderstanding or recurring manual workaround",
+      "threshold": "Any reproducible harmful meaning/action error; or duplicate entry/DB repair for the same ordinary task in two independent incidents within 30 days",
+      "owner": "Product/UX + P27 engineering owners",
+      "response": "Block pilot/affected expansion, fix composition or source workflow and verify the scenario with representative staff.",
+      "disposition": "Preserved signal, threshold, role and response; named operators and actual measured release envelope remain required"
+    }
+  ],
+  "additional_coverage": [
+    {
+      "source": "D30 exact corrected decision",
+      "target": "REQ27-A01–REQ27-A18 and composed staff/administrator experience",
+      "disposition": "Ratified policy, manual protection, role/source identity, temporal effects, authority and UX retained"
+    },
+    {
+      "source": "D30 coherent staff and administrator experience",
+      "target": "Required staff and administrator experience; REQ27-A14 and associated acceptance",
+      "disposition": "All seven ordinary workflow steps and accessible/privacy-safe recovery retained; illustrative fenced mockup omitted, not normative behavior"
+    },
+    {
+      "source": "D30 category review and worked counterexamples",
+      "target": "Mapped requirements, 40 acceptance outcomes and operating controls",
+      "disposition": "Risk evidence supports normative contracts; empirical uncertainty not converted into a product or performance claim"
+    },
+    {
+      "source": "D30 exact owner reconciliation",
+      "target": "REQ27-A03/A08/A09/A10/A18 and source trace",
+      "disposition": "P9 role-aware identity and qualified P27/P12/shared-work/Studio/directory bindings retained; formal owner edits handled by parent"
+    },
+    {
+      "source": "D30 synthesis and proof limits",
+      "target": "Qualification and operating controls; explicit boundaries",
+      "disposition": "Reviewed-first delivery, bounded Auto pilot, actual role/database/source/browser/pilot evidence and no false readiness preserved"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/features/donor-development/grill/d30-evidence/authorization.md",
+      "sha256": "ed9abaa9608e32e9dd3a9be62278ff295c3065748af10d1f11367a93410c169d",
+      "disposition": "Supporting research with original provenance and proof limits; consolidated ratified D30 controls where wording differs"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d30-evidence/independent-review.md",
+      "sha256": "92bd46265babf5d2a6667112088fb30ca48222c65a11b729ba48e974474c924d",
+      "disposition": "Supporting research with original provenance and proof limits; consolidated ratified D30 controls where wording differs"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d30-evidence/lifecycle.md",
+      "sha256": "f1e7e7e128c70deb4775213962d20d74b7207f6a97a69ebfe1b5af8e59bb0ef8",
+      "disposition": "Supporting research with original provenance and proof limits; consolidated ratified D30 controls where wording differs"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d30-evidence/ownership.md",
+      "sha256": "fe385ba619b7f91f65dd0dbb96144dc0fc753e12d50d8dcff1655ef5eb6b008a",
+      "disposition": "Supporting research with original provenance and proof limits; consolidated ratified D30 controls where wording differs"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d30-evidence/practice.md",
+      "sha256": "f42ebeb96bce530103ed7926ff27ef923a69b03434f6acb8067a6ff6af61d399",
+      "disposition": "Supporting research with original provenance and proof limits; consolidated ratified D30 controls where wording differs"
+    },
+    {
+      "path": "docs/features/donor-development/grill/d30-evidence/ux.md",
+      "sha256": "7ac697e5e2797d32c781fa83e58de53c518933ae3494bf4df194e6eba9de6fbf",
+      "disposition": "Supporting research with original provenance and proof limits; consolidated ratified D30 controls where wording differs"
+    }
+  ],
+  "artifacts": {
+    "requirements": "/tmp/p27-assignments.md",
+    "stories": "/tmp/p27-assignment-stories.json",
+    "monitors": "/tmp/p27-assignment-monitors.json"
+  },
+  "counts": {
+    "requirements": 18,
+    "acceptance": 40,
+    "stories": 32,
+    "monitors": 7
+  }
+}

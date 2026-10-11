@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-10T17:21:53.166366+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d22-conditional-money-lab-172593",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d22-conditional-money-lab-172593",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "docker_version": "28.4.0",
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "Sequential D22 conditional money/null/scope checks and atomic revision/result counterexamples; no concurrency or load test",
+  "input_sha256": {
+    "setup.sql": "8a1f7cc19768362c93444dae1a8740179c8e4c33ec4683bf667ce7b148bed275",
+    "mechanics.py": "2bb631d96c0899b170872a756df93b819ec03f4cddbf0482654671ff26b2fa00",
+    "run-lab.py": "6a1a29207d7240a7e916cb971213368bc7b2e8e1032b189b55504f7339aaba23"
+  },
+  "container_id": "5f1c76ca5f4944cbb0291f8d6590f23b0fc4af28cea3357646155b61c1b9b43b",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 8, \"total\": 8, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "cleanup_stdout": "5f1c76ca5f4944cbb0291f8d6590f23b0fc4af28cea3357646155b61c1b9b43b",
+  "post_cleanup_inspect_exit_code": 1,
+  "post_cleanup_inspect_stderr": "Error response from daemon: No such container: 5f1c76ca5f4944cbb0291f8d6590f23b0fc4af28cea3357646155b61c1b9b43b",
+  "container_removed": true,
+  "finished_at": "2026-10-10T17:21:58.150205+00:00"
+}

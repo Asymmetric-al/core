@@ -1,0 +1,155 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "isolation_level": "read committed",
+  "completed": true,
+  "passed": 8,
+  "total": 8,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "MATCH SIMPLE trap: absent stage bypasses lone composite FK; independent required scoped list FK rejects invalid parent",
+      "pass": true,
+      "observed": {
+        "naive_invalid_parent_rows": 1,
+        "missing_parent": "23503",
+        "null_required_parent": "23502",
+        "wrong_source_scope": "23503"
+      }
+    },
+    {
+      "test": "extraction conflates omission and JSON null; presence validation rejects omission and invalid or old-list stage without clearing",
+      "pass": true,
+      "observed": {
+        "extraction": {
+          "omitted_extract": null,
+          "explicit_null_extract": null,
+          "omitted_has_key": false,
+          "explicit_has_key": true
+        },
+        "omission": "22023",
+        "old_list_stage": "23503",
+        "invalid_empty_string": "22023",
+        "source_unchanged": true
+      }
+    },
+    {
+      "test": "explicit no-stage switch commits required list, null current stage, old assessment history and exact receipt atomically",
+      "pass": true,
+      "observed": {
+        "late_failure": "23514",
+        "rollback": true,
+        "pending_saw_old": true,
+        "accepted": {
+          "id": 100,
+          "list_id": 20,
+          "purpose": "continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 1,
+          "stage_id": null,
+          "tenant_id": 1,
+          "ministry_id": 300
+        },
+        "history": [
+          {
+            "to_list": 20,
+            "revision": 2,
+            "scope_id": 1,
+            "to_stage": null,
+            "from_list": 10,
+            "tenant_id": 1,
+            "from_stage": 101,
+            "journey_id": 100
+          }
+        ]
+      }
+    },
+    {
+      "test": "same durable identity replays explicit absence but does not conflate omitted stage or a concrete assessment",
+      "pass": true,
+      "observed": {
+        "omission_conflict": "23514",
+        "concrete_stage_conflict": "23514",
+        "exact_replay_unchanged": true
+      }
+    },
+    {
+      "test": "return to an earlier list with explicit absence preserves earlier assessment history without restoring it; old receipt never reapplies",
+      "pass": true,
+      "observed": {
+        "current": {
+          "id": 100,
+          "list_id": 10,
+          "purpose": "continuing purpose",
+          "party_id": 200,
+          "revision": 3,
+          "scope_id": 1,
+          "stage_id": null,
+          "tenant_id": 1,
+          "ministry_id": 300
+        },
+        "old_successful_receipt": {
+          "id": 100,
+          "list_id": 20,
+          "purpose": "continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 1,
+          "stage_id": null,
+          "tenant_id": 1,
+          "ministry_id": 300
+        },
+        "old_assessment_retained_in_history": 101,
+        "no_reapplication": true
+      }
+    },
+    {
+      "test": "stale A-to-B no-stage proposal cannot clear B assessment after another writer wins; fresh same-list clear remains outside switch command",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 310,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            302
+          ]
+        },
+        "stale_error": "40001",
+        "same_list_clear": "23514",
+        "current": {
+          "id": 100,
+          "list_id": 20,
+          "purpose": "continuing purpose",
+          "party_id": 200,
+          "revision": 2,
+          "scope_id": 2,
+          "stage_id": 201,
+          "tenant_id": 1,
+          "ministry_id": 300
+        }
+      }
+    },
+    {
+      "test": "no-stage choice does not skip target new-attachment eligibility",
+      "pass": true,
+      "observed": {
+        "unavailable_target": "23514",
+        "source_unchanged": true
+      }
+    },
+    {
+      "test": "report counterexamples: inner joins, count(stage), inequality and equals-null omit or misclassify known unassessed rows",
+      "pass": true,
+      "observed": {
+        "journey_rows": 5,
+        "nonnull_stages": 4,
+        "unassessed": 1,
+        "inner_join_rows": 4,
+        "not_equal_201": 3,
+        "distinct_from_201": 4,
+        "null_equals_null": null,
+        "null_not_distinct_null": true
+      }
+    }
+  ]
+}

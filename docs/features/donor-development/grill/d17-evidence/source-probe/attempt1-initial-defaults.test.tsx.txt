@@ -1,0 +1,83 @@
+// @vitest-environment jsdom
+
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+
+import { SearchableSelect } from "../../../../../../packages/ui/components/shadcn/searchable-select";
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
+const items = [
+  { value: "list-a", label: "Ministry support" },
+  { value: "list-b", label: "Church partnerships" },
+  { value: "list-c", label: "Independent project" },
+];
+
+function captureExpectedDefaultWarning() {
+  const messages: string[] = [];
+  vi.spyOn(console, "error").mockImplementation((...args) => {
+    messages.push(args.map(String).join(" "));
+  });
+  return async () => {
+    await waitFor(() => expect(messages.length).toBeGreaterThan(0));
+    expect(messages.every((message) =>
+      message.includes("changing the default") &&
+      message.includes("after being initialized"),
+    )).toBe(true);
+  };
+}
+
+it("does not apply a later uncontrolled defaultValue when initially unresolved options arrive", async () => {
+  const assertExpectedWarnings = captureExpectedDefaultWarning();
+  const onValueChange = vi.fn();
+  const { rerender } = render(
+    <SearchableSelect label="Stage list" items={[]} defaultValue={null}
+      placeholder="Choose a stage list" onValueChange={onValueChange} />,
+  );
+  expect(screen.getByRole("combobox", { name: "Stage list" }).textContent)
+    .toContain("Choose a stage list");
+
+  rerender(
+    <SearchableSelect label="Stage list" items={items} defaultValue="list-a"
+      placeholder="Choose a stage list" onValueChange={onValueChange} />,
+  );
+  await assertExpectedWarnings();
+  const trigger = screen.getByRole("combobox", { name: "Stage list" });
+  expect(trigger.textContent).toContain("Choose a stage list");
+  expect(onValueChange).not.toHaveBeenCalled();
+  fireEvent.click(trigger);
+  const first = await screen.findByRole("option", { name: "Ministry support" });
+  expect(first.getAttribute("aria-selected")).not.toBe("true");
+  expect(onValueChange).not.toHaveBeenCalled();
+});
+
+it("allows changing an initial prefill and retains that choice across later default and option refresh", async () => {
+  const assertExpectedWarnings = captureExpectedDefaultWarning();
+  const onValueChange = vi.fn();
+  const { rerender } = render(
+    <SearchableSelect label="Stage list" items={items} defaultValue="list-a"
+      placeholder="Choose a stage list" onValueChange={onValueChange} />,
+  );
+  const trigger = screen.getByRole("combobox", { name: "Stage list" });
+  expect(trigger.textContent).toContain("Ministry support");
+  expect(onValueChange).not.toHaveBeenCalled();
+  fireEvent.click(trigger);
+  fireEvent.click(await screen.findByRole("option", { name: "Church partnerships" }));
+  await waitFor(() => expect(trigger.textContent).toContain("Church partnerships"));
+  expect(onValueChange).toHaveBeenCalledTimes(1);
+  expect(onValueChange.mock.calls[0]?.[0]).toBe("list-b");
+
+  rerender(
+    <SearchableSelect label="Stage list"
+      items={[items[2], { value: "list-b", label: "Church relationships" }, items[0]]}
+      defaultValue="list-c" placeholder="Choose a stage list"
+      onValueChange={onValueChange} />,
+  );
+  await assertExpectedWarnings();
+  await waitFor(() => expect(trigger.textContent).toContain("Church relationships"));
+  expect(trigger.textContent).not.toContain("Independent project");
+  expect(onValueChange).toHaveBeenCalledTimes(1);
+});

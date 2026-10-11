@@ -1,0 +1,235 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "isolation_level": "read committed",
+  "completed": true,
+  "passed": 10,
+  "total": 10,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "incidental metadata change does not alter the reviewed business terms version",
+      "pass": true,
+      "observed": {
+        "result": {
+          "round": 1,
+          "outcome": "approved",
+          "policy_epoch": 1,
+          "business_version": 1
+        },
+        "head": {
+          "id": 1,
+          "terms": {
+            "currency": "USD",
+            "requested_minor": 10000
+          },
+          "scope_id": 1,
+          "current_round": 1,
+          "business_version": 1,
+          "metadata_revision": 2
+        }
+      }
+    },
+    {
+      "test": "terms revision wins: waiting old review cannot approve revised terms or emit a decision event",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 139,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            132
+          ]
+        },
+        "error": "40001",
+        "state": {
+          "head": {
+            "id": 1,
+            "terms": {
+              "currency": "USD",
+              "requested_minor": 20000
+            },
+            "scope_id": 2,
+            "current_round": 2,
+            "business_version": 2,
+            "metadata_revision": 1
+          },
+          "decisions": [],
+          "versions": 2,
+          "receipts": 0,
+          "events": 0,
+          "starts": 0
+        }
+      }
+    },
+    {
+      "test": "decision wins: subsequent terms revision preserves original decision but cannot present new terms under it",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 166,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            160
+          ]
+        },
+        "no_compatible_approval": "23514",
+        "state": {
+          "head": {
+            "id": 1,
+            "terms": {
+              "currency": "USD",
+              "requested_minor": 20000
+            },
+            "scope_id": 3,
+            "current_round": 2,
+            "business_version": 2,
+            "metadata_revision": 1
+          },
+          "decisions": [
+            {
+              "outcome": "approved",
+              "round_id": 1,
+              "scope_id": 3,
+              "proposal_id": 1,
+              "reviewer_id": 7,
+              "policy_epoch": 1,
+              "business_version": 1
+            }
+          ],
+          "versions": 2,
+          "receipts": 1,
+          "events": 1,
+          "starts": 0
+        }
+      }
+    },
+    {
+      "test": "concurrent exact decision retry has one accepted decision/receipt/internal event; changed outcome under same identity conflicts",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 203,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            195
+          ]
+        },
+        "replay": {
+          "round": 1,
+          "outcome": "approved",
+          "policy_epoch": 1,
+          "business_version": 1
+        },
+        "changed_payload": "23514",
+        "counts": {
+          "receipts": 1,
+          "events": 1
+        }
+      }
+    },
+    {
+      "test": "competing distinct approve/reject intents cannot both decide the same review round",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 246,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            238
+          ]
+        },
+        "losing_decision": "23514",
+        "state": {
+          "head": {
+            "id": 1,
+            "terms": {
+              "currency": "USD",
+              "requested_minor": 10000
+            },
+            "scope_id": 5,
+            "current_round": 1,
+            "business_version": 1,
+            "metadata_revision": 1
+          },
+          "decisions": [
+            {
+              "outcome": "approved",
+              "round_id": 1,
+              "scope_id": 5,
+              "proposal_id": 1,
+              "reviewer_id": 7,
+              "policy_epoch": 1,
+              "business_version": 1
+            }
+          ],
+          "versions": 1,
+          "receipts": 1,
+          "events": 1,
+          "starts": 0
+        }
+      }
+    },
+    {
+      "test": "late internal-event failure rolls back decision and durable receipt together",
+      "pass": true,
+      "observed": {
+        "error": "23514",
+        "all_state_unchanged": true
+      }
+    },
+    {
+      "test": "material policy change wins: local supported-action start waits and cannot use incompatible prior approval",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 312,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            304
+          ]
+        },
+        "denial": "23514",
+        "historical_decision_retained": 1
+      }
+    },
+    {
+      "test": "local supported-action start wins: later material policy change waits and preserves accepted start history",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 349,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            341
+          ]
+        },
+        "new_policy_epoch": 2,
+        "accepted_starts": 1
+      }
+    },
+    {
+      "test": "reviewer departure blocks new decisions but does not retroactively invalidate accepted approval or replay; present actor remains independently allowed",
+      "pass": true,
+      "observed": {
+        "historical_result": {
+          "round": 1,
+          "outcome": "approved",
+          "policy_epoch": 1,
+          "business_version": 1
+        },
+        "independent_action_start": "started",
+        "new_decision_denied": "42501"
+      }
+    },
+    {
+      "test": "known not-required permits ordinary action without fake approval; unknown or required-with-no-reviewer does not downgrade to optional",
+      "pass": true,
+      "observed": {
+        "unknown": "23514",
+        "required": "23514",
+        "empty_eligible_review": "42501",
+        "routine": "started"
+      }
+    }
+  ]
+}

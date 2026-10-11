@@ -1,0 +1,50 @@
+{
+  "collected_at_utc": "2026-10-10T15:17:46.152401+00:00",
+  "test_start_epoch_ms": 1791645423606,
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "node": "v24.19.0",
+  "bun_available": false,
+  "installed_versions": {
+    "vitest": "4.1.4",
+    "@vitejs/plugin-react": "6.0.1",
+    "jsdom": "26.1.0",
+    "@testing-library/react": "16.3.2",
+    "@base-ui/react": "1.8.0",
+    "react": "19.2.3",
+    "@tanstack/react-form": "1.28.6",
+    "@tanstack/form-core": "1.28.6",
+    "@base-ui/utils": "0.4.0"
+  },
+  "manifest_versions": {
+    "vitest": "5.0.3",
+    "react": "19.3.0",
+    "@tanstack/react-form": "1.33.5",
+    "@base-ui/react": "1.8.0"
+  },
+  "command": "node node_modules/vitest/vitest.mjs run --config docs/features/donor-development/grill/d17-evidence/source-probe/vitest.config.mjs --reporter=json --outputFile=docs/features/donor-development/grill/d17-evidence/source-probe/results.json",
+  "passed": 4,
+  "failed": 0,
+  "prior_attempt": {
+    "passed": 1,
+    "failed": 1,
+    "reason": "Second test required a duplicate development warning; Base UI createLogOnce deduplicates that warning. Selection already remained correct. Corrected only the warning expectation, then added the two new form-hook checks requested."
+  },
+  "sha256": {
+    "docs/features/donor-development/grill/d17-evidence/source-probe/initial-defaults.test.tsx": "beeba34c1b714f3735aeed8c978b9ef0ff818984be91a21bf289213f1b92103f",
+    "docs/features/donor-development/grill/d17-evidence/source-probe/form-defaults.test.tsx": "cfc810c16f83e0ea3c818183b929a7d06fa5e185231b67d5e273d5166087fa67",
+    "docs/features/donor-development/grill/d17-evidence/source-probe/vitest.config.mjs": "23e01f8a139e52eb36b4ba4071eb5cd896fbc1904ed627ed824ec5fb2d51464a",
+    "tests/setup/unit-env.ts": "acc4377808599a115e73d611a6398b2a86028d3bcedf944b5128dadddd1e0109",
+    "vitest.pin-workspace-packages.ts": "dd9d854a5fa420ba79bc21c51222cb335409e9198519c95a97bea8a9b415bb82",
+    "vitest.per-importer-alias.ts": "f002181fab79a97c0268da1aeb9bb18721b815682e9a6fbc45a4dfb803361780",
+    "packages/ui/components/shadcn/searchable-select.tsx": "8998cde4bd8ab7e90d66e79a9f0dea848eb399a5117372fa40c02361b7f03cc1",
+    "packages/ui/components/primitives/tanstack-form.tsx": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad",
+    "packages/ui/components/shadcn/combobox.ts": "193c1402b6a11ae738f33c2edd9f404443222530a64ae4391dd41d94016a3710",
+    "packages/ui/components/shadcn/combobox-component.tsx": "a13cc150c43228f57b50d1a18883c1bd6ce8bff97356212229fa81d8ea24f80b",
+    "packages/ui/components/shadcn/combobox-variants.ts": "8dba3292efb01ed83842b68f335efede41716203fa2dc6fdac6367031120a444",
+    "node_modules/.bun/@tanstack+form-core@1.28.6/node_modules/@tanstack/form-core/src/FormApi.ts": "d536062de9d72bc334c73012917b54b6e8769036abf5d497cc1a94fd6d8347be",
+    "node_modules/.bun/@tanstack+react-form@1.28.6+67f6792bdf102c28/node_modules/@tanstack/react-form/src/useForm.tsx": "17275983591e23b3ffd9137b484e1c692ca636878ee00116a8e4c5922a7a89c7",
+    "node_modules/.bun/@base-ui+utils@0.4.0+3ab9536dfd47976b/node_modules/@base-ui/utils/useControlled.js": "f0c6031884449ed5152258f0c81289172ebf4a4ffe848d4ecef1c8ac6d60108b",
+    "node_modules/.bun/@base-ui+utils@0.4.0+3ab9536dfd47976b/node_modules/@base-ui/utils/error.js": "1ffc183f8a54f012317eb4329676adfda28fa271e48943b1e602066bff2316ee",
+    "node_modules/.bun/@base-ui+utils@0.4.0+3ab9536dfd47976b/node_modules/@base-ui/utils/createLogOnce.js": "78afe5c32eea93da3401a34565a82bf1e7d74c3e8091abbd27a62f8f9eb27ea6"
+  }
+}

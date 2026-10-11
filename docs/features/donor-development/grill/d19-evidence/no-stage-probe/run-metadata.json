@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-10-10T16:24:55.984787+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d19-no-stage-lab-167301",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d19-no-stage-lab-167301",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "docker_version": "28.4.0",
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "D19 explicit-null/omission, MATCH SIMPLE parent trap, atomic no-stage result, replay and old-assessment nonrestoration; one exact backend-blocking barrier for stale absence versus destination assessment; not load testing",
+  "input_sha256": {
+    "setup.sql": "4527f48d6db76bbcaa28ac1a139cfaf286cd0444c66892f367f9c47057412b79",
+    "mechanics.py": "08b79771b94bf3943151d60dfbeb019dee0c971b6990b2921a1a17c242642033",
+    "run-lab.py": "e01133fbad7495c41f10a0ff194243232eb56124175bbda06fa14b35cf7a81b4"
+  },
+  "container_id": "7686b9a536632d3f1830f8d896468ac1e2d5bc1210374b60977cd5958cdec2d5",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 8, \"total\": 8, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "cleanup_stdout": "7686b9a536632d3f1830f8d896468ac1e2d5bc1210374b60977cd5958cdec2d5",
+  "post_cleanup_inspect_exit_code": 1,
+  "post_cleanup_inspect_stderr": "Error response from daemon: No such container: 7686b9a536632d3f1830f8d896468ac1e2d5bc1210374b60977cd5958cdec2d5",
+  "container_removed": true,
+  "finished_at": "2026-10-10T16:25:01.491395+00:00"
+}

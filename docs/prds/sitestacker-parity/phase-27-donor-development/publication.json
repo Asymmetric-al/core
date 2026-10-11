@@ -1,0 +1,434 @@
+{
+  "version": "phase27-ratified-spec-2026-10-11-v1",
+  "comments": {
+    "P01": {
+      "id": 6108341447,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108341447",
+      "initial_sha256": "1df685fe7e36865b9d29ad8ebd967339c280a0b9a9add174def2d58cb5213635",
+      "final_sha256": "99c56ead1209ea0c003d9f284e10959770dd6205cb426fc90fde0d837eceb505"
+    },
+    "P02": {
+      "id": 6108341670,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108341670",
+      "initial_sha256": "adf53051ce172289d7449c4e4390da86c058797f44dfddbf661b993aa213aa51",
+      "final_sha256": "adf53051ce172289d7449c4e4390da86c058797f44dfddbf661b993aa213aa51"
+    },
+    "P03": {
+      "id": 6108341873,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108341873",
+      "initial_sha256": "7be31fad3c879ee99ff3fee2d88e792ed14d6ca5749f3861d205745413acff93",
+      "final_sha256": "5a3f8c34c6bbd5550b7bdd99dc0bbcda91e350086a316e1dcb31d97f3526f821"
+    },
+    "P04": {
+      "id": 6108342033,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108342033",
+      "initial_sha256": "e64ed9ce538c2951c4ce075d98c681e42b70b19c08732df67469da73c29f5bf4",
+      "final_sha256": "84907007b0cb94fed9b1e5d8daad256b3f93285e289f90c19d7ae67508e858bb"
+    },
+    "P05": {
+      "id": 6108342193,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108342193",
+      "initial_sha256": "8c34787db577a7659ce5492bb00d5b6847a201f286a4df84dd24f6756793e8f2",
+      "final_sha256": "8c34787db577a7659ce5492bb00d5b6847a201f286a4df84dd24f6756793e8f2"
+    },
+    "P06": {
+      "id": 6108342373,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108342373",
+      "initial_sha256": "56257bac1bfcf97161d57a2186e10fca671b2746b85790c8335abdd789928910",
+      "final_sha256": "56257bac1bfcf97161d57a2186e10fca671b2746b85790c8335abdd789928910"
+    },
+    "P07": {
+      "id": 6108342633,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108342633",
+      "initial_sha256": "f4fd1a77226c1379d3637d32f3aeae29f6f617014270eeed3106d5872c48cba9",
+      "final_sha256": "f4fd1a77226c1379d3637d32f3aeae29f6f617014270eeed3106d5872c48cba9"
+    },
+    "P08": {
+      "id": 6108342876,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108342876",
+      "initial_sha256": "bbfe8817623e89b84ffe4ac9129b65e814620aab013292183eec61efa816ac43",
+      "final_sha256": "bbfe8817623e89b84ffe4ac9129b65e814620aab013292183eec61efa816ac43"
+    },
+    "P09": {
+      "id": 6108343077,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108343077",
+      "initial_sha256": "8a5dad517a9184c35f343a356a93cfa39238717728c7c02890be32fc6616140f",
+      "final_sha256": "8a5dad517a9184c35f343a356a93cfa39238717728c7c02890be32fc6616140f"
+    },
+    "P10": {
+      "id": 6108343228,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108343228",
+      "initial_sha256": "b6475c07841e51358f9274a646dabb15d771d121751d9c6d7b87917632d7ad52",
+      "final_sha256": "32fb9c4119166dce1f3f6412c26a0866c0a5a3c74df336ca47eb43c7d58186b7"
+    },
+    "P11": {
+      "id": 6108343393,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108343393",
+      "initial_sha256": "78bb5253a2effd2ade614cf8bb461613c371f134631d24ccd92a444bbb83bbd5",
+      "final_sha256": "78bb5253a2effd2ade614cf8bb461613c371f134631d24ccd92a444bbb83bbd5"
+    },
+    "P12": {
+      "id": 6108343574,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108343574",
+      "initial_sha256": "4eb983b5b6e3cc380b9e2a427157a6688893a7bbf63fa9e2ad8d901b2a41206e",
+      "final_sha256": "4eb983b5b6e3cc380b9e2a427157a6688893a7bbf63fa9e2ad8d901b2a41206e"
+    },
+    "P13": {
+      "id": 6108343729,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108343729",
+      "initial_sha256": "f5bb5cd73c7b44ff61425221a0e9ea24d278daaf7f834bc4722e4a715e6def62",
+      "final_sha256": "f5bb5cd73c7b44ff61425221a0e9ea24d278daaf7f834bc4722e4a715e6def62"
+    },
+    "P14": {
+      "id": 6108343888,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108343888",
+      "initial_sha256": "b87f26b1b22fd33c2d615d89c8118c4d14cb472b48f8bad1c84c9364f21c0263",
+      "final_sha256": "b87f26b1b22fd33c2d615d89c8118c4d14cb472b48f8bad1c84c9364f21c0263"
+    },
+    "P15": {
+      "id": 6108344144,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108344144",
+      "initial_sha256": "a1ce2ffaa9d00fb04fe28e00c8b269463daa44aad9c310bbc41f59edde919f8a",
+      "final_sha256": "a1ce2ffaa9d00fb04fe28e00c8b269463daa44aad9c310bbc41f59edde919f8a"
+    },
+    "P16": {
+      "id": 6108344350,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108344350",
+      "initial_sha256": "a1722b28ee2e77d747dcd1e2e7e5bcb2c13174be6312783df1b6f4b5c58a98d7",
+      "final_sha256": "a1722b28ee2e77d747dcd1e2e7e5bcb2c13174be6312783df1b6f4b5c58a98d7"
+    },
+    "P17": {
+      "id": 6108344551,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108344551",
+      "initial_sha256": "e120ee719c349cd609ca8faf7b7ec3883528cf8df496b885d03412089ad44635",
+      "final_sha256": "e120ee719c349cd609ca8faf7b7ec3883528cf8df496b885d03412089ad44635"
+    },
+    "P18": {
+      "id": 6108344711,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108344711",
+      "initial_sha256": "0f050d98a7ae9246231827a82507b29ea66d3f5da600956f7d3e19b76144da0b",
+      "final_sha256": "0f050d98a7ae9246231827a82507b29ea66d3f5da600956f7d3e19b76144da0b"
+    },
+    "P19": {
+      "id": 6108344990,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108344990",
+      "initial_sha256": "c3bffe66c0a0b44beb3977ff31bc4ede512c749126838f212f8c07f8b650ce1e",
+      "final_sha256": "c3bffe66c0a0b44beb3977ff31bc4ede512c749126838f212f8c07f8b650ce1e"
+    },
+    "P20": {
+      "id": 6108345171,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108345171",
+      "initial_sha256": "530356860187a0147ebfc030d157627c51fc8e8cd572ba6637271d3f8c288696",
+      "final_sha256": "530356860187a0147ebfc030d157627c51fc8e8cd572ba6637271d3f8c288696"
+    },
+    "P21": {
+      "id": 6108345391,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108345391",
+      "initial_sha256": "64c23006139a811c18631306b171673b72c126a2a6ca306aa85862683cbd0808",
+      "final_sha256": "64c23006139a811c18631306b171673b72c126a2a6ca306aa85862683cbd0808"
+    },
+    "P22": {
+      "id": 6108345578,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108345578",
+      "initial_sha256": "167ee78abfaa8a014f786b0b88fced0cb43c2d015c5c9088e6e5114d39295e22",
+      "final_sha256": "167ee78abfaa8a014f786b0b88fced0cb43c2d015c5c9088e6e5114d39295e22"
+    },
+    "P23": {
+      "id": 6108345712,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108345712",
+      "initial_sha256": "3dd47a3bd095509fdc0ec4df009ae3e1f794cf65be7c28ad7efebe847129411a",
+      "final_sha256": "3dd47a3bd095509fdc0ec4df009ae3e1f794cf65be7c28ad7efebe847129411a"
+    },
+    "P24": {
+      "id": 6108345852,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108345852",
+      "initial_sha256": "cc94213b5cb16030b6a8d1e816b8caf1904dba8175bdaa79052c1ebf892cab7d",
+      "final_sha256": "ca02dc2daf2aeae8add6bc05e2ed84b99348867b1ad14a4ae8a6319cb00e3b1f"
+    },
+    "P25": {
+      "id": 6108345984,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108345984",
+      "initial_sha256": "59caa1b939d4a178b31c3f98e149a628e24ad66f6ba58fee6f29a4484fa7072f",
+      "final_sha256": "9957945d6c54686944c57df7b76ec80d8a24795f333fabbc6053fdf0e9425afd"
+    },
+    "P26": {
+      "id": 6108346154,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108346154",
+      "initial_sha256": "10306af227b2e310aca491abaf3765f1140a0784b448e7b545ac929314c92fe6",
+      "final_sha256": "10306af227b2e310aca491abaf3765f1140a0784b448e7b545ac929314c92fe6"
+    },
+    "P27": {
+      "id": 6108346335,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108346335",
+      "initial_sha256": "adbf213a93a6a4129ec181b72b87bdeee3fd89b41db84159543acbdb0ff4cc7a",
+      "final_sha256": "adbf213a93a6a4129ec181b72b87bdeee3fd89b41db84159543acbdb0ff4cc7a"
+    },
+    "P28": {
+      "id": 6108346497,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108346497",
+      "initial_sha256": "1da17d722492963f23ad0d78356cffaefc243c3d9fe92ff68ddfd8ad8e2c19f0",
+      "final_sha256": "1da17d722492963f23ad0d78356cffaefc243c3d9fe92ff68ddfd8ad8e2c19f0"
+    },
+    "P29": {
+      "id": 6108346641,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108346641",
+      "initial_sha256": "9d6d3940263274c91dd84468cdd87ed8af83f3684b7ccb415923ac3ffab75b3f",
+      "final_sha256": "9d6d3940263274c91dd84468cdd87ed8af83f3684b7ccb415923ac3ffab75b3f"
+    },
+    "P30": {
+      "id": 6108346758,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108346758",
+      "initial_sha256": "e6b47b5dc9bd8e70bcb7a49768e57d909f856cd3575ddb7b9d6e72f3483fc978",
+      "final_sha256": "e6b47b5dc9bd8e70bcb7a49768e57d909f856cd3575ddb7b9d6e72f3483fc978"
+    },
+    "P31": {
+      "id": 6108346978,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108346978",
+      "initial_sha256": "f9c11cf69c33eb28fad52449d88f39121443dede2fe6b29b336527911d4ab11a",
+      "final_sha256": "f9c11cf69c33eb28fad52449d88f39121443dede2fe6b29b336527911d4ab11a"
+    },
+    "P32": {
+      "id": 6108347201,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108347201",
+      "initial_sha256": "a92054db274ad9912c800c1665c51aa0614caa5f5a2629df6b2877641e0a1467",
+      "final_sha256": "a92054db274ad9912c800c1665c51aa0614caa5f5a2629df6b2877641e0a1467"
+    },
+    "P33": {
+      "id": 6108347361,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108347361",
+      "initial_sha256": "2ab8fb8a915556f5d91250ce25c27ed396050aa4218097c89b3b805152667a8f",
+      "final_sha256": "2ab8fb8a915556f5d91250ce25c27ed396050aa4218097c89b3b805152667a8f"
+    },
+    "P34": {
+      "id": 6108347518,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108347518",
+      "initial_sha256": "8606d2f90c31cf4245174612672be99c3ee9b6af818cb6a62ca9353c45b14624",
+      "final_sha256": "8606d2f90c31cf4245174612672be99c3ee9b6af818cb6a62ca9353c45b14624"
+    },
+    "P35": {
+      "id": 6108347651,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108347651",
+      "initial_sha256": "e5f1ec913d66318ab75ae5dd1be697f7e266ddd429fc7be1cf365b36bb0d2068",
+      "final_sha256": "46d2937e1644b9e3cca24e80db6d3648afabe834573ffdd02be5e975062113d0"
+    },
+    "P36": {
+      "id": 6108347816,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108347816",
+      "initial_sha256": "463f59523c40ffe464c5b4a1834901cceb1842a7e5c70aad77adb1e5c951d37e",
+      "final_sha256": "463f59523c40ffe464c5b4a1834901cceb1842a7e5c70aad77adb1e5c951d37e"
+    },
+    "P37": {
+      "id": 6108347998,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108347998",
+      "initial_sha256": "8c9d82fdcb1c2ac3f7ed5572f3d8f589140d17a4b2c5132a315f0cbdf068b3c2",
+      "final_sha256": "390a02d3f058a3968ad7dae20e4b822559ef5df3058f3968ea1b32d87cda577e"
+    },
+    "P38": {
+      "id": 6108348193,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108348193",
+      "initial_sha256": "5420a4abedbe6ad7093c4441bbbe50c56c94657ce9fb3faf40b7d4d80d9c7030",
+      "final_sha256": "a6084ef216c639c30eba29815355867548ef4d9ce89ce8874b441f93ff30d138"
+    },
+    "P39": {
+      "id": 6108348373,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108348373",
+      "initial_sha256": "3c23735ef82eb001a3425c63967a92846a5f52b6a297d88243486bcb48558740",
+      "final_sha256": "f41bbd8dad3363c53f53c193305de93054a4e266da5ab1146396b1560676a829"
+    },
+    "P40": {
+      "id": 6108348552,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108348552",
+      "initial_sha256": "130c91d10dfae046916020422f9c35da9902c1e89a3f7567f28fca23757f0fe9",
+      "final_sha256": "da72ff4416132f233577d83d0b39431755132a04cbabec9bfc8fd7ed2ac536bf"
+    },
+    "P41": {
+      "id": 6108348712,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108348712",
+      "initial_sha256": "c76e56d9cc44f4ea39bd3ba3f814d30b74cb91c7ef6361b80e1d09e9a65d6cac",
+      "final_sha256": "879cc36f155331bc7786536c8fdf078b79751b1fe48d9daf44d9ef8003ebc3ce"
+    },
+    "P42": {
+      "id": 6108348915,
+      "url": "https://github.com/Asymmetric-al/core/issues/1992#issuecomment-6108348915",
+      "initial_sha256": "af899d83c7e6600aca877175c42de51b9faf06d3f2f075f5aea494066004c14d",
+      "final_sha256": "af899d83c7e6600aca877175c42de51b9faf06d3f2f075f5aea494066004c14d"
+    }
+  },
+  "issue": {
+    "url": "https://github.com/Asymmetric-al/core/issues/1992",
+    "number": 1992,
+    "body_sha256": "34b5b4bef658c007015b3e3a45613f78ea5a49a2c3990726da2aea988af390b6",
+    "title": "AL-1992 \u2014 Phase 27 Donor Development & Portfolio Management specification"
+  },
+  "verified": true,
+  "artifacts": [
+    {
+      "title": "Overview and all user stories",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development.md",
+      "sha256": "db89fd98a03ed458dc52fdb3cdf2fb6e3a1cac70b637eb5b7bc78da329a71801",
+      "bytes": 97594,
+      "parts": ["P01", "P02", "P03", "P04"]
+    },
+    {
+      "title": "Partnerships and stages",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/partnerships.md",
+      "sha256": "40b0ef428a5846b64c1fc1f68234ba1fe0de00edbcf729b9520f377706a0f56a",
+      "bytes": 229312,
+      "parts": ["P05", "P06", "P07", "P08", "P09", "P10"]
+    },
+    {
+      "title": "Requests, review, appeals and finance intake",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/requests.md",
+      "sha256": "f332fc7c879bd42f7520726bc32b0f5a5d1bfcea98b4ae469c98bb86189a5106",
+      "bytes": 153861,
+      "parts": ["P11", "P12", "P13", "P14"]
+    },
+    {
+      "title": "Shared context, recency and optional giving patterns",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/context.md",
+      "sha256": "6c7d9721c6dd7ee338eece347e57fba356e64997e95273530506e78f47d2bb81",
+      "bytes": 79049,
+      "parts": ["P15", "P16"]
+    },
+    {
+      "title": "Assignment policy and deliberate transfers",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/assignments.md",
+      "sha256": "eed7eed0f6fd19b19967f24bf72179072ead07054474c44a5180edb98d3add76",
+      "bytes": 48613,
+      "parts": ["P17", "P18"]
+    },
+    {
+      "title": "Common safeguards and proof",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/proof.md",
+      "sha256": "2716adfaced3ad01f35755c191e49294de4b23aab58957c14640abe23009e12c",
+      "bytes": 26587,
+      "parts": ["P19"]
+    },
+    {
+      "title": "Operating controls",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/operations.md",
+      "sha256": "463a56bfac29f155e4353a0e872dd4285c45980526bbf5cd18738318de007ed7",
+      "bytes": 94461,
+      "parts": ["P20", "P21", "P22"]
+    },
+    {
+      "title": "Owner amendments and financial gates",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/owner-reconciliation.md",
+      "sha256": "7b2bbb263cbcf89fb1b5cf2a248cbc85013f7007f83ff6aca9cafce324d17d1b",
+      "bytes": 12071,
+      "parts": ["P23"]
+    },
+    {
+      "title": "OpenSpec proposal",
+      "path": "openspec/changes/add-donor-development/proposal.md",
+      "sha256": "a84db4f815c21b1b8dbb3fc6b50b3b68e09279f34543299c1e81efbd4239d46d",
+      "bytes": 2796,
+      "parts": ["P24"]
+    },
+    {
+      "title": "OpenSpec design",
+      "path": "openspec/changes/add-donor-development/design.md",
+      "sha256": "06031835f0e71e26ef3fe0f686dde9ae6b0922191a5c6a35054d85a9bbf60e23",
+      "bytes": 5032,
+      "parts": ["P25"]
+    },
+    {
+      "title": "Unchecked implementation and proof tasks",
+      "path": "openspec/changes/add-donor-development/tasks.md",
+      "sha256": "a4485903a19c355c48f5366cc7b44b3cf3af82199959eefc919cc9fe08337206",
+      "bytes": 41414,
+      "parts": ["P26"]
+    },
+    {
+      "title": "Scoped crm-core OpenSpec delta",
+      "path": "openspec/changes/add-donor-development/specs/crm-core/spec.md",
+      "sha256": "66de6bfc99288bbf0f99a109a3ba0d2ce62f2b2b86dbd0bbbaa37cf861f57b5c",
+      "bytes": 2455,
+      "parts": ["P27"]
+    },
+    {
+      "title": "Scoped identity-and-access OpenSpec delta",
+      "path": "openspec/changes/add-donor-development/specs/identity-and-access/spec.md",
+      "sha256": "712ea9725273c1d64ef89b0b05dbdbfb7e98109decb29baa8bd906673199e96d",
+      "bytes": 1631,
+      "parts": ["P28"]
+    },
+    {
+      "title": "Scoped contribution-operations OpenSpec delta",
+      "path": "openspec/changes/add-donor-development/specs/contribution-operations/spec.md",
+      "sha256": "921563366db2a76f6060febffc88a53b524277c579b807db448af34f6f3526cd",
+      "bytes": 2077,
+      "parts": ["P29"]
+    },
+    {
+      "title": "Scoped outbound-communications OpenSpec delta",
+      "path": "openspec/changes/add-donor-development/specs/outbound-communications/spec.md",
+      "sha256": "377797baa20bd7e6ffd4a137ebcc650c35cd3eba4bff8b502069c8b3e9b02a62",
+      "bytes": 1604,
+      "parts": ["P30"]
+    },
+    {
+      "title": "Story and acceptance trace index",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/traceability.json",
+      "sha256": "68eec4e72e3d7febcc2af5836b37565bc539ef18a3a032d136a372dc2d69d38b",
+      "bytes": 107835,
+      "parts": ["P31", "P32", "P33"]
+    },
+    {
+      "title": "Source and research manifest",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/source-manifest.json",
+      "sha256": "9a4839812e9e039b6b43f77b3e97080be8f7205e3fd05b37bd11f1d7ee485bdc",
+      "bytes": 59124,
+      "parts": ["P34", "P35"]
+    },
+    {
+      "title": "Document validation evidence",
+      "path": "docs/prds/sitestacker-parity/phase-27-donor-development/validation.json",
+      "sha256": "d5f032b1124e1d62af8987188b70a1b8c5fd81b06f3df6a37fee18d018c75210",
+      "bytes": 1668,
+      "parts": ["P36"]
+    },
+    {
+      "title": "Session decision log",
+      "path": "docs/features/donor-development/grill/phase27-grill-log.md",
+      "sha256": "96196f25fee54ce827d95688a334d9c96a1463560786b854c4975dddb954b6a9",
+      "bytes": 119727,
+      "parts": ["P37", "P38", "P39", "P40"]
+    },
+    {
+      "title": "Post-D30 scope synthesis",
+      "path": "docs/features/donor-development/grill/phase27-post-d30-coverage-synthesis.md",
+      "sha256": "72c3c8102f9612ea32ab32ee8a34b2595420701fd5e40d299141122926b4352c",
+      "bytes": 21417,
+      "parts": ["P41"]
+    },
+    {
+      "title": "Preserved glossary amendments",
+      "path": "CONTEXT.md",
+      "sha256": "1696dbf7960b39d5dc1e86837a3ab36cd6f812541be07cf47b3a2d67641e84ea",
+      "bytes": 15881,
+      "parts": ["P42"],
+      "content_kind": "rendered_glossary_diff",
+      "content_json": {
+        "path": "docs/prds/sitestacker-parity/phase-27-donor-development/publication-evidence/glossary-amendments.json",
+        "field": "content"
+      },
+      "source_file_snapshot": {
+        "path": "CONTEXT.md",
+        "bytes": 444016,
+        "sha256": "a8ad9ffcb0938679884978b8e3b9dc856dbdfd1051cdd47dbc10ee27fb3b2703",
+        "verification_scope": "Historical full-file capture verified on 2026-10-11; this is not a current CONTEXT.md byte invariant."
+      }
+    }
+  ],
+  "counts": {
+    "artifacts": 21,
+    "comments": 42,
+    "stories": 193,
+    "requirements": 193,
+    "unique_acceptance": 711,
+    "operating_controls": 141,
+    "unchecked_tasks": 204
+  },
+  "verification_scope": "Historical issue #1992 title/body and 42 rendered comments were read back; artifact hashes describe the published source content. P42 is the rendered glossary-diff document, with its full source-file snapshot identified separately. This record does not report current implementation-ticket readiness. Living glossary and normative source files may subsequently evolve; ordinary artifact hashes remain historical receipts, while the archival guard verifies protected dated grill evidence and exact saved P42 content."
+}

@@ -1,0 +1,237 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "completed": true,
+  "passed": 9,
+  "total": 9,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "FK-valid stored default can be unavailable; qualified complete-set resolver chooses no arbitrary fallback",
+      "pass": true,
+      "observed": {
+        "stored_default": 11,
+        "eligible_count": 2,
+        "eligible_default": null,
+        "initial_choice": null
+      }
+    },
+    {
+      "test": "counterexample: one loaded eligible row is not a sole eligible list",
+      "pass": true,
+      "observed": {
+        "eligible_total": 3,
+        "first_page_count": 1
+      }
+    },
+    {
+      "test": "default-set first: competing withdrawal waits and its stale revision cannot partly apply",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 121,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            113
+          ]
+        },
+        "error": "40001",
+        "state": {
+          "revision": 2,
+          "default": 21,
+          "lists": [
+            {
+              "id": 21,
+              "available": true
+            },
+            {
+              "id": 22,
+              "available": true
+            },
+            {
+              "id": 23,
+              "available": true
+            }
+          ],
+          "events": 1,
+          "receipts": 1
+        }
+      }
+    },
+    {
+      "test": "withdrawal requires explicit matching-default disposition; post-call failure rolls back flags, pointer, audit and receipt",
+      "pass": true,
+      "observed": {
+        "missing_disposition_error": "23514",
+        "rollback_error": "22012",
+        "unchanged": true
+      }
+    },
+    {
+      "test": "accepted withdrawal clears only matching default coherently; observer sees old complete state before commit",
+      "pass": true,
+      "observed": {
+        "before_commit": {
+          "revision": 2,
+          "default": 21,
+          "lists": [
+            {
+              "id": 21,
+              "available": true
+            },
+            {
+              "id": 22,
+              "available": true
+            },
+            {
+              "id": 23,
+              "available": true
+            }
+          ],
+          "events": 1,
+          "receipts": 1
+        },
+        "after_commit": {
+          "revision": 3,
+          "default": null,
+          "lists": [
+            {
+              "id": 21,
+              "available": false
+            },
+            {
+              "id": 22,
+              "available": true
+            },
+            {
+              "id": 23,
+              "available": true
+            }
+          ],
+          "events": 2,
+          "receipts": 2
+        }
+      }
+    },
+    {
+      "test": "withdrawal first: waiting default mutation rejects stale revision and refreshed request rejects unavailable target",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 228,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            221
+          ]
+        },
+        "stale_error": "40001",
+        "ineligible_error": "23514",
+        "state": {
+          "revision": 2,
+          "default": null,
+          "lists": [
+            {
+              "id": 31,
+              "available": false
+            },
+            {
+              "id": 32,
+              "available": true
+            },
+            {
+              "id": 33,
+              "available": true
+            }
+          ],
+          "events": 1,
+          "receipts": 1
+        }
+      }
+    },
+    {
+      "test": "restore does not revive default; old accepted set-default retry returns historical receipt without reapplying",
+      "pass": true,
+      "observed": {
+        "old_receipt": {
+          "revision": 2,
+          "default_list_id": 21
+        },
+        "current_state": {
+          "revision": 4,
+          "default": null,
+          "lists": [
+            {
+              "id": 21,
+              "available": true
+            },
+            {
+              "id": 22,
+              "available": true
+            },
+            {
+              "id": 23,
+              "available": true
+            }
+          ],
+          "events": 3,
+          "receipts": 3
+        }
+      }
+    },
+    {
+      "test": "replacement, unrelated withdrawal and explicit unset preserve one optional default and reject stale overwrite",
+      "pass": true,
+      "observed": {
+        "after_unrelated_withdrawal": {
+          "revision": 3,
+          "default": 42,
+          "lists": [
+            {
+              "id": 41,
+              "available": false
+            },
+            {
+              "id": 42,
+              "available": true
+            },
+            {
+              "id": 43,
+              "available": true
+            }
+          ],
+          "events": 2,
+          "receipts": 2
+        },
+        "after_unset": {
+          "revision": 4,
+          "default": null,
+          "lists": [
+            {
+              "id": 41,
+              "available": false
+            },
+            {
+              "id": 42,
+              "available": true
+            },
+            {
+              "id": 43,
+              "available": true
+            }
+          ],
+          "events": 3,
+          "receipts": 3
+        },
+        "stale_error": "40001"
+      }
+    },
+    {
+      "test": "reviewed explicit list survives later default change; acceptance uses selected ID rather than late default resolution",
+      "pass": true,
+      "observed": {
+        "reviewed_list": 51,
+        "accepted_list": 51,
+        "current_default": 52
+      }
+    }
+  ]
+}

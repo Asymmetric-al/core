@@ -1,0 +1,1130 @@
+[
+  {
+    "decision": "D2",
+    "signal": "Confirmed cross-scope disclosure, forbidden resulting state or stale-authority effect",
+    "threshold": "One confirmed occurrence",
+    "owner": "P12/security owner with offending source owner",
+    "response": "Fence the affected path; preserve minimal evidence; follow incident/repair procedure; requalify before reactivation.",
+    "id": "MON27-001"
+  },
+  {
+    "decision": "D2",
+    "signal": "More than one authoritative receipt for one intended business effect",
+    "threshold": "One confirmed duplicate",
+    "owner": "P27 effect owner and shared executor owner",
+    "response": "Stop affected dispatch/admission; reconcile source receipts and obligations; repair through source commands, not blind replay.",
+    "id": "MON27-002"
+  },
+  {
+    "decision": "D2",
+    "signal": "Active journey lacks required task or owned actionable exception",
+    "threshold": "One authoritative invariant violation",
+    "owner": "P27 operations owner/shared-task owner",
+    "response": "Expose eligible repair work, restore the obligation safely and investigate the failed atomic path.",
+    "id": "MON27-003"
+  },
+  {
+    "decision": "D2",
+    "signal": "Actionable exception passes its recorded review deadline unresolved",
+    "threshold": "First evaluation after that source-owned deadline",
+    "owner": "Named responsible staff/authorized queue owner",
+    "response": "Escalate through the permitted shared-task path; keep prohibited outreach blocked. No fabricated global time budget.",
+    "id": "MON27-004"
+  },
+  {
+    "decision": "D2",
+    "signal": "Source projection presented as complete disagrees with authoritative reconciliation",
+    "threshold": "Any verified missing/duplicate covered fact",
+    "owner": "Owning reader plus P27 reporting owner",
+    "response": "Withdraw affected complete/total claim; show unavailable/incomplete coverage; repair and rebuild derived view.",
+    "id": "MON27-005"
+  },
+  {
+    "decision": "D3",
+    "signal": "Confirmed duplicate current ordinary intent or duplicated accepted source effect",
+    "threshold": "One confirmed violation",
+    "owner": "P27 source owner; relevant shared executor/communication owner",
+    "response": "Fence affected admission/dispatch, preserve receipts, reconcile through owner commands and requalify.",
+    "id": "MON27-006"
+  },
+  {
+    "decision": "D3",
+    "signal": "Confirmed forbidden disclosure, hidden-existence oracle or stale-authority mutation",
+    "threshold": "One confirmed occurrence",
+    "owner": "P12/security owner with offending source owner",
+    "response": "Contain the affected path, retain minimal evidence, apply incident/correction process and requalify.",
+    "id": "MON27-007"
+  },
+  {
+    "decision": "D3",
+    "signal": "Active journey has neither appropriate due work nor owned actionable exception",
+    "threshold": "One authoritative invariant violation",
+    "owner": "P27 operations/shared-task owner",
+    "response": "Expose permitted repair, restore actual obligation without duplicating it, investigate acceptance boundary.",
+    "id": "MON27-008"
+  },
+  {
+    "decision": "D3",
+    "signal": "Owned exception remains unresolved beyond its recorded review deadline",
+    "threshold": "First evaluation after that deadline",
+    "owner": "Recorded eligible responsible person/queue",
+    "response": "Escalate through existing source-owned work; keep blocked outreach blocked.",
+    "id": "MON27-009"
+  },
+  {
+    "decision": "D3",
+    "signal": "A projection asserted complete disagrees with authoritative source reconciliation",
+    "threshold": "Any verified missing/duplicate covered fact",
+    "owner": "Owning reader and P27 reporting owner",
+    "response": "Withdraw complete/total claim, show incomplete/unavailable coverage, correct and rebuild the derived view.",
+    "id": "MON27-010"
+  },
+  {
+    "decision": "D4",
+    "signal": "Confirmed admission outside its reviewed finite intent",
+    "threshold": "One confirmed occurrence",
+    "owner": "P27 source owner",
+    "response": "Fence affected admission path, retain minimal evidence, correct through source commands and requalify.",
+    "id": "MON27-011"
+  },
+  {
+    "decision": "D4",
+    "signal": "Duplicate ordinary intent or repeated accepted task/ask/effect",
+    "threshold": "One confirmed invariant violation",
+    "owner": "P27 with relevant task/effect owner",
+    "response": "Stop affected retries/dispatch, reconcile receipts and source records; repair without deleting independent work.",
+    "id": "MON27-012"
+  },
+  {
+    "decision": "D4",
+    "signal": "Unauthorized scope, hidden-existence signal or private result disclosure",
+    "threshold": "One confirmed occurrence",
+    "owner": "P12/security with offending source owner",
+    "response": "Contain the path, preserve restricted evidence, apply incident/correction process and requalify.",
+    "id": "MON27-013"
+  },
+  {
+    "decision": "D4",
+    "signal": "Authoritative active journey lacks required due work or owned actionable exception",
+    "threshold": "One confirmed invariant violation",
+    "owner": "P27/shared-work operations owner",
+    "response": "Surface permitted repair, restore responsibility/work through source owner; do not generate automatic solicitation.",
+    "id": "MON27-014"
+  },
+  {
+    "decision": "D4",
+    "signal": "Progress claimed terminal disagrees with authoritative item receipts",
+    "threshold": "One verified discrepancy",
+    "owner": "Admission/recovery owner",
+    "response": "Withdraw false completion claim, reconcile outcomes and prevent effect replay; investigate failed status persistence.",
+    "id": "MON27-015"
+  },
+  {
+    "decision": "D4",
+    "signal": "Unresolved item/owned exception exceeds its recorded recovery or review deadline",
+    "threshold": "First qualified evaluation after that deadline",
+    "owner": "Recorded eligible responsible person/queue and existing job operations owner",
+    "response": "Reconcile source outcome or escalate permitted repair; never treat elapsed time as proof of non-commit.",
+    "id": "MON27-016"
+  },
+  {
+    "decision": "D6",
+    "signal": "Eligible current due review lacks its required local attention",
+    "threshold": "Age exceeds **15 minutes** after eligible due instant, excluding typed not-applicable cases",
+    "owner": "Platform operations/on-call",
+    "response": "Investigate source/dispatch/qualification, reconcile the same effect; disable new attention admission for broken profile if needed. Preserve source work; no substitute email. Threshold is a planning target, not measured performance.",
+    "id": "MON27-017"
+  },
+  {
+    "decision": "D6",
+    "signal": "Active review loses qualified responsibility",
+    "threshold": "**One** proved-zero review or one indeterminate resolution",
+    "owner": "P27 source owner; current authorized responsibility manager",
+    "response": "Show source recovery exception immediately, resolve current assignment/eligibility; never broaden access or guess a queue.",
+    "id": "MON27-018"
+  },
+  {
+    "decision": "D6",
+    "signal": "Scope leak, unauthorized recipient or duplicate durable active effect",
+    "threshold": "**One** verified violation",
+    "owner": "Security/on-call with P27 and P6/P17 owners",
+    "response": "Stop affected profile, preserve evidence, revoke protected presentation, repair source/contract and requalify before resumption. These remain zero-tolerance release tests.",
+    "id": "MON27-019"
+  },
+  {
+    "decision": "D6",
+    "signal": "Permanent projection failure or retry exhaustion",
+    "threshold": "**One** typed terminal failure under the platform's existing retry policy",
+    "owner": "Platform operations",
+    "response": "Surface error and recover/replay original source identity; do not mark review complete or ask staff to repair SQL.",
+    "id": "MON27-020"
+  },
+  {
+    "decision": "D6",
+    "signal": "Human review remains unfinished past chosen local date",
+    "threshold": "**One** currently actionable overdue review",
+    "owner": "Current review assignee/partnership lead",
+    "response": "Keep it visible in the existing due/overdue work view; review or deliberately revise it. No new automatic escalation/cadence.",
+    "id": "MON27-021"
+  },
+  {
+    "decision": "D6",
+    "signal": "Staff cannot find/act on a review in the admitted surface, or can mistake it for donor contact",
+    "threshold": "**One** reproducible failure in the supported task flow",
+    "owner": "P27 product/design owner",
+    "response": "Fix the flow/copy or suspend that recipient/surface profile; repeat the affected accessibility/usability acceptance before widening rollout.",
+    "id": "MON27-022"
+  },
+  {
+    "decision": "D7",
+    "signal": "Incompatible new work or obsolete review attention admitted after accepted closure",
+    "threshold": "Any confirmed occurrence (1)",
+    "owner": "P27 source owner with shared-work/P6/P17 owner",
+    "response": "Disable affected admission path; preserve receipt/evidence; repair source-derived projection and requalify missed writer/fence before re-enabling.",
+    "id": "MON27-023"
+  },
+  {
+    "decision": "D7",
+    "signal": "Required surviving obligation loses valid accountability or discoverability",
+    "threshold": "Any confirmed occurrence (1)",
+    "owner": "The obligation's source owner, coordinated by P27",
+    "response": "Restore through authorized owner command; block affected close path until its survival/disposition contract is corrected.",
+    "id": "MON27-024"
+  },
+  {
+    "decision": "D7",
+    "signal": "Accepted closure has required projection in a terminal error after the platform's qualified retry policy",
+    "threshold": "Any terminal error (1); retry policy must be declared before activation",
+    "owner": "Shared-work/platform operations owner",
+    "response": "Reconcile from durable accepted intent; expose permitted repair status; never rerun the business close. Source-applicability protection applies immediately regardless of retry age.",
+    "id": "MON27-025"
+  },
+  {
+    "decision": "D7",
+    "signal": "Closed/no-longer-required work still appears as currently required or changes success/contact totals",
+    "threshold": "Any reproducible discrepancy (1)",
+    "owner": "P27 read-model/reporting owner",
+    "response": "Correct predicate/projection; invalidate affected cached result; verify matching drill-down/history. Stop affected reporting if meaning is unreliable.",
+    "id": "MON27-026"
+  },
+  {
+    "decision": "D7",
+    "signal": "Protected closure/readiness/history data disclosed or restored contrary to current authority/erasure",
+    "threshold": "Any confirmed occurrence (1)",
+    "owner": "P12/security owner plus affected data owner",
+    "response": "Contain affected surface/worker, apply existing incident process, repair the authority/content fence and requalify before return.",
+    "id": "MON27-027"
+  },
+  {
+    "decision": "D10",
+    "signal": "Accepted fresh selection references a stage already retired at acceptance, or scoped relationship/history invariant fails",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 source engineering owner",
+    "response": "Stop affected new writes, preserve evidence, investigate all writers and repair via source; activate wider incident handling if scope unknown.",
+    "id": "MON27-028"
+  },
+  {
+    "decision": "D10",
+    "signal": "Unauthorized tenant/entity/catalog/history/usage disclosure",
+    "threshold": "Any confirmed occurrence",
+    "owner": "Security/P12 owner",
+    "response": "Contain the affected route/cache/export, revoke unsafe access, assess exposure and follow security incident procedure. Never merely monitor continued leakage.",
+    "id": "MON27-029"
+  },
+  {
+    "decision": "D10",
+    "signal": "Configuration projection still behind source after a completed reconciliation attempt",
+    "threshold": "Any such result",
+    "owner": "P27 operations owner",
+    "response": "Mark affected view stale, inspect scoped outbox/projection status, retry/repair without reapplying source change.",
+    "id": "MON27-030"
+  },
+  {
+    "decision": "D10",
+    "signal": "One business-effect key produces multiple accepted configuration outcomes",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 source engineering owner",
+    "response": "Disable affected replay/write path, reconcile provenance and fix effect deduplication before re-enable.",
+    "id": "MON27-031"
+  },
+  {
+    "decision": "D10",
+    "signal": "Configuration transaction timeout or deadlock failure",
+    "threshold": "Three such failures within 15 minutes for the same tenant/preset; proposed operational trigger, not a measured SLO",
+    "owner": "Platform performance owner",
+    "response": "Inspect scoped plans/contention; bound or pause the offending optional operation and correct index/query/batch behavior. Numeric request budgets and database timeouts must be qualified before activation under R17/AC16.",
+    "id": "MON27-032"
+  },
+  {
+    "decision": "D10",
+    "signal": "A usability pilot user cannot locate retained retired-stage work, confuses configuration with a journey change, or must use a pointer drag",
+    "threshold": "Any reproducible failed task",
+    "owner": "P27 product/accessibility owner",
+    "response": "Correct interaction/wording and rerun the affected acceptance task before broader rollout. No unsupported percentage target.",
+    "id": "MON27-033"
+  },
+  {
+    "decision": "D11",
+    "signal": "Otherwise valid ordinary stage save requires tenant-added note/acknowledgment/unrelated field",
+    "threshold": "Any reproducible instance",
+    "owner": "P27 product/source owner",
+    "response": "Remove the hidden gate from the affected path; rerun AC01/AC03 before reopening that path.",
+    "id": "MON27-034"
+  },
+  {
+    "decision": "D11",
+    "signal": "Unauthorized cross-scope/read/history/receipt disclosure",
+    "threshold": "Any confirmed instance",
+    "owner": "Security/P12 owner",
+    "response": "Contain affected routes/caches/exports, preserve evidence and invoke security incident handling.",
+    "id": "MON27-035"
+  },
+  {
+    "decision": "D11",
+    "signal": "Duplicate accepted stage effect or stale overwrite",
+    "threshold": "Any confirmed instance",
+    "owner": "P27 source engineering owner",
+    "response": "Stop affected writes, reconcile accepted history and repair protocol before re-enable.",
+    "id": "MON27-036"
+  },
+  {
+    "decision": "D11",
+    "signal": "An unconfirmed mutation is still unresolved after one completed authorized reconciliation attempt",
+    "threshold": "Any such result",
+    "owner": "P27 operations owner",
+    "response": "Keep status unconfirmed, correlate source receipt/read failure and repair; do not ask staff to create a new effect blindly.",
+    "id": "MON27-037"
+  },
+  {
+    "decision": "D11",
+    "signal": "Configuration or stage command timeout/deadlock failures",
+    "threshold": "Three failures in 15 minutes for the same tenant/source slice; proposed operating trigger, not measured SLO",
+    "owner": "Platform performance owner",
+    "response": "Inspect contention/plans, bound affected work and repair; qualified numeric budgets remain an activation prerequisite.",
+    "id": "MON27-038"
+  },
+  {
+    "decision": "D11",
+    "signal": "Usability participant cannot identify current/proposed/saved state, complete without drag, or access essential guidance",
+    "threshold": "Any reproducible critical task failure",
+    "owner": "P27 product/accessibility owner",
+    "response": "Correct composition/copy, retest that task and block wider release until resolved.",
+    "id": "MON27-039"
+  },
+  {
+    "decision": "D12",
+    "signal": "Valid direct skip/backward change blocked by sequence, mandatory note or approval",
+    "threshold": "Any reproducible case",
+    "owner": "P27 product/source owner",
+    "response": "Remove the unintended gate and rerun AC01 on every affected entry point.",
+    "id": "MON27-040"
+  },
+  {
+    "decision": "D12",
+    "signal": "Synthetic intermediate visit, duplicate event, stale overwrite or old receipt presented as current",
+    "threshold": "Any confirmed case",
+    "owner": "P27 source engineering owner",
+    "response": "Stop affected writes/consumer, preserve evidence, reconcile source history and fix ordering before re-enable.",
+    "id": "MON27-041"
+  },
+  {
+    "decision": "D12",
+    "signal": "Unauthorized cross-scope/history/receipt disclosure",
+    "threshold": "Any confirmed case",
+    "owner": "Security/P12 owner",
+    "response": "Contain affected routes/caches/exports and invoke security incident response.",
+    "id": "MON27-042"
+  },
+  {
+    "decision": "D12",
+    "signal": "Repeated stage counted as new supporter/money or revives consumed work",
+    "threshold": "Any confirmed case",
+    "owner": "P27 owner with reporting/work owner",
+    "response": "Disable affected derived metric/effect, repair from authoritative facts, replay safely after proof.",
+    "id": "MON27-043"
+  },
+  {
+    "decision": "D12",
+    "signal": "Unconfirmed command remains unresolved after one completed reconciliation attempt",
+    "threshold": "Any such result",
+    "owner": "P27 operations owner",
+    "response": "Keep result unconfirmed, correlate the durable intent and repair the read/recovery path; never request a blind new change.",
+    "id": "MON27-044"
+  },
+  {
+    "decision": "D12",
+    "signal": "Same source slice has repeated timeout/deadlock errors",
+    "threshold": "Three in 15 minutes per tenant/source slice; proposed operating trigger, not a measured SLO",
+    "owner": "Platform performance owner",
+    "response": "Inspect lock/query plans, bound affected traffic and repair; validate against qualified budgets.",
+    "id": "MON27-045"
+  },
+  {
+    "decision": "D12",
+    "signal": "Participant cannot distinguish current/proposed/saved, change without drag or understand preserved return history",
+    "threshold": "Any reproducible critical task failure in pilot/support evidence",
+    "owner": "P27 product/accessibility owner",
+    "response": "Fix interaction/copy, rerun affected tasks and block rollout expansion until resolved.",
+    "id": "MON27-046"
+  },
+  {
+    "decision": "D13",
+    "signal": "Valid no-stage admission blocked or silently defaulted",
+    "threshold": "Any confirmed reproduction on a supported path",
+    "owner": "P27 product/source owner",
+    "response": "Fix or disable the affected path while preserving accepted work; add all-path regression evidence.",
+    "id": "MON27-047"
+  },
+  {
+    "decision": "D13",
+    "signal": "Eligible unassessed work missing from an ordinary view/declared total",
+    "threshold": "Any confirmed mismatch for identical authorized scope/coverage",
+    "owner": "P27 read-model owner; P33 for metric semantics",
+    "response": "Correct source-derived query/projection, reconcile affected views, preserve provenance; do not relabel records to hide the error.",
+    "id": "MON27-048"
+  },
+  {
+    "decision": "D13",
+    "signal": "Cross-scope/field existence disclosure through absence/read/count",
+    "threshold": "Any confirmed disclosure",
+    "owner": "P12/security owner with P27",
+    "response": "Contain affected exposure immediately, preserve minimal incident evidence, require negative authorization proof before reactivation.",
+    "id": "MON27-049"
+  },
+  {
+    "decision": "D13",
+    "signal": "Old null intent overwrites a recorded stage or duplicates its effect",
+    "threshold": "Any confirmed instance",
+    "owner": "P27 source engineering owner",
+    "response": "Stop affected writer/replay path, reconcile from durable evidence through qualified repair, restore only after race/retry tests.",
+    "id": "MON27-050"
+  },
+  {
+    "decision": "D13",
+    "signal": "Admission/assessment remains unconfirmed after attempted reconciliation",
+    "threshold": "One completed reconciliation attempt still cannot determine the authoritative result",
+    "owner": "P27 operations/source owner",
+    "response": "Keep outcome explicitly unresolved, inspect durable intent/result and source revision; do not issue a new effect blindly.",
+    "id": "MON27-051"
+  },
+  {
+    "decision": "D13",
+    "signal": "Critical user cannot identify outcome, next action or Set/Change stage",
+    "threshold": "Any reproducible critical task failure in pilot/support",
+    "owner": "P27 product/design and accessibility owners",
+    "response": "Fix/test the interaction; block expansion of affected flow, preserve a qualified accessible alternative.",
+    "id": "MON27-052"
+  },
+  {
+    "decision": "D13",
+    "signal": "Query breaches its approved measured release budget",
+    "threshold": "Three consecutive measurements within 15 minutes for the same declared workload slice",
+    "owner": "P27 engineering/operations",
+    "response": "Inspect plan/load/coverage, reduce affected rollout or repair query/index; do not drop unassessed/unauthorized distinctions for speed.",
+    "id": "MON27-053"
+  },
+  {
+    "decision": "D14",
+    "signal": "One create intent yields multiple lists/history effects or visible partial configuration",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 source engineering",
+    "response": "Stop the affected create/replay path; reconcile from durable evidence with qualified repair; require regression proof before reactivation.",
+    "id": "MON27-054"
+  },
+  {
+    "decision": "D14",
+    "signal": "Creation changes any existing journey/list assignment/stage or triggers outreach",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 source owner; communication owner for dispatch",
+    "response": "Contain the affected command/consumer, preserve minimal incident evidence, reconcile independent source facts; do not erase history to hide the event.",
+    "id": "MON27-055"
+  },
+  {
+    "decision": "D14",
+    "signal": "Cross-scope metadata, private usage count or journey detail disclosure",
+    "threshold": "Any confirmed disclosure",
+    "owner": "P12/security with P27",
+    "response": "Restrict the exposure immediately, investigate scope and require actual negative authorization proof.",
+    "id": "MON27-056"
+  },
+  {
+    "decision": "D14",
+    "signal": "Outcome stays unconfirmed after a completed reconciliation attempt",
+    "threshold": "One completed attempt cannot establish the authoritative result",
+    "owner": "P27 operations/source owner",
+    "response": "Keep the outcome explicit, inspect scoped intent/result/current revision, avoid a fresh effect and recover through the source.",
+    "id": "MON27-057"
+  },
+  {
+    "decision": "D14",
+    "signal": "Offered view/report drops eligible work or merges distinct stage meanings",
+    "threshold": "Any confirmed mismatch for equal authorized scope/coverage",
+    "owner": "P27 read-model owner; P33 for metrics",
+    "response": "Repair/rebuild the source-derived projection; expose coverage honestly and retain original meaning.",
+    "id": "MON27-058"
+  },
+  {
+    "decision": "D14",
+    "signal": "Critical confusion about list choice, create effects or saved outcome",
+    "threshold": "Any reproducible critical failure in pilot/support",
+    "owner": "P27 product/design and accessibility owners",
+    "response": "Fix and retest the affected interaction before expansion; no compulsory extra steps without evidence.",
+    "id": "MON27-059"
+  },
+  {
+    "decision": "D14",
+    "signal": "Query/payload exceeds its approved measured release budget",
+    "threshold": "Three consecutive measurements within 15 minutes in the same declared workload slice",
+    "owner": "P27 engineering/operations",
+    "response": "Inspect plan/load/limits and restrict affected rollout or repair query/index; do not discard records or permissions for speed.",
+    "id": "MON27-060"
+  },
+  {
+    "decision": "D15",
+    "signal": "New attachment accepted while withdrawal is current at that attachment's ordered acceptance",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 engineering on-call",
+    "response": "Disable the affected admission/attachment door, preserve receipts/history, identify affected work and correct through the source; involve P12/security if authority failed.",
+    "id": "MON27-061"
+  },
+  {
+    "decision": "D15",
+    "signal": "Existing stage operation denied solely by whole-list withdrawal, or existing work omitted by that filter",
+    "threshold": "Any reproducible occurrence",
+    "owner": "P27 engineering with P28 surface owner",
+    "response": "Repair the eligibility/read path; reconcile affected projections. Do not make the list available for new work as a workaround.",
+    "id": "MON27-062"
+  },
+  {
+    "decision": "D15",
+    "signal": "Retained usable catalog has zero selectable stages",
+    "threshold": "Any confirmed catalog violation",
+    "owner": "P27 configuration/source owner",
+    "response": "Block unsafe further configuration/selection, retain unrelated work, perform authorized audited repair and identify the failing writer.",
+    "id": "MON27-063"
+  },
+  {
+    "decision": "D15",
+    "signal": "Accepted configuration lacks required history/result, or same intent has duplicate business effects",
+    "threshold": "Any confirmed mismatch",
+    "owner": "P27 source operations owner",
+    "response": "Contain the affected mutation path, reconcile from authoritative evidence, repair without deleting accepted history and verify retry safety.",
+    "id": "MON27-064"
+  },
+  {
+    "decision": "D15",
+    "signal": "Unauthorized tenant/context/history/count disclosure",
+    "threshold": "Any confirmed event",
+    "owner": "P12 security incident owner",
+    "response": "Contain affected access/cache/export, apply existing incident procedure and verify scope/revocation before reopening.",
+    "id": "MON27-065"
+  },
+  {
+    "decision": "D15",
+    "signal": "Staff misinterpret list retirement as ending a partnership or stopping follow-up",
+    "threshold": "Any validated report or observed usability failure",
+    "owner": "P27 product/design owner",
+    "response": "Reproduce the flow, correct wording/hierarchy/behavior and retest affected scenarios; investigate missed work where applicable.",
+    "id": "MON27-066"
+  },
+  {
+    "decision": "D16",
+    "signal": "Accepted wrong-list stage, silent stage substitution or duplicate ordinary work caused by list choice",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 source engineering/on-call",
+    "response": "Contain the affected admission door, preserve receipts/history, identify affected work and correct through the qualified source boundary.",
+    "id": "MON27-067"
+  },
+  {
+    "decision": "D16",
+    "signal": "Unauthorized catalog/context/preview/count/result disclosure",
+    "threshold": "Any confirmed event",
+    "owner": "P12 security incident owner",
+    "response": "Contain affected cache/API/export access and follow existing incident procedure; verify current-context isolation before reopening.",
+    "id": "MON27-068"
+  },
+  {
+    "decision": "D16",
+    "signal": "Valid choice denied solely by an unselected app/Party-type/process filter",
+    "threshold": "Any reproducible occurrence",
+    "owner": "P27 with P28 surface owner",
+    "response": "Remove the unselected restriction while preserving real source/permission floors; test affected surfaces and regression.",
+    "id": "MON27-069"
+  },
+  {
+    "decision": "D16",
+    "signal": "Accepted result missing required binding/history/receipt or late UI result applied to another context",
+    "threshold": "Any confirmed mismatch",
+    "owner": "P27 engineering",
+    "response": "Stop the faulty mutation/presentation path as appropriate, reconcile source evidence and repair without replaying accepted effects.",
+    "id": "MON27-070"
+  },
+  {
+    "decision": "D16",
+    "signal": "Staff misunderstand a list as changing giving/access or creating another partnership",
+    "threshold": "Any validated support report or observed usability failure",
+    "owner": "P27 product/design owner",
+    "response": "Reproduce, correct wording/interaction/guidance and retest; investigate erroneous records through the qualified correction path.",
+    "id": "MON27-071"
+  },
+  {
+    "decision": "D17",
+    "signal": "Established selected list overwritten by initializer/refetch, or accepted list differs from displayed submitted intent",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 engineering/on-call with shared UI owner",
+    "response": "Contain faulty prefilling, preserve qualified manual admission and receipts, identify affected work, fix and regression-test the exact path.",
+    "id": "MON27-072"
+  },
+  {
+    "decision": "D17",
+    "signal": "Protected default/target/context disclosed through choice, cache, metadata, export or logs",
+    "threshold": "Any confirmed event",
+    "owner": "P12 security incident owner",
+    "response": "Contain the revealing path and follow existing incident process; verify minimum-safe projection and context isolation before reopening.",
+    "id": "MON27-073"
+  },
+  {
+    "decision": "D17",
+    "signal": "Default points to withdrawn/foreign list, withdrawal clears a newer unrelated default, or replay revives a cleared default",
+    "threshold": "Any confirmed invariant violation",
+    "owner": "P27 source engineering/on-call",
+    "response": "Stop affected configuration door, preserve durable evidence, repair through the authorized source command and verify concurrent/replay paths.",
+    "id": "MON27-074"
+  },
+  {
+    "decision": "D17",
+    "signal": "Optional suggestion outage blocks an independently valid explicit start",
+    "threshold": "Any reproducible occurrence",
+    "owner": "P27 API/UI owner",
+    "response": "Restore the independent explicit-choice path, diagnose helper coupling and regression-test failure states.",
+    "id": "MON27-075"
+  },
+  {
+    "decision": "D17",
+    "signal": "Staff believe prefill proves suitability or cannot discover/change another permitted choice",
+    "threshold": "Any validated support report or observed usability failure",
+    "owner": "P27 product/design owner",
+    "response": "Reproduce and correct hierarchy/copy/interaction, review resulting record errors through qualified recovery, then retest with users.",
+    "id": "MON27-076"
+  },
+  {
+    "decision": "D18",
+    "signal": "Accepted mismatched list/stage, changed journey identity/purpose or duplicate enrollment from a switch",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 source engineering/on-call",
+    "response": "Contain the switching writer, preserve evidence/current safe reads, reconcile affected work through authorized source repair and regression-test all affected doors.",
+    "id": "MON27-077"
+  },
+  {
+    "decision": "D18",
+    "signal": "Protected old/target/history/context disclosed through UI, errors, cache, export or logs",
+    "threshold": "Any confirmed event",
+    "owner": "P12 security incident owner",
+    "response": "Contain revealing path, use existing incident process and verify minimum projection/context isolation before re-enabling.",
+    "id": "MON27-078"
+  },
+  {
+    "decision": "D18",
+    "signal": "Old accepted retry overwrites newer binding, or one intended change duplicates history/required effects",
+    "threshold": "Any confirmed occurrence",
+    "owner": "P27 API/on-call with affected owner",
+    "response": "Stop defective mutation/replay consumer, reconcile by durable intent and source ordering; fix and retest concurrency/retry.",
+    "id": "MON27-079"
+  },
+  {
+    "decision": "D18",
+    "signal": "Accepted change has missing required owner effect or unresolved source-result reconciliation",
+    "threshold": "Any confirmed invariant failure",
+    "owner": "P27 source owner and shared work/delivery owner as applicable",
+    "response": "Recover the existing durable effect, never issue a replacement enrollment; diagnose acceptance/consumer seam before resuming affected path.",
+    "id": "MON27-080"
+  },
+  {
+    "decision": "D18",
+    "signal": "Staff cannot explain stage consequence or mistake the change for starting over/erasing history",
+    "threshold": "Any validated support report or observed usability failure",
+    "owner": "P27 product/design owner",
+    "response": "Reproduce, correct copy/interaction and resulting records through qualified recovery; retest with representative users.",
+    "id": "MON27-081"
+  },
+  {
+    "decision": "D19",
+    "signal": "Accepted binding/history/result inconsistency, invalid scope/list pair, or duplicate accepted occurrence",
+    "threshold": "Any confirmed instance",
+    "owner": "P27 source owner / on-call",
+    "response": "Stop affected writes, preserve receipts/evidence, diagnose and repair through source; requalify before enabling.",
+    "id": "MON27-082"
+  },
+  {
+    "decision": "D19",
+    "signal": "Unauthorized disclosure, hidden-as-unassessed classification or cross-tenant result",
+    "threshold": "Any confirmed instance",
+    "owner": "P12 security owner with P27 owner",
+    "response": "Contain affected route/projection, follow incident procedure, correct policy and re-run actual-role negative proofs.",
+    "id": "MON27-083"
+  },
+  {
+    "decision": "D19",
+    "signal": "Portfolio reconciliation mismatch for the same fully authorized population and source version",
+    "threshold": "Any non-zero unexplained difference",
+    "owner": "P33 reporting owner with P27 source owner",
+    "response": "Mark affected measure unavailable; fix projection/null semantics and rebuild from source without altering assessments.",
+    "id": "MON27-084"
+  },
+  {
+    "decision": "D19",
+    "signal": "A required effect accepted but not reconciled, or an operation result persistently unresolved",
+    "threshold": "Beyond the existing owning effect/recovery contract's deadline; if none exists, that reached effect cannot be enabled until one is defined",
+    "owner": "Shared work/effect owner and P27 on-call",
+    "response": "Reconcile by durable intent, show owned exception, do not replay the business change or create duplicate work.",
+    "id": "MON27-085"
+  },
+  {
+    "decision": "D19",
+    "signal": "Confirmed staff confusion causing unintended no-stage save, lost draft, or inability to find Set stage",
+    "threshold": "Any reproduced user-impacting case in pilot/support",
+    "owner": "P27 product/design owner",
+    "response": "Inspect the actual flow, correct wording/state/controls and re-run affected usability/accessibility scenarios; no automatic guessed stage.",
+    "id": "MON27-086"
+  },
+  {
+    "decision": "D19",
+    "signal": "Surface/query latency or error-budget violation",
+    "threshold": "The explicit measured budget agreed for that surface before release",
+    "owner": "API/UI performance owner",
+    "response": "Inspect scoped query plans/cohort and regression, repair access path/rendering; no speculative cache or loosening authorization.",
+    "id": "MON27-087"
+  },
+  {
+    "decision": "D22",
+    "signal": "Duplicate request/response/effect for one permanent source-purpose identity, or impossible monetary tuple",
+    "threshold": "Any one confirmed case",
+    "owner": "P27 engineering owner; financial owner for affected links",
+    "response": "Contain the affected writer/consumer, preserve evidence, reconcile by source identity and repair through qualified correction; investigate before reenabling.",
+    "id": "MON27-088"
+  },
+  {
+    "decision": "D22",
+    "signal": "Source-confirmed financial aggregate disagrees with its explicit owner measure after completed reconciliation",
+    "threshold": "Any nonzero unexplained difference in the same entity/currency/horizon",
+    "owner": "Finance data owner with P27 reporting owner",
+    "response": "Mark affected result unavailable/incomplete, stop relying on it, identify duplicate/missing coverage; never alter source money to make the report match.",
+    "id": "MON27-089"
+  },
+  {
+    "decision": "D22",
+    "signal": "Due work with no eligible responsible destination or failed required task projection at the recovery check",
+    "threshold": "Any one unresolved occurrence",
+    "owner": "Tenant development operations owner; shared-work engineering owner for delivery failure",
+    "response": "Surface the authorized exception, reassign/recover through source controls; do not broadcast protected work or mark it complete.",
+    "id": "MON27-090"
+  },
+  {
+    "decision": "D22",
+    "signal": "Unauthorized request/history/content disclosure",
+    "threshold": "Any one verified disclosure",
+    "owner": "Security/privacy owner and affected source owner",
+    "response": "Contain the projection, investigate scope and follow incident/retention procedure; monitoring never substitutes for authorization.",
+    "id": "MON27-091"
+  },
+  {
+    "decision": "D22",
+    "signal": "Accepted source mutation missing its required lawful history/result/effect intent",
+    "threshold": "Any one confirmed inconsistency",
+    "owner": "P27 engineering owner",
+    "response": "Disable affected mutation path, preserve source evidence and repair through an audited owner procedure; treat as atomicity defect.",
+    "id": "MON27-092"
+  },
+  {
+    "decision": "D23",
+    "signal": "Accepted decision/action with invalid scope, stale required terms or duplicate terminal effect",
+    "threshold": "Any one verified occurrence",
+    "owner": "P27 engineering on-call + P12/affected action owner",
+    "response": "Disable affected new decisions/action route, preserve facts, investigate exact receipts/fences and repair through authorized commands before resuming.",
+    "id": "MON27-093"
+  },
+  {
+    "decision": "D23",
+    "signal": "Submitted active review with no qualified next reviewer/recovery visibility",
+    "threshold": "Any one detected occurrence",
+    "owner": "Tenant's qualified request/recovery owner; platform support owns delivery defects",
+    "response": "Show Needs reviewer/source exception immediately; use eligible reassignment or authorized policy correction. Never auto-approve or broadcast.",
+    "id": "MON27-094"
+  },
+  {
+    "decision": "D23",
+    "signal": "Committed source review without reconciled required work projection",
+    "threshold": "Older than 5 minutes, or any terminal projection failure",
+    "owner": "Shared-work integration on-call",
+    "response": "Alert, inspect source/outbox IDs, retry/reconcile safely; show accepted review separately from projection delay. This is a proposed trigger, not a delivery SLA.",
+    "id": "MON27-095"
+  },
+  {
+    "decision": "D23",
+    "signal": "Review displayed optional/approved while source status is unknown or denied",
+    "threshold": "Any one verified occurrence",
+    "owner": "P27/UI engineering owner with P12",
+    "response": "Stop affected action presentation, repair safe state handling and add regression proof.",
+    "id": "MON27-096"
+  },
+  {
+    "decision": "D23",
+    "signal": "Staff pilot mistakes approval for donor agreement, send, or permission to access protected data",
+    "threshold": "Any one unsafe misunderstanding",
+    "owner": "Product/UX owner",
+    "response": "Revise language/composition and rerun the scenario before pilot expansion; do not solve with more mandatory clicks by default.",
+    "id": "MON27-097"
+  },
+  {
+    "decision": "D23",
+    "signal": "Qualified latency/backlog budget exceeded",
+    "threshold": "3 consecutive 5-minute windows, or exhausted retry budget once",
+    "owner": "P27 operations/query owner",
+    "response": "Inspect per-Tenant plans/lock waits and source reconciliation; throttle affected nonessential projection/import, preserve reads/fact intake and required source authority. Numeric budgets/envelope must be named in the release record before activation.",
+    "id": "MON27-098"
+  },
+  {
+    "decision": "D24",
+    "signal": "Unselected inclusion, duplicate current member or stale retry restoring removed/excluded work",
+    "threshold": "Any one verified occurrence",
+    "owner": "P27 engineering on-call",
+    "response": "Stop affected new membership writer/group path, preserve receipts/history, investigate exact ordering, repair through source commands and require regression proof.",
+    "id": "MON27-099"
+  },
+  {
+    "decision": "D24",
+    "signal": "Appeal-originated outreach admitted after an earlier applicable exclusion/removal fence",
+    "threshold": "Any one verified occurrence",
+    "owner": "P27 + P6/P32 integration on-call",
+    "response": "Disable affected outward binding, reconcile transport/provider truth, preserve evidence; do not claim recall or delete membership history.",
+    "id": "MON27-100"
+  },
+  {
+    "decision": "D24",
+    "signal": "Protected membership/count/reason/result exposed across current scope",
+    "threshold": "Any one verified occurrence",
+    "owner": "P12/security owner with P27",
+    "response": "Contain affected projection/export, investigate disclosure, repair cache/authorization and follow existing incident process.",
+    "id": "MON27-101"
+  },
+  {
+    "decision": "D24",
+    "signal": "Accepted membership change lacks required secondary projection reconciliation",
+    "threshold": "Older than 5 minutes, or any terminal retry failure",
+    "owner": "Shared-work/communication integration on-call",
+    "response": "Surface accepted change versus delayed projection separately; reconcile exact durable intent safely. Five minutes is an operating trigger, not a promised delivery time.",
+    "id": "MON27-102"
+  },
+  {
+    "decision": "D24",
+    "signal": "Current membership merge conflict has no permitted recovery route",
+    "threshold": "Any one detected conflict without a route",
+    "owner": "P27 source recovery owner + P9 identity owner",
+    "response": "Withhold affected actionable member only, expose safe resolution, retain history and prevent duplicate workaround.",
+    "id": "MON27-103"
+  },
+  {
+    "decision": "D24",
+    "signal": "Pilot participant mistakes inclusion for Asked, or Remove for recall/erasure",
+    "threshold": "Any one unsafe misunderstanding",
+    "owner": "Product/UX owner",
+    "response": "Revise language/composition and retest before pilot expansion; do not default to more mandatory dialogs.",
+    "id": "MON27-104"
+  },
+  {
+    "decision": "D24",
+    "signal": "Admitted query/command/backlog budget exceeded",
+    "threshold": "3 consecutive 5-minute windows, or one exhausted retry budget",
+    "owner": "P27 operations/database owner",
+    "response": "Diagnose measured per-Tenant scans/locks/recovery; bound affected imports/projections without dropping history or bypassing restrictions. Numeric budgets must be named before activation.",
+    "id": "MON27-105"
+  },
+  {
+    "decision": "D25",
+    "signal": "Duplicate posting, wrong source linkage or pending item counted as received money",
+    "threshold": "Any one verified occurrence",
+    "owner": "P15 intake + P13 financial on-call",
+    "response": "Stop affected resolution/new-post lane, preserve source truth, reconcile with existing correction authority and add regression proof. Never delete posted history.",
+    "id": "MON27-106"
+  },
+  {
+    "decision": "D25",
+    "signal": "Unresolved physical-gift responsibility silently disappears or recording falsely completes handling",
+    "threshold": "Any one verified occurrence",
+    "owner": "P15 intake operations owner",
+    "response": "Contain the closing/cleanup path, recover source responsibility and physical handling through authorized operations, correct the projection.",
+    "id": "MON27-107"
+  },
+  {
+    "decision": "D25",
+    "signal": "No eligible handler and no owned source recovery route",
+    "threshold": "Any one confirmed occurrence",
+    "owner": "P15 intake recovery owner with P12",
+    "response": "Surface the restricted source exception; repair eligibility/routing without broad broadcast or guessed permission. Keep accepted evidence.",
+    "id": "MON27-108"
+  },
+  {
+    "decision": "D25",
+    "signal": "Private handoff/financial facts leak through tasks, logs, exports or cached results",
+    "threshold": "Any one verified occurrence",
+    "owner": "P12/security owner with P15",
+    "response": "Contain affected projection/egress, follow incident process, reconcile access/cache and requalify before reopening.",
+    "id": "MON27-109"
+  },
+  {
+    "decision": "D25",
+    "signal": "Accepted source change lacks required projection/reconciliation",
+    "threshold": "Older than 5 minutes, or any terminal retry failure",
+    "owner": "P15 integration on-call",
+    "response": "Show accepted source state and delayed projection separately; replay exact durable intent/reconcile financial outcome without reposting. Five minutes is an operating trigger.",
+    "id": "MON27-110"
+  },
+  {
+    "decision": "D25",
+    "signal": "Human handling action exceeds its source-owned due/review date",
+    "threshold": "Any overdue applicable action",
+    "owner": "Current P15 accountable handler; intake lead for routing exceptions",
+    "response": "Review the actual obstruction/handling, update source next action and existing attention; no automatic donor solicitation or bank-clearance inference.",
+    "id": "MON27-111"
+  },
+  {
+    "decision": "D25",
+    "signal": "Pilot user confuses possession, assignment, posting or clearance, or enters a second gift",
+    "threshold": "Any one unsafe misunderstanding",
+    "owner": "Product/UX owner with finance-intake lead",
+    "response": "Revise the flow/wording and retest before pilot expansion. No assumed safety from primitive accessibility alone.",
+    "id": "MON27-112"
+  },
+  {
+    "decision": "D25",
+    "signal": "Declared admitted workload budget exceeded",
+    "threshold": "Three consecutive 5-minute windows, or one exhausted recovery budget",
+    "owner": "P15 operations/database owner",
+    "response": "Diagnose scoped plans/locks/backlog and bound affected ingestion/projections without losing accepted handoffs. Set numeric budgets before activation.",
+    "id": "MON27-113"
+  },
+  {
+    "decision": "D29",
+    "signal": "Cross-scope disclosure or changed financial/source truth",
+    "threshold": "Any confirmed event",
+    "owner": "Security lead + affected domain owner",
+    "response": "Disable affected route/effect immediately, contain access, investigate and repair through source; requalify before enabling.",
+    "id": "MON27-114"
+  },
+  {
+    "decision": "D29",
+    "signal": "Duplicate Request/task effect or inconsistent canonical identity",
+    "threshold": "Any confirmed invariant failure",
+    "owner": "P27 engineering owner",
+    "response": "Stop affected writer/projector, reconcile exact operations and repair once; prove replay before resume.",
+    "id": "MON27-115"
+  },
+  {
+    "decision": "D29",
+    "signal": "Projection lag",
+    "threshold": "Exceeds the adapter's predeclared freshness budget for two consecutive checks, or any result shown current beyond it",
+    "owner": "Source adapter owner",
+    "response": "Show Updating/unavailable immediately on budget breach; investigate backlog and replay. Do not wait two checks to fix the UI claim.",
+    "id": "MON27-116"
+  },
+  {
+    "decision": "D29",
+    "signal": "Missed qualified closure disposition or orphaned required work",
+    "threshold": "Any closed appeal lacking required durable disposition/continuation",
+    "owner": "P27 operations owner",
+    "response": "Stop further closure on the affected path, route existing work for source repair without fabricating completion.",
+    "id": "MON27-117"
+  },
+  {
+    "decision": "D29",
+    "signal": "Performance outside qualified envelope",
+    "threshold": "p95 or error rate exceeds the release manifest's numeric bound for two consecutive five-minute windows",
+    "owner": "Application operations owner",
+    "response": "Bound bulk concurrency/disable affected enhancement, investigate source/query plan and requalify; keep safe core reads available.",
+    "id": "MON27-118"
+  },
+  {
+    "decision": "D29",
+    "signal": "Critical user misunderstanding of response versus actual outcome",
+    "threshold": "Any reproducible incident in pilot or production",
+    "owner": "Product/UX owner",
+    "response": "Block pilot acceptance or affected expansion; correct copy/composition and retest the scenario.",
+    "id": "MON27-119"
+  },
+  {
+    "decision": "D29",
+    "signal": "Recurrent ordinary-work workaround",
+    "threshold": "Same task needs duplicate entry or manual DB repair in two independent incidents within 30 days",
+    "owner": "P27 product + engineering owners",
+    "response": "Trace source gap, remove duplicate step or repair the authoritative workflow, then verify with affected staff.",
+    "id": "MON27-120"
+  },
+  {
+    "signal": "Unauthorized body/metadata disclosure, wrong-context save or stale recovered result",
+    "threshold": "Any one verified occurrence",
+    "owner": "P12/security owner with P9 source on-call",
+    "response": "Contain affected write/projection, follow incident process, restrict/reconcile derivatives and requalify; no deletion of required evidence.",
+    "decision": "D26",
+    "id": "MON27-121"
+  },
+  {
+    "signal": "Shared history imposes reporting/quotas/coaching or a pilot user believes private content is shared incorrectly",
+    "threshold": "Any one confirmed behavior or unsafe misunderstanding",
+    "owner": "P27/P28 product/UX owner",
+    "response": "Stop expansion, remove coercive coupling or fix audience flow and retest with affected users.",
+    "decision": "D26",
+    "id": "MON27-122"
+  },
+  {
+    "signal": "Accepted update lacks required local audit/result or duplicates an encounter effect",
+    "threshold": "Any one verified occurrence",
+    "owner": "P9 source on-call",
+    "response": "Contain mutation path, reconcile through qualified source correction and add real regression proof.",
+    "decision": "D26",
+    "id": "MON27-123"
+  },
+  {
+    "signal": "Accepted source outcome has a stale required view or terminal reconciliation failure",
+    "threshold": "Older than 5 minutes, or any terminal failure",
+    "owner": "P9 integration operations owner",
+    "response": "Show truthful accepted/pending state, replay exact durable intent and verify current audience; never create another update.",
+    "decision": "D26",
+    "id": "MON27-124"
+  },
+  {
+    "signal": "Sensitive correction/restriction cannot be carried out through qualified recovery",
+    "threshold": "Any one confirmed case",
+    "owner": "P9 data/privacy operations owner with P12",
+    "response": "Contain disclosure immediately, exercise source recovery and repair the broken action; no routine direct database edits.",
+    "decision": "D26",
+    "id": "MON27-125"
+  },
+  {
+    "signal": "Admitted workload budget exceeded",
+    "threshold": "Three consecutive 5-minute windows, or one exhausted recovery budget",
+    "owner": "P9 database/operations owner",
+    "response": "Bound affected requests, inspect scoped plans/backlog, repair capacity without weakening authorization. Set numeric budgets before activation.",
+    "decision": "D26",
+    "id": "MON27-126"
+  },
+  {
+    "signal": "Current rating publication or new rating effect accepted after Off/current-generation mismatch",
+    "threshold": "Any accepted occurrence; target 0",
+    "owner": "P27 feature owner and platform on-call",
+    "response": "Stop rating effects for affected tenant, revoke stale projection eligibility, investigate/reconcile from source history and prove fence before re-enable.",
+    "decision": "D28",
+    "id": "MON27-127"
+  },
+  {
+    "signal": "Unauthorized/cross-tenant rating disclosure or forged scope accepted",
+    "threshold": "Any confirmed occurrence; target 0",
+    "owner": "Security on-call with P12 owner",
+    "response": "Contain affected egress, follow incident handling, repair exact boundary and repeat negative qualification. Monitoring never replaces authorization.",
+    "decision": "D28",
+    "id": "MON27-128"
+  },
+  {
+    "signal": "Duplicate accepted internal-review episode",
+    "threshold": "More than 1 active source effect for the same durable episode",
+    "owner": "P27/ADR0183 work owner",
+    "response": "Stop affected producer, reconcile through source commands and repair the uniqueness/idempotency boundary.",
+    "decision": "D28",
+    "id": "MON27-129"
+  },
+  {
+    "signal": "Rating source cutoff or job progress exceeds persisted next-refresh deadline",
+    "threshold": "Any enabled scope past its declared deadline",
+    "owner": "P27 operations owner",
+    "response": "Mark stale/block new rating inference, inspect source/backlog, resume bounded work or disable affected analysis; do not display false current values.",
+    "decision": "D28",
+    "id": "MON27-130"
+  },
+  {
+    "signal": "Automatic-review source withdrawal accepted but shared task still actionable",
+    "threshold": "Any mismatch on reconciliation",
+    "owner": "P27 source-work owner",
+    "response": "Source eligibility already blocks action; repair projection and audit the lag/error without marking Completed.",
+    "decision": "D28",
+    "id": "MON27-131"
+  },
+  {
+    "signal": "Missing eligible review recipient",
+    "threshold": "Any otherwise-admissible new episode without authorized routing",
+    "owner": "Tenant development administrator through qualified source exception, assisted by P27 owner",
+    "response": "Repair or withdraw the source requirement; no broad fallback delivery or duplicate work.",
+    "decision": "D28",
+    "id": "MON27-132"
+  },
+  {
+    "signal": "Wrong financial total/count/coverage against the same authoritative tuple",
+    "threshold": "Any unexplained discrepancy",
+    "owner": "P13/P14 source owner with P27 feature owner",
+    "response": "Suspend affected band/review generation, correct source or projection and recompute with cause; preserve money/history.",
+    "decision": "D28",
+    "id": "MON27-133"
+  },
+  {
+    "signal": "Usability report that a band means donor worth, missionary performance, or obligation to contact",
+    "threshold": "Any credible observed unsafe interpretation",
+    "owner": "Product/UX owner with tenant development lead",
+    "response": "Pause expansion of affected presentation/review mode, revise language/flow and repeat observed comprehension checks.",
+    "decision": "D28",
+    "id": "MON27-134"
+  },
+  {
+    "decision": "D30",
+    "signal": "Unauthorized/cross-tenant assignment or private-data disclosure",
+    "threshold": "Any confirmed occurrence",
+    "owner": "Security lead + P9 source owner",
+    "response": "Disable the affected mutation/egress path, contain access and repair through the source; requalify before enabling.",
+    "id": "MON27-135"
+  },
+  {
+    "decision": "D30",
+    "signal": "Manual protection overwritten, stale Auto after disable or invalid primary/role result",
+    "threshold": "Any confirmed invariant failure",
+    "owner": "P9/P27 engineering owner",
+    "response": "Stop affected automatic writes, reconcile exact receipts/source history, correct lawfully and prove the failed schedule before resume.",
+    "id": "MON27-136"
+  },
+  {
+    "decision": "D30",
+    "signal": "Required work loses accountable eligible responsibility without lawful disposition",
+    "threshold": "Any confirmed occurrence",
+    "owner": "Development operations owner + affected work owner",
+    "response": "Surface source repair, stop affected transfer path and restore qualified responsibility without resurrecting access or fabricating completion.",
+    "id": "MON27-137"
+  },
+  {
+    "decision": "D30",
+    "signal": "Repeated reassignment for unchanged authoritative basis",
+    "threshold": "More than one non-no-op transfer for the same responsibility and input/policy basis",
+    "owner": "Assignment service owner",
+    "response": "Fence that policy scope, inspect duplicate/cyclic input and repair history/effects; do not hide churn with a longer polling interval.",
+    "id": "MON27-138"
+  },
+  {
+    "decision": "D30",
+    "signal": "Projection/preview freshness",
+    "threshold": "Any output represented as current beyond its predeclared source budget",
+    "owner": "Source projection owner",
+    "response": "Immediately mark Updating/unavailable, stop unsafe dependent application and reconcile source versions.",
+    "id": "MON27-139"
+  },
+  {
+    "decision": "D30",
+    "signal": "Performance outside qualified envelope",
+    "threshold": "p95 or error rate exceeds release-manifest numeric bound for two consecutive five-minute windows",
+    "owner": "Application operations owner",
+    "response": "Bound bulk concurrency or disable affected enhancement, inspect query/worker load, requalify; preserve safe ordinary reads/edits.",
+    "id": "MON27-140"
+  },
+  {
+    "decision": "D30",
+    "signal": "Critical staff misunderstanding or recurring manual workaround",
+    "threshold": "Any reproducible harmful meaning/action error; or duplicate entry/DB repair for the same ordinary task in two independent incidents within 30 days",
+    "owner": "Product/UX + P27 engineering owners",
+    "response": "Block pilot/affected expansion, fix composition or source workflow and verify the scenario with representative staff.",
+    "id": "MON27-141"
+  }
+]

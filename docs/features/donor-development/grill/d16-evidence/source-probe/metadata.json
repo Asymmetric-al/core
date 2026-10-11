@@ -1,0 +1,29 @@
+{
+  "collected_at_utc": "2026-10-10T14:53:13.951789+00:00",
+  "test_start_epoch_ms": 1791643973756,
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "node": "v24.19.0",
+  "bun_available": false,
+  "installed_versions": {
+    "vitest": "4.1.4",
+    "@vitejs/plugin-react": "6.0.1",
+    "jsdom": "26.1.0",
+    "@testing-library/react": "16.3.2",
+    "@base-ui/react": "1.8.0",
+    "react": "19.2.3"
+  },
+  "command": "node node_modules/vitest/vitest.mjs run --config docs/features/donor-development/grill/d16-evidence/source-probe/vitest.config.mjs --reporter=json --outputFile=docs/features/donor-development/grill/d16-evidence/source-probe/results.json",
+  "passed": 1,
+  "failed": 0,
+  "sha256": {
+    "docs/features/donor-development/grill/d16-evidence/source-probe/controlled-options.test.tsx": "f4603ebf8474191b24aba3cdf2b99160d6fc4bbef4dac0e543af418e9d203885",
+    "docs/features/donor-development/grill/d16-evidence/source-probe/vitest.config.mjs": "5645f32f2f945823c4b042f2f4077a69f79ee43318491e2705af21ac36852d83",
+    "tests/setup/unit-env.ts": "acc4377808599a115e73d611a6398b2a86028d3bcedf944b5128dadddd1e0109",
+    "vitest.pin-workspace-packages.ts": "dd9d854a5fa420ba79bc21c51222cb335409e9198519c95a97bea8a9b415bb82",
+    "vitest.per-importer-alias.ts": "f002181fab79a97c0268da1aeb9bb18721b815682e9a6fbc45a4dfb803361780",
+    "packages/ui/components/shadcn/searchable-select.tsx": "8998cde4bd8ab7e90d66e79a9f0dea848eb399a5117372fa40c02361b7f03cc1",
+    "packages/ui/components/shadcn/combobox.ts": "193c1402b6a11ae738f33c2edd9f404443222530a64ae4391dd41d94016a3710",
+    "packages/ui/components/shadcn/combobox-component.tsx": "a13cc150c43228f57b50d1a18883c1bd6ce8bff97356212229fa81d8ea24f80b",
+    "packages/ui/components/shadcn/combobox-variants.ts": "8dba3292efb01ed83842b68f335efede41716203fa2dc6fdac6367031120a444"
+  }
+}
