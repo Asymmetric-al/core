@@ -1,11 +1,12 @@
 # Donor Development & Portfolio Management — Phase 27
 
-Current stage: **formal specification and approved implementation tickets published; implementation remains gated**.
+Current stage: **formal specification and approved implementation tickets published; a material acceptance/dependency correction awaits review. Implementation remains gated**.
 The complete [specification](../../prds/sitestacker-parity/phase-27-donor-development.md)
 preserves D1–D30, the glossary and the working session. Its normative volumes,
 source trace and unchecked OpenSpec tasks define intended behavior; feature
 implementation and runtime/provider/user qualification are not claimed.
 
+- [Proposed acceptance and dependency corrections](planning/implementation-corrections/README.md)
 - [Published implementation issues, dependencies and coverage](planning/implementation-publication/README.md)
 - [Approved ticket proposal snapshot](planning/implementation-proposal/README.md)
 - [Decision and evidence log](grill/phase27-grill-log.md)

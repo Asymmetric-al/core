@@ -6,6 +6,18 @@ Published from the approved [68-ticket proposal](https://github.com/Asymmetric-a
 
 Coverage remains **193 requirements, 193 stories, 711 primary acceptance cases, 141 monitor definitions and 204 OpenSpec tasks**. [Coverage](coverage.json) translates the approved ticket mappings to real issue URLs without changing requirements, ownership, monitor signals, thresholds or responses. [Issue index](issues.json), [dependencies](dependencies.json) and the [complete graph](graph.md) provide the durable handoff.
 
+## Current review status
+
+The dated publication audit proves that GitHub matched the approved proposal. It
+checks publication fidelity, not whether every assigned acceptance case can run
+against real source behavior in that dependency order. Subsequent review found
+material gaps in that second property. The [exact correction proposal](../implementation-corrections/README.md)
+provides affected issue drafts, acceptance transfers and the proposed graph for
+review. It has **not** been applied to GitHub or substituted into this historical
+receipt. The [review-resolution record](review-resolution.md) separates completed
+verification fixes from that proposed tracker amendment. All 68 issues remain blocked; do not dispatch implementation using the
+uncorrected assignment. Product decisions and the specification remain unchanged.
+
 ## Implementation frontier and gates
 
 The first sources with no new-ticket blockers are [P27-A01 / AL-1994](https://github.com/Asymmetric-al/core/issues/1994), [P27-C04 / AL-1995](https://github.com/Asymmetric-al/core/issues/1995), [P27-F12 / AL-1996](https://github.com/Asymmetric-al/core/issues/1996), [P27-P14 / AL-1997](https://github.com/Asymmetric-al/core/issues/1997), [P27-S01 / AL-1998](https://github.com/Asymmetric-al/core/issues/1998). This is a dependency frontier, not dispatch approval. Each remains blocked by specification integration and its exact consumed owner-component qualification. Existing native blockers are listed below.

@@ -40,5 +40,13 @@
     "E7 financial attribution owner ruling",
     "C-01 posted-gift correction independence",
     "Phase 6 outbound preparation/sealed-submission implementation allocation and proof"
-  ]
+  ],
+  "audit_checks_sha256": "20298110f7c8758692ce4d8311c9da99265ba2810ed339475852cd539d7d8852",
+  "operation_receipts_sha256": "1711a51e8c0aaa59a34ce328749676c9333b7a21be77fbb8c2b3beaf785aa4df",
+  "semantic_review": {
+    "status": "correction_proposed_awaiting_approval",
+    "proposal": "../implementation-corrections/README.md",
+    "publication_fidelity": "PASS for the approved graph and bodies at the recorded audit time",
+    "implementation_readiness": "Blocked: acceptance producer coverage corrections require review before tracker mutation; this receipt does not certify semantic sufficiency."
+  }
 }

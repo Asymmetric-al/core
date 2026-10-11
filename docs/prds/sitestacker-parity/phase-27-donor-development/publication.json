@@ -407,7 +407,18 @@
       "path": "CONTEXT.md",
       "sha256": "1696dbf7960b39d5dc1e86837a3ab36cd6f812541be07cf47b3a2d67641e84ea",
       "bytes": 15881,
-      "parts": ["P42"]
+      "parts": ["P42"],
+      "content_kind": "rendered_glossary_diff",
+      "content_json": {
+        "path": "docs/prds/sitestacker-parity/phase-27-donor-development/publication-evidence/glossary-amendments.json",
+        "field": "content"
+      },
+      "source_file_snapshot": {
+        "path": "CONTEXT.md",
+        "bytes": 444016,
+        "sha256": "a8ad9ffcb0938679884978b8e3b9dc856dbdfd1051cdd47dbc10ee27fb3b2703",
+        "verification_scope": "Historical full-file capture verified on 2026-10-11; this is not a current CONTEXT.md byte invariant."
+      }
     }
   ],
   "counts": {
@@ -418,5 +429,6 @@
     "unique_acceptance": 711,
     "operating_controls": 141,
     "unchecked_tasks": 204
-  }
+  },
+  "verification_scope": "Historical issue #1992 title/body and 42 rendered comments were read back; artifact hashes describe the published source content. P42 is the rendered glossary-diff document, with its full source-file snapshot identified separately. This record does not report current implementation-ticket readiness. Living glossary and normative source files may subsequently evolve; ordinary artifact hashes remain historical receipts, while the archival guard verifies protected dated grill evidence and exact saved P42 content."
 }
