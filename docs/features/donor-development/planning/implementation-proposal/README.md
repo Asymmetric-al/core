@@ -1,4 +1,6 @@
-# Phase 27 implementation proposal — awaiting approval
+# Phase 27 implementation proposal — approved review snapshot
+
+Current publication status: the user approved this exact breakdown. The [published issue index, dependency graph and verification record](../implementation-publication/README.md) contain the actual GitHub issues and completed scoped amendments. The proposal text below is preserved as the review snapshot from `057a1dc43832eeeca2a8856716d6be1d5422e96f`; its unpublished/awaiting-approval statements describe that earlier capture.
 
 Documentation PR: https://github.com/Asymmetric-al/core/pull/1993. Specification revision: `b5a65b3f2da880fcbfa4b3cae189d216d06542be`. Current inspected develop: `71b81fae2ce1f9b615bcfee8606cd2c978a70e71`.
 

@@ -1,0 +1,1014 @@
+{
+  "notation": "A -> B means B is blocked by A",
+  "internal": [
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1994",
+      "to": "https://github.com/Asymmetric-al/core/issues/1999",
+      "contract": "Current role-qualified assignment/control projection, protected manual/unknown provenance and canonical source access",
+      "reason": "A real safe preview must consume the delivered source facts; inherited Party/catalog owners are already prerequisites of A01."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1994",
+      "to": "https://github.com/Asymmetric-al/core/issues/2000",
+      "contract": "Role-qualified identity, protected control and attributed correction source",
+      "reason": "Migration targets the real accepted model and must preserve its constraints and receipt meaning."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1998",
+      "to": "https://github.com/Asymmetric-al/core/issues/2001",
+      "contract": "Canonical tenant/Party/identified MinistryAssignment and qualified P9 context source identity; no admission into managed cultivation is required to write a voluntary eligible update",
+      "reason": "Updates must attach to the same exact partnership without enrolling managed work merely to write."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1995",
+      "to": "https://github.com/Asymmetric-al/core/issues/2002",
+      "contract": "Exact current qualified financial tuple/coverage and raw separate axes",
+      "reason": "Bands classify those source facts; they cannot repair or invent missing financial meaning."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1996",
+      "to": "https://github.com/Asymmetric-al/core/issues/2003",
+      "contract": "Tenant-scoped appeal shell, responsible authority and history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1998",
+      "to": "https://github.com/Asymmetric-al/core/issues/2004",
+      "contract": "Canonical eligible Ministry Assignment and participant source, exact scope and current lifecycle",
+      "reason": "P27 must reference a real independent ministry, not missionary profile."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1997",
+      "to": "https://github.com/Asymmetric-al/core/issues/2004",
+      "contract": "Usable organization catalog and current eligible list/stage identities",
+      "reason": "First enrollment needs a valid list binding without constructing fake stage data."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1999",
+      "to": "https://github.com/Asymmetric-al/core/issues/2005",
+      "contract": "Revisioned draft policy, deterministic evaluator and safe preview",
+      "reason": "Activation must bind the rule revision and matching semantics already shown to staff."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2001",
+      "to": "https://github.com/Asymmetric-al/core/issues/2006",
+      "contract": "One attributed shared update source, current audience/history authority, atomic acceptance and durable receipt",
+      "reason": "Correction/restriction must preserve and revise accepted entries without a second source."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2002",
+      "to": "https://github.com/Asymmetric-al/core/issues/2007",
+      "contract": "Authoritative enabled policy/generation, comparable baseline and qualified explained bands",
+      "reason": "Review cannot be inferred from placeholders, incompatible snapshots or a disabled generation."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2007",
+      "contract": "The first bounded ADR0183 native Tasks adapter implementation contract: source occurrence identity, current action/recipient ceiling, source completion, No longer required projection and durable reconciliation; consume the adapter without requiring cultivation enrollment",
+      "reason": "One review must reach existing Tasks and end through its source without a copied task/notification authority."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2008",
+      "contract": "Delivered bounded native ADR0183 source-work adapter: exact actionable source occurrence, identifier-only atomic durable intent, typed source action, current recipient ceiling, semantic receipt/replay/recovery and My tasks projection.",
+      "reason": "A technical producer prerequisite only. This Request or reported-intake use does NOT require or create cultivation enrollment; it registers its own source purpose and applicability."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2009",
+      "contract": "Delivered bounded native ADR0183 source-work adapter: exact actionable source occurrence, identifier-only atomic durable intent, typed source action, current recipient ceiling, semantic receipt/replay/recovery and My tasks projection.",
+      "reason": "A technical producer prerequisite only. This Request or reported-intake use does NOT require or create cultivation enrollment; it registers its own source purpose and applicability."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2010",
+      "contract": "Ordinary identity, semantic admission/reuse and independent source work",
+      "reason": "Exception must preserve the ordinary default and reuse path."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2011",
+      "contract": "Qualified single-member command and stable source receipt",
+      "reason": "Group executor must call authoritative same-intent member action."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2012",
+      "contract": "Existing work and source responsibility meaning",
+      "reason": "Handoff operates on real work without a shadow portfolio."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2013",
+      "contract": "Immutable identity/history and current source command",
+      "reason": "Correction cannot become raw FK reassignment."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2014",
+      "contract": "Current enrollment and atomic source/work receipt",
+      "reason": "Pause requires one real work identity."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2004",
+      "to": "https://github.com/Asymmetric-al/core/issues/2015",
+      "contract": "One ordinary partnership admission/reuse boundary with exact Party/ministry/purpose identity, responsibility and source-owned next-work obligation; this slice extends its visible list/stage intent.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2005",
+      "to": "https://github.com/Asymmetric-al/core/issues/2016",
+      "contract": "Current per-responsibility proposals/evaluator and qualified initial routing",
+      "reason": "Current matches are reviewed source facts, not a live query that can change population."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2006",
+      "to": "https://github.com/Asymmetric-al/core/issues/2017",
+      "contract": "Qualified encounter/update source with attributed occurrence, correction/restriction and current body-free evidence authority",
+      "reason": "The recency result must move backward or become uncertain when source history changes; immutable maximum or copied source is unacceptable."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2007",
+      "to": "https://github.com/Asymmetric-al/core/issues/2018",
+      "contract": "Current financial policy/output generations and source review episode reconciliation including Off withdrawal",
+      "reason": "Refresh and restore proof must demonstrate both correct rated output and absence of duplicate/resurrected review effects; simple arithmetic-only refresh is insufficient."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2008",
+      "to": "https://github.com/Asymmetric-al/core/issues/2019",
+      "contract": "Authoritative contextual Request save/read/history and current source authority",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2008",
+      "to": "https://github.com/Asymmetric-al/core/issues/2020",
+      "contract": "Current source Request identity, scope and history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2009",
+      "to": "https://github.com/Asymmetric-al/core/issues/2021",
+      "contract": "P15 intake identity, report-only projection and actual source recovery work",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2014",
+      "to": "https://github.com/Asymmetric-al/core/issues/2022",
+      "contract": "Exact review occurrence/schedule and typed applicability",
+      "reason": "Attention must reference real current source work."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2012",
+      "to": "https://github.com/Asymmetric-al/core/issues/2022",
+      "contract": "Current eligible review recipient and responsibility generation",
+      "reason": "Do not use creator/finance/Party representative default."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2015",
+      "to": "https://github.com/Asymmetric-al/core/issues/2023",
+      "contract": "A persisted scoped list binding with valid optional current assessment and ordinary admission history.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2014",
+      "to": "https://github.com/Asymmetric-al/core/issues/2023",
+      "contract": "Actual paused/current revision/review source behavior, preserving pause on ordinary stage edit",
+      "reason": "Basic direct stage editing requires actual pause semantics, not the later complete closure/readiness workflow."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2015",
+      "to": "https://github.com/Asymmetric-al/core/issues/2024",
+      "contract": "Concrete eligible-list choice and exact submitted admission intent with no hidden defaults.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2019",
+      "to": "https://github.com/Asymmetric-al/core/issues/2025",
+      "contract": "One Request source with relevant monetary/noncash terms and honest unknowns",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2021",
+      "to": "https://github.com/Asymmetric-al/core/issues/2026",
+      "contract": "Same-item P15 staging/posting coverage and safe result projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2021",
+      "to": "https://github.com/Asymmetric-al/core/issues/2027",
+      "contract": "Exact recorded-finance lineage and remaining intake identity",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2023",
+      "to": "https://github.com/Asymmetric-al/core/issues/2028",
+      "contract": "Actual direct stage assessment/history and paused stage-edit commands; catalog changes preserve those accepted facts and stage-selection/retirement races are real. Actual close/reopen composition is proved by P21.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2025",
+      "to": "https://github.com/Asymmetric-al/core/issues/2029",
+      "contract": "Presented Request versions and independently attributed responses",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2025",
+      "to": "https://github.com/Asymmetric-al/core/issues/2030",
+      "contract": "Actual Request responses and native source work identity",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2003",
+      "to": "https://github.com/Asymmetric-al/core/issues/2031",
+      "contract": "Canonical membership identity/disposition and source fence",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2025",
+      "to": "https://github.com/Asymmetric-al/core/issues/2031",
+      "contract": "Actual Request/response facts remain independently recordable",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2028",
+      "to": "https://github.com/Asymmetric-al/core/issues/2032",
+      "contract": "Stable stages, safe retirement/restoration and retained-list usable-stage invariant.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2024",
+      "to": "https://github.com/Asymmetric-al/core/issues/2032",
+      "contract": "Authoritative optional usual reference and distinct configuration/application powers; withdrawal must atomically clear only an expressly included matching reference.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1994",
+      "to": "https://github.com/Asymmetric-al/core/issues/2033",
+      "contract": "Named responsibility mutation and safe blocked-work boundary",
+      "reason": "The handoff condition must fence the actual assignment acceptance, not a later UI check."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2012",
+      "to": "https://github.com/Asymmetric-al/core/issues/2033",
+      "contract": "Partnership responsibility handoff and the inherited P27-P01 bounded source-work adapter",
+      "reason": "The acceptance path must inspect and preserve actual current partnership ownership and task predicates, not generic qualifications or a simulated handoff."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2030",
+      "to": "https://github.com/Asymmetric-al/core/issues/2033",
+      "contract": "Actual Request readiness, responsibility and covered source work",
+      "reason": "The transfer cannot claim real Request-work validity without the Request owner state and next-work contract."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2017",
+      "to": "https://github.com/Asymmetric-al/core/issues/2034",
+      "contract": "Current exact exchange/outreach/qualified shared-history projection",
+      "reason": "Brief must show the same actual encounter and preserve current history authority."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1995",
+      "to": "https://github.com/Asymmetric-al/core/issues/2034",
+      "contract": "Qualified separate financial lenses and explicit coverage tuple",
+      "reason": "Brief cannot reconstruct giving from donor aggregates."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2029",
+      "to": "https://github.com/Asymmetric-al/core/issues/2034",
+      "contract": "Current identified Request terms, actual presented-version/response history and independently editable forecast",
+      "reason": "The brief must not present a newer draft as the terms previously accepted."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2030",
+      "to": "https://github.com/Asymmetric-al/core/issues/2034",
+      "contract": "Current Request responsibility, complete source-owned next work and separate continuing obligations",
+      "reason": "A useful brief must expose actual eligible next actions without recreating tasks or making reply equivalent to money."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2030",
+      "to": "https://github.com/Asymmetric-al/core/issues/2035",
+      "contract": "Separate nonfinancial invitations/actual response and deliberate qualified next work",
+      "reason": "Budget/visit/prayer context must lead to existing relevant work, not a new event engine."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1995",
+      "to": "https://github.com/Asymmetric-al/core/issues/2035",
+      "contract": "Distinct current legal/recognition financial views and scope",
+      "reason": "Church/member financial context cannot be inferred from shared mailbox or relationship labels."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2029",
+      "to": "https://github.com/Asymmetric-al/core/issues/2036",
+      "contract": "Exact Request terms and actual attributed response history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2029",
+      "to": "https://github.com/Asymmetric-al/core/issues/2037",
+      "contract": "Stable meaningful terms versions and true Request history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2020",
+      "to": "https://github.com/Asymmetric-al/core/issues/2037",
+      "contract": "Effective review policy and separately authorized configuration",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2031",
+      "to": "https://github.com/Asymmetric-al/core/issues/2038",
+      "contract": "Deliberate single-member commands and current disposition/fence",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2029",
+      "to": "https://github.com/Asymmetric-al/core/issues/2039",
+      "contract": "Canonical actual/presented Request identity and revision history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1996",
+      "to": "https://github.com/Asymmetric-al/core/issues/2039",
+      "contract": "Actual financial, nonfinancial and mixed appeal source shell and permitted context.",
+      "reason": "This slice composes the independent Request source with real appeal views; ordinary Request response has no appeal prerequisite."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2030",
+      "to": "https://github.com/Asymmetric-al/core/issues/2040",
+      "contract": "Source-evidenced represented persons/restrictions/current future obligations",
+      "reason": "Determine impacted future work from actual owner facts, never guessed labels."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2030",
+      "to": "https://github.com/Asymmetric-al/core/issues/2041",
+      "contract": "Complete permission-safe obligation enumeration and typed disposition",
+      "reason": "Several due requests/promises must survive selected next action."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2005",
+      "to": "https://github.com/Asymmetric-al/core/issues/2042",
+      "contract": "Prospective revision ordering, evaluator and one qualified source effect",
+      "reason": "Auto must consume the same currently qualified rule/source intent, not invent another assignment path."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2033",
+      "to": "https://github.com/Asymmetric-al/core/issues/2042",
+      "contract": "Current independent-work validity and exact handoff gates",
+      "reason": "Automatic execution must satisfy the same affected-work acceptance boundary as a staff transfer."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2039",
+      "to": "https://github.com/Asymmetric-al/core/issues/2043",
+      "contract": "Exact multi-appeal Request association history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2037",
+      "to": "https://github.com/Asymmetric-al/core/issues/2044",
+      "contract": "Exact one-round review and source task/decision receipt",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2014",
+      "to": "https://github.com/Asymmetric-al/core/issues/2045",
+      "contract": "Current dated source review occurrence and schedule history",
+      "reason": "Actual review resolves occurrence rather than rescheduling it."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2041",
+      "to": "https://github.com/Asymmetric-al/core/issues/2045",
+      "contract": "Complete independently meaningful obligation facts",
+      "reason": "Resume must account for legitimate next work."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2042",
+      "to": "https://github.com/Asymmetric-al/core/issues/2046",
+      "contract": "Both current Review and Auto acceptance semantics with generation/control fencing",
+      "reason": "The same deliberate release must truthfully disclose and execute either already-qualified mode."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2044",
+      "to": "https://github.com/Asymmetric-al/core/issues/2047",
+      "contract": "Current review applicability, exact target and prospective revocation",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2043",
+      "to": "https://github.com/Asymmetric-al/core/issues/2048",
+      "contract": "Explicit request/nonfinancial measure grain, denominator and goal history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2021",
+      "to": "https://github.com/Asymmetric-al/core/issues/2048",
+      "contract": "Exact pending-versus-recorded P15 intake projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2045",
+      "to": "https://github.com/Asymmetric-al/core/issues/2049",
+      "contract": "Actual review source outcome versus reschedule",
+      "reason": "Review→End must preserve truthful completion meaning."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2016",
+      "to": "https://github.com/Asymmetric-al/core/issues/2050",
+      "contract": "Finite-group result/receipt and proposal surfaces",
+      "reason": "Recovery must cover actual group results and partial outcomes, not a simulated list."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2046",
+      "to": "https://github.com/Asymmetric-al/core/issues/2050",
+      "contract": "Complete control-mode and protection-release journey",
+      "reason": "Compose actual Apply/Keep/Use rules again/current-mode recovery rather than placeholder UI."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2031",
+      "to": "https://github.com/Asymmetric-al/core/issues/2051",
+      "contract": "Atomic member removal/exclusion/Return and original purpose identity",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2047",
+      "to": "https://github.com/Asymmetric-al/core/issues/2051",
+      "contract": "Qualified action-start review/authority adapter shared by P27 outward purposes",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2049",
+      "to": "https://github.com/Asymmetric-al/core/issues/2052",
+      "contract": "Closed source state and complete history/end receipts",
+      "reason": "Real reopening extends actual closed work; not generic Undo."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2049",
+      "to": "https://github.com/Asymmetric-al/core/issues/2053",
+      "contract": "Current/closed enrollment source truth and preserved history",
+      "reason": "Read model must cover actual lifecycle meaning."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2017",
+      "to": "https://github.com/Asymmetric-al/core/issues/2053",
+      "contract": "Actual-exchange source-complete recency projection",
+      "reason": "Retain generic operational last-touch separately; do not label donor.updated_at or linked task edits Last recorded exchange."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2048",
+      "to": "https://github.com/Asymmetric-al/core/issues/2054",
+      "contract": "Exact current/historical Request forecast, source-qualified financial/nonfinancial outcome grain and explicit overlap/denominators",
+      "reason": "Reports must consume the adopted source associations, not recreate funding allocation or collapse response into received."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2053",
+      "to": "https://github.com/Asymmetric-al/core/issues/2054",
+      "contract": "Authorized owner/stage/lifecycle list facts and complete scope/count contract",
+      "reason": "Native totals need real source membership and honest unassessed/retired/history meaning."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/1995",
+      "to": "https://github.com/Asymmetric-al/core/issues/2054",
+      "contract": "Exact separate legal/recognition financial tuple and coverage",
+      "reason": "No alternative local money calculation or cross-currency total is permitted."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2051",
+      "to": "https://github.com/Asymmetric-al/core/issues/2055",
+      "contract": "Current membership/disposition identity plus actual producer dispatch fence for post-merge and backup-restore reconciliation.",
+      "reason": "Identity repair must prove restored actual outward consumers cannot resurrect later-excluded outreach; the earlier single-membership slice is inherited."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2030",
+      "to": "https://github.com/Asymmetric-al/core/issues/2056",
+      "contract": "Complete bounded Request obligation readiness and continuation fence",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2051",
+      "to": "https://github.com/Asymmetric-al/core/issues/2056",
+      "contract": "Actual membership-dependent dispatch admission and irreversible narrowing",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2039",
+      "to": "https://github.com/Asymmetric-al/core/issues/2056",
+      "contract": "Canonical linked Request scope/history",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2009",
+      "to": "https://github.com/Asymmetric-al/core/issues/2056",
+      "contract": "Actual narrow P15 reported-intake source readiness, accountable obligation identity and creating-writer fence.",
+      "reason": "AC27-F83-01 closes around real outstanding intake work; this requires only the intake source, not finance posting, deposit, clearance or a whole finance phase. Nonfinancial appeals remain operable with no active finance product."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2032",
+      "to": "https://github.com/Asymmetric-al/core/issues/2057",
+      "contract": "Retained withdrawn-list use, continued work eligibility and stable absence-aware source/history semantics.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2052",
+      "to": "https://github.com/Asymmetric-al/core/issues/2057",
+      "contract": "The actual same-work close/reopen source operation must preserve current absence and history for AC27-P28-08.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2057",
+      "to": "https://github.com/Asymmetric-al/core/issues/2058",
+      "contract": "Qualified absence/current-history projections and explicit same-list clearing distinction; P27-P20 transitively supplies direct assessment, withdrawal and initial/default choice.",
+      "reason": "This behavior consumes the persisted meaning/current source command supplied by that prerequisite; not a whole-phase readiness gate."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2011",
+      "to": "https://github.com/Asymmetric-al/core/issues/2058",
+      "contract": "Actual finite reviewed-group intent, per-member admission receipts and cancellation/recovery boundary",
+      "reason": "Full combined list/default/withdrawal/group acceptance must execute actual group commands, not synthetic sealed-member data. Basic single-list selection has no group blocker."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2050",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2000",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2018",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2034",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2035",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2054",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2036",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2038",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2055",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2056",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2026",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2027",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2010",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2013",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2040",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2022",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2058",
+      "to": "https://github.com/Asymmetric-al/core/issues/2059",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2050",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2000",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2018",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2034",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2035",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2054",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2036",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2038",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2055",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2056",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2026",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2027",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2010",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2013",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2040",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2022",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2058",
+      "to": "https://github.com/Asymmetric-al/core/issues/2060",
+      "contract": "Delivered, independently accepted source behavior and its migration/disable, receipt, recovery and operational evidence for the candidate cohort.",
+      "reason": "This composed qualification must exercise actual source effects; a fixture or undelivered source cannot prove the cross-source result."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2059",
+      "to": "https://github.com/Asymmetric-al/core/issues/2061",
+      "contract": "Candidate-bound migration/disable/restore evidence",
+      "reason": "A bounded pilot cannot be called operationally safe without proving preservation and recovery after its new-model writes."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/2060",
+      "to": "https://github.com/Asymmetric-al/core/issues/2061",
+      "contract": "Measured admitted envelope, named operators and exercised runbooks",
+      "reason": "Pilot qualification needs an admitted cohort/environment and concrete owners/recovery, not guessed capacity or monitoring."
+    }
+  ],
+  "existing_issue": [
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/607",
+      "to": "https://github.com/Asymmetric-al/core/issues/1994",
+      "contract": "Canonical stored relationship/catalog primitives with staff-family role-aware identity",
+      "reason": "Consumes the existing P9 owner; does not build a second graph. Its old uniqueness/re-role wording needs the scoped D30 reconciliation identified below."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/620",
+      "to": "https://github.com/Asymmetric-al/core/issues/1994",
+      "contract": "Qualified local CRM transaction, audit and activity contract",
+      "reason": "The assignment extension must atomically include protected intent, receipt and required durable intent; legacy client-only double-submit cannot satisfy this behavior."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/613",
+      "to": "https://github.com/Asymmetric-al/core/issues/1994",
+      "contract": "Shared Party record shell, assignment header and B6 subject-access read boundary",
+      "reason": "Mounts the named-role command and renders canonical current/history results without an independent donor-detail authority."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/723",
+      "to": "https://github.com/Asymmetric-al/core/issues/1995",
+      "contract": "Existing #723 canonical P14 effective_seq recognition fold: admitted legal-vs-recognition split, MAX per Party/gift root across overlapping credit roles, qualified gift-date household attribution and exact effective scoped amount/coverage.",
+      "reason": "The recognition lens must reuse the sole owner aggregator rather than count credit rows as gifts."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/606",
+      "to": "https://github.com/Asymmetric-al/core/issues/1998",
+      "contract": "Canonical Tenant-scoped Party spine and source identity/lifecycle/tombstone references",
+      "reason": "Membership must point to a real Party; no profile/person shadow subject."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/610",
+      "to": "https://github.com/Asymmetric-al/core/issues/2000",
+      "contract": "P9/Phase4 source-owned merge/unmerge and exact replay references",
+      "reason": "Assignment merge repair extends that owner; a P27 duplicate merge engine would contradict the contract."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/669",
+      "to": "https://github.com/Asymmetric-al/core/issues/2005",
+      "contract": "Current human/NHI Tenant context and live human-owner ceiling",
+      "reason": "Source event processing must use an actual admitted executor context, not a cached author session."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/773",
+      "to": "https://github.com/Asymmetric-al/core/issues/2021",
+      "contract": "P15 sole-commit clean-row/carry-forward source identities with exact row conservation; #764/#763 are inherited source predecessors",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/891",
+      "to": "https://github.com/Asymmetric-al/core/issues/2022",
+      "contract": "Exact in-product projection and engagement policy over source identity",
+      "reason": "Reuse Phase17 owner, not build bell model."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/780",
+      "to": "https://github.com/Asymmetric-al/core/issues/2027",
+      "contract": "P15 separate gift-grain deposit membership/return evidence and independent P20 clearance projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/625",
+      "to": "https://github.com/Asymmetric-al/core/issues/2035",
+      "contract": "Canonical organization/person identities, typed role/capacity relationships and historical participants",
+      "reason": "Current pastor/contact must not replace actual earlier speakers or grant member access."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/697",
+      "to": "https://github.com/Asymmetric-al/core/issues/2036",
+      "contract": "P13 source-owned payment/review and coherent effective-money/downstream projections",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/823",
+      "to": "https://github.com/Asymmetric-al/core/issues/2036",
+      "contract": "P16 exact-line conserved fulfillment projection and current source/target coverage",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/897",
+      "to": "https://github.com/Asymmetric-al/core/issues/2047",
+      "contract": "Actual Phase17 provider-boundary admission fence before outbound I/O, current live safety validation, source-independent truthful provider outcomes and bounded identical recovery.",
+      "reason": "Review clearance must be proved at real action start, not queueing. Qualify the exact consumed component and its true prepared-submission producer; the existing stale #888 dependency description is not proof of delivered preparation authority."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/697",
+      "to": "https://github.com/Asymmetric-al/core/issues/2048",
+      "contract": "Coherent source effective-money/state projection",
+      "reason": "This exact source behavior is consumed by the demonstrated outcome; completion of unrelated owner scope is not asserted or required."
+    },
+    {
+      "from": "https://github.com/Asymmetric-al/core/issues/610",
+      "to": "https://github.com/Asymmetric-al/core/issues/2055",
+      "contract": "Actual P9 typed Party merge/unmerge engine with replayable merge_operations, tenant/kind prechecks, source tombstone and qualified identity-change events.",
+      "reason": "Appeal membership repair must consume actual source identity history; #514 UI or fabricated survivor IDs cannot prove current restrictions. Extend only this consumer's typed linkage without applying generic survivor-wins to conflicting current appeal intentions."
+    }
+  ],
+  "topological_order": [
+    "https://github.com/Asymmetric-al/core/issues/1994",
+    "https://github.com/Asymmetric-al/core/issues/1995",
+    "https://github.com/Asymmetric-al/core/issues/1996",
+    "https://github.com/Asymmetric-al/core/issues/1997",
+    "https://github.com/Asymmetric-al/core/issues/1998",
+    "https://github.com/Asymmetric-al/core/issues/1999",
+    "https://github.com/Asymmetric-al/core/issues/2000",
+    "https://github.com/Asymmetric-al/core/issues/2001",
+    "https://github.com/Asymmetric-al/core/issues/2002",
+    "https://github.com/Asymmetric-al/core/issues/2003",
+    "https://github.com/Asymmetric-al/core/issues/2004",
+    "https://github.com/Asymmetric-al/core/issues/2005",
+    "https://github.com/Asymmetric-al/core/issues/2006",
+    "https://github.com/Asymmetric-al/core/issues/2007",
+    "https://github.com/Asymmetric-al/core/issues/2008",
+    "https://github.com/Asymmetric-al/core/issues/2009",
+    "https://github.com/Asymmetric-al/core/issues/2010",
+    "https://github.com/Asymmetric-al/core/issues/2011",
+    "https://github.com/Asymmetric-al/core/issues/2012",
+    "https://github.com/Asymmetric-al/core/issues/2013",
+    "https://github.com/Asymmetric-al/core/issues/2014",
+    "https://github.com/Asymmetric-al/core/issues/2015",
+    "https://github.com/Asymmetric-al/core/issues/2016",
+    "https://github.com/Asymmetric-al/core/issues/2017",
+    "https://github.com/Asymmetric-al/core/issues/2018",
+    "https://github.com/Asymmetric-al/core/issues/2019",
+    "https://github.com/Asymmetric-al/core/issues/2020",
+    "https://github.com/Asymmetric-al/core/issues/2021",
+    "https://github.com/Asymmetric-al/core/issues/2022",
+    "https://github.com/Asymmetric-al/core/issues/2023",
+    "https://github.com/Asymmetric-al/core/issues/2024",
+    "https://github.com/Asymmetric-al/core/issues/2025",
+    "https://github.com/Asymmetric-al/core/issues/2026",
+    "https://github.com/Asymmetric-al/core/issues/2027",
+    "https://github.com/Asymmetric-al/core/issues/2028",
+    "https://github.com/Asymmetric-al/core/issues/2029",
+    "https://github.com/Asymmetric-al/core/issues/2030",
+    "https://github.com/Asymmetric-al/core/issues/2031",
+    "https://github.com/Asymmetric-al/core/issues/2032",
+    "https://github.com/Asymmetric-al/core/issues/2033",
+    "https://github.com/Asymmetric-al/core/issues/2034",
+    "https://github.com/Asymmetric-al/core/issues/2035",
+    "https://github.com/Asymmetric-al/core/issues/2036",
+    "https://github.com/Asymmetric-al/core/issues/2037",
+    "https://github.com/Asymmetric-al/core/issues/2038",
+    "https://github.com/Asymmetric-al/core/issues/2039",
+    "https://github.com/Asymmetric-al/core/issues/2040",
+    "https://github.com/Asymmetric-al/core/issues/2041",
+    "https://github.com/Asymmetric-al/core/issues/2042",
+    "https://github.com/Asymmetric-al/core/issues/2043",
+    "https://github.com/Asymmetric-al/core/issues/2044",
+    "https://github.com/Asymmetric-al/core/issues/2045",
+    "https://github.com/Asymmetric-al/core/issues/2046",
+    "https://github.com/Asymmetric-al/core/issues/2047",
+    "https://github.com/Asymmetric-al/core/issues/2048",
+    "https://github.com/Asymmetric-al/core/issues/2049",
+    "https://github.com/Asymmetric-al/core/issues/2050",
+    "https://github.com/Asymmetric-al/core/issues/2051",
+    "https://github.com/Asymmetric-al/core/issues/2052",
+    "https://github.com/Asymmetric-al/core/issues/2053",
+    "https://github.com/Asymmetric-al/core/issues/2054",
+    "https://github.com/Asymmetric-al/core/issues/2055",
+    "https://github.com/Asymmetric-al/core/issues/2056",
+    "https://github.com/Asymmetric-al/core/issues/2057",
+    "https://github.com/Asymmetric-al/core/issues/2058",
+    "https://github.com/Asymmetric-al/core/issues/2059",
+    "https://github.com/Asymmetric-al/core/issues/2060",
+    "https://github.com/Asymmetric-al/core/issues/2061"
+  ],
+  "source_frontier": [
+    "https://github.com/Asymmetric-al/core/issues/1994",
+    "https://github.com/Asymmetric-al/core/issues/1995",
+    "https://github.com/Asymmetric-al/core/issues/1996",
+    "https://github.com/Asymmetric-al/core/issues/1997",
+    "https://github.com/Asymmetric-al/core/issues/1998"
+  ],
+  "qualification_inputs": [
+    "https://github.com/Asymmetric-al/core/issues/2050",
+    "https://github.com/Asymmetric-al/core/issues/2000",
+    "https://github.com/Asymmetric-al/core/issues/2018",
+    "https://github.com/Asymmetric-al/core/issues/2034",
+    "https://github.com/Asymmetric-al/core/issues/2035",
+    "https://github.com/Asymmetric-al/core/issues/2054",
+    "https://github.com/Asymmetric-al/core/issues/2036",
+    "https://github.com/Asymmetric-al/core/issues/2038",
+    "https://github.com/Asymmetric-al/core/issues/2055",
+    "https://github.com/Asymmetric-al/core/issues/2056",
+    "https://github.com/Asymmetric-al/core/issues/2026",
+    "https://github.com/Asymmetric-al/core/issues/2027",
+    "https://github.com/Asymmetric-al/core/issues/2010",
+    "https://github.com/Asymmetric-al/core/issues/2013",
+    "https://github.com/Asymmetric-al/core/issues/2040",
+    "https://github.com/Asymmetric-al/core/issues/2022",
+    "https://github.com/Asymmetric-al/core/issues/2058"
+  ],
+  "specification_integration": "https://github.com/Asymmetric-al/core/pull/1993",
+  "parent_hierarchy": {
+    "https://github.com/Asymmetric-al/core/issues/1994": 1992,
+    "https://github.com/Asymmetric-al/core/issues/1995": 1992,
+    "https://github.com/Asymmetric-al/core/issues/1996": 1992,
+    "https://github.com/Asymmetric-al/core/issues/1997": 1992,
+    "https://github.com/Asymmetric-al/core/issues/1998": 604,
+    "https://github.com/Asymmetric-al/core/issues/1999": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2000": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2001": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2002": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2003": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2004": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2005": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2006": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2007": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2008": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2009": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2010": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2011": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2012": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2013": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2014": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2015": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2016": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2017": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2018": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2019": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2020": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2021": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2022": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2023": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2024": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2025": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2026": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2027": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2028": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2029": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2030": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2031": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2032": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2033": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2034": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2035": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2036": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2037": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2038": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2039": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2040": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2041": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2042": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2043": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2044": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2045": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2046": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2047": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2048": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2049": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2050": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2051": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2052": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2053": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2054": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2055": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2056": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2057": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2058": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2059": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2060": 1992,
+    "https://github.com/Asymmetric-al/core/issues/2061": 1992
+  },
+  "counts": {
+    "internal_edges": 123,
+    "existing_issue_edges": 16,
+    "actual_direct_edges": 139
+  },
+  "publication_status": "Published; all implementation issues blocked and unassigned"
+}

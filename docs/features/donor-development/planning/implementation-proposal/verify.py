@@ -1,4 +1,4 @@
-"""Structural verification of the unpublished Phase 27 issue proposal."""
+"""Structural verification of the preserved Phase 27 issue proposal snapshot."""
 import collections
 import json
 import pathlib
@@ -67,4 +67,5 @@ assert not re.search(r'root (?:proposal must|resolves)|resolved by root|OWNER-P1
                      '\n'.join((HERE / 'issues' / (t['id'] + '.md')).read_text() for t in tickets), re.I)
 print(json.dumps({'result': 'PASS', 'counts': coverage['counts'],
                   'runtime_status': 'not implemented or qualified',
-                  'publication_status': 'awaiting explicit breakdown approval'}, indent=2))
+                  'snapshot_status': 'approved proposal; earlier capture was unpublished',
+                  'current_publication_record': '../implementation-publication/README.md'}, indent=2))

@@ -1,0 +1,44 @@
+{
+  "result": "PASS",
+  "status": "published_verified",
+  "specification_commit": "b5a65b3f2da880fcbfa4b3cae189d216d06542be",
+  "proposal_commit": "057a1dc43832eeeca2a8856716d6be1d5422e96f",
+  "documentation_pr": "https://github.com/Asymmetric-al/core/pull/1993",
+  "counts": {
+    "tickets": 68,
+    "phase27_children": 67,
+    "phase9_enablers": 1,
+    "requirements": 193,
+    "stories": 193,
+    "acceptance": 711,
+    "monitors": 141,
+    "open_spec_tasks": 204
+  },
+  "direct_edges": 139,
+  "predecessor_amendments": 15,
+  "approved_source_sha256": {
+    "tickets.json": "2612833611ec9190af4197c2db5cba5b8254a43a78489750a3868a8cf16a8c4a",
+    "dependencies.json": "23cad09e2b561328dd0a948fdacfeb128785f134097a4a4568fdcff7eff6766d",
+    "coverage.json": "5cd28e791f814bb59326ec2897288a83291032072417a49da8ff3e90856407d3",
+    "existing-issue-amendments.md": "c08ced3be89ec3edf82f092dcc49938a0d02929c116b18226587bf10a9f5c8c4"
+  },
+  "audited_at_utc": "2026-10-11T13:02:48.089620+00:00",
+  "source_ledger_sha256": "4cfee040e02947a7b414b1cd4ded1ba4009df8dec5255a239fb4772591d9a233",
+  "source_audit_sha256": "a8c81cf2291eee27b77f715b2a096b5d6ca6f8366ccb718cdcf99f4640bb278a",
+  "publication_evidence": "Independent GitHub readback passed; metadata receipt retained in audit.json and ledger.json.",
+  "existing_issue_evidence_limits": {
+    "702": {
+      "recovery_note": "The body-only PATCH was confirmed before its next read failed authentication. Recovery used fresh readback without repeating the write. Pre-write title, state, label names and comments were retained in the prepared snapshot. Assignees, milestone and locked are compared only between the accepted PATCH response and final readback. No retained pre-write native dependency snapshot exists; the request and operation inventory prove this publication made no dependency mutation targeting #702, and fresh dependencies were recorded.",
+      "protected_metadata_verification": "Known pre-write title, state and label names matched. Body-only request accepted; other protected fields matched accepted response to final readback. See recovery evidence boundary.",
+      "dependency_verification": "Body-only PATCH; no native dependency operation targeting #702 in ledger; current blockers read back. No retained pre-write dependency baseline.",
+      "current_blocked_by": []
+    }
+  },
+  "implementation_evidence": "Not implemented or runtime-qualified by this documentation and ticket publication task.",
+  "specification_integration": "PR #1993 remains unmerged. No implementation agent dispatched.",
+  "open_owner_gates": [
+    "E7 financial attribution owner ruling",
+    "C-01 posted-gift correction independence",
+    "Phase 6 outbound preparation/sealed-submission implementation allocation and proof"
+  ]
+}
