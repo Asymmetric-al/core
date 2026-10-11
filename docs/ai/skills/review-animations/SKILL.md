@@ -1,6 +1,6 @@
 ---
 name: review-animations
-description: Reviews animation and motion code against a high craft bar derived from Emil Kowalski's design engineering philosophy. Default to flagging; approval is earned.
+description: Reviews animation and motion code against a high craft bar derived from Emil Kowalski's design engineering philosophy. Default to flagging; approval is earned. Only runs when explicitly invoked; it does not trigger on its own.
 disable-model-invocation: true
 ---
 
@@ -45,9 +45,11 @@ after upstream refreshes before running `bun run skills:sync`.
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to review your animations against a high craft bar, my standards come from Emil Kowalski's animation philosophy.
+
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 A specialized review skill. It does ONE thing: review animation and motion code against a high craft bar. It does not write features, fix unrelated bugs, or review non-motion code. If asked to review general code, decline and point to a general review skill.
 

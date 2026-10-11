@@ -13,6 +13,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   access,
+  chmod,
   cp,
   lstat,
   mkdir,
@@ -54,9 +55,11 @@ const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 const emilKowalskiSkillNames = [
   "animate",
   "animate-expo",
+  "animation-performance",
   "animation-vocabulary",
   "apple-design",
   "ask-sonner",
+  "break-ui",
   "emil-design-eng",
   "emil-prototype",
   "improve-animations",
@@ -68,6 +71,7 @@ const emilKowalskiSkillNames = [
 const EMIL_EXPLICIT_ONLY_SKILLS = new Set([
   "animate",
   "animate-expo",
+  "break-ui",
   "emil-prototype",
   "mobile-native",
   "pick-ui-library",
@@ -840,10 +844,20 @@ const POST_REFRESH_REPLACEMENTS = [
       "1. **Do not mount a Toaster.** Core layouts already mount `@asym/ui`'s `<Toaster />` once. Reuse that host. A second mounted Toaster duplicates every toast.",
     required: true,
   },
+  ...["SKILL.md", "API.md"].map((relativePath) => ({
+    skillName: "ask-sonner",
+    relativePath,
+    search: "toast.getActiveToasts()",
+    replace: "toast.getToasts()",
+    required: true,
+  })),
   {
     skillName: "ask-sonner",
     relativePath: "SKILL.md",
-    search: 'import { Toaster } from "sonner"; // once, near the root',
+    search: [
+      'import { Toaster } from "sonner"; // once, near the root',
+      "import { Toaster } from 'sonner'; // once, in layout",
+    ],
     replace:
       'import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts',
     required: true,
@@ -851,8 +865,10 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "ask-sonner",
     relativePath: "SKILL.md",
-    search:
+    search: [
       /^\| Toast never appears\s+\| No `<Toaster \/>` is mounted — add one near the app root\.\s+\|$/m,
+      /^\| Toast never appears\s+\| No `<Toaster \/>` mounted, or it unmounted \(conditional render, per-page placement\)\. Mount one at the root\. If calling from a server action: `toast\(\)` is client-only — call it with the action's result on the client\.\s+\|$/m,
+    ],
     replace:
       "| Toast never appears                                                   | Core already mounts `@asym/ui`'s `<Toaster />`. Reuse that host — do not add another. If it unmounted (conditional render, per-page placement), restore the shared layout toaster. If calling from a server action: `toast()` is client-only — call it with the action's result on the client. |",
     required: true,
@@ -964,6 +980,51 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "mobile-native",
+    relativePath: "SKILL.md",
+    search:
+      'description: Make a web app feel native on a phone — the small CSS and meta-tag fixes that separate "a website in a browser" from something that feels installed. Covers sticky hover states, tap highlight flashes, the 100vh bug, inputs that zoom the page, laggy taps, pull-to-refresh hijacking scroll, content under the notch, long-press selecting button text, carousels that scroll the wrong way, mismatched status bars, and the rule that you test on real hardware. Use when a web app is being built for or reviewed on mobile, when something "works in Chrome but feels wrong on my phone", when building a PWA, a bottom sheet, a carousel, a full-screen layout, or any touch interaction. For motion itself use animate; for React Native use animate-expo.',
+    replace:
+      "description: Make a web app feel native on a phone — CSS and meta-tag fixes for sticky hover, tap highlight, the 100vh bug, input zoom, tap delay, pull-to-refresh, safe areas, and real-device checks. Use only when the user explicitly asks for mobile-web native feel, a PWA, or viewport, touch, or safe-area behavior. Do not use it for React Native or motion. Only runs when explicitly invoked; it does not trigger on its own.",
+    required: true,
+  },
+  {
+    skillName: "mobile-native",
+    relativePath: "SKILL.md",
+    search:
+      "1. **Fixing what the desktop shows you.** The bugs in this skill don't reproduce in Chrome's device emulation. If you only test there, you ship all of them.",
+    replace:
+      "1. **Fixing what the desktop shows you.** Chrome device mode can check a mobile viewport and some touch layout. It does not reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard. If you only test there, you ship those.",
+    required: true,
+  },
+  {
+    skillName: "mobile-native",
+    relativePath: "SKILL.md",
+    search:
+      "5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Emulation cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.",
+    replace:
+      "5. **Test on hardware before calling it done.** Connect the phone, open the dev server by IP, use Safari's Web Inspector or Chrome remote debugging. Device mode can check viewport and some touch layout; it cannot reproduce sticky hover, tap delay, rubber-banding, safe areas, or the keyboard.",
+    required: true,
+  },
+  {
+    skillName: "mobile-native",
+    relativePath: "SKILL.md",
+    search:
+      "Nothing above reproduces in device emulation. Sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, the software keyboard — every one is a real-hardware behavior.",
+    replace:
+      "Device mode can check a mobile viewport and some touch layout. It cannot replace hardware for sticky hover, the tap highlight, the URL bar's effect on `vh`, input zoom, the click delay, overscroll, safe areas, or the software keyboard.",
+    required: true,
+  },
+  {
+    skillName: "mobile-native",
+    relativePath: "SKILL.md",
+    search:
+      "`interactive-widget=resizes-content` makes the software keyboard shrink the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs react to it the way they do on iOS. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.",
+    replace:
+      "`interactive-widget=resizes-content` makes the software keyboard resize the layout viewport on Android Chrome, so `100dvh` and bottom-pinned inputs move with the keyboard. Safari on iOS does not support this viewport key and only resizes the visual viewport, so iOS still needs its own handling. Drop `overscroll-behavior: none` from `html` if the app is a scrolling document where pull-to-refresh is welcome.",
+    required: true,
+  },
+  {
     skillName: "emil-prototype",
     relativePath: "SKILL.md",
     search: "name: prototype\n",
@@ -1013,8 +1074,10 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "animate",
     relativePath: "SKILL.md",
-    search:
+    search: [
       "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+      "If the task needs a *component* rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
+    ],
     replace:
       "If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — reuse `@asym/ui` and Base UI. Do not invoke `pick-ui-library` unless the user explicitly asked which library to use. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.",
     required: true,
@@ -1057,7 +1120,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "animate",
     relativePath: "SKILL.md",
     search:
-      "--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */",
+      /--ease-out: cubic-bezier\(0\.23, 1, 0\.32, 1\);[ \t]+\/\* strong ease-out for UI \*\//,
     replace: [
       "--ease-out-soft: cubic-bezier(",
       "  0.22,",
@@ -1079,14 +1142,25 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "animate",
     relativePath: "SKILL.md",
     search: [
-      "| Element                  | Duration      |",
-      "| ------------------------ | ------------- |",
-      "| Button press feedback    | 100–160ms     |",
-      "| Tooltips, small popovers | 125–200ms     |",
-      "| Dropdowns, selects       | 150–250ms     |",
-      "| Modals, drawers          | 200–500ms     |",
-      "| Marketing / explanatory  | Can be longer |",
-    ].join("\n"),
+      [
+        "| Element                  | Duration      |",
+        "| ------------------------ | ------------- |",
+        "| Button press feedback    | 100–160ms     |",
+        "| Tooltips, small popovers | 125–200ms     |",
+        "| Dropdowns, selects       | 150–250ms     |",
+        "| Modals, drawers          | 200–500ms     |",
+        "| Marketing / explanatory  | Can be longer |",
+      ].join("\n"),
+      [
+        "| Element | Duration |",
+        "| --- | --- |",
+        "| Button press feedback | 100–160ms |",
+        "| Tooltips, small popovers | 125–200ms |",
+        "| Dropdowns, selects | 150–250ms |",
+        "| Modals, drawers | 200–500ms |",
+        "| Marketing / explanatory | Can be longer |",
+      ].join("\n"),
+    ],
     replace: [
       "| Element                  | Duration                           |",
       "| ------------------------ | ---------------------------------- |",
@@ -1176,7 +1250,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "ask-sonner",
     relativePath: "SKILL.md",
     search:
-      "| Toast shows up in every toaster                                       | Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast()` call.                                                                                                                                                                                        |",
+      /^\| Toast shows up in every toaster\s+\| Multiple toasters need targeting: give each Toaster an `id` and pass `toasterId` in the `toast\(\)` call\.\s+\|$/m,
     replace:
       "| Toast shows up in every toaster                                       | Core has one shared toaster. Do not mount a second host.                                                                                                                                                                                                                                        |",
     required: true,
@@ -1685,6 +1759,14 @@ async function annotateSecretScannerMentionsInTree(targetRoot) {
 }
 
 function findCompatibilitySearch(content, search, cursor) {
+  if (Array.isArray(search)) {
+    return (
+      search
+        .map((variant) => findCompatibilitySearch(content, variant, cursor))
+        .filter((match) => match !== null)
+        .sort((left, right) => left.index - right.index)[0] ?? null
+    );
+  }
   if (typeof search === "string") {
     const index = content.indexOf(search, cursor);
     return index === -1 ? null : { index, length: search.length };
@@ -1737,7 +1819,10 @@ function applyCompatibilityReplacement(content, search, replacement) {
 
     const replacementComesFirst =
       replacementIndex !== -1 &&
-      (searchIndex === -1 || replacementIndex <= searchIndex);
+      (searchIndex === -1 ||
+        replacementIndex < searchIndex ||
+        (replacementIndex === searchIndex &&
+          replacement.length >= searchMatch.length));
 
     if (replacementComesFirst) {
       output += content.slice(cursor, replacementIndex) + replacement;
@@ -1813,18 +1898,49 @@ async function ensureEmilDisableModelInvocation(skillName, targetRoot) {
     frontmatter,
     "disable-model-invocation",
   );
-  if (invocationLine === "disable-model-invocation: true") {
-    return;
-  }
-
-  if (invocationLine !== null) {
+  if (
+    invocationLine !== null &&
+    invocationLine !== "disable-model-invocation: true"
+  ) {
     throw new Error(
       `Unexpected disable-model-invocation line in ${path.relative(repoRoot, skillPath)}: ${invocationLine}`,
     );
   }
 
-  lines.splice(closingDelimiterIndex, 0, "disable-model-invocation: true");
+  const descriptionIndex = lines.findIndex(
+    (line, index) =>
+      index > 0 &&
+      index < closingDelimiterIndex &&
+      line.startsWith("description:"),
+  );
+  const explicitDescription =
+    "Only runs when explicitly invoked; it does not trigger on its own.";
+  if (
+    descriptionIndex !== -1 &&
+    !lines[descriptionIndex].includes(explicitDescription)
+  ) {
+    lines[descriptionIndex] += ` ${explicitDescription}`;
+  }
+  if (invocationLine === null) {
+    lines.splice(closingDelimiterIndex, 0, "disable-model-invocation: true");
+  }
   await writeFile(skillPath, lines.join("\n"), "utf8");
+}
+
+async function ensureEmilTaskAwareGreeting(skillName, targetRoot) {
+  if (!emilKowalskiSkillNames.includes(skillName)) return;
+  const skillPath = path.join(targetRoot, "SKILL.md");
+  const content = await readFile(skillPath, "utf8");
+  const updated = content
+    .replaceAll(
+      "When this skill is first invoked without a specific question, respond only with:",
+      "Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:",
+    )
+    .replaceAll(
+      "Do not provide any other information until the user asks a question.",
+      "For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.",
+    );
+  if (updated !== content) await writeFile(skillPath, updated, "utf8");
 }
 
 async function ensureGitGuardrailsFailClosed(skillName, targetRoot) {
@@ -1912,6 +2028,7 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
   await rewriteAskSonnerToasterImport(skillName, targetRoot);
   await ensureEmilDisableModelInvocation(skillName, targetRoot);
+  await ensureEmilTaskAwareGreeting(skillName, targetRoot);
   await ensureGitGuardrailsFailClosed(skillName, targetRoot);
 
   if (skillName === "emil-design-engineering") {
@@ -2758,7 +2875,56 @@ async function moveDirectory(fromPath, toPath) {
   }
 }
 
-async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
+async function assertReviewedEmilTree(from, skillName) {
+  async function validate(entry) {
+    const info = await lstat(entry);
+    if (info.isSymbolicLink() || (!info.isDirectory() && !info.isFile())) {
+      throw new Error(
+        `Reviewed Emil source contains an unsafe entry: ${entry}`,
+      );
+    }
+    if (info.isDirectory()) {
+      for (const name of await readdir(entry))
+        await validate(path.join(entry, name));
+    }
+  }
+  await validate(from);
+  const skillPath = path.join(from, "SKILL.md");
+  const content = await readFile(skillPath, "utf8");
+  const frontmatter = readFrontmatter(content, skillPath);
+  const upstreamName = skillName === "emil-prototype" ? "prototype" : skillName;
+  if (
+    getTopLevelFrontmatterLine(frontmatter, "name") !==
+      `name: ${upstreamName}` ||
+    !getTopLevelFrontmatterLine(frontmatter, "description")
+      ?.slice("description:".length)
+      .trim()
+  ) {
+    throw new Error(`Invalid reviewed Emil discovery metadata: ${skillPath}`);
+  }
+}
+
+async function makeOwnedStagingWritable(entry) {
+  const info = await lstat(entry);
+  if (info.isSymbolicLink() || (!info.isDirectory() && !info.isFile())) {
+    throw new Error(`Refusing unsafe skill staging entry: ${entry}`);
+  }
+  await chmod(
+    entry,
+    (info.mode & 0o777) | (info.isDirectory() ? 0o700 : 0o200),
+  );
+  if (info.isDirectory()) {
+    for (const name of await readdir(entry))
+      await makeOwnedStagingWritable(path.join(entry, name));
+  }
+}
+
+async function prepareSkillRefresh({
+  skillName,
+  from,
+  preserve = [],
+  reviewedEmilSource = false,
+}) {
   const to = path.join(canonicalRoot, skillName);
   const staging = getTemporarySiblingPath(to, "refresh-staging");
 
@@ -2778,6 +2944,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
     );
   }
 
+  if (reviewedEmilSource) await assertReviewedEmilTree(from, skillName);
   await assertRefreshSourceCompatibility(skillName, from);
   const emilCloneSkillHash = emilKowalskiSkillNames.includes(skillName)
     ? await hashEmilCloneSkillMd(path.join(from, "SKILL.md"))
@@ -2801,6 +2968,7 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
 
   try {
     await cp(from, staging, { recursive: true });
+    if (reviewedEmilSource) await makeOwnedStagingWritable(staging);
     await restorePreservedFiles(staging, preservedFiles);
     await restoreCoreOverlay(staging, preservedCoreOverlay, skillName);
     await applyPostRefreshReplacements(skillName, staging);
@@ -3120,6 +3288,7 @@ function groupSourcesBySourceGroup(sources) {
 }
 
 async function main() {
+  const args = process.argv.slice(2);
   const onlyArgument = process.argv
     .slice(2)
     .find(
@@ -3135,9 +3304,39 @@ async function main() {
     throw new Error("The --only filter requires a non-empty source group");
   }
 
+  const sourceArguments = args.filter(
+    (argument) =>
+      argument === "--emil-source-root" ||
+      argument.startsWith("--emil-source-root="),
+  );
+  if (sourceArguments.length > 1)
+    throw new Error("Supply --emil-source-root only once");
+  const sourceArgument = sourceArguments[0];
+  const sourceValue = sourceArgument
+    ?.slice("--emil-source-root=".length)
+    .trim();
+  if (
+    sourceArgument &&
+    (!sourceValue || sourceArgument === "--emil-source-root")
+  ) {
+    throw new Error("Use --emil-source-root=<reviewed-skills-directory>");
+  }
+  if (sourceArgument && onlySourceGroup !== "emilkowalski/skills") {
+    throw new Error("--emil-source-root requires --only=emilkowalski/skills");
+  }
+  const emilSourceRoot = sourceValue ? path.resolve(sourceValue) : null;
   const sources = onlySourceGroup
     ? upstreamSources.filter((source) => source.sourceGroup === onlySourceGroup)
     : upstreamSources;
+  if (emilSourceRoot) {
+    for (const source of sources) {
+      source.from = path.join(
+        emilSourceRoot,
+        source.skillName === "emil-prototype" ? "prototype" : source.skillName,
+      );
+      source.reviewedEmilSource = true;
+    }
+  }
   const githubGroups = onlySourceGroup
     ? githubUpstreamGroups.filter((group) => group.source === onlySourceGroup)
     : githubUpstreamGroups;

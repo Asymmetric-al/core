@@ -47,9 +47,11 @@ running `bun run skills:sync`.
 
 ## Initial Response
 
-When this skill is first invoked without a specific question, respond only with:
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
 
 > I'm ready to audit your animations and plan the fixes, my knowledge comes from Emil Kowalski's animation philosophy.
+
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 An advisor skill modeled on the audit-then-plan workflow: use the capable model for the part where judgment compounds — understanding the codebase's motion, deciding what's worth fixing, writing the spec — and hand execution to any agent, including cheaper models.
 

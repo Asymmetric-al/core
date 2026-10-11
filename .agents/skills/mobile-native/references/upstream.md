@@ -2,10 +2,10 @@
 source_name: emilkowalski/skills
 source_url: https://github.com/emilkowalski/skills
 source_path: skills/mobile-native/
-source_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
-upstream_skill_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
+source_commit: 2d228630ba1446365f614a108cb8252f1feda202
+upstream_skill_commit: 2d228630ba1446365f614a108cb8252f1feda202
 license: MIT
-last_reviewed: 2026-09-16
+last_reviewed: 2026-10-11
 ---
 
 # Upstream: mobile-native
@@ -15,22 +15,21 @@ Canonical copy in this repo: `docs/ai/skills/mobile-native/`, mirrored to
 `bun run skills:sync`.
 
 - **Repository:** https://github.com/emilkowalski/skills
-- **Reviewed pack commit:** `85e8e2363b713506e1d5b6e07a0eb2da66be1bc3`
+- **Reviewed pack commit:** `2d228630ba1446365f614a108cb8252f1feda202`
 - **Source path:** `skills/mobile-native/`
 - **License:** MIT; the exact upstream notice is preserved in
   [LICENSE.md](LICENSE.md).
 
 ## Refresh from upstream
 
-1. Refresh the lockfile-managed skill with a targeted Skills CLI add:
-   `npx skills add emilkowalski/skills --skill mobile-native -y`.
-   Do **not** run `npx skills add emilkowalski/skills -y`.
-2. Run the matching `bun run skills:refresh-*` / `skills:refresh-upstream
---only=emilkowalski/skills` command so marked Core overlays and this provenance
-   file are preserved.
-3. Review newly added or removed upstream files against Core's Base UI,
-   `base-maia`, and routing constraints.
-4. Run `bun run skills:sync` and `bun run skills:verify`.
+1. Fetch and review the upstream repository and record its commit.
+2. Run `bun run skills:refresh-emilkowalski --emil-source-root=/path/to/reviewed/skills`
+   to promote the reviewed upstream trees. Upstream `prototype` maps to
+   `emil-prototype`; Core's animation-opportunity adapter remains separate.
+3. Review newly added or removed upstream skills and reconcile Core's Base UI,
+   motion-token, reduced-motion, and routing constraints.
+4. Update the reviewed commit and date in these provenance files, then run
+   `bun run skills:sync` and non-mutating `bun run skills:verify`.
 
 ## Repo-specific notes
 

@@ -38,6 +38,14 @@ Reconcile this overlay after upstream refreshes before running
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
+
+> I'm ready to pick the right library for your task, my picks come from Emil Kowalski's curated list.
+
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
+
 A lookup skill. When invoked with a task ("I need toasts", "what should I use for drag and drop?"), match the task to the curated list below and recommend the library. These are deliberate, taste-driven picks — don't substitute alternatives outside this list unless the user asks for one or the task genuinely isn't covered.
 
 ## How to use this

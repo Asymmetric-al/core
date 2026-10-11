@@ -20,9 +20,11 @@ const roots: string[] = [];
 const emilSkills = [
   "animate",
   "animate-expo",
+  "animation-performance",
   "animation-vocabulary",
   "apple-design",
   "ask-sonner",
+  "break-ui",
   "emil-design-eng",
   "emil-prototype",
   "improve-animations",
