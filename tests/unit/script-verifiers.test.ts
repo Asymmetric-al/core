@@ -1481,6 +1481,12 @@ describe("refresh-upstream-skills", () => {
       "animation-vocabulary": {
         "SKILL.md": rawAnimationVocabularySkill,
       },
+      "animation-performance": {
+        "SKILL.md": minimalEmilSkill("animation-performance", [
+          "# Animation Performance",
+          "",
+        ]),
+      },
       "apple-design": {
         "SKILL.md": [
           "# Apple design",
@@ -1494,9 +1500,11 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
       },
       "ask-sonner": {
+        "API.md": "# Sonner API\n\n`toast.getActiveToasts()`\n",
         "SKILL.md": minimalEmilSkill("ask-sonner", [
           "# Working With Sonner",
           "",
+          "Read active toasts with `toast.getActiveToasts()`.",
           "## Setup",
           "",
           "```jsx",
@@ -1530,6 +1538,10 @@ describe("refresh-upstream-skills", () => {
           "Set to trigger location or use Base UI's `var(--transform-origin)` (modals are exempt — keep centered)",
           "",
         ].join("\n"),
+      },
+      "break-ui": {
+        "SKILL.md": minimalEmilSkill("break-ui", ["# Breaking UI", ""]),
+        "CATALOG.md": "# Stress scenarios\n",
       },
       "emil-prototype": {
         "SKILL.md": [
@@ -1629,10 +1641,10 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
       },
       "mobile-native": {
-        "SKILL.md": minimalEmilSkill("mobile-native", [
-          "# Feeling Native On Mobile",
-          "",
-        ]),
+        "SKILL.md": await readFile(
+          path.join(repoRoot, "docs/ai/skills/mobile-native/SKILL.md"),
+          "utf8",
+        ),
       },
       "write-swift": {
         "SKILL.md": minimalEmilSkill("write-swift", [
@@ -1665,9 +1677,13 @@ describe("refresh-upstream-skills", () => {
     const idempotentPaths = [
       "animate/SKILL.md",
       "animate-expo/SKILL.md",
+      "animation-performance/SKILL.md",
       "animation-vocabulary/SKILL.md",
       "apple-design/SKILL.md",
       "ask-sonner/SKILL.md",
+      "ask-sonner/API.md",
+      "break-ui/SKILL.md",
+      "break-ui/CATALOG.md",
       "emil-design-eng/SKILL.md",
       "emil-prototype/SKILL.md",
       "improve-animations/AUDIT.md",

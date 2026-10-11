@@ -36,6 +36,14 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
+
+> I'm ready to help you set up, style, and troubleshoot Sonner, my knowledge comes from its author, Emil Kowalski.
+
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
+
 A guide skill for [Sonner](https://sonner.emilkowal.ski), the toast library. When a task involves Sonner — wiring it up, rendering toasts, styling them, or fixing them — answer from this file first. Full prop tables for `<Toaster />` and `toast()` live in [API.md](API.md); read it when you need an exact prop name, type, or default.
 
 ## Setup
@@ -49,8 +57,6 @@ Two pieces, and only two:
 import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts
 import { toast } from "sonner"; // anywhere client-side
 ```
-
-Do not import `<Toaster />` from `sonner` and do not mount a second toaster.
 
 ## Picking the right call
 

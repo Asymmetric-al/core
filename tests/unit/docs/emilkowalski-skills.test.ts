@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
+import { toast } from "sonner";
 import { describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
@@ -15,9 +16,11 @@ const runtimeRoots = [
 const upstreamFiles = {
   animate: ["SKILL.md", "RECIPES.md"],
   "animate-expo": ["SKILL.md", "RECIPES.md"],
+  "animation-performance": ["SKILL.md"],
   "animation-vocabulary": ["SKILL.md"],
   "apple-design": ["SKILL.md"],
   "ask-sonner": ["SKILL.md", "API.md"],
+  "break-ui": ["SKILL.md", "CATALOG.md"],
   "emil-design-eng": ["SKILL.md"],
   "emil-prototype": ["SKILL.md", "PICKER.md"],
   "improve-animations": ["AUDIT.md", "PLAN-TEMPLATE.md", "SKILL.md"],
@@ -49,6 +52,46 @@ function readSkillFile(
 }
 
 describe("emilkowalski skill pack", () => {
+  it("records reviewed raw upstream hashes independently of Core adaptations", () => {
+    const reviewed = JSON.parse(
+      readFileSync(
+        path.join(
+          repoRoot,
+          "tests/fixtures/skills/emil-upstream-skill-hashes.json",
+        ),
+        "utf8",
+      ),
+    ) as { source: string; commit: string; skills: Record<string, string> };
+    const lock = JSON.parse(
+      readFileSync(path.join(repoRoot, "skills-lock.json"), "utf8"),
+    ) as {
+      skills: Record<string, { source?: string; computedHash?: string }>;
+    };
+
+    expect(reviewed.source).toBe(packSource);
+    expect(Object.keys(reviewed.skills).sort()).toEqual(
+      Object.keys(upstreamFiles).sort(),
+    );
+    expect(
+      Object.keys(lock.skills)
+        .filter((name) => lock.skills[name].source === packSource)
+        .sort(),
+    ).toEqual(Object.keys(upstreamFiles).sort());
+
+    for (const [name, rawHash] of Object.entries(reviewed.skills)) {
+      expect(lock.skills[name].computedHash, name).toBe(rawHash);
+      const provenance = readSkillFile(
+        "docs/ai/skills",
+        name as keyof typeof upstreamFiles,
+        "references/upstream.md",
+      );
+      expect(provenance).toContain(`source_commit: ${reviewed.commit}\n`);
+      expect(provenance).toContain(
+        `upstream_skill_commit: ${reviewed.commit}\n`,
+      );
+    }
+  });
+
   it("keeps every canonical file byte-identical in all three runtime mirrors", () => {
     for (const [skillName, requiredFiles] of Object.entries(upstreamFiles)) {
       const typedSkillName = skillName as keyof typeof upstreamFiles;
@@ -146,6 +189,12 @@ describe("emilkowalski skill pack", () => {
     expect(
       readSkillFile("docs/ai/skills", "write-swift", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
+    expect(readSkillFile("docs/ai/skills", "break-ui", "SKILL.md")).toContain(
+      "disable-model-invocation: true",
+    );
+    expect(
+      readSkillFile("docs/ai/skills", "animation-performance", "SKILL.md"),
+    ).not.toContain("disable-model-invocation: true");
     expect(lock.skills.prototype).toMatchObject({
       source: "mattpocock/skills",
       skillPath: "skills/engineering/prototype/SKILL.md",
@@ -196,6 +245,30 @@ describe("emilkowalski skill pack", () => {
     expect(standards).toContain(
       "Most UI animations stay under 300ms; modals and drawers may use up to 500ms",
     );
+    const mobileNative = readSkillFile(
+      "docs/ai/skills",
+      "mobile-native",
+      "SKILL.md",
+    );
+    expect(mobileNative).toContain(
+      "Chrome device mode can check a mobile viewport",
+    );
+    expect(mobileNative).toContain(
+      "Safari on iOS does not support this viewport key",
+    );
+    expect(mobileNative).not.toContain(
+      "Nothing above reproduces in device emulation",
+    );
+    for (const name of Object.keys(upstreamFiles)) {
+      const skill = readSkillFile(
+        "docs/ai/skills",
+        name as keyof typeof upstreamFiles,
+        "SKILL.md",
+      );
+      expect(skill, name).not.toContain(
+        "Do not provide any other information until the user asks a question.",
+      );
+    }
   });
 
   it("keeps Base UI ownership in Emil component design and the shared Sonner toaster", () => {
@@ -219,6 +292,12 @@ describe("emilkowalski skill pack", () => {
     expect(askSonner).not.toMatch(/import \{ Toaster \} from ["']sonner["']/);
     expect(askSonner).toContain("@asym/ui/components/shadcn/sonner");
     expect(askSonner).toContain("bun run skills:verify");
+    expect(toast.getToasts).toBeTypeOf("function");
+    for (const file of ["SKILL.md", "API.md"]) {
+      const guidance = readSkillFile("docs/ai/skills", "ask-sonner", file);
+      expect(guidance).toContain("toast.getToasts()");
+      expect(guidance).not.toContain("toast.getActiveToasts()");
+    }
 
     const picker = readSkillFile(
       "docs/ai/skills",
@@ -245,6 +324,8 @@ describe("emilkowalski skill pack", () => {
     expect(animate).toContain("Do not invoke `pick-ui-library`");
     expect(animate).not.toContain("stop and invoke `pick-ui-library`");
     expect(animate).not.toContain("drop frames");
+    expect(animate).not.toContain("// drops frames under load");
+    expect(animate).not.toContain("// hardware accelerated");
     expect(animate).not.toMatch(/--ease-out:/);
     expect(animate).not.toMatch(/var\(--ease-out\)/);
     expect(animate).toContain("--ease-out-soft");

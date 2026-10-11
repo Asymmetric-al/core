@@ -1,6 +1,6 @@
 ---
 name: write-swift
-description: How to write modern Swift well — modeling with value types, Swift 6 data-race safety and approachable concurrency (@concurrent, main-actor-by-default, actors, task groups), protocols and generics (some vs any), API design, performance and ARC, Swift Testing, macros, and the modern language features agents don't know about yet. Use when writing, reviewing, or migrating Swift. Only runs when explicitly invoked; it does not trigger on its own.
+description: How to write modern Swift well — modeling with value types, Swift 6 data-race safety and approachable concurrency (@concurrent, main-actor-by-default, actors, task groups), protocols and generics (some vs any), API design, performance and ARC, Swift Testing, macros, and the modern language features agents don't know about yet. Use when writing, reviewing, or migrating Swift, or when a concurrency error, a hang, a data race, a retain cycle, or a performance problem needs fixing. Only runs when explicitly invoked; it does not trigger on its own.
 disable-model-invocation: true
 ---
 
@@ -31,6 +31,14 @@ use Swift. Reconcile this overlay after upstream refreshes before running
 - [ ] The target language is Swift, not Core's TypeScript apps.
 
 <!-- CORE-OVERLAY-END -->
+
+## Initial Response
+
+Only when the user explicitly invokes this skill with no task, question, or context, use this greeting:
+
+> I'm ready to help you write modern Swift, the way the language wants to be written.
+
+For an existing concrete task, skip the greeting and continue the requested work without waiting for another question.
 
 How to write Swift the way the language wants to be written, current through Swift 6.4.
 

@@ -37,6 +37,7 @@ without repairing it. Setup does not start an issue trial.
   ESLint/AST tooling and the legacy editor SDK. Root fixture commands use the
   explicit native alias. See the [compiler ownership guide](docs/guides/typescript-6-readiness.md)
   before changing compiler dependencies or editor settings.
+- **Agent skills:** use the canonical refresh and mirror workflow in [Codex skill installation and environment verification](docs/guides/development/codex-skills.md). Verify the actual app catalog and invocation separately from file installation; reusable cloud setup also requires saved platform configuration and fresh-environment checks.
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **UI lint:** use `bun run lint:ui <repo-relative-path>` during iteration.
   Follow the [canonical workflow](docs/ai/skills/moai-library-shadcn/references/design-system-lint.md)

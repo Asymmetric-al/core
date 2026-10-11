@@ -5,6 +5,7 @@
     "anim",
     "animate",
     "animate-expo",
+    "animation-performance",
     "animation-vocabulary",
     "apple-design",
     "ask-matt",
@@ -19,6 +20,7 @@
     "better-typography",
     "better-ui",
     "better-writing",
+    "break-ui",
     "cache-components",
     "check-compiler-errors",
     "code-review",
@@ -155,6 +157,11 @@
       "references/LICENSE.md",
       "references/upstream.md"
     ],
+    "animation-performance": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "animation-vocabulary": [
       "SKILL.md",
       "references/LICENSE.md",
@@ -257,6 +264,12 @@
     "better-writing": [
       "SKILL.md",
       "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "break-ui": [
+      "CATALOG.md",
+      "SKILL.md",
       "references/LICENSE.md",
       "references/upstream.md"
     ],
