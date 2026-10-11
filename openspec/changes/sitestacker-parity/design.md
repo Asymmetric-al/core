@@ -314,3 +314,40 @@ classifier and approval; narrowing remains immediate. This documentation-only
 change has no migration, provider effect or activation to roll back. Full
 permission CRUD, capability tables, tenant overrides, rules engines and new
 transport/provider work remain deferred.
+
+## Phase 6 communication foundation — AL-551
+
+The [current Phase 6 PRD](../../../docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md)
+and October 8 issue reconciliation govern the **first build** of Mission
+Control's existing communications capability. The existing outbound delta is
+extended; there is no duplicate history or competing Phase 17 design.
+[Seven canonical decisions F1–F7](../../../docs/adr/registry.md#accepted-phase-6-foundation-records--al-551)
+and the [concrete future read recipe](../../../docs/prds/sitestacker-parity/phase-06-communication-views-build-pattern.md)
+link every relevant owner/prerequisite.
+
+Server-only `packages/api` owns the header/junction, sole `sendEmail` capture,
+actual send-time gate evidence, exact scoped provider correlation/reducer and
+role-safe resolver. Postgres target constraints preserve exclusive scope and
+closed Party/contact revision, explicitly permitted no-Party authority or exact
+service-only platform authority. The declared missionary communication surface
+already exists in the platform baseline; a linked consumer boundary is sufficient
+without another surface/capability requirement.
+
+Support/care detail is permanently source-owned and atomically referenced;
+legacy email consumers require proved bounded adapters/backfill/migration,
+reader/FK disposition and writer fencing into one history. Missing mapping proof
+blocks cutover; bounded compatibility is reversible before its qualified flip.
+No address/provider payload selects identity or scope. Durable history contains
+no body/address/personalized subject. Phase 17 owns catalog/compiler/preparation/
+provider qualification; money/document snapshots and retention retain their
+separate source owners. Publication rolls back as documentation only and moves
+no data, providers, routes, jobs or settings.
+
+#560/#561/#562 remain open planned producer slices. Future donor/missionary UI
+uses their demonstrated safe projections and staff Activity assembly in the
+portal/workspace phase. Mailchimp is a reserved integration, never an executable
+channel; SMS/push and bulk remain reserved. Consent PR #502 is historically
+merged, while current-authority integration and open hook issue #511 activation
+remain gated. Deterministic docs verification, strict OpenSpec and active-delta
+compatibility qualify this publication; runtime safety/activation gates remain
+future obligations and are not substitutes for those documentation checks.

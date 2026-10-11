@@ -363,3 +363,29 @@ The following document work does not complete Phase 4 runtime or activation.
       remaining owning Phase 4 work before
       [AL-517 closeout](https://github.com/Asymmetric-al/core/issues/517), activation
       or any built/live claim; leave reserved later domains outside this scope.
+
+## 7. Phase 6 durable language — AL-551
+
+- [ ] 7.1 Extend the existing outbound-communications delta as the first build
+      of Mission Control's communications capability; preserve existing scenarios
+      and align proposal/design with current recipient/scope/history owners.
+- [ ] 7.2 Define all ten precise CONTEXT glossary topics and explicitly retire
+      blanket adapt-never-migrate and operational-key-only interpretations.
+- [ ] 7.3 Author/register seven accepted target ADRs F1–F7 with chosen patterns,
+      rejected alternatives, primary grounding and source-owner links.
+- [ ] 7.4 Publish the concrete future donor/missionary recipe and complete
+      resolving owner/prerequisite links; #560/#561/#562 remain open obligations,
+      PR #502 historically merged, issue #511 open and activation gated.
+- [ ] 7.5 Qualify the exact documentation candidate with strict/all/archive
+      OpenSpec, delta compatibility, Phase 25 projection consistency, exact
+      changed-file format/link/structural review and normal delivery gates.
+      Record commands/outcomes separately from runtime evidence.
+- [ ] 7.6 Implement/qualify #552–#565 in their own authorized work: recipient
+      constraints, canonical schema, sole-seam enforcement, consent, reducer,
+      role-safe slices and negative fixtures, proved bounded legacy cutover,
+      writer fencing, retention/disclosure risk and producer/provider gates.
+      This docs-only issue supplies no runtime, migration, lint or test code.
+- [ ] 7.7 In the donor-portal / missionary-workspace phase, consume demonstrated
+      #560/#561/#562 slices and repeat allowed/denied and accessibility proof.
+      Keep newsletter/Mailchimp, SMS/push and bulk separately gated; no UI,
+      integration or transport is activated by documentation publication.

@@ -2,6 +2,152 @@
 
 ## ADDED Requirements
 
+### Requirement: Phase 6 Is The First Build Of The Existing Communications Capability
+
+Phase 6 MUST be the **first build** of Mission Control's already-declared
+**communications** capability, extending this outbound-communications delta and
+one communication spine rather than creating a duplicate capability/history or
+competing Phase 17 design. The missionary workspace MUST consume its role-safe
+communication surface. Shared communication services MUST remain server-only in
+`packages/api`; apps MUST consume the governed projection/resolver.
+
+`communication_events` MUST be the Asym-owned body-free interaction-fact header,
+with typed detail left to its owner and same-scope `communication_event_relations`
+naming source records without granting access. Durable events MUST NOT retain a
+body, transport address or personalized subject. Every execution/history
+reference MUST preserve environment, exclusive tenant/platform scope and the
+applicable exact connection revision. Recipient authority MUST be one closed
+branch: same-tenant Party and its purpose-eligible contact point/exact revision;
+explicitly contract-permitted same-tenant no-Party authority kind/id/revision
+with no durable address; or exact service-only platform authority. Transitional
+donor/missionary IDs MUST project that same Party, never another authority.
+Addresses, tags and provider payloads MUST select neither identity nor owner.
+Platform v1 MUST retain only exact `eve_platform_owner` authority with null
+tenant/Party/contact fields; the current no-Live-platform-key generation MUST
+remain non-dispatchable. Missing recipient proof MUST NOT fall back to an address.
+
+Every admitted real-recipient business email MUST capture its canonical event
+by construction at the sole `sendEmail` gateway with atomic local intent/event,
+relation, consent and dispatch-evidence binding. Planned CI sole-seam enforcement
+MUST prohibit bypass provider senders. External provider I/O MUST use frozen
+submission-envelope identity and reconcile uncertainty before retry; local
+atomic capture MUST NOT claim a distributed DB/provider transaction. Synthetic
+previews/test sends MUST remain outside Party/source-record communication history.
+
+Signed delivery evidence MUST attach, never create, a communication. The verified
+connection revision MUST fix scope before exact internal/provider-message lookup
+through `{scope_kind, scope_owner_id, connection_revision, provider_email_id}`.
+Ambiguous, unresolved or crossed evidence MUST be quarantined safely; only later
+proved same-scope correlation MAY attach it. Provider reduction MUST preserve
+independent dispatch, submission, mail-server delivery, reputation, advisory
+engagement and evidence-health axes, alongside separately authoritative consent/
+contact and provider-suppression facts. Duplicate and out-of-order evidence MUST
+be retained without terminal regression; only owner-permitted non-conflicting
+transitions MAY advance an axis. Contradictory terminal delivery facts MUST
+quarantine and open one deterministic repair case rather than overwrite or
+discard either fact. Complaint MUST update separate reputation; it MAY establish
+delivered from pending/delayed under the Phase 17 reducer but MUST NOT overwrite
+a conflicting terminal delivery fact. In-product `available` MUST NOT imply
+provider delivery/read truth.
+
+Support Hub/member-care payloads MUST remain permanently owned by their typed
+detail tables, with atomic canonical reference emission, one-event support
+outbound deduplication and staff-only care. Legacy `email_send_logs`/`email_events`
+MUST instead follow bounded proved migration/backfill/adapters, complete
+reader/writer/webhook/reconciliation/FK disposition and legacy writer fencing
+into one history. An authority flip MUST NOT occur while a live dependency still
+needs the old shape. Blanket “adapt, not migrate” MUST NOT authorize perpetual
+dual email authority or inferred recipient mappings.
+
+#### Scenario: A multi-hat Party receives a business email
+
+- GIVEN an admitted same-tenant Party/contact revision and linked donor/missionary identities
+- WHEN the sole gateway captures the real-recipient dispatch
+- THEN one body-free interaction event and its same-scope relations are bound atomically
+- AND compatibility identities resolve to that same Party rather than duplicate history
+
+#### Scenario: Signed evidence has no exact scoped correlation
+
+- GIVEN a verified connection revision and an unresolved or crossed provider-message identity
+- WHEN synchronous signed/idempotent ingestion reduces the evidence
+- THEN it quarantines minimized evidence without fabricating communication history
+- AND only later proved same-scope attachment may reconcile it without terminal regression
+
+#### Scenario: Legacy delivery consumers have not converged
+
+- GIVEN a reader, writer, webhook lookup, reconciliation job or FK still depends on legacy email shape
+- WHEN a cutover attempts to declare canonical-only authority
+- THEN the missing disposition blocks the flip and writer removal
+- AND permanent Support Hub/member-care payload ownership remains unchanged
+
+### Requirement: Phase 6 Role-safe History And Suppression Preserve Current Governance
+
+The shared resolver MUST produce explicit allowlisted
+`communication_timeline_staff`, `communication_timeline_donor` and
+`communication_timeline_missionary` through the Phase 3 choke point and current
+role/ownership/source access. Visibility MUST default fail-closed to `staff_only`;
+only admitted `donor_visible`/`missionary_visible` items MAY reach those roles.
+All projections MUST exclude bodies, transport addresses, personalized subjects,
+raw consent JSON, raw provider payloads and raw identifiers; staff MAY receive a
+safe consent summary. Portal projections MUST additionally exclude staff-only,
+care and other-party data; missionary projections MUST exclude unauthorized
+supporters and donor-private financial material. Tenant readers MUST NOT see
+service-only platform history. Visibility or an identity/relation link MUST NOT
+grant record access.
+
+The intended staff slice MUST assemble communication items with existing Activity
+history and a Communication filter. Projection/resolver/tests (#560), staff
+assembly (#561) and donor/missionary read paths (#562) MUST remain planned until
+proved by exact implementation evidence. Future portal UIs MUST reuse that safe
+assembly in the donor-portal / missionary-workspace phase after demonstrated
+allowed/denied producer slices; this docs foundation MUST NOT claim shipped UI.
+
+Consent evidence MUST freeze the existing gate's actual versioned send-time
+evaluation/inputs, not create another store or recompute at view time.
+`email_suppressions` MUST retain authoritative distinct typed unsubscribe, bounce,
+complaint and product suppression facts with provenance. Provider suppression
+removal MUST NOT restore consent automatically. Future `isExportEligible` contact
+export MUST consult current consent/suppression and governed Phase 3 projection/
+export policy, not a historical allow snapshot.
+
+Retention classes MUST distinguish official (at least seven years/prefer
+permanent), operational and ephemeral history. Raw/prepared/Recent-copy evidence
+MUST obey its separate bounded ceilings. Admitted erasure MUST irreversibly
+redact communication PII while preserving separately owned immutable official
+financial/document snapshots and purpose schedules. Disclosure-risk audit MUST
+govern exports. GDPR/CPRA is a design baseline, not legal qualification; this
+foundation MUST NOT implement erasure jobs.
+
+Newsletter/Mailchimp, portal UI, SMS/push and bulk fan-out MUST remain reserved.
+Mailchimp MUST be an integration seam, never an executable communication channel;
+provenance vocabulary MUST NOT activate transport. Phase 17 MUST retain catalog/
+content/preparation/provider ownership; recipient, financial/document and
+provider qualification MUST remain separately owned dependencies. Synchronous
+signed/idempotent ingestion MUST use database uniqueness/monotonic guards;
+Inngest reconciliation and bounded proved backfill MUST NOT introduce an extra
+asynchronous ingestion queue or activate reserved bulk.
+
+#### Scenario: A portal reader lacks current source admission
+
+- GIVEN a donor or missionary with a linked identity but revoked or absent source access
+- WHEN the role-safe timeline resolves
+- THEN it omits the record and all staff-only/care/other-party/raw evidence
+- AND a visibility flag cannot widen current Phase 3 record access
+
+#### Scenario: Historical consent allowed a now-suppressed contact
+
+- GIVEN an immutable send-time allow snapshot and current authoritative suppression
+- WHEN a future contact-export eligibility check runs
+- THEN current consent/suppression and export policy deny the export
+- AND neither provider removal nor the historical snapshot restores consent
+
+#### Scenario: A future portal phase consumes the planned staff pattern
+
+- GIVEN exact allowed/denied implementation evidence for the projection/resolver, staff slice and read paths
+- WHEN the donor-portal or missionary-workspace phase implements communication UI
+- THEN it consumes its matching governed timeline and shared Activity assembly
+- AND reserved integrations and independent financial/document/provider owners remain gated
+
 ### Requirement: One Code-governed System-message Catalog Defines Every Supported Product Message
 
 The platform MUST maintain one executable, versioned catalog of system-message
