@@ -117,9 +117,9 @@ configuration, send private RPCs, create conversations, or run model turns.
 Repository follow-up: [AL-2062](https://github.com/Asymmetric-al/core/issues/2062).
 
 [selected-roots]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/protocol/src/capabilities.rs#L9
-[ready-info]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/exec-server/src/environment.rs#L109
-[ready-report]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/exec-server/src/environment.rs#L899
-[environment-toml]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/exec-server/src/environment_toml.rs#L29
+[ready-info]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/exec-server/src/environment.rs#L110
+[ready-report]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/exec-server/src/environment.rs#L909
+[environment-toml]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/exec-server/src/environment_toml.rs#L31
 [skill-config]: https://github.com/openai/codex/blob/72f999edc7848961b99c4b98bf1e62d12fa35798/codex-rs/config/src/skills_config.rs#L20
 [build-skills]: https://learn.chatgpt.com/docs/build-skills
 [projects]: https://learn.chatgpt.com/docs/projects
