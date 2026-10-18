@@ -1,0 +1,93 @@
+[
+  {
+    "name": "changelog",
+    "url": "https://supabase.com/changelog.md",
+    "fetched_at": "2026-10-16T05:01:06.675606+00:00",
+    "status": 200,
+    "bytes": 102319,
+    "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+    "excerpts": [
+      "nd. --- ## An outdated subset of TLS 1.2 ciphers will be disabled on project HTTP APIs 2026-10-12 \u00b7 Breaking Change \u00b7 Auth, Data APIs, Storage, Realtime, Edge Functions \u00b7 [supabase.com/changelog/cbc-tls-ciphers-deprecated](https://supabase.com/changelog/cbc-tls-ciphers-deprecated) Supabase will be disabling a subset of TLS 1.2 ciphers on project HTTP APIs on November 10, 2026. Clients that don't support modern standards ( Replication is now Database > Pipelines. Existing Replication URLs redirect to the new location. No API or pipeline behavior",
+      "ability backend. --- ## An outdated subset of TLS 1.2 ciphers will be disabled on project HTTP APIs 2026-10-12 \u00b7 Breaking Change \u00b7 Auth, Data APIs, Storage, Realtime, Edge Functions \u00b7 [supabase.com/changelog/cbc-tls-ciphers-deprecated](https://supabase.com/changelog/cbc-tls-ciphers-deprecated) Supabase will be disabling a subset of TLS 1.2 ciphers on project HTTP APIs on November 10, 2026. Clients that don't support modern standards ( Replication is now Database > Pipelines. Existing Replication URLs redirect to the new location. No API or pipe",
+      "l`, or the kong service name. --- ## Realtime schema is now fully locked down against modifications 2026-07-14 \u00b7 Breaking Change \u00b7 Realtime \u00b7 [supabase.com/changelog/realtime-schema-locked-down-against-modification](https://supabase.com/changelog/realtime-schema-locked-down-against-modification) Supabase now blocks all changes to the `realtime` schema: creating, altering, or dropping objects fails with a permission error. RLS policies on `realtime.messages` still work. --- ## Deprecation notice: `@supabase/supabase-js` will require TypeScript 5"
+    ]
+  },
+  {
+    "name": "user-management",
+    "url": "https://supabase.com/docs/guides/auth/managing-user-data.md",
+    "fetched_at": "2026-10-16T05:01:06.547624+00:00",
+    "status": 200,
+    "bytes": 7390,
+    "sha256": "3b585ca9312420f7069f30a63c6affa06308020684abb27ba5f0f0ba25903205",
+    "excerpts": [
+      "adata ``` **C#** ```c# var user = supabase.Auth.CurrentUser; var metadata = user?.UserMetadata; ``` ## Deleting users You may delete users directly or via the management console at Authentication > Users. Note that deleting a user from the `auth.users` table does not automatically sign out a user. As Supabase makes use of JSON Web Tokens (JWT), a user's JWT will remain \"valid\" until it has expired. Caution: You cannot delete a user if they are the owner of any objects in Supabase Storage. You will encounter an error when you try to delete an Au",
+      "ssary privileges for each role. Reference the `auth.users` table to ensure data integrity. Specify `on delete cascade` in the reference. For example, a `public.profiles` table might look like this: ```sql create table public.profiles ( id uuid not null references auth.users on delete cascade, first_name text, last_name text, primary key (id) ); -- Grant the privileges the roles need GRANT SELECT ON public.profiles TO anon; GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated; GRANT SELECT, INSERT, UPDATE, DELETE ON public.pr",
+      "security for the table alter table public.profiles enable row level security; ``` Caution: Only use primary keys as [foreign key references](https://www.postgresql.org/docs/current/tutorial-fk.html) for schemas and tables like `auth.users` which are managed by Supabase. Postgres lets you specify a foreign key reference for columns backed by a unique index (not necessarily primary keys). Primary keys are **guaranteed not to change**. Columns, indices, constraints or other database objects managed by Supabase **may change at any time** and you sh"
+    ]
+  },
+  {
+    "name": "sessions",
+    "url": "https://supabase.com/docs/guides/auth/sessions.md",
+    "fetched_at": "2026-10-16T05:01:06.586509+00:00",
+    "status": 200,
+    "bytes": 12089,
+    "sha256": "b8abecc1be67c7dc6aac2215483fd1a6fd79481c4d253bb267265720165a7dea",
+    "excerpts": [
+      "ell, as the authentication system's servers and database only handle traffic for this use case. ### How to ensure an access token (JWT) cannot be used after a user signs out Most applications rarely need such strong guarantees. Consider adjusting the JWT expiry time to an acceptable value. If this is still necessary, you should try to use this validation logic only for the most sensitive actions within your application. When a user signs out, the sessions affected by the sign-out are removed from the database entirely. You can check that the `s",
+      "minutes for the JWT expiration time. Otherwise sessions are progressively deleted from the database 24 hours after they expire, which prevents you from causing a high load on your project by accident and allows you some freedom to undo changes without adversely affecting all users. ## Frequently asked questions ### What are recommended values for access token (JWT) expiration? Most applications should use the default expiration time of 1 hour. You can customize this value in the [Auth settings > Sessions](https://supabase.com/dashboard/project/",
+      "e. - A user signs in on another device. ## Access token (JWT) claims Every access token contains a `session_id` claim, a UUID, uniquely identifying the session of the user. You can correlate this ID with the primary key of the `auth.sessions` table. ## Initiating a session A session is initiated when a user signs in. The session is stored in the `auth.sessions` table, and your app should receive the access and refresh tokens. There are two flows for initiating a session and receiving the tokens: - [Implicit flow](https://supabase.com/docs/guide"
+    ]
+  },
+  {
+    "name": "rls",
+    "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+    "fetched_at": "2026-10-16T05:01:06.544910+00:00",
+    "status": 200,
+    "bytes": 30344,
+    "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+    "excerpts": [
+      "e the `app_metadata` field, that will not be reflected using `auth.jwt()` until the user's JWT is refreshed. Also, if you are using Cookies for Auth, then you must be mindful of the JWT size. Some browsers are limited to 4096 bytes for each cookie, and so the total size of your JWT should be small enough to fit inside this limitation. #### MFA The `auth.jwt()` function can be used to check for [Multi-Factor Authentication](https://supabase.com/docs/guides/auth/auth-mfa#enforce-rules-for-mfa-logins). For example, you could restrict a user from u",
+      "e user making the request. Anything that you store in the user's `raw_app_meta_data` column or the `raw_user_meta_data` column will be accessible using this function. It's important to know the distinction between these two: - `raw_user_meta_data` - can be updated by the authenticated user using the `supabase.auth.update()` function. It is not a good place to store authorization data. - `raw_app_meta_data` - cannot be updated by the user, so it's a good place to store authorization data. The `auth.jwt()` function is extremely versatile. For exa",
+      "es to signed-in users | | `service_role` | `select`, `insert`, `update`, `delete` | Full access. It bypasses RLS, so keep it server-side | Adding policies doesn't take those grants back. A table protected only by policies still hands `anon` an insert path if you never revoke the grant. Not every project grants these automatically. See [Default privileges](https://supabase.com/docs/guides/api/securing-your-api#default-privileges). Grant each role only the operations it needs. A missing grant raises a `42501` error before any policy runs. When a "
+    ]
+  },
+  {
+    "name": "storage-ownership",
+    "url": "https://supabase.com/docs/guides/storage/security/ownership.md",
+    "fetched_at": "2026-10-16T05:01:06.512993+00:00",
+    "status": 200,
+    "bytes": 1436,
+    "sha256": "1307a1ca2d3e1c0dc9514e523804d9f177cd1e8b19c1e2a3259746322a5302b9",
+    "excerpts": [
+      "# Ownership Learn how ownership works in Supabase Storage and how to control access When creating new buckets or objects in Supabase Storage, an owner is automatically assigned to the bucket or object. The owner is the user who created the resource and the value is derived from the `sub` claim in the JWT. We store the `owner` in the `owner_id` column. Note: When using the `service_key` to create a resource, the owner will not be set and the resourc",
+      "the resource and the value is derived from the `sub` claim in the JWT. We store the `owner` in the `owner_id` column. Note: When using the `service_key` to create a resource, the owner will not be set and the resource will be owned by anyone. This is also the case when you are creating Storage resources via the Dashboard. Note: The Storage schema has 2 fields to represent ownership: `owner` and `owner_id`. `owner` is deprecated and will be removed. Use `owner_id` instead. ## Access control By itself, the ownership of a resource does not provide",
+      "om the `sub` claim in the JWT. We store the `owner` in the `owner_id` column. Note: When using the `service_key` to create a resource, the owner will not be set and the resource will be owned by anyone. This is also the case when you are creating Storage resources via the Dashboard. Note: The Storage schema has 2 fields to represent ownership: `owner` and `owner_id`. `owner` is deprecated and will be removed. Use `owner_id` instead. ## Access control By itself, the ownership of a resource does not provide any access control. However, you can en"
+    ]
+  },
+  {
+    "name": "pg-constraints",
+    "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+    "fetched_at": "2026-10-16T05:01:07.511310+00:00",
+    "status": 200,
+    "bytes": 44707,
+    "sha256": "cce33512bf9c9dcc29db138e888b72710c8e38a1eff18e0c74afff1ff16f2f57",
+    "excerpts": [
+      " cascading deletes are the two most common options. RESTRICT prevents deletion of a referenced row. NO ACTION means that if any referencing rows still exist when the constraint is checked, an error is raised; this is the default behavior if you do not specify anything. (The essential difference between these two choices is that NO ACTION allows the check to be deferred until later in the transaction, whereas RESTRICT does not.) CASCADE specifies that when a referenced row is deleted, row(s) referencing it should be automatically deleted as well",
+      "ct_no integer REFERENCES products ON DELETE RESTRICT , order_id integer REFERENCES orders ON DELETE CASCADE , quantity integer, PRIMARY KEY (product_no, order_id) ); Restricting and cascading deletes are the two most common options. RESTRICT prevents deletion of a referenced row. NO ACTION means that if any referencing rows still exist when the constraint is checked, an error is raised; this is the default behavior if you do not specify anything. (The essential difference between these two choices is that NO ACTION allows the check to be deferr",
+      "eleted, row(s) referencing it should be automatically deleted as well. There are two other options: SET NULL and SET DEFAULT . These cause the referencing column(s) in the referencing row(s) to be set to nulls or their default values, respectively, when the referenced row is deleted. Note that these do not excuse you from observing any constraints. For example, if an action specifies SET DEFAULT but the default value would not satisfy the foreign key constraint, the operation will fail. The appropriate choice of ON DELETE action depends on what"
+    ]
+  },
+  {
+    "name": "pg-policy",
+    "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "fetched_at": "2026-10-16T05:01:08.451267+00:00",
+    "status": 200,
+    "bytes": 46910,
+    "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+    "excerpts": [
+      " | PUBLIC | CURRENT_ROLE | CURRENT_USER | SESSION_USER } [, ...] ] [ USING ( using_expression ) ] [ WITH CHECK ( check_expression ) ] Description The CREATE POLICY command defines a new row-level security policy for a table. Note that row-level security must be enabled on the table (using ALTER TABLE ... ENABLE ROW LEVEL SECURITY ) in order for created policies to be applied. A policy grants the permission to select, insert, update, or delete rows that match the relevant policy expression. Existing table rows are checked against the expression ",
+      "E | DELETE } ] [ TO { role_name | PUBLIC | CURRENT_ROLE | CURRENT_USER | SESSION_USER } [, ...] ] [ USING ( using_expression ) ] [ WITH CHECK ( check_expression ) ] Description The CREATE POLICY command defines a new row-level security policy for a table. Note that row-level security must be enabled on the table (using ALTER TABLE ... ENABLE ROW LEVEL SECURITY ) in order for created policies to be applied. A policy grants the permission to select, insert, update, or delete rows that match the relevant policy expression. Existing table rows are ",
+      "define a new row-level security policy for a table Synopsis CREATE POLICY name ON table_name [ AS { PERMISSIVE | RESTRICTIVE } ] [ FOR { ALL | SELECT | INSERT | UPDATE | DELETE } ] [ TO { role_name | PUBLIC | CURRENT_ROLE | CURRENT_USER | SESSION_USER } [, ...] ] [ USING ( using_expression ) ] [ WITH CHECK ( check_expression ) ] Description The CREATE POLICY command defines a new row-level security policy for a table. Note that row-level security must be enabled on the table (using ALTER TABLE ... ENABLE ROW LEVEL SECURITY ) in order for create"
+    ]
+  }
+]

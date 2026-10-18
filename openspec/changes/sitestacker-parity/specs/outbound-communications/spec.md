@@ -484,14 +484,21 @@ provider material, or an existing id until same-scope ownership is proved.
 ### Requirement: Protected Actions Remain Producer-owned And Scanner-resistant
 
 Protected actions MUST be tenant-scope-only in this generation and MUST bind one
-exact Party/contact authority. Every platform-scoped contract MUST declare
+exact qualified recipient authority. The ordinary branch is Party/contact. The
+qualified Phase 28 native newsletter confirmation producer MAY instead bind its
+exact same-Tenant non-constituent recipient-authority revision and source
+occurrence under D43. This narrow exception SHALL use the existing protocol,
+fixed verified Tenant Donor Portal origin and current assurance/source checks; it
+SHALL create no Party, contact, Auth user, account claim, workforce assignment
+or general private-access grant and SHALL admit no arbitrary other producer.
+Every platform-scoped contract MUST declare
 `action: none`, and compilation MUST reject a platform protected-action
 descriptor. A later platform action requires a separately ratified authority
 contract and MUST NOT borrow tenant Party, site, session, or Supabase-invitation
 semantics.
 
-The producing domain MUST own every protected action's purpose, tenant, Party,
-resource, issuance credential, expiry, revocation, redemption, completion
+The producing domain MUST own every protected action's purpose, tenant, exact
+qualified recipient authority, resource, issuance credential, expiry, revocation, redemption, completion
 postcondition, and audit. Phase 17 MAY render only a typed action descriptor in
 the contract-approved protected-action node. Templates, imports, tests, and
 tenant staff MUST NOT create, reveal, rewrite, duplicate, relabel, track, or
@@ -652,6 +659,13 @@ provider acceptance MUST remain indeterminate under the same frozen identity.
   `CDN-Cache-Control: no-store`, and `Vercel-CDN-Cache-Control: no-store`
 - AND no cache, transform, stale response, optimizer, or service worker handles
   it
+
+#### Scenario: A native newsletter confirmation has no CRM Party
+
+- GIVEN the qualified P28 native confirmation occurrence binds one same-Tenant non-constituent recipient-authority revision
+- WHEN the reader deliberately confirms through the shared protected doorway
+- THEN current source/recipient/expiry rules are re-proved without creating a Party, contact, Auth account or workforce assignment
+- AND another producer cannot use this exception, while a scanner GET performs no enrollment
 
 ### Requirement: In-product Notifications Are One Role-safe Attention Projection
 

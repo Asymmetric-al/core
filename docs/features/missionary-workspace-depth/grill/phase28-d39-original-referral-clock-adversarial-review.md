@@ -1,0 +1,610 @@
+# D39 — original referral date and a usable initial deadline
+
+Reviewed **October 18, 2026** against Core
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and its research working tree.
+The founder selected **Q39 A**, then explicitly selected **calendar-date
+deadlines for new referrals**, showing the last day to follow up. This changes
+D38's elapsed-day rule for **New only**. Continued referrals retain D36/D38's
+existing timing rule. **Disposition: Accept with required amendments.**
+The corrected decision, C01–C17, P01–P26 and required design amendments were
+**explicitly ratified on October 18, 2026 (Asia/Bangkok)**. Ratification preserves
+the reviewed requirements; it does not establish implementation or activation.
+
+This is the completed answer review under the
+[founder research boundary](phase28-founder-brief.md:21). It is not a formal
+PRD/OpenSpec, application implementation, source qualification or release.
+No tickets, live settings, external communications or GitHub state are changed.
+No prior model, probe or verification program was executed.
+
+## Exact corrected decision to record
+
+> **A — Count the initial period from the original referral date.** When the
+> organization permits the work, Maya records when the referral was originally
+> given to her, using the factual precision available. New referrals use the
+> organization's configured number of calendar days, counting that date as day
+> one. Maya sees the last day to follow up and the organization time zone used
+> for the deadline; she does not choose an expiry date or invent a time of day.
+>
+> Recording, importing, reassigning or reopening a record later does not restart
+> its initial period. A previously accepted window keeps its accepted terms.
+> For a genuinely first window with no earlier accepted window, apply the
+> current New policy at deliberate source acceptance to the original referral
+> date, preserving when that policy was actually applied. This does not claim
+> that the same policy existed earlier or grant access retrospectively.
+>
+> If the resulting window has legitimately ended, recording eligible history
+> succeeds with a clear Expired outcome. Returning it to active work requires
+> the ordinary, separately authorized Continue referral action. Unknown dates
+> remain unknown; they do not silently become today's date, Active, Expired or
+> permission to continue. Existing privacy, contact, retention and source rules
+> still apply. Genuine mistaken-date or mistaken-expiry repair remains a separate
+> authorized, evidence-preserving source correction; it does not create a fresh
+> period or counterfeit a continuation.
+>
+> Authorized staff retain the two organization-wide period settings and existing
+> action controls. They can restrict or disable the relevant actions without
+> deleting history or disabling expiry. Missionary self-service continuation
+> remains Off initially. There is no new clock-mode setting, individual expiry
+> override, automatic renewal, automatic outreach or compulsory coaching step.
+
+The inclusive-day convention is an explicit product judgment in these ratified
+amendments: a 30-calendar-day example beginning October 1 ends **through October
+30**, and a one-calendar-day period ends that same day. These are examples,
+not default or recommended durations. A calendar day can provide less than
+24 hours of remaining work. Staff see that meaning before saving.
+
+## What the evidence establishes
+
+**Repository facts.** Native P9 owns referral lineage, provenance and source
+lifecycle; P12 owns current capability and scope. D34–D38 preserve limited
+history, deliberate continuation, independent tenant periods and immutable
+accepted terms under ordinary settings edits. The
+[governance review](d39-evidence/governance.md) and
+[technical review](d39-evidence/temporal-and-authorization.md) give exact sources.
+The governing index explicitly separates
+[intended behavior from current reality](../../../../openspec/project.md:6).
+
+**Current source observations.** Bounded searches of the API, database package,
+missionary app and migrations did not identify a qualified D39 referral-clock
+producer. Existing donor/relationship services, generic settings and mutation
+helpers are not proof of referral semantics or safe grants. No deployed database
+or complete referral UI was exercised. This review therefore requires native
+producer qualification; it does not certify existing code merely because it is
+present.
+
+**Verified external documentation.** The following primary pages were opened
+afresh on October 18, 2026. Dates below are publication/update dates where
+available, not invented recency claims. No authenticated competitor product,
+user interview or measured fundraising outcome was tested.
+
+| Source                                                                                                                                                                                                                                                                                                                   | Verified evidence and application                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [MPDX referral help](https://help.mpdx.org/article/194-add-referrals-to-contacts), June 8, 2023                                                                                                                                                                                                                          | Referral provenance and date appear together. Recent means added within two weeks, a display filter rather than an expiry policy. Adopt contextual provenance; do not copy that number or infer an expiry anchor.                                                              |
+| [TntConnect TNT Phase](https://www.tntware.com/tntconnect/help/en/pages/contacts_mpdphase.aspx), undated                                                                                                                                                                                                                 | Expired Referral describes a passed contact window, distinct from refusal. Use neutral window language; its phases and suggested referrer check do not become mandatory Core workflow.                                                                                         |
+| [HubSpot activity properties](https://knowledge.hubspot.com/properties/hubspots-default-activity-properties), June 11, 2026                                                                                                                                                                                              | Occurrence and creation dates are distinct, but missing imported activity dates default to creation time. Preserve the distinction; expressly reject that fallback because it conflicts with Q39 A.                                                                            |
+| [CoachAccountable Course Actions](https://www.coachaccountable.com/knowledgeBase/coaching/courses/building/actions) and [Course Settings](https://www.coachaccountable.com/knowledgeBase/coaching/courses/basics), undated                                                                                               | Assignment events and configured zones affect relative due dates. Name Core's event and zone; do not import course scheduling, zero-day settings or a new clock selector.                                                                                                      |
+| [GOV.UK Dates](https://design-system.service.gov.uk/patterns/dates/) and [Date input](https://design-system.service.gov.uk/components/date-input/), living guidance                                                                                                                                                      | Match input to the date people know; allow truthful imprecision; provide typed input alongside calendar controls. Do not force remembered hours/minutes.                                                                                                                       |
+| [GOV.UK errors](https://design-system.service.gov.uk/components/error-message/) and W3C [status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html), [reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html)                                                                           | Errors need a specific remedy; results must be announced accessibly; ordinary content must reflow. Apply these to the actual shared Base UI form, rather than importing a design system.                                                                                       |
+| PostgreSQL 17 [types](https://www.postgresql.org/docs/17/datatype-datetime.html), [time functions](https://www.postgresql.org/docs/17/functions-datetime.html), [row security](https://www.postgresql.org/docs/17/ddl-rowsecurity.html) and [policy semantics](https://www.postgresql.org/docs/17/sql-createpolicy.html) | Dates, instants and calendar arithmetic differ; DST breaks a universal 24-hour calendar day. Effective old/new-row policies and privileged paths must be examined. A missing explicit WITH CHECK can inherit USING; that is not proof of immutable fields or safe transitions. |
+
+The [full UX evidence](d39-evidence/ux-and-primary-research.md) records the
+complete comparisons and their limits. These sources support clear event
+meaning, honest precision and understandable deadlines. They do **not** establish
+a universal ministry duration, a legal basis for contact, or proof that this
+design improves fundraising.
+
+**Selected product choices:** original event rather than data-entry/admission
+time; calendar dates for all New windows; Continued semantics unchanged.
+**Ratified review judgments:** count the original date as day one; use the organization's
+declared calculation zone; apply current New terms at first qualified acceptance;
+retain one ordinary form and existing continuation.
+**Unverified assumptions:** prevalence of late/date-only referrals, comprehension
+of the two units, source-data quality and real workload. These need explicit
+release proof, not invented user feedback or extra settings.
+
+## Reconcile the governing decisions explicitly
+
+| Contract                                                                                                                                                                                                                                                     | Scoped change or preservation                                                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [D38 C02](phase28-d38-separate-referral-periods-adversarial-review.md#exact-required-amendments)                                                                                                                                                             | Ratified amendment replaces “both values use elapsed days” with New calendar days including the original date; Continued remains positive integral 24-hour days. No tenant-selectable time mode.                                                                                                                            |
+| D38 C05/G1 and [Q39 research](phase28-q39-initial-referral-clock-research.md)                                                                                                                                                                                | Original-date anchor, first-late-record policy selection and date-only treatment are resolved here. Arithmetic qualification and real source proof remain required, rather than delegated product choices.                                                                                                                  |
+| D38 C06, P06/P13/P14/P19/P24                                                                                                                                                                                                                                 | Preserve existing accepted windows. New adoption and tests must distinguish stored legacy semantics, the selected calendar rule and continued elapsed timing. No bulk reinterpretation of accepted history.                                                                                                                 |
+| [D36 timing](phase28-d36-configured-referral-period-adversarial-review.md#exact-required-amendments)                                                                                                                                                         | Continued acceptance time plus N × 86,400 seconds is unchanged. D39 does not move that anchor to the original referral or convert continued windows to calendar days.                                                                                                                                                       |
+| [D35 continuation](phase28-d35-referral-continuation-adversarial-review.md#exact-required-amendments)                                                                                                                                                        | One deliberate authorized successor for an eligible expired cycle. Self-service Off and independent staff rights remain. Initial record creation is not that action. D34 C07/D35 C12 preserve separately authorized mistaken-expiry correction; C07 below retains that exception rather than creating a false continuation. |
+| [D34 history](phase28-d34-expired-referral-history-adversarial-review.md#exact-required-amendments)                                                                                                                                                          | A qualified original recipient assertion can establish belonging; inserting an old record cannot fabricate past Core access. Current narrow history rights still decide the permitted result.                                                                                                                               |
+| [P9 A4/A17](../../../prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md:353), [P28 owner constraint](../../../prds/program-roadmap/owner-constraints.md:81), [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md) | Extend the native referral source through its owner. Keep source mutation, required audit/activity and minimal recovery atomic. No shadow CRM, generic command journal or provider integration.                                                                                                                             |
+| [ADR-0209](../../../adr/0209-static-field-policies-and-subtract-only-projection.md), [ADR-0210](../../../adr/0210-code-authoritative-capability-foundation.md), [ADR-0211](../../../adr/0211-distinct-human-approval-for-projection-widening.md)             | Current capability plus classified, subtract-only projections apply across every response. Projection approval does not mean a new staff approval for each referral.                                                                                                                                                        |
+
+Older ratified files remain preserved evidence in this research stage. On a later
+authorized specification transition, amend the affected canonical owner clauses
+and their declared generated projections together. Do not leave contradictory
+current requirements with only a banner. No platform ADR is needed for this
+bounded refinement.
+
+## Complete user journey
+
+**Staff configuration.** In the existing organization referral settings retain
+two fields. Label them **New referrals — calendar days** and **Continued
+referrals — 24-hour days**. New help: “Counts the day the referral was given as
+day one. Entering it later does not restart the period.” Continued help: “Starts
+when an authorized continuation is accepted.” Show a small example calculated
+from the actual draft value and the organization deadline time zone; explain that
+settings changes affect future acceptances, not existing dates. Do not supply an
+unresearched numeric default. Distinguish Unconfigured from Could not load.
+
+The calculation zone comes from the organization's declared native setting,
+not a missionary's location, browser, IP address or arbitrary per-referral
+selector. If there is no qualified organization setting, resolve it once in
+organization setup before initial-window acceptance. A zone change is
+prospective for newly accepted windows, just like a duration change.
+
+Existing permissions allow staff to restrict initial recording/admission and
+continuation independently. D35's missionary continuation switch remains Off
+initially and can be changed without completing invalid period drafts. Turning
+off a new-action permission does not delete earlier records, make them
+indefinite, replay submissions on re-enable or block separately permitted
+history. Current disclosure permission can independently remove access.
+
+**Discoverability and normal entry.** Use the existing referral/relationship
+entry and work list. If source provenance already supplies the date, show it
+rather than request it again. Otherwise ask **“When was this referral given to
+you?”**, with help **“Use the original date, even if you are entering it later.”**
+Staff entering for Maya see her approved recipient label in that question.
+Provide typed date entry and the shared calendar where useful. A deliberate
+Today shortcut is permissible; blank, import and retry never silently mean Today.
+An **“I don't know the date”** path preserves truthful information.
+
+Show one compact result beside the ordinary Save action:
+
+> **Follow up through 30 October 2026**  
+> Organization time: America/New_York  
+> Based on the referral date: 1 October 2026.
+
+Those dates illustrate a hypothetical 30-calendar-day policy; the product uses
+the actual accepted policy. Month names/localized labels avoid ambiguous numeric
+dates. Do not ask for a second expiry date, invent a clock time or add a wizard.
+The normal Save may include the clearly previewed initial acceptance as one
+deliberate action; mere autosave, background import, read or sync does not.
+
+**Late but still within the window.** The same form shows the remaining actual
+deadline. No punitive “late entry” badge, countdown, compliance score or repeated
+warning. Under a 30-day example, entering the October 1 referral on October 20
+still shows October 30, not November 18. Record entry time remains in permitted
+history, not in the main decision the missionary must make.
+
+**Already ended.** Before save: “This referral's initial window ended on
+[last day]. You can record it; continuing is a separate action.” After accepted
+recording: **“Referral recorded. Its initial window has ended.”** Show the
+ordinary **Continue referral** action only when currently eligible and permitted;
+its existing preview shows the new continued end. A separate action does not
+require navigating away or a new approval queue. If the organization reserves
+continuation to staff, explain that plainly without a fake request-submitted
+state or a dead settings link. Do not show contact/private context under an
+Expired-history purpose. If even history is not authorized, return only the
+safe source acceptance acknowledgement.
+
+**Date unknown or approximate.** Preserve the permitted record and known
+provenance. Show **“Referral date not confirmed”** and explain “Add the original
+date to calculate this window.” This is information completeness, not a new
+referral stage. A known month/year or source range remains imprecise; do not turn
+it into a guessed first/last day. No initial Active/Expired assertion or Continue
+entitlement follows from that uncertainty alone. The ordinary source correction
+path can establish a known day; unrelated independently permitted work remains
+available. Do not create an automatic staff ticket, new queue or demand a file
+upload. Actual prevalence and usability of this path must be tested.
+
+**Correcting a date.** Offer **Correct referral date** only with the exact
+source correction authority, inside ordinary detail/history. Before initial
+acceptance, a draft date change simply updates the preview. Afterwards show
+the original and corrected date, the resulting effective deadline/status and
+the effect on work before accepting the separate source correction. Preserve
+the original assertion, accepted terms, actor and actual correction time.
+A genuine factual correction uses the originally accepted period/zone/basis,
+never today's period or a fresh start. It can correct an erroneous end in either
+direction under that distinct authority; ordinary editing cannot. Current
+privacy/contact restrictions still apply.
+
+Show the **current effective** last day/status prominently and the original
+accepted terms in history. An earlier corrected end can leave the window
+expired immediately; an incorrectly stored Expired flag before a valid end
+can be repaired without creating a continuation. Do not rewrite previous
+access history as though the correction existed then. A later accepted
+continuation remains the current cycle: correcting its predecessor cannot
+reactivate or reschedule it. A legitimately elapsed window still uses ordinary
+Continue referral; that action is unavailable while the current window is
+active. This preserves D34/D35's correction contract without a new override
+control or approval queue.
+
+**Interrupted submission.** Pending means pending. A lost response says
+**“Checking whether your referral was saved…”** and reconciles the same source
+effect. It does not choose a new original date, policy or deadline. If the record
+was saved but refresh fails, retain the successful outcome and offer refresh.
+Before recovery disclosure, recheck current tenant and field authority.
+
+**Visual and accessible behavior.** Compose existing exact base-maia/Base UI
+components in the ordinary screen: short labels, grouped date inputs, one
+primary action, clear helper text and a calm text status. Use shared semantic
+tokens, never an alternate vendor style. Status is not color alone. Preserve
+focus/list position; associate errors with inputs; announce calculated result
+changes and saving outcomes without moving focus. Use one-column mobile reflow,
+keyboard/typed alternatives, long-name wrapping, localization and existing
+44px touch guidance while meeting WCAG 2.2 target requirements. Test at 320 CSS
+pixels and 400% zoom. No persistent offline copy or replay queue is introduced.
+Coaches, donors, finance and public pages gain neither controls nor disclosure.
+
+## Exact required amendments
+
+These clauses are explicitly ratified requirements for this decision, not a
+formal specification or an assertion of implementation.
+
+- **C01 — Meaning and scope.** The initial New period SHALL be measured from the
+  original referral event given to the identified recipient on the qualified
+  source lineage. Record creation, first viewing, import, reassignment, merging
+  and retries SHALL NOT establish a later original event or a second initial
+  window. A genuinely separate introduction needs source evidence, not a new row.
+- **C02 — Calendar rule and explicit supersession.** For newly accepted initial
+  windows under this amendment, New SHALL mean a positive whole number N of
+  calendar days including the qualified original date D. The last included
+  calendar date is D + N − 1. This explicitly amends D38 C02 for New only.
+  Continued SHALL retain D36's accepted-time plus N × 86,400-second rule.
+  No universal number, inferred copied value, zero-as-Off or per-referral override.
+- **C03 — Date evidence and calculation zone.** Preserve original facts and their
+  precision. A qualified date-only assertion supplies D directly; it does not
+  assert a midnight instant. A qualified exact instant supplies D by its date in
+  the organization's declared calculation zone, retaining original instant and
+  provenance. A known source date in another zone SHALL NOT be converted by
+  inventing its missing time. Show the declared interpretation before acceptance.
+  The organization zone controls the deadline, not the missionary's location.
+  Missing/contradictory zone or source meaning blocks only the dependent
+  calculation until resolved. No browser-zone, import-time or UTC-midnight guess.
+- **C04 — Exact boundary.** Freeze the accepted organization zone, calendar
+  interpretation, N, D, policy evidence and computed finite endpoint E. E is the
+  first valid instant at the start of D + N in that zone: use the first valid
+  instant after a missing midnight, the earlier occurrence for repeated midnight,
+  and the next existing date when the target date is skipped. Preserve the
+  resolved endpoint, rather than recomputing it on zone-rule or settings changes.
+  Where skipped dates or later timezone-rule changes make the nominal last-day
+  wording misleading, show the actual stored endpoint rendered with current
+  date/time/offset and declared zone, with a brief explanation. Never imply a
+  full last day when the actual boundary now falls within that day. Supported precision/range and time-library
+  behavior SHALL be qualified, not implemented by a hand-built timezone engine.
+  At trusted time E and later the window is expired regardless of job lag.
+  An accepted source correction supplies the effective result under C07; an
+  ordinary settings edit never does.
+- **C05 — First late acceptance and history.** A genuinely first window SHALL
+  use the current qualified New policy at actual deliberate source acceptance A,
+  applied to the original date, without claiming historical policy or backdating
+  authorization. It can support active work only after A and before E, with all
+  other current predicates satisfied. If E ≤ A, atomically return the truthful
+  expired outcome without a temporary Active state. Qualified historical
+  recipient/provenance and current projection rights independently determine
+  history access. Preserve any existing accepted window instead; missing prior
+  evidence is not proof that no earlier window exists.
+- **C06 — Unknown and future facts.** Authorized recording of truthful incomplete
+  provenance SHALL remain possible without manufactured precision or lifecycle.
+  Unknown/approximate dates SHALL NOT default to Today, created time, Active,
+  Expired or continuation eligibility. Clearly future exact events cannot be
+  accepted as past referrals. A date that only appears future due to a source
+  timezone/date-line difference requires context-aware validation, not automatic
+  rejection or a guessed conversion. Planned work keeps its ordinary source
+  meaning; it is not an already-given referral.
+- **C07 — Separate continuation and factual correction.** A legitimately
+  expired window SHALL require the ordinary qualified continuation to return
+  to active work. Preserve D34 C07/D35 C12's separate mistaken-expiry correction.
+  A post-acceptance factual correction SHALL require its exact current scoped
+  capability, source evidence, expected revision and a deliberate review of
+  the before/after effective deadline and state. Apply the originally accepted
+  period/zone/semantic basis, never today's policy or a fresh start. Preserve
+  immutable prior assertions/acceptance and append the actual correction time
+  and current effective source result. A qualified genuine correction may
+  repair an erroneous deadline in either direction or an incorrect Expired
+  flag without creating another initial window or continuation cycle. Ordinary
+  date/status PATCH, general edit rights or a claimed correction reason are
+  insufficient authority. At correction acceptance enforce the corrected
+  effective cutoff/current state and all other current restrictions; do not
+  backdate actual authorization or rewrite earlier access history.
+  All primary display, reads, actions and expiry jobs SHALL use the current
+  qualified effective result; old accepted terms remain history. If a later
+  continuation exists, correction of its predecessor SHALL preserve that
+  successor's accepted terms and consumed-lineage state, never reactivate
+  the predecessor or silently overlap/reschedule work. A contradiction that
+  invalidates lineage needs the qualified owner reconciliation rather than
+  an automatic override. Ordinary Continue remains unavailable for an active
+  current window. Withdrawal, refusal, erasure and revoked permission are
+  independently enforced and cannot be relabeled ordinary expiry or repaired
+  by correcting a date.
+- **C08 — Tenant configuration and Off.** Retain D38's independent organization
+  periods and ordinary exact action grants. Period/zone edits are prospective.
+  Withholding a relevant action blocks that new effect, not independently
+  permitted work or history. D35 self-service remains Off initially, separate
+  from staff authority. Off remains operable with invalid draft values; enabling
+  does not replay old intent. No control disables expiry or overrides privacy.
+- **C09 — Trusted authority and ordering.** At the authoritative mutation
+  boundary derive tenant, actor, attribution and relevant scope from trusted
+  context; validate source recipient/lineage, current capability, source revision,
+  New policy and restrictions after waits. A factual date is validated asserted
+  evidence, not authority. Caller values cannot author accepted time, policy,
+  owner, status, cycle identity or approval. Order policy/restriction commits and
+  acceptance so a prior committed restriction cannot be bypassed. Refresh
+  materially changed relevant terms; an unrelated Continued edit alone does
+  not invalidate an initial intent.
+- **C10 — Atomic durable effect and recovery.** Commit the exact initial source
+  outcome, required audit/activity and minimal source-owned recovery evidence
+  atomically under P9 A17. Enforce one initial acceptance per qualified lineage
+  and one successor per consumed cycle across actors and transport keys.
+  Recovery returns the original permitted effect and terms, even after another
+  expiry; it never recalculates against today's policy. If a later correction or
+  continuation exists, distinguish that original action result from the current
+  effective state; recovery SHALL NOT present the old result as current authority. Definitively rejected
+  intents have no effect and cannot resurrect through replay. Optional refresh
+  or notification failure does not roll back accepted truth or trigger recreation.
+- **C11 — Database and all mutation paths.** Require tenant-aware keys/FKs to
+  lineage, recipient, policy and cycles; non-null trusted ownership; positive
+  bounded integral N; finite dates/endpoints; explicit precision and valid
+  missing/present combinations; qualified uniqueness, delete behavior and indexes.
+  No nullable identity loophole, cascading loss of required history or ordinary
+  update to accepted ownership/terms. Qualify actual grants, effective USING and
+  WITH CHECK, restrictive/permissive composition, views, RPC EXECUTE/search_path,
+  storage if reached, and privileged service routes. Old/new-row predicates
+  alone do not authorize a lifecycle or ownership change. Money types and
+  financial amounts are unaffected.
+- **C12 — Source ownership and projections.** P9 owns referral facts/windows;
+  P12 and static field policies govern current action/disclosure. The missionary
+  screen, caches, searches, imports and coaching summaries remain consumers.
+  Recheck eligibility and time at protected reads/actions; never use a stale
+  Active flag or delayed job as authority. Source dates/identities/zone evidence,
+  lists/counts/errors/recovery/export/logs and restored copies follow the same
+  permitted purpose. No restored private context, location inference, expanded
+  contact details, retention extension or permanent full snapshot.
+- **C13 — Simple UI contract.** Use the journey above: one original-date question
+  when needed, source facts reused, explicit unknown path, one readable deadline,
+  local precise errors and ordinary Continue referral. Show current-policy
+  application truthfully for late first acceptance. “Recorded” and “active”
+  SHALL remain distinct. Calendar/elapsed labels, inclusive example and
+  organization zone SHALL be accessible without a per-item policy wizard.
+  No automatic task, send, consent, completed interaction or coaching share.
+- **C14 — Current-state and failure behavior.** Missing configuration, denied
+  authority, malformed input, contradictory provenance and service failure
+  SHALL have distinct safe outcomes and appropriate repair routes. A save at or
+  beyond E yields an expired result, not lost work or automatic continuation.
+  Lost response recovery, stale response dismissal on tenant change and
+  revision conflicts SHALL preserve facts and prevent duplicate effects.
+  Network reconnection cannot replay a new consequential intent.
+- **C15 — Bounded operation and audit.** Use indexed same-tenant lineage/current
+  policy lookups, paginated authorized lists and bounded recovery/import work.
+  No global history rescan or cross-tenant lock on settings change. Preserve
+  business history for original assertion, actual acceptance, applied policy,
+  correction and continuation separately from technical request logs and
+  security events. Audit content is minimized and governed by its own retention;
+  append-only business meaning does not authorize perpetual personal data.
+- **C16 — Migration and rollout.** Inventory existing event precision, window
+  semantics and source identities. Preserve accepted endpoints and their
+  calendar/elapsed basis; do not copy created time or bulk convert historical
+  accepted windows. Deploy compatible native readers/commands before enabling
+  new acceptance; fence old writers that omit the semantic version or trusted
+  context. Rollback stops affected new acceptance and retains safe reads/history;
+  it cannot reinterpret calendar windows as elapsed or restore unsafe grants.
+  Import, restore and mixed-version proof are activation requirements.
+- **C17 — Evidence and traceability.** Fulfill P01–P26 and owner qualification
+  gates below before activation. Later authorized source/OpenSpec/design/tasks,
+  glossary, tests and release evidence SHALL trace Q39 A and its selected
+  calendar amendment with precise status. Document checks and arithmetic examples
+  SHALL NOT be represented as source, database, UI, user-study or deployment proof.
+
+## Concern register
+
+Severity describes consequence; likelihood is reasoned exposure **without the
+amendment**, not a measured probability. Critical means cross-tenant or forbidden
+access; High means material authority, historical-truth or work-loss effects;
+Medium means consequential usability/maintenance burden. These concerns amend
+or narrow implementation of A; none invalidates the original-date choice.
+
+| ID  | What can go wrong and why it matters                                                                                                             | Severity / likelihood; evidence                                                                                  | Decision effect and permanent exact prevention                                                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 | A date field or import timestamp creates a fresh window for old work.                                                                            | High / likely if common defaults are reused; HubSpot's documented fallback and Q39 A.                            | Preserve A; separate original/recorded/accepted facts and require lineage uniqueness: C01, C05, C10, P01/P02/P10.                                                      |
+| F02 | Unknown times become invented midnight facts; DST or inclusive-day disagreement changes expiry.                                                  | High / likely with ordinary timestamp parsing; PostgreSQL types/time functions, D38 conflict, GOV.UK guidance.   | Explicitly change New to calendar days; freeze zone/endpoint, preserve precision and test boundaries: C02–C04, P03–P06.                                                |
+| F03 | Today's policy or an expired late record pretends there was historic policy/access.                                                              | High / plausible during backfill/admission; D34 history evidence and D38 C05/C06.                                | Current policy applied now, no retroactive grant; prior accepted windows take precedence: C05, P07–P09.                                                                |
+| F04 | Missing dates block truthful entry, invite guesses, or falsely authorize continuation.                                                           | Medium; false authority High / plausible; GOV.UK date guidance and Q39's known-date scope.                       | Save permitted incomplete facts with no fabricated lifecycle; repair in ordinary source path: C06, C13, P11/P12.                                                       |
+| F05 | Generic date edit, reassignment or merge becomes renewal; a blanket ban also prevents genuine mistaken-expiry repair or displays a stale cutoff. | High / plausible; P9 lineage, D34 C07 and D35 C12.                                                               | Distinct qualified factual repair with effective result, retained prior evidence and preserved successors; ordinary elapsed work uses continuation: C01, C07, P13/P14. |
+| F06 | Spoofed identity, stale grant or permissive update crosses scope or accepts forbidden terms.                                                     | Critical / plausible if generic helpers are reused; P12, ADR0209, actual unqualified paths in technical note.    | Trusted context, post-wait authority, tenant relationships, all-path checks: C09/C11/C12, P15–P18.                                                                     |
+| F07 | Double-click, lost response, concurrent actor or partial audit creates two initial/successor effects.                                            | High / plausible in mobile/weak-network use; P9 A17 and D35 recovery.                                            | Native atomic effect and durable business identity, current-authority recovery: C10/C14, P16/P19/P20.                                                                  |
+| F08 | Old cache/job exposes active details after expiry or reveals protected context in history/errors.                                                | High / plausible with computed status and late entry; D34, ADR0209.                                              | Predicate at read/action time, exact-cycle jobs, minimal projections across egress: C04/C12/C14, P18/P21.                                                              |
+| F09 | Off or a period change deletes work, changes earlier deadlines, or disables unrelated operations.                                                | High / plausible with boolean reuse; D35/D38.                                                                    | Independent controls, prospective semantics and truthful unavailable states: C08/C14, P08/P17/P22.                                                                     |
+| F10 | Two timing meanings or “expired” copy confuses Maya, demands unnecessary dates or suggests donor refusal.                                        | Medium / plausible; founder's usability goal and official UX guidance; actual comprehension untested.            | Precise staff units, one applicable missionary deadline, neutral copy and full journey: C13, P23/P24.                                                                  |
+| F11 | A new scheduler/CRM/rule builder or manual cleanup process accumulates debt and scans whole tenants.                                             | Medium / plausible design temptation, not a measured current bottleneck; P9 native ownership and platform focus. | Existing owner/settings/form, bounded operations and minimal recovery: C08/C10/C15, P25.                                                                               |
+| F12 | Historical imports, older clients or restore convert dates, duplicate lineage or revive access.                                                  | High / plausible; P30 continuity and mixed semantics introduced by this amendment.                               | Inventory/mapping, preserved endpoints, fenced old writes, qualified roll-forward/rollback: C16, P09/P10/P26.                                                          |
+| F13 | Logs cannot explain the deadline or retain excessive personal details; a mock pass is sold as readiness.                                         | High / plausible evidence gap; current/intended distinction and unqualified producer.                            | Minimal durable business evidence, named proof owners and truthful status: C15/C17, P20/P25/P26.                                                                       |
+
+## Category-by-category adversarial review
+
+Every category is assessed independently. The concern register provides its
+consequence, severity, likelihood, evidence, decision effect and exact amendment.
+
+| #   | Category                                                      | Material concern and what was checked                                                                                                                                                                                                                                                                             | Required response                                                                                             |
+| --- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1   | Problem validity, necessity, and alternatives                 | **Yes — F01/F10.** The known founder workflow needs honest age and usable late entry. Strongest alternative is deliberate admission starting a full period; it is simpler for late work but contradicts selected A. Manual deadline choice or no expiry would change accepted behavior. No measured demand claim. | Keep A with calendar clarification and ordinary continuation; C01–C06/C13.                                    |
+| 2   | Brittleness                                                   | **Yes — F02/F03/F04.** Exact remembered time, known historical policy, current timezone and complete prior history cannot be assumed.                                                                                                                                                                             | Preserve precision and accepted evidence; C02–C06.                                                            |
+| 3   | Technical debt                                                | **Yes — F05/F11/F12.** Consumer-local date calculators, duplicated rules, generic PATCH and shadow recovery would become competing truth.                                                                                                                                                                         | One native owner/command and compatible semantic versioning; C07/C10/C15/C16.                                 |
+| 4   | Edge cases                                                    | **Yes — F02–F05/F07/F12.** Late/expired entry, one-day period, leap day, DST, skipped midnight/date, unknown day, future-looking travel date, duplicate introductions, reassignment and correction are covered.                                                                                                   | C02–C07/C10; P01–P14/P19.                                                                                     |
+| 5   | Footguns                                                      | **Yes — F01/F05/F09.** Today defaults, editable expiry, zero-as-Off, mistaken unit conversion and correction-as-renewal are tempting shortcuts.                                                                                                                                                                   | Explicit input/units and source commands; C01–C03/C07/C08.                                                    |
+| 6   | Tenant safety                                                 | **Yes — F06/F08/F12.** Policy, lineage, recipient, caches, recovery, import and exports can cross tenant or scope if keyed only by record/actor.                                                                                                                                                                  | Tenant-aware relations, trusted context and current projection; C09/C11/C12/C16.                              |
+| 7   | Database, RLS, and authorization safety                       | **Yes — F06/F07.** Reviewed keys/FKs/nulls/checks/uniqueness/delete rules, finite temporal types/indexes, trusted fields, old/new row transitions, views/RPC/storage/service paths. No money precision change. Actual deployed grants are unverified.                                                             | C09–C12; G2.                                                                                                  |
+| 8   | Overengineering                                               | **Yes — F11.** Alternative clock modes, date-range engines, new approval queues, per-person settings and a new scheduler add no selected value.                                                                                                                                                                   | One calendar convention, existing two periods/actions and ordinary repair; C02/C06/C08/C10/C13.               |
+| 9   | UX/UI and user friction                                       | **Yes — F04/F09/F10.** Staff setup, missionary entry, late/expired/unknown/error/Off states, mobile, accessibility, international dates/names and low bandwidth considered. Public/donor/coach flows gain no extra step.                                                                                          | Complete journey, source-backed preview and actual UI proof; C13/C14; G5.                                     |
+| 10  | Source of truth, ownership, and domain invariants             | **Yes — F01/F03/F05.** Original event, date assertion, accepted policy, actual acceptance and display projection need distinct owners/meanings. One initial effect per lineage; no retroactive access.                                                                                                            | Native P9 facts with P12 authority, C01/C05/C07/C10/C12.                                                      |
+| 11  | Hidden coupling                                               | **Yes — F02/F09/F11.** Browser/missionary zone, global settings revision, tasks, coach reports and expiry jobs could silently determine source truth.                                                                                                                                                             | Relevant-policy ordering, fixed zone/endpoint and no implied secondary effects; C04/C08/C09/C12/C13.          |
+| 12  | Failure modes                                                 | **Yes — F07/F08/F09.** Service failure, lost response, successful write plus failed refresh, stale source and delayed expiry job all have different outcomes.                                                                                                                                                     | Atomic source/recovery and current-time predicates; C10/C12/C14.                                              |
+| 13  | Lifecycle, temporal correctness, concurrency, and idempotency | **Yes — F01/F02/F05/F07.** Known first admission, already-expired outcome, correction, continuation, restriction, rejection and recovery checked; no unknown-to-expired shortcut or replay of a later cycle.                                                                                                      | C01–C10/C14 and exact boundary/race criteria.                                                                 |
+| 14  | Data integrity risks                                          | **Yes — F01/F03/F05/F12.** Duplicate imports, missing prior cycles, altered date evidence, concurrent corrections and accepted-policy drift can corrupt meaning.                                                                                                                                                  | Source identity, immutable evidence, current correction result and no inferred backfill; C01/C05/C07/C10/C16. |
+| 15  | Security and privacy risks                                    | **Yes — F06/F08/F12.** Timing/zone can expose sensitive context; history, logs, exports and backups can retain or restore prohibited data. No new consent or retention right.                                                                                                                                     | Field classification, purpose-limited projection and governed erasure/restore; C12/C15/C16.                   |
+| 16  | Scalability and performance risks                             | **Yes — F11.** Unbounded history recomputation, expiry sweeps, import batches and recovery scans can degrade large tenants. No throughput/latency claim is measured.                                                                                                                                              | Indexed bounded operations plus numeric workload proof before activation; C15; G3.                            |
+| 17  | Operational burden                                            | **Yes — F04/F11/F13.** Forcing exact times or DB repair for unknown outcomes creates recurring staff toil.                                                                                                                                                                                                        | Truthful date entry, ordinary source correction and recoverable source outcomes; C06/C10/C13–C15.             |
+| 18  | Observability and auditability gaps                           | **Yes — F03/F07/F13.** Request logs alone cannot explain which event/policy created the end or distinguish retry from new work.                                                                                                                                                                                   | Minimal durable business history and separate security/technical records; C10/C15/C17.                        |
+| 19  | Dependency and integration risks                              | **Yes — F01/F12.** No new vendor is needed, but existing imports may supply creation dates, offset-less timestamps or contradictory prior windows. Timezone-library behavior is also a dependency.                                                                                                                | Qualified mappings/precision and frozen results; C03/C04/C16. Native use remains independent of connectors.   |
+| 20  | Migration, rollout, and upgrade risks                         | **Yes — F02/F12.** Calendar semantics would corrupt old accepted elapsed windows if applied in place; old writers or rollback may omit required evidence.                                                                                                                                                         | Expand/qualify/enable and safe writer fencing; C16; G4.                                                       |
+| 21  | Testability, traceability, and proof                          | **Yes — F13.** Unqualified current source and D38's conflicting unit clause make prose-only confidence unsafe.                                                                                                                                                                                                    | Explicit scoped amendment, 26 proof criteria and source/UI/release evidence; C17; G1–G5.                      |
+| 22  | Other development hazards                                     | **No additional material concern beyond F01–F13.** Checked financial/tax effects, mandatory coaching, new legal consent claims, unsupported location inference, dependency lock-in and hidden communications; none is introduced or authorized.                                                                   | Preserve exclusions in C12/C13 and reevaluate if implementation adds those effects.                           |
+
+## Falsifiable acceptance criteria
+
+These are required future source/UI outcomes, not tests claimed to pass here.
+
+| ID  | Outcome that must be proved                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P01 | Under a hypothetical 30-calendar-day policy, D=October 1 shows through October 30 whether recorded October 1 or October 20. Creation/view/import time never moves the end.                                                                                                                                                                                                                                                                             |
+| P02 | Recording the same known first referral after E yields an accepted expired outcome without any transient Active disclosure, send, task or automatically created successor.                                                                                                                                                                                                                                                                             |
+| P03 | N=1 includes D only. Reject zero/negative/fractional/infinite/overflow and invalid dates consistently; no silent rounding. Staff can explain that a late-night referral may have less than 24 hours.                                                                                                                                                                                                                                                   |
+| P04 | Spring/fall DST, leap day, month/year rollover, missing/repeated midnight and skipped target date produce the declared calendar endpoint; a precise tick before E differs from E.                                                                                                                                                                                                                                                                      |
+| P05 | Date-only remains date-only; exact instant retains precision and derives the policy date in the accepted zone. A different known source-zone date is not converted using invented midnight.                                                                                                                                                                                                                                                            |
+| P06 | Travel/browser locale, organization zone changes and timezone-rule updates do not move an accepted endpoint. Fresh acceptances use current qualified terms. Skipped-date or changed-zone-rule display shows actual E with date/time/offset if a nominal full-last-day label would mislead.                                                                                                                                                             |
+| P07 | First late acceptance records current New policy revision and actual A separately from original D; audit/UI do not assert earlier policy or historic access.                                                                                                                                                                                                                                                                                           |
+| P08 | Existing accepted calendar or elapsed windows retain their endpoint and basis across ordinary settings edits, resave, import and refresh.                                                                                                                                                                                                                                                                                                              |
+| P09 | Missing/contradictory prior-window evidence is not treated as proof of a first window. Known source history is preserved without duplicate active work or invented historical rights.                                                                                                                                                                                                                                                                  |
+| P10 | Reimport, new transport key, two staff actors, assignment change and identity merge cannot create a second initial effect. A source-proved genuinely separate introduction is not incorrectly deduplicated solely by person/name.                                                                                                                                                                                                                      |
+| P11 | Unknown/month-only/range facts can be recorded where authorized; neither Active, Expired nor continuation entitlement is fabricated. Establishing a known date later uses the same lineage and current first-acceptance rules if none exists.                                                                                                                                                                                                          |
+| P12 | Clearly future exact timestamps cannot be accepted as a past referral. A valid date-line/source-zone case is resolved without fabricating a time or incorrectly treating a planned activity as given.                                                                                                                                                                                                                                                  |
+| P13 | A genuine correction with exact capability and source evidence uses the accepted policy/basis, preserves prior assertions and actual correction time, and publishes one effective deadline/state used by UI/actions/jobs. Prove earlier and later mistaken-date repairs and incorrect Expired-flag repair without a fresh period, false continuation, backdated access or altered successor. Generic editing and fabricated correction authority fail. |
+| P14 | A legitimately expired referral continues only through D35's separate command; active work cannot use Continue and genuine mistaken-expiry repair remains C07; resulting timing remains D36 elapsed seconds, not D39 calendar days. Withdrawal, erasure or lost grants do not become ordinary expired eligibility.                                                                                                                                     |
+| P15 | Cross-tenant IDs, spoofed actor/owner/policy/accepted time and changed assignment fail across list/detail/mutation/recovery/import. No ordinary UPDATE can move an allowed row into forbidden scope or accepted state.                                                                                                                                                                                                                                 |
+| P16 | Race initial acceptance with relevant policy edit, source correction, restriction and another actor. One valid ordered outcome commits with audit; prior committed restrictions cannot be bypassed after waits.                                                                                                                                                                                                                                        |
+| P17 | Off blocks new affected missionary actions while independent staff rights and permitted history remain correct. Invalid draft duration does not prevent Off. Re-enable never replays rejected intent.                                                                                                                                                                                                                                                  |
+| P18 | Actual grants/RLS old/new row checks, view behavior, RPC execute/search_path and service-role paths preserve the same boundary. Hidden fields are absent from payloads, not merely hidden visually.                                                                                                                                                                                                                                                    |
+| P19 | Lost response after commit recovers the original result/end. Recovery after a later expiry or policy change creates no new window; failed refresh does not change a successful save into failure.                                                                                                                                                                                                                                                      |
+| P20 | Forced source/audit failure commits neither partial truth nor duplicate retry work. Durable history explains event precision, policy application, actual actor/time and correction; technical logs omit private bodies.                                                                                                                                                                                                                                |
+| P21 | At E, current reads/actions enforce expiry even if a job is delayed. An old job cannot close a successor. Search/count/cache/export/error/recovery/restore apply current field restrictions.                                                                                                                                                                                                                                                           |
+| P22 | Missing New settings or source evidence blocks only dependent initial acceptance. Continued and unrelated qualified work remain usable; fetch failure and permission denial are not rendered as unconfigured or zero.                                                                                                                                                                                                                                  |
+| P23 | Representative staff can configure and distinguish New calendar days from Continued 24-hour days, explain examples/Off and confirm existing endpoints do not move. Any material misconception is fixed and retested.                                                                                                                                                                                                                                   |
+| P24 | Representative missionaries can record today/late/expired/unknown dates, identify the last day/zone, continue only when allowed and recover interruption using keyboard/screen reader/phone. Reflow, zoom, long names, locale and weak-network paths pass without forced invented times.                                                                                                                                                               |
+| P25 | Production-shaped tenant sizes, concurrency, page/import/recovery bounds and published numeric latency/query budgets pass. No settings save rescans all referrals; no cross-tenant lock or unbounded client memory.                                                                                                                                                                                                                                    |
+| P26 | Mixed versions, backfill and rollback preserve old accepted bases, deny unsafe old writes and do not restore lost grants. Source/OpenSpec/glossary/tasks/test/release traceability explicitly records the New-only D38 amendment and actual evidence status.                                                                                                                                                                                           |
+
+## Adversarial check
+
+### What could go wrong with this answer?
+
+A late entry could acquire a false fresh window; a remembered date could become
+an invented timestamp; an expired result could disclose private context. The
+amendments address the source fact, calculation and permission boundary together.
+
+### What hidden assumptions are we making?
+
+That calendar dates are a useful everyday unit and people can often identify a
+day, not an exact time. The founder selected the first; actual prevalence and
+comprehension remain unmeasured. Unknown facts still have a truthful path.
+
+### How does this affect the whole product?
+
+It refines native referral meaning, import mappings, history and authorized
+continuation. It changes no financial facts, supporter intent, newsletter
+consent, coaching access or retention deadline.
+
+### How does this affect the end-user experience?
+
+Maya enters a known day once, sees one last day and uses ordinary continuation
+when necessary. Staff keep two values and existing permissions. Unknown facts
+and expired recording are successful, understandable outcomes when permitted.
+
+### Does this follow modern best practices?
+
+It follows primary guidance on honest date input, event semantics, accessible
+feedback and bounded current authority. We reject a concrete popular CRM import
+fallback where it conflicts with the selected rule. No source proves this is a
+universal ministry practice or a tested Core experience.
+
+### Does this fit Asym's existing repo and product direction?
+
+Yes as an explicit amendment through P9/P12 and shared base-maia UI. A qualified
+initial producer still needs implementation proof. Current generic helpers are
+not accepted as the permanent authority.
+
+### Should we adjust the recommendation?
+
+**Accept with required amendments.** The founder's date-only clarification
+removes the central usability trap. Record C01–C17 and the precise New-only
+supersession; do not silently reinterpret all “days” or add a configurable clock.
+
+## Ruthless synthesis and qualification order
+
+**Resolved before recording this review:** original-event anchor, separate
+calendar-date choice, inclusive-day convention, explicit current-policy first
+application, no retroactive authorization, preserved prior windows and separate
+continuation. The calendar choice and precise corrected
+wording are explicitly ratified. The original answer review posed no independent
+Q40; continuation is recorded in the session.
+
+**Capture in the later authorized spec/design:** C01–C17, the complete journey,
+the New-only changes to D38, the existing D34–D36 boundaries and P01–P26. Amend
+canonical owner clauses and regenerate declared projections together only on
+the authorized transition. This research does not create or mark GitHub tickets.
+
+**Implementation order:** native source evidence and permission boundary first;
+then qualified calendar calculation/atomic accepted result and recovery; then
+shared UI/import adapters; then migration, failure/concurrency and real
+accessibility/comprehension proof. Enable only the qualified cohort. No UI-local
+substitute for a missing source producer.
+
+| Gate                                      | Accountable owner role                            | Required proof before activation                                                                                                                                                                                                                                                 |
+| ----------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G1 — Source and calendar contract         | P9 referral/API and P30 import owners             | Concrete command/source field semantics, supported precision/range/zone behavior, source identity, correction and prior-history mapping; P01–P14. Implement the selected rule, not a newly guessed anchor.                                                                       |
+| G2 — Authorization and atomicity          | P9 API and P12/security owners                    | Real grants/RLS/function/service paths, post-wait ordering, current projections, idempotent outcomes and durable audit; P15–P21.                                                                                                                                                 |
+| G3 — Capacity and operability             | API operations owner                              | Published numeric workload/page/batch/query/latency/recovery budgets and production-shaped evidence P25; source-owned diagnosis/repair without routine direct SQL. No guessed speed claim.                                                                                       |
+| G4 — Adoption and recovery                | Database/release owner                            | Retained-data inventory, semantic mapping, writer fencing, compatible readers, roll-forward/rollback/restore and P26 proof. Known old endpoints remain stable.                                                                                                                   |
+| G5 — User comprehension and accessibility | Workspace product/design and accessibility owners | Actual representative staff/missionary sessions and manual/automated P23–P24 evidence, including unknown/late/expired/Off/weak-network paths. Every observed material authority/date misconception is corrected and retested. No fabricated participant count or efficacy claim. |
+
+These are concrete implementation/release evidence obligations, not unresolved
+permission requests to the founder. A prototype, database producer and users
+were not available for runtime qualification in this research-only session.
+
+**Monitor only after safeguards and release proof:**
+
+| Signal                                                                                                                                | Threshold                                | Owner                          | Response                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accepted endpoint moves after ordinary setting/zone edit; duplicate initial/successor; acceptance after a prior committed restriction | Any confirmed occurrence                 | P9 API on-call                 | Stop the affected new acceptance path, preserve safe history/recovery, trace the exact source effect and repair through the qualified owner before re-enable. |
+| Forbidden tenant, identity, contact, provenance or location data disclosed                                                            | Any confirmed occurrence                 | Security incident owner        | Restrict affected projection, investigate scope and remediate controllable caches/exports through incident procedures.                                        |
+| User interprets the displayed last day incorrectly, believes record time resets it, or mistakes Expired for refusal/consent           | Any validated support/usability incident | Workspace product/design owner | Reproduce, correct copy/interaction and regression-test before cohort expansion; do not add settings reflexively.                                             |
+| Legitimate date-only/date-line record is blocked or an unknown date silently receives a deadline                                      | Any reproducible occurrence              | P9 product/API owner           | Diagnose input mapping and precision; repair source handling without guessed facts; block expansion if correctness is affected.                               |
+| Request/import/recovery cost exceeds the published G3 budget                                                                          | Any measured breach                      | API operations owner           | Limit affected work or stop expansion, inspect query/lock/backlog evidence and restore the published budget. Undefined budget means no activation.            |
+
+Owner names above are accountable roles, not fabricated personnel assignments.
+Assign actual ownership in release evidence. Source truth, privacy, arithmetic,
+authorization and migration defects are never relegated to monitoring.
+
+## Evidence preservation and checks
+
+The [original Q39](d39-evidence/q39-before-answer.txt) and every D38 evidence file
+are pinned in the [prior manifest](d39-evidence/prior-evidence-sha256.json).
+The new [review verification](d39-evidence/review-verification.json) checks
+document structure, statuses, local references and frozen hashes only.
+[Eight fresh calendar examples](d39-evidence/calendar-examples.json) passed
+illustrative boundary checks, including DST, leap day and missing/repeated
+midnight. They are not a production algorithm or Core runtime tests.
+[Cross-review resolution](d39-evidence/cross-review-resolution.md) distinguishes
+independent research, root synthesis, illustrative arithmetic and runtime proof.
+No prior verification program is rerun and no source safety is inferred from a
+document check.
+
+## Explicit ratification
+
+On **October 18, 2026 (Asia/Bangkok)** the founder instructed:
+**“Ratify this decision and amendment. Then continue with this phase 28
+grill-with-docs session.”** The exact corrected decision, C01–C17, P01–P26
+and required design amendments are explicitly ratified.
+
+This adopts New calendar days including the original referral day, the declared
+organization deadline zone, current-policy application at a genuinely first
+acceptance, preserved earlier windows and separate authorized factual repair.
+It explicitly supersedes D38 C02 for **New only**. Continued remains governed
+by D36's existing elapsed-day timing. No numerical duration is selected.
+
+The [pre-ratification D39](d39-evidence/d39-before-ratification.txt),
+[pre-ratification Q39](d39-evidence/q39-before-ratification.txt) and all ten
+original D39 evidence files are preserved by the
+[ratification manifest](d39-evidence/ratification-evidence-sha256.json). The
+[new ratification verification](d39-evidence/ratification-verification.json)
+checks unchanged decision/requirement/proof wording, status, references and
+frozen evidence without executing any prior program.
+
+Ratification changes accepted planning intent, not source/runtime readiness.
+No formal PRD/ADR/OpenSpec, ticket, application/schema, live permission,
+external communication or GitHub state is changed. Earlier decisions retain
+their separately recorded statuses.

@@ -1,0 +1,279 @@
+{
+  "schema": "phase28.d14.local_protocol_probe.v1",
+  "executed_at_utc": "2026-10-16T11:30:19.390076+00:00",
+  "python": "3.12.14",
+  "tzdata_evidence": "# version 2026b",
+  "kind": "single-threaded deterministic model and installed-zoneinfo examples",
+  "assumptions": [
+    "verified actor/context and source eligibility are supplied toy values",
+    "exact provider acceptance/absence evidence is supplied, not verified",
+    "claim models dispatch admission; an admitted call can finish after revocation",
+    "cleanup authority is explicit synthetic input, not inherited from stale read access",
+    "one unresolved operation per copy serializes the modeled protocol"
+  ],
+  "not_proved": [
+    "actual concurrency or PostgreSQL transactions",
+    "RLS or grants",
+    "Core implementation",
+    "OAuth or provider behavior",
+    "exactly-once delivery",
+    "notification suppression",
+    "distributed/network races",
+    "tzdb-version persistence",
+    "payload classification or external-calendar audience safety"
+  ],
+  "probe_sha256": "37cc5d09ec3121c10f5235c9eef6517532378e125a63f640a8d2c93e5e0f55b0",
+  "source_sha256": {
+    "docs/prds/sitestacker-parity/roadmap.md": "4948695d00596d54e81300bdbd63e20a034420788d79930e72090dafa04bbc7a",
+    "docs/prds/program-roadmap/owner-constraints.md": "4d771e7c45ceeb3881e985651196a8ab7835de497a2acdb3ba09631e0a445d4d",
+    "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md": "4cf9b76675c32f3bb5b5f73165409c14f8d501daa5f73457c6534764adeef66a",
+    "docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md": "b7f3b5645f5bfc7cbaa853bad781df84d8fd715e40d9f7648dccb128fcb469e4"
+  },
+  "passed": 24,
+  "total": 24,
+  "results": [
+    {
+      "id": "D14-M01",
+      "name": "different request keys resolve one copy business identity",
+      "passed": true,
+      "observed": {
+        "bindings": 1,
+        "identity": "33aac3437bfac5e4252b2c97"
+      }
+    },
+    {
+      "id": "D14-M02",
+      "name": "lost create response blocks a fresh create and preserves exact identity",
+      "passed": true,
+      "observed": {
+        "remote_events": 1,
+        "remote_id_known_locally": false,
+        "blocked_reason": "reconcile unresolved operation first",
+        "original_operation": "33aac3437bfac5e4252b2c97:create:1",
+        "synthetic_remote_id": "remote-1"
+      }
+    },
+    {
+      "id": "D14-M03",
+      "name": "credential generations do not create a new copy after uncertain submission",
+      "passed": true,
+      "observed": {
+        "generation": 3,
+        "same_copy": true,
+        "blocked_reason": "reconcile unresolved operation first"
+      }
+    },
+    {
+      "id": "D14-M04",
+      "name": "cancel before dispatch admission prevents external create",
+      "passed": true,
+      "observed": {
+        "order": "cancel -> claim",
+        "remote_creates": 0,
+        "blocked_reason": "ordinary export no longer admitted"
+      }
+    },
+    {
+      "id": "D14-M05",
+      "name": "dispatch admission before cancel can leave an external copy needing cleanup",
+      "passed": true,
+      "observed": {
+        "order": "claim -> cancel -> provider acceptance",
+        "external_copy_remains": true,
+        "cleanup_required": true,
+        "current_synced_revision": null
+      }
+    },
+    {
+      "id": "D14-M06",
+      "name": "disconnect before admission prevents external create",
+      "passed": true,
+      "observed": {
+        "order": "disconnect -> claim",
+        "remote_creates": 0,
+        "blocked_reason": "disconnected"
+      }
+    },
+    {
+      "id": "D14-M07",
+      "name": "disconnect after admission cannot recall remote acceptance or restore opt-in",
+      "passed": true,
+      "observed": {
+        "order": "claim -> disconnect -> acceptance",
+        "external_copy_remains": true,
+        "opted_in": false,
+        "current_synced_revision": null
+      }
+    },
+    {
+      "id": "D14-M08",
+      "name": "late acceptance from old revision cannot mark latest source synchronized",
+      "passed": true,
+      "observed": {
+        "accepted_revision": 1,
+        "desired_revision": 2,
+        "next_operation": "update",
+        "same_remote_id": true
+      }
+    },
+    {
+      "id": "D14-M09",
+      "name": "unresolved old update blocks concurrent replacement dispatch",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "reconcile unresolved operation first",
+        "next_revision_after_reconcile": 3
+      }
+    },
+    {
+      "id": "D14-M10",
+      "name": "latest update may coalesce before any dispatch admission",
+      "passed": true,
+      "observed": {
+        "admitted_revision": 3,
+        "intermediate_update_operations": 0
+      }
+    },
+    {
+      "id": "D14-M11",
+      "name": "duplicate older acceptance cannot regress a newer confirmed revision",
+      "passed": true,
+      "observed": {
+        "current_synced_revision": 2,
+        "conflicting_identity": "conflicting acceptance identity"
+      }
+    },
+    {
+      "id": "D14-M12",
+      "name": "lost deletion response remains unknown until exact absence evidence",
+      "passed": true,
+      "observed": {
+        "lost_response_state": "unknown",
+        "blocked_reason": "reconcile unresolved operation first",
+        "final_state_after_assumed_exact_absence": "removed"
+      }
+    },
+    {
+      "id": "D14-M13",
+      "name": "late create acceptance after cancellation requires explicit cleanup authority",
+      "passed": true,
+      "observed": {
+        "without_cleanup_grant": "exact cleanup authority/mapping absent",
+        "remaining_remote_events": 0
+      }
+    },
+    {
+      "id": "D14-M14",
+      "name": "disconnect prevents cleanup using obsolete connection",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "disconnected",
+        "external_copy_may_remain": true
+      }
+    },
+    {
+      "id": "D14-M15",
+      "name": "source read loss cannot authorize ordinary export; narrow cleanup is separate",
+      "passed": true,
+      "observed": {
+        "ordinary_export": "ordinary export no longer admitted",
+        "cleanup_requires_explicit_assumed_grant": true
+      }
+    },
+    {
+      "id": "D14-M16",
+      "name": "wrong tenant actor and destination are denied by assumed command boundary",
+      "passed": true,
+      "observed": {
+        "denials": [
+          "wrong tenant or actor",
+          "wrong tenant or actor",
+          "wrong exact destination",
+          "wrong exact destination"
+        ],
+        "bindings": 0
+      }
+    },
+    {
+      "id": "D14-M17",
+      "name": "acceptance cannot attach to a different appointment copy",
+      "passed": true,
+      "observed": {
+        "blocked_reason": "evidence belongs to another binding",
+        "other_copy_unmodified": true
+      }
+    },
+    {
+      "id": "D14-M18",
+      "name": "external deletion is not permission to recreate automatically",
+      "passed": true,
+      "observed": {
+        "external_result": "external deletion; no automatic recreation",
+        "create_count": 1
+      }
+    },
+    {
+      "id": "D14-M19",
+      "name": "unsafe replay control demonstrates duplicate external events",
+      "passed": true,
+      "observed": {
+        "unsafe_bypass": true,
+        "remote_events": 2,
+        "meaning": "no inherent exactly-once provider guarantee"
+      }
+    },
+    {
+      "id": "D14-M20",
+      "name": "DST spring gap has no valid instant; naive timezone attachment is insufficient",
+      "passed": true,
+      "observed": {
+        "local": "2026-03-08T02:30:00",
+        "valid_instants": [],
+        "unsafe_naive_attachment_still_produces": "2026-03-08T02:30:00-05:00"
+      }
+    },
+    {
+      "id": "D14-M21",
+      "name": "DST autumn fold has two valid instants requiring source disambiguation",
+      "passed": true,
+      "observed": {
+        "valid_instants": [
+          "2026-11-01T05:30:00+00:00",
+          "2026-11-01T06:30:00+00:00"
+        ],
+        "silent_choice_permitted": false
+      }
+    },
+    {
+      "id": "D14-M22",
+      "name": "ordinary wall time has exactly one instant",
+      "passed": true,
+      "observed": {
+        "valid_instant": "2026-10-16T13:00:00+00:00"
+      }
+    },
+    {
+      "id": "D14-M23",
+      "name": "viewer timezone changes rendering not source instant or event identity",
+      "passed": true,
+      "observed": {
+        "source": "2026-10-16T09:00:00-04:00",
+        "tokyo": "2026-10-16T22:00:00+09:00",
+        "honolulu": "2026-10-16T03:00:00-10:00",
+        "same_instant": true
+      }
+    },
+    {
+      "id": "D14-M24",
+      "name": "all-day source dates retain exclusive end without inventing midnight UTC",
+      "passed": true,
+      "observed": {
+        "start_date": "2026-11-01",
+        "end_date_exclusive": "2026-11-02",
+        "time_kind": "date_only",
+        "invented_timestamp": null
+      }
+    }
+  ],
+  "cleanup": "No database, container, temporary directory, external effect or persistent service created; only this results JSON is written."
+}

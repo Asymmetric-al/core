@@ -1,12 +1,12 @@
 # Phase 27 implementation and proof tasks
 
-All boxes remain unchecked: this task publishes a specification, not implementation. Each task consumes the complete REQ27 definitions and mapped ACs/stories. No implementation-ticket graph is created. E7 and C-01 remain explicit owner gates; do not infer or invent their resolution.
+All boxes remain unchecked: this task publishes a specification, not implementation. Each task consumes the complete REQ27 definitions and mapped ACs/stories. No implementation-ticket graph is created. Phase 28 D48–D50 settles E7/C-01 policy; actual owner implementation and adapter qualification remain unchecked, with no invented readiness.
 
 ## 1. Source readiness and delivery setup
 
 - [ ] 1.1 Bind the exact P9/P12/P15/task/communication commands and current supported versions; prove the bounded owner amendments with real authority, tenant isolation and negative paths.
-- [ ] 1.2 Obtain the P13 owner E7 ruling and qualify its exact temporal-attribution adapter before affected received-toward-appeal activation; keep the measure explicitly unavailable until then.
-- [ ] 1.3 Obtain C-01 posted-correction source ruling before dispatching affected financial correction implementation; do not substitute Request review.
+- [ ] 1.2 Implement and qualify the P13/P16 temporal-attribution contract reconciled by Phase 28 D49/D50 before affected received-toward-appeal activation; keep the measure explicitly unavailable until then.
+- [ ] 1.3 Implement and prove Phase 28 D48's settled C-01 organization correction policy, including current-policy admission, independent mandatory controls and pending-change behavior; do not substitute Request review.
 - [ ] 1.4 Extend the confirmed real authenticated disposable-backend/browser acceptance setup; fail required setup instead of demo/placeholder skip. Record retained-data and integration census.
 
 ## 2. Partnerships — red/green behavior and source integration

@@ -1,0 +1,139 @@
+{
+  "scope": "All original D43 evidence and six exact pre-D44 current documents; no earlier program is executed/imported.",
+  "previous_current_hashes_verified": 12,
+  "context_sha256": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82",
+  "files": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/behavior-model.md",
+      "sha256": "1627d8db7c9f7aec34ef905ebb04ce13f0b2c982fc803ab2fc57d88043c7d6c3"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/behavior-model.py",
+      "sha256": "9e74e472592af462ed344ea20743db192c89ec0b73c9bade21f5048f0a3d9517"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/completeness-before-d43.txt",
+      "sha256": "6b51e8ee6cf7e487268791647612e504c8c6bbff439a1b23b9f91149cc31519b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/completeness-before-ratification.txt",
+      "sha256": "378476e9666d464f19abf7e9f485155e5db2397d316562b159171bed1e0d0d16"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/context-before-d43.txt",
+      "sha256": "8a156d88fd266e4ace62c218072652cffe78fab063ddb2a2367306860a98d7e6"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/coverage-before-d43.txt",
+      "sha256": "ef815675b11f360df1722047ac2233043dcb55d64275ee4ccb32cb2670a4bd13"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/coverage-before-ratification.txt",
+      "sha256": "07cc846c98678630df7f4a8128ba7b874ca1694c5aa89bb7f7fdceddddfa25ca"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/d42-before-d43.txt",
+      "sha256": "be537741a5fdc8defbdeaddf7c5937350a3aae0dfbe25d8f96ebe2edea0a80ac"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/d42-before-ratification.txt",
+      "sha256": "3faa47179499da96ff73a31307daa49aad059559f537d372b0b9067984f9a1b6"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/independent-review.md",
+      "sha256": "3b4adefe7c54370169f06eb74c584fe1dc194badc12f078f243fada97b7e992c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/owner-reconciliation.md",
+      "sha256": "511507340d16252b0fb3b3e9714aa67012ddb7047667fa2741a8677de8fb6d20"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/prior-evidence-sha256.json",
+      "sha256": "08414d73f34adcb74bdc7b98b06942174b454bad51c39d08f641da5b27ce6c9d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/q43-before-answer.txt",
+      "sha256": "06b35eabf0d53b4a9dda6c873c3514c6b3c15320c310c58aca45d2499d5e64dd"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/q43-before-ratification.txt",
+      "sha256": "f38f0f0190c995b22511ba1a6eae883ce8dfb534927a21c2f94505d103ecb42b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/q44-primary-research.md",
+      "sha256": "1c59ef359f1e8707a8fb1c1926c5e11946aca728a530aff7dda0db71703e765e"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/ratification-evidence-sha256.json",
+      "sha256": "57451328b4f61922f0c950f140b18605c07953929c71774e8e17dbe6be1ac453"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/ratification-scope.md",
+      "sha256": "908567c59bae9366e1c5ddb338a078f7cbb2d266fb0fcea266924f0fab3cba20"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/ratification-verification.json",
+      "sha256": "9a168d826abd07b2d152789598ef28f9d23f0e340b65df4a392043291bd9b207"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/results.json",
+      "sha256": "fb48bafa3cdefd941bd2b4d5e5bcddb506ac537e3db3730598fbc89c87eb39ad"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/review-before-ratification.txt",
+      "sha256": "1f5990766afe698fddb568d86dc9c2b6c0a760972d2061549d1e822555d829b7"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/session-before-d43.txt",
+      "sha256": "209900e971446e1346df180950f3c158b41a4b9de2cb909c624cc0925bfcb5e3"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/session-before-ratification.txt",
+      "sha256": "ebdab77f2318642128b82b92b2b7b55f44202b834d770208705611c5892f003f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/source-authorization.md",
+      "sha256": "12a5283a339d5d8d438642031913d6359c7da7490da61ea2fa769348c4d59f8d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/ux-research.md",
+      "sha256": "f44e26a55e8b1e04388a5e1c1663007d5117d9c5cbc71f65d0f9e05323b9bacb"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/verification.json",
+      "sha256": "08efa2931efdec78d3b23d5eb1714750623d1e6d6b01dc76561cc9913c3ab7a3"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/verify-d43.py",
+      "sha256": "88acb32f40a148d45ac7ccdabc989e02fa7e1e25d9c42873c39e8ef88fa83bdb"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d43-evidence/verify-ratification.py",
+      "sha256": "b6f72d9ebcd3ba32475ffbdd4f4c44cbb13cc9fcc9ff5e16d894bf685964d2b0"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d44-evidence/q44-before-answer.txt",
+      "sha256": "1c786e36053d2a2d6a883e416f3e30de80dee20a8586bc6cc60c6b8a5985696d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d44-evidence/session-before-d44.txt",
+      "sha256": "2709f2581db8f60a4ae8ca5688db8e3297dd1beb7f2516726408bbba6eac29bd"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d44-evidence/coverage-before-d44.txt",
+      "sha256": "5ab94e63830acf19e66e866aa275a5152dbbcb13cdf0f726b76798ed4c816872"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d44-evidence/completeness-before-d44.txt",
+      "sha256": "a8a3d8819d14839a8c07f0fb8570b21a0f6a25ac81bce24c7b7302d2f524644e"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d44-evidence/d43-before-d44.txt",
+      "sha256": "5493f04037ed0ff6a0a2a776dc5393cf41d5d6d63f544702d8e79e655818dcbf"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d44-evidence/d42-before-d44.txt",
+      "sha256": "46927a7d82717ac5a6fb59dd8c8e7ccd05e4fb717cef401dbab6f8035e09f4a6"
+    }
+  ]
+}

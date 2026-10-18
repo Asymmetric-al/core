@@ -1,0 +1,69 @@
+{
+  "scope": "Initial D28 evidence and current D27/D28 decision text preserved before the explicit return clarification on 2026-10-17; not blanket ratification of D28 amendments",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/artifact-pins.json",
+      "sha256": "7881beff5937a68de163de46b9997633572a7adbd6b27e9d80229008fd3dd5ea"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/cross-review-resolution.md",
+      "sha256": "28fb7a1b383ddc402199d4633d64825fc852f61b7f68b48c40a208cfd6bdee73"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/database-and-authorization.md",
+      "sha256": "86799d2152360dfc3194cbb90cacad4d05a710242a0b2369f196c035d322eacf"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/governance-and-ownership.md",
+      "sha256": "bd09bd74e24912b6682121f5e3232118dd3245aacf470aaf498b716803814c0a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/prior-evidence-sha256.json",
+      "sha256": "bc2fb9fa2dd60c50f849a20eed2f76e0af2f14d37d88d750084ffe5786405000"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/q28-before-answer.txt",
+      "sha256": "e4e8a0b47a5389130b9f7bcd1f83941d797a5619ea3b5d23f5289fb081354226"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/retention-counterexamples.json",
+      "sha256": "bda006f5805389830df2de41f1b4eb64ad0a8db0b4d3d14057cf7dfbeba52203"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/retention-counterexamples.py",
+      "sha256": "c8be2aabb6e0e0af003061280a6ec96c251aa41b0079d155dea1a82e8c934954"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/review-verification-initial.json",
+      "sha256": "83a77eaf4d399a8e7e182fb7a7ed728b62a1591ca146360da9856d79496ce60b"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/root-reproduction.json",
+      "sha256": "d3e9bd8788b58665ebe536fcf07cdaffe25c94bba0ed4ad406d0174ce9781b76"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/technical-fetches.json",
+      "sha256": "40ee7957db92bb139fcee44969fc470d7fd39de13ecc65295bce7b46176cbf81"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/ux-and-primary-research.md",
+      "sha256": "5ffe0048be835c67584451b0f45ee56ba49972ee9362d7846110124d11239c7a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/verify-review-initial.py",
+      "sha256": "cf1bf1978042330f94bcde53868b9b18385794d7b921e3b37cf4489131aab997"
+    }
+  ],
+  "decision_snapshots": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/d27-before-return-clarification.txt",
+      "sha256": "82835a1af3efd144e1469bc2eb84ee720a7aea77bc055dc55562bd9b9cd8e10c",
+      "source": "docs/features/missionary-workspace-depth/grill/phase28-d27-resume-preparation-adversarial-review.md"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d28-evidence/d28-before-return-clarification.txt",
+      "sha256": "74ffa45fef7d6f24e27ef4071c8352cf70197c4e30b5af54e89e6173a30ff1b7",
+      "source": "docs/features/missionary-workspace-depth/grill/phase28-d28-preparation-retention-adversarial-review.md"
+    }
+  ]
+}

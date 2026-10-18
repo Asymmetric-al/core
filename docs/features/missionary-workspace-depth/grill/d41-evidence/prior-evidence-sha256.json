@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Bangkok",
+  "scope": "All D40 evidence, ratified D40/Q40 and exact Q41 before-answer snapshot; earlier programs are preserved and never executed",
+  "sha256": {
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/cross-review-resolution.md": "e5466c7a999c897bafefd2145fe07397e6e439f377647a74f2165897e932b61d",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/d40-before-ratification.txt": "27f1901199b3d005a2abc1f061b71c8c1ab7af1770426f2fa55fdd5b41871bab",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/governance.md": "a56a6e63f4ad3415b335301fca70acd91f67ad6afa21a1bcfde2dd24ac0736bd",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/prior-evidence-sha256.json": "6e41d13f0fec3ece665da0f098fcead1f64bc7c4f75aba824a32c9d873afac90",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/q40-before-answer.txt": "2691afdabd512b96ab6befb2565bf0ce47828b327fcbf789bcaf16559acc62c1",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/q40-before-ratification.txt": "42bf8af0273e9564dc291ce97644b7814e677ce491e4402c22c9985f2997396a",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/ratification-evidence-sha256.json": "2874ce459b4583de75360a3eaa506498c204b78ce4bb143394df193a8fdccdb2",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/ratification-verification.json": "08dee52c7cb7d01f4e59e67855b952e2632439da5cd0685861954cc9d04b2b7a",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/review-verification.json": "0e3f242fc32a3f1406f2332ebad3fcf396f049789b2be7fcf0a8cbeed03b3f89",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/root-research.md": "7b9919ddc90ba36a72efa5336fd225a87dde94a0deedf5e604d843a766518bba",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/source-and-authorization.md": "f7bfb76ad000621573cf9fee96ea3a8b8424b8f37564ee711934fe4a757ebb16",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/ux-and-primary-research.md": "a329fae1f04b2e5b0e40652daa2a6a2bb63275dbfbb1c67f673c0b0be2d055c6",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/verify-ratification.py": "fd047a351d463b40d51df298099a84bec9ecd2b7b7f4cc2da3a40a2dd43c7a5c",
+    "docs/features/missionary-workspace-depth/grill/d40-evidence/verify-review.py": "0d55d68e0a11394b3ace63fc0477ae430b1cfa8ca2d0e4f84399254d09ef666d",
+    "docs/features/missionary-workspace-depth/grill/phase28-d40-informational-missed-gift-adversarial-review.md": "89409a2f57a87db3e27eb1508fd2b4b61bc47e340b8a473c4fd2b7873608d7ff",
+    "docs/features/missionary-workspace-depth/grill/phase28-q40-missed-recurring-gift-review-research.md": "e116bd34bea1f27a74644a04ea941e20606f27e8a73ac67d6e54573f25ed558b",
+    "docs/features/missionary-workspace-depth/grill/d41-evidence/q41-before-answer.txt": "194b744ae1aab3cd06ca1140e6e5fae1c62245f9c802af0875872b0ea17412f0"
+  }
+}

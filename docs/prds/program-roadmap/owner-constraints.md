@@ -48,19 +48,21 @@ capture remains historical evidence.
 never grant access or consent. Current source contact restrictions stop prohibited
 suggestions/inclusion/dispatch while lawful internal duties remain visible.
 Requested, expected, committed, received and physical possession retain independent
-meaning; all money uses exact entity/currency/period/coverage. E7 and C-01 remain
-financial-owner gates. Native work remains independent of optional Studio/Eve;
+meaning; all money uses exact entity/currency/period/coverage. E7 and C-01 policy is settled by Phase 28 D48–D50; exact
+financial-owner implementation and adapter qualification remain gates. Native work remains independent of optional Studio/Eve;
 wealth screening and autonomous next-best-action are outside this phase.
 
 <a id="phase-28"></a>
 
 ## Phase 28 — missionary-workspace-depth
 
-- **MPD funnel** on the shared enrollment object (preset: Never Contacted →
-  Ask in Future → Contact for Appointment → Appointment Scheduled → Call for
-  Decision → Partner-Financial/Special/Prayer) with the **terminal/
-  suppression tail** (Not Interested, Unresponsive, Never Ask, Research
-  Abandoned, Expired Referral) — Never Ask wired into the consent gate.
+- **One native relationship workspace** over Phase 9/P27 authority: bounded
+  private preparation, deliberate eligible contact sharing, referrals and their
+  permitted history, current partnerships/Requests and same-source next work.
+  Tenant-customized partnership lists/stages do not become exclusive person-wide
+  Asked/Committed/Received/Given states, contact permission or money truth.
+  Archive, Return and departure/resumption retain their exact source boundaries.
+  No second CRM or implicit supporter enrollment is introduced.
 - **Optional commitment tracking vs goal**: when a tenant uses commitments or
   goals, preserve multiple concurrent commitments per
   partner (TntConnect's single-pledge limit is a known pain — beat it),
@@ -71,13 +73,15 @@ wealth screening and autonomous next-best-action are outside this phase.
   commitments, progress, and goals remain explicit per-currency lanes unless
   a separately governed reporting conversion exists; they are never
   collapsed into a source-authoritative cross-currency scalar.
-- **Gift-event-driven automatic tasks** (the flagship differentiator,
-  Inngest fan-out from Phase 6/13 events): thank first gift, thank
-  special/above-commitment gift, review a named Phase 16 attention transition,
-  celebrate fulfillment — idempotent and permanently semantic-deduped at every
-  generated task/send. Phase 28 owns task and audience purpose; Phase 16 owns
-  communication eligibility, Phase 17 owns governed content and sender
-  profile, and Phase 6 owns dispatch and communication history.
+- **Source-owned native follow-up:** qualified first support, confirmed special
+  gift/positive excess and fulfilled-commitment purposes produce permanent
+  semantic effects in existing shared work. Compatible purposes may be combined
+  under one organization-wide Combine/Separate setting while retaining separate
+  evidence and completion. Phase 28 completeness C05/D40 adds no extra automatic
+  missionary recurring-attention task this release: missed-gift information and
+  deliberate manual follow-up remain available, and independently established
+  source duties continue. P28 owns its task/audience purpose; P16 owns commitment
+  eligibility, P17 governed content/sender preparation, and P6 dispatch/history.
 - **Personal appeals + referrals**: appeals over their permitted supporters
   reuse Phase 27's deliberately recorded working list and independent Requests,
   responses, applicable Phase 15 intake and qualified source outcomes. These are
@@ -140,14 +144,16 @@ wealth screening and autonomous next-best-action are outside this phase.
 - **Interaction log shared with staff** (one log, permission-scoped
   visibility — the same phone call is never logged twice or lost).
 
-**Boundaries & guardrails.** The workspace is not a second Mission Control:
-it can only see/enumerate parties with an active supporter-or-referral
-relationship to that missionary (Phase 9 guardrail), with approved exports
-obeying donor privacy and suppression. Org-owned data stays org-owned. The
-optional Phase 21 D8/Phase 31 continuity feed is an outbound, read-only
-transition lane for an incumbent external tool, not middleware inside the
-Asym-native workspace. Phase 28 contributes no feed resource until its
-relationship/contactability purpose contract is separately ratified.
+**Boundaries & guardrails.** The workspace is not a second Mission Control.
+Current P9/P12 source purposes bound supporter/referral work, restricted private
+preparation and approved minimal history independently; none provides general
+Party enumeration, staff visibility, consent or a broader roster. Org-owned data
+stays org-owned, with current disclosure and approved exports enforced at source.
+Phase 28 D41 adds no external contact-update feed in this release. The separately
+governed Phase 21 D8/Phase 31 read-only giving feed keeps its existing scope.
+The [formal owner reconciliation](../sitestacker-parity/phase-28-missionary-workspace-depth/owner-reconciliation.md)
+records D1–D50 and completeness C01–C20 extensions, settled C-01/E7 policy and
+remaining producer qualification; publication is not runtime activation.
 
 <a id="phase-29"></a>
 

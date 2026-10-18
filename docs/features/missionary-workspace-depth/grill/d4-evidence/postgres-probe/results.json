@@ -1,0 +1,346 @@
+{
+  "recorded_at": "2026-10-16T05:23:10.988788+00:00",
+  "scope": "Synthetic D4 working-state/retry/Undo/identity mechanics, not Core implementation or schema, source-producer, Supabase/API/JWT or provider qualification.",
+  "outcomes": 19,
+  "passed": 19,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "20182bac44b01f53de5eeca84778a5df700747b65e518991b8a73b1fc123268d",
+    "run.py": "f45b053f3d1caf3d907b93843b5261f111594ff88555932198fe7d954b4ceb9d",
+    "sources.json": "2f4eee6bc88d5925e2cac7bc14835483557dc20fbe86ffc41092d4f5f5f0c76f"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "results": [
+    {
+      "name": "archive_retains_source_identity_and_audience",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'archived',1,'archive-a'); SELECT id||':'||actor||':'||canonical_key||':'||work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "applied\n1:owner_a:synthetic-source-1:archived:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "applied\n1:owner_a:synthetic-source-1:archived:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "authorized_matching_includes_archived_source",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT id FROM probe.records WHERE canonical_key='synthetic-source-1';",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "archive_does_not_grant_outsider_match_visibility",
+      "role": "outsider",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.records WHERE canonical_key='synthetic-source-1';",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "exact_transition_undo_restores_same_source",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'active',2,'undo-a','archive-a'); SELECT id||':'||work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "applied\n1:active:3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "applied\n1:active:3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "stale_archive_retry_recovers_history_without_rearchiving",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'archived',1,'archive-a'); SELECT work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "replay\nactive:3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "replay\nactive:3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "new_retry_key_with_stale_revision_cannot_rearchive",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'archived',1,'new-key-old-revision'); SELECT work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "conflict\nactive:3",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict\nactive:3",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "later_rearchive_is_a_new_transition",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'archived',3,'archive-b'); SELECT work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "applied\narchived:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "applied\narchived:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_undo_cannot_reverse_later_archive_even_with_current_revision",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'active',4,'late-undo-a','archive-a'); SELECT work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "conflict\narchived:4",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict\narchived:4",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "undo_current_archive_preserves_identity",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'active',4,'undo-b','archive-b'); SELECT id||':'||actor||':'||canonical_key||':'||work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "applied\n1:owner_a:synthetic-source-1:active:5",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "applied\n1:owner_a:synthetic-source-1:active:5",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_retry_key_changed_meaning_conflicts",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'active',1,'archive-a'); SELECT work_state||':'||revision FROM probe.records WHERE id=1;",
+      "expected": "conflict\nactive:5",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "conflict\nactive:5",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "concurrent_archive_and_stale_restore_serialize",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "owner_a",
+      "second_role": "owner_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.move(2,'archived',1,'race-archive'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "applied\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.move(2,'active',1,'race-restore'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "conflict\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "applied\nFIRST_READY\n",
+        "second": "conflict\nSECOND_DONE\n",
+        "final": "archived:2"
+      }
+    },
+    {
+      "name": "revocation_first_blocks_restore_after_real_lock_wait",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "gate_manager",
+      "second_role": "owner_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false WHERE actor='owner_a'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.move(2,'active',2,'revoked-restore'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "second": "unavailable\nSECOND_DONE\n",
+        "final": "archived:2",
+        "current_authorized_read_count": "0"
+      }
+    },
+    {
+      "name": "revocation_prevents_receipt_replay_and_source_read",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(1,'archived',1,'archive-a'); SELECT count(*) FROM probe.records;",
+      "expected": "unavailable\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "restore_first_commits_before_waiting_revocation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "owner_a",
+      "second_role": "gate_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.move(2,'active',2,'restore-before-revoke'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "applied\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.gates SET allowed=false WHERE actor='owner_a'; SELECT allowed FROM probe.gates WHERE actor='owner_a'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "f\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "applied\nFIRST_READY\n",
+        "second": "f\nSECOND_DONE\n",
+        "final": "active:3",
+        "current_authorized_read_count": "0"
+      }
+    },
+    {
+      "name": "whole_identity_constraint_prevents_archived_duplicate",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT probe.move(3,'archived',1,'archive-c'); INSERT INTO probe.records VALUES(1,30,'owner_a','synthetic-source-3','active',1,NULL);",
+      "expected": null,
+      "expected_sqlstate": "23505",
+      "exit_code": 3,
+      "stdout": "applied",
+      "stderr": "ERROR:  23505: duplicate key value violates unique constraint \"records_tenant_canonical_key_key\"\nSCHEMA NAME:  probe\nTABLE NAME:  records\nCONSTRAINT NAME:  records_tenant_canonical_key_key\nLOCATION:  _bt_check_unique, nbtinsert.c:666",
+      "passed": true
+    },
+    {
+      "name": "failed_duplicate_keeps_single_archived_original",
+      "role": "owner_a",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.records WHERE canonical_key='synthetic-source-3'; SELECT id||':'||work_state FROM probe.records WHERE canonical_key='synthetic-source-3';",
+      "expected": "1\n3:archived",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1\n3:archived",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_active_only_unique_index_allows_duplicate_canonical_identity",
+      "role": "owner_a",
+      "counterexample": true,
+      "sql": "INSERT INTO probe.unsafe_active_only VALUES(1,1,'synthetic-canonical','active'); UPDATE probe.unsafe_active_only SET work_state='archived' WHERE id=1; INSERT INTO probe.unsafe_active_only VALUES(2,1,'synthetic-canonical','active'); SELECT count(*) FROM probe.unsafe_active_only WHERE canonical_key='synthetic-canonical';",
+      "expected": "2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_duplicate_now_blocks_restore_of_original",
+      "role": "owner_a",
+      "counterexample": true,
+      "sql": "UPDATE probe.unsafe_active_only SET work_state='active' WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "23505",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23505: duplicate key value violates unique constraint \"unsafe_identity_only_when_active\"\nDETAIL:  Key (tenant, canonical_key)=(1, synthetic-canonical) already exists.\nSCHEMA NAME:  probe\nTABLE NAME:  unsafe_active_only\nCONSTRAINT NAME:  unsafe_identity_only_when_active\nLOCATION:  _bt_check_unique, nbtinsert.c:666",
+      "passed": true
+    },
+    {
+      "name": "unsafe_active_only_matching_omits_authorized_archived_identity",
+      "role": "owner_a",
+      "counterexample": true,
+      "sql": "SELECT (SELECT count(*) FROM probe.records WHERE canonical_key='synthetic-source-3' AND work_state='active')||':'||(SELECT count(*) FROM probe.records WHERE canonical_key='synthetic-source-3');",
+      "expected": "0:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0:1",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

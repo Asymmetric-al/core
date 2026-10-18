@@ -1,0 +1,85 @@
+{
+  "purpose": "D25 preservation of ratified D24 and immutable prior evidence; pinned before D25 edits. Q25 and session are intentionally evolving.",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-founder-brief.md",
+      "sha256": "464e3ceb675f1bd3926b0974b003e885ef1b115b5b516a37da3d84fbed8f1dcb"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-d24-coaching-activity-summary-adversarial-review.md",
+      "sha256": "72c60f24ac870dfc6aabefe55721d049f34cd1da91109bb2070d939ed38604d0"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q24-coaching-activity-summary-research.md",
+      "sha256": "3ae09d824d3ead79f8daceed17d34a94f66857214acd3bd056c3fc8f01ec5406"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/artifact-pins.json",
+      "sha256": "16eca97df2514dd019882b8ee4d49ae653b604b69599dd30f92e809424f67c84"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/coaching-summary-ux.md",
+      "sha256": "b1bb775d99c66f7b6f5315cda79d35e10196c4b59d35d1a293526d56aa9fee85"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/counterexample-probe/probe.py",
+      "sha256": "7bdeb209e889d128fc0e34734bcb4efcd9ac73b3f4d52a3ee19a1ecbc9064d0d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/counterexample-probe/results.json",
+      "sha256": "064ae54ab5c6ccfe4f6c1881ff838bfb96fae848b329080d61108eaa23c71bf1"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/cross-review-reconciliation.md",
+      "sha256": "320c61ebb62146018567fb0eb21ff336cb5d1f7a621a8e67a353a193ae84377f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/current-coaching-source.md",
+      "sha256": "839abd9d3d85e79ea4015ce07170f88b2846271c8265a6fab18a6c4f4b1c7977"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/database-sharing-lifecycle.md",
+      "sha256": "6ac830f21df07fd3243ecd892214b2ce9856214cfd38a232f40cfffb9bf3ccd0"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/owner-sharing-boundaries.md",
+      "sha256": "2c9c4bc0477f6822fa349f45cec70fc9613671686d71339062ebd489daba25a0"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/period-and-disclosure-counterexamples.md",
+      "sha256": "38075b93b48372afbd9452643d90937df2b683e63450b8b61d784ab061132a2c"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/primary-sources.json",
+      "sha256": "390a7ad636ad7da691a9baeb14b052d2883c2248c81f41486b36b27a3b06929d"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/prior-evidence-sha256.json",
+      "sha256": "46bb23f1e07fd4046a65b69fab4124d2bc7fef419dce0590749eb55a0432a990"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/ratification-evidence-sha256.json",
+      "sha256": "79f78abae53c904d6bb7b54fbe53f7d5d7d05d9025b6796aec70143aea5d675a"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/review-verification-initial.json",
+      "sha256": "92177548a4f39a5f5c077bbd5719161a7942d3b0720a9a40722f77b73370fc13"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/review-verification.json",
+      "sha256": "f65f125799a2b124ad4dee7c233264eab599593886a9efc5e33a4c491b051a08"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/source-summary-semantics.md",
+      "sha256": "1fe04c807527f14807870ed2a9fdbabc9d104fdf58e8a4391d09301661dc4a56"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/verify-review-initial.py",
+      "sha256": "4d27515b29153aa39e5fb0900fb3a6c726672d61f92eca35d644805b15548d4f"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d24-evidence/verify-review.py",
+      "sha256": "9143afdc0dae9a9cc3da9150078eb096443f7ad88517ef0423383ddc1c7b7611"
+    }
+  ]
+}

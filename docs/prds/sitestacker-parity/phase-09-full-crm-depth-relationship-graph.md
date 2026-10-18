@@ -1338,3 +1338,7 @@ D1 facts. Party merge/split, spouse separation, departure, death/incapacity,
 team change, Ministry Assignment retirement, or binding succession preserves
 historical identity and requires explicit owner-domain dispositions; it never
 repoints a released Page or unions permissions.
+
+## Dated Phase 28 preparation, referral and shared-work extension (2026-10-18)
+
+P9 remains the single native relationship/task/interaction authority. [OA-01](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-01) adds bounded organization-owned private preparation, deliberate eligible contact-only sharing, selected-field correction, restricted import, same-source archive/Resume and separately permitted expired-referral history/continuation. These exact purposes extend the permitted missionary slice without broad Party enumeration, staff visibility by default, fake Parties, private-note publication or consent. [OA-02](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-02) preserves source-controlled shared-task effects; task Complete cannot manufacture source facts. [OA-03](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-03) retains B3 supports_policy_v1 separately from the P14 recognition roster. Actual retained-data, command, current-read, resulting-state authorization and source-role/RLS evidence is required before activation; historic fresh-build statements do not substitute for that census.

@@ -1,0 +1,39 @@
+{
+  "current_pinned_artifacts": 20,
+  "date": "2026-10-18",
+  "initial_D32_model": "retained; revised after root found missing semantic cases",
+  "limits": "No real financial source, SQL/RLS, locks/concurrency, provider, migration, performance, accessibility or usability qualification. No earlier model/probe/verifier executed.",
+  "links": {
+    "anchors": 48,
+    "line_references": 76,
+    "local": 456,
+    "source_documents": 13
+  },
+  "model": {
+    "counterexample_families": 18,
+    "passed_outcome_assertions": 137,
+    "positive_controls": 7
+  },
+  "preserved_prior_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "D31": 19
+  },
+  "review": {
+    "categories": 22,
+    "clauses": 24,
+    "findings": 18,
+    "proofs": 36
+  },
+  "root_reproduction": "recorded byte-identical execution of current D32 model only; no model executed by verifier",
+  "scope": "D32 research status, structural completeness, links and preserved evidence only",
+  "status": "passed",
+  "status_checks": [
+    "Q32 A selected",
+    "D32 corrected amendments pending ratification",
+    "organization-wide scope explicitly selected by founder",
+    "D31 remains ratified",
+    "no Q33 posed",
+    "conceptual glossary consistent"
+  ]
+}

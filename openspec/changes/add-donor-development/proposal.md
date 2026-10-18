@@ -20,7 +20,7 @@ The canonical package is [Phase 27](../../../docs/prds/sitestacker-parity/phase-
 
 ## Gates and Non-goals
 
-E7 campaign temporal attribution and C-01 posted-correction approval remain explicit upstream owner-policy gates. Affected lanes cannot be guessed or declared complete; unrelated qualified work remains usable. Provider/runtime, migration, accessibility, capacity and pilot gates remain required. No feature code, production change, donor contact, automation activation, new CRM/task/finance store, compulsory missionary reporting or wealth scoring is authorized by this task.
+Phase 28 D48–D50 settles E7 campaign attribution and C-01 posted-correction approval policy; exact upstream implementation and adapter qualification remain required. Affected lanes cannot be guessed or declared complete; unrelated qualified work remains usable. Provider/runtime, migration, accessibility, capacity and pilot gates remain required. No feature code, production change, donor contact, automation activation, new CRM/task/finance store, compulsory missionary reporting or wealth scoring is authorized by this task.
 
 ## Rollback
 

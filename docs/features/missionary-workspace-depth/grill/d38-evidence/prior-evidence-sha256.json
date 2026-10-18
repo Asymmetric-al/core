@@ -1,0 +1,20 @@
+{
+  "d37-evidence/artifact-pins.json": "5178ddd09c06d217dfff71b498ac2c18e0e91dd674adc6aea8ee7a7050509600",
+  "d37-evidence/coaching-campaigns-and-ux.md": "3b29b064390050bb5331d8c19b52ffc6ba7ba9bf08a3cb2c96604385915693cf",
+  "d37-evidence/cross-review-resolution.md": "4720cc4daa6ec95031d88e52e6e5be41ca8dfb6b56a5b08813a251bdfeb93604",
+  "d37-evidence/d37-before-ratification.txt": "58e57b52c2d56c11aff84acc335ad5ba4bd2d48b51040a63975bd2303fdf26bb",
+  "d37-evidence/journey-counterexamples.md": "767eb0326dbce7af1824c62337bb1c6066831eadff7db2f813e5c656d295c1b7",
+  "d37-evidence/missionary-methods-and-products.md": "926a0f37fb1628d57ee042aaddfa235647a679ed6ca108020ae8e334b5062d2d",
+  "d37-evidence/prior-evidence-sha256.json": "9e26762277d2a5e7ab440c892646cef6d53f8dcc1a24468418ada5ca081c76c8",
+  "d37-evidence/publication-and-access-safety.md": "25d379f4c46f35317fe6492614347146be5be87418a04c2ca7cc125ca9ccdde2",
+  "d37-evidence/q37-before-answer.txt": "4d7ebd7547bcf7d8982a7f5607e8281a78155cda6e0bd364d8ea47f9b26b013d",
+  "d37-evidence/q37-before-ratification.txt": "ba0308cf8c684b936bce7dfcc51f093e2c3c077a46f3fe3a81ce80fa6e0d9429",
+  "d37-evidence/ratification-evidence-sha256.json": "cf62260604f081a8d9625c47e75c304fe81a8686e5f64ea95ec2f0cc17b66d53",
+  "d37-evidence/ratification-verification.json": "f3751876a6ca30f54e36e927e1f4646195883e0d2fafe1db3f955ce854ea2a9a",
+  "d37-evidence/repository-governance.md": "f631d2af388680530c8d8ce63337536559ab62d580d0f460612cff99f7a6c359",
+  "d37-evidence/review-verification.json": "fed008467b2377854184fca33e7bea4b92df7a37e12e6aff065597ae5e6658e3",
+  "d37-evidence/root-ux-research.md": "1103b757d3fae9e249dc9f97ccbe11e5a6d1246ba9d999e97caf8a536b8b4cd1",
+  "d37-evidence/verify-ratification.py": "baeb17468bad06eb313dbf84eb50465ff1f7d7ec8bc31e0988ed020e82a3ddfe",
+  "d37-evidence/verify-review.py": "56208be69f19d07c2b2330ddc47145168b014f817b4aa8d0fcdbacc781fcaaf7",
+  "d38-evidence/q38-before-answer.txt": "047926bd239748e3d1b58aeef85cbb881589b024b6d0fbf0137f486d6515aa26"
+}

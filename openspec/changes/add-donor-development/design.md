@@ -16,7 +16,7 @@ P12 current acting-context authorization applies to source commands, direct data
 
 ## Dependency contract
 
-Qualify narrow P9/P12/P15 and communication/task source seams before dependent activation; do not wait for entire future phases or invent a consumer fallback. E7 is unresolved P13 temporal-attribution meaning; affected received-toward-appeal stays unavailable pending its source ruling/adapter. C-01 blocks affected posted-gift correction implementation. D23 review does not decide it. Native ordinary development remains independent of Workflow Studio/Eve/hybrid Web Studio/SMS/directory products.
+Qualify narrow P9/P12/P15 and communication/task source seams before dependent activation; do not wait for entire future phases or invent a consumer fallback. Phase 28 D49/D50 settles E7: earlier gift campaign associations and continuing recurring origin survive ordinary remapping, with authorized P13 corrections/P16 prospective amendments and distinct current hierarchy interpretation. Affected received-toward-appeal stays unavailable until the exact source adapter/coverage is qualified. D48 settles C-01 through organization-set supported correction policy with independent controls preserved; implementation must prove current-policy admission. D23 review neither grants nor bypasses correction authority. Native ordinary development remains independent of Workflow Studio/Eve/hybrid Web Studio/SMS/directory products.
 
 ## UX and source states
 

@@ -1,0 +1,140 @@
+# Phase 28 Q43 — finishing a signup after the Page entry is hidden
+
+October 18, 2026. Core `9cada8f3d8ab59db391d3fd20df77fcadeb09813` and the
+research working tree. **Q43 answered A.** The [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)
+records **Accept with required amendments, explicitly ratified**. The founder
+has ratified the corrected decision and C01–C15/P01–P30. The original question and
+pre-answer research below remain dated context.
+
+## Why this is the next question
+
+The founder has explicitly ratified
+[D42 and C01–C24](phase28-d42-verified-email-newsletter-signup-adversarial-review.md#explicit-ratification),
+with P01–P40 as future proof requirements. Qualified signed-in readers can
+deliberately join using their current verified account address when permitted;
+other readers still confirm by email. The latter remains a necessary user path.
+
+D42-C24 expressly preserves [D6-C07](phase28-d6-adversarial-review.md:359):
+whether an already accepted pending signup may finish after the Page's signup
+entry is turned Off. D42's ratification does not decide it. The independent
+[scope/frontier audit](d42-evidence/ratification-scope.md) identifies this as the
+next ready, observable user choice. Its exact duration and retention remain
+subsequent policy; neither the proposed 72 hours nor 24 hours is adopted.
+
+Earlier D1/D3/D11–D13 surviving amendments still need their exact reconciliation,
+but their selected directions should not be re-asked. Ratified completeness
+C04/C05 stay settled, and E7/C-01 stay with their financial owners. This next
+question is about the meaning of one existing Page control, not choosing an
+Auth adapter, database schema or another settings panel.
+
+## The single founder question
+
+**Q43 — When Maya turns off “Show newsletter signup on this page,” what should
+happen to readers who already requested signup but have not confirmed by email?**
+
+- **A — Let those readers finish (recommended).** An already accepted signup
+  can still be confirmed before its original deadline, while current newsletter
+  and recipient rules allow it. No new requests are accepted through the hidden
+  entry.
+- **B — Stop pending signups too.** Turning the entry Off also stops those
+  pending requests. Readers must start again if signup is offered later.
+
+Existing subscriptions and unsubscribe access remain unchanged under either
+choice. This concerns hiding the Page entry, not closing the newsletter itself
+or overriding withdrawal, expiry, suppression or other current safety rules.
+An old form sitting open in a browser is not an already accepted request.
+
+**Recommendation A is a product judgment.** It keeps the control's meaning
+predictable: hiding an invitation stops new starts without cancelling a reader's
+already accepted request. B gives the control a stronger stopping effect, at the
+cost of making a previously supplied confirmation path unavailable. If B is
+chosen, staff and reader copy must explain that extra consequence clearly.
+Neither choice requires a new tenant toggle, per-reader exception or extra
+confirmation dialog.
+
+## Current research and limits
+
+[Fresh primary research](d42-evidence/q43-primary-research.md) opened four official
+Mailchimp, Ghost and Kit pages. They distinguish Page/form availability, named
+newsletter subscriptions, confirmation and newsletter archive. Kit documents
+that readers may delay confirming and that staff cannot confirm on their behalf.
+These support treating confirmation as a distinct user step.
+
+**None of those sources explicitly proves the exact pending-after-hide behavior
+proposed here.** The recommendation follows Core's existing control meanings
+and the selected reader journey, not a claim that every leading product does
+this or that a conversion benefit has been measured. No authenticated competitor
+walkthrough, ministry interview, mailbox test or live environment was used.
+
+Repository evidence supports the boundaries rather than choosing the answer:
+
+- [D6-C03/C07](phase28-d6-adversarial-review.md:330) distinguish new intake,
+  existing subscriptions, current purpose authority and the proposed pending
+  exception. C07's exception remains unadopted until this answer.
+- [D7 C12](phase28-d7-adversarial-review.md:499) preserves separate entry,
+  withdrawal and communication meanings; D42 does not turn a subscription into
+  send authorization.
+- [Web Studio's public-form contract](../../../../openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md:1017)
+  requires a domain-owned durable primary outcome and truthful accepted state.
+  Editorial visibility is not itself the native subscription authority.
+- [ADR0170](../../../adr/0170-purpose-bounded-public-form-definitions-and-domain-owned-routing.md:119)
+  retains purpose-owned handoffs and partial-failure boundaries. Its older
+  P32-only subscription wording needs the explicit later native P28 reconciliation
+  already captured by ratified D42; this question does not silently amend it.
+
+## UX and edge cases the eventual answer must settle
+
+For A, the existing Page control can say: **“Hides signup from this page.
+Earlier requests can still be confirmed before they expire. Existing
+subscribers are unchanged.”** The reader continues to the same named newsletter's
+explicit **Confirm subscription** action, without returning to a hidden form,
+creating an account or donating. No extra popup is needed.
+
+For B, the control must say that it also stops pending signups from that entry.
+A stopped link must explain the unavailable signup calmly, rather than falsely
+showing success or presenting an unexplained 404. Reopening must not silently
+reactivate stopped requests; any later signup is a new deliberate instruction.
+
+Under either answer:
+
+| Case                                                                   | Required invariant or unresolved outcome                                                                                                                |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Request accepted before Off, confirmation attempted afterward          | This is the A/B choice. Under A, original validity and current source eligibility still govern; under B, the stopped request cannot complete.           |
+| Browser opened the form before Off but source has not accepted it      | A stale form does not bypass Off. Resolve any lost response against the original durable operation.                                                     |
+| Qualified signed-in Join completed before Off                          | It is already a subscription and is unaffected by this entry-only change.                                                                               |
+| Same newsletter has another independently authorized entry             | Do not enlarge one entry's stopping scope to other sources by an accidental global switch.                                                              |
+| Newsletter closed, consent withdrawn or a stronger restriction applies | The weaker Page-entry policy cannot override the owning restriction.                                                                                    |
+| Original confirmation expired or was superseded                        | No read, retry, resend or Off→On cycle restarts the deadline or revives old authority.                                                                  |
+| Confirmation message is delayed or a response is lost                  | Any still-permitted original effect is recovered through its source and delivery owners; no duplicate intake, invented receipt or false delivery claim. |
+| Confirmation is retried after a later unsubscribe                      | Recover the earlier result without reapplying it; preserve D42's distinction between retry and fresh rejoin.                                            |
+| Unavailable link or public receipt                                     | Explain only the permitted result, without revealing membership, private context or suppression state for an arbitrary address.                         |
+
+The eventual decision must prove acceptance/Off/confirmation ordering, actual
+control copy, expiry boundaries and correct recovery. These are future proof
+obligations, not tests run during question preparation. No new reminder campaign,
+cancel-pending dashboard, grace period or indefinite confirmation right is
+required by this question.
+
+## Continuation and document status
+
+The founder selected **A — Let those readers finish** on October 18, 2026.
+The [completed D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)
+records the exact source-accepted boundary, original validity, independent
+protected confirmation, current restrictions, simple tenant controls, all 22
+adversarial categories and future proof. It does not blanket-ratify D6 or select
+its proposed 72-hour/24-hour values. Finite proof usefulness and retention remain
+separately unresolved. The founder has now explicitly
+[ratified D43 and its amendments](phase28-d43-pending-newsletter-confirmation-adversarial-review.md#explicit-ratification).
+The subsequent continuation prepares [Q44 — confirmation period](phase28-q44-newsletter-confirmation-period-research.md),
+which remains unanswered. No earlier question or rejected option is reopened.
+
+The invoked [grill-with-docs](../../../ai/skills/grill-with-docs/SKILL.md),
+[grilling](../../../ai/skills/grilling/SKILL.md) and
+[domain-modeling](../../../ai/skills/domain-modeling/SKILL.md) skills apply.
+The founder brief's one-meaningful-question rule controls. The existing glossary
+entry now clarifies the selected distinction between hiding an invitation and
+finishing an already accepted request. No new domain entity is introduced.
+
+No formal ADR/PRD/OpenSpec, ticket, application code/schema, live setting or real
+communication is changed. `/to-prd` and `/to-issues` remain separate transitions.
+No earlier program, model or probe is executed for ratification or continuation.

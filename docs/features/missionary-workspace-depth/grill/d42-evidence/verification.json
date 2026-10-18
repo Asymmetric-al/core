@@ -1,0 +1,302 @@
+{
+  "scope": "New D42 documentary verifier only; prior programs are bytes, not executed or imported.",
+  "all_checks_pass": true,
+  "checks": {
+    "frozen_evidence": {
+      "manifest_count": 44,
+      "unique_file_count": 448,
+      "hash_comparisons": 775,
+      "all_match": true,
+      "manifests": [
+        "docs/features/missionary-workspace-depth/grill/completion-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d22-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d23-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d23-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d24-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d24-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d25-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d25-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d26-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d26-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d27-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d27-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d28-evidence/clarification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d28-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d28-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d29-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d29-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d30-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d30-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d31-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d31-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d32-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d32-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d33-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d33-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d34-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d34-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d35-evidence/initial-model-artifact-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d35-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d35-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d36-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d36-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d37-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d37-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d38-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d38-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d39-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d39-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d40-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d40-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d41-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d41-evidence/ratification-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/d42-evidence/prior-evidence-sha256.json",
+        "docs/features/missionary-workspace-depth/grill/post-completion-evidence/ratification-evidence-sha256.json"
+      ],
+      "old_artifact_pins_are_bytes_only": true
+    },
+    "C_definitions": {
+      "count": 24,
+      "expected": 24,
+      "unique": 24
+    },
+    "F_definitions": {
+      "count": 12,
+      "expected": 12,
+      "unique": 12
+    },
+    "P_definitions": {
+      "count": 40,
+      "expected": 40,
+      "unique": 40
+    },
+    "categories": {
+      "count": 22,
+      "yes": 21,
+      "no": 1,
+      "names": [
+        "Problem validity, necessity and alternatives",
+        "Brittleness",
+        "Technical debt",
+        "Edge cases",
+        "Footguns",
+        "Tenant safety",
+        "Database, RLS and authorization safety",
+        "Overengineering",
+        "UX/UI and user friction",
+        "Source of truth, ownership and invariants",
+        "Hidden coupling",
+        "Failure modes",
+        "Lifecycle, temporal correctness, concurrency and idempotency",
+        "Data integrity risks",
+        "Security and privacy risks",
+        "Scalability and performance risks",
+        "Operational burden",
+        "Observability and auditability gaps",
+        "Dependency and integration risks",
+        "Migration, rollout and upgrade risks",
+        "Testability, traceability and proof",
+        "Other development hazards"
+      ]
+    },
+    "status_scope": {
+      "selected_answer": "B",
+      "review_amendments": "not separately ratified",
+      "blanket_D6_adoption": false,
+      "glossary_term": "Verified-address newsletter signup"
+    },
+    "behavior_model_record": {
+      "recorded_cases": 35,
+      "source_hash_matches": true,
+      "recorded_all_pass": true,
+      "naive_counterexamples": 3,
+      "not_executed_by_this_verifier": true
+    },
+    "preserved_normative_text": {
+      "glossary_only_new_entry": true,
+      "completeness_C01_C20_unchanged": true,
+      "session_historical_subsections": 152,
+      "session_historical_subsections_unchanged": true
+    },
+    "evolving_document_change_inventory": {
+      "CONTEXT.md": [
+        {
+          "kind": "insert",
+          "old_line_start": 2240,
+          "old_line_end": 2239,
+          "new_line_start": 2240,
+          "new_line_end": 2249
+        }
+      ],
+      "docs/features/missionary-workspace-depth/grill/phase28-q42-newsletter-confirmation-research.md": [
+        {
+          "kind": "replace",
+          "old_line_start": 5,
+          "old_line_end": 5,
+          "new_line_start": 5,
+          "new_line_end": 10
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 37,
+          "old_line_end": 37,
+          "new_line_start": 42,
+          "new_line_end": 42
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 63,
+          "old_line_end": 63,
+          "new_line_start": 68,
+          "new_line_end": 68
+        },
+        {
+          "kind": "insert",
+          "old_line_start": 66,
+          "old_line_end": 65,
+          "new_line_start": 71,
+          "new_line_end": 73
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 127,
+          "old_line_end": 127,
+          "new_line_start": 135,
+          "new_line_end": 135
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 129,
+          "old_line_end": 130,
+          "new_line_start": 137,
+          "new_line_end": 145
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 139,
+          "old_line_end": 140,
+          "new_line_start": 154,
+          "new_line_end": 156
+        }
+      ],
+      "docs/features/missionary-workspace-depth/grill/phase28-session.md": [
+        {
+          "kind": "replace",
+          "old_line_start": 1057,
+          "old_line_end": 1058,
+          "new_line_start": 1057,
+          "new_line_end": 1059
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 1136,
+          "old_line_end": 1137,
+          "new_line_start": 1137,
+          "new_line_end": 1138
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 1169,
+          "old_line_end": 1173,
+          "new_line_start": 1170,
+          "new_line_end": 1177
+        },
+        {
+          "kind": "insert",
+          "old_line_start": 4386,
+          "old_line_end": 4385,
+          "new_line_start": 4390,
+          "new_line_end": 4441
+        }
+      ],
+      "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": [
+        {
+          "kind": "replace",
+          "old_line_start": 12,
+          "old_line_end": 14,
+          "new_line_start": 12,
+          "new_line_end": 15
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 26,
+          "old_line_end": 27,
+          "new_line_start": 27,
+          "new_line_end": 30
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 178,
+          "old_line_end": 181,
+          "new_line_start": 181,
+          "new_line_end": 189
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 193,
+          "old_line_end": 193,
+          "new_line_start": 201,
+          "new_line_end": 203
+        }
+      ],
+      "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": [
+        {
+          "kind": "replace",
+          "old_line_start": 58,
+          "old_line_end": 59,
+          "new_line_start": 58,
+          "new_line_end": 62
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 763,
+          "old_line_end": 764,
+          "new_line_start": 766,
+          "new_line_end": 768
+        },
+        {
+          "kind": "replace",
+          "old_line_start": 821,
+          "old_line_end": 824,
+          "new_line_start": 825,
+          "new_line_end": 830
+        }
+      ]
+    },
+    "local_markdown_references": {
+      "documents": 12,
+      "local_links": 567,
+      "line_references": 22,
+      "anchors": 76,
+      "external_links_not_revalidated": 53,
+      "balanced_parentheses_and_angle_paths_supported": true
+    }
+  },
+  "errors": [],
+  "current_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d42-verified-email-newsletter-signup-adversarial-review.md": "0d4293fc52e9174854366ec8cebd41afb5c4f8c551cf04dca4b9f8b1606cd89f",
+    "docs/features/missionary-workspace-depth/grill/phase28-q42-newsletter-confirmation-research.md": "95687a94edb884089bf6a01c3ac4536521f75c26ea9fef14ef0b4f7a76216d6a",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "6ed1f69e89a967b964f5db06505814df76c6e395637559d19402e36e208abb23",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "0e93fcb0a98fa602a50e5fdde834db95ee78650877943ada19802fa0fd9337da",
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "2d8d39cac99326b611d40638253d1a018f87cb23ea18c8ae6215b3b29b3ea81a",
+    "CONTEXT.md": "8a156d88fd266e4ace62c218072652cffe78fab063ddb2a2367306860a98d7e6",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/auth-proof.md": "942fc83de9cb68f4102664b6f2218ef88b78e94664a03fc382bb92a17a440f14",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/database-authorization.md": "05111a88cd65a554bd9432f84eb6982d1b60be2e52604ba96bcd0feacc595e01",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/owner-reconciliation.md": "59834c217b1007f15bd56f704e8d586f221a5e6fa9f2cf483bee2e9869803c19",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/ux-research.md": "71d52bbd6db3327aeac170a8b2216652482b85b34522bb584888dbb865eca217",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/behavior-model.md": "f48e38e60969ba2e547c458e26ea382bc72573b36657e671dae0754a805d2850",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/independent-review.md": "e122495b6fb085cde830935f78fce6edbfcb435178c18135dd96c006d2aa99a7",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/behavior-model.py": "1bb4c826b91a25f02100dfa8840d1582e91ee0b38df16a7e3647fdc6b31af496",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/behavior-model-results.json": "f69229b9b11f4d3ff1748cc57fe057d6eb9d783b17675cdd02b9509e749ad841",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/prior-evidence-sha256.json": "88f1672ef4ed22880898d004fe385a5bf368b346331eb443df0b4ff8ad155093",
+    "docs/features/missionary-workspace-depth/grill/d42-evidence/verify-d42.py": "6b9cff9a385eb217b5c2b19b795d11ca6e65988ef1134a5e62c55a6e111e8b01"
+  },
+  "limits": [
+    "This script validates document structure, explicit statuses, references, model-record provenance and immutable evidence.",
+    "It does not execute the model, any old program, application tests, SQL, migrations or a live service.",
+    "Recorded model passes are finite abstract cases; they do not establish actual Auth/database serialization, RLS, provider delivery, UI accessibility or usability.",
+    "Local line bounds and heading anchors are mechanical checks, not proof that each citation supports its associated claim.",
+    "The change inventory records root/frontier edits; semantic adequacy is independently reviewed by humans/agents and not inferred from a hash or regex.",
+    "External URLs are not fetched by this documentary checker; primary-source research is recorded separately."
+  ]
+}

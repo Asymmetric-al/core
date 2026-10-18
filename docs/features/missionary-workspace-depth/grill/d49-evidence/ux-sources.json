@@ -1,0 +1,26 @@
+[
+  {
+    "url": "https://design-system.service.gov.uk/patterns/check-answers/",
+    "final_url": "https://design-system.service.gov.uk/patterns/check-answers/",
+    "http_status": 200,
+    "sha256": "9847ea43867b9d44253518fa42e1a677c9e19c3882003ab1230822d08add46bb",
+    "retrieved_utc": "2026-10-18",
+    "text_file": "ux-source-1.txt"
+  },
+  {
+    "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html",
+    "final_url": "https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html",
+    "http_status": 200,
+    "sha256": "2fabde98b3657a963115c7e207b794b2eac1beb22f870ca33e298a665c8d5c8c",
+    "retrieved_utc": "2026-10-18",
+    "text_file": "ux-source-2.txt"
+  },
+  {
+    "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html",
+    "final_url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html",
+    "http_status": 200,
+    "sha256": "d5a085f7be8814e4f01520db08d41d09b62491f40dc0fb6fb4941ec762cf3746",
+    "retrieved_utc": "2026-10-18",
+    "text_file": "ux-source-3.txt"
+  }
+]

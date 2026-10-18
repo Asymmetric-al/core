@@ -1,0 +1,287 @@
+{
+  "scope": "Synthetic D23 temporal/counting counterexamples only; no Core/source/schema/provider/authorization/UI qualification",
+  "python": "3.12.14",
+  "timezone_data": {
+    "path": "/usr/share/zoneinfo/tzdata.zi",
+    "header": "# version 2026b",
+    "sha256": "d5c5a95d9af0dadb52a22bd3dab806462f7b5f95dc5924694256da6fe5366c5c"
+  },
+  "case_count": 27,
+  "reproduced": 27,
+  "cases": [
+    {
+      "id": "T01",
+      "shortcut": "Every calendar week is 168 elapsed hours",
+      "observation": {
+        "local_start": "2026-03-02T00:00:00-05:00",
+        "local_end": "2026-03-09T00:00:00-04:00",
+        "elapsed_hours": 167.0
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T02",
+      "shortcut": "A fixed 168-hour end covers the autumn calendar week",
+      "observation": {
+        "local_start": "2026-10-26T00:00:00-04:00",
+        "local_end": "2026-11-02T00:00:00-05:00",
+        "elapsed_hours": 169.0
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T03",
+      "shortcut": "Both adjacent weeks include their shared end/start boundary",
+      "observation": {
+        "inclusive_hits": 2,
+        "half_open_hits": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T04",
+      "shortcut": "The start-of-week UTC offset remains correct at the end",
+      "observation": {
+        "fixed_offset_end": "2026-03-09T05:00:00+00:00",
+        "zone_rule_end": "2026-03-09T04:00:00+00:00"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T05",
+      "shortcut": "Viewer device timezone can select the target week",
+      "observation": {
+        "instant": "2026-10-18T18:00:00+00:00",
+        "Los_Angeles_date": "2026-10-18",
+        "Bangkok_date": "2026-10-19",
+        "Los_Angeles_week": "2026-10-12",
+        "Bangkok_week": "2026-10-19"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T06",
+      "shortcut": "A date-only fact can be converted through midnight UTC",
+      "observation": {
+        "asserted_date": "2026-10-19",
+        "invented_LA_date": "2026-10-18"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T07",
+      "shortcut": "Entry time is an equivalent period key for a backdated encounter",
+      "observation": {
+        "occurred_week": "2026-10-12",
+        "entered_week": "2026-10-19"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T08",
+      "shortcut": "Unknown occurrence may use created_at without changing knowledge",
+      "observation": {
+        "source_occurrences": [null, "2026-10-20"],
+        "entry_date": "2026-10-20",
+        "both_fallback_dates": ["2026-10-20", "2026-10-20"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T09",
+      "shortcut": "Locale-dependent week start is only presentation",
+      "observation": {
+        "date": "2026-10-18",
+        "Monday_start": "2026-10-12",
+        "Sunday_start": "2026-10-18"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T10",
+      "shortcut": "Calendar year plus week number identifies the ISO week",
+      "observation": {
+        "date": "2027-01-01",
+        "calendar_year": 2027,
+        "ISO_year": 2026,
+        "ISO_week": 53
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T11",
+      "shortcut": "The same local date/time string identifies one occurrence",
+      "observation": {
+        "wall_time": "2026-11-01 01:30",
+        "first_UTC": "2026-11-01T05:30:00+00:00",
+        "second_UTC": "2026-11-01T06:30:00+00:00"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T12",
+      "shortcut": "Attaching a zone validates that a local wall time existed",
+      "observation": {
+        "input_wall": "2026-03-08 02:30",
+        "roundtrip_wall": "2026-03-08 03:30"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T13",
+      "shortcut": "A correction can increment the new week without invalidating the old",
+      "observation": {
+        "one_encounter_id": "e1",
+        "old_week": "2026-10-12",
+        "corrected_week": "2026-10-19",
+        "append_increment_total": 2,
+        "current_distinct_encounters": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T14",
+      "shortcut": "Target creation time is the beginning of its selected period",
+      "observation": {
+        "target_created": "2026-10-16",
+        "whole_period_count": 3,
+        "created_since_count": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "T15",
+      "shortcut": "A monthly target period is always thirty calendar dates",
+      "observation": {
+        "February_2026_February_2028_April_2026_January_2026_days": [
+          28, 29, 30, 31
+        ]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C01",
+      "shortcut": "Outreach and exchange totals are additive",
+      "observation": {
+        "calls": 5,
+        "answered_exchange_calls": 2,
+        "sum_of_measures": 7,
+        "distinct_calls": 5
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C02",
+      "shortcut": "Each saved narrative is a separate meeting",
+      "observation": {
+        "narratives": 2,
+        "distinct_meetings": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C03",
+      "shortcut": "Summing participant activity counts gives unique team encounters",
+      "observation": {
+        "per_person_counts": {
+          "Maya": 1,
+          "Jordan": 1
+        },
+        "summed": 2,
+        "unique_team_encounters": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C04",
+      "shortcut": "Project relationship joins are unique activity rows",
+      "observation": {
+        "qualified_subject_links": 2,
+        "unique_underlying_calls": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C05",
+      "shortcut": "Manual and provider row IDs prove two outreach actions",
+      "observation": {
+        "source_rows": 2,
+        "proved_same_underlying_action": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C06",
+      "shortcut": "Unique transport request IDs imply unique business activity",
+      "observation": {
+        "requests": 2,
+        "business_activity_ids": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C07",
+      "shortcut": "Today's scalar target can explain last week's attainment",
+      "observation": {
+        "last_week_actual": 4,
+        "last_week_target": 10,
+        "new_target": 5,
+        "historical_ratio": 0.4,
+        "naive_recomputed_ratio": 0.8
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C08",
+      "shortcut": "Capping progress at 100 percent permits capping the recorded count",
+      "observation": {
+        "target": 5,
+        "actual": 7,
+        "bar_fraction_capped": 1,
+        "naive_capped_actual": 5
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C09",
+      "shortcut": "No target and a numeric zero denominator mean the same thing",
+      "observation": {
+        "optional_target": null,
+        "actual": 3,
+        "ratio_defined": false,
+        "zero_denominator_error": "ZeroDivisionError"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C10",
+      "shortcut": "Counting the loaded page proves complete period activity",
+      "observation": {
+        "loaded_rows": 50,
+        "eligible_rows_in_fixture": 51
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C11",
+      "shortcut": "Empty successful data and an unavailable query may both show zero",
+      "observation": {
+        "complete_empty": [],
+        "query_unavailable": null,
+        "coalesced_counts": [0, 0]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "C12",
+      "shortcut": "An activity label determines an actual exchange",
+      "observation": {
+        "same_label": "Call",
+        "outcomes": ["no answer", "actual conversation"],
+        "distinct_methods": 1,
+        "distinct_outcomes": 2
+      },
+      "counterexample_reproduced": true
+    }
+  ]
+}

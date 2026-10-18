@@ -1,0 +1,314 @@
+{
+  "bounds": {
+    "fixture_only": true,
+    "maximum": 400,
+    "minimum": 1,
+    "product_default_or_numeric_bounds_selected": false
+  },
+  "cases": [
+    {
+      "corrected": {
+        "accepted_at": "2026-01-10T12:05:00+00:00",
+        "accepted_cycle": 2,
+        "days": 2,
+        "expires_at": "2026-01-12T12:05:00+00:00",
+        "outcome": "accepted",
+        "period_revision": 1
+      },
+      "id": "B01",
+      "kind": "counterexample",
+      "schedule": [
+        "review12:00",
+        "wait five minutes",
+        "accept12:05 with unchanged displayed date"
+      ],
+      "title": "Actual acceptance after waiting anchors the full period",
+      "unsafe": {
+        "old_expiry_anchor": "2026-01-03T00:00:00+00:00",
+        "preview_or_transaction_start_anchor": "2026-01-12T12:00:00+00:00"
+      }
+    },
+    {
+      "corrected": {
+        "effect": "none",
+        "outcome": "rejected",
+        "reason": "changed_displayed_terms"
+      },
+      "id": "B02",
+      "kind": "counterexample",
+      "title": "Crossing the displayed end date requires refreshed terms",
+      "unsafe": "silently accept a different end date"
+    },
+    {
+      "corrected": {
+        "fall": {
+          "actual_local_end": "2026-11-01T11:00:00-05:00",
+          "correct_elapsed_seconds": 86400,
+          "unsafe_wall_clock_elapsed_seconds": 90000
+        },
+        "spring": {
+          "actual_local_end": "2026-03-08T13:00:00-04:00",
+          "correct_elapsed_seconds": 86400,
+          "unsafe_wall_clock_elapsed_seconds": 82800
+        }
+      },
+      "id": "B03",
+      "kind": "counterexample",
+      "title": "Adding a local calendar day can produce 23 or 25 elapsed hours",
+      "unsafe": "local datetime plus one day"
+    },
+    {
+      "corrected": {
+        "actual_time_and_offset_together": "2026-03-08T03:00:01-04:00",
+        "different_display_zone_context": {
+          "effect": "none",
+          "outcome": "rejected",
+          "reason": "changed_displayed_terms"
+        },
+        "same_zone_date_witness": true
+      },
+      "id": "B04",
+      "kind": "counterexample",
+      "schedule": [
+        "preview end01:59:59 EST",
+        "wait two seconds",
+        "computed end03:00:01 EDT"
+      ],
+      "title": "A preview's cached UTC offset can misstate the actual endpoint by an hour",
+      "unsafe": {
+        "stale_offset_rendering": "2026-03-08T03:00:01-05:00"
+      }
+    },
+    {
+      "corrected": {
+        "2026-12-31T23:45:00Z": {
+          "actual_endpoint": "2027-01-01T23:45:00+00:00",
+          "unsafe_date_only_endpoint": "2027-01-01T00:00:00+00:00"
+        },
+        "2028-02-28T15:30:00Z": {
+          "actual_endpoint": "2028-02-29T15:30:00+00:00",
+          "unsafe_date_only_endpoint": "2028-02-29T00:00:00+00:00"
+        }
+      },
+      "id": "B05",
+      "kind": "counterexample",
+      "title": "Date-only truncation loses part of the promised elapsed period",
+      "unsafe": "end at calendar midnight"
+    },
+    {
+      "corrected": {
+        "boolean": "unqualified_period",
+        "fraction": "unqualified_period",
+        "missing": "unqualified_period",
+        "negative": "unqualified_period",
+        "outside_toy_owner_range": "unqualified_period",
+        "string": "unqualified_period",
+        "zero": "unqualified_period"
+      },
+      "id": "B06",
+      "kind": "counterexample",
+      "title": "Absent, coerced or unsupported periods cannot manufacture a valid window",
+      "unsafe": "parse, truncate, default or accept any positive-looking value"
+    },
+    {
+      "corrected": {
+        "effect": "none",
+        "outcome": "rejected",
+        "reason": "unqualified_period"
+      },
+      "id": "B07",
+      "kind": "counterexample",
+      "title": "A range-valid period still needs checked timestamp representation",
+      "unsafe": "clamp, wrap, truncate or store an unrepresentable endpoint"
+    },
+    {
+      "corrected": {
+        "before_acceptance": "stale_review",
+        "existing_source_after_edit": "unchanged"
+      },
+      "id": "B08",
+      "kind": "counterexample",
+      "title": "A changed period fences unaccepted review and never rewrites an accepted cycle",
+      "unsafe": "apply latest period to pending command or recompute every current deadline"
+    },
+    {
+      "corrected": {
+        "effect": "none",
+        "outcome": "rejected",
+        "reason": "stale_review"
+      },
+      "id": "B09",
+      "kind": "counterexample",
+      "title": "Period value returning to its old value does not revive the old review",
+      "unsafe": "compare days only"
+    },
+    {
+      "corrected": {
+        "fresh_review": "accepted",
+        "old_review": "stale_review",
+        "period_appears_without_enable_revision_change": "stale_review",
+        "period_save_enabled": false
+      },
+      "id": "B10",
+      "kind": "counterexample",
+      "title": "Stable absent-policy review cannot be upgraded by first configure and enable",
+      "unsafe": "saving a period enables continuation or fills old request defaults"
+    },
+    {
+      "corrected": {
+        "current_active": false,
+        "effects": 1,
+        "original_acceptance": {
+          "accepted_at": "2026-01-10T12:00:00+00:00",
+          "accepted_cycle": 2,
+          "days": 2,
+          "expires_at": "2026-01-12T12:00:00+00:00",
+          "outcome": "accepted",
+          "period_revision": 1
+        },
+        "restricted_recovery": "unavailable"
+      },
+      "id": "B11",
+      "kind": "counterexample",
+      "title": "Lost-response or late-delivery recovery preserves the original endpoint even Off and later expired",
+      "unsafe": "anchor a new deadline at retry, webhook delivery or current period"
+    },
+    {
+      "corrected": {
+        "original_end": "2026-01-12T12:00:00+00:00",
+        "source_unchanged": true
+      },
+      "id": "B12",
+      "kind": "counterexample",
+      "title": "Ordinary activity does not run a renewed-window clock or restore personal data",
+      "unsafe": {
+        "activity_reset_end": "2026-01-12T15:00:00+00:00"
+      }
+    },
+    {
+      "corrected": {
+        "after": false,
+        "at": false,
+        "before": true
+      },
+      "id": "B13",
+      "kind": "counterexample",
+      "title": "The exact stored endpoint is exclusive without waiting for a sweep or end of local day",
+      "unsafe": "active through equality, local midnight or next sweep"
+    },
+    {
+      "corrected": {
+        "effect": "none",
+        "outcome": "rejected",
+        "reason": "unsupported_override"
+      },
+      "id": "B14",
+      "kind": "counterexample",
+      "title": "The explanatory endpoint is not caller-supplied date-setting authority",
+      "unsafe": "submit the displayed or edited endpoint as the new source deadline"
+    },
+    {
+      "corrected": {
+        "effects": 0,
+        "old_intent": "rejected",
+        "same_display_terms": true
+      },
+      "id": "B15",
+      "kind": "counterexample",
+      "title": "Time-only source expiry cannot upgrade an already rejected intent",
+      "unsafe": "forget terminal no-effect, then retry when time makes source eligible"
+    },
+    {
+      "corrected": {
+        "fixture_endpoints": {
+          "1": "2026-01-11T12:00:00+00:00",
+          "400": "2027-02-14T12:00:00+00:00"
+        },
+        "not_product_bounds": true
+      },
+      "id": "C01",
+      "kind": "positive_control",
+      "title": "Explicit toy owner-range endpoints produce exact finite elapsed periods",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "actual_acceptance_anchor": true,
+        "same_revision": true
+      },
+      "id": "C02",
+      "kind": "positive_control",
+      "title": "No-op save and ordinary seconds of waiting need no extra confirmation",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "accepted_at": "2026-01-11T00:00:10+00:00",
+        "accepted_cycle": 2,
+        "days": 2,
+        "expires_at": "2026-01-13T00:00:10+00:00",
+        "outcome": "accepted",
+        "period_revision": 1
+      },
+      "id": "C03",
+      "kind": "positive_control",
+      "title": "Fresh deliberate review can accept changed displayed terms while the old intent stays rejected",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "same_period_and_endpoint": true,
+        "staff_accepted_while_missionary_Off": true
+      },
+      "id": "C04",
+      "kind": "positive_control",
+      "title": "Ordinary staff and missionary continuation use the same period without coupling staff to missionary On",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "new_period_days": 4,
+        "old_cycle_unchanged": true,
+        "old_period_days": 2
+      },
+      "id": "C05",
+      "kind": "positive_control",
+      "title": "A later deliberate cycle captures new policy while the old cycle stays immutable",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "accepted": true,
+        "actual_local_endpoint": "2026-03-08T03:00:01-04:00",
+        "elapsed_seconds": 86400
+      },
+      "id": "C06",
+      "kind": "positive_control",
+      "title": "Ordinary offset advance within the same displayed zone/date accepts with coherent actual rendering",
+      "unsafe": null
+    }
+  ],
+  "counts": {
+    "counterexample_families": 15,
+    "passed_outcome_assertions": 85,
+    "positive_controls": 6
+  },
+  "decision": "D36 uses the organization's configured finite renewed period, without a per-continuation date override",
+  "evidence_kind": "bounded_stdlib_temporal_semantic_model",
+  "limitations": [
+    "Only this new synthetic standard-library model runs; no older model/probe/verifier, app, SQL/RLS, database, provider, network or private data is exercised.",
+    "Current action/source/result authority are opaque qualified inputs inherited from D35, not retested P9/P12 producers or a full authorization model.",
+    "Ordered acceptance assumes authoritative clock and atomic current facts. Actual lock waits, transaction-start clocks, clock skew/rollback, replicas, concurrency and crash durability are not proved.",
+    "The toy integer range 1..400 is not a product limit/default. Actual supported bounds, numeric transport types, settings authority and representable production timestamp domain remain owner qualification work.",
+    "Python aware datetime has microsecond precision and no leap-second representation; these examples do not prove production precision, arithmetic, serialization or database timestamp limits.",
+    "America/New_York uses the execution environment's IANA zoneinfo data for explicit 2026 examples; no production tzdb version, locale format, timezone preference product or UI witness authenticity is qualified.",
+    "Reviewed zone/date are explanatory witness fixtures, never caller authority to write a date. An ordinary offset advance within the same zone/date is accepted and the actual endpoint is rendered with its own offset. Actual UI/accessibility, context binding and late responses are untested.",
+    "outcomes is narrow semantic owner evidence, not a table/generic command journal. Terminal evidence persists for this finite run; lawful retirement must retain a non-replay fence and is not implemented here.",
+    "Read-only activity examples compare stored facts with an unsafe reset formula; they do not run actual view/edit/login hooks, tasks, consent, grant expiry, retention or external integrations.",
+    "Finite examples are not exhaustive scheduling, formal verification, a deployed grant, activation qualification or release readiness."
+  ],
+  "reproduction": "python3 docs/features/missionary-workspace-depth/grill/d36-evidence/temporal-counterexamples.py",
+  "script_sha256": "a3243f85bd8b7ca4831fd6c2cdde1bddd1427648c7c2f849af9765a42034ef2e",
+  "status": "proposed elapsed-day and temporal owner contract illustration; not ratification or runtime proof",
+  "unit": "One elapsed day is exactly 86400 seconds; E is computed from actual authoritative acceptance A after waits in UTC."
+}

@@ -1,0 +1,145 @@
+# Q32 — one follow-up for a gift and commitment fulfillment
+
+Research date: **October 18, 2026 UTC**. D31's corrected decision and required
+amendments are explicitly ratified. **Q32 is unanswered.** This note identifies
+one product choice; it does not merge source purposes, amend a formal owner
+contract, create implementation tickets or establish runtime qualification.
+
+## The single choice
+
+Grace's newly received final gift completes her recorded fixed commitment to
+Maya's ministry. That gift also independently qualifies for personal gift
+follow-up—for example, it meets the organization's enabled D22 amount rule.
+Both purposes are current, eligible, unhandled, permitted for Maya and compatible
+with the same supporter/ministry and responsibility. This is an illustrative
+design scenario, not reported ministry research or an implemented source producer.
+
+**Should Maya handle the gift thank-you and commitment fulfillment together?**
+
+- **A — One follow-up showing both purposes (recommended).** Maya reviews the
+  gift and fulfilled commitment together and handles them once. Each purpose
+  retains its own evidence and completion record.
+- **B — Separate follow-ups.** Maya reviews and completes the gift thank-you and
+  commitment-fulfillment follow-ups separately.
+
+A reduces repeated handling when one personal action genuinely serves both
+purposes. B keeps their working lifecycles visibly separate and avoids a new
+joint-coverage contract, at the cost of two task dispositions for this case.
+Neither choice requires two donor communications, treats a receipt as a personal
+interaction, changes money or sends automatically. An actual interaction is
+recorded once under its owner; exact task coverage must be deliberate and qualified.
+
+## Why this remains a real product choice
+
+- The [founder brief](phase28-founder-brief.md:165) and
+  [program owner constraints](../../../prds/program-roadmap/owner-constraints.md:74)
+  already require native eligible gift follow-up and fulfillment celebration.
+  Asking whether fulfillment should exist would reopen an adopted outcome.
+- [D20-C01](phase28-d20-grouped-special-gift-follow-up-adversarial-review.md:177)
+  explicitly keeps first-support, fulfillment, statutory receipt, care and other
+  obligations distinct unless an owner qualifies shared coverage of an actual
+  action. D20 selected grouping of compatible special gifts; it did not select
+  combined gift-purpose and fulfillment-purpose handling.
+- [D20-C02–C04](phase28-d20-grouped-special-gift-follow-up-adversarial-review.md:184)
+  require compatible Tenant, exact typed subject, Legal Entity, Party, completion
+  authority and responsibility; stable membership/source evidence stays distinct.
+  “One current task” does not mean every open task for a supporter.
+- [D20's shared-action boundary](phase28-d20-grouped-special-gift-follow-up-adversarial-review.md:483)
+  permits one actual interaction to satisfy compatible obligations only with
+  explicit qualified evidence. It preserves unrelated promises and receipts.
+  Q32 asks whether to add the bounded product experience and source coverage for
+  this specific combination, not whether a UI may hide two task rows.
+- [ADR-0183](../../../adr/0183-source-owned-work-projects-into-one-shared-tasks-hub.md:622)
+  distinguishes an independent human deliverable from source-owned business state.
+  A completed thank-you/celebration cannot make the commitment financially fulfilled.
+- [P16](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1037)
+  already owns fixed-pledge fulfillment meaning and separate recurring lifecycle.
+  [Its conserved fold](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1378)
+  distinguishes fulfilled, ended/released and still expected amounts. Q32 supplies
+  no replacement arithmetic, new financial authority or definition of fulfillment.
+
+Independent financial and governance reviewers both identified this as an open
+human-work-unit choice. Its engineering prerequisites are known owner obligations,
+not questions the founder must solve.
+
+## Fresh primary research and bounded lessons
+
+The following public documentation was opened on October 18. Relative update
+labels are reproduced as displayed, without assigning an invented publication
+date. These pages are not authenticated product tests, Core user feedback or
+proof that combined handling is empirically superior.
+
+| Source                                                                                                                                                                                                 | Verified documented behavior                                                                                                                           | Lesson and boundary                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Givebutter: Manage pledges](https://help.givebutter.com/en/articles/9708715-how-to-manage-pledges), “Updated over 2 weeks ago”                                                                        | Fulfilled describes the total pledge commitment being fulfilled and marked complete; installment schedules and payments remain distinguishable.        | The milestone is more than the final calendar date or one paid installment. Core P16, not this vendor's statuses, application rights or cancellation behavior, governs the actual source.                            |
+| [Givebutter: Workflows](https://help.givebutter.com/en/articles/9741607-how-to-manage-automations-with-workflows), “Updated this week”                                                                 | Documents a distinct Pledge fulfilled trigger.                                                                                                         | A milestone can warrant a distinct purpose. Configurable vendor automation does not prove native personal follow-up, combined completion or a Core Workflow Studio dependency.                                       |
+| [Givebutter: Tasks](https://help.givebutter.com/en/articles/9703441-how-to-manage-your-fundraising-to-do-list-with-tasks), “Updated over a week ago”                                                   | Tasks can reference contacts, transactions and other records, with optional descriptions and completion actions.                                       | A contextual task can keep related information together. Linked records do not by themselves establish what an action covers. Broad staff visibility, assignment emails and unrestricted reopening are not imported. |
+| [TntConnect: Updating automatic tasks](https://www.tntware.com/tntconnect/help/en/pages/video_autoactionsupdatetasks.aspx), undated                                                                    | Landing-page description says automatic actions update existing tasks instead of duplicating them.                                                     | Narrow precedent for reducing repeated work. The video was not watched; the page establishes no exact gift-plus-fulfillment coverage, concurrency or privacy contract.                                               |
+| [Blackbaud: Apply a payment to a commitment](https://webfiles-sc1.blackbaud.com/files/support/helpfiles/altru/help/content/tkApplyAPaymentToAnOutstandingCommitmentOfTheDonor.html), undated           | The payment may apply to the outstanding commitment balance or another amount; installment overage may cover later installments or the pledge balance. | A received payment and fulfillment are distinct facts. Do not infer completed commitment from a large/final-scheduled payment or import vendor allocation defaults.                                                  |
+| [Blackbaud RE NXT: Gift receipting](https://webfiles-sc1.blackbaud.com/files/support/helpfiles/rex/content/en-ca/content/rcptmgr-receiptmgr.html), undated; independently opened by benchmark reviewer | Gift receipting and acknowledgment details are separately tracked in the documented flow.                                                              | A receipt is not personal gratitude or fulfillment celebration. Core's own receipt and interaction owners remain authoritative.                                                                                      |
+
+**No reviewed source establishes the proposed joint-coverage semantics.** The
+recommendation for A is a product judgment: one clear action can reduce duplicate
+handling while explicit per-purpose evidence preserves meaning. B remains a
+credible alternative when the organization wants these deliverables handled
+separately. Neither option is claimed to improve donation retention by a measured
+amount.
+
+## Journey and counterexamples checked before asking
+
+The ordinary donor journey is unaffected. Maya opens her existing task list.
+Under A, the compatible follow-up could show **Thank Grace** with two clearly
+identified purposes: **Gift follow-up** and **Commitment fulfilled**. This is
+illustrative copy, subject to current identity/anonymity and source disclosure;
+it does not select a final UI component, compulsory checkbox or extra modal.
+Both underlying facts must be explainable without exposing unrelated gifts.
+
+The distinguishing action is deliberate coverage of the reviewed purposes in
+one ordinary handling flow. It is not merely expanding/collapsing two tasks or
+automatically closing every linked obligation. If A is chosen, its answer review
+must resolve source-purpose identity, shared task admission, reviewed coverage,
+partial handling, late arrival, correction, races and recovery under D20/P9.
+
+Counterexamples and inherited boundaries:
+
+- A gift that pays one installment but not the complete applicable fixed
+  commitment does not supply the fulfillment purpose. Unknown source is not zero.
+- Ending/releasing a promise, reducing terms, reaching the last scheduled date
+  or finishing an automatic recurring schedule is not the live fulfillment
+  scenario in this question. No new financial milestone is inferred.
+- The ordinary gift reason independently qualifies; gift fulfillment does not
+  retroactively invent an additional-support, one-time-need or above-commitment
+  reason. D19/D22/D29/D30/D31 keep their predicates.
+- Different Parties, ministry/project scopes, Legal Entities, disclosure rules,
+  responsibilities or completion authorities cannot be combined merely because
+  a supporter name or date is shared.
+- If one purpose was already handled, accepting the other does not reopen it or
+  claim that the earlier action also covered an unseen later purpose.
+- A later-arriving purpose cannot be silently absorbed into a reviewed set.
+  Source lag does not require a second donor message; precise coverage is a
+  source/task responsibility to resolve in answer review.
+- A correction that invalidates fulfillment need not invalidate a genuinely
+  received gift or completed human interaction. Preserve each purpose's evidence
+  and independent work; do not erase or silently replay history.
+- Maya can handle only the work she actually completed. A combined task cannot
+  force a false claim about an unfinished purpose or hide residual work.
+- A statutory receipt, financial correction, staff-only exception, first-support
+  undertaking or unrelated promised action is not automatically included.
+- Completing a task does not prove sending, conversation, consent, gift receipt
+  or financial fulfillment. Existing communication and interaction owners remain.
+
+## Frontier selection and status
+
+Generic missed-recurring-payment automation was considered and rejected as the
+next question. [P16 D8](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:887)
+already makes a qualified terminal-miss notice informational and in-product only,
+with no default donor-outreach task; its exact catalog activation gate remains.
+[P16 G2–G3](../../../prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md:1055)
+owns source-qualified actions, freshness, optional enrollment and bounded policy.
+Asking an unqualified “task for every miss?” would blur or reopen those decisions.
+
+Q32 instead follows the explicit D20 reservation. It asks one choice whose
+prerequisites are settled, with no dependency on a guessed financial classifier.
+**No answer or cross-purpose permission has been selected.** Source qualification
+and implementation remain unproved. No prior model/database probe was rerun,
+and no Q33 is posed.

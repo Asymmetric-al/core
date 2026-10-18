@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-16T04:35:06.261864+00:00",
+  "stop_exit": 0,
+  "container_absent": true,
+  "anonymous_volumes": [
+    {
+      "volume": "24d0e93709e99fe7119ae16d799335bee7eb09b791b66bf525fe887e0c317364",
+      "absent": true
+    }
+  ],
+  "verified_at": "2026-10-16T04:35:23.003065+00:00"
+}

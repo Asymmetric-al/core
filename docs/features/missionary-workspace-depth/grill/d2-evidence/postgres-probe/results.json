@@ -1,0 +1,566 @@
+{
+  "recorded_at": "2026-10-16T04:33:39.898498+00:00",
+  "scope": "synthetic PG D2 acceptance and optional in-product intent; not Core/Supabase/API/provider qualification",
+  "checks": 43,
+  "passed": 43,
+  "failure": null,
+  "source_sha256": {
+    "setup.sql": "9c2b9690bc6c63dd8e6e56e7d40c2059af45cbed1c94ca71bae960ee862f26e2",
+    "run.py": "ab2361d27816d51601e2b079138761292b89574f632eb104cf51158a6f528bf0",
+    "../../d1-evidence/postgres-probe/run.py": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a"
+  },
+  "results": [
+    {
+      "name": "off_acceptance_records_share_without_notification",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(1,1,false,'off-1')>0;",
+      "expected": "t",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "off_acceptance_has_one_receipt_and_no_intent",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT (SELECT count(*) FROM probe.shares WHERE source_id=1)||':'||(SELECT count(*) FROM probe.receipts WHERE source_id=1)||':'||(SELECT count(*) FROM probe.intents);",
+      "expected": "1:1:0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1:1:0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "on_acceptance_records_pending_intent",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(2,1,true,'on-1',NULL,ARRAY['synthetic-staff'])>0; SELECT phase FROM probe.intents;",
+      "expected": "t\npending",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t\npending",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "on_acceptance_does_not_claim_available_or_read",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT count(*) FROM probe.local_items;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "failure_before_intent_aborts_transaction",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(3,1,true,'fault-a','before_intent',ARRAY['synthetic-staff']);",
+      "expected": null,
+      "expected_sqlstate": "P0001",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  P0001: injected before intent\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 24 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "before_intent_failure_preserves_restricted_source",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT shared FROM probe.sources WHERE id=3; SELECT count(*) FROM probe.shares WHERE source_id=3; SELECT count(*) FROM probe.receipts WHERE source_id=3;",
+      "expected": "f\n0\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "f\n0\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "failure_after_intent_and_receipt_aborts_transaction",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(3,1,true,'fault-b','after_intent',ARRAY['synthetic-staff']);",
+      "expected": null,
+      "expected_sqlstate": "P0001",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  P0001: injected after intent and receipt\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 28 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "after_intent_failure_leaves_no_partial_effect",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT shared FROM probe.sources WHERE id=3; SELECT count(*) FROM probe.shares WHERE source_id=3; SELECT count(*) FROM probe.receipts WHERE source_id=3; SELECT count(*) FROM probe.intents;",
+      "expected": "f\n0\n0\n1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "f\n0\n0\n1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "successful_recovery_after_aborted_acceptance",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(3,1,true,'fault-b',NULL,ARRAY['synthetic-staff'])>0;",
+      "expected": "t",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "concurrent_distinct_keys_one_semantic_share",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "sharer",
+      "second_role": "sharer",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.share(4,1,true,'double-a',NULL,ARRAY['synthetic-staff']); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "6\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.share(4,1,true,'double-b',NULL,ARRAY['synthetic-staff']); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "6\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "6\nFIRST_READY\n",
+        "second": "6\nSECOND_DONE\n",
+        "shares": "1",
+        "receipts": "2",
+        "intents": "1"
+      }
+    },
+    {
+      "name": "same_key_changed_toggle_conflicts",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(1,1,true,'off-1',NULL,ARRAY['synthetic-staff']);",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: changed command meaning\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 11 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "new_key_changed_toggle_cannot_add_surprise_notice",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(1,1,true,'off-new-key',NULL,ARRAY['synthetic-staff']);",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: changed existing transition meaning\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 17 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "changed_toggle_conflict_keeps_off_choice_and_no_intent",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT notify_requested FROM probe.shares WHERE source_id=1; SELECT count(*) FROM probe.intents WHERE share_id=1;",
+      "expected": "f\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "f\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_key_exact_replay_preserves_same_share",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(2,1,true,'on-1',NULL,ARRAY['synthetic-staff']);",
+      "expected": "2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "worker_claim_is_not_availability",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.claim(2,'worker-a'); SELECT phase FROM probe.intents WHERE share_id=2; SELECT count(*) FROM probe.local_items WHERE share_id=2;",
+      "expected": "1\nclaimed\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1\nclaimed\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "second_worker_cannot_claim_inflight_work",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.claim(2,'worker-b');",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "projector_failure_is_reported",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.materialize(2,'worker-a',true);",
+      "expected": null,
+      "expected_sqlstate": "P0001",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  P0001: injected projector failure\nCONTEXT:  PL/pgSQL function probe.materialize(bigint,text,boolean) line 13 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "projector_failure_does_not_revert_share",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT shared FROM probe.sources WHERE id=2; SELECT count(*) FROM probe.shares WHERE source_id=2;",
+      "expected": "t\n1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t\n1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "projector_failure_rolls_back_partial_local_item",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT phase FROM probe.intents WHERE share_id=2; SELECT count(*) FROM probe.local_items WHERE share_id=2;",
+      "expected": "claimed\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "claimed\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "worker_failure_state_is_separate_from_source",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "UPDATE probe.intents SET phase='failed',claim_token=NULL WHERE share_id=2 AND phase='claimed' AND claim_token='worker-a'; SELECT phase FROM probe.intents WHERE share_id=2;",
+      "expected": "failed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "failed",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "recovery_claim_reuses_same_intent",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.claim(2,'worker-c');",
+      "expected": "1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_claim_cannot_materialize_after_recovery",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.materialize(2,'worker-a');",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: stale or absent claim\nCONTEXT:  PL/pgSQL function probe.materialize(bigint,text,boolean) line 5 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "qualified_local_materialization_creates_one_available_item",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.materialize(2,'worker-c'); SELECT count(*) FROM probe.local_items WHERE share_id=2; SELECT read_at IS NULL AND archived_at IS NULL FROM probe.local_items WHERE share_id=2;",
+      "expected": "available\n1\nt",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "available\n1\nt",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "completed_claim_retry_cannot_duplicate_local_item",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.materialize(2,'worker-c');",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: stale or absent claim\nCONTEXT:  PL/pgSQL function probe.materialize(bigint,text,boolean) line 5 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "provider_delivered_is_not_an_admitted_local_processing_status",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "UPDATE probe.intents SET phase='delivered' WHERE share_id=2;",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"intents\" violates check constraint \"intents_check1\"\nDETAIL:  Failing row contains (1, 2, staff-availability, {synthetic-staff}, delivered, null, synthetic-staff).\nSCHEMA NAME:  probe\nTABLE NAME:  intents\nCONSTRAINT NAME:  intents_check1\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "worker_has_no_source_mutation_grant",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "UPDATE probe.sources SET shared=false WHERE id=2;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table sources\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "materialized_claim_needs_actual_local_item",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "UPDATE probe.intents SET phase='materialized',available_for='synthetic-staff' WHERE share_id=5;",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"intents\" violates foreign key constraint \"intents_tenant_share_id_purpose_available_for_fkey\"\nDETAIL:  Key (tenant, share_id, purpose, available_for)=(1, 5, staff-availability, synthetic-staff) is not present in table \"local_items\".\nSCHEMA NAME:  probe\nTABLE NAME:  intents\nCONSTRAINT NAME:  intents_tenant_share_id_purpose_available_for_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "composite_FK_rejects_cross_tenant_intent",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.intents(tenant,share_id,purpose,chosen_recipients) VALUES(2,5,'staff-availability',ARRAY['synthetic-staff']);",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"intents\" violates foreign key constraint \"intents_tenant_share_id_fkey\"\nDETAIL:  Key (tenant, share_id)=(2, 5) is not present in table \"shares\".\nSCHEMA NAME:  probe\nTABLE NAME:  intents\nCONSTRAINT NAME:  intents_tenant_share_id_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "semantic_intent_identity_prevents_duplicate",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.intents(tenant,share_id,purpose,chosen_recipients) VALUES(1,5,'staff-availability',ARRAY['synthetic-staff']);",
+      "expected": null,
+      "expected_sqlstate": "23505",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23505: duplicate key value violates unique constraint \"intents_pkey\"\nDETAIL:  Key (tenant, share_id, purpose)=(1, 5, staff-availability) already exists.\nSCHEMA NAME:  probe\nTABLE NAME:  intents\nCONSTRAINT NAME:  intents_pkey\nLOCATION:  _bt_check_unique, nbtinsert.c:666",
+      "passed": true
+    },
+    {
+      "name": "current_ineligible_recipient_creates_no_replacement",
+      "role": "projector",
+      "counterexample": false,
+      "sql": "SELECT probe.claim(5,'worker-d'); SELECT probe.materialize(5,'worker-d'); SELECT count(*) FROM probe.local_items WHERE share_id=5;",
+      "expected": "1\nno-longer-eligible\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1\nno-longer-eligible\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "notification_ineligibility_preserves_committed_share",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT shared FROM probe.sources WHERE id=3;",
+      "expected": "t",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "required_audit_failure_aborts_share",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(5,1,false,'audit-fail','audit');",
+      "expected": null,
+      "expected_sqlstate": "P0001",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  P0001: injected required audit failure\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 22 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "required_audit_failure_leaves_no_share",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT shared FROM probe.sources WHERE id=5; SELECT count(*) FROM probe.shares WHERE source_id=5;",
+      "expected": "f\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "f\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "every_accepted_share_has_exactly_one_required_audit",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT (SELECT count(*) FROM probe.shares)=(SELECT count(*) FROM probe.source_audit);",
+      "expected": "t",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "chosen_recipient_set_normalizes_order_and_duplicates",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(6,1,true,'chosen-1',NULL,ARRAY['staff-b','synthetic-staff','staff-b'])>0; SELECT chosen_recipients::text FROM probe.shares WHERE source_id=6;",
+      "expected": "t\n{staff-b,synthetic-staff}",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t\n{staff-b,synthetic-staff}",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "reordered_equal_recipient_set_is_exact_replay",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(6,1,true,'chosen-1',NULL,ARRAY['synthetic-staff','staff-b']);",
+      "expected": "8",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "8",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "changed_recipient_same_key_conflicts",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(6,1,true,'chosen-1',NULL,ARRAY['staff-c']);",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: changed command meaning\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 11 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "changed_recipient_new_key_conflicts_same_transition",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(6,1,true,'chosen-2',NULL,ARRAY['staff-c']);",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: changed existing transition meaning\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 17 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "notify_on_without_selected_staff_rejects",
+      "role": "sharer",
+      "counterexample": false,
+      "sql": "SELECT probe.share(7,1,true,'empty-recipients',NULL,ARRAY[]::text[]);",
+      "expected": null,
+      "expected_sqlstate": "22023",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  22023: explicit recipients required\nCONTEXT:  PL/pgSQL function probe.share(integer,integer,boolean,text,text,text[]) line 6 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "unsafe_split_commit_accepts_source_first",
+      "role": "sharer",
+      "counterexample": true,
+      "sql": "UPDATE probe.unsafe_source SET shared=true WHERE id=1; SELECT shared FROM probe.unsafe_source;",
+      "expected": "t",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_split_commit_projection_failure",
+      "role": "sharer",
+      "counterexample": true,
+      "sql": "DO $$ BEGIN RAISE EXCEPTION 'injected failure before separate notice insert'; END $$;",
+      "expected": null,
+      "expected_sqlstate": "P0001",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  P0001: injected failure before separate notice insert\nCONTEXT:  PL/pgSQL function inline_code_block line 1 at RAISE\nLOCATION:  exec_stmt_raise, pl_exec.c:3897",
+      "passed": true
+    },
+    {
+      "name": "unsafe_split_commit_loses_durable_notification_intent",
+      "role": "sharer",
+      "counterexample": true,
+      "sql": "SELECT shared FROM probe.unsafe_source; SELECT count(*) FROM probe.unsafe_notices;",
+      "expected": "t\n0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "t\n0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_request_key_only_dedupe_allows_duplicate_notices",
+      "role": "sharer",
+      "counterexample": true,
+      "sql": "INSERT INTO probe.unsafe_notices VALUES('browser-key-a',1),('browser-key-b',1); SELECT count(*) FROM probe.unsafe_notices WHERE source_id=1;",
+      "expected": "2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "2",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "scope": "Synthetic shortcut counterexamples only; no Core, database, RLS, finance, provider, concurrency-engine, UX or capacity qualification",
+  "python": "3.12.14",
+  "case_count": 22,
+  "reproduced": 22,
+  "cases": [
+    {
+      "id": "G01",
+      "shortcut": "Group by donor alone",
+      "observation": {
+        "scoped_relationships": 3,
+        "donor_only_groups": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G02",
+      "shortcut": "Same supporter and ministry imply the same follow-up purpose",
+      "observation": {
+        "purpose_keys": 2,
+        "subject_only_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G03",
+      "shortcut": "Gift header ID is the complete follow-up occurrence key",
+      "observation": {
+        "header_keys": 1,
+        "qualified_occurrence_keys": 2
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G04",
+      "shortcut": "Every physical allocation line must create another obligation",
+      "observation": {
+        "line_keys": 2,
+        "qualified_occurrence_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G05",
+      "shortcut": "Transport identity permanently prevents repeated gift coverage",
+      "observation": {
+        "transport_keys": 2,
+        "business_keys": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G06",
+      "shortcut": "One lifetime group key per supporter/ministry is enough for special gifts",
+      "observation": {
+        "relationship_keys": 1,
+        "distinct_qualified_occurrences": 2
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G07",
+      "shortcut": "Mark the current whole group Done after review",
+      "observation": {
+        "reviewed": ["giftA", "giftB"],
+        "save_time_members": ["giftA", "giftB", "new_giftC"],
+        "unreviewed_marked_done": ["new_giftC"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G08",
+      "shortcut": "Any group-head change must reject an otherwise unchanged reviewed set",
+      "observation": {
+        "whole_membership_changed": true,
+        "selected_revisions_unchanged": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G09",
+      "shortcut": "Matching selected IDs means the reviewed evidence is unchanged",
+      "observation": {
+        "same_ids": true,
+        "changed_revisions": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G10",
+      "shortcut": "Skip a selected ineligible member and call the reviewed group successful",
+      "observation": {
+        "reviewed": ["giftA", "giftB"],
+        "silently_handled": ["giftA"],
+        "missing_from_reported_group_success": ["giftB"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G11",
+      "shortcut": "Unchanged financial revision preserves permission",
+      "observation": {
+        "source_revision_unchanged": true,
+        "permitted_at_review": true,
+        "permitted_at_action": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G12",
+      "shortcut": "After response loss, rerun Done against the current remainder",
+      "observation": {
+        "accepted_coverage": ["giftA", "giftB"],
+        "retry_added_coverage": ["new_giftC"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G13",
+      "shortcut": "An equal request ID makes any subsequent body the same request",
+      "observation": {
+        "equal_command_ids": true,
+        "different_coverage": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G14",
+      "shortcut": "Check empty then close separately from admitting arrivals",
+      "observation": {
+        "final_task_status": "done",
+        "outstanding_members": ["new_giftC"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G15",
+      "shortcut": "Unconditionally reopen the older task after a newer compatible task exists",
+      "observation": {
+        "active_compatible_tasks": [
+          "new_task_with_giftC",
+          "old_task_reopened_by_undo"
+        ]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G16",
+      "shortcut": "Undo every originally covered member regardless of later disposition",
+      "observation": {
+        "undo_target": "disposition1",
+        "later_outcome_overwritten": ["giftB"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G17",
+      "shortcut": "One unlabeled numeric group total preserves source amounts",
+      "observation": {
+        "naive_total": 200,
+        "different_units": ["EUR", "USD"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G18",
+      "shortcut": "Showing total group count but hiding restricted rows avoids disclosure",
+      "observation": {
+        "shown_total": 3,
+        "visible_rows": 2,
+        "inferred_hidden_count": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G19",
+      "shortcut": "Done with the gift group proves one message or interaction",
+      "observation": {
+        "task_done": true,
+        "communication_events": [],
+        "interactions": []
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G20",
+      "shortcut": "Unchanged member count and amount prove the reviewed group unchanged",
+      "observation": {
+        "same_count": true,
+        "same_sum": true,
+        "different_members": ["giftB", "giftC"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G21",
+      "shortcut": "Display order is part of exact reviewed-set identity",
+      "observation": {
+        "different_sequences": true,
+        "same_members": true
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "G22",
+      "shortcut": "Zero currently actionable rows proves no unresolved group work",
+      "observation": {
+        "actionable_count": 0,
+        "unresolved_members": ["giftC_qualification_pending"]
+      },
+      "counterexample_reproduced": true
+    }
+  ]
+}

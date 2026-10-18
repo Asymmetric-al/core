@@ -1,0 +1,47 @@
+{
+  "current_pinned_artifacts": 18,
+  "date": "2026-10-18",
+  "initial_model": {
+    "counts": {
+      "counterexample_families": 13,
+      "passed_outcome_assertions": 79,
+      "positive_controls": 4
+    },
+    "status": "preserved byte-for-byte; revised after root found omitted policy-cycle case"
+  },
+  "limits": "No real financial source, SQL/RLS, actual locks/concurrency, provider, migration, performance, accessibility or usability qualification. No earlier model/probe/verifier executed.",
+  "links": {
+    "anchors": 58,
+    "line_references": 77,
+    "local": 487,
+    "source_documents": 12
+  },
+  "model": {
+    "counterexample_families": 15,
+    "passed_outcome_assertions": 91,
+    "positive_controls": 5
+  },
+  "preserved_prior_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "D31": 19,
+    "D32": 25
+  },
+  "review": {
+    "categories": 22,
+    "clauses": 24,
+    "findings": 18,
+    "proofs": 36
+  },
+  "root_reproduction": "recorded byte-identical execution of revised D33 model only; verifier executes no model",
+  "scope": "D33 research structure, status, links, bounded model provenance and preserved evidence only",
+  "status": "passed",
+  "status_checks": [
+    "Q33 answered A",
+    "tenant control and default Off selected",
+    "D33 amendments awaiting ratification",
+    "D32 remains ratified",
+    "no Q34 posed",
+    "conceptual glossary and session coherent"
+  ]
+}

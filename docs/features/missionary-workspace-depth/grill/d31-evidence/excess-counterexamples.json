@@ -1,0 +1,420 @@
+{
+  "cases": [
+    {
+      "corrected": "admitted",
+      "id": "B01",
+      "kind": "counterexample",
+      "title": "One eligible minor unit is enough",
+      "unsafe": {
+        "one_dollar_floor_admits": false
+      }
+    },
+    {
+      "corrected": "all six unavailable",
+      "id": "B02",
+      "kind": "counterexample",
+      "title": "Money type, certainty and precision precede positivity",
+      "unsafe": [
+        {
+          "case": "zero_is_not_positive",
+          "correct_admission": "unavailable",
+          "unsafe_positive": true
+        },
+        {
+          "case": "negative_is_not_nonzero_excess",
+          "correct_admission": "unavailable",
+          "unsafe_positive": true
+        },
+        {
+          "case": "gross_fee_cover_is_not_support_excess",
+          "correct_admission": "unavailable",
+          "unsafe_positive": true
+        },
+        {
+          "case": "float_residue_is_not_minor_unit_excess",
+          "correct_admission": "unavailable",
+          "unsafe_positive": true
+        },
+        {
+          "case": "cross_currency_numbers_are_not_comparable",
+          "correct_admission": "unavailable",
+          "unsafe_positive": true
+        },
+        {
+          "case": "unmatched_remainder",
+          "correct_admission": "unavailable",
+          "unsafe_positive": true
+        }
+      ]
+    },
+    {
+      "corrected": {
+        "full_fixed_target_set": 0,
+        "two_explicit_occurrence_portions": [
+          0,
+          0
+        ]
+      },
+      "id": "B03",
+      "kind": "counterexample",
+      "title": "Full fixed scope and exact recurring portions",
+      "unsafe": {
+        "gift_minus_installment": 5000,
+        "whole_gift_minus_one_occurrence": 5000
+      }
+    },
+    {
+      "corrected": {
+        "attributable_to_new_gift": 500
+      },
+      "id": "B04",
+      "kind": "counterexample",
+      "title": "A gift owns its marginal excess, not all current overage",
+      "unsafe": {
+        "attributed_to_new_gift": 2500
+      }
+    },
+    {
+      "corrected": {
+        "attribution": {
+          "gift-A": 0,
+          "gift-B": 2000
+        },
+        "qualified_source_order": [
+          "gift-A",
+          "gift-B"
+        ]
+      },
+      "id": "B05",
+      "kind": "counterexample",
+      "schedule": [
+        "owner accepts A then B within the same typed comparison scope",
+        "workers may deliver B before A; they consume the preserved attribution"
+      ],
+      "title": "Concurrent gifts need the owner's causal attribution",
+      "unsafe": {
+        "leave_one_out_double_assigns": {
+          "gift-A": 2000,
+          "gift-B": 2000
+        },
+        "using_reversed_worker_order_changes_recipient": {
+          "gift-A": 2000,
+          "gift-B": 0
+        }
+      }
+    },
+    {
+      "corrected": {
+        "admission": "unavailable",
+        "original_money_excess": 0
+      },
+      "id": "B06",
+      "kind": "counterexample",
+      "title": "A term reduction is not a new excess gift",
+      "unsafe": {
+        "current_applied_above_reduced_commitment": 2000
+      }
+    },
+    {
+      "corrected": {
+        "historical_receipt": "unavailable",
+        "original_live_late_proof": "admitted"
+      },
+      "id": "B07",
+      "kind": "counterexample",
+      "title": "Late original evidence differs from historical reclassification",
+      "unsafe": {
+        "new_revision_delivery_admits_without_cohort_check": true
+      }
+    },
+    {
+      "corrected": {
+        "independent_reason": "active",
+        "known_no_excess_reason": "withdrawn",
+        "uncertain_reason": "unavailable"
+      },
+      "id": "B08",
+      "kind": "counterexample",
+      "title": "An ambiguous partial reversal has no guessed excess portion",
+      "unsafe": {
+        "collapse_unknown_to_zero": 0,
+        "proportional_guess": 333
+      }
+    },
+    {
+      "corrected": {
+        "B_after_A_reversal": 0,
+        "acceptance": "unavailable"
+      },
+      "id": "B09",
+      "kind": "counterexample",
+      "schedule": [
+        "prepare B's original20 proof under comparison revision1",
+        "reverse prior A; comparison revision2, B's own money revision unchanged",
+        "accept must reject stale dependency proof"
+      ],
+      "title": "Fence comparison dependencies as well as this gift",
+      "unsafe": {
+        "cached_excess": 2000,
+        "gift_revision_only_passes": true
+      }
+    },
+    {
+      "corrected": {
+        "authority": {
+          "current_accept": "unavailable",
+          "unsafe_cached_accept": true
+        },
+        "certificate": {
+          "current_accept": "reevaluate",
+          "unsafe_cached_accept": true
+        },
+        "source": {
+          "current_accept": "unavailable",
+          "unsafe_cached_accept": true
+        }
+      },
+      "id": "B10",
+      "kind": "counterexample",
+      "schedule": [
+        "prepare",
+        "source correction / proof revision / authority revoke",
+        "accept"
+      ],
+      "title": "A cached eligibility check is not authority to accept",
+      "unsafe": {
+        "cached_prechecks": "would accept all three"
+      }
+    },
+    {
+      "corrected": [
+        {
+          "admission": "unavailable",
+          "changed": {
+            "scope": [
+              "tenant-b",
+              "entity-a",
+              "ministry:alpha",
+              "party-grace"
+            ]
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "scope": [
+              "tenant-a",
+              "entity-b",
+              "ministry:alpha",
+              "party-grace"
+            ]
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "scope": [
+              "tenant-a",
+              "entity-a",
+              "ministry:beta",
+              "party-grace"
+            ]
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "scope": [
+              "tenant-a",
+              "entity-a",
+              "ministry:alpha",
+              "another-party"
+            ]
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "gift": "another-gift"
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "canonical_part": "another-portion"
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "comparison_identity": "another-pledge-line"
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "complete_comparison_scope": false
+          }
+        },
+        {
+          "admission": "unavailable",
+          "changed": {
+            "original_terms_qualified": false
+          }
+        }
+      ],
+      "id": "B11",
+      "kind": "counterexample",
+      "title": "Exact scope and qualified original comparison are mandatory",
+      "unsafe": {
+        "amount_only_admits": true,
+        "role_only_bypasses_scope": true
+      }
+    },
+    {
+      "corrected": {
+        "business_members": 1,
+        "reasons": 5
+      },
+      "id": "B12",
+      "kind": "counterexample",
+      "title": "Reason and evidence revisions never multiply D20 members",
+      "unsafe": {
+        "reason_revision_keys": 6
+      }
+    },
+    {
+      "corrected": {
+        "covered_gift_replay": false,
+        "new_gift_covered": false,
+        "recovered_result": [
+          "handled",
+          [
+            "gift-1"
+          ]
+        ]
+      },
+      "id": "B13",
+      "kind": "counterexample",
+      "schedule": [
+        "review gift1",
+        "gift2 arrives",
+        "handle gift1 and lose response",
+        "retry original request",
+        "receive another proof for gift1"
+      ],
+      "title": "Grouped handling and lost-response retry cover reviewed gifts only",
+      "unsafe": {
+        "complete_current_group": [
+          "gift-1",
+          "gift-2"
+        ]
+      }
+    },
+    {
+      "corrected": {
+        "read_revoked": "unavailable",
+        "reason_hidden": "gift_follow_up",
+        "result_recovery": "unavailable"
+      },
+      "id": "B14",
+      "kind": "counterexample",
+      "title": "Cached reason labels and receipts cannot bypass current access",
+      "unsafe": {
+        "cached_reason": "above_commitment",
+        "cached_result": [
+          "handled",
+          [
+            "gift-1"
+          ]
+        ]
+      }
+    },
+    {
+      "corrected": {
+        "gift_excess": 500,
+        "one_reason": "above_commitment",
+        "source_unchanged": true
+      },
+      "id": "C01",
+      "kind": "positive_control",
+      "title": "A small later gift after prior fulfillment qualifies alone",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "admission": "admitted",
+        "comparison": "exact recurring occurrence line"
+      },
+      "id": "C02",
+      "kind": "positive_control",
+      "title": "Qualified recurring occurrence excess needs no additional-purpose statement",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "B_excess_history": [
+          2000,
+          0,
+          2000
+        ],
+        "covered_replay": false,
+        "member_count": 1
+      },
+      "id": "C03",
+      "kind": "positive_control",
+      "title": "Owner correction restores only the original unconsumed identity",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "increase_beyond_original": "unqualified",
+        "original_excess": 500,
+        "owner_proved_survivor": 200
+      },
+      "id": "C04",
+      "kind": "positive_control",
+      "title": "Exact surviving excess is separate from the original proof",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "coverage": 0,
+        "equal_amount_business_members": 2,
+        "stale_selected_review": "review_again"
+      },
+      "id": "C05",
+      "kind": "positive_control",
+      "title": "Distinct gifts remain distinct and selected changes require review",
+      "unsafe": null
+    }
+  ],
+  "contract_status": "source attribution and correction semantics are proposed review amendments, not implementation proof",
+  "counts": {
+    "counterexample_families": 14,
+    "passed_outcome_assertions": 88,
+    "positive_controls": 5
+  },
+  "decision": "D31 A: any positive source-confirmed gift-attributable excess; no extra threshold",
+  "evidence_kind": "bounded_stdlib_semantic_model_with_finite_arithmetic_witnesses",
+  "limitations": [
+    "Synthetic public fixture inputs only; no application, database, provider, network, private data or prior evidence model was executed.",
+    "Arithmetic witnesses cover named finite same-currency cases, not a financial producer, complete ledger, schema, migration or generalized attribution engine.",
+    "The actual owner must prove exact comparison completeness, original terms, causal order, typed scope and dependencies; the model supplies these as qualified inputs.",
+    "No SQL/RLS, locks, transaction isolation, durable outbox, crash recovery, database uniqueness or real concurrent execution was tested; schedules assume serialized boundaries.",
+    "Only one comparison revision is modeled per world; multiple overlapping commitment scopes, linked recurring/fixed coverage, target-version transitions and baseline construction are not implemented.",
+    "No FX, fee allocation, commitment matching, refund allocation, source-order discovery or donor/representative authority is inferred or computed.",
+    "Historical-cohort qualification and permissions are abstract owner facts; no activation producer, identity role map or privacy surface was tested.",
+    "D20 examples cover stable members, selected versions, exact reviewed gift sets and authorized result retry, not its entire grouping, responsibility, undo or UI contract.",
+    "Passing assertions validate only this finite model; they do not establish source-producer availability, runtime enforcement, deployed grants or release readiness."
+  ],
+  "reproduction": "python3 docs/features/missionary-workspace-depth/grill/d31-evidence/excess-counterexamples.py",
+  "script_sha256": "ab34413bca930916027a54fef9d569eaaa4edbaba1aa9cb180d303d0399744b1",
+  "source_contract": {
+    "consumer": "requires current owner-qualified positive excess; does not apply money or choose financial attribution",
+    "current": "same original prefix/scope/terms/epoch, corrected owner association facts; current excess bounded by original E; later ordinary terms are prospective",
+    "dependency": "both gift-source and comparison/certificate dependency revisions fenced at modeled acceptance",
+    "order": "original qualified source causal order, assigned by the owner; never worker/UUID/gift-date order",
+    "original": "exact integer same-currency E=max(B+G-T,0)-max(B-T,0), original applicable terms and complete exact scope/prefix within its comparison epoch"
+  }
+}

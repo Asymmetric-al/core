@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "reviewed_entire_source_before_execution": true,
+  "new_model_executions_by_root": 1,
+  "older_models_probes_or_verifiers_executed": false,
+  "byte_identical_author_output": true,
+  "counts": {
+    "counterexample_families": 15,
+    "passed_outcome_assertions": 85,
+    "positive_controls": 6
+  },
+  "frozen_files_sha256": {
+    "temporal-counterexamples.py": "a3243f85bd8b7ca4831fd6c2cdde1bddd1427648c7c2f849af9765a42034ef2e",
+    "temporal-counterexamples.json": "7e9891432317977edd6060551b947a992abdd64a219f77a79af183a9af26a466",
+    "model-readme.md": "dc3baad61d17e87898ee29adea29cfbf7995844de668cd7140f9355d3d12d842",
+    "counterexample-review.md": "0523fd5281b7a4b3636d3074ed059eda9b4b2b0bdc8b85171252ec10ed0f455f"
+  },
+  "limits": "Finite sequential temporal semantics only; no actual database, RLS, concurrency, UI, migration, or performance proof."
+}

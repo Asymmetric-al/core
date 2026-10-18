@@ -1,0 +1,168 @@
+{
+  "scope": "Synthetic finite ambiguity/unsafe-shortcut counterexamples only; no implementation or real concurrency proof.",
+  "python": "3.12.14",
+  "case_count": 17,
+  "reproduced": 17,
+  "cases": [
+    {
+      "id": "L01",
+      "shortcut": "Bind answers by current display position",
+      "observation": [
+        ["q2", "A useful conversation"],
+        ["q1", "Help planning the next step"]
+      ]
+    },
+    {
+      "id": "L02",
+      "shortcut": "Render an old answer using the latest question text",
+      "observation": {
+        "answer": "A useful conversation",
+        "original_prompt": "What went well?",
+        "latest_join_prompt": "What are you worried about?",
+        "same_question_id": true
+      }
+    },
+    {
+      "id": "L03",
+      "shortcut": "Render only answers joined to currently offered questions",
+      "observation": {
+        "saved_answers": 2,
+        "displayed_answers": 1
+      }
+    },
+    {
+      "id": "L04",
+      "shortcut": "Last arrival wins for three full-body autosaves from one editor",
+      "observation": {
+        "arrival_orders": 6,
+        "orders_losing_latest_authored_body": 4,
+        "counterexample_orders": [
+          [1, 3, 2],
+          [2, 3, 1],
+          [3, 1, 2],
+          [3, 2, 1]
+        ]
+      }
+    },
+    {
+      "id": "L05",
+      "shortcut": "Any autosave acknowledgment means all displayed text is saved",
+      "observation": {
+        "displayed_generation": 3,
+        "acknowledged_generation": 2,
+        "naive_label": "Saved"
+      }
+    },
+    {
+      "id": "L06",
+      "shortcut": "Share a pointer to the mutable draft",
+      "observation": {
+        "coach_visible_after_autosave": "Later private thought"
+      }
+    },
+    {
+      "id": "L07",
+      "shortcut": "Share whichever draft revision is latest when the worker runs",
+      "observation": {
+        "previewed_body": "Reviewed wording",
+        "shared_body": "Unreviewed addition"
+      }
+    },
+    {
+      "id": "L08",
+      "shortcut": "Resolve the current coach from subject at dispatch",
+      "observation": {
+        "reviewed": "Jordan/episode1",
+        "resolved_later": "Casey/episode2"
+      }
+    },
+    {
+      "id": "L09",
+      "shortcut": "Deduplicate only by transport request ID",
+      "observation": {
+        "distinct_requests": 2,
+        "distinct_deliberate_intents": 1
+      }
+    },
+    {
+      "id": "L10",
+      "shortcut": "An idempotency key alone proves a changed payload succeeded",
+      "observation": {
+        "same_key": "share-intent7",
+        "accepted": {
+          "body_revision": 4,
+          "recipients": ["Jordan/episode1"]
+        },
+        "retry_payload": {
+          "body_revision": 5,
+          "recipients": ["Casey/episode2"]
+        }
+      }
+    },
+    {
+      "id": "L11",
+      "shortcut": "Recover lost Share response by applying its old desired state again",
+      "observation": {
+        "receipt": {
+          "intent": "share-intent7",
+          "accepted_revision": 1
+        },
+        "current": {
+          "publication_revision": 2,
+          "withdrawn": true
+        },
+        "old_payload_would_set_withdrawn": false
+      }
+    },
+    {
+      "id": "L12",
+      "shortcut": "Check only body revision when updating content plus audience",
+      "observation": {
+        "body_revision_check_passes": true,
+        "stale_audience_restores": ["Casey"]
+      }
+    },
+    {
+      "id": "L13",
+      "shortcut": "Intersect a stale requested audience and report the original request as successful",
+      "observation": {
+        "requested": ["Casey/episode2", "Jordan/episode1"],
+        "silently_applied": ["Jordan/episode1"]
+      }
+    },
+    {
+      "id": "L14",
+      "shortcut": "Account identity alone inherits a former coaching episode's history",
+      "observation": {
+        "old_audience": ["Jordan/episode1"],
+        "replacement": "Jordan/episode2",
+        "same_account": true
+      }
+    },
+    {
+      "id": "L15",
+      "shortcut": "Allow a check-in only if a template has questions",
+      "observation": {
+        "template_questions": 0,
+        "freeform_characters": 30,
+        "naive_can_continue": false
+      }
+    },
+    {
+      "id": "L16",
+      "shortcut": "Template maintenance implies response-reading authority",
+      "observation": {
+        "capabilities": ["manage_questions"],
+        "response_read_capability_present": false
+      }
+    },
+    {
+      "id": "L17",
+      "shortcut": "Deduplicate publication solely by body hash",
+      "observation": {
+        "distinct_bodies": 1,
+        "distinct_deliberate_intents": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "purpose": "Synthetic prose-integrity counterexamples, not model-quality or production-validator proof",
+  "runtime": "3.12.14",
+  "model_calls": 0,
+  "cases_passed": 16,
+  "cases_total": 16,
+  "outcomes": [
+    {
+      "name": "same_numbers_do_not_preserve_negation",
+      "passed": true,
+      "observation": "The same number appears in both sentences even though the outcome is reversed."
+    },
+    {
+      "name": "high_similarity_does_not_preserve_meaning",
+      "passed": true,
+      "observation": "A change reversing the claim still has over 90 percent character-sequence similarity."
+    },
+    {
+      "name": "same_names_do_not_preserve_roles",
+      "passed": true,
+      "observation": "Identical word inventory can reverse who performed the action."
+    },
+    {
+      "name": "same_numeric_value_does_not_preserve_currency",
+      "passed": true,
+      "observation": "Digit checking misses a currency change."
+    },
+    {
+      "name": "same_numeric_value_does_not_preserve_period",
+      "passed": true,
+      "observation": "Digit checking misses a material funding-period change."
+    },
+    {
+      "name": "shortening_can_drop_material_conditions",
+      "passed": true,
+      "observation": "A shorter grammatical sentence can remove the condition that made the statement true."
+    },
+    {
+      "name": "lengthening_can_add_unsupported_history",
+      "passed": true,
+      "observation": "One added word invents a previous meeting without adding any number or name."
+    },
+    {
+      "name": "rephrasing_can_strengthen_uncertainty",
+      "passed": true,
+      "observation": "Changing hope into certainty is material even when names and numbers stay fixed."
+    },
+    {
+      "name": "word_count_is_not_language_neutral",
+      "passed": true,
+      "observation": "Whitespace splitting is not a meaningful cross-language length metric."
+    },
+    {
+      "name": "unicode_representation_is_not_character_count",
+      "passed": true,
+      "observation": "Equivalent visible text may have distinct code point counts; arbitrary offsets can split a grapheme."
+    },
+    {
+      "name": "browser_utf16_offset_is_not_python_codepoint_offset",
+      "passed": true,
+      "observation": "UTF-16 code units and code points differ; raw offsets are not an editor-neutral selection identity."
+    },
+    {
+      "name": "text_digest_alone_does_not_identify_target",
+      "passed": true,
+      "observation": "Repeated text has the same digest in different blocks; stable semantic target identity is also needed."
+    },
+    {
+      "name": "placeholder_set_equality_misses_duplication",
+      "passed": true,
+      "observation": "A set comparison permits duplicated protected references; identity, multiplicity and structure matter."
+    },
+    {
+      "name": "visible_text_diff_misses_link_target_change",
+      "passed": true,
+      "observation": "Identical visible wording does not preserve the structured link destination."
+    },
+    {
+      "name": "quote_attribution_does_not_authorize_rewriting",
+      "passed": true,
+      "observation": "Keeping the speaker name does not preserve what the speaker actually said."
+    },
+    {
+      "name": "same_target_id_does_not_authorize_stale_apply",
+      "passed": true,
+      "observation": "An unchanged block ID does not make a suggestion generated from an old draft applicable."
+    }
+  ]
+}

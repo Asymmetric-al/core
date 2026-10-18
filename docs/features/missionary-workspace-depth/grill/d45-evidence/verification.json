@@ -1,0 +1,78 @@
+{
+  "generated_at_utc": "2026-10-18T14:41:03.932664+00:00",
+  "scope": "D45 selected seven days; Q46 unanswered. Documentary checks only. No previous program or model executed.",
+  "all_checks_pass": true,
+  "checks": [
+    {
+      "name": "Earlier evidence and all out-of-scope grill files unchanged",
+      "pass": true,
+      "detail": {
+        "files": 869,
+        "changed": []
+      }
+    },
+    {
+      "name": "Glossary unchanged",
+      "pass": true,
+      "detail": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82"
+    },
+    {
+      "name": "phase28-d42-verified-email-newsletter-signup-adversarial-review.md ratified clauses unchanged",
+      "pass": true,
+      "detail": 24
+    },
+    {
+      "name": "phase28-d43-pending-newsletter-confirmation-adversarial-review.md ratified clauses unchanged",
+      "pass": true,
+      "detail": 15
+    },
+    {
+      "name": "phase28-completeness-adversarial-review.md ratified clauses unchanged",
+      "pass": true,
+      "detail": 20
+    },
+    {
+      "name": "Original D6 preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D45 records selected 168-hour lifetime only",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D6 exact timing and future proof reconciled",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Q46 prepared and unanswered without adoption",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Local linked files resolve",
+      "pass": true,
+      "detail": {
+        "links": 676,
+        "broken": [],
+        "parser": "Angle-bracket Markdown targets supported, including parentheses in route paths."
+      }
+    }
+  ],
+  "errors": [],
+  "current_file_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "20f63f9954668538aa43b64268089a7d4dc9be7987e027ecf3c56f978798c165",
+    "docs/features/missionary-workspace-depth/grill/phase28-q44-newsletter-confirmation-period-research.md": "c758b3e1f1106d61b36e721e4390b2a5373e28d6d01371494a54c4429d7defb4",
+    "docs/features/missionary-workspace-depth/grill/phase28-q45-newsletter-confirmation-duration-research.md": "0a39029c81b5b9190bb5eb430f744fa817cb021725accbb831d464a530aa32e5",
+    "docs/features/missionary-workspace-depth/grill/phase28-d44-standard-confirmation-period-decision.md": "bb0b6b774cd9ce4f68a717cab39d0cefe56b3274be208709a5f6d5fb102cce57",
+    "docs/features/missionary-workspace-depth/grill/phase28-d6-adversarial-review.md": "ddd3e9447e720d757cd6d15e0b0f5a665c076b715edb1a856d67d0e0d11cf62c",
+    "docs/features/missionary-workspace-depth/grill/phase28-d42-verified-email-newsletter-signup-adversarial-review.md": "c64ae3b8a3599e1d79bffb1705b407e574dfe2e9d2caef131992a8d219631b6e",
+    "docs/features/missionary-workspace-depth/grill/phase28-d43-pending-newsletter-confirmation-adversarial-review.md": "61687526e479c2b3916fdfae40869aae7593d6bc27c66d4b91600862f97b935e",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "290b516b12829fd809fec177a8e784334a4394f43cd384b0d81d6b9be919d870",
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "e9c623e731bedceca91f8a5ba6194ff229a7fd34219290b7a9e93547ce1e38d1",
+    "docs/features/missionary-workspace-depth/grill/phase28-d45-seven-day-confirmation-decision.md": "6c446324ba5c792f84acfe0a17574775bb8c2aed2192942b96a06413e32e767d",
+    "docs/features/missionary-workspace-depth/grill/phase28-q46-regional-discovery-default-research.md": "6ef95bb6722eea12d2c6c687e119e0ebf14cf1e16158251d55d2321834a7a288"
+  }
+}

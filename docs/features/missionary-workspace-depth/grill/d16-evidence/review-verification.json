@@ -1,0 +1,64 @@
+{
+  "checked_at_utc": "2026-10-16T13:37:17.333380+00:00",
+  "kind": "research artifact consistency, local references and retained probe evidence verification",
+  "counts": {
+    "clauses": 20,
+    "proofs": 24,
+    "concerns": 12,
+    "categories": 22
+  },
+  "local_references_checked": 308,
+  "local_heading_anchors_checked": 20,
+  "errors": [],
+  "founder_brief_sha256_unchanged": "464e3ceb675f1bd3926b0974b003e885ef1b115b5b516a37da3d84fbed8f1dcb",
+  "d16_a_selected": true,
+  "d16_amendments_ratified": true,
+  "q17_unanswered": true,
+  "editing_only_interpretation": "explicitly confirmed by founder: editing permission only; setting a goal remains optional",
+  "editing_only_clarification_confirmed": true,
+  "postgres_version": "17.11",
+  "probe_passed": 25,
+  "actual_concurrent_races": 4,
+  "primary_bodies_hash_verified": 13,
+  "probe_and_helper_hashes_verified": true,
+  "source_snapshot_updates": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q16-goal-authority-research.md",
+      "at_probe": "391795692f526f954ec26e2d7d5b2d0beb8822c4db46d18b376b2d298cf169b9",
+      "current": "7a63aa1506e9c96c62f01eb9083c2af1a1e7cb33620c876883358dab24cc4c2f",
+      "reason": "Original unanswered Q16 frontier updated to record the founder answer, expanded source trace and subsequent explicit editing-only clarification/ratification after the probe; governing owner files are unchanged."
+    }
+  ],
+  "cleanup_evidence_verified": true,
+  "sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d16-goal-management-adversarial-review.md": "68af9f39fe68c4825342a08f0d6c6dac55ad77c844f1f069a729d94fbdb37f50",
+    "docs/features/missionary-workspace-depth/grill/phase28-q16-goal-authority-research.md": "7a63aa1506e9c96c62f01eb9083c2af1a1e7cb33620c876883358dab24cc4c2f",
+    "docs/features/missionary-workspace-depth/grill/phase28-q17-contact-list-intake-research.md": "ed4b1bc106787ed0ec9f1dd6682b3721face619e8c8c6bccaf1119f3e324b886",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "8aeab96368cf238c5d88d393ab6c87bbd27ad7cf219863576df791eb34f05b95",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/current-source-and-ux.md": "f626b91abaa1232ba6ce9bb1ad8dace5aa77ae02aa9b233825b4c594ecdb2dca",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/database-lifecycle.md": "3a9c44adaaf4c05fd093f32ed2d57fd80c1b67ebc96ad6a871fbfbc6a4237bcd",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/goals-finance-lifecycle.md": "45023396d46dac48786196ae41465d337c0e8b7b3d8299936379a6b1db7db914",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/owner-permissions.md": "0cb4c97580bcb069b40010add023cffdd4b8f0420d6dea3571a2ae8a28e5e112",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/README.md": "955506dc8732b5c0292c8d5a7b439d7d88ad9777cdf2b1a7fa24d3ec19a540de",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/primary-ux-research.md": "a3add11164e947aa8820b385d5b366197aa572ff4f8d44072a1716d16a48cfd4",
+    "CONTEXT.md": "18ef616e74c1f7620945bff712d57e3a910af674eb70e609be6b09034a8cee56",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/cleanup.json": "f845f5e873000d9be8dda3d3179b65362002d33fed0a7bd7becde710df62b386",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/environment.json": "6e3584451d08333342e260ef6b0d7824d810404470d4e2d769ef1559ce16b8d7",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/privileges.json": "7d44f08d12011e18b9e9d7d10483146cb7f107e8793fd0dc440624f83aaaa639",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/results.json": "12fcf1edce1409ebcdb7770d1dbd9d0979d2fe15a9665132832b59fce5246e24",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/roles.json": "34a23a3d2be519a504e5bcc429163597bde4076353c2047cf32bdf1d8fdc0cca",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/sources.json": "fb2e7654eba7aabf0377a1edc3f9a30cb188a429c01aa0e2b8d9b79230df058e",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/setup.sql": "da5ebc27e7c356f1933872469b03adf8177ce0d619595cd20c3d3066cf765f35",
+    "docs/features/missionary-workspace-depth/grill/d16-evidence/postgres-probe/run.py": "802820512d8c6a6da5e2ed225fa3348f458c16b856f08c4ddf611fafba8cbae3"
+  },
+  "not_proved": [
+    "Core application/P12 behavior",
+    "hosted Supabase/Auth/PostgREST/GraphQL/Realtime",
+    "actual financial/public source integrations",
+    "backup restore",
+    "no-op command behavior",
+    "separately read-authorized receipt endpoint",
+    "accessibility/usability",
+    "production workload/performance"
+  ]
+}

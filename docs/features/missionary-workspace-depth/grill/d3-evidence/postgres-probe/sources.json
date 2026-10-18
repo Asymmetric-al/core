@@ -1,0 +1,94 @@
+{
+  "scope": "Verbatim selected table declarations and one exact added-column clause; not full migration replay or deployed catalog.",
+  "sources": [
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 14,
+      "end_line": 24,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "3fa257565a3d1cfa1da1feed5301ecfd3586e266f6b4b330e52fd4511073256d",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.tenants (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    name TEXT NOT NULL,\n    slug TEXT NOT NULL UNIQUE,\n    org_post_visibility TEXT DEFAULT 'all_donors',\n    org_settings JSONB DEFAULT '{}'::jsonb,\n    stripe_secret_key TEXT,\n    stripe_publishable_key TEXT,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 27,
+      "end_line": 41,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "15cfead87c66728bc995137efecb804fc60cc1ec4094eb28265e50587b880bc5",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.profiles (\n    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,\n    user_id UUID UNIQUE, -- Redundant but used in some queries\n    email TEXT,\n    first_name TEXT,\n    last_name TEXT,\n    full_name TEXT,\n    display_name TEXT,\n    phone TEXT,\n    avatar_url TEXT,\n    role TEXT NOT NULL DEFAULT 'donor' CHECK (role IN ('admin', 'staff', 'super_admin', 'missionary', 'donor', 'finance', 'fundraising', 'mobilizers', 'member_care', 'events', 'delivery', 'ticketing', 'machinery')),\n    tenant_id UUID REFERENCES public.tenants(id),\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 44,
+      "end_line": 59,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "b6dfdba3b8b271e3b6f35246c18d9c494ef0044598f3de7faf996d002538416d",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.missionaries (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    tenant_id UUID REFERENCES public.tenants(id),\n    profile_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,\n    bio TEXT,\n    mission_field TEXT,\n    funding_goal NUMERIC DEFAULT 0,\n    current_funding NUMERIC DEFAULT 0,\n    tagline TEXT,\n    location TEXT,\n    phone TEXT,\n    cover_url TEXT,\n    social_links JSONB DEFAULT '{}'::jsonb,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 62,
+      "end_line": 98,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "48c47a35f4dc75185ae5e97f972fb9e41ceefd729264569fe91f69176dd20347",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.donors (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    tenant_id UUID REFERENCES public.tenants(id),\n    profile_id UUID REFERENCES public.profiles(id),\n    missionary_id UUID REFERENCES public.profiles(id), -- The missionary this donor is primarily associated with\n    name TEXT,\n    email TEXT,\n    phone TEXT,\n    mobile TEXT,\n    work_phone TEXT,\n    preferred_contact TEXT DEFAULT 'email',\n    avatar_url TEXT,\n    location TEXT,\n    type TEXT DEFAULT 'individual',\n    status TEXT DEFAULT 'active',\n    giving_preferences JSONB DEFAULT '{}'::jsonb,\n    total_given NUMERIC DEFAULT 0,\n    last_gift_date TIMESTAMPTZ,\n    last_gift_amount NUMERIC,\n    frequency TEXT,\n    joined_date DATE DEFAULT CURRENT_DATE,\n    tags TEXT[],\n    score NUMERIC DEFAULT 0,\n    address JSONB,\n    work_address JSONB,\n    website TEXT,\n    organization TEXT,\n    title TEXT,\n    birthday DATE,\n    anniversary DATE,\n    spouse TEXT,\n    notes TEXT,\n    has_active_pledge BOOLEAN DEFAULT FALSE,\n    stripe_customer_id TEXT,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 101,
+      "end_line": 116,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "7bc8f18e55f4021c2d4f34e8a5c40ada6eee1a1207f550f543d0b85087f678b2",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.funds (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    tenant_id UUID REFERENCES public.tenants(id),\n    name TEXT NOT NULL,\n    description TEXT,\n    target_amount NUMERIC DEFAULT 0,\n    goal_amount NUMERIC DEFAULT 0,\n    current_amount NUMERIC DEFAULT 0,\n    currency TEXT DEFAULT 'usd',\n    missionary_id UUID REFERENCES public.missionaries(id),\n    is_active BOOLEAN DEFAULT TRUE,\n    start_date DATE,\n    end_date DATE,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 175,
+      "end_line": 192,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "7f477ec0054bf070248cfc1820b6590b0e1251acd69c45cdc9b11f6947987abd",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.donations (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    tenant_id UUID REFERENCES public.tenants(id) DEFAULT '00000000-0000-0000-0000-000000000001',\n    donor_id UUID REFERENCES public.donors(id),\n    missionary_id UUID REFERENCES public.missionaries(id),\n    fund_id UUID REFERENCES public.funds(id),\n    amount NUMERIC NOT NULL,\n    currency TEXT DEFAULT 'usd',\n    status TEXT DEFAULT 'pending',\n    donation_type TEXT DEFAULT 'one_time',\n    payment_method TEXT,\n    is_recurring BOOLEAN DEFAULT FALSE,\n    recurring_interval TEXT,\n    notes TEXT,\n    stripe_payment_intent_id TEXT,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 238,
+      "end_line": 254,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "50d4656e4ffe69bc29b1041e6b1ee925ec9fb532c644ed02be5a842a94216f42",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.donor_pledges (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    donor_id UUID REFERENCES public.donors(id),\n    amount NUMERIC DEFAULT 0,\n    frequency TEXT,\n    status TEXT DEFAULT 'active',\n    start_date DATE,\n    end_date DATE,\n    next_payment_date DATE,\n    total_paid NUMERIC DEFAULT 0,\n    total_expected NUMERIC DEFAULT 0,\n    payments_completed INTEGER DEFAULT 0,\n    payments_remaining INTEGER DEFAULT 0,\n    payment_method TEXT,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20250101000000_init_schema.sql",
+      "start_line": 287,
+      "end_line": 301,
+      "full_file_sha256": "c5cc1775d6914b613730822d920f4ec3ba189cdb5e2f98fadb8981238e76635a",
+      "excerpt_sha256": "a1c53cf2d17af1abad4835b421493b43ab8e0726c9820dcd768b9a6058f5f96c",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.missionary_tasks (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    missionary_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,\n    donor_id UUID REFERENCES public.donors(id),\n    title VARCHAR NOT NULL,\n    description TEXT,\n    task_type VARCHAR,\n    status VARCHAR DEFAULT 'pending',\n    priority VARCHAR DEFAULT 'medium',\n    sort_key INTEGER DEFAULT 0,\n    due_date TIMESTAMPTZ,\n    completed_at TIMESTAMPTZ,\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    {
+      "path": "supabase/migrations/20260818000000_crm_notes.sql",
+      "start_line": 5,
+      "end_line": 27,
+      "full_file_sha256": "e3151d618113065543134cb9365a384ca6ee6c7ea8c9de7821420e01804e04f7",
+      "excerpt_sha256": "1fbbada3714347236df95effdff258e6d39ddc50cf2e322412575c35631b33eb",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.crm_notes (\n  tenant_id uuid NOT NULL REFERENCES public.tenants (id) ON DELETE CASCADE,\n  id uuid NOT NULL DEFAULT gen_random_uuid(),\n  title text NOT NULL,\n  body text NOT NULL,\n  visibility text NOT NULL,\n  linked_record_id text,\n  linked_record_type text,\n  linked_record_label text,\n  author_profile_id uuid,\n  author_name text NOT NULL DEFAULT 'Mission Control',\n  idempotency_key text,\n  created_at timestamptz NOT NULL DEFAULT now(),\n  updated_at timestamptz NOT NULL DEFAULT now(),\n  PRIMARY KEY (tenant_id, id),\n  CONSTRAINT crm_notes_title_not_blank CHECK (char_length(btrim(title)) > 0),\n  CONSTRAINT crm_notes_body_not_blank CHECK (char_length(btrim(body)) > 0),\n  CONSTRAINT crm_notes_visibility_valid CHECK (visibility IN ('standard', 'restricted')),\n  CONSTRAINT crm_notes_linked_type_when_id CHECK (\n    linked_record_id IS NULL\n    OR char_length(btrim(linked_record_id)) > 0\n  )\n);"
+    },
+    {
+      "path": "supabase/migrations/20260507234343_crm_command_logs.sql",
+      "start_line": 1,
+      "end_line": 16,
+      "full_file_sha256": "98f96eb57233e85e65a03543347f8e6fd91e52fc8245c0f8d84991cd9b8e42b0",
+      "excerpt_sha256": "8005619141d77492959dffd66a5ca8cc5ca19853ef9e6788aa0ae16ffd7eac75",
+      "excerpt": "CREATE TABLE IF NOT EXISTS public.crm_command_logs (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,\n    actor_user_id UUID NOT NULL,\n    actor_profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,\n    request_id TEXT,\n    action TEXT NOT NULL,\n    resource_type TEXT NOT NULL,\n    resource_id TEXT,\n    idempotency_key TEXT,\n    status TEXT NOT NULL CHECK (status IN ('queued', 'attempted', 'succeeded', 'failed', 'skipped')),\n    command_payload JSONB NOT NULL DEFAULT '{}'::jsonb,\n    result_summary JSONB NOT NULL DEFAULT '{}'::jsonb,\n    error_message TEXT,\n    created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);"
+    },
+    {
+      "path": "supabase/migrations/20260214090000_foundation_1_schema.sql",
+      "start_line": 342,
+      "end_line": 342,
+      "full_file_sha256": "4b5b51904d17c71edc40510c45fa9cc07f621880c35e56879df9a0a2a23c299c",
+      "excerpt_sha256": "638d6a53a5993c75f87f35392df541245aa85961b0644d85eabe3753f826ec0a",
+      "excerpt": "    ADD COLUMN IF NOT EXISTS missionary_id UUID REFERENCES public.missionaries(id) ON DELETE SET NULL,",
+      "transformation": "Retain original ALTER TABLE target; one selected ADD COLUMN clause, terminal comma to semicolon."
+    }
+  ]
+}

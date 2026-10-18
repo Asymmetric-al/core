@@ -1,0 +1,50 @@
+[
+  {
+    "rolname": "command_executor",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "intent_writer",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "policy_manager",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "public_lookup",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "public_submit",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  },
+  {
+    "rolname": "withdrawal_authority",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolcreatedb": false
+  }
+]

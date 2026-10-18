@@ -1,0 +1,477 @@
+{
+  "counterexamples": [
+    {
+      "corrected_observation": {
+        "deadline": null,
+        "status": "unavailable"
+      },
+      "id": "B01",
+      "name": "Missing login or a caller flag starts departure retention",
+      "passed": true,
+      "unsafe_observation": {
+        "invented_deadline": 20
+      }
+    },
+    {
+      "corrected_observation": "seven fail qualification",
+      "id": "B02",
+      "name": "Invalid or unsupported period silently becomes indefinite retention",
+      "passed": true,
+      "unsafe_observation": "seven invalid policies fall back to infinity",
+      "variants": [
+        {
+          "corrected": "unqualified",
+          "input": "missing",
+          "unsafe": "retain_indefinitely"
+        },
+        {
+          "corrected": "unqualified",
+          "input": "infinity",
+          "unsafe": "retain_indefinitely"
+        },
+        {
+          "corrected": "unqualified",
+          "input": "NaN",
+          "unsafe": "retain_indefinitely"
+        },
+        {
+          "corrected": "unqualified",
+          "input": "zero",
+          "unsafe": "retain_indefinitely"
+        },
+        {
+          "corrected": "unqualified",
+          "input": "negative",
+          "unsafe": "retain_indefinitely"
+        },
+        {
+          "corrected": "unqualified",
+          "input": "boolean",
+          "unsafe": "retain_indefinitely"
+        },
+        {
+          "corrected": "unqualified",
+          "input": "unqualified finite",
+          "unsafe": "retain_indefinitely"
+        }
+      ]
+    },
+    {
+      "corrected_observation": {
+        "admin_body": "unavailable",
+        "foreign_config": "unavailable",
+        "foreign_disposal": "unavailable"
+      },
+      "id": "B03",
+      "name": "Privileged configuration or worker capability bypasses tenant and body boundaries",
+      "passed": true,
+      "unsafe_observation": {
+        "admin_body": true,
+        "foreign_config": true,
+        "foreign_disposal": true
+      }
+    },
+    {
+      "corrected_observation": "deadline denies despite delayed job",
+      "id": "B04",
+      "name": "Only the purge job makes a body unavailable",
+      "passed": true,
+      "timeline": [
+        {
+          "corrected": {
+            "status": "unavailable"
+          },
+          "deadline": 20,
+          "now": 20,
+          "unsafe": "readable"
+        },
+        {
+          "corrected": {
+            "status": "unavailable"
+          },
+          "deadline": 20,
+          "now": 21,
+          "unsafe": "readable"
+        },
+        {
+          "corrected": {
+            "status": "unavailable"
+          },
+          "deadline": 20,
+          "now": 1000,
+          "unsafe": "readable"
+        }
+      ],
+      "unsafe_observation": "readable at and after deadline"
+    },
+    {
+      "corrected_observation": {
+        "captured_deadline": 20,
+        "status": "readable"
+      },
+      "id": "B05",
+      "name": "Shorter new policy silently rewrites existing departure deadlines",
+      "passed": true,
+      "scope": "Prospective-only period edits; existing-cohort change is not enabled by this model",
+      "unsafe_observation": {
+        "recomputed_deadline": 15,
+        "status": "expired"
+      }
+    },
+    {
+      "corrected_observation": {
+        "deadline": 20,
+        "result": {
+          "status": "unavailable"
+        }
+      },
+      "id": "B06",
+      "name": "Lengthening policy revives expired content awaiting physical purge",
+      "passed": true,
+      "unsafe_observation": {
+        "deadline": 110,
+        "status": "readable"
+      }
+    },
+    {
+      "corrected_observation": "three stale proposals fenced",
+      "id": "B07",
+      "name": "An old impact preview is treated as permanent mutation authority",
+      "passed": true,
+      "schedules": [
+        {
+          "corrected": "review_again",
+          "intervening_change": "policy_revision",
+          "retained_period": 7,
+          "unsafe_period": 5
+        },
+        {
+          "corrected": "unavailable",
+          "intervening_change": "admin_revocation",
+          "retained_period": 10,
+          "unsafe_period": 5
+        },
+        {
+          "corrected": "unavailable",
+          "intervening_change": "admin_epoch",
+          "retained_period": 10,
+          "unsafe_period": 5
+        }
+      ],
+      "unsafe_observation": "three stale proposals accepted"
+    },
+    {
+      "after_hold_release": "unavailable",
+      "bytes_preserved": true,
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "id": "B08",
+      "name": "A hold extends ordinary preparation access",
+      "passed": true,
+      "unsafe_observation": "readable"
+    },
+    {
+      "corrected_observation": {
+        "body_stored": true,
+        "fresh_job": {
+          "status": "held_evidence_only"
+        },
+        "stale_job": {
+          "status": "reevaluate"
+        }
+      },
+      "id": "B09",
+      "name": "A queued purge ignores a subsequently applied hold",
+      "passed": true,
+      "schedule": [
+        "queue job",
+        "apply hold",
+        "execute queued job",
+        "re-evaluate current hold"
+      ],
+      "unsafe_observation": {
+        "body_stored": false
+      }
+    },
+    {
+      "corrected_observation": {
+        "after_worker_revocation": {
+          "status": "unavailable"
+        },
+        "effect_count": 1,
+        "policy_retry": "future_policy_changed",
+        "policy_revision": 2,
+        "policy_writes": 1,
+        "retry": {
+          "status": "body_removed"
+        }
+      },
+      "id": "B10",
+      "name": "Duplicate jobs and lost responses repeat disposal or policy effects",
+      "passed": true,
+      "schedule": [
+        "job commits",
+        "response lost",
+        "modeled process restart",
+        "two retries"
+      ],
+      "unsafe_observation": {
+        "disposal_effect_count": 3,
+        "policy_revision": 4,
+        "policy_writes": 3
+      }
+    },
+    {
+      "corrected_observation": "three current reads unavailable",
+      "id": "B11",
+      "name": "Cached readable result outlives deadline or authority",
+      "passed": true,
+      "unsafe_observation": "three obsolete payloads replayed",
+      "variants": [
+        {
+          "change": "deadline",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": {
+            "record": "private-preparation-1",
+            "status": "readable"
+          }
+        },
+        {
+          "change": "history_revoked",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": {
+            "record": "private-preparation-1",
+            "status": "readable"
+          }
+        },
+        {
+          "change": "tenant_changed",
+          "corrected": {
+            "status": "unavailable"
+          },
+          "unsafe": {
+            "record": "private-preparation-1",
+            "status": "readable"
+          }
+        }
+      ]
+    },
+    {
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "id": "B12",
+      "name": "Backup restoration overwrites a later source erasure tombstone",
+      "note": "The independent erasure obligation is a synthetic already-qualified source rule, not a new D28 right",
+      "passed": true,
+      "restore_result": "ordinary_body_not_restored",
+      "unsafe_observation": {
+        "record": "private-preparation-1",
+        "status": "readable"
+      }
+    },
+    {
+      "corrected_observation": {
+        "status": "unavailable"
+      },
+      "id": "B13",
+      "name": "Return selection before expiry reserves content past its deadline",
+      "passed": true,
+      "schedule": [
+        "select at tick 19",
+        "deadline tick 20",
+        "attempt Resume"
+      ],
+      "unsafe_observation": "resumed"
+    },
+    {
+      "corrected_observation": "Neither hypothetical return branch resets departure/freshness evidence",
+      "hypothetical_branches": [
+        {
+          "authored_at": 1,
+          "departure_deadline_evidence": 20,
+          "departure_timer_applies": false,
+          "hypothetical_return_rule": "qualified_current_source_transition",
+          "result": {
+            "record": "private-preparation-1",
+            "status": "resumed"
+          },
+          "verified_at": 2
+        },
+        {
+          "authored_at": 1,
+          "departure_deadline_evidence": 20,
+          "departure_timer_applies": true,
+          "hypothetical_return_rule": "departure_deadline_continues",
+          "result": {
+            "record": "private-preparation-1",
+            "status": "resumed"
+          },
+          "verified_at": 2
+        }
+      ],
+      "id": "B14",
+      "name": "Resume restarts the departure period and makes old claims look new",
+      "passed": true,
+      "unsafe_observation": {
+        "authored_at": 19,
+        "departure_deadline": 29,
+        "verified_at": 19
+      }
+    },
+    {
+      "corrected_observation": "both bind revision 1 and deadline 20",
+      "id": "B15",
+      "name": "Late authoritative departure is bound to today's policy instead of its effective historical revision",
+      "passed": true,
+      "schedules": [
+        {
+          "corrected": {
+            "deadline": 20,
+            "read": {
+              "status": "unavailable"
+            },
+            "revision": 1
+          },
+          "departure_at": 10,
+          "new_policy": "longer",
+          "new_policy_effective_at": 30,
+          "received_at": 30,
+          "unsafe": {
+            "deadline": 110,
+            "read": {
+              "record": "private-preparation-1",
+              "status": "readable"
+            },
+            "revision": 2
+          }
+        },
+        {
+          "corrected": {
+            "deadline": 20,
+            "read": {
+              "record": "private-preparation-1",
+              "status": "readable"
+            },
+            "revision": 1
+          },
+          "departure_at": 10,
+          "new_policy": "shorter",
+          "new_policy_effective_at": 15,
+          "received_at": 15,
+          "unsafe": {
+            "deadline": 11,
+            "read": {
+              "status": "unavailable"
+            },
+            "revision": 2
+          }
+        }
+      ],
+      "unsafe_observation": "longer edit revives; shorter edit prematurely expires"
+    }
+  ],
+  "decision": "D28 organization-set finite departure retention; no numeric period selected",
+  "evidence_kind": "finite executable design counterexamples, not implementation verification",
+  "hypothetical_return_rules": [
+    "qualified_current_source_transition",
+    "departure_deadline_continues"
+  ],
+  "limitations": [
+    "Synthetic finite cases and selected schedules only; not exhaustive model checking, real concurrency, SQL, RLS, locks, CAS or production proof.",
+    "No application, schema, database, provider, network or real private data is accessed; dataclasses are not proposed schema or APIs.",
+    "Periods and instants are arbitrary integer ticks; timezone, leap-calendar, clock synchronization, supported product durations and legal limits are not tested or selected.",
+    "Qualified departure, history authority, policy administration, holds and source erasure are assumed input authorities; their real issuance and identity binding are not proven.",
+    "Policy history is a tiny synthetic timeline with known effective instants and revision ordering; no actual departure producer, historical policy coverage, timestamp authenticity or event-time correction is tested.",
+    "Atomic transitions, durable disposition evidence and restart persistence are abstract requirements, not demonstrated transactions, durable queues, WAL or crash recovery.",
+    "Policy review proves revision/authority fencing and prospective scope only; no real UI impact preview, user comprehension or authorization to disclose aggregate counts is established.",
+    "One source and one departure episode per world; later genuine departures, multiple records, partial batch failures and independent CRM/financial data are outside this model.",
+    "Current-source retention after qualified return is an externally qualified predicate, not a newly selected duration or proof of indefinite retention.",
+    "Hold and tombstone values represent authoritative obligations; physical bytes, backups, replicas, derivatives, exports, indexes and irreversible purge completeness are not inspected.",
+    "Cached response checks show current logical denial; no browser eviction, offline erasure, timing side-channel resistance or recall of previously viewed content is proven.",
+    "Passing this model establishes no shipped feature, source-owner amendment, runtime readiness or production permission."
+  ],
+  "period_change_rule": "proposed qualified prospective revisions only; existing-cohort changes are not enabled or selected by this model",
+  "positive_controls": [
+    {
+      "at_deadline": "unavailable",
+      "deadline": 20,
+      "id": "P01",
+      "name": "Confirmed departure captures one deadline; exact boundary denies",
+      "passed": true
+    },
+    {
+      "existing_deadline": 20,
+      "future_deadline": 37,
+      "id": "P02",
+      "name": "Reviewed policy revision applies to future confirmed departures",
+      "passed": true
+    },
+    {
+      "id": "P03",
+      "name": "Hold preserves evidence; release resumes due disposition without access revival",
+      "passed": true,
+      "result": {
+        "status": "body_removed"
+      }
+    },
+    {
+      "id": "P04",
+      "name": "Early job is harmless; deadline job and duplicate have one effect",
+      "passed": true,
+      "result": {
+        "status": "body_removed"
+      },
+      "writes": 1
+    },
+    {
+      "hypothetical_branches": [
+        {
+          "hypothetical_return_rule": "qualified_current_source_transition",
+          "original_deadline_evidence": 20,
+          "read_at_old_deadline": "readable",
+          "result": {
+            "record": "private-preparation-1",
+            "status": "resumed"
+          }
+        },
+        {
+          "hypothetical_return_rule": "departure_deadline_continues",
+          "original_deadline_evidence": 20,
+          "read_at_old_deadline": "unavailable",
+          "result": {
+            "record": "private-preparation-1",
+            "status": "resumed"
+          }
+        }
+      ],
+      "id": "P05",
+      "name": "Qualified pre-expiry return exposes the explicit choice between two disposition rules",
+      "neither_branch_selected_by_this_model": true,
+      "passed": true
+    },
+    {
+      "id": "P06",
+      "known_deadline": 20,
+      "known_policy_revision": 1,
+      "name": "Known late departure uses historical policy; unknown historical coverage fails qualification",
+      "passed": true,
+      "unknown_history_result": "policy_history_unqualified"
+    }
+  ],
+  "reproduce": "python3 docs/features/missionary-workspace-depth/grill/d28-evidence/retention-counterexamples.py > /tmp/d28-retention-counterexamples.json",
+  "return_rule_status": "founder clarification pending; both branches are hypothetical and neither is selected here",
+  "script_sha256": "c8be2aabb6e0e0af003061280a6ec96c251aa41b0079d155dea1a82e8c934954",
+  "summary": {
+    "all_passed": true,
+    "assertions_passed": 139,
+    "positive_controls": 6,
+    "unsafe_alternatives": 15
+  },
+  "time_units": "arbitrary synthetic ticks; no legal duration, product default, bound or purge SLA"
+}

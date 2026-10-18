@@ -1,0 +1,53 @@
+{
+  "purpose": "Pin final formatted D25 reviewed evidence and finite probe at initial decision review; main/session/Q25 remain explicitly evolving decision records.",
+  "artifacts": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/check-in-lifecycle-counterexamples.md",
+      "sha256": "133b10354d54cc73ee631d3d9f935275a17d550f4d8d11505b840d109b352f14"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/check-in-semantics.md",
+      "sha256": "91452d0a8d084e268ea3d55701069eade30ab11afe38493fd3f08297cf707b95"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/check-in-ux.md",
+      "sha256": "434c7e7430bb1713ec4138338de401a30af2a28c3198d7f29f209fb85d6fdc09"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/cross-review-reconciliation.md",
+      "sha256": "1ddf73968e4550b34f20904191a54461b936998e84e7a76b2bb79a75fb1c5fd9"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/current-check-in-source.md",
+      "sha256": "5028682753308e5ef5b71e14280758151b2ae7782ade1861180c5f541ba77d9e"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/database-check-in-boundaries.md",
+      "sha256": "40cb83c96293df93fb20403b1feea1d5183575c7ce01889b0567198ca6245534"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/owner-boundaries.md",
+      "sha256": "297f9e209089294476f9832d1f6715acc9b5460a81d2292f4de08e49da0da154"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/primary-sources.json",
+      "sha256": "c4c3b50bacddcb5b29f0aed21041a47197ae27f2c176ba8c8c2eb3e4c56245ef"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/prior-evidence-sha256.json",
+      "sha256": "000a4d555312e5ece79fcec9ec338d35def3f3aad24cbc417f725e0758f6b027"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/independent-reproduction.json",
+      "sha256": "1bcd4a2e9ad3cefcc6f4723ccac565c4bc3904a5a84e341f4e81f690f7c0b233"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/counterexample-probe/probe.py",
+      "sha256": "6167e05fc9ef7d0187d77b3ad4ea9b5b6c7dc0e7bc405955cd755dbc4a3f9301"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/d25-evidence/counterexample-probe/results.json",
+      "sha256": "c4244a377def523c361d73e284d3117f34a84dff1127ded6123aee03a783fffa"
+    }
+  ]
+}

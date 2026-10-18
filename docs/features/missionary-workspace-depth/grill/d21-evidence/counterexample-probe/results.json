@@ -1,0 +1,215 @@
+{
+  "scope": "Finite semantic counterexamples only; no Core/runtime/database/provider/financial-policy/UX qualification",
+  "python": "3.12.14",
+  "case_count": 18,
+  "reproduced": 18,
+  "cases": [
+    {
+      "id": "D01",
+      "shortcut": "Historical-average comparison is a stable explicit gift fact",
+      "observation": {
+        "unchanged_gift": 100,
+        "short_history_flag": true,
+        "long_history_flag": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D02",
+      "shortcut": "An empty visible commitment list proves no commitment",
+      "observation": {
+        "same_visible_list": [],
+        "possible_owner_states": ["known_none", "exists_outside_projection"]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D03",
+      "shortcut": "Known absence of a commitment authorizes extra-gift classification",
+      "observation": {
+        "numeric_comparison": true,
+        "facts_present": ["received_gift", "known_no_commitment"],
+        "explicit_extra_support_fact_present": false
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D04",
+      "shortcut": "A gift three times the earlier monthly amount proves extra support",
+      "observation": {
+        "payment": 600,
+        "earlier_amount": 200,
+        "indistinguishable_possible_meanings": [
+          "extra_support",
+          "other_intent",
+          "three_periods_of_ordinary_support"
+        ]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D05",
+      "shortcut": "An explicit imported flag/tag/source label is qualification",
+      "observation": {
+        "metadata": {
+          "special": true,
+          "tag": "extra gift",
+          "import_source": "trusted-looking-name"
+        },
+        "qualified_source_records": []
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D06",
+      "shortcut": "An upstream boolean hides no meaningful eligibility difference",
+      "observation": {
+        "same_flag_value": true,
+        "different_bases": [
+          "historical_ratio_only",
+          "owner_qualified_source_fact"
+        ]
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D07",
+      "shortcut": "Zero new tasks means no automatic attention",
+      "observation": {
+        "tasks": 0,
+        "badge": 1,
+        "notification": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D08",
+      "shortcut": "Changing priority/order from history is only a passive chart update",
+      "observation": {
+        "default_queue": ["Grace", "Sam"],
+        "history_ranked_queue": ["Sam", "Grace"],
+        "new_tasks": 0
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D09",
+      "shortcut": "Calling a generated suggestion manual makes its initiation manual",
+      "observation": {
+        "button": "Create manual follow-up",
+        "shown_because": "historical_ratio_only"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D10",
+      "shortcut": "Ban every history-dependent feature to implement D21",
+      "observation": {
+        "indistinguishable_to_blanket_ban": [
+          "permitted_history_chart",
+          "qualified_first_support",
+          "unusual_giving_attention"
+        ],
+        "distinct_product_purposes": 3
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D11",
+      "shortcut": "An owner-certified earlier gift cannot change first-support truth",
+      "observation": {
+        "first_before": "gift_2026",
+        "first_after": "gift_2020"
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D12",
+      "shortcut": "Applied above current commitment proves a new special gift arrived",
+      "observation": {
+        "received_unchanged": 100,
+        "above_before": 0,
+        "above_after": 50,
+        "new_gifts": 0
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D13",
+      "shortcut": "Matching manual/native task titles establish duplicate purpose",
+      "observation": [
+        {
+          "title": "Follow up with Grace",
+          "intended_purpose": "promised_visit"
+        },
+        {
+          "title": "Follow up with Grace",
+          "intended_purpose": "qualified_special_gift"
+        }
+      ],
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D14",
+      "shortcut": "A generic manual Done linked to a gift proves native coverage",
+      "observation": {
+        "state": "done",
+        "gift_link": "gift1",
+        "exact_native_coverage_receipt": null
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D15",
+      "shortcut": "Separate manual/native transports imply separate intended work",
+      "observation": {
+        "transport_count": 2,
+        "proved_purpose_count": 1
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D16",
+      "shortcut": "A changed qualification rule makes old evidence a new live gift",
+      "observation": {
+        "unchanged_historical_gift": 100,
+        "old_numeric_rule_matches": false,
+        "new_numeric_rule_matches": true,
+        "new_live_occurrences": 0
+      },
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D17",
+      "shortcut": "The repair event label decides whether work is historical replay",
+      "observation": [
+        {
+          "event_type": "repair",
+          "origin": "live_held"
+        },
+        {
+          "event_type": "repair",
+          "origin": "historical_import"
+        }
+      ],
+      "counterexample_reproduced": true
+    },
+    {
+      "id": "D18",
+      "shortcut": "Using history as context makes deliberate and automatic creation equivalent",
+      "observation": [
+        {
+          "action": "create_follow_up",
+          "initiator": "user_deliberate",
+          "history_context": true
+        },
+        {
+          "action": "create_follow_up",
+          "initiator": "history_classifier",
+          "history_context": true
+        }
+      ],
+      "counterexample_reproduced": true
+    }
+  ]
+}

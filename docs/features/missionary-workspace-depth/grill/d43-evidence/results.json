@@ -1,0 +1,1823 @@
+{
+  "accept_off_confirm_serial_orders": 6,
+  "all_checks_pass": true,
+  "assumptions": [
+    "One exact newsletter/address; two independently controlled entries.",
+    "Operations have a single abstract linearization point and authoritative current time.",
+    "Accepted pending source evidence and terminal operation receipts are durable and immutable where stated.",
+    "Original operational binding liveness is source-owned and independent of current Page target/generation; source retirement blocks it.",
+    "Current owner-qualified recipient, purpose and binding predicates are supplied, not implemented.",
+    "Receipt recovery and resend already passed their separate authorization; diagnostics are not public response shapes.",
+    "Fresh human intake/direct Join is distinct from a transport retry; human authenticity is assumed."
+  ],
+  "check_count": 44,
+  "checks": [
+    {
+      "expected": "Naive algorithm wrongly denies an eligible pre-Off request.",
+      "name": "N01_current_visibility_strands_valid_pending",
+      "pass": true,
+      "trace": [
+        {
+          "accepted_pending": true,
+          "before_original_deadline": true,
+          "entry_visible": false,
+          "naive_confirm": false
+        }
+      ]
+    },
+    {
+      "expected": "Naive pending-flag-only algorithm activates despite an invalid current condition.",
+      "name": "N02_pending_flag_ignores_expired",
+      "pass": true,
+      "trace": [
+        {
+          "condition": "expired",
+          "naive_active": true,
+          "naive_purpose": "newsletter-a",
+          "original_purpose": "newsletter-a",
+          "pending_flag": true
+        }
+      ]
+    },
+    {
+      "expected": "Naive pending-flag-only algorithm activates despite an invalid current condition.",
+      "name": "N02_pending_flag_ignores_withdrawn",
+      "pass": true,
+      "trace": [
+        {
+          "condition": "withdrawn",
+          "naive_active": true,
+          "naive_purpose": "newsletter-a",
+          "original_purpose": "newsletter-a",
+          "pending_flag": true
+        }
+      ]
+    },
+    {
+      "expected": "Naive pending-flag-only algorithm activates despite an invalid current condition.",
+      "name": "N02_pending_flag_ignores_retargeted_to_other_purpose",
+      "pass": true,
+      "trace": [
+        {
+          "condition": "retargeted_to_other_purpose",
+          "naive_active": true,
+          "naive_purpose": "newsletter-b",
+          "original_purpose": "newsletter-a",
+          "pending_flag": true
+        }
+      ]
+    },
+    {
+      "expected": "Naive pending-flag-only algorithm activates despite an invalid current condition.",
+      "name": "N02_pending_flag_ignores_purpose_closed",
+      "pass": true,
+      "trace": [
+        {
+          "condition": "purpose_closed",
+          "naive_active": true,
+          "naive_purpose": "newsletter-a",
+          "original_purpose": "newsletter-a",
+          "pending_flag": true
+        }
+      ]
+    },
+    {
+      "expected": "Naive resend extension allows confirmation beyond the accepted original deadline.",
+      "name": "N03_resend_extends_authority",
+      "pass": true,
+      "trace": [
+        {
+          "confirm_at": 11,
+          "naive_new_deadline": 18,
+          "original_deadline": 10,
+          "resend_at": 8
+        }
+      ]
+    },
+    {
+      "expected": "Only a source acceptance preceding both Off and confirmation can admit in this trace.",
+      "name": "R01_order_accept_off_confirm",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "request-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 1,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 2,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "request-a"
+        }
+      ]
+    },
+    {
+      "expected": "Only a source acceptance preceding both Off and confirmation can admit in this trace.",
+      "name": "R01_order_accept_confirm_off",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "request-a"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 1,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "request-a"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 2,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        }
+      ]
+    },
+    {
+      "expected": "Only a source acceptance preceding both Off and confirmation can admit in this trace.",
+      "name": "R01_order_off_accept_confirm",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 1,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": null,
+          "outcome": "entry_off",
+          "request": "request-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 2,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": null,
+          "outcome": "no_accepted_request",
+          "request": "request-a"
+        }
+      ]
+    },
+    {
+      "expected": "Only a source acceptance preceding both Off and confirmation can admit in this trace.",
+      "name": "R01_order_off_confirm_accept",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 1,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": null,
+          "outcome": "no_accepted_request",
+          "request": "request-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 2,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": null,
+          "outcome": "entry_off",
+          "request": "request-a"
+        }
+      ]
+    },
+    {
+      "expected": "Only a source acceptance preceding both Off and confirmation can admit in this trace.",
+      "name": "R01_order_confirm_accept_off",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": null,
+          "outcome": "no_accepted_request",
+          "request": "request-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 1,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 11,
+          "outcome": "accepted_pending",
+          "request": "request-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 2,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        }
+      ]
+    },
+    {
+      "expected": "Only a source acceptance preceding both Off and confirmation can admit in this trace.",
+      "name": "R01_order_confirm_off_accept",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": null,
+          "outcome": "no_accepted_request",
+          "request": "request-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 1,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 2,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": null,
+          "outcome": "entry_off",
+          "request": "request-a"
+        }
+      ]
+    },
+    {
+      "expected": "Confirmation requires t < original deadline; equality is expired.",
+      "name": "R02_deadline_boundary_9",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "expiry"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 9,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "expiry"
+        }
+      ]
+    },
+    {
+      "expected": "Confirmation requires t < original deadline; equality is expired.",
+      "name": "R02_deadline_boundary_10",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "expiry"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 10,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "expired",
+          "request": "expiry"
+        }
+      ]
+    },
+    {
+      "expected": "Confirmation requires t < original deadline; equality is expired.",
+      "name": "R02_deadline_boundary_11",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "expiry"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 11,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "expired",
+          "request": "expiry"
+        }
+      ]
+    },
+    {
+      "expected": "Lost acceptance recovery and eligible resend retain the original pending record/deadline.",
+      "name": "R03_retry_after_off_recovers_same_acceptance",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "lost-accept-response"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 5,
+          "generation": 0,
+          "operation": "accept",
+          "original": "accepted_pending",
+          "original_deadline": 10,
+          "outcome": "receipt_only",
+          "request": "lost-accept-response"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 5,
+          "generation": 0,
+          "operation": "resend",
+          "original_deadline": 10,
+          "outcome": "same_deadline_only",
+          "request": "lost-accept-response"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 5,
+          "generation": 0,
+          "operation": "delayed_mail_observed",
+          "original_deadline": 10,
+          "outcome": "no_source_mutation",
+          "request": "lost-accept-response"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 5,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "lost-accept-response"
+        }
+      ]
+    },
+    {
+      "expected": "An old terminally rejected intake is not accepted by an Off-to-On retry.",
+      "name": "R04_off_rejected_intake_not_revived",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": null,
+          "outcome": "entry_off",
+          "request": "old-intake"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "on",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original": "entry_off",
+          "original_deadline": null,
+          "outcome": "receipt_only",
+          "request": "old-intake"
+        }
+      ]
+    },
+    {
+      "expected": "A deliberate fresh eligible request after reopening may join.",
+      "name": "R05_fresh_intake_after_on_allowed",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": null,
+          "outcome": "entry_off",
+          "request": "old-intake"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "on",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original": "entry_off",
+          "original_deadline": null,
+          "outcome": "receipt_only",
+          "request": "old-intake"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "fresh-human-intake"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "fresh-human-intake"
+        }
+      ]
+    },
+    {
+      "expected": "Reopening the entry cannot revive expired, withdrawn, superseded or changed-scope authority.",
+      "name": "R06_off_on_no_resurrection_expired",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "old"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 10,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "on",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 10,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "expired",
+          "request": "old"
+        }
+      ]
+    },
+    {
+      "expected": "Reopening the entry cannot revive expired, withdrawn, superseded or changed-scope authority.",
+      "name": "R06_off_on_no_resurrection_withdrawn",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "old"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 1,
+          "operation": "withdraw",
+          "original_deadline": null,
+          "outcome": "withdrawn",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 1,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "on",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 1,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "withdrawn_generation",
+          "request": "old"
+        }
+      ]
+    },
+    {
+      "expected": "Reopening the entry cannot revive expired, withdrawn, superseded or changed-scope authority.",
+      "name": "R06_off_on_no_resurrection_superseded",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "old"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "on",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original": "superseded",
+          "original_deadline": 10,
+          "outcome": "receipt_only",
+          "request": "old"
+        }
+      ]
+    },
+    {
+      "expected": "Reopening the entry cannot revive expired, withdrawn, superseded or changed-scope authority.",
+      "name": "R06_off_on_no_resurrection_binding_retired",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "old"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "on",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "binding_retired",
+          "request": "old"
+        }
+      ]
+    },
+    {
+      "expected": "Off-to-On does not cancel an original still-valid request under selected A.",
+      "name": "R07_off_on_preserves_valid_pending",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "still-valid"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "on",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 2,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "still-valid"
+        }
+      ]
+    },
+    {
+      "expected": "Two independently accepted pending requests converge on one active membership.",
+      "name": "R08_dual_pending_pending-a_pending-b",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-b"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "pending-a"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "already_active_noop",
+          "request": "pending-b"
+        }
+      ]
+    },
+    {
+      "expected": "Two independently accepted pending requests converge on one active membership.",
+      "name": "R08_dual_pending_pending-b_pending-a",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-b"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "pending-b"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "already_active_noop",
+          "request": "pending-a"
+        }
+      ]
+    },
+    {
+      "expected": "Withdrawal fences all older pending authority; accepted confirmation replay is non-mutating.",
+      "name": "R09_other_pending_and_replay_cannot_undo_withdrawal",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-b"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "pending-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "withdraw",
+          "original_deadline": null,
+          "outcome": "withdrawn",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "withdrawn_generation",
+          "request": "pending-b"
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "confirm",
+          "original": "confirmed",
+          "original_deadline": 10,
+          "outcome": "receipt_only",
+          "request": "pending-a"
+        }
+      ]
+    },
+    {
+      "expected": "An eligible fresh post-withdrawal request may rejoin; address-level lifetime dedupe is not used.",
+      "name": "R10_fresh_human_rejoin_works",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-b"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "pending-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "withdraw",
+          "original_deadline": null,
+          "outcome": "withdrawn",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "withdrawn_generation",
+          "request": "pending-b"
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "confirm",
+          "original": "confirmed",
+          "original_deadline": 10,
+          "outcome": "receipt_only",
+          "request": "pending-a"
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "new-human-rejoin"
+        },
+        {
+          "active": true,
+          "admission_effects": 2,
+          "at": 0,
+          "generation": 1,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "new-human-rejoin"
+        }
+      ]
+    },
+    {
+      "expected": "An assumed qualified D42 Join remains active after entry Off; older pending confirmation is a no-op.",
+      "name": "R11_current_member_and_pending_no_duplicate",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "pending-before-direct-join"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "qualified_D42_join",
+          "original_deadline": null,
+          "outcome": "active",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "already_active_noop",
+          "request": "pending-before-direct-join"
+        }
+      ]
+    },
+    {
+      "expected": "Delivery observation grants no membership or fresh time; confirmation uses the original deadline.",
+      "name": "R12_delayed_mail_9",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "delayed-mail"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 9,
+          "generation": 0,
+          "operation": "delayed_mail_observed",
+          "original_deadline": 10,
+          "outcome": "no_source_mutation",
+          "request": "delayed-mail"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 9,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "delayed-mail"
+        }
+      ]
+    },
+    {
+      "expected": "Delivery observation grants no membership or fresh time; confirmation uses the original deadline.",
+      "name": "R12_delayed_mail_11",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "delayed-mail"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 11,
+          "generation": 0,
+          "operation": "delayed_mail_observed",
+          "original_deadline": 10,
+          "outcome": "no_source_mutation",
+          "request": "delayed-mail"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 11,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "expired",
+          "request": "delayed-mail"
+        }
+      ]
+    },
+    {
+      "expected": "An eligible earlier resend and a later rejected resend cannot extend or revive pending authority.",
+      "name": "R13_resend_never_extends_deadline",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "resend"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 8,
+          "generation": 0,
+          "operation": "resend",
+          "original_deadline": 10,
+          "outcome": "same_deadline_only",
+          "request": "resend"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 10,
+          "generation": 0,
+          "operation": "resend",
+          "original_deadline": 10,
+          "outcome": "expired_no_resend",
+          "request": "resend"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 10,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "expired",
+          "request": "resend"
+        }
+      ]
+    },
+    {
+      "expected": "Historical success is recoverable evidence, not a current membership claim or another mutation.",
+      "name": "R14_late_response_and_confirmation_replay_no_resubscribe",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "lost-confirm-response"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "lost-confirm-response"
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "withdraw",
+          "original_deadline": null,
+          "outcome": "withdrawn",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "delayed_response_observed",
+          "original_deadline": 10,
+          "outcome": "no_source_mutation",
+          "request": "lost-confirm-response"
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 1,
+          "operation": "confirm",
+          "original": "confirmed",
+          "original_deadline": 10,
+          "outcome": "receipt_only",
+          "request": "lost-confirm-response"
+        }
+      ]
+    },
+    {
+      "expected": "A different presented purpose cannot retarget the accepted request or consume it.",
+      "name": "R15_presented_other_purpose_rejected",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "bound"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "wrong_presented_scope",
+          "request": "bound"
+        }
+      ]
+    },
+    {
+      "expected": "The pending-after-Off exception never bypasses current purpose, recipient or exact-source scope.",
+      "name": "R16_current_gate_purpose_closed",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "current-gates"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "purpose_closed",
+          "request": "current-gates"
+        }
+      ]
+    },
+    {
+      "expected": "The pending-after-Off exception never bypasses current purpose, recipient or exact-source scope.",
+      "name": "R16_current_gate_recipient_restricted",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "current-gates"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "recipient_restricted",
+          "request": "current-gates"
+        }
+      ]
+    },
+    {
+      "expected": "The pending-after-Off exception never bypasses current purpose, recipient or exact-source scope.",
+      "name": "R16_current_gate_recipient_changed",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "current-gates"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "recipient_changed",
+          "request": "current-gates"
+        }
+      ]
+    },
+    {
+      "expected": "The pending-after-Off exception never bypasses current purpose, recipient or exact-source scope.",
+      "name": "R16_current_gate_binding_retired",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "current-gates"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "binding_retired",
+          "request": "current-gates"
+        }
+      ]
+    },
+    {
+      "expected": "Hiding main entry does not globally stop another independently authorized entry.",
+      "name": "R17_other_entry_independent",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "other-entry"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "other-entry"
+        }
+      ]
+    },
+    {
+      "expected": "An identical active membership causes no new pending confirmation or subscription effect.",
+      "name": "R18_active_member_intake_no_pending_duplicate",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "qualified_D42_join",
+          "original_deadline": null,
+          "outcome": "active",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": null,
+          "outcome": "already_active_noop",
+          "request": "already-member"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        }
+      ]
+    },
+    {
+      "expected": "Retry identity cannot be rebound to another recipient revision.",
+      "name": "R19_changed_payload_same_intent_conflicts",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "immutable-intake"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "payload_conflict",
+          "request": "immutable-intake"
+        }
+      ]
+    },
+    {
+      "expected": "GET, scanner and landing-page observation cannot confirm membership.",
+      "name": "R20_get_is_inert",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "scanner"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "GET_or_scanner",
+          "original_deadline": 10,
+          "outcome": "no_source_mutation",
+          "request": "scanner"
+        }
+      ]
+    },
+    {
+      "expected": "The original confirmation deadline does not unsubscribe a successfully admitted member.",
+      "name": "R21_proof_expiry_not_membership_expiry",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "confirmed-in-time"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 9,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "confirmed-in-time"
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 11,
+          "generation": 0,
+          "operation": "confirm",
+          "original": "confirmed",
+          "original_deadline": 10,
+          "outcome": "receipt_only",
+          "request": "confirmed-in-time"
+        }
+      ]
+    },
+    {
+      "expected": "The source-authorized original purpose can still complete; current Page target/generation is not confirmation authority.",
+      "name": "R22_entry_retarget_does_not_replace_live_original_binding",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": 10,
+          "outcome": "accepted_pending",
+          "request": "original-purpose"
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "entry": "main",
+          "generation": 0,
+          "operation": "entry",
+          "original_deadline": null,
+          "outcome": "off",
+          "request": null
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "at": 0,
+          "generation": 0,
+          "operation": "confirm",
+          "original_deadline": 10,
+          "outcome": "confirmed",
+          "request": "original-purpose"
+        }
+      ]
+    },
+    {
+      "expected": "An unaccepted old form cannot use an entry's prior target to bypass current intake binding.",
+      "name": "R23_new_intake_checks_current_entry_target",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "at": 0,
+          "generation": 0,
+          "operation": "accept",
+          "original_deadline": null,
+          "outcome": "entry_target_changed",
+          "request": "stale-form-target"
+        }
+      ]
+    }
+  ],
+  "expected_naive_counterexamples": 6,
+  "fixture_time": {
+    "lifetime": 10,
+    "product_duration_recommendation": false,
+    "unit": "arbitrary abstract tick"
+  },
+  "model": "D43 new bounded pending confirmation lifecycle",
+  "not_proved": [
+    "Actual DB/Auth/provider atomicity, concurrent workers, SQL/RLS, lock/constraint behavior or crash recovery.",
+    "Real source binding survival rules, token authenticity, CSRF, email canonicalization or recipient proof.",
+    "Finite proof duration, resend limits, secret rotation, deletion/retention policy or actual message delivery.",
+    "Privacy-safe UI, cache fencing, late-response rendering, accessibility or production readiness."
+  ],
+  "research_date": "2026-10-18 Asia/Bangkok",
+  "source_sha256": "9e74e472592af462ed344ea20743db192c89ec0b73c9bade21f5048f0a3d9517"
+}

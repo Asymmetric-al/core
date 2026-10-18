@@ -1,0 +1,331 @@
+{
+  "actor_policy": "Current qualified D30 action/scope is an abstract input; D29 or a role name cannot grant it",
+  "counterexamples": [
+    {
+      "corrected_observation": "four unavailable",
+      "id": "B01",
+      "name": "Internal appeal/default-fund/payment labels stand in for donor purpose",
+      "passed": true,
+      "unsafe_observation": "four false admissions",
+      "variants": [
+        {
+          "corrected": "unavailable",
+          "shortcut": "appeal link",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "shortcut": "default fund",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "shortcut": "campaign end",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "shortcut": "paid once",
+          "unsafe": "admitted"
+        }
+      ]
+    },
+    {
+      "corrected_observation": "admitted",
+      "id": "B02",
+      "name": "A need-purpose gift is rejected unless it also asserts additionality",
+      "passed": true,
+      "unsafe_observation": "rejected"
+    },
+    {
+      "corrected_observation": "five unavailable",
+      "id": "B03",
+      "name": "A need confirmation spreads to another scope or an uncertain portion",
+      "passed": true,
+      "unsafe_observation": "five false admissions",
+      "variants": [
+        {
+          "corrected": "unavailable",
+          "mismatch": "wrong tenant",
+          "unsafe": "whole_gift_admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "mismatch": "wrong subject",
+          "unsafe": "whole_gift_admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "mismatch": "foreign need scope",
+          "unsafe": "whole_gift_admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "mismatch": "unrelated portion",
+          "unsafe": "whole_gift_admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "mismatch": "unknown surviving scope",
+          "unsafe": "whole_gift_admitted"
+        }
+      ]
+    },
+    {
+      "corrected_observation": {
+        "members": 1
+      },
+      "id": "B04",
+      "name": "Every need, reason or retry creates another member",
+      "passed": true,
+      "unsafe_observation": {
+        "members": 4
+      }
+    },
+    {
+      "corrected_observation": "two valid admissions",
+      "id": "B05",
+      "name": "Closing or funding the need erases the gift's qualified purpose",
+      "passed": true,
+      "unsafe_observation": "two withdrawals",
+      "variants": [
+        {
+          "corrected": "admitted",
+          "lifecycle": "closed",
+          "unsafe": "withdrawn"
+        },
+        {
+          "corrected": "admitted",
+          "lifecycle": "funded",
+          "unsafe": "withdrawn"
+        }
+      ]
+    },
+    {
+      "corrected_observation": "unavailable",
+      "donor_accepted_terms_revision": 1,
+      "id": "B06",
+      "name": "Reclassifying today's need terms manufactures old donor purpose",
+      "passed": true,
+      "unsafe_observation": "admitted"
+    },
+    {
+      "corrected_observation": "two unavailable",
+      "id": "B07",
+      "name": "The worker's current policy manufactures a live receipt cohort",
+      "passed": true,
+      "unsafe_observation": "two late admissions",
+      "variants": [
+        {
+          "corrected": "unavailable",
+          "origin": "receipt_while_off",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "origin": "historical_acquisition",
+          "unsafe": "admitted"
+        }
+      ]
+    },
+    {
+      "corrected_observation": "unavailable",
+      "current_interval": 2,
+      "id": "B08",
+      "name": "A later confirmation or re-enable revives an unadmitted old interval",
+      "passed": true,
+      "receipt_interval": 1,
+      "unsafe_observation": "admitted"
+    },
+    {
+      "corrected_observation": {
+        "pending": 1,
+        "reconciled_reason": "active"
+      },
+      "id": "B09",
+      "limitation": "Actual asynchronous task materialization is not implemented",
+      "name": "Off cancels accepted work or prevents its pending materialization",
+      "passed": true,
+      "unsafe_observation": {
+        "pending": 0
+      }
+    },
+    {
+      "corrected_observation": "five fenced writes",
+      "id": "B10",
+      "name": "A queued evaluation wins after a contrary policy/source/authority transition",
+      "passed": true,
+      "schedules": [
+        {
+          "corrected": "unavailable",
+          "order": [
+            "prepare",
+            "Off",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "order": [
+            "prepare",
+            "source_reversal",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "order": [
+            "prepare",
+            "purpose_withdrawal",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "order": [
+            "prepare",
+            "permission_revocation",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "reevaluate",
+          "order": [
+            "prepare",
+            "source_revision",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        }
+      ],
+      "unsafe_observation": "five stale admissions"
+    },
+    {
+      "corrected_observation": {
+        "admission": "admitted",
+        "changed_payload": {
+          "status": "conflict"
+        },
+        "interval": 1,
+        "revoked_recovery": {
+          "status": "unavailable"
+        }
+      },
+      "id": "B11",
+      "name": "Every save or retry starts a new enabled generation",
+      "passed": true,
+      "unsafe_observation": {
+        "interval": 4
+      }
+    },
+    {
+      "corrected_observation": {
+        "generic": {
+          "reasons": [
+            "One-time need purpose confirmed"
+          ],
+          "status": "permitted"
+        },
+        "need_confirmation": "unavailable",
+        "reason_withheld": {
+          "reasons": [],
+          "status": "permitted"
+        },
+        "source_changed_projection": {
+          "reasons": [],
+          "status": "permitted"
+        }
+      },
+      "id": "B12",
+      "name": "Task reasons expose protected need detail or inherit another purpose's authority",
+      "passed": true,
+      "unsafe_observation": {
+        "implicit_confirmation": "allowed",
+        "private_labels": [
+          "Vehicle repairs",
+          "Private need need-2"
+        ]
+      }
+    },
+    {
+      "corrected_observation": {
+        "covered": [
+          "gift-1"
+        ],
+        "later_need": "already_handled",
+        "remaining": [
+          "gift-2"
+        ]
+      },
+      "id": "B13",
+      "name": "Another need reopens handled coverage or retry consumes a newly arrived gift",
+      "passed": true,
+      "unsafe_observation": {
+        "covered": [
+          "gift-1",
+          "gift-2"
+        ],
+        "later_need": "new_task"
+      }
+    }
+  ],
+  "evidence_kind": "finite semantic counterexamples, not implementation verification",
+  "limitations": [
+    "Synthetic finite cases and selected sequential orderings only; not exhaustive model checking, real concurrency, SQL, RLS, locks, transaction, runtime or production proof.",
+    "Only this new stdlib model runs. No prior model, application, database, provider, network or private data is accessed; structures are not proposed schema, ledger or policy engine.",
+    "One abstract effective policy is tested. Tenant customization shape remains pending; these examples do not select organization-wide or per-need controls.",
+    "The source owner supplies original eligible receipt ordering/cohort and exact donor-accepted need terms. Actual activation history, financial finality, temporal attribution, donor standing and provenance producers are not tested.",
+    "Original instruction and current positive surviving scope are separate opaque qualified facts. No allocation, refund calculation, recognition fold, FX or financial correction is implemented.",
+    "Need-term classification/correction and current authorization are synthetic source inputs. Policy/confirmation capabilities, evidence-body access and recipient contact authority are not derived or tested against real roles.",
+    "Abstract atomic acceptance, durable idempotency, covered identity and captured policy stand for required owner guarantees; actual persistence, crash recovery, queue materialization and one-current-task uniqueness are unproven.",
+    "Reviewed coverage models only selected gift/source versions and benign arrivals; the complete D20 purpose/responsibility/authority review and conditional Undo contract remain implementation obligations.",
+    "Safe labels demonstrate finite projection logic only; no browser cache eviction, route authorization, hidden-record timing analysis, accessibility, usability or production capacity is measured.",
+    "The model does not create an additional-support statement, financial application, interaction, message, receipt or task-origin timestamp. A passing result does not ratify proposed amendments, amend source ownership or establish release readiness."
+  ],
+  "policy_scope_status": "Organization-wide versus per-need customization clarification pending; one abstract effective policy modeled",
+  "positive_controls": [
+    {
+      "id": "P01",
+      "name": "Qualified one-time need independently admits same gift without financial or outward effects",
+      "passed": true,
+      "result": "admitted"
+    },
+    {
+      "after_receipt": "admitted",
+      "id": "P02",
+      "late_confirmation": "admitted",
+      "name": "Pre-receipt evidence and genuine later confirmation each wait for complete same-interval qualification",
+      "passed": true,
+      "pre_receipt": "unavailable"
+    },
+    {
+      "id": "P03",
+      "independent_reason": "active",
+      "name": "Owner correction repairs an admitted unconsumed reason while Off; handled and never-admitted work do not revive",
+      "passed": true,
+      "repaired": "active",
+      "withdrawn": "withdrawn"
+    },
+    {
+      "id": "P04",
+      "name": "A new interval admits a new live receipt while preserving exclusion of old unadmitted gifts",
+      "new": "admitted",
+      "old": "unavailable",
+      "passed": true
+    }
+  ],
+  "reproduce": "python3 docs/features/missionary-workspace-depth/grill/d30-evidence/need-policy-counterexamples.py > /tmp/d30-need-policy-counterexamples.json",
+  "script_sha256": "c33698b6357e7bc7871bed47e7327ffc8ea0c85c049b7809c973817e0ac50658",
+  "selected_direction": "D30 specific one-time need purpose qualifies independently of additionality",
+  "summary": {
+    "all_passed": true,
+    "assertions_passed": 38,
+    "counterexample_families": 13,
+    "positive_controls": 4
+  },
+  "temporal_rule_status": "Proposed review rule: initially Off; prospective enabled intervals; original live receipt must bind same still-enabled interval at new admission; accepted work and qualified repair retain captured lineage"
+}

@@ -2186,6 +2186,293 @@ Asym operational identity — not logins, donor profiles, or public-page
 identities.
 _Avoid_: constituent table, generic CRM record, individual (use person)
 
+**Restricted start** (Phase 28 D1):
+Early prospect preparation inside the organization's CRM whose newly supplied
+identity/contact details and planning are not ordinarily visible to relationship
+staff before deliberate sharing. It preserves independently authorized existing
+facts and implies no giving, consent, cultivation enrollment or new exceptional
+access; unlike Phase 10 restricted-tier classification, it describes the initial
+audience of the preparation. Under Phase 28 D3, departure or inability to continue
+does not give staff or a successor new access to unshared preparation. This
+does not determine retention or remove independently authorized CRM facts.
+_Avoid_: private donor, personally owned supporter, restricted-tier person,
+private CRM
+
+**Shared CRM contact** (Phase 28 D2):
+A contact deliberately made generally available to staff in the sending
+organization's ordinary CRM under its existing permissions and safety rules.
+Sharing contact details does not share earlier private notes or planning, and
+selecting staff for an optional notification changes attention recipients
+rather than access.
+_Avoid_: public contact, collaborator-only contact, assigned follow-up,
+notification as access grant
+
+**Archived prospect preparation** (Phase 28 D4):
+Voluntary preparation deliberately set aside from active prospects while still
+unshared. It remains the same preparation, findable and returnable under current
+access and retention rules. This working state is separate from the person's CRM
+status, contact availability to staff, private-note audience and existing duties.
+Archiving neither cancels follow-up nor grants access or promises permanent
+retention; later deliberate sharing does not itself return the preparation to
+active prospects.
+_Avoid_: archived person, inactive donor, deleted prospect, permanent private
+archive, cancelled follow-up
+
+**Tenant-controlled contact correction** (Phase 28 D5):
+Direct correction of eligible shared contact details by a missionary within the
+workspace and fields the sending organization's current permissions allow.
+The organization controls this ability through its permission settings; viewing,
+entering or sharing a contact does not itself grant editing rights. A correction
+changes the authoritative contact fact rather than a private alternative, and
+does not by itself change consent, account identity, giving or private-note
+audience. Permission to manage this access is distinct from permission to use it.
+_Avoid_: editing by ownership, universal missionary edit, private contact
+override, contact edit as consent
+
+**Native newsletter subscription** (Phase 28 D6):
+A person's deliberate participation in one named ministry newsletter delivered
+through Asym. It is distinct from asking a missionary to arrange an externally
+managed newsletter, giving, becoming a CRM prospect, following Ministry Updates
+or receiving permission to read protected content. Its audience is specific to
+the newsletter; one subscription does not imply interest in other newsletters.
+_Avoid_: newsletter request as subscription, subscriber as donor, follow as
+email consent, organization-wide opt-in by implication
+
+**Verified-address newsletter signup** (Phase 28 D42):
+A reader's deliberate choice to join a named newsletter using the same current
+verified account email shown to them, where the organization permits it.
+Existing address evidence establishes which email may be used; the new Join
+establishes the newsletter-specific instruction. Signing in or having a verified
+email alone does not subscribe anyone or grant other access. Rejoining is a new
+deliberate instruction, distinct from retrying an earlier Join.
+_Avoid_: login as consent, verified as subscribed, retry as rejoin, subscriber
+as tenant member
+
+**Public newsletter signup entry** (Phase 28 D6):
+The optional invitation to join a named native newsletter on its public ministry
+Page. The appropriately authorized missionary chooses whether it is offered.
+Showing or hiding this entry is distinct from the Page's public reach, existing
+readers' subscriptions and permission to send newsletters.
+Hiding it stops new requests through that entry. An already accepted request
+may still be confirmed before its original deadline while current newsletter
+and recipient rules permit it; hiding or showing the entry does not renew that
+request.
+_Avoid_: newsletter kill switch, page visibility as consent, hidden as
+unsubscribed, public profile as editing permission
+
+**Newsletter issue** (Phase 28 D7):
+A particular authored newsletter prepared for its chosen ministry purpose and
+intended recipients. It is distinct from an ongoing newsletter subscription,
+a Ministry Update, a public Page and the outcome of delivering an individual
+copy. Preparing another issue does not reuse permission to send an earlier one.
+_Avoid_: newsletter as subscription list, published post as sent newsletter,
+newsletter issue as personal conversation
+
+**Newsletter send authorization** (Phase 28 D7):
+The missionary's deliberate decision to send a particular newsletter issue to
+its reviewed, permitted audience within current organization and recipient
+rules. Saving a draft, approving content or publishing a story is not this
+decision. It does not authorize future issues or prove that anyone received
+or read the newsletter.
+_Avoid_: standing newsletter permission, publish as send, approval as delivery,
+signup as send authorization
+
+**Invited fundraising coach** (Phase 28 D8):
+A person deliberately invited to help a missionary or ministry review support-raising
+progress through permitted, read-only coaching information. An outside coach
+participates only when the organization permits it, using their own identity;
+coaching does not make them staff or grant general access to the ministry's records.
+_Avoid_: shared missionary login, coach as staff, coach as unrestricted viewer
+
+**Coaching access** (Phase 28 D8):
+The permission to view specified coaching information for a particular ministry
+context. It is distinct from receiving or accepting an invitation, being a coach
+elsewhere, and permission to change the underlying records.
+_Avoid_: invitation as access, organization-wide coach access by implication,
+read access as editing permission
+
+**Ongoing coaching sharing** (Phase 28 D11):
+A deliberately maintained coaching share without a missionary-selected end date,
+where the organization permits it. It can be stopped or given an end date and
+remains subject to current permissions and required reviews. It is distinct from
+permanent access, automatic renewal and the dates of shared financial history.
+_Avoid_: forever access, missing expiry as permission, ongoing as automatic renewal
+
+**Organization-managed missionary resource library** (Phase 28 D12):
+A collection of useful materials prepared and published by authorized organization
+curators for missionaries who are permitted to use them. The initial ordinary
+missionary experience is to find and use resources, without submitting material
+for publication. Managing the library is a separate responsibility; publishing
+internally does not make a resource public, and removing it from the library is
+distinct from deleting the underlying material.
+_Avoid_: every staff member as publisher, upload as publication, internal as public,
+library withdrawal as deletion, resource use as completed training
+
+**Regional ministry discovery** (Phase 28 D13):
+An organization-controlled way for missionaries to explore eligible public ministry
+listings by approved broad region, using a list or world map. The organization can
+turn this workspace feature on or off. It is distinct from private worker locations
+and from whether a ministry page is independently published or publicly discoverable.
+_Avoid_: live missionary tracker, map position as residence, discovery On as publication,
+discovery Off as unpublishing, missionary login as private location access
+
+**Native appointment** (Phase 28 D14):
+An intentionally scheduled relationship-work meeting with a defined time interval
+and timezone, managed in Asym. Its schedule, cancellation and separately recorded
+actual outcome are distinct facts. A task due date or calendar copy does not by
+itself establish an appointment or prove that a meeting occurred.
+_Avoid_: due date as meeting time, calendar acceptance as attendance, elapsed time
+as completed interaction
+
+**Managed calendar copy** (Phase 28 D14):
+An optional copy of an eligible Asym appointment deliberately added to a connected
+calendar, with later Asym schedule changes and cancellation reflected there.
+The native appointment remains authoritative; connecting alone selects no
+appointments. The copy's delivery/currentness and removal are distinct from the
+native appointment, and a calendar entry does not prove a meeting occurred.
+_Avoid_: full calendar sync, calendar as CRM authority, Connected as up to date,
+invitation as attendance, disconnect as proven external deletion
+
+**Connected-account personal email** (Phase 28 D15, ratified):
+An individual email deliberately written in Asym and submitted through the
+missionary's own supported connected account, within current organization and
+source permissions. Its actual sending outcome is recorded without requiring a
+second manual entry. Connecting or saving a draft sends nothing; provider
+acceptance is distinct from delivery, a reply or a personal exchange. Contact
+sharing does not share private email content, and connection does not imply inbox
+import or reply synchronization.
+_Avoid_: connected as authorized to contact, provider accepted as delivered,
+unknown as safe to resend, personal account as consent exemption, email as shared note
+
+**Missionary-managed fundraising goal** (Phase 28 D16, ratified):
+A source-owned fundraising target that a missionary may set or change directly
+when the organization permits that action for the eligible missionary or project.
+The organization permits or disables missionary editing; setting a goal remains
+optional. Permission to edit is distinct from the goal's existence, visibility
+and public use. A shared project goal remains one target wherever it appears. Changing the
+target does not itself change an approved finance plan, gifts or commitments.
+_Avoid_: permission as obligation, staff-managed as hidden or deleted, goal as
+approved need or spendable money, project participation as editing authority
+
+**Reviewed contact-list intake** (Phase 28 D17, ratified):
+An organization-permitted missionary's deliberate file-based intake of eligible
+contact assertions into the permitted workspace, after reviewing mapping,
+proposed effects and problems. Newly supplied assertions retain their restricted
+start. Importing records a source assertion and its actual accepted outcome; it
+does not independently verify identity or accuracy, merge people, grant contact
+permission, share contacts, enroll recipients or establish financial support.
+Retry and reimport retain qualified provenance rather than creating fresh effects
+from a lost response. This meaning does not claim an implemented import service.
+_Avoid_: upload as accepted import, imported as verified, matching as merging,
+spreadsheet status as consent, source row count as unique people
+
+**Newsletter writing help** (Phase 28 D18, ratified):
+Optional assistance with eligible newsletter wording that the author deliberately
+requests, reviews and chooses whether to use under the organization's AI controls.
+A suggestion is a proposed wording change, not a verified fact, saved draft edit
+or authorization to send. The author's ordinary writing and sending work remain
+available without assistance. The corrected decision and required safeguards are
+ratified; this meaning does not establish an implemented or qualified assistant.
+_Avoid_: autonomous author, voice guarantee, generated as approved, Use as Send,
+tenant AI access as permission to use every data source
+
+**First-support follow-up** (Phase 28 D19, ratified):
+An eligible internal personal-follow-up task recognizing the beginning of a
+supporter's qualifying recorded monetary support for an exact ministry/project,
+even if that supporter gives elsewhere in the organization. Qualified source
+history establishes first support; a visible list, new worker or recurring plan
+does not. The existing Independent follow-up task contract records personal work
+without changing gift truth or manufacturing an interaction. Task creation grants
+no contact authority and sends no message. The corrected decision and safeguards
+are ratified; this meaning does not establish an implemented or qualified producer.
+_Avoid_: new organizational donor, first visible gift, first recurring payment,
+Done as thanks sent, recognition as contact permission
+
+**Grouped special-gift follow-up** (Phase 28 D20, ratified):
+One current personal follow-up for compatible qualifying gifts from the same
+supporter to the same ministry/project, with each gift retaining its own identity
+and evidence. Handling applies to the clearly included gifts; later unhandled
+gifts remain work, and handling does not mean a message was sent.
+_Avoid_: merged gifts, one lifetime task per supporter, all-current-gifts completion,
+Done as thanks sent
+
+**Giving-history context** (Phase 28 D21, ratified):
+Permitted recorded giving information that helps a person understand a supporter
+and deliberately decide on follow-up. A difference from earlier gifts alone is
+not qualification for automatic special-gift attention. Qualified first-support
+history and other independently authorized financial purposes keep their own
+meaning; manual follow-up does not classify the gift or prove communication.
+_Avoid_: larger as automatically special, missing commitment as zero, no task as
+no follow-up needed, a saved inference flag as source proof
+
+**Amount-based follow-up** (Phase 28 D22, ratified):
+An optional organization-wide policy, explicitly chosen without workspace
+overrides, that can qualify personal follow-up from one eligible gift's amount.
+The policy starts Off and uses a positive inclusive threshold per
+supported currency against source-certified support for the exact Party and
+ministry. It preserves legal/recognized meaning and existing task ownership;
+it does not infer extra support, rate a donor or send a message.
+Prospective edits/Off preserve admitted work and current source correction,
+while re-enable never sweeps history or revives never-admitted old candidates.
+Amounts, scope, authority and exact coverage remain distinct from task display.
+
+**Personal activity target** (Phase 28 D23, ratified):
+An optional planning comparison between a missionary's chosen quantity and
+qualified recorded activity for an explicit ministry/workspace scope and period.
+The founder selected supported activity types with personal customization, not
+new activity types. The existing P28 Support-Raising Goal Version owns the target;
+interaction and communication owners retain occurrence, outcome and participation
+truth. Calls made and actual conversations are separate, potentially overlapping
+measures: five calls including two conversations are not seven activities.
+A recorded count does not establish all real activity, effort, compulsory logging,
+financial performance or staff/coach/public disclosure. Its weekly, monthly or
+custom period and chosen quantity remain distinct from corrected recorded
+activity; pausing a comparison does not erase the underlying activity.
+_Avoid_: target owner as logger, task Done as encounter, missing records as no
+activity, overlapping counts as a combined score, target choice as sharing
+
+**Coaching check-in questions** (Phase 28 D25, ratified):
+Optional organization-authored guidance for a missionary's voluntary written
+coaching check-in. The missionary may answer any, skip others or write personal
+context without questions. Maintaining questions grants no right to read answers.
+Drafting, deliberately sharing a narrative, and sharing numeric activity summaries
+are separate actions; reusable wording must not reinterpret existing answers.
+_Avoid_: required report, response access through template ownership, autosave as
+sharing, question removal as withdrawal, numeric sharing as narrative consent
+
+**Coaching activity summary** (Phase 28 D24, ratified):
+An optional read-only overview of deliberately shared personal activity targets
+and compatible qualified recorded counts for an exact coaching context and
+period. The founder selected continuation into future periods of the same chosen
+target. The ratified amendment retains admitted periods from the reviewed start
+under current rights, duration and qualified retention; it does not include
+previous periods, replacement targets or changed ministry scopes automatically.
+A target's creation is not sharing. Source facts and applicable target versions
+remain authoritative; the summary grants no supporter or individual-activity
+access. Missing or incompatible counts are unavailable, not zero or a performance
+score. Pausing a target and stopping its disclosure are different actions.
+_Avoid_: summary as anonymous, personal label as shared label, retained data as
+permission, future periods as future targets, partial count as complete attainment
+
+**Coaching support summary** (Phase 28 D9):
+An optional, deliberately shared overview of permitted expected support and
+recorded received gifts for a particular coaching context. The measures retain
+their own source meaning, currency, period and currentness; this overview is
+distinct from the Phase 16 Current support summary of an individual commitment.
+It grants no donor-detail, individual-gift, balance or financial-write access.
+_Avoid_: anonymous by aggregation, expected plus received as total support,
+summary eligibility as automatic sharing, gifts as spendable balance
+
+**Shared support-summary history** (Phase 28 D10):
+Eligible earlier financial reporting periods deliberately included in a particular
+coaching share, within the organization's limits and with exact dates shown for
+review. It is distinct from access duration, private coaching history, donor
+detail and a preserved statement of what someone knew or saw in the past.
+Its reviewed historical dates stay fixed until deliberately changed; qualified
+corrected values within those dates may update.
+_Avoid_: retained history as permission, import date as reporting period,
+earlier summaries as all-time access
+
 **Shared-PK subtype**:
 The party topology rule: a subtype row IS its party — same id in the subtype
 table (persons, households, org profiles) and in parties. For people, a
@@ -7528,3 +7815,157 @@ omitted from narrow surfaces and export.
 **Legal Entity scope** (Phase 3 floor):
 A subtract-only financial-record scope inside the Tenant boundary. Entity
 visibility cannot confer Tenant access or widen a field projection.
+
+**Coaching next-step summary** (Phase 28 D26, ratified):
+An optional read-only account of an explicitly selected eligible task for named
+coaches in its exact ministry context. Its reviewed description and currently
+permitted due date/status describe the original task, not a separate coaching
+checklist. Task work, narrative check-ins and disclosure are separate choices.
+New wording, a new task or recipient does not inherit an earlier sharing choice.
+A completed task does not itself prove an interaction, communication or financial
+outcome; ending disclosure does not end the task.
+_Avoid_: task assignment as coach access, future tasks as included, private title
+as automatically shared wording, coaching status as a second task truth
+
+**Preparation resumption** (Phase 28 D27, ratified):
+A returning missionary's deliberate choice to include their own eligible saved
+preparation in their current work within the same organization and ministry,
+under current permission to use that history. It continues the original
+preparation and preserves its authorship and Active/Archived state. It does not
+restore old permissions, share private work, restart outreach or promise permanent
+retention. Deliberately resuming eligible preparation before expiry ends that
+entry's departure deadline and brings it under normal current-work retention
+rules; unselected preparation keeps its deadline. Return to active prospects
+remains the distinct choice for archived preparation.
+_Avoid_: account restoration, copied contact, inherited history access, automatic
+unarchive, resumption as newly verified information
+
+**Post-departure preparation retention** (Phase 28 D28, ratified):
+The organization's finite period for keeping eligible unshared preparation for
+the original author's possible return after a confirmed departure. Keeping it
+does not preserve access, share it with staff or coaches, or promise recovery
+after expiry. Deliberately resumed eligible preparation leaves this departure
+schedule for normal current-work retention; its original history remains intact.
+Required evidence and other records follow their own rules.
+_Avoid_: grace login, permanent private archive, account-deletion policy,
+financial-record retention, guaranteed recovery window
+
+**Donor-stated additional support** (Phase 28 D29, ratified):
+An attributable explicit donor statement that an exact eligible gift or precisely
+identified portion is additional support. It need not have a named appeal or
+specific one-time need. This purpose is distinct from gift size, mathematical
+excess above a commitment, financial designation, commitment application and
+permission to contact the donor. Its factual reason may accompany the existing
+personal follow-up without creating another gift or duplicating handled work.
+_Avoid_: one-time payment as additional purpose, inferred special gift, above
+commitment, mutable financial label, confirmation as a new access grant
+
+**Gift for a specific one-time need** (Phase 28 D30, ratified):
+An exact eligible received gift or identified portion whose donor-accepted
+purpose is a concrete, bounded one-time need. This purpose is independent of
+additional support, payment frequency, gift size and commitment application.
+It may supply a factual reason in the existing personal follow-up under the
+organization's policy, without creating another gift or replaying handled work.
+Funding or closure alone does not erase that purpose. The organization can
+enable this follow-up reason through one organization-wide setting, initially
+Off; no blanket confirmation or disclosure permission follows.
+_Avoid_: campaign tag as donor intent, one-time payment as one-time purpose,
+funded as automatically closed, extra support, new Need ledger, task as receipt
+
+**Confirmed commitment excess** (Phase 28 D31, ratified):
+The exact part of an eligible received gift that the financial owner proves is
+above the applicable recorded commitment, using that gift's lawful association,
+original terms, scope and currency. Any positive amount may supply a factual
+reason in the existing personal follow-up without a separate minimum. It is not
+an inference that the donor intended additional support. Unmatched money, a larger
+installment, fee cover or a later reduction of a commitment does not establish it.
+Corrections preserve original evidence and handled work without changing money.
+_Avoid_: larger-than-usual gift, unapplied remainder, donor-stated additional
+purpose, overpayment, extra money ledger, rounded display as qualification
+
+**Combined gift and fulfillment follow-up** (Phase 28 D32, ratified):
+An arrangement in which a missionary deliberately handles compatible gift thanks
+and fixed-commitment celebration together while each purpose retains its own
+meaning, evidence and completion. One organization-wide choice can keep these
+follow-ups separate without removing either required purpose. Handling one does not claim
+the other was handled, and neither means that money changed or a message was sent.
+_Avoid_: merged gift and pledge, receipt as personal thanks, one task status as
+all-purpose evidence, combination Off as follow-up cancellation
+
+**Missionary gift reporting** (Phase 28 D33, ratified):
+An organization's optional permission for a missionary to deliberately report a
+gift actually received for the organization and see its permitted intake status.
+It starts off unless the organization enables it. Finance continues the same
+intake; a report is not recorded support, bank clearance, a receipt or financial
+authority. Turning it Off stops new reports while preserving accepted
+intake and separately permitted handling and status.
+_Avoid_: missionary donation ledger, promise as actual receipt, report as posted
+money, assignment as custody, reporting permission as finance power
+
+**Expired-referral history** (Phase 28 D34, ratified):
+A limited view of a referral whose ordinary follow-up window has ended. When the
+organization and current source/privacy rules permit, a missionary may recognize
+eligible prior referral work through approved identifying information, without
+contact details or private referral context. It does not continue the referral,
+grant contact permission, alter other valid relationships or extend retention.
+Expiry describes the referral, not the person's interest or value.
+_Avoid_: archived contact as permanent access, expired person, donor refusal,
+history as renewal, former assignment as permission, private-context snapshot
+
+**Referral continuation** (Phase 28 D35, ratified):
+A deliberate authorized return of an eligible expired referral to active work
+on the same source lineage, preserving its original introduction and prior
+history. Organization permission and current scoped authority determine who may
+act; staff retain independent rights. The single missionary control
+starts Off for new/unconfigured tenants. Turning it Off stops new missionary
+continuations without undoing accepted work. Continuation supplies neither contact
+consent nor a completed interaction and does not restore revoked permissions or
+erased context. After continuation, the organization's configured follow-up period applies.
+_Avoid_: generic contact restore, history as action permission, automatic renewal,
+retry as fresh intent, continuation as donor response, Off as history deletion
+
+**Continued referral period** (Phase 28 D36, ratified):
+The organization's finite follow-up window for an eligible referral deliberately
+returned to active work, shown to the missionary without an individual date
+choice. It does not supply contact permission or extend personal-data retention.
+_Avoid_: task due date, automatic renewal, access grant, activity-reset timer
+
+**Starting guide** (Phase 28 D37, ratified):
+Optional organization-provided suggestions that help a missionary find useful
+resources and ordinary workspace actions. The organization can offer, edit or
+disable the guide; using or skipping it does not complete work or grant access.
+_Avoid_: required course, onboarding gate, second task list, completion score
+
+**New referral period** (Phase 28 D38/D39, ratified):
+The organization's finite follow-up period for a referral's first work window,
+configured independently from the continued referral period. The two periods
+may be equal. It counts calendar days including the original referral date; the
+missionary sees the last day to follow up. Recording an old introduction does
+not itself establish a fresh window.
+_Avoid_: initial period as contact permission, import time as an assumed start,
+linked or inherited continued period, personal date override
+
+**Original referral date** (Phase 28 D39, ratified):
+The date a particular referral was given to its recipient, distinct from when
+it was entered into Asym. The initial period counts calendar dates
+from this event; the missionary sees the last day to follow up. Later recording
+does not restart the period, and a date that is not known stays unconfirmed.
+_Avoid_: record creation as referral date, date correction as renewal,
+expired person, referral age as contact permission
+
+**Informational recurring miss** (Phase 28 D40, ratified):
+A confirmed scheduled automatic gift that was not received after recovery ended,
+while regular future giving remains scheduled. It remains visible in permitted
+gift history and does not itself require a review or outreach task. The current
+schedule and any independent attention needs remain distinct. A missionary may
+choose ordinary follow-up when useful and permitted.
+_Avoid_: donor debt, lapsed supporter, no task means no possible need, notice as
+financial truth, scheduled as guaranteed
+
+**Contact-update feed** (Phase 28 D41, ratified; excluded from this release):
+An ongoing connection intended to keep contact details current in another
+fundraising tool. It is distinct from a giving-information connection, inbound
+contact intake and a separately permitted one-time communication or export.
+Its absence does not change the information those independent purposes may use.
+_Avoid_: giving feed as address-book sync, contact editing as export permission,
+no contact feed as no external disclosure

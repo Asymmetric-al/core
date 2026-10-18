@@ -1,0 +1,863 @@
+{
+  "all_checks_pass": true,
+  "assumptions": [
+    "One exact tenant/newsletter/address state; exact string equality is a fixture, not email canonicalization policy.",
+    "Intent identity represents a deliberate human action; transport retries retain it.",
+    "Intent/receipt storage and restriction checks are durable and serialized in the abstract model.",
+    "Current trusted Auth evidence and source state are supplied at one abstract commit boundary.",
+    "Revision-change rejection is conservative; it forbids using stale evidence, not a mandatory extra confirmation screen.",
+    "No send, confirmation completion, expiry/retention rule or protected access is implemented."
+  ],
+  "check_count": 35,
+  "checks": [
+    {
+      "expected": "Counterexample found: a genuine new rejoin remains blocked.",
+      "name": "N01_address_forever_dedupe_blocks_valid_rejoin",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "event": "first_human_join"
+        },
+        {
+          "active": false,
+          "event": "withdraw"
+        },
+        {
+          "active": false,
+          "event": "fresh_human_rejoin",
+          "outcome": "deduped_by_address"
+        }
+      ]
+    },
+    {
+      "expected": "Counterexample found: a new transport key revives withdrawn membership without new human intent.",
+      "name": "N02_transport_key_only_revives_old_intent",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "event": "original_join",
+          "key": "http-1"
+        },
+        {
+          "active": false,
+          "event": "withdraw",
+          "key": null
+        },
+        {
+          "active": true,
+          "event": "old_human_intent_retry",
+          "key": "http-2"
+        }
+      ]
+    },
+    {
+      "expected": "Counterexample found: stale preview evidence activates membership.",
+      "name": "N03_preview_only_proof_admits_after_revocation",
+      "pass": true,
+      "trace": [
+        {
+          "current_qualified": false,
+          "naive_active": true,
+          "preview_qualified": true
+        }
+      ]
+    },
+    {
+      "expected": "Same or changed transport keys return the old receipt; current state stays withdrawn.",
+      "name": "R01_old_accepted_intent_never_reapplies",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-1",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-1",
+          "original": "joined",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-2",
+          "original": "joined",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "A deliberate new intent after withdrawal admits once.",
+      "name": "R02_fresh_deliberate_rejoin_allowed",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-1",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-1",
+          "original": "joined",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-2",
+          "original": "joined",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 1
+        },
+        {
+          "active": true,
+          "admission_effects": 2,
+          "event": "join",
+          "key": "http-3",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Withdrawal fences an old intent even when no previous Join receipt exists.",
+      "name": "R03_unsubmitted_old_intent_fenced",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "delayed-http",
+          "outcome": "stale_withdrawal_generation",
+          "replay": false,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Every serialized ordering ends withdrawn; no pre-withdrawal intent revives it.",
+      "name": "R04_two_tabs_and_withdraw_tab-a_tab-b_withdraw",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "already_active_noop",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Every serialized ordering ends withdrawn; no pre-withdrawal intent revives it.",
+      "name": "R04_two_tabs_and_withdraw_tab-a_withdraw_tab-b",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "stale_withdrawal_generation",
+          "replay": false,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Every serialized ordering ends withdrawn; no pre-withdrawal intent revives it.",
+      "name": "R04_two_tabs_and_withdraw_tab-b_tab-a_withdraw",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "already_active_noop",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Every serialized ordering ends withdrawn; no pre-withdrawal intent revives it.",
+      "name": "R04_two_tabs_and_withdraw_tab-b_withdraw_tab-a",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "stale_withdrawal_generation",
+          "replay": false,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Every serialized ordering ends withdrawn; no pre-withdrawal intent revives it.",
+      "name": "R04_two_tabs_and_withdraw_withdraw_tab-a_tab-b",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "stale_withdrawal_generation",
+          "replay": false,
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "stale_withdrawal_generation",
+          "replay": false,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Every serialized ordering ends withdrawn; no pre-withdrawal intent revives it.",
+      "name": "R04_two_tabs_and_withdraw_withdraw_tab-b_tab-a",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "stale_withdrawal_generation",
+          "replay": false,
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "stale_withdrawal_generation",
+          "replay": false,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Distinct deliberate tab intents converge on one active membership without a second effect.",
+      "name": "R05_two_tabs_join_once_tab-a_tab-b",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "already_active_noop",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Distinct deliberate tab intents converge on one active membership without a second effect.",
+      "name": "R05_two_tabs_join_once_tab-b_tab-a",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-b",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "tab-a",
+          "outcome": "already_active_noop",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Changed evidence cannot commit using the previously reviewed proof snapshot.",
+      "name": "R06_proof_revoked",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-change",
+          "outcome": "current_evidence_review_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Changed evidence cannot commit using the previously reviewed proof snapshot.",
+      "name": "R06_proof_replaced_same_address",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-change",
+          "outcome": "current_evidence_review_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Changed evidence cannot commit using the previously reviewed proof snapshot.",
+      "name": "R06_account_revision_changed",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-change",
+          "outcome": "current_evidence_review_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Changed evidence cannot commit using the previously reviewed proof snapshot.",
+      "name": "R06_email_changed",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-change",
+          "outcome": "current_evidence_review_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Changed evidence cannot commit using the previously reviewed proof snapshot.",
+      "name": "R06_email_ABA_same_string",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-change",
+          "outcome": "current_evidence_review_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Current principal/session mismatch prevents the original direct Join.",
+      "name": "R07_signed_out",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-session",
+          "outcome": "current_reader_unavailable",
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Current principal/session mismatch prevents the original direct Join.",
+      "name": "R07_different_account",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-session",
+          "outcome": "current_reader_unavailable",
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Ordinary confirmation is required; this model neither sends nor completes it.",
+      "name": "R08_guest",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-fallback",
+          "outcome": "confirmation_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Ordinary confirmation is required; this model neither sends nor completes it.",
+      "name": "R08_unqualified_proof",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-fallback",
+          "outcome": "confirmation_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Ordinary confirmation is required; this model neither sends nor completes it.",
+      "name": "R08_different_address",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-fallback",
+          "outcome": "confirmation_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "A current restriction blocks admission; later lifting it does not replay the old intent.",
+      "name": "R09_restriction_rechecked_and_old_rejection_terminal",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-blocked",
+          "outcome": "current_restriction",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-blocked-retry",
+          "original": "current_restriction",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Fresh intent is insufficient while a current stronger restriction applies.",
+      "name": "R10_fresh_rejoin_does_not_clear_broader_restriction",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-first",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "withdraw",
+          "outcome": "withdrawn",
+          "withdrawal_generation": 1
+        },
+        {
+          "active": false,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-rejoin",
+          "outcome": "current_restriction",
+          "replay": false,
+          "withdrawal_generation": 1
+        }
+      ]
+    },
+    {
+      "expected": "Off selects the confirmation branch; On cannot resurrect that old immediate-Join attempt.",
+      "name": "R11_off_on_does_not_replay_old_intent",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-off",
+          "outcome": "confirmation_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-on-retry",
+          "original": "confirmation_required",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "A later deliberate eligible Join may use the currently enabled branch.",
+      "name": "R12_new_intent_after_on_can_join",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-off",
+          "outcome": "confirmation_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-on-retry",
+          "original": "confirmation_required",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-new",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "No missing-policy default silently permits proof reuse.",
+      "name": "R13_unknown_policy_not_on",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-unknown",
+          "outcome": "policy_unavailable",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "A foreign intent cannot use this source or receive a stored receipt.",
+      "name": "R14_exact_tenant_scope",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-foreign",
+          "outcome": "scope_rejected",
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "An old identity cannot be rebound to a different destination.",
+      "name": "R15_same_intent_changed_payload_conflicts",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-1",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-2",
+          "outcome": "intent_payload_conflict",
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Turning proof reuse Off neither removes accepted membership nor reapplies its Join.",
+      "name": "R16_off_preserves_accepted_membership",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-1",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-replay",
+          "original": "joined",
+          "outcome": "receipt_only",
+          "replay": true,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "A historical receipt is not unconditional permission to disclose its result.",
+      "name": "R17_recovery_checks_current_reader",
+      "pass": true,
+      "trace": [
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-1",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-recover",
+          "outcome": "current_reader_unavailable",
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Signing in alone cannot turn an earlier guest request into an immediate qualified-account Join.",
+      "name": "R18_signin_does_not_upgrade_old_guest_intent",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-after-signin",
+          "outcome": "confirmation_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    },
+    {
+      "expected": "Fresh deliberate intent with the replacement qualified proof remains eligible.",
+      "name": "R19_current_qualified_new_intent_not_permanently_blocked",
+      "pass": true,
+      "trace": [
+        {
+          "active": false,
+          "admission_effects": 0,
+          "event": "join",
+          "key": "http-stale-proof",
+          "outcome": "current_evidence_review_required",
+          "replay": false,
+          "withdrawal_generation": 0
+        },
+        {
+          "active": true,
+          "admission_effects": 1,
+          "event": "join",
+          "key": "http-current-proof",
+          "outcome": "joined",
+          "replay": false,
+          "withdrawal_generation": 0
+        }
+      ]
+    }
+  ],
+  "model": "D42 new bounded Join intent and withdrawal-generation model",
+  "naive_counterexamples": 3,
+  "not_proved": [
+    "Supabase Auth/newsletter database cross-service atomicity or proof freshness.",
+    "Actual SQL transactions, locking, unique constraints, RLS, HTTP/CSRF or token authenticity.",
+    "Human intent authenticity, duplicate keys across real workers, crash recovery or durable receipt retention.",
+    "Production eligibility, global suppression qualification, identity ownership, privacy-safe UI or accessibility.",
+    "Policy for pending confirmation after Page-entry Off, numerical proof lifetime or email delivery."
+  ],
+  "research_date": "2026-10-18 Asia/Bangkok",
+  "source_sha256": "1bb4c826b91a25f02100dfa8840d1582e91ee0b38df16a7e3647fdc6b31af496",
+  "two_tab_withdrawal_serial_orders": 6
+}

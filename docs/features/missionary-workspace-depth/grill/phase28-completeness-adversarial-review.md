@@ -1,0 +1,845 @@
+# Phase 28 — completeness challenge and required closure
+
+October 18, 2026 (Asia/Bangkok). Core `9cada8f3d8ab59db391d3fd20df77fcadeb09813`
+and its research working tree. **The corrected decision and C01–C20 are explicitly
+ratified on October 18, 2026 (Asia/Bangkok), including C04 and C05. P01–P36 remain
+future proof obligations. This is not formal publication, implementation or release proof.**
+
+**No. Phase 28 is not complete.** The selected feature breadth is substantial,
+but the earlier claim that the decision frontier was empty was too strong.
+Essential first-use, ministry-context and daily-work journeys have not been
+assembled into qualified complete journeys. This review now supplies ratified
+composition requirements and resolves its two policy recommendations as planning
+intent. Six earlier amendment packets retain selected/reviewed status. Actual source,
+accessibility, migration and representative-user qualification is also missing.
+
+**Final disposition: Reject and replace the prior closure conclusion.** Retain
+the selected D1–D41 directions and each decision's exact adoption status. This
+rejects neither the native workspace nor D41's ratified contact-feed exclusion.
+The correction is a smaller, clearer completion contract, not more speculative
+features or a questionnaire asking the founder to discover missing journeys.
+
+## Exact corrected decision to record
+
+> Phase 28's broad product direction is selected, but its decision and journey
+> closure is incomplete. Complete organization setup and first use, ordinary
+> authorized ministry-context entry and switching, and the connected daily
+> task–actual outcome–Request–next-work journey using existing source owners.
+> Preserve the already selected negative, exit, privacy and optional-feature
+> paths. Explicitly dispose of the P9/P14 financial-support policy deferred to
+> P28 and the remaining recurring-attention task promise, and reconcile the
+> surviving amendments of D1, D3, D6, D11, D12 and D13. Keep E7 and C-01 as
+> explicit upstream policy gates. Neither an answered feature checklist nor
+> documentary verification establishes implementation or release completion.
+> C01–C20 below are the ratified completion amendments. C04 and C05 now settle
+> the two reviewed policy choices; coordinated formal owner reconciliation and
+> actual qualification remain required. The six earlier packets retain their
+> separate status under C07.
+
+The review answers the founder's completeness question. It does not invent a
+D42 answer. `/to-prd` and `/to-issues` remain the founder's explicit later
+transitions under the [brief](phase28-founder-brief.md:21). No application,
+schema, canonical ADR/OpenSpec, GitHub, live configuration or communication was
+changed. The [original synthesis](completion-evidence/coverage-before-review.txt)
+and [original session](completion-evidence/session-before-review.txt) are preserved.
+
+## Explicit ratification
+
+The founder instructed: “Ratify this decision and amendment. Then continue with
+this phase 28 grill-with-docs session. decide where we go next. use the
+/grill-with-docs skill”. This adopts the corrected completeness decision and
+C01–C20, including the source-specific financial-support disposition in C04 and
+explicit recurring-task scope narrowing in C05. It accepts P01–P36 as future
+proof requirements and the review's bounded operational safeguards. It does not
+claim that those tests passed.
+
+C07 deliberately keeps D1/D3/D6/D11–D13 surviving amendments separate; this
+ratification is not their bulk adoption. E7/C-01 remain upstream rulings. The
+next meaningful decision was [Q42, new newsletter confirmation](phase28-q42-newsletter-confirmation-research.md),
+not a reopened C04/C05 choice. The founder has since selected B; the
+[D42 review](phase28-d42-verified-email-newsletter-signup-adversarial-review.md)
+records that answer with amendments now explicitly ratified. It does not ratify
+the remaining D6 packet or change this review's C01–C20. `/to-prd` and
+`/to-issues` have not been invoked, so formal owner/ADR/OpenSpec publication,
+implementation and tickets remain outside this session.
+
+The [pre-ratification review](post-completion-evidence/review-before-ratification.txt),
+[coverage](post-completion-evidence/coverage-before-ratification.txt) and
+[session](post-completion-evidence/session-before-ratification.txt), together
+with all original completion evidence, are pinned in the
+[new preservation manifest](post-completion-evidence/ratification-evidence-sha256.json).
+The earlier concern analysis below records the gaps that justified the adopted
+amendments; an original recommendation's historical wording is not a new open
+question where this ratification has expressly settled it.
+
+## Evidence, certainty and research
+
+Five independent review streams challenged journeys, governing policy, reached
+source, lifecycle composition and current product comparisons. Their detailed
+evidence is retained here:
+
+- [Journey coverage and counterexamples](completion-evidence/journey-coverage.md).
+- [Owner policy and authority](completion-evidence/owner-governance.md).
+- [Current source and safety](completion-evidence/current-source-and-safety.md).
+- [Lifecycle and control effects](completion-evidence/lifecycle-tenant-controls.md).
+- [Primary UX/product research](completion-evidence/ux-primary-research.md).
+- [Root research and evidence limits](completion-evidence/root-research.md).
+
+**Repository facts:** P9/P27 own relationship work and its source truth;
+ADR0183 requires actual source-owned work and concrete actions; P13/P14/P16/P21
+own financial facts. P14 explicitly defers its graph-edge policy choice to P28.
+The detailed decisions already cover many cancellation/withdrawal/return paths.
+These are documented intent, not proof of the mounted application's behavior.
+
+**Verified external facts:** current official product documents describe task
+completion alongside voluntary activity recording and follow-up; purpose-specific
+subscription controls; and resource-specific deactivation consequences. These
+are vendor-documented behaviors, not authenticated comparative usability tests.
+The evidence notes distinguish successful page reads, unavailable pages and
+older evidence. No ministry interview, pilot, production incident frequency or
+competitor conversion statistic was invented.
+
+**Inference:** joining these existing functions will reduce repeated entry and
+wrong-context work. **Product judgment:** a concise first-use view, visible
+context and contextual actions are preferable to a compulsory wizard or new
+workflow engine. **Unknown:** actual multi-ministry frequency, representative
+data volumes, task-success times and whether ministries need an automatic
+recurring-review obligation. Those unknowns are not claims of user demand.
+
+The [GOV.UK whole-problem standard](https://www.gov.uk/service-manual/service-standard/point-2-solve-a-whole-problem)
+(updated January 29, 2026) supports joining related services around the user's
+job while avoiding a large complicated product. Its
+[multiple-task guidance](https://design-system.service.gov.uk/patterns/complete-multiple-tasks/)
+also says to simplify the transaction before adding a task-list pattern. Apply
+those principles, not GOV.UK styling or a second component system.
+
+MPDX, TntConnect and HubSpot comparisons support connecting actual activity and
+next work without equating a checked task with a conversation. GoFundMe and
+Mailchimp show why purpose/channel controls need explicit meaning. HubSpot,
+Asana and Atlassian show that removing a user, retaining work and restoring
+access are different effects. Their broad administrator-transfer or same-email
+restoration patterns are **not adopted** where they conflict with D3/D27/D28.
+The linked research notes provide exact primary URLs and the limits of each
+comparison. Missionary coaching/resources and D37's optional guide remain
+covered; this review found no evidence that adding a course, coaching chat or
+compulsory training completes the missing journeys.
+
+## What is missing, and what is already covered
+
+| Journey                                                                  | Assessment                                                                                                | Permanent treatment                                                                                               |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Organization configures and offers a usable workspace                    | Essential composition missing; settings are individually described, first-use readiness is not assembled. | C01: existing settings plus truthful capability readiness and a useful baseline with optional features Off.       |
+| Maya enters, switches ministry and resumes safely                        | Essential ordinary-user composition missing. Coach portfolio rules are not the missionary entry contract. | C02: zero/one/multiple authorized contexts, visible subject, current admission, isolated pending work.            |
+| Daily task → actual attempt/meeting → Request response → next work       | Components are covered; their connected action, return and partial-success contract is incomplete.        | C03/C08: existing owners, optional truthful recording, reusable context, source-owned next work or exception.     |
+| Continuing relationships versus financial supporter history              | P28-deferred policy resolved by ratified C04; formal owner reconciliation remains.                        | C04 retains purpose-specific graph/recognition predicates and an independently authorized relationship workspace. |
+| Recurring-support attention beyond D40's one miss                        | Ratified C05 explicitly narrows the unproved additional automatic-task promise.                           | C05 preserves factual views, manual follow-up and independent staff/donor duties.                                 |
+| Find/import/correct/share preparation; archive/leave/return              | Selected direction, extensive local rules; D1/D3 details retain separate status.                          | Preserve D1–D5/D17/D27/D28; qualify joined source, admission, retention and restore behavior.                     |
+| Referral dates, expiry, limited history and continuation                 | Selected and detailed.                                                                                    | Preserve D34–D39; prove calendar-date versus continued-period boundaries and current authority.                   |
+| Requests, appeals, appointments, nonfinancial/church/household work      | Inherited P9/P27 scope; D14 and D19 already cover outcomes and ordinary disposition.                      | Compose these existing jobs; do not invent a church engine, required interaction or financial conversion.         |
+| Gift/commitment stewardship, goals and finance intake                    | Selected and detailed; current implementation is not qualified.                                           | Retain D16/D19–D22/D29–D33 and financial owners; C09/C11 require correct source and money semantics.              |
+| Native newsletter signup, issue preparation, send/print, withdrawal      | D6 direction selected, D7 detailed and ratified; D6 amendments and exact producers still open.            | C07/C10/C16; no automatic digest, inbox or guessed consent source.                                                |
+| Invited coach joins, declines, reviews, leaves or loses access           | Existing D8–D11/D23–D26 cover these paths.                                                                | Integrated proof; do not call self-leave or invitation decline missing features. D11 status remains explicit.     |
+| Guide/resources/region discovery, personal email/calendar, AI            | Selected bounded optional capabilities.                                                                   | Existing ownership/defaults; no compulsory guide, false connection or unsupported offline promise.                |
+| Disable, depart, correct, recover, re-enable and restore across surfaces | Individual invariants largely covered; complete cross-owner evidence missing.                             | C06/C08/C12/C15 and the combined proof matrix.                                                                    |
+
+## Coherent experience to carry into the developing design
+
+### Organization setup and first use
+
+Use the existing Mission Control settings and missionary Home. Staff see grouped
+capabilities with their current saved setting, exact scope and a concise
+explanation. **Off**, **not configured**, **temporarily unavailable** and
+**not permitted for this actor** are different conditions. A setting cannot
+activate an unqualified source or grant a role. Readiness is derived from the
+owning services; no second readiness ledger or master Phase28 switch is added.
+
+The baseline lets an authorized missionary reach ordinary native relationship,
+task and appointment work without configuring a goal, coach, AI, personal
+connection or guide. The optional D37 guide is a dismissible/helpful entry in
+the existing workspace, always reachable again when offered. It is never a
+first-login gate or the repair path for missing membership.
+
+Each blocked capability explains the permitted next step: finish a real source
+setup, retry an unavailable service, or contact the existing authorized staff
+route. Do not display a dead button for every disabled optional module, disclose
+hidden setup details, or promise an access-request workflow that does not exist.
+Staff save once; saving, accepted, failed and uncertain outcomes stay visibly
+distinct. A test or preview does not impersonate Maya or grant staff her private
+preparation. Examples are interface copy proposals, not a new status taxonomy.
+
+### Enter the right work context
+
+Show the current organization and ministry in the existing shell wherever an
+action's subject matters. One authorized context opens directly. Several
+contexts use a searchable permitted list; zero contexts gives a truthful access
+or setup state. A load failure must not masquerade as an empty ministry list.
+Saved selection is convenience, never authority. A deep link resolves current
+access before revealing a title, count, person or financial amount.
+
+Switching preserves a saved draft under its original source/context only while
+authorized. If work is unsaved, offer the existing applicable save/discard/cancel
+navigation choices; do not silently move it to the new ministry. A pending save
+may finish in its original scope, but its result cannot paint the new workspace
+or retarget recipients. On return, recover the accepted outcome before offering
+retry. Do not merge staff, missionary and coach permissions into an implicit
+super-role. A context selector is not a new authorization model.
+
+### Complete today's work honestly
+
+Home prioritizes actionable existing work, with date, factual reason and
+responsible actor where permitted. The task detail shows its source and one
+clear next action. Informational missed-gift facts remain separate from tasks.
+Use existing sort/filter conventions; no new urgency score, performance quota
+or dashboard of every optional capability.
+
+An ordinary work item can be completed, rescheduled or given its supported
+disposition. **Record interaction** stays voluntary. If Maya records an attempted
+call, that is an attempt; opening a dialer is not one. A conversation, appointment
+outcome, Request response, commitment and received gift remain different facts.
+Context already entered may be reused within current permission so she need
+not type it repeatedly; a private note is not copied into shared history.
+
+After accepted work, show what actually changed and a contextual next step.
+For actively managed P27 work, retain its next-task-or-owned-exception rule.
+That rule does not enroll early restricted preparation automatically. Declined
+or deferred asks, cancelled meetings, no answer, absent contact methods and
+nonfinancial support remain useful paths. Task completion alone never supplies
+a donor response, consent, promise or payment.
+
+One screen can compose several source actions without pretending they are one
+transaction. Offer a combined action only when its owner contract can guarantee
+the promised effect. Otherwise preserve clear separate accepted results, such
+as “Interaction saved; next task was not saved,” and retry only the missing
+effect. The exact audience and safe copy depend on current source permission.
+
+### Clear controls without a settings maze
+
+| Existing control family                             | What the user must understand                                                                                  | Preserve                                                                       |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Contact actions/fields, goals, imports              | Organization permits specific actions; current role and source still apply.                                    | D5/D16/D17; no universal contact-write switch.                                 |
+| Gift-purpose admission and combined follow-up       | Off or policy changes affect new admission/placement as specified; admitted duties are not silently erased.    | D19–D22/D29–D32; D32 organization-wide combine/separate choice.                |
+| Missionary gift reporting                           | Initially Off. Off blocks new reports; Finance continues already accepted intake.                              | D33; same intake identity and permitted history.                               |
+| Page signup                                         | Controls the doorway; it is not a global newsletter send stop or withdrawal.                                   | D7; D6 pending-after-Off and retention recommendations still require adoption. |
+| Coaching and selected modules                       | Stopping the exact share/module removes its current access; re-enabling does not revive an ended grant.        | D8–D11/D23–D26; independent lawful staff rights remain independent.            |
+| Personal sending/calendar/AI                        | Controls have separate purposes even when a provider credential is shared.                                     | D14/D15/D18; no old sends on reconnect.                                        |
+| Guide/resources/region display                      | Optional availability; no compulsory course or permission expansion.                                           | D12/D13/D37, including their exact adoption status.                            |
+| Referral periods/continuation, retained preparation | Finite owner periods, current rights and consequences; no per-row date choice added to Maya's ordinary action. | D27/D28/D34–D39, including original-date New windows.                          |
+| Missed-gift notice                                  | Information and optional notice settings do not invent an automatic task or donor contact.                     | D40.                                                                           |
+
+Use plain local consequence copy before a consequential change. Routine safe
+edits save directly; do not add confirmation dialogs to every toggle. More
+detail belongs in help/disclosure beside the control, not twenty new settings.
+Preserve the actual ratified defaults rather than making everything Off under
+one new rule. Missing configuration must not silently grant access.
+
+### Visual, mobile and accessible behavior
+
+Preserve Core's exact `base-maia`, Base UI and semantic Zinc tokens from
+`packages/ui`; compose existing fields, lists, buttons, dialogs and status
+patterns. Use concise headings, calm whitespace, one primary action per local
+job and persistent outcome text. Color, hover or a disappearing toast cannot
+be the only indication of permission, saved state, error or expiry.
+
+Keyboard focus follows deliberate navigation, errors link to their fields,
+dialogs return focus and asynchronous results are announced without stealing
+focus. Use the Core touch target guidance (44px minimum hit area on touch
+controls), distinguish it from WCAG2.2 AA's 24CSSpx minimum with exceptions,
+and verify reflow/zoom and screen-reader reading order. No table-only or map-only
+path may prevent the complete phone journey. Do not disable browser zoom.
+
+Localized dates show the relevant timezone when it changes the consequence;
+calendar dates are not silently treated as midnight UTC instants. Preserve
+Unicode names and actual country/address formats, currency code and precision.
+Low-bandwidth use gets honest loading, retry and accepted-outcome recovery.
+No unsupported offline writes or persistent private-device cache is promised.
+These are designed requirements, not a claim that rendered screens were tested.
+
+## Material findings and exact prevention
+
+Likelihood is a qualitative design assessment, not measured incident frequency.
+“High” severity includes wrong business outcomes or loss of useful work;
+“Critical” is reserved for possible unauthorized disclosure/effects. Every
+finding below gives its disposition and the exact C/P clauses that prevent it.
+
+### F01 — Feature coverage was mistaken for journey closure
+
+**Concern:** staff cannot make the baseline usable, or Maya cannot complete a
+whole job despite each feature appearing in a coverage table. This matters at
+activation, first login and every interrupted daily session. **Severity: High;
+likelihood: likely if the current synthesis substitutes for design.** Evidence:
+the brief's whole-journey requirement versus the absent assembled flows in the
+[journey audit](completion-evidence/journey-coverage.md). D19 already covers
+ordinary finish/Not needed; the missing piece is composition, not those features.
+**Effect:** invalidates closure, retains chosen scope. **Permanent fix:** C01–C03,
+C17/C20; P01–P09. Strongest alternative is documenting no new feature and simply
+shipping component screens; that cannot prove the joined job. A compulsory
+wizard would add friction without resolving source or access readiness.
+
+### F02 — Ordinary context selection can mismatch the subject of work
+
+**Concern:** saved selection, late responses or shared credentials expose or
+mutate another ministry's data, or block legitimate multi-ministry work.
+**Severity: Critical for disclosure, High for blocked work; likelihood: plausible.**
+Evidence: the reached portal resolver selects one profile/missionary pair,
+while the owners distinguish organization, Ministry Assignment, Support
+Assignment, Page and role. This is a static readiness discrepancy, not a proven
+production exploit. **Effect:** requires explicit composition and qualification.
+**Permanent fix:** C02/C08/C13/C14; P02–P04/P19/P20. Reuse current source admission,
+not a new local scope store or a broader query that unions every role.
+
+### F03 — Financial-recency policy still has a deferred product choice
+
+**Concern:** old gifts determine whether a continuing relationship exists,
+recognition silently changes every graph consumer, or a current commitment
+disappears at a historical-recency cutoff. **Severity: High; likelihood: likely
+semantic inconsistency if unresolved.** P9 B3 and P14 H4 explicitly have different
+predicates; H4 defers graph upgrade to P28 and uses person-level lapsed wording.
+See [O1](completion-evidence/owner-governance.md#o1--deferred-financial-support-policy-is-still-a-product-decision).
+**Effect:** falsifies an empty decision frontier. **Permanent recommendation:**
+C04, P10–P12. A global v2 upgrade is the strongest alternative, but changes all
+edge consumers without being necessary for authorized relationship continuity.
+The founder has now adopted C04; coordinated formal owner reconciliation remains required.
+
+### F04 — Required recurring attention has no settled missionary job
+
+**Concern:** a generic action-needed label generates make-work, duplicates staff
+repair or implies missionary payment authority; conversely D40 is broadened to
+silently delete a promised requirement. **Severity: High; likelihood: plausible.**
+P16 supplies high-level missionary projection and role-safe source actions;
+P28 still promises a named automatic task without establishing its actual human
+outcome. [O2](completion-evidence/owner-governance.md#o2--required-recurring-attention-work-lacks-an-exact-product-outcome)
+records the exact conflict. **Effect:** requires a policy disposition, not merely
+an event name. **Permanent recommendation:** explicitly narrow the additional
+automatic-task promise under C05/P13/P14. The strongest alternative is a narrowly
+defined required review of stopped automatic support; no independent required
+missionary action was verified, so adding that obligation is not justified now.
+
+### F05 — Reviewed recommendations can be silently ratified
+
+**Concern:** a summary confirmation becomes approval of consent, audience,
+retention, expiry or defaults the founder has not separately adopted.
+**Severity: High where consent/access changes; likelihood: likely if statuses
+are collapsed.** D1/D3/D6/D11–D13 retain selected/reviewed status; D6 includes
+concrete confirmation, pending-after-Off and retention proposals, not just
+engineering details. **Effect:** narrows the completion claim and preserves
+existing decisions. **Permanent fix:** C07/C16/C20, P15/P16/P35; a clause-level
+surviving-delta ledger. Do not ask the founder to reselect already chosen
+directions, or infer adoption from this completeness question.
+
+### F06 — One generic Off/restore meaning would violate several owners
+
+**Concern:** disablement erases accepted duties, leaves a stopped share readable,
+replays sends on re-enable or gives a successor private preparation.
+**Severity: Critical for disclosure/effects, High for lost duties; likelihood:
+plausible.** D24/D33/D40/D30 deliberately have different Off effects; D7 and
+D27/D28 already govern pending work and return. The
+[lifecycle audit](completion-evidence/lifecycle-tenant-controls.md) credits those
+rules and exposes the missing combined proof. **Effect:** adds integrated
+acceptance, not an offboarding feature. **Permanent fix:** C06/C08/C12/C15;
+P17/P18/P21/P22/P30/P31. Reject copied vendor auto-transfer/restore semantics
+where they conflict; retain legitimate independently authorized work.
+
+### F07 — Current task/settings source does not prove accepted outcomes
+
+**Concern:** consumers treat a generic completed checkbox as qualified source
+fulfillment, Save means only local dirty-state reset, or obsolete direct table writes fail under current
+grants. **Severity: High; likelihood: concrete static mismatch in reached paths.**
+The [source audit](completion-evidence/current-source-and-safety.md) traces the
+task PATCH, direct dialog writes, migration grants and local settings behavior.
+The inspected checkbox does not itself create an interaction or fulfill its
+source; the gap is qualified completion authority and composition. No runtime
+or deployed claim follows. **Effect:** blocks treating current code
+as implementation proof. **Permanent fix:** C03/C08/C13/C16/P05–P09/P23; use
+qualified commands and truthful readback. Do not reopen browser grants or add a
+shadow task/configuration authority to make the old UI appear functional.
+
+### F08 — Dashboard numbers and identity masking are not trustworthy yet
+
+**Concern:** raw minor units display as dollars, capped windows present false
+totals, the last day's gifts disappear, or donor-list incompleteness allows a
+donor correlation ID without qualified identity evidence. **Severity: High for
+financial misstatement and privacy risk; likelihood: deterministic source
+consequences for the described qualifying inputs, deployment untested.** The
+privacy observation is not a verified donor-name disclosure. Exact paths/lines
+in the fresh source audit establish the snapshot's 250-gift/250-donor/100-task
+caps and metrics' rolling 13-month window. No deployed API row cap was inspected.
+**Effect:** requires permanent source/consumer correction before claiming
+support visibility complete. **Permanent fix:** C09/C11/C14; P24–P28. No new
+money ledger: use authoritative scoped complete aggregates/projections with
+explicit coverage and anonymity, exact units and source-owned time boundaries.
+
+### F09 — Privileged paths and new-state authorization remain unproved
+
+**Concern:** an allowed edit changes owner/tenant/audience into a forbidden
+state, service-role reads bypass source restrictions, or an export/cache/log
+reveals data the visible page hides. **Severity: Critical; likelihood: plausible,
+effective hosted grants not tested.** Reached service/admin paths, historical
+and current migrations, and broad email negative-consent checks cannot prove
+positive P28 entitlement. **Effect:** release qualification gate, not a claimed
+live breach. **Permanent fix:** C10/C13/C14; P19/P20/P26/P29. Derive authority and
+attribution from trusted context; verify old and resulting states, effective
+grants, RLS, views, functions, RPCs, storage and every privileged derivative.
+
+### F10 — Unresolved source owners can strand required outcomes
+
+**Concern:** native sending uses a guessed preparation producer, a provider
+timeout prompts duplicate sending, or P28 silently decides financial attribution
+or correction approval. **Severity: High; likelihood: plausible under owner
+shorthand.** E7/C-01 remain explicit policy gates; exact P6 preparation/submission
+qualification is distinct from generic email tooling. **Effect:** prevents
+decision/release closure for affected outcomes. **Permanent fix:** C08/C10/C16,
+P08/P15/P29/P32. Preserve required outcome in scope and independent usable work;
+do not label unready sending as disabled-by-tenant or add a direct-provider bypass.
+
+### F11 — UX and accessibility promises lack representative proof
+
+**Concern:** desktop-only flows, vague dates, inaccessible status feedback,
+country assumptions or silent failure prevent field use despite attractive
+screens. **Severity: High for excluded users, Medium for friction; likelihood:
+plausible, no measured frequency.** Current product comparisons support concrete
+action/result patterns; Core's design/accessibility rules and current source
+inconsistencies define the checks. **Effect:** requires C01–C03/C17/C18 and
+P01/P04/P27/P33/P34/P36. Use Core components, truthful copy and complete mobile
+jobs; test with real users and assistive technology. A screenshot or axe pass
+alone is not usability or WCAG proof; no new UI framework is warranted.
+
+### F12 — Missing traceability and rollout evidence enables false completion
+
+**Concern:** a later spec loses decision status, old code consumes new state,
+restored backups revive disposed content, or operations cannot locate the one
+accepted effect. **Severity: High, Critical for restored forbidden access;
+likelihood: plausible.** Current review artifacts are extensive, but formal
+source/version/dependency and executed whole-journey release evidence is absent.
+**Effect:** distinct design, implementation and release gates. **Permanent fix:**
+C07/C12/C15/C16/C19/C20; P30–P36. Additive qualified rollout and minimal durable
+history precede activation; a later risk monitor cannot substitute for them.
+
+## Every requested review category
+
+Each material row references the full concern above (failure, importance,
+severity, likelihood and evidence) and its exact permanent clause/proof. The
+categories are evaluated individually; shared causes are not duplicated as
+different incidents. Twenty-one categories have material completion concerns;
+the last has no additional concern beyond the explicit findings.
+
+| #   | Category                                  | Material concern? What was checked and disposition                                                                                                                                                                                    |
+| --- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Problem validity, necessity, alternatives | **Yes — F01/F03/F04.** Whole jobs, no-build composition and strongest graph/task alternatives checked. Replace closure; C01–C05 avoid feature inflation.                                                                              |
+| 2   | Brittleness                               | **Yes — F02/F06/F10.** Singular contexts, cached permissions, absent sources and changing configurations checked. C02/C06/C08/C16 require current source truth.                                                                       |
+| 3   | Technical debt                            | **Yes — F07/F08.** Legacy task writers, fake persistence and duplicated financial derivation checked. C03/C09/C13 remove shadow authority through existing owners.                                                                    |
+| 4   | Edge cases                                | **Yes — F01/F02/F06/F08.** Zero/multiple contexts, no-answer/declined work, expired access, last-day gifts, late responses and return checked. P01–P36 includes positive and negative paths.                                          |
+| 5   | Footguns                                  | **Yes — F05/F06/F07.** Generic Off, implicit adoption, auto-retry, misleading Save and bulk transfer checked. C06–C08/C12/C16 specify actual effects.                                                                                 |
+| 6   | Tenant safety                             | **Yes — F02/F09.** Tenant plus subject/role/capability boundaries, list counts, cache and pending work checked. C02/C13/C14; P19/P20.                                                                                                 |
+| 7   | Database, RLS and authorization           | **Yes — F07/F09.** Grants versus UI, source keys, immutable attribution, old/new states, privileged APIs and derivative surfaces reviewed statically. C13/C14 require effective runtime proof; money/time constraints C11.            |
+| 8   | Overengineering                           | **Yes — F01/F04/F06.** A new wizard, permission store, settings engine or ceremonial recurring task would increase cost without proving the job. C01/C03/C05/C06 keep finite owner-specific composition.                              |
+| 9   | UX/UI and user friction                   | **Yes — F01/F02/F11.** Discovery/configuration, field work, empty/error/saved states, optionality, localization and accessibility checked. C01–C03/C17/C18 define the experience.                                                     |
+| 10  | Source of truth, ownership, invariants    | **Yes — F03/F04/F07/F08/F10.** Financial graph, recognition, relationship, task, response, consent and money authority checked. C03–C05/C09–C14 preserve distinct owners.                                                             |
+| 11  | Hidden coupling                           | **Yes — F06/F08/F10.** Donor-list membership controls anonymity; provider credentials can couple mail/calendar; owner names can conceal missing producers. C09/C10/C14/C16 remove those assumptions.                                  |
+| 12  | Failure modes                             | **Yes — F07/F10/F12.** Accepted write/lost response, partial sends/readback, uncertain provider effect and source outage checked. C08/C10/C19 and P08/P09/P29/P32 require truthful recovery.                                          |
+| 13  | Lifecycle, time, concurrency, idempotency | **Yes — F02/F06/F08/F12.** Expiry, disable/accept race, same intent in two tabs, corrections, date boundaries and restore checked. C08/C11/C12/C15.                                                                                   |
+| 14  | Data integrity                            | **Yes — F03/F07/F08.** Duplicated source work, clipped metrics, changed attribution and conflated completion checked. C03/C04/C09/C11/C13; P05–P12/P24–P28.                                                                           |
+| 15  | Security and privacy                      | **Yes — F02/F06/F08/F09.** Private preparation, anonymous identity, consent, exports/logs/backups and authority loss checked. C10/C12–C15; no production exploit asserted.                                                            |
+| 16  | Scalability and performance               | **Yes — F08/F12.** Fixed caps and repeated broad snapshot queries cannot establish complete results. C09/C14/C18 require complete bounded queries, appropriate indexes and measured production-shaped budgets.                        |
+| 17  | Operational burden                        | **Yes — F01/F06/F10/F12.** Setup support, ownerless duties, source repair and ambiguous effects checked. C01/C08/C16/C19 require visible responsible repair without manual database cleanup.                                          |
+| 18  | Observability and auditability            | **Yes — F07/F10/F12.** UI success, accepted business history, security attribution and technical traces distinguished. C08/C13/C19 prevent logs being the only acceptance evidence.                                                   |
+| 19  | Dependencies and integrations             | **Yes — F06/F10.** P6/native producer, source versions, provider outages and separate mail/calendar scope checked. C10/C15/C16; no new external contact feed or vendor dependency.                                                    |
+| 20  | Migration, rollout and upgrade            | **Yes — F07/F08/F12.** Retained legacy data, old writer grants, mixed versions, restore and kill switches checked. C15/P30–P32 require qualified transition without backfill-created consent or money.                                |
+| 21  | Testability, traceability and proof       | **Yes — F05/F11/F12.** Selected/adopted/formal/implemented/tested states and whole-journey criteria checked. C07/C18/C20, P01–P36; named tests remain unexecuted.                                                                     |
+| 22  | Other development hazards                 | **No additional material concern found.** Reviewed unsupported defaults, rollback, ownership and maintenance hazards; material instances are already F02/F05/F06/F10/F12. No separate speculative feature or dependency is justified. |
+
+## Exact ratified completion requirements
+
+The founder explicitly adopted C01–C20. They govern the developing design for
+this scope; formal owner projections remain to be reconciled at the authorized
+transition. They do not ratify the separate earlier packets preserved by C07.
+“SHALL” expresses an accepted requirement, not observed compliance.
+
+### C01 — Tenant setup and useful first use
+
+The workspace SHALL provide one coherent path from authorized tenant setup to
+Maya's first useful native work through existing settings and navigation.
+Configured, enabled, source-ready and actor-permitted SHALL remain distinct.
+Required native relationship/task/appointment work SHALL remain useful with all
+optional modules Off when its own prerequisites are qualified. No mandatory
+guide, goal, coach, provider connection or new master feature switch is added.
+Only a real authorized setup/repair destination SHALL be offered.
+
+### C02 — Exact context entry and switching
+
+The ordinary missionary journey SHALL resolve zero, one or multiple currently
+authorized ministry contexts without inferring permission from saved selection,
+email, financial recognition or another role. The effective organization and
+subject SHALL be visible where consequential. Every read, action and recovery
+SHALL retain exact context. Switching SHALL isolate old responses and pending
+work; it SHALL NOT move a draft, recipient or accepted effect to another context.
+
+### C03 — Connected daily work
+
+The design SHALL map task, appointment, actual interaction, Request response,
+commitment and gift to their existing source commands and observable outcomes.
+Task completion SHALL NOT imply any other fact. Optional actual interaction
+recording SHALL reuse currently permitted context without compulsory shared
+history. Managed P27 work SHALL retain its next-task-or-owned-exception rule;
+restricted early preparation SHALL NOT acquire it merely by being displayed.
+Supported negative outcomes SHALL remain first-class ordinary paths. The task's
+immutable server-resolved contract SHALL distinguish source-controlled work
+from independent human follow-up. Source-controlled work SHALL reject generic
+Complete/Reopen/Delete or drag-to-Done through every writer; independent human
+follow-up may finish without closing its linked source.
+
+### C04 — Financial support and relationship continuity: ratified policy
+
+Keep the P14 recognition roster for its permitted direct/indirect financial
+support purpose. Retain P9's named `supports_policy_v1` edge predicate; P28 does
+not upgrade the graph to v2. The native relationship workspace SHALL include
+independently authorized continuing financial and nonfinancial relationships
+without aging them out solely because of giving recency. Financial views SHALL
+use neutral recency wording, never a person-level “lapsed” status. A historical
+band SHALL NOT override an independently qualifying current P16 commitment,
+grant contact access or establish retention. No new CRM or copied roster
+authority is introduced.
+
+**Exact owner amendment ratified for later formal reconciliation:** keep P9 B3's current predicate; replace P14
+H4's stale v1 paraphrase with that reference and its deferred-to-P28 sentence with
+this scoped disposition. Replace H4's lapsed label with historical-recognition
+wording; its existing 730-day exclusion applies only to that historical inclusion
+path. Preserve current independent commitment paths, H3 grain/fold and H5 field
+floor. This policy is explicitly adopted. Coordinated owner/OpenSpec
+reconciliation remains required; no implementation, consumer cutover or runtime
+qualification is inferred from ratification.
+
+### C05 — Recurring attention: ratified scope correction
+
+For this release, add no further automatic missionary recurring-attention task
+beyond independently established source-owned duties. P16's permitted recurring
+status and next scheduled occurrence remain visible, and Maya may deliberately
+create ordinary follow-up. Provider/payment repair, stale-source incidents and
+manual-expectation review remain with their currently authorized P16 owners.
+D40's confirmed miss remains informational. A generic “action required” label,
+miss count or missing observation SHALL NOT create a missionary obligation,
+contact permission or donor outreach.
+
+**Exact owner amendment ratified for later formal reconciliation:** replace P28's broad automatic recurring-review
+promise in the program owner constraints/roadmap and corresponding formal
+projections with the preceding scope. Do not cancel an existing independently
+valid duty or remove informational facts. This is an explicitly ratified
+narrowing of the broader promise, **not an implication of D40's earlier scope**.
+The alternative would require a separately adopted, evidenced human job and
+exact source/recipient/completion contract before any new automatic purpose.
+
+### C06 — Controls retain source-specific effects
+
+Each exposed tenant/personal control SHALL identify its owner, initial state,
+current scope and effects on new work, accepted work, reads, pending outward
+effects and re-enable. Use existing controls and ratified defaults. Off SHALL
+NOT be implemented as generic deletion, blanket permission revocation or replay.
+Concise local copy SHALL explain its material consequence without adding a
+configuration engine or exceptions beyond the selected product decisions.
+
+### C07 — Amendment status and genuine policy gates
+
+D1/D3/D6/D11–D13 SHALL retain selected/reviewed status until their surviving
+amendments receive explicit disposition. The ledger SHALL identify exact clauses
+superseded by later adoption and remaining observable policy; it SHALL NOT infer
+bulk approval. E7 temporal attribution and C-01 posted-correction approval remain
+upstream policy gates. Affected effects remain unavailable under their owners;
+independent qualified work continues. Qualification cannot invent policy.
+
+### C08 — Accepted effects and recovery
+
+Each mutating intent SHALL have a source-owned durable effect identity and
+current-authority recovery path. Repeating an accepted intent SHALL NOT create
+a second effect or overwrite a newer correction. Reads failing after acceptance
+SHALL NOT change acceptance into failure. Composite UI actions SHALL expose
+partial success accurately unless the actual owner contract guarantees atomic
+acceptance. Source transition and required work/history acceptance SHALL be
+atomic or use the owner's durable recoverable mechanism, never best-effort
+callbacks alone. No global distributed transaction or generic new workflow store
+is introduced.
+
+### C09 — Complete support information and safe identity
+
+Support totals, comparisons and supporter lists SHALL come from complete
+qualified source projections with explicit tenant/subject, currency, period,
+coverage, adjustment basis and freshness. Page caps SHALL NOT define totals or
+negative facts. Identity/anonymity SHALL be positively authorized by the exact
+source projection; absence from another capped list SHALL NOT permit disclosure.
+Unknown, incomplete, stale or unavailable SHALL NOT be rendered as zero or none.
+
+### C10 — Communication remains a distinct complete job
+
+Native newsletter signup/preparation/authorization/send/print/withdrawal SHALL
+use their exact qualified owners. Lack of suppression is not positive newsletter
+membership. Current consent and source eligibility SHALL be re-proved at the
+actual submission boundary. Accepted/unknown external outcomes SHALL be
+reconciled without blind resend or false recall. Page-entry Off, purpose closure,
+withdrawal and personal-provider disconnect retain their distinct selected
+effects. No general inbox, automatic digest or D41-excluded contact feed follows.
+
+### C11 — Money and time are exact source facts
+
+Money SHALL preserve authoritative integer-minor-unit or exact fixed-scale
+decimal semantics, currency identity and supported precision; no floating-point
+conversion or universal two-decimal assumption shall determine business facts.
+Metrics SHALL use source-owned periods and half-open instant bounds where
+applicable, not midnight-on-last-day inclusive filters. Date-only referral rules
+and continued-referral instant rules retain D38/D39 meaning. No P28 aggregate
+becomes a write authority for donations, commitments or attribution.
+
+### C12 — Departure, return and historical integrity
+
+Ending exact participation SHALL apply each source's current-access, retained
+duty, pending-effect and retention rules. Staff SHALL NOT acquire private
+preparation through reassignment or exports. No eligible assignee SHALL produce
+the source-owned exception, not a guessed broad fallback. Return SHALL distinguish
+temporary suspension from ended participation; D27/D28 deliberate eligible
+resumption affects only selected preparation and does not revive old shares,
+subscriptions, sends or unrelated deadlines.
+
+### C13 — Authoritative mutations and database constraints
+
+Business mutation SHALL remain in the owning API/source boundary. Tenant, actor,
+author, approver, audit attribution and permitted subject SHALL derive from
+trusted context; submitted IDs are requests to resolve, not authority. Both the
+old row and resulting state SHALL be authorized. Tenant-aware foreign keys and
+uniqueness SHALL prevent cross-tenant references; scope/ownership fields SHALL
+be immutable except through qualified transfers. Nullability, positive/finite
+bounds, valid state combinations, delete/restrict behavior and append-only
+acceptance/history SHALL be explicitly defined at the source. Enforce invariants
+with constraints or one authoritative mutation boundary, not UI convention.
+Contact corrections SHALL apply only deliberately changed permitted fields,
+with expected revision or equivalent source-supported conflict handling. An
+authorized stale full-form save SHALL NOT overwrite unrelated newer changes.
+Absent and deliberately cleared fields SHALL retain distinct supported meanings;
+country and identity values SHALL NOT be invented. No new P28 table layout is
+frozen by this review.
+
+### C14 — All disclosure and execution paths
+
+Qualification SHALL inspect effective inherited grants and RLS USING/WITH CHECK
+behavior, views, security-definer functions, RPCs, storage and privileged service
+paths. Service credentials SHALL NOT replace human/source authorization.
+Lists/search/counts, exports, files, caches, notifications, logs and generated
+documents SHALL preserve the same current audience and field limits. Query keys
+and cursors SHALL bind exact scope; authorization filters SHALL precede output.
+Use source-appropriate compound indexes and bounded pagination without treating
+incomplete results as negative facts. Retention/disposition SHALL reach actual
+derivatives under their owning rules.
+
+### C15 — Safe migration, rollback and restore
+
+Before activation, inventory reached legacy readers/writers and retained records,
+then reconcile them through the intended source owners. Backfills SHALL NOT
+invent consent, identity matches, financial facts, completion or role rights.
+Readers/commands SHALL support the deployed schema/version before exposure;
+old incompatible writes remain fenced. Rollback SHALL preserve accepted effects
+and newer authority fences; re-enable SHALL NOT replay history. Restore SHALL
+reconcile later revocations, suppression, disposition and consumed effects before
+reads/jobs reopen. Use affected-capability containment, not deletion of duties.
+
+### C16 — Capability readiness and dependency truth
+
+Every required journey SHALL name its actual producer, command/projection,
+version, owner and readiness evidence. A roadmap phase, issue title or generic
+sender is not a qualified producer. Missing readiness SHALL block only affected
+effects with honest user/support feedback; the required outcome remains in scope.
+Settings SHALL persist through authorized owner commands and display saved state
+only after acceptance. No direct provider/table bypass is allowed for convenience.
+
+### C17 — Accessible and localized Core experience
+
+Use Core's existing `base-maia`/Base UI/shared semantic tokens. Complete journeys
+SHALL work by keyboard, screen reader, touch and narrow viewport; status/errors
+SHALL be perceivable beyond color/toasts/hover. Preserve focus and announce
+material asynchronous results. Support international names, actual address
+formats, localized dates, explicit relevant timezones and exact currencies.
+Use honest low-bandwidth recovery, not unsupported offline persistence/replay.
+
+### C18 — Measured usability and performance proof
+
+Before release, the product/design owner SHALL recruit representative missionary,
+tenant-staff, donor and coach participants for applicable complete jobs, including
+new/experienced, mobile/assistive and restricted-access cases. Record environment,
+configuration, attempts, success, errors, comprehension and repair steps; do not
+claim pilot success from vendor documents. Source owners SHALL define and meet
+measured production-shaped volume/latency budgets for the intended release
+cohort before activation, including beyond current caps. Any critical wrong-
+recipient, false-success, privacy or money misunderstanding blocks release.
+
+### C19 — Durable history, operational signals and response
+
+Business acceptance/history SHALL identify source effect, context, responsible
+actor and relevant policy/version without copying unnecessary private content.
+Security audit and technical traces SHALL remain distinct. Operators SHALL be
+able to diagnose and recover an accepted-but-unpresented effect without database
+repair or duplicate work. Use the bounded monitoring ownership/thresholds below;
+known policy, privacy and correctness gaps SHALL NOT be relegated to monitoring.
+
+### C20 — Traceable closure
+
+The completion ledger SHALL distinguish selected, adopted, formally reconciled,
+implemented and executed/qualified states. Each required journey SHALL link
+decision/glossary → owner ADR/OpenSpec → design/tasks → authorized tickets →
+implementation → test/release evidence. Unperformed steps remain explicit.
+Research closure requires adopted policy and complete journey contracts;
+delivery completion additionally requires passing source, migration, accessibility
+and representative-user proof. Neither requires adding unsupported features.
+
+## Source/action and state contract
+
+| Authoritative fact                                        | Owner / action                                               | Invariant and observable boundary                                                                           |
+| --------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Current organization, membership, role, permitted subject | Existing identity/P12 and P9 subject admission               | Saved navigation never grants access; one action has one exact original context.                            |
+| Restricted preparation, shared contact and relationship   | P9/P12 with D1–D5/D27/D28; P27 continuing work               | Save/share/return are distinct; continuing contact authority is independent of financial recency.           |
+| Task purpose and handling                                 | Source owner projected into ADR0183 shared work; D19/D20/etc | At most one accepted effect per durable purpose/intent; per-purpose evidence survives compatible grouping.  |
+| Interaction, appointment and Request outcome              | P9/P27; D14 native appointment                               | Actual outcome is explicit; task Done, calendar-copy success and donor response are not interchangeable.    |
+| Gifts, recognition, commitments, plans and goal           | P13/P14/P16/P21; D16 Goal Version                            | Currency/period/scope/fold exact; a P28 view never writes these facts by inference.                         |
+| Newsletter consent, issue, preparation and submission     | D6/D7 exact P6/P17/P22 and related owners                    | Issue acceptance is not delivery; membership is not absence of suppression; one permitted recipient effect. |
+| Coaching share and snapshot/history                       | Exact P12/source grants under D8–D11/D23–D26                 | Voluntary bounded sharing; no raw-history, staff-role or restoration shortcut.                              |
+
+The joined UI must express **not started / unsaved → submitting → accepted**,
+plus **rejected** and **outcome unknown** where supported. These are presentation
+meanings, not a required new universal enum. Retry after unknown first resolves
+the original business effect. A corrected/revoked source may narrow current
+presentation while retaining lawful history. Cancel affects only effects the
+owner can still cancel; completed or externally accepted work is not recalled
+by deleting a card. Editing a due date cannot rewrite a past interaction time.
+
+## Falsifiable acceptance and proof matrix
+
+These are **required future tests, not passed results**. Documentary checks in
+this review verify references/statuses only. Negative tests must accompany
+successful legitimate operations, including service-role routes and exact
+old/resulting-state authorization.
+
+| ID  | Scenario and required observable outcome                                                                                                                                                                                                          | Clauses     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| P01 | New tenant with all optional modules Off: authorized native relationship/task/appointment work is useful; guide/goal/coach/connectors are not gates.                                                                                              | C01/C06/C17 |
+| P02 | Zero versus failed-load versus one permitted context produce distinct truthful entry states; one context does not require repeated selection.                                                                                                     | C01/C02     |
+| P03 | Two ministries and two organizations: visible subject, search, deep links/back navigation and positive saves remain correctly scoped.                                                                                                             | C02/C13     |
+| P04 | Switch with unsaved work and an in-flight accepted save; no late payload appears in the new context, and return recovers only the permitted original outcome.                                                                                     | C02/C08     |
+| P05 | An unsuccessful actual call is optionally recorded once; no conversation, Request response, gift or consent is fabricated.                                                                                                                        | C03         |
+| P06 | Independent follow-up finishes without compulsory interaction or source closure; every generic Complete/Reopen/Delete/drag-to-Done path rejects source-controlled work, whose owner provides closure.                                             | C03/C08     |
+| P07 | Actual meeting → supported outcome → explicit Request response → next task or owned exception; entered permitted context is reused without private-history copying.                                                                               | C03         |
+| P08 | Interaction accepted but next-task write/readback fails: success is retained, missing effect is visible, retry does not duplicate either.                                                                                                         | C08/C19     |
+| P09 | Decline, defer, cancel, no answer, no authorized contact method and nonfinancial support remain usable; early preparation is not enrolled into managed work.                                                                                      | C03         |
+| P10 | Direct/indirect financial support consumes its named predicate; the graph does not silently upgrade.                                                                                                                                              | C04         |
+| P11 | At 365/730 boundaries and beyond, no-gift prayer/church partnership remains visible only by independent current relationship authority.                                                                                                           | C04/C11     |
+| P12 | Current qualifying commitment plus old/refunded recognition is interpreted by the exact independent path; financial DTO gains no contact detail.                                                                                                  | C04/C09     |
+| P13 | D40 confirmed miss and next scheduled gift are informational; deliberate follow-up uses ordinary work with no implied donor contact.                                                                                                              | C05         |
+| P14 | Source unavailable, provider repair, paused/ended plan or manual-review due never invents a missionary obligation; exact staff/donor source work remains intact. C05 is adopted; actual source qualification is still required.                   | C05/C16     |
+| P15 | E7/C-01 dependent effects are unavailable until actual rulings; native task/review/intake cannot manufacture attribution or posted-correction authority.                                                                                          | C07         |
+| P16 | D6 new admission, identical active membership, re-subscription, pending-after-Off and retention follow the explicitly adopted rule, not an assumed summary approval.                                                                              | C07/C10     |
+| P17 | D33 Off after accepted report preserves one Finance intake; new reports stop and reporter recovery respects current access.                                                                                                                       | C06/C08     |
+| P18 | D24 activity Off removes module access while unrelated accepted duties/history continue under their own rules; re-enable revives no ended share.                                                                                                  | C06/C12     |
+| P19 | Wrong subject/tenant, stale role, forged attribution and forbidden result-state updates are denied. Legitimate operations succeed; stale contact forms cannot overwrite concurrent fields, force a non-US address to USA, or alter denied fields. | C02/C13/C14 |
+| P20 | Every reached grant/view/RPC/function/storage/service path plus cache/search/count/export/download preserves exact audience and fields.                                                                                                           | C13/C14     |
+| P21 | Departure with private preparation, ordinary duty, coach share and pending newsletter: current access ends correctly, staff receive no private data, duties keep lawful resolution.                                                               | C12         |
+| P22 | Return before/after departure deadline, temporary suspension, same-email replacement and selection of one archived entry follow D27/D28 without reviving unrelated rights.                                                                        | C12/C15     |
+| P23 | Reload/cross-tab after settings Save returns accepted persisted configuration; permission loss/stale revision/uncertain save show truthful status.                                                                                                | C08/C16     |
+| P24 | Minor-unit inputs such as USD12345 display USD123.45; supported zero/three-decimal currency cases use the correct owner precision, and aggregate arithmetic stays exact.                                                                          | C09/C11     |
+| P25 | Exercise snapshot 249/250/251 gifts and donors, 99/100/101 tasks, and actual configured API pagination/cap boundaries; neither clipping nor the metrics' rolling 13-month window changes authoritative totals/comparisons.                        | C09/C14/C18 |
+| P26 | Anonymous gift whose donor is absent from the returned roster remains anonymous on UI/API/export/log/coach derivatives.                                                                                                                           | C09/C14     |
+| P27 | Last-day nonmidnight gifts, leap day, timezone/DST boundaries and prior-YTD requests have exact source periods; date-only referral expiry keeps D39 semantics.                                                                                    | C11/C17     |
+| P28 | Correction/refund/out-of-order observation/stale coverage updates source-derived metrics without creating or double-counting received money.                                                                                                      | C09/C11     |
+| P29 | Exact newsletter withdrawal during queued/partial/unknown sending narrows only eligible unsubmitted effects; accepted results stay truthful and independently permitted purposes remain.                                                          | C08/C10     |
+| P30 | Mixed old/new app/schema and legacy retained data cannot reopen direct writes or backfill consent/identity/work completion; affected capability is fenced before exposure.                                                                        | C15         |
+| P31 | Restored backup and rollback respect later disposition, suppression, consumed effects and revoked grants before reads/jobs resume.                                                                                                                | C12/C15     |
+| P32 | Provider/producer outage or schema change has an exact owner repair path, no direct bypass or blind resend, while unrelated native work remains usable.                                                                                           | C10/C16/C19 |
+| P33 | Keyboard/screen-reader/touch/320CSSpx reflow and zoom complete the main job; focus, errors, saving and async results are perceivable. Automated checks plus manual evidence required.                                                             | C17         |
+| P34 | International names/address formats, multiple currencies/timezones and poor network preserve correct facts and do not require unsupported offline caching.                                                                                        | C11/C17     |
+| P35 | Every selected/reviewed/adopted requirement traces to actual owner and later authorized delivery artifacts; no numbered decision or passing runtime result is invented.                                                                           | C07/C20     |
+| P36 | Representative complete missionary/staff/donor/coach jobs meet predeclared measured budgets; any critical privacy, money, recipient or false-success misunderstanding is fixed before activation.                                                 | C18/C20     |
+
+## Ruthless synthesis, sequencing and ownership
+
+**Resolved before recording this review:** the previous closure is withdrawn;
+the three essential composition gaps are named; already covered negative/exit
+paths are credited; C04/C05 are now explicitly ratified policy resolutions; six earlier
+adoption exceptions and upstream gates stay visible. No user is asked to supply
+the missing coverage analysis.
+
+**Before claiming the interview's decisions complete:** reconcile and explicitly
+dispose of the surviving D1/D3/D6/D11–D13 amendments. C04/C05 are settled planning
+intent and must not be asked again. P9/P14/P28 and P16/P28 carry their exact owner
+reconciliation. [D49](phase28-d49-preserve-earlier-campaign-attribution-decision.md)
+selects E7's earlier-gift preservation with required review amendments.
+[D50](phase28-d50-recurring-campaign-origin-decision.md) selects continuing-recurring
+attribution preservation. The [post-D50 reconciliation](phase28-post-d50-e7-reconciliation.md)
+records the exact reviewed meaning and remaining approval, formal integration
+and qualification; no new Q51 is demonstrated. The ratified C07 requirement is preserved.
+[D48](phase28-d48-tenant-correction-approval-decision.md) settles C-01's tenant-choice
+policy; formal P12/P13/P15 reconciliation and actual qualification remain required.
+Q42 has now selected B for D6's exact
+new-admission confirmation policy; its D42 amendments are explicitly ratified.
+Q43 is now answered A; the [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)
+records the downstream pending-entry choice with required amendments now
+explicitly ratified. [D44](phase28-d44-standard-confirmation-period-decision.md)
+selects one standard confirmation period; [D45](phase28-d45-seven-day-confirmation-decision.md)
+records seven elapsed days (168 hours). Retention remains separate.
+[D46](phase28-d46-regional-discovery-default-decision.md) records Q46 A: initial
+regional-discovery Off for new organizations. The [session continuation](phase28-session.md#next-conversation-step)
+tracks the current frontier; other packet statuses remain separate.
+No feature restart or speculative extra module is necessary.
+
+**Capture in the developing design now, formalize only after `/to-prd`:** C01–C03
+composition, C06 control inventory, source/action map, C07 exact status and
+C08–C20 safeguards. Use the existing owners, ADR0183 and current design system.
+Each canonical change must carry explicit supersession to affected OpenSpec
+projections. A glossary change is needed only for an actually resolved new term;
+this review introduces no new domain entity.
+
+**Implementation order after the separately authorized transition:**
+
+1. Qualify source/context/authorization and immutable accepted-effect identity;
+   reconcile old writers and data. No UI Save or task action precedes its owner.
+2. Correct complete financial/identity projections and money/time handling;
+   expose qualified unavailable states until source evidence exists.
+3. Compose setup, context navigation and the daily loop with existing controls;
+   prove a baseline with optional capabilities Off and legitimate negative paths.
+4. Qualify newsletter, coaching, retained-work and connected-provider boundaries
+   through their exact owners, then test combined disable/depart/return/recovery.
+5. Run production-shaped source/RLS/concurrency/migration and accessible complete
+   user journeys; fix defects and only then activate each qualified capability.
+
+Formal tasks/tickets must link C/P identifiers when `/to-issues` is invoked.
+This review creates no fabricated ticket URLs, rollout dates or passing tests.
+Known source mismatches F07–F09 are mandatory delivery corrections, not accepted
+technical debt or production claims.
+
+### Risks that may be monitored after qualification
+
+These are ratified minimum invariant signals; exact quantitative latency/volume
+budgets must be measured and owned before activation under C18. Monitoring is
+not permission to release an unqualified path.
+
+| Signal                                                                     | Threshold                                                       | Accountable owner                                        | Required response                                                                                                                    |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Cross-context disclosure or effect after required denial                   | One confirmed occurrence                                        | P12 security operator with affected source owner         | Contain affected path, preserve minimal evidence, correct cause and requalify before reopening.                                      |
+| Duplicate accepted intent or falsely reported saved/delivered result       | One confirmed occurrence                                        | Owning command/dispatch operator                         | Stop affected mutation/retry lane, reconcile original effects and repair truthful presentation; never erase evidence to deduplicate. |
+| Money/unit/period/coverage mismatch or anonymous identity exposure         | One confirmed occurrence                                        | Financial projection owner; P12 for identity             | Withhold affected projection, correct source/consumer and qualify boundary cases before return.                                      |
+| Accepted operation exceeds its declared source completion/recovery bound   | One operation beyond that qualified bound                       | Exact source operations owner                            | Investigate backlog/unknown outcome; reconcile by original identity, never blind retry. Unset bound blocks activation.               |
+| Critical journey confusion, accessibility blocker or repeated-entry defect | One reproducible blocking case in an intended supported journey | P28 product/design owner with implementing surface owner | Correct and retest whole job; halt affected rollout if users cannot complete it safely.                                              |
+
+## Verification and honest completion status
+
+The original [verification report](completion-evidence/verification.json) records its pre-ratification snapshot of
+document structure, references, clause/criterion counts and preservation of
+prior evidence. The [new checker](completion-evidence/verify-completion.py) does
+not import or execute earlier checkers/models/probes. Frozen D41 evidence and
+ratified D41/Q41 files are checked against the
+[18-entry preservation manifest](completion-evidence/prior-evidence-sha256.json).
+
+No runtime tests, hosted RLS/grant probe, provider delivery, browser accessibility
+session, benchmark, ministry interview or pilot was run for this review. Current
+source observations are bounded static findings. The research/design review is
+complete; **Phase28 decision closure and delivery completion remain incomplete**
+for the precise reasons and acceptance obligations above.
+
+[The ratification verification](post-completion-evidence/ratification-verification.json)
+checks its ratification snapshot, unchanged accepted behavior, Q42 framing and
+preserved evidence. [D42 verification](d42-evidence/verification.json) checks the
+selected-answer snapshot. [D42 ratification verification](d42-evidence/ratification-verification.json)
+checks the subsequent ratification and Q43 frontier. No earlier verifier,
+probe or model is executed. Each prior report remains dated snapshot evidence
+rather than a claim about subsequently edited status pages.

@@ -86,7 +86,7 @@ consumers are never whole-phase prerequisites of their own foundations.
 | **25** | `donor-portal-depth` | [Donor Dashboard Depth](./phase-25-donor-dashboard-depth.md) | Baseline/start: 3, 4, 6, 7, 13.<br>Before affected consumer dispatch: exact P9, P10, P12, P14, P16, P17, P18, P19 and P22–24 producers from S04/S06 require final accepted contracts plus implemented, qualified owner seams. Q25 also requires the bounded P28/P12 guest-recipient projection and P32 external-enrollment exclusion before dispatch; neither whole future phase is a prerequisite. P22–24-dependent and Q25 consumers remain not dispatch-ready until their exact producer gates pass. Unaffected safe slices remain independent. | 17/19 are required for affected consumers, not optional enhancements; apply the scoped producer gates in the preceding cell. | Donor Portal | `PRD exists` (spec #1563; Q01–Q29 ratified, Q30 accepted; scoped source-owner prerequisites; not implemented; 88 native implementation issues #1565–#1652 under #1563; no blanket dispatch readiness) |
 | **26** | `support-hub` | Support Hub & Conversation Management | 6, 3, 4, 9, 17; 23 (selected lanes) | — | Support Hub, communication services, `packages/api` | `PRD exists` — [ratified specification #1656](https://github.com/Asymmetric-al/core/issues/1656); D1–D40 complete, including D27-C and D29-X01; 4 native index issues #1658–#1661 and 199 implementation leaves #1662–#1860 under #1656; implementation and release proof outstanding |
 | **27** | `donor-development` | [Donor Development & Portfolio Management](#phase-27) | **9**, 3, 6, 13 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
-| **28** | `missionary-workspace-depth` | [Missionary Workspace Depth & Support-Raising CRM](#phase-28) | 9, 13, 16, 6, 3, 27 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **28** | `missionary-workspace-depth` | [Missionary Workspace Depth & Support-Raising CRM](#phase-28) | 9, 13, 16, 6, 3, 27 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | formal Phase 28 specification; source qualification and implementation pending |
 | **29** | `files-documents` | [File Manager & Document Management](#phase-29) | 3, 9 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
 | **30** | `imports-migration` | [Imports & Migration Tools](#phase-30) | 9, 13, 11, 29, 4, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
 | **31** | `platform-api` | [Platform API, Webhooks & Connector Framework](#phase-31) | 1, 3, 4, 6 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
@@ -4133,10 +4133,12 @@ Prove that native development work remains usable with Phases 34 and 42 unavaila
 D1–D30 and the post-D30 synthesis settle the Phase 27 product choices. The
 [implementation-ready specification](phase-27-donor-development.md) preserves their
 exact statuses, requirements, acceptance and confirmed testing seams. Materialization
-follows measured workloads. E7 source-code/campaign temporal attribution and C-01
-posted-gift correction approval remain explicit upstream owner gates; no affected
-financial meaning or implementation readiness is inferred. Publication is not runtime
-qualification or activation.
+follows measured workloads. Phase 28 D48 settles the C-01 organization-controlled
+posted-gift correction policy; D49–D50 settle E7 historical and recurring campaign
+attribution. Their [owner amendments](phase-28-missionary-workspace-depth/owner-reconciliation.md)
+preserve separate source, coverage and producer qualification gates. Settled policy
+does not establish those producers or financial-measure readiness. Publication is
+not runtime qualification or activation.
 
 #### Existing owner requirements
 
@@ -4166,11 +4168,11 @@ A missionary's practical support-raising home: keep up with supporters, pursue r
 
 #### What it covers
 
-**Support-raising pipeline.** Use Phase 27's enrollment model with a support-raising preset: Never Contacted, Ask in Future, Contact for Appointment, Appointment Scheduled, Call for Decision and Partner-Financial/Special/Prayer. Include explicit terminal or suppressed dispositions such as Not Interested, Unresponsive, Never Ask, Research Abandoned and Expired Referral. Never Ask is enforced by the consent owner, not just a column label.
+**Support-raising work.** Use Phase 27 partnerships, Requests, Appeals and configurable stage guidance alongside P9 preparation, referrals, interactions and Tasks. Preparation does not automatically enroll a person in managed work. Stage, response, pause/closure, consent and referral expiry retain their distinct source meanings; prayer, practical, church and financial participation are not a compulsory sequence. Never Ask is enforced by the consent owner, not merely a label.
 
 **Commitments and goals.** Support multiple concurrent commitments per partner, distinct currencies, support goals, support-raising start/end dates and separately deliberate optional weekly activity targets. Shared-history participation never enrolls a missionary in targets or coaching. Display expected versus received support using the commitment owner's frequency, coverage and currentness rules. A missing gift, paused schedule and genuinely late occurrence must not be conflated.
 
-**Native gift-driven work.** Create source-qualified tasks to thank a first gift, acknowledge a special or above-commitment gift, review permitted missed-support attention and celebrate fulfillment. Record completed interactions once. Native tasks are required product behavior, consent- and privacy-aware, with durable identities that later optional automations reuse.
+**Native gift-driven work.** Create source-qualified tasks for qualified first support, independently eligible special/positive-excess purposes and fixed-commitment fulfillment, preserving exact purpose evidence and completion. No additional automatic missionary recurring-attention task is introduced this release; confirmed missed gifts remain informational with deliberate ordinary follow-up and independently required owner duties preserved. Record completed interactions once. Native tasks are required product behavior, consent- and privacy-aware, with durable identities that later optional automations reuse.
 
 **Appeals, referrals and interaction history.** Reuse the appeal response model over the missionary's allowed supporters. Referrals use the accepted relationship graph, source provenance, expiry and follow-up. Maintain one P9 source for qualified newly authored shared partnership context under Phase 27 D26, with current exact audience and explicit historical access. General notes, care and private context remain excluded; assignment alone grants nothing. Contribution is voluntary, and the same call should not need separate entries in separate products.
 
@@ -4178,7 +4180,7 @@ A missionary's practical support-raising home: keep up with supporters, pursue r
 
 **Dashboard and coaching.** Show monthly support against goal, gains/losses over selected periods, a 13-month trend, source-qualified support attention, appeal progress and the exact authorized Field Account projection. Offer invited, read-only coaching views with approved redaction, activity-versus-target measures, trends, weekly qualitative check-ins and agreed next actions. Organization-configurable goals must not impose one agency's methodology on every tenant. P27 D26 further forbids using shared history for compulsory logging, quotas, missing-log penalties or automatic coaching enrollment. Invited coaching, targets and qualitative check-ins require separate deliberate qualification; absent voluntary records do not prove performance.
 
-**Field resources.** Include the already-planned internal resource-sharing and region/world-map entry points only through qualified document and public-safe geography projections. Their precise first-release scope remains a decision below; they cannot expose restricted locations.
+**Field resources.** Provide an organization-curated internal resource library, an optional editable starting guide and approved broad-region discovery through a list and world map. Regional discovery begins Off for new organizations. Ordinary missionary resource submission and mandatory guide completion are excluded; no restricted locations are disclosed.
 
 <a id="phase-28-ownership-and-integrations"></a>
 
@@ -4214,9 +4216,9 @@ Exercise poor-network and repeated-submit behavior through real owner services. 
 
 <a id="phase-28-open-decisions"></a>
 
-#### Open decisions
+#### Specification and delivery qualification
 
-Decide whether private prospects are allowed, how they are promoted/deduplicated and what staff can see. Set the external-coach assurance and redaction policy, exact activity metrics, resource-library/region scope and measured UX budgets. Decide which calendar/email connections or TntConnect/MPDX continuity feeds are required, using Phases 21/31 where applicable. Do not represent an unbuilt connector or unsettled access policy as available.
+The founder authorized the [complete Phase 28 specification](phase-28-missionary-workspace-depth.md) under `/to-spec` on October 18, 2026 and confirmed the existing testing seams. D1–D50 and the ratified whole-journey amendments settle the product choices. The specification defines restricted preparation, exact voluntary coaching, resource/guide/discovery scope, narrow calendar/personal-email connections and no new contact-update feed. Exact source/provider/Auth/database/migration/accessibility/user proof and measured workload budgets remain delivery requirements; publication does not establish activation.
 
 #### Existing owner requirements
 

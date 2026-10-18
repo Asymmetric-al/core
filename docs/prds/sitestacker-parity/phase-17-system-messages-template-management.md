@@ -277,7 +277,7 @@ Reserved authoring work.
 - Phase 24 owns broad site/CMS/shell locale and currency management; Phase 17 owns message-locale activation and readiness only.
 - Phases 25 and 28 own complete donor and missionary notification-center information architecture, reusing the Phase 6/17 records created here.
 - Phase 26 owns inbound email, threading, assignments, reply content, retention, and send-reply operations. Phase 17 only sets outbound Reply-To.
-- Phase 32 owns campaigns and newsletters. It may reuse safe editor/layout primitives without joining the system-message catalog.
+- Phase 28 owns native missionary newsletter issues and recipient-purpose enrollment; Phase 32 retains separately governed external synchronization and campaign capabilities. These human-authored products reuse qualified editor/layout, immutable preparation, sender and reply seams without joining the system-message catalog. Phase 6 alone owns recipient-level dispatch/history. A native signup confirmation uses its independently qualified finite system purpose, never an invented human-authored catalog key. See [Phase 28 OA-06](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-06).
 - Phase 34 owns general workflows, enrollment, waits, branches, tasks, record mutations, and occurrence timing. It may invoke a pre-existing Live system-message action.
 - Phase 35 may invoke Live contracts for contribution-triggered engagement but may not mint duplicate meanings or bypass semantic idempotency.
 
@@ -1079,7 +1079,7 @@ The complete obligation census below prevents those deferred meanings from disap
 | Support conversation assigned/replied/SLA/undelivered                | Phase 26                                                                  | system-notice keys deferred; human message body remains outside catalog                                                                                                                                                              |
 | Event registration/ticket/team/fundraiser notice                     | future Event Hub                                                          | key deferred; benchmark outcome only                                                                                                                                                                                                 |
 | Public form submission/content review/publish/domain change          | public-content phases                                                     | key deferred; exact producer/audience required                                                                                                                                                                                       |
-| Campaign/newsletter/journey message                                  | Phases 32/34/35                                                           | outside system catalog unless it invokes an already-Live system meaning                                                                                                                                                              |
+| Campaign/newsletter/journey message                                  | Phase 28 native newsletter; Phases 32/34/35                               | outside system catalog unless it invokes an already-Live system meaning                                                                                                                                                              |
 | Resend connection/domain/webhook/sender/reply problem                | Phase 17 D10/D15                                                          | one Target Live grouped Needs-attention meaning; no email-only incident dependency                                                                                                                                                   |
 | Publication review/change request                                    | Phase 17 D11                                                              | Target Live in-product meanings above                                                                                                                                                                                                |
 | Import/export/transfer job completion or action needed               | Phase 17 D19                                                              | contextual job state; stable notification key deferred unless user testing proves an attention event is needed                                                                                                                       |
@@ -1251,8 +1251,9 @@ generation, immutable binding-projection id, binding id/version, producer
 event key/version, delivery-plan contract id/version, effective plan
 id/version, source occurrence type/id and fence/epoch, step key/ordinal,
 publication slot, recipient role/resolver/fact-adapter/action-issuer/condition
-versions, concrete tenant Party/contact-point
-revision or platform recipient-authority kind/revision/epoch, channel}`.
+versions, concrete tenant Party/contact-point revision (or the exact qualified
+P28 native-confirmation non-constituent authority revision/source occurrence)
+or platform recipient-authority kind/revision/epoch, channel}`.
 3. **Immutable-command hash** — `immutable_command_hash@1`, which covers the
    canonical complete producer command and resolved relation envelope: typed
    fact values or immutable snapshot digest, ordered collection-item digest,
@@ -1607,7 +1608,14 @@ Every publication pins exact content, Brand Kit, Role Layout, asset, compiler an
 ## Protected Actions
 
 Protected actions are tenant-scope-only in this generation. A tenant contract
-must bind one exact Party/contact authority through the rules below. Every
+must bind one exact qualified recipient authority through the rules below. The
+ordinary branch is Party/contact authority. Phase 28 D43 admits one narrow
+exception: its qualified native newsletter confirmation producer may bind the
+exact same-Tenant non-constituent recipient-authority revision and P28 source
+occurrence instead. It uses the same protected-action protocol, fixed verified
+Tenant Donor Portal origin, assurance and current source checks. It creates no
+Party, contact, Auth user, account claim, workforce assignment or generalized
+private-access grant; it admits no arbitrary recipient or other producer. Every
 platform-scoped contract must declare `action: none`; the compiler rejects any
 platform protected-action descriptor. A future platform protected action needs
 a separate ratified authority model and ADR rather than borrowing tenant Party,
@@ -2221,7 +2229,7 @@ Replies leave Asym and enter the tenant's external mailbox. Phase 17 performs no
 
 ### Body-free durable history
 
-Phase 6 remains the durable communication spine. Every permanent event records `scope_kind` and exactly one scope owner. A tenant event records `tenant_id`, permitted site and Party/contact-revision references and leaves platform ownership/authority fields null. A platform event records `platform_scope_id`, the exact platform-recipient authority and platform delivery-profile revisions and leaves tenant/site/Party/contact fields null. Every channel retains contract key/version/generation, source reference/fence, plan/step, purpose/classification, requested/effective locale and resolution-trace hash, publication/dependency hashes, semantic intent/member identity, timestamps, safe title/classification, integrity hashes, and correction/supersession links. External-delivery events additionally retain nonsecret sender/reply snapshot references, preparation/provider identities and normalized provider state. `in_product` events retain their local `available`/presentation truth and never carry provider preparation, sender/connection, provider identity, state, or outcome.
+Phase 6 remains the durable communication spine. Every permanent event records `scope_kind` and exactly one scope owner. A tenant event records `tenant_id`, permitted site and the exact qualified recipient branch: ordinary Party/contact revisions, or the P28 native-confirmation non-constituent authority revision/source occurrence without Party/contact rows. Platform ownership/authority fields remain null. A platform event records `platform_scope_id`, the exact platform-recipient authority and platform delivery-profile revisions and leaves tenant/site/Party/contact fields null. Every channel retains contract key/version/generation, source reference/fence, plan/step, purpose/classification, requested/effective locale and resolution-trace hash, publication/dependency hashes, semantic intent/member identity, timestamps, safe title/classification, integrity hashes, and correction/supersession links. External-delivery events additionally retain nonsecret sender/reply snapshot references, preparation/provider identities and normalized provider state. `in_product` events retain their local `available`/presentation truth and never carry provider preparation, sender/connection, provider identity, state, or outcome.
 
 It does not durably store personalized body, personalized subject, protected URL, credentials, arbitrary provider payload, full click URL, IP, user agent, raw headers, recipient secret, care/restricted data, or official document bytes. Legacy over-retention is classified honestly and migrated prospectively; history is not rewritten to fabricate compliance.
 
@@ -2273,7 +2281,8 @@ The sealed artifact contains or immutably references:
 - exact `ExecutionScope` tuple/environment, intent, permanent occurrence slot
   and semantic identity, preparation id, artifact schema/version and seal time;
 - source occurrence/id/fence and applicability plus the matching recipient
-  branch: tenant Party/contact-point revision or exact platform-recipient
+  branch: tenant Party/contact-point revision, the qualified P28 native-confirmation
+  non-constituent authority revision/source occurrence, or exact platform-recipient
   authority kind/revision/epoch, and the server-resolved restricted destination;
 - contract key/version/generation, plan/step, audience role, purpose/classification, earliest/expiry/utility boundary and safety epoch;
 - complete resolution trace plus exact publication/document/Brand Kit/Role Layout/assets/locale/direction/compiler/renderer/formatter/sanitizer/policy revisions;
@@ -2290,8 +2299,9 @@ Destination, body and protected-action material live in purpose-separated encryp
 - `prepared_artifact_aad@1` binds `{scope_kind, scope_owner_id, environment,
 preparation_id, artifact_schema_version, material_hash, encryption_key_version,
 recipient_authority_revision, delivery_profile_revision}`. The tenant branch's
-  recipient authority is the exact Party/contact-point revision and its profile
-  is the tenant connection/profile revision; the platform branch uses the exact
+  recipient authority is the exact Party/contact-point revision or the qualified
+  P28 native-confirmation non-constituent authority revision/source occurrence;
+  its profile is the tenant connection/profile revision; the platform branch uses the exact
   platform recipient-authority and fixed platform connection/profile revisions
   with every tenant field null.
 - `provider_submission_envelope_aad@1` binds `{scope_kind, scope_owner_id,
@@ -2541,7 +2551,7 @@ semantic/idempotency uniqueness, provider lookups, state/claim indexes, batch
 membership, and history/result constraints include `(scope_kind,
 scope_owner_id)`. This prevents NULL-unique gaps and cross-scope attachment.
 
-Tenant recipient identity is the existing same-tenant Party/contact-point arc.
+Tenant recipient identity ordinarily uses the existing same-tenant Party/contact-point arc. The narrow Phase 28 D43 native-confirmation branch instead binds its exact same-Tenant non-constituent recipient-authority revision and source occurrence, without a Party/contact row. Its immutable identity, preparation, dispatch, history and current access checks must all use that closed branch; no other producer gains recipient authority from this exception.
 Platform recipient identity is a closed, mutually exclusive authority union;
 platform v1 has exactly one branch, `eve_platform_owner`, containing an exact
 `platform_owner_notification_record_id`, authority revision, and

@@ -1,0 +1,143 @@
+{
+  "evidence_kind": "Public primary-document retrieval metadata only; no live Supabase project access",
+  "research_date": "2026-10-17",
+  "source_commit": "9cada8f3d8ab59db391d3fd20df77fcadeb09813",
+  "requests": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "final_url": "https://supabase.com/changelog.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:52.721839+00:00",
+      "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+      "bytes": 102319
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "final_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:52.928682+00:00",
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "bytes": 30344
+    },
+    {
+      "url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "final_url": "https://supabase.com/docs/guides/api/securing-your-api.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:52.742686+00:00",
+      "sha256": "d2c47fd37a58003f294e11f47cdb05bdd2bb853f350c006a9e6a2c4249868e46",
+      "bytes": 18172
+    },
+    {
+      "url": "https://supabase.com/docs/guides/platform/backups.md",
+      "final_url": "https://supabase.com/docs/guides/platform/backups.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:52.726071+00:00",
+      "sha256": "59f3bb7a169c6fa7682a818d6046f6b0031c923ec2376bf096bb7f08bea87944",
+      "bytes": 9134
+    },
+    {
+      "url": "https://supabase.com/docs/guides/storage/security/access-control.md",
+      "final_url": "https://supabase.com/docs/guides/storage/security/access-control.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:52.730251+00:00",
+      "sha256": "0b9247db9368eb46e645dbfdd6846ef7e14367140599ea1d2e19afbd9a72d46d",
+      "bytes": 4174
+    },
+    {
+      "url": "https://supabase.com/docs/guides/storage/security/ownership.md",
+      "final_url": "https://supabase.com/docs/guides/storage/security/ownership.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:52.803134+00:00",
+      "sha256": "1307a1ca2d3e1c0dc9514e523804d9f177cd1e8b19c1e2a3259746322a5302b9",
+      "bytes": 1436
+    },
+    {
+      "url": "https://supabase.com/docs/guides/storage/management/delete-objects.md",
+      "final_url": "https://supabase.com/docs/guides/storage/management/delete-objects.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:52.982136+00:00",
+      "sha256": "51c02827b6a7d8ec119fb3b9eee8b16b20bd1db9675b5e64eb4d412971edc685",
+      "bytes": 3104
+    },
+    {
+      "url": "https://supabase.com/docs/guides/auth/managing-user-data.md",
+      "final_url": "https://supabase.com/docs/guides/auth/managing-user-data.md",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:53.114724+00:00",
+      "sha256": "3b585ca9312420f7069f30a63c6affa06308020684abb27ba5f0f0ba25903205",
+      "bytes": 7390
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:55.430044+00:00",
+      "sha256": "1772bf6791789204d77a0ed3e35c0ff2f7ea988fb71f64a0b4b3a19908fad6a6",
+      "bytes": 46910
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:54.457922+00:00",
+      "sha256": "4cdf084d8e36009d03790c508585bd7c4c237aac4165dbbc9173866dbffc980e",
+      "bytes": 31181
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "final_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:55.400870+00:00",
+      "sha256": "e3475df0c76b214dbda0bc681015099763b83778e1355e17ee7b908e6fd38a26",
+      "bytes": 47618
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/functions-datetime.html",
+      "final_url": "https://www.postgresql.org/docs/17/functions-datetime.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:54.326884+00:00",
+      "sha256": "20965f1539d658c525d403ad548d697cfcb8967f4faf8f81127373572f33821d",
+      "bytes": 108106
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-select.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-select.html",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:47:55.582437+00:00",
+      "sha256": "97941a4e930bac34a69b3db574e0e482123e1d225cdf34b6331aaa6f0edfabcc",
+      "bytes": 118015
+    },
+    {
+      "url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+      "final_url": "https://supabase.com/changelog/cbc-tls-ciphers-deprecated",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:49:02.654679+00:00",
+      "sha256": "6fd85ad7fe11866e42746f83031ba09d05bddb5f27f90c4caa8eb1a3c548b5f5",
+      "bytes": 87727
+    },
+    {
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "final_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:49:02.604815+00:00",
+      "sha256": "b7886b666ac6d54ca360a90034a914e7822e0d4575d4667f15aa5e66bcc3af1a",
+      "bytes": 246967
+    },
+    {
+      "url": "https://supabase.com/changelog/bulk-prepare-retry-on-transient-failure",
+      "final_url": "https://supabase.com/changelog/bulk-prepare-retry-on-transient-failure",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:49:02.704657+00:00",
+      "sha256": "0cdc96fec3121523a95f84ddba00947ceab7aef2a790d68bc0f8afa370f556a0",
+      "bytes": 73774
+    },
+    {
+      "url": "https://supabase.com/changelog/restore-credential-resync",
+      "final_url": "https://supabase.com/changelog/restore-credential-resync",
+      "status": 200,
+      "retrieved_utc": "2026-10-17T14:49:02.680767+00:00",
+      "sha256": "d1f5350911e263f2f52dd1610e6212f65ad47dd2064407c6e624658fdb678635",
+      "bytes": 74975
+    }
+  ]
+}

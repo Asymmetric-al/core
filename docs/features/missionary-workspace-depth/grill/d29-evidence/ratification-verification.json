@@ -1,0 +1,43 @@
+{
+  "kind": "D29 explicit ratification and Q30 unanswered continuation; documentation/provenance only",
+  "date_utc": "2026-10-18",
+  "passed": true,
+  "ratified": true,
+  "unchanged_d29_evidence_artifacts": 16,
+  "unchanged_d28_evidence_artifacts": 23,
+  "clauses_preserved_exactly": 24,
+  "proof_obligations_preserved_exactly": 32,
+  "findings": 16,
+  "category_count": 22,
+  "local_links_checked": 355,
+  "line_links_checked": 16,
+  "anchors_checked": 47,
+  "q30_posed": true,
+  "q30_answered": false,
+  "q31_posed": false,
+  "prior_models_or_database_probes_rerun": false,
+  "reviewed_documents": [
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-d29-additional-gift-purpose-adversarial-review.md",
+      "sha256": "69d9dc045cde58d4b334af708506ca39155346874d501c82d4cc9f1a4acb40cd"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q29-special-gift-purpose-research.md",
+      "sha256": "cefe75b6e0320b8db5fcda049d11cb374fb6787d793a9e067f6a757dc155e6c3"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q30-one-time-need-purpose-research.md",
+      "sha256": "afaf5fef0778b83b5003a1212fb4b48e600c8b674a793b4d122e5ec1e51846b9"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-session.md",
+      "sha256": "078fef56a2f3aebdae18b026a5778838aa796907e24c853f6669db11dc2d24c5"
+    }
+  ],
+  "limits": [
+    "Ratification does not implement, grant current authority, qualify or activate the source.",
+    "Original verification and semantic-model results remain unchanged historical evidence.",
+    "No live data/provider, formal spec, ticket or GitHub mutation."
+  ],
+  "errors": []
+}

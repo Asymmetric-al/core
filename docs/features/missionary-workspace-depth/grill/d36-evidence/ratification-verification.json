@@ -1,0 +1,42 @@
+{
+  "current_documents_sha256": {
+    "CONTEXT.md": "4480c347524f4184452d4d13fe8bb69aba3f839d5f07b6a97df3a26d5a1d46c9",
+    "docs/features/missionary-workspace-depth/grill/phase28-d36-configured-referral-period-adversarial-review.md": "f5bbc86144e91b2e41b71694c715eb1cd390a5487a23ae95fd168100632e8f8e",
+    "docs/features/missionary-workspace-depth/grill/phase28-q36-referral-window-policy-research.md": "6585a2a9a2bbc506c0b9916f3695b4259ca71427a0bda7e21205ccbabde8f042",
+    "docs/features/missionary-workspace-depth/grill/phase28-q37-getting-started-guidance-research.md": "4d7ebd7547bcf7d8982a7f5607e8281a78155cda6e0bd364d8ea47f9b26b013d",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "5e9bc0b167692f66ab4e104b3e03923b7f18d947d3aad496f90f6fb844cb4e9a"
+  },
+  "exact_c01_c24_unchanged": true,
+  "exact_decision_unchanged": true,
+  "limits": "Status, text, hashes and local-reference checks only; no application, SQL/RLS, model, live state or runtime qualification.",
+  "original_artifact_pins_verified": 15,
+  "original_evidence_files_preserved": 15,
+  "p01_p40_preserved_except_p40_status_label": true,
+  "p40_only_change": "pending D36 amendments -> ratified D36 amendments",
+  "pre_ratification_snapshots_preserved": 2,
+  "previous_model_probe_or_verifier_executions": 0,
+  "prior_evidence_files_verified": {
+    "d29": 20,
+    "d30": 19,
+    "d31": 19,
+    "d32": 25,
+    "d33": 23,
+    "d34": 20,
+    "d35": 25
+  },
+  "ratified": "D36 corrected decision and C01\u2013C24/P01\u2013P40, October 18 2026 Asia/Bangkok",
+  "references": {
+    "anchors": 70,
+    "documents": 12,
+    "line_links": 103,
+    "local_links": 566
+  },
+  "status": "passed",
+  "status_checks": {
+    "initial_referral_scope_unresolved": true,
+    "no_d37": true,
+    "no_implied_d12_ratification": true,
+    "q36_answered_and_ratified": true,
+    "q37_unanswered": true
+  }
+}

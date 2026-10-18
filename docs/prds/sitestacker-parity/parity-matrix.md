@@ -696,14 +696,13 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 ### 16. Missionary dashboard depth
 
-- **Benchmark:** SiteStacker missionary dashboard. (s)
-- **Current state:** missionary workspace built (phase 09: snapshot, tasks,
-  support gifts, donor relationships, updates). (v)
-- **Depends on:** #2.
-- **Acceptance test:** a missionary tracks support, responds to donors, manages
-  updates and tasks.
-- **Evidence:** phase 09 evidence.
-- **Open questions:** depth gap vs SiteStacker missionary tools.
+- **Benchmark:** SiteStacker missionary dashboard, supplemented by the Phase 28 source-specific fundraising/UX evidence. Vendor documentation is not Asym runtime proof.
+- **Current state:** Partial native missionary shell, partner/task/giving/update foundations. The complete Phase 28 source, privacy, lifecycle and communication contracts remain implementation and qualification work.
+- **Intended behavior:** [Phase 28 — Missionary Workspace Depth & Support-Raising CRM](phase-28-missionary-workspace-depth.md), formally synthesized under `/to-spec` on October 18, 2026 with confirmed existing test seams.
+- **Depends on:** Exact qualified CRM, identity/disclosure, financial, communication and other consumed owner contracts; optional capabilities do not block independent native work.
+- **Acceptance test:** All numbered Phase 28 stories and normative acceptance cases, including setup/daily work, source truth, voluntary sharing, disabled states, concurrency, real authorization, whole communication, migration and accessible user journeys.
+- **Evidence:** The specification's evidence/source manifest distinguishes existing code/tests, selected intent, current tracker state and unperformed delivery proof. Earlier phase 09 evidence does not prove Phase 28 completion.
+- **Open delivery work:** Source/provider/Auth/database/migration and actual user/performance qualification. No reopened product questionnaire is implied.
 
 ### 17. System messages & email template management
 

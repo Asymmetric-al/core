@@ -1,0 +1,40 @@
+[
+  {
+    "outcomes": 21,
+    "passed": 20,
+    "failure": "AssertionError('composite_source_fk_rejects_grant_target_substitution: \\'\\' \\'ERROR:  23505: duplicate key value violates unique constraint \"grants_pkey\"\\\\nDETAIL:  Key (tenant, invitation)=(1, 1) already exists.\\\\nSCHEMA NAME:  probe\\\\nTABLE NAME:  grants\\\\nCONSTRAINT NAME:  grants_pkey\\\\nLOCATION:  _bt_check_unique, nbtinsert.c:666\\\\n\\'')",
+    "cleanup": {
+      "container": "phase28-d8-pg",
+      "container_id": "2ba0f8b7f83ea850b1fc03ab7b5f12cf2bc41813be6d27fc7b1cb1b14703c087",
+      "volume_names": [
+        "116739ffc746ef229b782eb65d187d04c6d8fbc2f0792f99a11f6662cf3ce4da"
+      ],
+      "stop_exit_code": 0,
+      "container_absent": true,
+      "volumes_absent": {
+        "116739ffc746ef229b782eb65d187d04c6d8fbc2f0792f99a11f6662cf3ce4da": true
+      },
+      "verified_at": "2026-10-16T08:45:58.558331+00:00"
+    },
+    "note": "Fixture assertion construction error: duplicate primary key prevented the intended composite-FK check. Changed to an UPDATE of the existing grant to isolate the FK. This was not a Core vulnerability or a passing final run."
+  },
+  {
+    "outcomes": 28,
+    "passed": 28,
+    "failure": "AssertionError('No observed lock wait for invitation_first_then_organization_disable_does_not_activate_second')",
+    "cleanup": {
+      "container": "phase28-d8-pg",
+      "container_id": "283e18960901cfc97b18ea385852fa338afa39f27d51d5ef05879eb65f8481da",
+      "volume_names": [
+        "deefb542db831745e46ff42d222c5a12f128df0f872c28b067fedc8c39ee0006"
+      ],
+      "stop_exit_code": 0,
+      "container_absent": true,
+      "volumes_absent": {
+        "deefb542db831745e46ff42d222c5a12f128df0f872c28b067fedc8c39ee0006": true
+      },
+      "verified_at": "2026-10-16T08:46:59.918771+00:00"
+    },
+    "note": "Harness observation name exceeded PostgreSQL application_name length: the second-session label was 65 bytes. Shortened the race label and added a length assertion; this is not evidence that the source lock was absent. All containers/volumes removed."
+  }
+]

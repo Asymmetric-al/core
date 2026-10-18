@@ -115,8 +115,15 @@ corrections did not select C-01 or C-02. After that publication, Conrad resolved
 C-02 in favor of separate owner-controlled operational records and fully
 immutable posted financial rows. ADR-0206 and the subsequent C-02 amendment
 [ledger](../../ai/audits/2026-09-23-c02-issue-reconciliation.json) track that explicit successor; the original
-50-issue ledger remains dated publication evidence. C-01 approval policy is
-still unresolved.
+50-issue ledger remains dated publication evidence. C-01 approval policy was
+still unresolved at that September publication.
+
+**October 18 successor:** Phase 28 D48 selects organization-controlled posted-gift
+correction approval; D49–D50 settle E7 historical and recurring campaign
+attribution. The [Phase 28 owner reconciliation](../sitestacker-parity/phase-28-missionary-workspace-depth/owner-reconciliation.md)
+records their narrow current contract amendments. Source/coverage/producer
+qualification remains required. This successor does not rewrite the dated
+issue readbacks above or imply that any implementation issue has been completed.
 
 The initial reconciliation PR #1897 merged while the later C-02 follow-up was
 being prepared. [PR #1901](https://github.com/Asymmetric-al/core/pull/1901) carries

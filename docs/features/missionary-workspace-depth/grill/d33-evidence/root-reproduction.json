@@ -1,0 +1,14 @@
+{
+  "actual_sha256": "9c0575c3829259ef6d10b1865b2196b338ae8fdb336f6f7e3d55c6b304ae03ca",
+  "byte_identical": true,
+  "counts": {
+    "counterexample_families": 15,
+    "passed_outcome_assertions": 91,
+    "positive_controls": 5
+  },
+  "date": "2026-10-18",
+  "expected_sha256": "9c0575c3829259ef6d10b1865b2196b338ae8fdb336f6f7e3d55c6b304ae03ca",
+  "limits": "Finite semantic model; assumes atomic serialized owner boundaries and qualified proof inputs. No real source, SQL/RLS, lock/concurrency, provider, browser, migration, performance or usability qualification. No earlier model/probe/verifier executed.",
+  "root_review": "Read original and revised source; identified missing On-Off-On stale-review case; preserved initial evidence; independently reproduced revised D33 model only.",
+  "script_sha256": "e02d3fe1f0cb3e01530f00d0545c606936a37b67da26cf0d32782dd65aa62185"
+}
