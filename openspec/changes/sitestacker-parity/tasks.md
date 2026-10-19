@@ -366,14 +366,14 @@ The following document work does not complete Phase 4 runtime or activation.
 
 ## 7. Phase 6 durable language — AL-551
 
-- [ ] 7.1 Extend the existing outbound-communications delta as the first build
+- [x] 7.1 Extend the existing outbound-communications delta as the first build
       of Mission Control's communications capability; preserve existing scenarios
       and align proposal/design with current recipient/scope/history owners.
-- [ ] 7.2 Define all ten precise CONTEXT glossary topics and explicitly retire
+- [x] 7.2 Define all ten precise CONTEXT glossary topics and explicitly retire
       blanket adapt-never-migrate and operational-key-only interpretations.
-- [ ] 7.3 Author/register seven accepted target ADRs F1–F7 with chosen patterns,
+- [x] 7.3 Author/register seven accepted target ADRs F1–F7 with chosen patterns,
       rejected alternatives, primary grounding and source-owner links.
-- [ ] 7.4 Publish the concrete future donor/missionary recipe and complete
+- [x] 7.4 Publish the concrete future donor/missionary recipe and complete
       resolving owner/prerequisite links; #560/#561/#562 remain open obligations,
       PR #502 historically merged, issue #511 open and activation gated.
 - [ ] 7.5 Qualify the exact documentation candidate with strict/all/archive
