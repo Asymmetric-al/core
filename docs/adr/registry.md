@@ -121,3 +121,20 @@ are preserved. These are accepted target decisions under
 [AL-504](https://github.com/Asymmetric-al/core/issues/504) and the
 [current Phase 4 owner PRD](../prds/sitestacker-parity/phase-04-identity-account-claiming-foundation.md),
 not implementation, native/provider qualification or activation evidence.
+
+## Accepted Phase 6 foundation records — AL-551
+
+- [0217: Asym-owned canonical communication header and typed detail](0217-canonical-communication-header-and-typed-detail.md)
+- [0218: Capture communication by construction at the sole email gateway](0218-capture-at-the-sole-email-gateway.md)
+- [0219: Delivery attaches through exact scoped identity and quarantine](0219-delivery-attachment-and-scoped-quarantine.md)
+- [0220: Freeze the actual send-time consent evaluation](0220-freeze-the-send-time-consent-evaluation.md)
+- [0221: Keep bounded payload ownership behind one communication spine](0221-bounded-payload-owners-and-one-communication-spine.md)
+- [0222: Synchronous delivery ingestion with durable reconciliation](0222-synchronous-ingestion-and-durable-reconciliation.md)
+- [0223: Irreversible communication redaction and retention classes](0223-irreversible-communication-redaction-and-retention.md)
+
+The canonical directory ended at 0216 before allocation. Numbers 0217–0223
+were absent from the directory and inspected pending-collision register; existing
+accepted identities remain unchanged. These seven records map one-to-one to
+current Phase 6 F1–F7 under [AL-551](https://github.com/Asymmetric-al/core/issues/551)
+and its October 8 owner reconciliation. Phase 17 ADRs are supporting owners,
+not substitutes. Acceptance records target intent, not runtime or activation.
