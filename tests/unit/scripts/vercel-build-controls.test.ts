@@ -15,7 +15,7 @@ const adminProject = EXPECTED_PROJECTS[0]!;
 
 const localConfig = {
   $schema: "https://openapi.vercel.sh/vercel.json",
-  installCommand: "bunx bun@1.4.2 install --cwd ../.. --frozen-lockfile",
+  installCommand: "bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile",
   buildCommand: "cd ../.. && bun run build:admin",
   ignoreCommand: "node ../../scripts/vercel/should-ignore-build.mjs admin",
   git: {
@@ -47,7 +47,7 @@ describe("Vercel build controls verifier", () => {
         projectId: "prj_SB9DucsrJOT0wF1v43SWMFsSNdn8",
         rootDirectory: "apps/admin",
         vercelConfigPath: "apps/admin/vercel.json",
-        installCommand: "bunx bun@1.4.2 install --cwd ../.. --frozen-lockfile",
+        installCommand: "bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile",
         buildCommand: "cd ../.. && bun run build:admin",
         ignoreCommand:
           "node ../../scripts/vercel/should-ignore-build.mjs admin",
@@ -57,7 +57,7 @@ describe("Vercel build controls verifier", () => {
         projectId: "prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL",
         rootDirectory: "apps/donor",
         vercelConfigPath: "apps/donor/vercel.json",
-        installCommand: "bunx bun@1.4.2 install --cwd ../.. --frozen-lockfile",
+        installCommand: "bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile",
         buildCommand: "cd ../.. && bun run build:donor",
         ignoreCommand:
           "node ../../scripts/vercel/should-ignore-build.mjs donor",
@@ -67,7 +67,7 @@ describe("Vercel build controls verifier", () => {
         projectId: "prj_6tXSJKsdv2JpK70GKkg9HIg5hiYN",
         rootDirectory: "apps/missionary",
         vercelConfigPath: "apps/missionary/vercel.json",
-        installCommand: "bunx bun@1.4.2 install --cwd ../.. --frozen-lockfile",
+        installCommand: "bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile",
         buildCommand: "cd ../.. && bun run build:missionary",
         ignoreCommand:
           "node ../../scripts/vercel/should-ignore-build.mjs missionary",
@@ -228,7 +228,7 @@ describe("Vercel build controls verifier", () => {
         nodeVersion: "24.x",
         bunVersion: null,
         buildCommand: "bun run build",
-        installCommand: "bunx bun@1.4.2 install --cwd ../.. --frozen-lockfile",
+        installCommand: "bunx bun@1.4.3 install --cwd ../.. --frozen-lockfile",
         enableAffectedProjectsDeployments: true,
         previewDeploymentsDisabled: true,
         resourceConfig: {

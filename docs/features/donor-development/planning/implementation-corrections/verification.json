@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "scope": "Proposed planning consistency only; no remote corrections applied and no runtime qualification claimed.",
+  "tickets": 68,
+  "unique_primary_acceptance": 711,
+  "primary_owner_transfers": 23,
+  "affected_complete_body_drafts": 25,
+  "published_direct_edges": 139,
+  "proposed_direct_edges": 140,
+  "added_edge": {
+    "from": "P27-F12",
+    "from_issue": 1996,
+    "to": "P27-F23",
+    "to_issue": 2026
+  },
+  "requirements": 193,
+  "stories": 193,
+  "monitors": 141,
+  "open_spec_tasks": 204,
+  "baseline_hashes_match_published_index": true,
+  "all_transferred_source_text_preserved": true,
+  "unrelated_body_content_preserved": true,
+  "required_producer_closure_verified": true,
+  "acyclic_and_existing_order_valid": true,
+  "source_frontier_unchanged": [
+    "P27-A01",
+    "P27-C04",
+    "P27-F12",
+    "P27-P14",
+    "P27-S01"
+  ],
+  "q03_primary_cases_before": 25,
+  "q03_primary_cases_after": 29,
+  "q03_body_utf8_bytes": 41044,
+  "largest_body_utf8_bytes": 41044,
+  "body_size_limit_bytes": 65536
+}

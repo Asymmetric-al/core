@@ -1,0 +1,4550 @@
+{
+  "audited_at_utc": "2026-10-11T13:02:48.089620+00:00",
+  "result": "PASS",
+  "counts": {
+    "tickets": 68,
+    "phase27_children": 67,
+    "phase9_children": 1,
+    "internal_edges": 123,
+    "existing_issue_edges": 16,
+    "actual_direct_edges": 139,
+    "scoped_existing_amendments": 15,
+    "checks": 853,
+    "failures": 0
+  },
+  "errors": [],
+  "checks": [
+    {
+      "check": "Exact68planIDs",
+      "pass": true,
+      "detail": {
+        "actual": 68,
+        "expected": 68
+      }
+    },
+    {
+      "check": "Unique68issueNumbers",
+      "pass": true
+    },
+    {
+      "check": "P27-A01 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A01 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A01 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A01 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A01 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [607, 613, 620],
+        "actual": [607, 613, 620]
+      }
+    },
+    {
+      "check": "P27-A01 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A01 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A01 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A01 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A01 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 24945,
+        "bytes": 24979
+      }
+    },
+    {
+      "check": "P27-A01 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C04 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C04 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C04 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C04 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C04 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [723],
+        "actual": [723]
+      }
+    },
+    {
+      "check": "P27-C04 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C04 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C04 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C04 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C04 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 23591,
+        "bytes": 23629
+      }
+    },
+    {
+      "check": "P27-C04 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F12 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F12 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:easy", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F12 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F12 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F12 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "check": "P27-F12 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F12 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F12 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F12 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F12 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 26367,
+        "bytes": 26417
+      }
+    },
+    {
+      "check": "P27-F12 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P14 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P14 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P14 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P14 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P14 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "check": "P27-P14 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P14 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P14 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P14 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P14 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 26395,
+        "bytes": 26427
+      }
+    },
+    {
+      "check": "P27-P14 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-S01 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-S01 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-S01 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-S01 native parent",
+      "pass": true,
+      "detail": 604
+    },
+    {
+      "check": "P27-S01 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [606],
+        "actual": [606]
+      }
+    },
+    {
+      "check": "P27-S01 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-S01 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-S01 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-S01 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-S01 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 15164,
+        "bytes": 15180
+      }
+    },
+    {
+      "check": "P27-S01 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A02 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A02 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A02 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A02 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A02 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1994],
+        "actual": [1994]
+      }
+    },
+    {
+      "check": "P27-A02 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A02 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A02 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A02 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A02 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 19638,
+        "bytes": 19662
+      }
+    },
+    {
+      "check": "P27-A02 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A09 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A09 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A09 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A09 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A09 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [610, 1994],
+        "actual": [610, 1994]
+      }
+    },
+    {
+      "check": "P27-A09 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A09 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A09 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A09 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A09 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17942,
+        "bytes": 17966
+      }
+    },
+    {
+      "check": "P27-A09 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C01 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C01 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C01 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C01 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C01 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1998],
+        "actual": [1998]
+      }
+    },
+    {
+      "check": "P27-C01 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C01 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C01 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C01 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C01 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 26551,
+        "bytes": 26591
+      }
+    },
+    {
+      "check": "P27-C01 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C05 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C05 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C05 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C05 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C05 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1995],
+        "actual": [1995]
+      }
+    },
+    {
+      "check": "P27-C05 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C05 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C05 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C05 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C05 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 28901,
+        "bytes": 28957
+      }
+    },
+    {
+      "check": "P27-C05 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F13 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F13 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F13 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F13 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F13 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1996],
+        "actual": [1996]
+      }
+    },
+    {
+      "check": "P27-F13 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F13 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F13 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F13 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F13 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 25152,
+        "bytes": 25188
+      }
+    },
+    {
+      "check": "P27-F13 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P01 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P01 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P01 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P01 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P01 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1997, 1998],
+        "actual": [1997, 1998]
+      }
+    },
+    {
+      "check": "P27-P01 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P01 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P01 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P01 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P01 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 34293,
+        "bytes": 34335
+      }
+    },
+    {
+      "check": "P27-P01 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A03 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A03 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A03 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A03 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A03 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [669, 1999],
+        "actual": [669, 1999]
+      }
+    },
+    {
+      "check": "P27-A03 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A03 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A03 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A03 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A03 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 20293,
+        "bytes": 20323
+      }
+    },
+    {
+      "check": "P27-A03 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C02 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C02 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C02 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C02 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C02 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2001],
+        "actual": [2001]
+      }
+    },
+    {
+      "check": "P27-C02 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C02 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C02 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C02 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C02 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 19189,
+        "bytes": 19213
+      }
+    },
+    {
+      "check": "P27-C02 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C06 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C06 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C06 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C06 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C06 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2002, 2004],
+        "actual": [2002, 2004]
+      }
+    },
+    {
+      "check": "P27-C06 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C06 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C06 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C06 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C06 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 23837,
+        "bytes": 23869
+      }
+    },
+    {
+      "check": "P27-C06 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F01 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F01 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F01 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F01 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F01 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-F01 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F01 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F01 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F01 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F01 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 23155,
+        "bytes": 23175
+      }
+    },
+    {
+      "check": "P27-F01 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F21 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F21 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F21 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F21 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F21 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-F21 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F21 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F21 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F21 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F21 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 31460,
+        "bytes": 31506
+      }
+    },
+    {
+      "check": "P27-F21 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P02 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P02 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P02 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P02 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P02 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-P02 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P02 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P02 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P02 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P02 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 13764,
+        "bytes": 13782
+      }
+    },
+    {
+      "check": "P27-P02 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P03 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P03 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P03 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P03 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P03 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-P03 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P03 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P03 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P03 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P03 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 16733,
+        "bytes": 16753
+      }
+    },
+    {
+      "check": "P27-P03 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P04 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P04 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P04 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P04 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P04 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-P04 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P04 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P04 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P04 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P04 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17053,
+        "bytes": 17079
+      }
+    },
+    {
+      "check": "P27-P04 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P05 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P05 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P05 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P05 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P05 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-P05 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P05 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P05 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P05 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P05 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 14608,
+        "bytes": 14628
+      }
+    },
+    {
+      "check": "P27-P05 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P08 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P08 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P08 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P08 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P08 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-P08 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P08 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P08 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P08 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P08 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17903,
+        "bytes": 17927
+      }
+    },
+    {
+      "check": "P27-P08 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P15 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P15 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P15 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P15 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P15 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2004],
+        "actual": [2004]
+      }
+    },
+    {
+      "check": "P27-P15 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P15 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P15 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P15 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P15 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 36529,
+        "bytes": 36583
+      }
+    },
+    {
+      "check": "P27-P15 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A04 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A04 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A04 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A04 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A04 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2005],
+        "actual": [2005]
+      }
+    },
+    {
+      "check": "P27-A04 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A04 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A04 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A04 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A04 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 18223,
+        "bytes": 18249
+      }
+    },
+    {
+      "check": "P27-A04 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C03 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C03 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C03 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C03 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C03 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2006],
+        "actual": [2006]
+      }
+    },
+    {
+      "check": "P27-C03 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C03 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C03 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C03 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C03 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 28400,
+        "bytes": 28426
+      }
+    },
+    {
+      "check": "P27-C03 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C07 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C07 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C07 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C07 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C07 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2007],
+        "actual": [2007]
+      }
+    },
+    {
+      "check": "P27-C07 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C07 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C07 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C07 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C07 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 16046,
+        "bytes": 16062
+      }
+    },
+    {
+      "check": "P27-C07 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F02 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F02 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F02 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F02 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F02 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2008],
+        "actual": [2008]
+      }
+    },
+    {
+      "check": "P27-F02 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F02 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F02 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F02 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F02 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 19496,
+        "bytes": 19514
+      }
+    },
+    {
+      "check": "P27-F02 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F08 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F08 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F08 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F08 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F08 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2008],
+        "actual": [2008]
+      }
+    },
+    {
+      "check": "P27-F08 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F08 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F08 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F08 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F08 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 18601,
+        "bytes": 18619
+      }
+    },
+    {
+      "check": "P27-F08 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F22 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F22 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F22 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F22 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F22 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [773, 2009],
+        "actual": [773, 2009]
+      }
+    },
+    {
+      "check": "P27-F22 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F22 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F22 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F22 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F22 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 25435,
+        "bytes": 25467
+      }
+    },
+    {
+      "check": "P27-F22 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P10 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P10 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P10 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P10 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P10 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [891, 2012, 2014],
+        "actual": [891, 2012, 2014]
+      }
+    },
+    {
+      "check": "P27-P10 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P10 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P10 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P10 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P10 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 20306,
+        "bytes": 20330
+      }
+    },
+    {
+      "check": "P27-P10 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P16 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P16 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P16 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P16 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P16 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2014, 2015],
+        "actual": [2014, 2015]
+      }
+    },
+    {
+      "check": "P27-P16 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P16 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P16 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P16 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P16 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 40108,
+        "bytes": 40158
+      }
+    },
+    {
+      "check": "P27-P16 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P18 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P18 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:easy", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P18 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P18 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P18 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2015],
+        "actual": [2015]
+      }
+    },
+    {
+      "check": "P27-P18 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P18 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P18 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P18 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P18 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 27106,
+        "bytes": 27140
+      }
+    },
+    {
+      "check": "P27-P18 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F03 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F03 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F03 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F03 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F03 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2019],
+        "actual": [2019]
+      }
+    },
+    {
+      "check": "P27-F03 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F03 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F03 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F03 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F03 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 24909,
+        "bytes": 24943
+      }
+    },
+    {
+      "check": "P27-F03 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F23 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F23 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F23 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F23 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F23 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2021],
+        "actual": [2021]
+      }
+    },
+    {
+      "check": "P27-F23 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F23 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F23 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F23 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F23 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 18767,
+        "bytes": 18785
+      }
+    },
+    {
+      "check": "P27-F23 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F24 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F24 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F24 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F24 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F24 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [780, 2021],
+        "actual": [780, 2021]
+      }
+    },
+    {
+      "check": "P27-F24 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F24 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F24 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F24 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F24 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 27223,
+        "bytes": 27263
+      }
+    },
+    {
+      "check": "P27-F24 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P17 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P17 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P17 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P17 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P17 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2023],
+        "actual": [2023]
+      }
+    },
+    {
+      "check": "P27-P17 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P17 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P17 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P17 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P17 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 34256,
+        "bytes": 34296
+      }
+    },
+    {
+      "check": "P27-P17 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F04 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F04 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F04 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F04 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F04 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2025],
+        "actual": [2025]
+      }
+    },
+    {
+      "check": "P27-F04 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F04 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F04 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F04 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F04 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17511,
+        "bytes": 17525
+      }
+    },
+    {
+      "check": "P27-F04 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F05 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F05 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F05 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F05 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F05 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2025],
+        "actual": [2025]
+      }
+    },
+    {
+      "check": "P27-F05 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F05 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F05 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F05 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F05 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17736,
+        "bytes": 17748
+      }
+    },
+    {
+      "check": "P27-F05 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F14 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F14 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F14 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F14 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F14 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2003, 2025],
+        "actual": [2003, 2025]
+      }
+    },
+    {
+      "check": "P27-F14 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F14 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F14 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F14 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F14 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 22863,
+        "bytes": 22893
+      }
+    },
+    {
+      "check": "P27-F14 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P19 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P19 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P19 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P19 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P19 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2024, 2028],
+        "actual": [2024, 2028]
+      }
+    },
+    {
+      "check": "P27-P19 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P19 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P19 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P19 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P19 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 32650,
+        "bytes": 32686
+      }
+    },
+    {
+      "check": "P27-P19 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A05 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A05 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A05 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A05 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A05 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1994, 2012, 2030],
+        "actual": [1994, 2012, 2030]
+      }
+    },
+    {
+      "check": "P27-A05 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A05 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A05 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A05 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A05 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 20571,
+        "bytes": 20591
+      }
+    },
+    {
+      "check": "P27-A05 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C08 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C08 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C08 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C08 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C08 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1995, 2017, 2029, 2030],
+        "actual": [1995, 2017, 2029, 2030]
+      }
+    },
+    {
+      "check": "P27-C08 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C08 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C08 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C08 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C08 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 16907,
+        "bytes": 16923
+      }
+    },
+    {
+      "check": "P27-C08 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C09 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C09 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C09 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C09 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C09 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [625, 1995, 2030],
+        "actual": [625, 1995, 2030]
+      }
+    },
+    {
+      "check": "P27-C09 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C09 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C09 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C09 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C09 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 16641,
+        "bytes": 16659
+      }
+    },
+    {
+      "check": "P27-C09 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F06 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F06 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F06 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F06 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F06 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [697, 823, 2029],
+        "actual": [697, 823, 2029]
+      }
+    },
+    {
+      "check": "P27-F06 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F06 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F06 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F06 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F06 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17642,
+        "bytes": 17654
+      }
+    },
+    {
+      "check": "P27-F06 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F09 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F09 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F09 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F09 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F09 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2020, 2029],
+        "actual": [2020, 2029]
+      }
+    },
+    {
+      "check": "P27-F09 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F09 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F09 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F09 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F09 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 30718,
+        "bytes": 30750
+      }
+    },
+    {
+      "check": "P27-F09 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F15 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F15 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F15 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F15 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F15 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2031],
+        "actual": [2031]
+      }
+    },
+    {
+      "check": "P27-F15 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F15 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F15 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F15 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F15 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 25275,
+        "bytes": 25307
+      }
+    },
+    {
+      "check": "P27-F15 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F18 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F18 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F18 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F18 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F18 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1996, 2029],
+        "actual": [1996, 2029]
+      }
+    },
+    {
+      "check": "P27-F18 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F18 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F18 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F18 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F18 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 21693,
+        "bytes": 21709
+      }
+    },
+    {
+      "check": "P27-F18 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P06 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P06 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P06 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P06 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P06 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2030],
+        "actual": [2030]
+      }
+    },
+    {
+      "check": "P27-P06 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P06 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P06 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P06 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P06 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 13860,
+        "bytes": 13878
+      }
+    },
+    {
+      "check": "P27-P06 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P07 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P07 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P07 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P07 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P07 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2030],
+        "actual": [2030]
+      }
+    },
+    {
+      "check": "P27-P07 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P07 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P07 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P07 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P07 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17037,
+        "bytes": 17061
+      }
+    },
+    {
+      "check": "P27-P07 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A06 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A06 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A06 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A06 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A06 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2005, 2033],
+        "actual": [2005, 2033]
+      }
+    },
+    {
+      "check": "P27-A06 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A06 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A06 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A06 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A06 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 25856,
+        "bytes": 25892
+      }
+    },
+    {
+      "check": "P27-A06 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F07 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F07 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F07 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F07 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F07 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2039],
+        "actual": [2039]
+      }
+    },
+    {
+      "check": "P27-F07 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F07 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F07 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F07 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F07 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 18341,
+        "bytes": 18365
+      }
+    },
+    {
+      "check": "P27-F07 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F10 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F10 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F10 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F10 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F10 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2037],
+        "actual": [2037]
+      }
+    },
+    {
+      "check": "P27-F10 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F10 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F10 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F10 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F10 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 20911,
+        "bytes": 20935
+      }
+    },
+    {
+      "check": "P27-F10 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P09 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P09 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P09 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P09 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P09 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2014, 2041],
+        "actual": [2014, 2041]
+      }
+    },
+    {
+      "check": "P27-P09 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P09 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P09 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P09 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P09 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 15547,
+        "bytes": 15569
+      }
+    },
+    {
+      "check": "P27-P09 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A07 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A07 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A07 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A07 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A07 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2042],
+        "actual": [2042]
+      }
+    },
+    {
+      "check": "P27-A07 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A07 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A07 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A07 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A07 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 15384,
+        "bytes": 15406
+      }
+    },
+    {
+      "check": "P27-A07 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F11 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F11 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F11 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F11 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F11 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [897, 2044],
+        "actual": [897, 2044]
+      }
+    },
+    {
+      "check": "P27-F11 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F11 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F11 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F11 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F11 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 22834,
+        "bytes": 22872
+      }
+    },
+    {
+      "check": "P27-F11 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F20 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F20 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F20 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F20 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F20 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [697, 2021, 2043],
+        "actual": [697, 2021, 2043]
+      }
+    },
+    {
+      "check": "P27-F20 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F20 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F20 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F20 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F20 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 21949,
+        "bytes": 21975
+      }
+    },
+    {
+      "check": "P27-F20 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P11 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P11 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P11 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P11 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P11 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2045],
+        "actual": [2045]
+      }
+    },
+    {
+      "check": "P27-P11 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P11 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P11 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P11 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P11 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 19280,
+        "bytes": 19312
+      }
+    },
+    {
+      "check": "P27-P11 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-A08 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-A08 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-A08 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-A08 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-A08 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2016, 2046],
+        "actual": [2016, 2046]
+      }
+    },
+    {
+      "check": "P27-A08 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-A08 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-A08 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-A08 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-A08 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 22189,
+        "bytes": 22211
+      }
+    },
+    {
+      "check": "P27-A08 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F16 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F16 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F16 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F16 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F16 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2031, 2047],
+        "actual": [2031, 2047]
+      }
+    },
+    {
+      "check": "P27-F16 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F16 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F16 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F16 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F16 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 19692,
+        "bytes": 19716
+      }
+    },
+    {
+      "check": "P27-F16 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P12 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P12 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P12 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P12 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P12 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2049],
+        "actual": [2049]
+      }
+    },
+    {
+      "check": "P27-P12 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P12 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P12 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P12 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P12 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17538,
+        "bytes": 17568
+      }
+    },
+    {
+      "check": "P27-P12 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P13 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P13 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P13 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P13 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P13 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2017, 2049],
+        "actual": [2017, 2049]
+      }
+    },
+    {
+      "check": "P27-P13 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P13 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P13 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P13 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P13 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 17428,
+        "bytes": 17448
+      }
+    },
+    {
+      "check": "P27-P13 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-C10 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-C10 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-C10 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-C10 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-C10 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [1995, 2048, 2053],
+        "actual": [1995, 2048, 2053]
+      }
+    },
+    {
+      "check": "P27-C10 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-C10 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-C10 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-C10 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-C10 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 16484,
+        "bytes": 16500
+      }
+    },
+    {
+      "check": "P27-C10 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F17 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F17 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F17 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F17 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F17 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [610, 2051],
+        "actual": [610, 2051]
+      }
+    },
+    {
+      "check": "P27-F17 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F17 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F17 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F17 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F17 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 18266,
+        "bytes": 18286
+      }
+    },
+    {
+      "check": "P27-F17 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-F19 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-F19 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-F19 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-F19 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-F19 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2009, 2030, 2039, 2051],
+        "actual": [2009, 2030, 2039, 2051]
+      }
+    },
+    {
+      "check": "P27-F19 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-F19 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-F19 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-F19 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-F19 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 23702,
+        "bytes": 23722
+      }
+    },
+    {
+      "check": "P27-F19 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P20 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P20 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:medium", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P20 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P20 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P20 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2032, 2052],
+        "actual": [2032, 2052]
+      }
+    },
+    {
+      "check": "P27-P20 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P20 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P20 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P20 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P20 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 18513,
+        "bytes": 18537
+      }
+    },
+    {
+      "check": "P27-P20 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-P21 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-P21 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:feature"]
+    },
+    {
+      "check": "P27-P21 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-P21 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-P21 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2011, 2057],
+        "actual": [2011, 2057]
+      }
+    },
+    {
+      "check": "P27-P21 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-P21 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-P21 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-P21 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-P21 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 64728,
+        "bytes": 64810
+      }
+    },
+    {
+      "check": "P27-P21 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-Q01 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-Q01 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:chore"]
+    },
+    {
+      "check": "P27-Q01 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-Q01 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-Q01 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [
+          2000, 2010, 2013, 2018, 2022, 2026, 2027, 2034, 2035, 2036, 2038,
+          2040, 2050, 2054, 2055, 2056, 2058
+        ],
+        "actual": [
+          2000, 2010, 2013, 2018, 2022, 2026, 2027, 2034, 2035, 2036, 2038,
+          2040, 2050, 2054, 2055, 2056, 2058
+        ]
+      }
+    },
+    {
+      "check": "P27-Q01 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-Q01 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-Q01 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-Q01 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-Q01 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 19483,
+        "bytes": 19491
+      }
+    },
+    {
+      "check": "P27-Q01 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-Q02 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-Q02 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:chore"]
+    },
+    {
+      "check": "P27-Q02 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-Q02 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-Q02 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [
+          2000, 2010, 2013, 2018, 2022, 2026, 2027, 2034, 2035, 2036, 2038,
+          2040, 2050, 2054, 2055, 2056, 2058
+        ],
+        "actual": [
+          2000, 2010, 2013, 2018, 2022, 2026, 2027, 2034, 2035, 2036, 2038,
+          2040, 2050, 2054, 2055, 2056, 2058
+        ]
+      }
+    },
+    {
+      "check": "P27-Q02 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-Q02 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-Q02 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-Q02 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-Q02 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 21806,
+        "bytes": 21816
+      }
+    },
+    {
+      "check": "P27-Q02 title final",
+      "pass": true
+    },
+    {
+      "check": "P27-Q03 database ID",
+      "pass": true
+    },
+    {
+      "check": "P27-Q03 exact approved labels",
+      "pass": true,
+      "detail": ["complexity:hard", "status:blocked", "type:chore"]
+    },
+    {
+      "check": "P27-Q03 open/blocked/unassigned",
+      "pass": true
+    },
+    {
+      "check": "P27-Q03 native parent",
+      "pass": true,
+      "detail": 1992
+    },
+    {
+      "check": "P27-Q03 exact native direct blockers",
+      "pass": true,
+      "detail": {
+        "expected": [2059, 2060],
+        "actual": [2059, 2060]
+      }
+    },
+    {
+      "check": "P27-Q03 finalized body exact hash",
+      "pass": true
+    },
+    {
+      "check": "P27-Q03 full acceptance references",
+      "pass": true
+    },
+    {
+      "check": "P27-Q03 exact specification and PR",
+      "pass": true
+    },
+    {
+      "check": "P27-Q03 draft marker removed",
+      "pass": true
+    },
+    {
+      "check": "P27-Q03 bounded full issue body",
+      "pass": true,
+      "detail": {
+        "characters": 34508,
+        "bytes": 34562
+      }
+    },
+    {
+      "check": "P27-Q03 title final",
+      "pass": true
+    },
+    {
+      "check": "1992 exact native children",
+      "pass": true,
+      "detail": {
+        "actual": [
+          1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+          2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
+          2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027,
+          2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038,
+          2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049,
+          2050, 2051, 2052, 2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061
+        ],
+        "expected": [
+          1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+          2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
+          2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027,
+          2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038,
+          2039, 2040, 2041, 2042, 2043, 2044, 2045, 2046, 2047, 2048, 2049,
+          2050, 2051, 2052, 2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061
+        ]
+      }
+    },
+    {
+      "check": "1992 native child limit",
+      "pass": true
+    },
+    {
+      "check": "1992 acyclic parent ancestry",
+      "pass": true
+    },
+    {
+      "check": "1992 subissue nesting limit",
+      "pass": true,
+      "detail": {
+        "deepest_child_depth": 2
+      }
+    },
+    {
+      "check": "604 exact native children",
+      "pass": true,
+      "detail": {
+        "actual": [1998],
+        "expected": [1998]
+      }
+    },
+    {
+      "check": "604 native child limit",
+      "pass": true
+    },
+    {
+      "check": "604 acyclic parent ancestry",
+      "pass": true
+    },
+    {
+      "check": "604 subissue nesting limit",
+      "pass": true,
+      "detail": {
+        "deepest_child_depth": 2
+      }
+    },
+    {
+      "check": "Native dependency closure acyclic",
+      "pass": true,
+      "detail": {
+        "nodes": 95,
+        "cycles": []
+      }
+    },
+    {
+      "check": "Parent1992protectedfieldsand42commentsunchanged",
+      "pass": true,
+      "detail": {
+        "comments": 42,
+        "different_fields": []
+      }
+    },
+    {
+      "check": "Exact15scopedexistingissueamendments",
+      "pass": true
+    },
+    {
+      "check": "492 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "492 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "492 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "492 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "492 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "492 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "607 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "607 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "607 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "607 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "607 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "607 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "610 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "610 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "610 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "610 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "610 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "610 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "617 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "617 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "617 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "617 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "617 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "617 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "618 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "618 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "618 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "618 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "618 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "618 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "620 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "620 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "620 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "620 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "620 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "620 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "622 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "622 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "622 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "622 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "622 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "622 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "625 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "625 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "625 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "625 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "625 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "625 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "702 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "702 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "702 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "702 known prewrite metadata unchanged",
+      "pass": true,
+      "detail": {
+        "baseline_source": "Prepared fresh gh issue view snapshot /tmp/p27-publish-amendments/702.fresh.json, captured before the confirmed body-only PATCH; limited fields explicitly listed.",
+        "verified_fields": ["title", "state", "label_names"]
+      }
+    },
+    {
+      "check": "702 accepted body-only request",
+      "pass": true
+    },
+    {
+      "check": "702 accepted response metadata preserved through recovery",
+      "pass": true,
+      "detail": {
+        "verified_fields": ["assignees", "milestone", "locked"],
+        "evidence_boundary": "Compared accepted PATCH response with final readback; no independent pre-write snapshot for these fields."
+      }
+    },
+    {
+      "check": "702 native dependency operation scope and current readback",
+      "pass": true,
+      "detail": {
+        "current_blockers": [],
+        "evidence_boundary": "No retained pre-write native-blocker snapshot. Verified body-only PATCH, no ledger relationship mutation targeting702, and current blockers against accepted recovery readback."
+      }
+    },
+    {
+      "check": "702 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "703 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "703 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "703 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "703 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "703 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "703 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "763 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "763 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "763 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "763 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "763 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "763 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "764 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "764 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "764 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "764 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "764 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "764 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "773 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "773 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "773 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "773 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "773 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "773 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "780 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "780 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "780 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "780 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "780 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "780 predecessor comments remain0",
+      "pass": true
+    },
+    {
+      "check": "897 amendment ledger/raw evidence present",
+      "pass": true
+    },
+    {
+      "check": "897 approved amendment current exact body",
+      "pass": true
+    },
+    {
+      "check": "897 amendment source exact hash",
+      "pass": true
+    },
+    {
+      "check": "897 protected metadata unchanged",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "check": "897 predecessor native blockers unchanged",
+      "pass": true
+    },
+    {
+      "check": "897 predecessor comments remain0",
+      "pass": true
+    }
+  ],
+  "native_dependency_closure": {
+    "1994": [607, 613, 620],
+    "1995": [723],
+    "1996": [],
+    "1997": [],
+    "1998": [606],
+    "1999": [1994],
+    "2000": [610, 1994],
+    "2001": [1998],
+    "2002": [1995],
+    "2003": [1996],
+    "2004": [1997, 1998],
+    "2005": [669, 1999],
+    "2006": [2001],
+    "2007": [2002, 2004],
+    "2008": [2004],
+    "2009": [2004],
+    "2010": [2004],
+    "2011": [2004],
+    "2012": [2004],
+    "2013": [2004],
+    "2014": [2004],
+    "2015": [2004],
+    "2016": [2005],
+    "2017": [2006],
+    "2018": [2007],
+    "2019": [2008],
+    "2020": [2008],
+    "2021": [773, 2009],
+    "2022": [891, 2012, 2014],
+    "2023": [2014, 2015],
+    "2024": [2015],
+    "2025": [2019],
+    "2026": [2021],
+    "2027": [780, 2021],
+    "2028": [2023],
+    "2029": [2025],
+    "2030": [2025],
+    "2031": [2003, 2025],
+    "2032": [2024, 2028],
+    "2033": [1994, 2012, 2030],
+    "2034": [1995, 2017, 2029, 2030],
+    "2035": [625, 1995, 2030],
+    "2036": [697, 823, 2029],
+    "2037": [2020, 2029],
+    "2038": [2031],
+    "2039": [1996, 2029],
+    "2040": [2030],
+    "2041": [2030],
+    "2042": [2005, 2033],
+    "2043": [2039],
+    "2044": [2037],
+    "2045": [2014, 2041],
+    "2046": [2042],
+    "2047": [897, 2044],
+    "2048": [697, 2021, 2043],
+    "2049": [2045],
+    "2050": [2016, 2046],
+    "2051": [2031, 2047],
+    "2052": [2049],
+    "2053": [2017, 2049],
+    "2054": [1995, 2048, 2053],
+    "2055": [610, 2051],
+    "2056": [2009, 2030, 2039, 2051],
+    "2057": [2032, 2052],
+    "2058": [2011, 2057],
+    "2059": [
+      2000, 2010, 2013, 2018, 2022, 2026, 2027, 2034, 2035, 2036, 2038, 2040,
+      2050, 2054, 2055, 2056, 2058
+    ],
+    "2060": [
+      2000, 2010, 2013, 2018, 2022, 2026, 2027, 2034, 2035, 2036, 2038, 2040,
+      2050, 2054, 2055, 2056, 2058
+    ],
+    "2061": [2059, 2060],
+    "606": [],
+    "607": [],
+    "610": [],
+    "613": [],
+    "620": [],
+    "625": [],
+    "669": [],
+    "697": [],
+    "723": [],
+    "773": [],
+    "780": [],
+    "823": [],
+    "891": [890],
+    "897": [888, 894],
+    "888": [887],
+    "890": [875, 876, 888],
+    "894": [888, 893],
+    "875": [874],
+    "876": [875],
+    "887": [875, 876, 880, 881],
+    "893": [875, 876],
+    "874": [],
+    "880": [877, 878, 879],
+    "881": [880],
+    "877": [876],
+    "878": [877],
+    "879": [878]
+  },
+  "source_audit_sha256": "a8c81cf2291eee27b77f715b2a096b5d6ca6f8366ccb718cdcf99f4640bb278a",
+  "protected_parent_snapshot_sha256": "28807e0a8f69a0ab03ea2759325a906deef19140ef14851f03a9f4c2520b7b69",
+  "protected_parent_comments_count": 42,
+  "existing_issue_evidence_limits": {
+    "702": {
+      "recovery_note": "The body-only PATCH was confirmed before its next read failed authentication. Recovery used fresh readback without repeating the write. Pre-write title, state, label names and comments were retained in the prepared snapshot. Assignees, milestone and locked are compared only between the accepted PATCH response and final readback. No retained pre-write native dependency snapshot exists; the request and operation inventory prove this publication made no dependency mutation targeting #702, and fresh dependencies were recorded.",
+      "protected_metadata_verification": "Known pre-write title, state and label names matched. Body-only request accepted; other protected fields matched accepted response to final readback. See recovery evidence boundary.",
+      "dependency_verification": "Body-only PATCH; no native dependency operation targeting #702 in ledger; current blockers read back. No retained pre-write dependency baseline.",
+      "current_blocked_by": []
+    }
+  },
+  "limits": "Read-only GitHub metadata/body/native-relationship audit at the recorded time. Does not establish feature implementation, runtime authorization, RLS, UX usability, provider qualification, production activation or future GitHub state.",
+  "amendment_review": {
+    "source_sha256": "207e8d7c44b3466f5f6b69f81d99f87415e72d3ef53266167bc8dac8c34c0be6",
+    "reviewed_at_utc": "2026-10-11T12:27:35.946224+00:00",
+    "reviewer": "publication_duplicates independent agent",
+    "mode": "Read only; no GitHub writes",
+    "approved_packet_sha256": "c08ced3be89ec3edf82f092dcc49938a0d02929c116b18226587bf10a9f5c8c4",
+    "disposition": "ACCEPT",
+    "material_findings": [],
+    "manual_review": "All 15 full approved packet sections, all 15 changed-line diffs, and targeted final-body contradiction searches reviewed. Changes implement approved bounded source corrections and necessary repeated-clause qualification only. Existing non-staff identity, source ownership, finance controls, generic lastTouchAt and separate next-task semantics remain. No unrelated implementation scope, new producer, selected E7 policy, state/label/native-edge rewrite or parent edit is introduced. #897 consistently attributes preparation/submission to qualified Phase6, retains #888 occurrence/compiler handoff and the explicit missing producer allocation/proof gate. Harmless duplicate intro sentence in #492 was corrected before this final review.",
+    "amendments": [
+      {
+        "number": 492,
+        "after_sha256": "5387a71097d7614ad229e9c0c8c21d0d4819cd1f1b839f60ea993035be78ec4c",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "no_cross_hat_union_requirement_remains": true
+        }
+      },
+      {
+        "number": 607,
+        "after_sha256": "3e619bae94dfda454c3abade67713fac06084504a6c48dbd1acddf393b1fdcbb",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true
+        }
+      },
+      {
+        "number": 610,
+        "after_sha256": "a85f6a218664af554efb7a5da9119096739cafcb128654fb54850736df930926",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true
+        }
+      },
+      {
+        "number": 620,
+        "after_sha256": "68116376dd7d01243429455fb944543bcba81b62f0c68c85514c8bd996dc50af",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "no_client_only_replay_claim_remains": true
+        }
+      },
+      {
+        "number": 622,
+        "after_sha256": "cd30825a264e685c1990c5bff4647490cd6ce2efafd5167b5b3bf814e943d24b",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "no_blanket_shared_context_denial_remains": true
+        }
+      },
+      {
+        "number": 764,
+        "after_sha256": "303fb6b6ba23ccaf4035cd25cf3f0fd0cd5fd5a5fffccda709d3978724acbfdd",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true
+        }
+      },
+      {
+        "number": 773,
+        "after_sha256": "351ba35cbd9fc43310c86b99b297899f05ec0b1232a7399d5cdaf4abf3e04466",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true
+        }
+      },
+      {
+        "number": 617,
+        "after_sha256": "660785b5b22d69781657660abae975c8e86bb3570f99e243cdc1d6733dcabd2d",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true
+        }
+      },
+      {
+        "number": 618,
+        "after_sha256": "c78abded30867a09c49f2145665b54327a8da727b758ba8df4ad0b3f5fda65c9",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "generic_last_touch_formula_and_acceptance_byte_identical": true,
+          "earliest_next_task_summary_definition_preserved": true
+        }
+      },
+      {
+        "number": 625,
+        "after_sha256": "60d852cc989dfe2085965a72cc294fbae2b87964adf3ba5b40bbd35d9228cee9",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true
+        }
+      },
+      {
+        "number": 763,
+        "after_sha256": "d7ce238f99e4f1047d7bd26af6b92c41ee1f8ee2c20ff1500b0497918631c90f",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true
+        }
+      },
+      {
+        "number": 780,
+        "after_sha256": "1849009ecba41a6fe99b7594e580378163f4f723bc7644da0b247298165047bf",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "pure_additive_original_body_preserved": true
+        }
+      },
+      {
+        "number": 702,
+        "after_sha256": "f4429dcc719c19c537e4bba1dd4dd642941f8830998fd892633475b9f9990096",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "pure_additive_original_body_preserved": true
+        }
+      },
+      {
+        "number": 703,
+        "after_sha256": "2b9744a868113cb0779954842cb032012ed65c473d1ebb47d5cd3a003d1e1909",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "pure_additive_original_body_preserved": true
+        }
+      },
+      {
+        "number": 897,
+        "after_sha256": "bb521fb929a322e4e1ca335f8d6305957c7e5f32c58e221a0bb70f7cf3103c4e",
+        "checks": {
+          "all_approved_verbatim_contract_blocks_present": true,
+          "before_body_matches_fresh": true,
+          "before_hash_correct": true,
+          "after_hash_correct": true,
+          "body_only_payload": true,
+          "title_state_labels_comments_preserved_in_baseline": true,
+          "no_freshness_conflict": true,
+          "fits_body_limit": true,
+          "original_newline_style_preserved": true,
+          "no_T15_preparation_ownership_remains": true,
+          "exact_Phase6_missing_allocation_gate_present": true
+        }
+      }
+    ]
+  }
+}

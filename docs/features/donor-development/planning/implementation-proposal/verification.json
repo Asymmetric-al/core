@@ -1,0 +1,25 @@
+{
+  "status": "proposal awaiting approval; not published implementation work",
+  "specification_commit": "b5a65b3f2da880fcbfa4b3cae189d216d06542be",
+  "codebase_revision": "71b81fae2ce1f9b615bcfee8606cd2c978a70e71",
+  "counts": {
+    "tickets": 68,
+    "phase27_children": 67,
+    "phase9_enablers": 1,
+    "requirements": 193,
+    "stories": 193,
+    "acceptance": 711,
+    "monitors": 141,
+    "open_spec_tasks": 204
+  },
+  "checks": {
+    "exact_primary_acceptance": true,
+    "complete_requirement_story_task_coverage": true,
+    "monitor_producer_coverage": true,
+    "acyclic": true,
+    "unresolved_blocker_symbols": 0
+  },
+  "runtime_proof": "not performed; required in implementation tickets",
+  "specification_checks": "bun run ci:preflight passed: 7013 tests passed, 4 skipped; 15 workspace typechecks; program roadmap + 32 archived OpenSpec changes + render consistency passed",
+  "historical_limit": "14 historical EOF blank-line warnings retained; canonical whitespace passes excluding immutable grill records"
+}

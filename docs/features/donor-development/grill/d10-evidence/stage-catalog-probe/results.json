@@ -1,0 +1,193 @@
+{
+  "version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "checks": 15,
+  "all_passed": true,
+  "scope": "Synthetic PostgreSQL mechanics only; not Core/P27/Supabase authorization, migrations, UI, provider or load qualification",
+  "results": [
+    {
+      "test": "composite scope rejects foreign tenant/preset stage and null tenant",
+      "pass": true,
+      "observed": [
+        "23503",
+        "23503",
+        "23502"
+      ]
+    },
+    {
+      "test": "retired recorded assignment survives D9-style reopen with unchanged stage provenance",
+      "pass": true,
+      "observed": {
+        "journey": "121,false",
+        "history_unchanged": true,
+        "history": {
+          "journey_id": 1,
+          "tenant_id": 1,
+          "preset_id": 12,
+          "stage_id": 121,
+          "recorded_at": "2026-01-01T12:00:00+00:00",
+          "recorded_by": "fixture-original-recorder"
+        }
+      }
+    },
+    {
+      "test": "counterexample: ordinary FK admits retired stage after stale unlocked precheck",
+      "pass": true,
+      "observed": "false,1"
+    },
+    {
+      "test": "serialized retirement first rejects new assignment after observed lock wait",
+      "pass": true,
+      "observed": {
+        "barrier": {
+          "waiter_pid": 165,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            158
+          ]
+        },
+        "assignment_accepted": "f",
+        "rows": "0"
+      }
+    },
+    {
+      "test": "serialized assignment first preserves accepted value after subsequent retirement",
+      "pass": true,
+      "observed": {
+        "barrier": {
+          "waiter_pid": 193,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            186
+          ]
+        },
+        "retirement_accepted": "t",
+        "state": "false,1"
+      }
+    },
+    {
+      "test": "full reorder swaps unique positions atomically and leaves stage history unchanged",
+      "pass": true,
+      "observed": {
+        "revision": 1,
+        "order": [
+          103,
+          101,
+          102
+        ],
+        "audit_count": 1,
+        "stage_history": [
+          {
+            "journey_id": 1,
+            "tenant_id": 1,
+            "preset_id": 12,
+            "stage_id": 121,
+            "recorded_at": "2026-01-01T12:00:00+00:00",
+            "recorded_by": "fixture-original-recorder"
+          }
+        ]
+      }
+    },
+    {
+      "test": "stale reorder revision rejected without changes",
+      "pass": true,
+      "observed": {
+        "sqlstate": "P0001",
+        "catalog_unchanged": true
+      }
+    },
+    {
+      "test": "duplicate reorder manifest rejected without changes",
+      "pass": true,
+      "observed": {
+        "sqlstate": "22023",
+        "catalog_unchanged": true
+      }
+    },
+    {
+      "test": "foreign-preset reorder identifier rejected without changes",
+      "pass": true,
+      "observed": {
+        "sqlstate": "22023",
+        "catalog_unchanged": true
+      }
+    },
+    {
+      "test": "incomplete reorder manifest rejected without changes",
+      "pass": true,
+      "observed": {
+        "sqlstate": "22023",
+        "catalog_unchanged": true
+      }
+    },
+    {
+      "test": "failure after order/revision/audit writes rolls all changes back",
+      "pass": true,
+      "observed": {
+        "sqlstate": "P0001",
+        "catalog_unchanged": true
+      }
+    },
+    {
+      "test": "concurrent stale reorder waits then rejects instead of overwriting winner",
+      "pass": true,
+      "observed": {
+        "barrier": {
+          "waiter_pid": 363,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            356
+          ]
+        },
+        "loser_sqlstate": "P0001",
+        "catalog": {
+          "revision": 2,
+          "order": [
+            102,
+            103,
+            101
+          ],
+          "audit_count": 2,
+          "stage_history": [
+            {
+              "journey_id": 1,
+              "tenant_id": 1,
+              "preset_id": 12,
+              "stage_id": 121,
+              "recorded_at": "2026-01-01T12:00:00+00:00",
+              "recorded_by": "fixture-original-recorder"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "test": "real nonowner RLS role permits owned write and filters foreign old rows",
+      "pass": true,
+      "observed": {
+        "role": {
+          "role": "lab_writer",
+          "superuser": false,
+          "bypassrls": false,
+          "table_owner": "postgres"
+        },
+        "observed": "owned-write-ok\n0\n0"
+      }
+    },
+    {
+      "test": "RLS WITH CHECK rejects own-row move into valid foreign scope",
+      "pass": true,
+      "observed": {
+        "sqlstate": "42501",
+        "unchanged_scope": "1,12,121"
+      }
+    },
+    {
+      "test": "RLS WITH CHECK rejects new foreign-scope row despite valid FK",
+      "pass": true,
+      "observed": {
+        "sqlstate": "42501",
+        "inserted_rows": "0"
+      }
+    }
+  ]
+}

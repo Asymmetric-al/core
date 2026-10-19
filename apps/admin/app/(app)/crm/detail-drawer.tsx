@@ -1,5 +1,6 @@
 "use client";
 
+import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import {
   useAdminCrmRecordDetail,
   useCreateLinkedCrmNote,
@@ -304,6 +305,7 @@ function DetailDrawerTimeline({
   formatDate: (value: string) => string;
   timeline: Array<{
     amountCents: number | null;
+    currencyCode: string | null;
     description: string | null;
     id: string;
     occurredAt: string;
@@ -342,7 +344,11 @@ function DetailDrawerTimeline({
             ) : null}
             {act.amountCents ? (
               <p className="text-xs font-semibold text-foreground">
-                +{formatCurrency(act.amountCents)}
+                +
+                {formatSharedContributionAmount(
+                  act.amountCents,
+                  act.currencyCode ?? "USD",
+                )}
               </p>
             ) : null}
           </div>
@@ -484,6 +490,7 @@ function DetailDrawerActivityTab({
   onSaveNote: () => void;
   timeline: Array<{
     amountCents: number | null;
+    currencyCode: string | null;
     description: string | null;
     id: string;
     occurredAt: string;

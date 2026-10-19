@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Independent structural/coverage audit; never runs original source validators or product code."""
 import collections
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -10,6 +11,20 @@ P = Path(__file__).resolve().parents[1]
 REPO = P.parents[2]
 SOURCE = P.parent / "program-roadmap/source-2026-09-22/assets/ws"
 errors = []
+
+# P27's ratified source successor is deliberately finite. Original captures remain
+# immutable; all unaffected recipe/scenario fields still compare byte-for-value.
+P27_DON15_AMENDMENT = "P27-D22-D25-D29-2026-10-11"
+P27_DON15_FIELDS = {"trigger", "steps", "editable", "protected", "evidence", "clock_policy", "idempotency", "exception_policy"}
+P27_DON15_RECIPE_SHA256 = "c7f50844c76c79d3134fd0fff30ce1324a9a6039a28366deea9939abca416332"
+P27_DON15_METADATA_SHA256 = "fab70726b703fa40e55689e5744598c282650234604d39df5fb1eeda34cbe4dd"
+P27_DON15_SCENARIOS_SHA256 = "b45ba48c6e0ee4b2d9264f7d616194320f171a1b74b818e3a4d558881cb39ad4"
+P27_DON15_SCENARIO_IDS = {"T-DON-15-01", "T-DON-15-02", "T-DON-15-03"}
+
+def semantic_digest(value):
+    encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(encoded.encode()).hexdigest()
+
 
 def check(condition, message):
     if not condition: errors.append(message)
@@ -55,16 +70,29 @@ def main():
         rid = r["id"]
         expected = "MOBILIZATION" if rid.startswith("MOB-") else "GIVING" if (rid.startswith("DON-") and int(rid[-2:]) <= 13) or rid in {"MPD-01","MPD-06"} else "EVENTS" if rid in {"GEN-10","GEN-11","GEN-12"} else "CARE" if rid.startswith("CARE-") or rid == "GEN-18" else "CORE"
         check(r["checkpoint"] == expected, rid + " assigned to wrong source checkpoint")
+        if rid == "DON-15":
+            check(semantic_digest({k: r.get(k) for k in P27_DON15_FIELDS}) == P27_DON15_RECIPE_SHA256, "DON-15 differs from the exact ratified P27 successor")
+            check(semantic_digest(r.get("sourceAmendment")) == P27_DON15_METADATA_SHA256, "DON-15 source-amendment provenance differs")
+            check(r["default_activation"] == "disabled" and r["sourceBindingStatus"] == "unresolved_requires_exact_owner_qualification", "DON-15 claims unproved qualification/activation")
+        else:
+            check("sourceAmendment" not in r, rid + " has an unreviewed source successor")
         for key in ["title","pack","persona","customization","subject","trigger","steps","editable","protected","evidence","default_activation","audience","idempotency","exception_policy","acceptance_ids"]:
+            if rid == "DON-15" and key in P27_DON15_FIELDS:
+                continue  # These exact fields were independently digest-checked above.
             check(r[key] == source[key], r["id"] + " lost original " + key)
     scenarios = read(P / "verification/acceptance-scenarios.json")["scenarios"]
     source_scenarios = read(SOURCE / "verification/acceptance-scenarios.json")["scenarios"]
     scenario_ids = unique(scenarios, "id", "scenario ID")
     check(scenario_ids == {r["id"] for r in source_scenarios} and len(scenarios) == 352, "Scenario coverage differs from original 352")
     check(sum(r["category"] != "RECIPE" for r in scenarios) == 64, "Shared scenario count is not 64")
+    don15_scenarios = {r["id"]: {k: r.get(k) for k in ["title", "given", "when", "then", "sourceAmendment"]} for r in scenarios if r["id"] in P27_DON15_SCENARIO_IDS}
+    check(set(don15_scenarios) == P27_DON15_SCENARIO_IDS and semantic_digest(don15_scenarios) == P27_DON15_SCENARIOS_SHA256, "DON-15 differs from the three exact P27 successor scenarios")
     for r in scenarios:
         source = next(s for s in source_scenarios if s["id"] == r["id"])
-        for key,value in source.items(): check(r.get(key) == value, r["id"] + " changed captured scenario " + key)
+        for key,value in source.items():
+            if r["id"] in P27_DON15_SCENARIO_IDS and key == "title":
+                continue  # Exact successor title/GWT/provenance checked above.
+            check(r.get(key) == value, r["id"] + " changed captured scenario " + key)
         check(r["status"] == "specified_not_executed", r["id"] + " falsely claims execution")
     recipe_tests = collections.Counter(r.get("recipeId") for r in scenarios if r["category"] == "RECIPE")
     check(set(recipe_tests) == recipe_ids and set(recipe_tests.values()) == {3}, "Recipes do not each have exactly three tests")
@@ -138,7 +166,7 @@ def main():
     if errors:
         print("\n".join(errors),file=sys.stderr)
         return 1
-    print("PASS: 96 recipes; 352 scenarios; 26 packages / 39 slices; independent CORE DAG; 105 source bindings; 16 blueprints / 4 forms / 3 candidate schemas; exact source semantic coverage; no activation or runtime claims.")
+    print("PASS: 96 recipes; 352 scenarios; 26 packages / 39 slices; independent CORE DAG; 105 source bindings; 16 blueprints / 4 forms / 3 candidate schemas; exact captured semantics plus ratified DON-15 successor; no activation or runtime claims.")
     return 0
 
 if __name__ == "__main__":

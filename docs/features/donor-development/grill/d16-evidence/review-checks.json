@@ -1,0 +1,18 @@
+{
+  "scope": "Documentation structure/local links and existing D16 probe-artifact consistency; no test rerun, product CI, remote link or runtime authorization proof.",
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "markdown_files_checked": 10,
+  "local_links_checked": 140,
+  "structure": {
+    "categories": 22,
+    "requirements": 15,
+    "acceptance_criteria": 20,
+    "adversarial_questions": 7
+  },
+  "probe_passed": 1,
+  "probe_failed": 0,
+  "verified_probe_hashes": 9,
+  "errors": [],
+  "formatting_checked_markdown_files": 11,
+  "tracked_diff_whitespace_check": "passed"
+}

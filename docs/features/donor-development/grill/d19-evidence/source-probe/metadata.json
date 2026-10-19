@@ -1,0 +1,37 @@
+{
+  "collected_at_utc": "2026-10-10T16:25:08.319465+00:00",
+  "test_start_epoch_ms": 1791649460272,
+  "source_head": "225c02e9499bd6c0d493223cd4b1a4120ff787e3",
+  "node": "v24.19.0",
+  "bun_available": false,
+  "installed_versions": {
+    "vitest": "4.1.4",
+    "@vitejs/plugin-react": "6.0.1",
+    "jsdom": "26.1.0",
+    "@testing-library/react": "16.3.2",
+    "@base-ui/react": "1.8.0",
+    "react": "19.2.3",
+    "@tanstack/react-form": "1.28.6"
+  },
+  "manifest_versions": {
+    "vitest": "5.0.3",
+    "react": "19.3.0",
+    "@tanstack/react-form": "1.33.5",
+    "@base-ui/react": "1.8.0"
+  },
+  "command": "node node_modules/vitest/vitest.mjs run --config docs/features/donor-development/grill/d19-evidence/source-probe/vitest.config.mjs --reporter=json --outputFile=docs/features/donor-development/grill/d19-evidence/source-probe/results.json",
+  "passed": 1,
+  "failed": 0,
+  "test_run_attempts": 1,
+  "sha256": {
+    "docs/features/donor-development/grill/d19-evidence/source-probe/explicit-empty.test.tsx": "844883c28bdb8ccb5babbc48b4bbdafd548e0b01e882170af15e4fa9cc8fd9d1",
+    "docs/features/donor-development/grill/d19-evidence/source-probe/vitest.config.mjs": "d0c534a6c8e8ee2a3a5aca638c946ee9001eade5336aec0e552d34ca263aaf8a",
+    "tests/setup/unit-env.ts": "acc4377808599a115e73d611a6398b2a86028d3bcedf944b5128dadddd1e0109",
+    "vitest.pin-workspace-packages.ts": "dd9d854a5fa420ba79bc21c51222cb335409e9198519c95a97bea8a9b415bb82",
+    "vitest.per-importer-alias.ts": "f002181fab79a97c0268da1aeb9bb18721b815682e9a6fbc45a4dfb803361780",
+    "packages/ui/components/shadcn/select.tsx": "f6a5744a24bec07f002dff1d78839847e7eac6878bfd094f5c0a295b7e21a79c",
+    "packages/ui/components/primitives/tanstack-form.tsx": "8467db762429420d5fc8a4c75daf55e7ac1d724375d447376166b375d30674ad",
+    "packages/ui/node_modules/@base-ui/react/select/root/SelectRoot.js": "6682bb4c77ee8898af7e4ce5e01f2890561f05349c05e4113b5fd70e8ac9434b",
+    "packages/ui/node_modules/@base-ui/react/select/value/SelectValue.js": "748ccc4c9154415ee3c5322ea34df2e587321a0fd1580930031811ddbfaecd72"
+  }
+}

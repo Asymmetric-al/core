@@ -1,0 +1,163 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "completed": true,
+  "passed": 9,
+  "total": 9,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "counterexample: KEY SHARE and FK allow stale admission after non-key retirement commits",
+      "pass": true,
+      "observed": {
+        "retirement_completed_while_key_share_held": true,
+        "state": {
+          "accepts_new": false,
+          "available_stages": 2,
+          "journeys": 1
+        }
+      }
+    },
+    {
+      "test": "retirement first: SHARE admission waits, rechecks and rejects with no new journey",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 131,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            124
+          ]
+        },
+        "error": "23514",
+        "state": {
+          "accepts_new": false,
+          "available_stages": 2,
+          "journeys": 0
+        }
+      }
+    },
+    {
+      "test": "admission first: retirement waits and preserves the committed unassessed journey",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 173,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            166
+          ]
+        },
+        "state": {
+          "accepts_new": false,
+          "available_stages": 2,
+          "journeys": 1
+        }
+      }
+    },
+    {
+      "test": "withdrawn list permits existing and first assessment; individually retired stage still rejects",
+      "pass": true,
+      "observed": {
+        "journeys": [
+          {
+            "id": 40,
+            "stage": 2,
+            "revision": 2
+          },
+          {
+            "id": 41,
+            "stage": 2,
+            "revision": 2
+          }
+        ],
+        "events": [
+          {
+            "journey": 40,
+            "from": 1,
+            "to": 2
+          },
+          {
+            "journey": 41,
+            "from": null,
+            "to": 2
+          }
+        ]
+      }
+    },
+    {
+      "test": "retirement first: waiting existing stage change succeeds after retirement",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 256,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            250
+          ]
+        },
+        "state": {
+          "accepts_new": false,
+          "available_stages": 2,
+          "journeys": 1
+        }
+      }
+    },
+    {
+      "test": "stage change first: waiting retirement preserves accepted stage and history",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 299,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            292
+          ]
+        },
+        "state": {
+          "accepts_new": false,
+          "available_stages": 2,
+          "journeys": 1
+        }
+      }
+    },
+    {
+      "test": "counterexample: active-admission catalog join erases all still-existing journey rows",
+      "pass": true,
+      "observed": {
+        "assigned_source_rows": 6,
+        "active_only_join": 0
+      }
+    },
+    {
+      "test": "withdrawn list retains one available stage under concurrent last-stage edits, independent of usage count",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 356,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            349
+          ]
+        },
+        "error": "23514",
+        "state": {
+          "accepts_new": false,
+          "available_stages": 1,
+          "journeys": 0
+        }
+      }
+    },
+    {
+      "test": "conditional restoration guard rejects pre-existing zero-stage invalid fixture",
+      "pass": true,
+      "observed": {
+        "error": "23514",
+        "state": {
+          "accepts_new": false,
+          "available_stages": 0,
+          "journeys": 0
+        }
+      }
+    }
+  ]
+}

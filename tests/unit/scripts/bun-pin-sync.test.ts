@@ -38,8 +38,8 @@ const verifierSourcePath = path.join(
   "bun-version.mjs",
 );
 
-/** Official stable pin verified from GitHub `bun-v1.4.2` and npm `bun@latest`. */
-const VERIFIED_STABLE_BUN = "1.4.2";
+/** Official stable pin verified from Bun v1.4.3 release notes and npm `bun@1.4.3`. */
+const VERIFIED_STABLE_BUN = "1.4.3";
 const PINNED_TURBO = "2.11.7";
 
 const WORKFLOW_DIR = path.join(repoRoot, ".github", "workflows");

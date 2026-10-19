@@ -1598,6 +1598,24 @@ Decisions are labeled `D#`/`R#` to trace to the grill decisions log. **Everythin
 
 - **The `(module, level) → capability[]` map is a first-class, reviewed, generated artifact** beside the `tiles` config; each capability carries a `sensitivity` flag; a build-time invariant forbids any `sensitive` capability in `View`/`Manage`. Modules are **frozen to an authz-owned `PermissionModule` enum that the UI `tiles` registry _references_** (not defines) — a frontend rename can never orphan a permission row. Coverage/surjectivity is CI-proven (`bundled_registry ≡ ⋃ map`; `registry = bundled_registry ∪ explicit_only_registry` with a disjoint classification; `map.modules ⊆ PermissionModule`; every rung non-empty + monotonic higher ⊇ lower). Explicit-only atoms are deliberately grantable through the same authorization domain but appear in no module rung or seed. No capability equals "see all fields" (the CiviCRM `access all custom data` hole is structurally absent).
 - **Per-entity CRUD** for Party/person/household/org, notes, relationships, tasks, custom-collection items, reports, templates, CMS content. Entity permission never overrides field-level or classification restriction.
+- **Phase 27 qualified source capabilities (D23/D25/D26/D30).** Register Request
+  preparation/submission, exact-revision decision, review-requirement/default
+  administration, per-Request exception, reviewer reassignment/correction and
+  prospective presentation as separately admitted current powers. Ordinary edit
+  or reviewer capability cannot waive required review, and changing terms
+  invalidates the applicable prior coverage under its source rule. Register bounded
+  P15 gift-report/read/correct/routing actions separately from donor creation,
+  financial posting/correction, fulfillment and receipt powers. Register exact
+  P9 shared-partnership create/read/correct/restrict and history capabilities;
+  missionary workspace capability does not make its holder staff. Preserve the
+  P3 general-note/score floor while applying only D26's narrow newly authored
+  interaction exception. Qualify any projection-policy widening under ADR0211's
+  distinct-human approval; ordinary updates under that qualified policy require
+  no supervisory approval. Current tenant/context, classification and historical
+  audience apply to lists, bodies, counts, caches, exports and recovered results.
+  Assignment proposals/Auto require exact current capability and non-human
+  identity ceilings. Transfers, membership and directory events never confer
+  source permissions, and revocation is deny-first even while work handoff waits.
 - **Per-field visibility/edit** rides the Phase 11 `getFieldCatalog` contract keyed on immutable `field_key`, and the Phase 10 tiers. **`edit(field) ⟹ view(field)`** is a resolver-level lattice invariant (blind-tamper on a `security`/`financial` field is Salesforce's #1 FLS bug); `edit` on a floored-`view` field is forbidden. Field access gates **filter/sort/group-by inputs**, not just displayed columns, and rejects (never silently drops) a predicate on an over-classified field.
 - **Manager/hierarchy rollup is opt-in per module/entity** (not global); sensitive tiers and restricted persons are excluded by the same build-time invariant; the scope resolves from the **live org-edge** (a mover re-points automatically), enforced as a write-time DAG with a **fail-closed cycle guard** (cycle ⇒ self-scope). This is the one legitimately authorization-bearing derived edge (distinct from Phase 9's display-only derived roles); a CiviCRM-style controlled transitive read powers the Field-Leadership rollup, bound to the epoch.
 - **Draft/unpublished is a distinct capability** enforced as a server-side `_status` where-constraint (never a client flag). **Self is a resolver scope axis** (self / reports / org / global): a person may view their own comp/clearance but must not edit their own comp, `security_level`, or background-check result; "self" resolves on a **principal-id row predicate**.

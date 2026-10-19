@@ -1,0 +1,40 @@
+{
+  "version": "phase27-ratified-spec-2026-10-11-v1",
+  "proof_level": "Documentation only; no feature implementation, runtime, provider, accessibility-conformance, capacity or user-pilot proof",
+  "preservation": {
+    "baseline_files": 377,
+    "unchanged": 376,
+    "permitted_changes": [
+      "docs/features/donor-development/grill/phase27-grill-log.md"
+    ],
+    "CONTEXT_unchanged_since_invocation": true
+  },
+  "counts": {
+    "stories": 193,
+    "requirements": 193,
+    "acceptance": 711,
+    "projectedScenarios": 1038,
+    "operating_controls": 141,
+    "unchecked_tasks": 204,
+    "local_link_occurrences_checked": 45
+  },
+  "checks": {
+    "exact_to_spec_template": true,
+    "no_paths_or_code_in_implementation_decisions": true,
+    "all_projected_scenarios_have_real_when_then": true,
+    "all_requirements_and_acceptance_story_mapped": "render-spec.mjs check passed",
+    "OpenSpec_strict": "passed",
+    "all_active_OpenSpec": "85 passed, 0 failed",
+    "OpenSpec_delta_compatibility": "85 checked; Phase24 authority passed",
+    "OpenSpec_archive_audit": "32 passed, 0 failed",
+    "workflow_generated_views": "6 match",
+    "workflow_contracts": "96 recipes / 352 scenarios / 105 source bindings; exact captured semantics plus scoped DON-15 successor",
+    "Phase25_projections": "3 match 242 canonical stories",
+    "independent_domain_audits": "partnership, request, context, assignment and integrated source/owner audits passed",
+    "git_diff_check": "passed"
+  },
+  "limitations": [
+    "E7 and C-01 are explicit upstream owner-policy gates; no invented resolution",
+    "All implementation, runtime and release tasks remain unchecked"
+  ]
+}

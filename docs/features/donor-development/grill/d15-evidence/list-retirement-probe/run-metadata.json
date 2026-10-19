@@ -1,0 +1,50 @@
+{
+  "started_at": "2026-10-10T14:28:27.613676+00:00",
+  "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "image_id": "sha256:79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537",
+  "repo_digests": [
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "container_name": "phase27-d15-retirement-lab-145536",
+  "create_command": [
+    "docker",
+    "--host=unix:///var/run/docker.sock",
+    "create",
+    "--name",
+    "phase27-d15-retirement-lab-145536",
+    "--network",
+    "none",
+    "--memory",
+    "256m",
+    "--cpus",
+    "1",
+    "--tmpfs",
+    "/var/lib/postgresql/data:rw,size=128m",
+    "-e",
+    "POSTGRES_HOST_AUTH_METHOD=trust",
+    "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+  ],
+  "scope": "Synthetic mechanics only; no Core SQL, application database, credentials or provider",
+  "concurrency": "Controlled retirement/admission, retirement/stage-change and last-stage interleavings with exact pg_blocking_pids barriers; not load testing",
+  "input_sha256": {
+    "setup.sql": "7da4a58e48904884a3250880b90b3a1642c73777316dc2743c000f281a928413",
+    "mechanics.py": "c55e3c3efdcde798ace173086bfda2ea2848e0596db7923a6c25bec81081f017",
+    "run-lab.py": "e9a587b47644bc6bdc0a2fe5564111aa53bf4ef308146187aff500f1d67972f2"
+  },
+  "container_id": "4268eb22549b20784930c48d93eddc904adee4dae5cb53247a128db5f5ad49e5",
+  "isolation": {
+    "network_mode": "none",
+    "port_bindings": {},
+    "binds": null,
+    "tmpfs": {
+      "/var/lib/postgresql/data": "rw,size=128m"
+    },
+    "mounts": []
+  },
+  "test_exit_code": 0,
+  "test_stdout": "{\"passed\": 9, \"total\": 9, \"all_pass\": true}",
+  "test_stderr": "",
+  "cleanup_exit_code": 0,
+  "container_removed": true,
+  "finished_at": "2026-10-10T14:28:33.380504+00:00"
+}

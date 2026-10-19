@@ -1,0 +1,173 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "isolation_level": "read committed",
+  "completed": true,
+  "passed": 8,
+  "total": 8,
+  "all_pass": true,
+  "results": [
+    {
+      "test": "nullable CHECK trap: amount greater than zero does not by itself require an amount",
+      "pass": true,
+      "observed": {
+        "accepted_null_rows": 1,
+        "reason": "CHECK accepts UNKNOWN; requiredness needs an explicit rule"
+      }
+    },
+    {
+      "test": "conditional fields: nonfinancial absence and monetary unknown remain distinct; invalid partial monetary tuples reject",
+      "pass": true,
+      "observed": {
+        "monetary_unknown": {
+          "id": 2,
+          "kind": "monetary",
+          "currency": "USD",
+          "revision": 1,
+          "entity_id": 10,
+          "target_id": null,
+          "tenant_id": 1,
+          "journey_id": 100,
+          "expected_minor": null,
+          "requested_minor": null
+        },
+        "nonfinancial_absence": {
+          "id": 3,
+          "kind": "nonfinancial",
+          "currency": null,
+          "revision": 1,
+          "entity_id": 10,
+          "target_id": null,
+          "tenant_id": 1,
+          "journey_id": 100,
+          "expected_minor": null,
+          "requested_minor": null
+        },
+        "errors": {
+          "missing_currency": "23514",
+          "nonfinancial_zero": "23514",
+          "nonfinancial_currency": "23514",
+          "negative_expected": "23514"
+        }
+      }
+    },
+    {
+      "test": "optional monetary context never weakens required journey/entity scope; supplied targets must share exact source scope",
+      "pass": true,
+      "observed": {
+        "foreign_target": "23503",
+        "foreign_journey_even_without_money": "23503",
+        "missing_entity": "23502"
+      }
+    },
+    {
+      "test": "type flag alone cannot hide or retain incompatible money as a valid nonfinancial row",
+      "pass": true,
+      "observed": {
+        "error": "23514",
+        "all_rows_unchanged": true
+      }
+    },
+    {
+      "test": "explicit type-and-terms replacement preserves original monetary version and atomically records current version plus result",
+      "pass": true,
+      "observed": {
+        "late_failure": "23514",
+        "rollback_all": true,
+        "original": {
+          "id": 1,
+          "kind": "monetary",
+          "currency": "USD",
+          "revision": 1,
+          "entity_id": 10,
+          "target_id": 500,
+          "tenant_id": 1,
+          "journey_id": 100,
+          "expected_minor": 8000,
+          "requested_minor": 10000
+        },
+        "current": {
+          "id": 1,
+          "kind": "nonfinancial",
+          "currency": null,
+          "revision": 2,
+          "entity_id": 10,
+          "target_id": null,
+          "tenant_id": 1,
+          "journey_id": 100,
+          "expected_minor": null,
+          "requested_minor": null
+        },
+        "versions": 2,
+        "receipts": 1
+      }
+    },
+    {
+      "test": "business identity binds conditional meaning; old successful nonfinancial result never wipes later monetary revision",
+      "pass": true,
+      "observed": {
+        "changed_meaning": "23514",
+        "stale_revision": "40001",
+        "historical_result": {
+          "id": 1,
+          "kind": "nonfinancial",
+          "currency": null,
+          "revision": 2,
+          "entity_id": 10,
+          "target_id": null,
+          "tenant_id": 1,
+          "journey_id": 100,
+          "expected_minor": null,
+          "requested_minor": null
+        },
+        "current": {
+          "id": 1,
+          "kind": "monetary",
+          "currency": "USD",
+          "revision": 3,
+          "entity_id": 10,
+          "target_id": null,
+          "tenant_id": 1,
+          "journey_id": 100,
+          "expected_minor": 0,
+          "requested_minor": 12000
+        },
+        "replay_preserved_current_and_history": true
+      }
+    },
+    {
+      "test": "same-currency/entity amount lanes retain known coverage; SUM ignoring NULL is not complete monetary knowledge",
+      "pass": true,
+      "observed": [
+        {
+          "asks": 1,
+          "currency": "JPY",
+          "entity_id": 10,
+          "known_requested": 1,
+          "known_requested_sum": 10000
+        },
+        {
+          "asks": 2,
+          "currency": "USD",
+          "entity_id": 10,
+          "known_requested": 1,
+          "known_requested_sum": 12000
+        },
+        {
+          "asks": 1,
+          "currency": "USD",
+          "entity_id": 20,
+          "known_requested": 1,
+          "known_requested_sum": 10000
+        }
+      ]
+    },
+    {
+      "test": "integer storage is not input precision validation: decimal cast rounds while bigint retains values beyond JS safe integer",
+      "pass": true,
+      "observed": {
+        "fractional_numeric_cast": 2,
+        "exact_large_integer": "9007199254740993"
+      }
+    }
+  ]
+}

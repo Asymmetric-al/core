@@ -1,0 +1,175 @@
+{
+  "version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "scope": "Disposable PostgreSQL mechanics. No application schema, Supabase API/auth, production data, source command or final lifecycle qualification.",
+  "tests": [
+    {
+      "test": "same-tenant Party reference",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23503",
+        "actual": "ERROR:  23503"
+      }
+    },
+    {
+      "test": "exact ministry Legal Entity reference",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23503",
+        "actual": "ERROR:  23503"
+      }
+    },
+    {
+      "test": "required key cannot be null",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23502",
+        "actual": "ERROR:  23502"
+      }
+    },
+    {
+      "test": "referenced ministry cannot be deleted",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23503",
+        "actual": "ERROR:  23503"
+      }
+    },
+    {
+      "test": "CHECK alone permits null",
+      "pass": true,
+      "detail": "NOT NULL is separately necessary for required values"
+    },
+    {
+      "test": "ordinary UNIQUE permits null duplicate",
+      "pass": true,
+      "detail": "Default nulls-distinct behavior"
+    },
+    {
+      "test": "NULLS NOT DISTINCT closes optional-key loophole",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23505",
+        "actual": "ERROR:  23505"
+      }
+    },
+    {
+      "test": "MATCH SIMPLE nullable composite bypass",
+      "pass": true,
+      "detail": "A partial-null tuple skipped FK matching"
+    },
+    {
+      "test": "MATCH FULL rejects partial-null tuple",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23503",
+        "actual": "ERROR:  23503"
+      }
+    },
+    {
+      "test": "running-only partial index permits paused duplicate",
+      "pass": true,
+      "detail": "Predicate silently chooses lifecycle semantics"
+    },
+    {
+      "test": "reopening paused row now collides",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23505",
+        "actual": "ERROR:  23505"
+      }
+    },
+    {
+      "test": "whole DB transaction aborts on child failure",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23503",
+        "actual": "ERROR:  23503"
+      }
+    },
+    {
+      "test": "atomic rollback leaves no parent",
+      "pass": true,
+      "detail": "Same DB transaction"
+    },
+    {
+      "test": "separate request can fail after first commit",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23503",
+        "actual": "ERROR:  23503"
+      }
+    },
+    {
+      "test": "separate autocommit retains parent",
+      "pass": true,
+      "detail": "Multiple client calls do not share a transaction"
+    },
+    {
+      "test": "RLS hides existing row",
+      "pass": true,
+      "detail": "SELECT policy excludes owner"
+    },
+    {
+      "test": "UNIQUE still reveals hidden conflict",
+      "pass": true,
+      "detail": {
+        "sqlstate": "23505",
+        "actual": "ERROR:  23505"
+      }
+    },
+    {
+      "test": "same authority can insert absent key",
+      "pass": true,
+      "detail": "Absent success differs from hidden-row conflict; owner admission required"
+    },
+    {
+      "test": "one CTE get-or-create can return empty under race",
+      "pass": true,
+      "detail": {
+        "returned": "",
+        "existing_count": "1",
+        "barrier": {
+          "protocol": "A committed only after B observed blocked by A",
+          "a_pid": 288,
+          "observation": {
+            "blocked_pid": 302,
+            "blockers": [
+              288
+            ],
+            "wait_event_type": "Lock",
+            "wait_event": "transactionid"
+          }
+        }
+      }
+    },
+    {
+      "test": "separate READ COMMITTED statement sees winning insert",
+      "pass": true,
+      "detail": {
+        "returned_id": "3",
+        "existing_count": "1",
+        "barrier": {
+          "protocol": "A committed only after B observed blocked by A",
+          "a_pid": 323,
+          "observation": {
+            "blocked_pid": 337,
+            "blockers": [
+              323
+            ],
+            "wait_event_type": "Lock",
+            "wait_event": "transactionid"
+          }
+        }
+      }
+    },
+    {
+      "test": "concurrent contenders converge on one row",
+      "pass": true,
+      "detail": {
+        "submissions": 16,
+        "max_concurrent_client_workers": 8,
+        "distinct_results": 1
+      }
+    }
+  ]
+}

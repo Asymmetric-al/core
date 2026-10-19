@@ -1,0 +1,621 @@
+{
+  "numTotalTestSuites": 12,
+  "numPassedTestSuites": 12,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 50,
+  "numPassedTests": 50,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1791621561283,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["mission control tasks migration"],
+          "fullName": "mission control tasks migration creates task, link, event, reminder, queue, and attention tables",
+          "status": "passed",
+          "title": "creates task, link, event, reminder, queue, and attention tables",
+          "duration": 1.0372899999999987,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control tasks migration"],
+          "fullName": "mission control tasks migration keeps queue and attention writes idempotent by tenant",
+          "status": "passed",
+          "title": "keeps queue and attention writes idempotent by tenant",
+          "duration": 0.1461570000000023,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control tasks migration"],
+          "fullName": "mission control tasks migration locks task tables to service role access",
+          "status": "passed",
+          "title": "locks task tables to service role access",
+          "duration": 0.14463499999999385,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control tasks migration"],
+          "fullName": "mission control tasks migration indexes open task and attention queues for Mission Control dashboards",
+          "status": "passed",
+          "title": "indexes open task and attention queues for Mission Control dashboards",
+          "duration": 0.12134999999999252,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1791621561885,
+      "endTime": 1791621561886.1462,
+      "status": "passed",
+      "message": "",
+      "name": "/workspace/core/tests/unit/supabase/mission-control-tasks-migration.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "D6 reuse counterexamples in current task service"
+          ],
+          "fullName": "D6 reuse counterexamples in current task service a failed link write rejects after the task dependency accepted its write",
+          "status": "passed",
+          "title": "a failed link write rejects after the task dependency accepted its write",
+          "duration": 2.0228819999999956,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "D6 reuse counterexamples in current task service"
+          ],
+          "fullName": "D6 reuse counterexamples in current task service an unqualified retry after that failure can accept a second task write",
+          "status": "passed",
+          "title": "an unqualified retry after that failure can accept a second task write",
+          "duration": 0.7061180000000036,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1791621561973,
+      "endTime": 1791621561976.706,
+      "status": "passed",
+      "message": "",
+      "name": "/workspace/core/docs/features/donor-development/grill/d6-evidence/source-probe/service-mechanics.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications uses conservative defaults: task and in-app on, email off",
+          "status": "passed",
+          "title": "uses conservative defaults: task and in-app on, email off",
+          "duration": 1.6295989999999847,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications plans at most one approval task per correction request",
+          "status": "passed",
+          "title": "plans at most one approval task per correction request",
+          "duration": 0.25711200000000645,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications does not plan an approval task when no approver is eligible",
+          "status": "passed",
+          "title": "does not plan an approval task when no approver is eligible",
+          "duration": 0.14187099999998054,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications delivers per preferences without letting preferences widen who is notified",
+          "status": "passed",
+          "title": "delivers per preferences without letting preferences widen who is notified",
+          "duration": 0.20672700000000077,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications suppresses email when the tenant has it disabled even if the user opted in",
+          "status": "passed",
+          "title": "suppresses email when the tenant has it disabled even if the user opted in",
+          "duration": 0.49655700000005254,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications produces stable dedupe keys so retried deliveries are idempotent",
+          "status": "passed",
+          "title": "produces stable dedupe keys so retried deliveries are idempotent",
+          "duration": 0.13995699999998124,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications derives reminder, escalation, and pending-too-long state from tenant timing",
+          "status": "passed",
+          "title": "derives reminder, escalation, and pending-too-long state from tenant timing",
+          "duration": 0.24647599999997283,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications creates one approval task, approver notifications, and an audit event",
+          "status": "passed",
+          "title": "creates one approval task, approver notifications, and an audit event",
+          "duration": 2.2358580000000075,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications does not notify the requester as an approver under separation of duties",
+          "status": "passed",
+          "title": "does not notify the requester as an approver under separation of duties",
+          "duration": 0.33453600000001416,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications does not create an approval task when requester filtering leaves no approvers",
+          "status": "passed",
+          "title": "does not create an approval task when requester filtering leaves no approvers",
+          "duration": 0.3563490000000229,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications allows requester notifications when the ownership policy permits one approver",
+          "status": "passed",
+          "title": "allows requester notifications when the ownership policy permits one approver",
+          "duration": 0.23359699999997474,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications uses the persisted approval task when a concurrent caller wins the link update",
+          "status": "passed",
+          "title": "uses the persisted approval task when a concurrent caller wins the link update",
+          "duration": 0.2960790000000202,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications dismisses a created task and skips notifications when the request is decided during workflow setup",
+          "status": "passed",
+          "title": "dismisses a created task and skips notifications when the request is decided during workflow setup",
+          "duration": 0.33254299999998693,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications does not duplicate audit events on a pure workflow replay",
+          "status": "passed",
+          "title": "does not duplicate audit events on a pure workflow replay",
+          "duration": 0.17403799999999592,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications records approval outcomes by completing tasks and notifying the requester",
+          "status": "passed",
+          "title": "records approval outcomes by completing tasks and notifying the requester",
+          "duration": 0.3618069999999989,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications processes pending approval SLA reminders and escalations without approving",
+          "status": "passed",
+          "title": "processes pending approval SLA reminders and escalations without approving",
+          "duration": 0.5300960000000146,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications excludes the requester from SLA reminder and escalation notifications",
+          "status": "passed",
+          "title": "excludes the requester from SLA reminder and escalation notifications",
+          "duration": 0.23059200000000146,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications skips SLA notifications when the request is decided before atomic delivery",
+          "status": "passed",
+          "title": "skips SLA notifications when the request is decided before atomic delivery",
+          "duration": 0.24254000000001952,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications does not stamp reminder state when notification delivery fails",
+          "status": "passed",
+          "title": "does not stamp reminder state when notification delivery fails",
+          "duration": 0.8434819999999945,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications does not stamp escalation state when notification delivery fails",
+          "status": "passed",
+          "title": "does not stamp escalation state when notification delivery fails",
+          "duration": 0.27384700000004614,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications marks reminder and escalation handled even when no notifications are deliverable",
+          "status": "passed",
+          "title": "marks reminder and escalation handled even when no notifications are deliverable",
+          "duration": 0.2487390000000005,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications does not immediately reprocess an undeliverable reminder cycle",
+          "status": "passed",
+          "title": "does not immediately reprocess an undeliverable reminder cycle",
+          "duration": 0.2479979999999955,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications stamps reminder SLA state when a retry dedupes existing notifications",
+          "status": "passed",
+          "title": "stamps reminder SLA state when a retry dedupes existing notifications",
+          "duration": 0.17775399999999308,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications stamps escalation SLA state when a retry dedupes existing notifications",
+          "status": "passed",
+          "title": "stamps escalation SLA state when a retry dedupes existing notifications",
+          "duration": 0.19894500000003745,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "admin/contribution-operations/approval-notifications"
+          ],
+          "fullName": "admin/contribution-operations/approval-notifications continues processing later SLA rows when one request update fails",
+          "status": "passed",
+          "title": "continues processing later SLA rows when one request update fails",
+          "duration": 0.39568700000000945,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) sends approval-request emails through the tenant sender keyed by the dedupe key",
+          "status": "passed",
+          "title": "sends approval-request emails through the tenant sender keyed by the dedupe key",
+          "duration": 0.8379940000000374,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) does not resend approval emails on a pure workflow replay",
+          "status": "passed",
+          "title": "does not resend approval emails on a pure workflow replay",
+          "duration": 0.29322500000000673,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) keeps the durable workflow intact when the email provider fails",
+          "status": "passed",
+          "title": "keeps the durable workflow intact when the email provider fails",
+          "duration": 0.4041090000000054,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) emails the requester the outcome only with tenant and requester opt-in",
+          "status": "passed",
+          "title": "emails the requester the outcome only with tenant and requester opt-in",
+          "duration": 0.45695800000004283,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) does not resend an outcome email already recorded by a partial earlier attempt",
+          "status": "passed",
+          "title": "does not resend an outcome email already recorded by a partial earlier attempt",
+          "duration": 0.2758489999999938,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) counts a resolved failure result as failed, not sent",
+          "status": "passed",
+          "title": "counts a resolved failure result as failed, not sent",
+          "duration": 0.24207900000004656,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) keeps requester outcomes in-app only when tenant email is disabled",
+          "status": "passed",
+          "title": "keeps requester outcomes in-app only when tenant email is disabled",
+          "duration": 0.15038400000003094,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) escapes staff-authored decision reasons in the email html body",
+          "status": "passed",
+          "title": "escapes staff-authored decision reasons in the email html body",
+          "duration": 0.21772300000003497,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) falls back to email-off when the gating reads fail instead of failing the decision",
+          "status": "passed",
+          "title": "falls back to email-off when the gating reads fail instead of failing the decision",
+          "duration": 0.31385599999998703,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["approval notification email delivery (#262)"],
+          "fullName": "approval notification email delivery (#262) builds product email copy without leaking financial detail",
+          "status": "passed",
+          "title": "builds product email copy without leaking financial detail",
+          "duration": 0.1314249999999788,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1791621561687,
+      "endTime": 1791621561702.1313,
+      "status": "passed",
+      "message": "",
+      "name": "/workspace/core/tests/unit/packages/api/admin/contribution-approval-notifications.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["mission control task assignment"],
+          "fullName": "mission control task assignment defaults contribution follow-up tasks to actor plus Finance Operations queue",
+          "status": "passed",
+          "title": "defaults contribution follow-up tasks to actor plus Finance Operations queue",
+          "duration": 1.1745630000000062,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control task assignment"],
+          "fullName": "mission control task assignment supports actor-only and queue-only assignment settings",
+          "status": "passed",
+          "title": "supports actor-only and queue-only assignment settings",
+          "duration": 0.19164499999999407,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control task urgency"],
+          "fullName": "mission control task urgency marks donor trust and money-state risks as critical",
+          "status": "passed",
+          "title": "marks donor trust and money-state risks as critical",
+          "duration": 0.20979099999999562,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control task urgency"],
+          "fullName": "mission control task urgency ages normal issues into high urgency after tenant threshold",
+          "status": "passed",
+          "title": "ages normal issues into high urgency after tenant threshold",
+          "duration": 0.1348210000000023,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control task urgency"],
+          "fullName": "mission control task urgency records audited urgency overrides",
+          "status": "passed",
+          "title": "records audited urgency overrides",
+          "duration": 0.508465000000001,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control task creation"],
+          "fullName": "mission control task creation creates tasks with linked contribution context and audit event",
+          "status": "passed",
+          "title": "creates tasks with linked contribution context and audit event",
+          "duration": 1.882212999999993,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control task creation"],
+          "fullName": "mission control task creation persists tasks through Supabase with a Finance Operations queue",
+          "status": "passed",
+          "title": "persists tasks through Supabase with a Finance Operations queue",
+          "duration": 0.8022399999999976,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control needs attention"],
+          "fullName": "mission control needs attention dedupes contribution attention by tenant and source key",
+          "status": "passed",
+          "title": "dedupes contribution attention by tenant and source key",
+          "duration": 0.26889899999999045,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["mission control needs attention"],
+          "fullName": "mission control needs attention loads and groups open Needs Attention rows from Supabase",
+          "status": "passed",
+          "title": "loads and groups open Needs Attention rows from Supabase",
+          "duration": 0.5875920000000008,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1791621561796,
+      "endTime": 1791621561802.5876,
+      "status": "passed",
+      "message": "",
+      "name": "/workspace/core/tests/unit/packages/api/admin/mission-control-tasks.test.ts"
+    }
+  ]
+}

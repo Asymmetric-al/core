@@ -1,0 +1,70 @@
+{
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+  "completed": false,
+  "passed": 4,
+  "total": 4,
+  "all_pass": false,
+  "results": [
+    {
+      "test": "FK-valid stored default can be unavailable; qualified complete-set resolver chooses no arbitrary fallback",
+      "pass": true,
+      "observed": {
+        "stored_default": 11,
+        "eligible_count": 2,
+        "eligible_default": null,
+        "initial_choice": null
+      }
+    },
+    {
+      "test": "counterexample: one loaded eligible row is not a sole eligible list",
+      "pass": true,
+      "observed": {
+        "eligible_total": 3,
+        "first_page_count": 1
+      }
+    },
+    {
+      "test": "default-set first: competing withdrawal waits and its stale revision cannot partly apply",
+      "pass": true,
+      "observed": {
+        "wait": {
+          "waiter_pid": 116,
+          "wait_event_type": "Lock",
+          "blocker_pids": [
+            109
+          ]
+        },
+        "error": "40001",
+        "state": {
+          "revision": 2,
+          "default": 21,
+          "lists": [
+            {
+              "id": 21,
+              "available": true
+            },
+            {
+              "id": 22,
+              "available": true
+            },
+            {
+              "id": 23,
+              "available": true
+            }
+          ],
+          "events": 1,
+          "receipts": 1
+        }
+      }
+    },
+    {
+      "test": "withdrawal requires explicit matching-default disposition; post-call failure rolls back flags, pointer, audit and receipt",
+      "pass": true,
+      "observed": {
+        "missing_disposition_error": "23514",
+        "rollback_error": "22012",
+        "unchanged": true
+      }
+    }
+  ]
+}

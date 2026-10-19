@@ -2249,7 +2249,8 @@ _Avoid_: unstated support thresholds, staff-entered supports edges
 A saved view is a live, named, shareable lens over a record kind (filters +
 sort + columns; always a live query, never stored membership). A list or
 segment — a curated membership container — is a distinct, reserved future
-concept.
+concept. Phase 27's appeal working list records appeal-specific planning intent;
+it is not that general-purpose List/segment capability or a stored saved view.
 _Avoid_: static list copies, views that store record membership
 
 **Staff-assignment edge**:
@@ -2261,12 +2262,237 @@ authorization input.
 _Avoid_: stored portfolio tables, assignment columns on records, roles as
 authorization
 
+**Staff-assignment policy** (Phase 27 D30, ratified):
+An organization's approved rules for assigning particular staff responsibilities
+and its choice of reviewed or automatic changes to existing rule-managed
+assignments. It preserves deliberate exceptions and does not itself assign access,
+move separate partnership or task responsibility, or constitute a portfolio.
+_Avoid_: universal owner rule, access policy, automatic transfer of all work
+
+**Manual staff-assignment exception** (Phase 27 D30, ratified):
+A deliberate protected choice to keep or change a particular staff assignment,
+or leave that responsibility unassigned, until an authorized person returns it
+to rule management. Keeping the same person can establish this exception;
+an absent assignee alone does not describe the reason or permission to refill it.
+_Avoid_: missing data as consent to assign, silent expiry, generic approval hold
+
 **Lifecycle status vs cultivation stage**:
 Lifecycle status is the record's own state (active, inactive, archived,
 deceased — plus merged, derived from the Phase 4 merge tombstone, never a
 stored value). Cultivation stage is donor-development pipeline state
 (Phase 27 — Donor Development) and never appears as a lifecycle status value.
 _Avoid_: pipeline stages in record status, prospect states on the party row
+
+**Cultivation enrollment** (Phase 27 D1/D2/D3):
+A continuing, purpose-specific financial or nonfinancial relationship-development
+journey with a Party across successive asks and stewardship. For ordinary
+missionary support, one ordinary partnership with the existing Ministry
+Assignment can include prayer, financial and other admitted participation while
+preserving actual human relationships and supporter intentions.
+_Avoid_: one global donor stage, one enrollment per ask, Party lifecycle,
+staff assignment, workflow enrollment, financial-support agreement
+
+**Independent cultivation purpose** (Phase 27 D3):
+A distinct continuing development outcome that existing asks, shared tasks,
+responsibilities or authoritative relationships cannot adequately represent and
+that needs independently managed relationship progress, follow-through and
+ending. A separate deadline, response, year, assignee or label alone does not
+establish an independent purpose.
+_Avoid_: one purpose per ask, annual purpose reset, confidentiality as purpose
+
+**Partnership request / Ask** (Phase 27 D22):
+A particular invitation for financial or significant nonfinancial participation
+whose answer and follow-through staff track within ministry-partnership work.
+It is distinct from the continuing cultivation journey, the next staff task and
+any resulting source-owned promise, permission or actual outcome.
+_Avoid_: one journey per ask, zero-value gift for prayer support, generic service
+request, completed task as accepted invitation
+
+**Partnership response** (Phase 27 D22):
+The recorded answer to identified partnership-request terms, including the
+speaker's known capacity, qualifications or unanswered parts.
+Agreement is distinct from a financial commitment, received money, actual
+participation or permission to communicate.
+_Avoid_: acceptance as fulfillment, contact title as organization authority,
+silence as decline, forecast as supporter intent
+
+**Partnership request review** (Phase 27 D23):
+An organization-required internal decision on identified proposed partnership-request
+terms and prospective presentation. Approval concerns those reviewed terms; it is
+distinct from a supporter response, actual presentation, financial commitment,
+communication permission and the internal reconsideration of paused cultivation.
+_Avoid_: task completion as approval, approval as donor acceptance, review assignment
+as access, prior approval as permission for changed terms
+
+**Development appeal** (Phase 27 D24/D29):
+An organized effort inviting financial, significant nonfinancial or mixed support
+for a shared development purpose, coordinating planned supporters and distinct
+requests/responses. It is distinct from an individual continuing partnership, a
+giving campaign or designation, and a communication send.
+_Avoid_: appeal as financial attribution, one journey per appeal, audience as
+recipients, one financial status for all of a supporter's invitations
+
+**Appeal working list** (Phase 27 D24):
+The appeal's deliberately recorded planned supporter population, changed through
+authorized additions, exclusions, removals and returns. Saved filters discover
+candidates but do not silently change membership. Retained history, current
+eligibility and actual participation remain separate; inclusion grants no contact
+permission and records no request, supporter response or financial outcome.
+_Avoid_: live filter as recorded plan, copied contact directory, generic Group,
+inclusion as Asked, removal as erased history, return as revived outreach
+
+**Gift intake handoff** (Phase 27 D25):
+The financial-intake owner's attributed report of an actually received offline
+gift, its reported handling and accountable next work, continuing through the same
+intake to an exact source-qualified outcome. The recorder, reported holder and
+responsible person can differ. Financial recording and remaining physical handling
+are separate facts; the report itself is neither received funding nor finance access.
+_Avoid_: draft as possession, assignee as physical holder, pending amount as received
+money, posting as completed handling, separate appeal gift ledger
+
+**Shared partnership update** (Phase 27 D26):
+New eligible working context deliberately contributed to one ministry partnership,
+visible through its current qualified collaboration and historical-access scope.
+Participation is voluntary; sharing does not expose private notes, impose missionary
+reporting or create work, coaching, contact or financial outcomes by itself.
+_Avoid_: missionary compliance log, all-staff diary, private-note republication,
+assignment as shared-history permission
+
+**Recorded personal exchange** (Phase 27 D27):
+A source-qualified actual conversation, meeting with personal interaction, or
+relevant human personal message received for an exact ministry partnership.
+Its recency follows the actual occurrence and known history; outreach sent alone,
+record maintenance and missing voluntary records establish neither an exchange
+nor the quality of the relationship.
+_Avoid_: generic last touch, outreach as conversation, activity as diligence,
+save time as contact time, no record as never contacted
+
+**Giving-pattern rating** (Phase 27 D28):
+A tenant-optional financial band for an identified subject and giving scope,
+based on qualified observed giving within an explained period and rule.
+Giving recency, frequency and amount remain separate dimensions; the band does
+not express relationship quality, personal worth or missionary performance.
+_Avoid_: donor value, generosity score, relationship health, missionary rating,
+unknown as zero, giving recency as conversation recency
+
+**Giving-pattern review** (Phase 27 D28):
+Separately enabled internal work to examine a qualified change in an identified
+giving pattern. It belongs to the source requiring the review and preserves a
+truthful outcome; it is not an instruction to contact or solicit a supporter.
+_Avoid_: score as obligation, review as solicitation, withdrawal as completion,
+claiming as independent follow-up
+
+**Deliberate cultivation admission** (Phase 27 D4):
+An authorized person's explicit acceptance of internal cultivation work for one
+relationship or a finite reviewed group, distinct from supporter agreement or
+communication consent. Each relationship's accepted outcome remains meaningful
+independently when only part of a group completes.
+_Avoid_: automatic enrollment from record arrival, standing permission for future
+matches, donor opt-in, group cancellation as undo of completed work
+
+**Internal cultivation review** (Phase 27 D6):
+A responsible person's reconsideration of deliberately paused ministry-
+partnership work to decide whether it should stay on hold, resume or end.
+Its review date is distinct from permission to contact a supporter or automatic
+resumption of the partnership work.
+_Avoid_: scheduled donor contact, automatic restart, notification read as review
+
+**Closed cultivation work** (Phase 27 D7):
+An identified development effort that staff have deliberately finished, retaining
+its lawful, authorized history without ending the supporter or ministry relationship.
+Closing is distinct from a later return to work or correction of an error.
+_Avoid_: lost donor, archived Party, cancelled giving, completed promises,
+automatic restart
+
+**Reopened cultivation work** (Phase 27 D8):
+A deliberate return to the same cultivation journey for the same supporter,
+identified ministry and purpose after a valid closure. The earlier closure and
+later return remain distinct parts of its history; prior completed or ended work
+does not become unfinished again.
+_Avoid_: new journey for every return, erased closed period, restored permissions,
+automatic revival of old tasks or reminders
+
+**Last recorded cultivation stage** (Phase 27 D9):
+The most recent authorized recorded description of a cultivation journey's
+progress. Reopening the work retains that understanding without treating it as
+a freshly confirmed assessment; staff may update it when ready.
+_Avoid_: reopening as reassessment, record edits as meaningful contact,
+automatic reset to a new prospect
+
+**Cultivation stage preset (stage list)** (Phase 27 D10/D14/D16):
+An organization-approved set of stage meanings on the shared cultivation model,
+used consistently by authorized views of a journey. Organizations may customize
+supplied lists or add another when needed, preserving distinct identities and
+earlier meaning; display order alone does not establish progress. For new work,
+authorized people choose from approved lists available in the applicable source
+and permission scope, using judgment and purpose guidance without an additional
+process-specific restriction system. An initial list choice grants no authority
+and is distinct from deliberately changing the list on existing partnership work.
+_Avoid_: one universal donor status, personal saved view, private personal pipeline,
+workflow script, list assignment by viewer or Party label, stage order as financial
+value or contact permission
+
+**Cultivation stage-list change** (Phase 27 D18):
+A deliberate change to the approved stage list used by the same continuing
+partnership work, to correct a mistaken choice or adopt a different working process.
+It preserves the supporter, identified ministry, continuing purpose and earlier
+recorded meaning. A different list is not another partnership or evidence of
+new progress; changing lists does not itself define a new stage assessment.
+_Avoid_: new enrollment, ministry transfer, erased history, automatic stage mapping,
+configuration change as permission to move existing work
+
+**Usual cultivation stage list** (Phase 27 D17):
+An optional organization-designated starting choice for new partnership work,
+used only when available in the permitted context and no valid list choice has
+already been established. Staff can choose another available list before starting.
+Changing or clearing this usual choice affects future unresolved starts, not
+existing work or an established valid choice.
+_Avoid_: suitability assessment, default stage, personal preference,
+authority or consent grant, automatic change to existing work
+
+**Retired cultivation stage** (Phase 27 D10):
+A stage no longer offered for ordinary new selection, while existing recorded
+understanding and authorized history remain interpretable. Its retirement does
+not move or close partnership work or require immediate reassessment on reopening.
+_Avoid_: deleted journey, forced advancement, automatic replacement,
+loss of historically recorded meaning
+
+**Withdrawn cultivation stage list** (Phase 27 D15):
+A retained stage list no longer offered for new partnership work. Journeys still
+using it may continue choosing its available stages, including after a permitted
+return to the same work. The organization may make the same list available for
+new work again. Withdrawal is distinct from retiring an individual stage, deleting
+the list or ending partnership work.
+_Avoid_: closed partnership, retired missionary, deleted history, automatic
+migration, loss of current permissions, permission granted by prior use
+
+**Cultivation stage guidance** (Phase 27 D11):
+An organization's explanation of an approved stage's meaning, informing staff
+judgment without becoming an additional information requirement for a stage change.
+It is distinct from mandatory source safeguards and evidence of a supporter action.
+_Avoid_: required acknowledgment, compulsory explanation, executable rule,
+guidance as contact, consent or financial evidence
+
+**Direct cultivation stage change** (Phase 27 D12/D20):
+An authorized update of a journey's recorded understanding to an appropriate
+available stage, or deliberately to no current stage while keeping its stage list,
+without following a mandatory sequence. Earlier assessments remain historical.
+Skipping creates no imagined intermediate history; a later return preserves the
+intervening history as well as the new change. An unchanged selection is not a new assessment.
+_Avoid_: advancement ladder, demotion, undo, historical correction,
+new supporter acquisition, automatic restart of earlier work
+
+**Not yet assessed** (Phase 27 D13/D19/D20):
+An otherwise valid cultivation journey has no current recorded stage on its
+current stage list, while responsibility and applicable follow-up remain. It may
+start this way, deliberately use this outcome when changing to another approved
+list, or deliberately return to it while keeping the same list. Earlier assessments
+remain historical; absence does not mean the partnership
+or list has never been assessed. It is distinct from an organization-defined stage,
+unavailable or protected information, and a judgment about the supporter; an
+authorized person may set the stage later.
+_Avoid_: first stage, never assessed, unknown supporter, inactive work, missing
+accountability, automatic assessment task, automatic clearing, erased assessment history
 
 **Provider link (record link)**:
 A row linking an Asym record to an external provider object by id (the

@@ -1,0 +1,7 @@
+{
+  "version": null,
+  "checks": 0,
+  "all_passed": false,
+  "scope": "Synthetic PostgreSQL mechanics only; not Core/P27/Supabase authorization, migrations, UI, provider or load qualification",
+  "results": []
+}

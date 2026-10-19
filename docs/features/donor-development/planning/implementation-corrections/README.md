@@ -1,0 +1,101 @@
+# Proposed Phase 27 implementation planning corrections
+
+**Status: proposed and unapproved. No corrected issue body or native blocking edge has been applied.** The original approved proposal and published record remain unchanged.
+
+The published allocation gives several early tickets complete acceptance scenarios that execute later source commands without those producers in their blocker closure. This packet corrects proof ownership while preserving all product decisions, 68 ticket identities, 711 acceptance cases, existing source safeguards, parent relationships, labels and scope. The issue is independently completable ticket planning, not a product-specification change.
+
+## Exact proposed changes
+
+The rows transfer complete primary proof, including its checkbox and unchanged full source acceptance text. Each original producer retains explicit local implementation and proof obligations. Referenced stories describe contributions; they do not assign a whole story to one ticket.
+
+| No. | Acceptance case | Published owner → proposed owner                                                                                                            | Reason                                                                                                                                                                                                                                               |
+| --- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `AC27-F85-02`   | [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) → [P27-F03 / #2025](https://github.com/Asymmetric-al/core/issues/2025) | Actual source response mutation and postcommit repair cannot be proved by an empty appeal shell.                                                                                                                                                     |
+| 2   | `AC27-F85-04`   | [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) → [P27-F03 / #2025](https://github.com/Asymmetric-al/core/issues/2025) | Actual lost Request-response save/retry must use the delivered response command.                                                                                                                                                                     |
+| 3   | `AC27-F61-02`   | [P27-F22 / #2021](https://github.com/Asymmetric-al/core/issues/2021) → [P27-F23 / #2026](https://github.com/Asymmetric-al/core/issues/2026) | Reading an appeal after partial intake posting requires a real appeal producer; place with existing multi-appeal intake composition.                                                                                                                 |
+| 4   | `AC27-F57-05`   | [P27-F21 / #2009](https://github.com/Asymmetric-al/core/issues/2009) → [P27-F20 / #2048](https://github.com/Asymmetric-al/core/issues/2048) | Explicit appeal view with prayer/hosting Requests, direct online gift and noncash intake composes independent sources.                                                                                                                               |
+| 5   | `AC27-F19-01`   | [P27-F08 / #2020](https://github.com/Asymmetric-al/core/issues/2020) → [P27-F09 / #2037](https://github.com/Asymmetric-al/core/issues/2037) | Positive financial and nonfinancial Request work under known review-free policy requires actual monetary-term source, absent F08 closure.                                                                                                            |
+| 6   | `AC27-F19-04`   | [P27-F08 / #2020](https://github.com/Asymmetric-al/core/issues/2020) → [P27-F10 / #2044](https://github.com/Asymmetric-al/core/issues/2044) | Submitting/deciding/repairing reviewer routing requires actual review round and reassignment commands, not only policy configuration.                                                                                                                |
+| 7   | `AC27-F85-05`   | [P27-F15 / #2038](https://github.com/Asymmetric-al/core/issues/2038) → [P27-Q03 / #2061](https://github.com/Asymmetric-al/core/issues/2061) | Full case combines partial bulk cancellation with ambiguous provider outcome, whose actual owner boundary arrives separately in F16.                                                                                                                 |
+| 8   | `AC27-F75-02`   | [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) → [P27-F18 / #2039](https://github.com/Asymmetric-al/core/issues/2039) | Positive operation of ordinary Requests/tasks with and without appeal requires the actual Request producer absent F12 closure.                                                                                                                       |
+| 9   | `AC27-F79-01`   | [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) → [P27-F19 / #2056](https://github.com/Asymmetric-al/core/issues/2056) | Actual purpose/applicability, link and archive changes compose appeal, Request association and lifecycle commands; existing financial facts are legitimate fixtures, so no financial-progress writer prerequisite is added.                          |
+| 10  | `AC27-F80-02`   | [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) → [P27-F16 / #2051](https://github.com/Asymmetric-al/core/issues/2051) | Complete current-authority preview/save/export/download/dispatch proof requires actual appeal and outbound admission surfaces. F16 is the earliest supplied composition; close/reopen is not exercised.                                              |
+| 11  | `AC27-F87-02`   | [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) → [P27-F19 / #2056](https://github.com/Asymmetric-al/core/issues/2056) | Complete appeal-flow accessibility includes actual respond/close/recover operations that F12 explicitly defers.                                                                                                                                      |
+| 12  | `AC27-F78-02`   | [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) → [P27-Q03 / #2061](https://github.com/Asymmetric-al/core/issues/2061) | Positive appeal read with protected child finance/nonfinancial contents and brief/AI derivatives requires real child-source composition; empty shell cannot prove all views.                                                                         |
+| 13  | `AC27-F09-02`   | [P27-F04 / #2029](https://github.com/Asymmetric-al/core/issues/2029) → [P27-F19 / #2056](https://github.com/Asymmetric-al/core/issues/2056) | The full two-session revise/respond/close/reassign race invokes actual Request close/responsibility commands supplied by sibling F05, absent F04 closure. Preserve F04 version concurrency locally; compose the whole race after both producers.     |
+| 14  | `AC27-P01-02`   | [P27-P01 / #2004](https://github.com/Asymmetric-al/core/issues/2004) → [P27-Q03 / #2061](https://github.com/Asymmetric-al/core/issues/2061) | When actual responsible-worker/list change executes, P01 lacks P04/P21. Given accepted asks alone do not require F03.                                                                                                                                |
+| 15  | `AC27-P02-01`   | [P27-P01 / #2004](https://github.com/Asymmetric-al/core/issues/2004) → [P27-F03 / #2025](https://github.com/Asymmetric-al/core/issues/2025) | Independent accepted Request responses are first actually recorded by F03; simple prepared fixture cannot execute the declined/pending response behavior.                                                                                            |
+| 16  | `AC27-P03-01`   | [P27-P01 / #2004](https://github.com/Asymmetric-al/core/issues/2004) → [P27-F01 / #2008](https://github.com/Asymmetric-al/core/issues/2008) | The included ask branch is an actual Request source effect. F01 already consumes P01; move full combined case and explicitly qualify deliberate bundled start plus Request there.                                                                    |
+| 17  | `AC27-P05-03`   | [P27-P04 / #2012](https://github.com/Asymmetric-al/core/issues/2012) → [P27-A05 / #2033](https://github.com/Asymmetric-al/core/issues/2033) | When actual Party representative assignment change executes, P04 lacks the A01 named source mutation. Given independent Request owners does not itself require F05. A05 already consumes both actual source sides.                                   |
+| 18  | `AC27-A05-01`   | [P27-A03 / #2005](https://github.com/Asymmetric-al/core/issues/2005) → [P27-A08 / #2050](https://github.com/Asymmetric-al/core/issues/2050) | Full scenario actually changes mode and applies current-population proposals; those commands are later producers. Retain prospective activation and initial source-event effects in A03.                                                             |
+| 19  | `AC27-A05-03`   | [P27-A03 / #2005](https://github.com/Asymmetric-al/core/issues/2005) → [P27-A08 / #2050](https://github.com/Asymmetric-al/core/issues/2050) | The full worker-ordering scenario includes actual separate Apply-current and Use-rules-again operations, unavailable at initial activation. Retain local activation/event-order proof in A03.                                                        |
+| 20  | `AC27-C13-03`   | [P27-C05 / #2002](https://github.com/Asymmetric-al/core/issues/2002) → [P27-C06 / #2007](https://github.com/Asymmetric-al/core/issues/2007) | Actual review disable/re-enable and no restored old review tasks require the real review episode/task source. Ratings generation/Off safety stays local to C05.                                                                                      |
+| 21  | `AC27-C24-01`   | [P27-C05 / #2002](https://github.com/Asymmetric-al/core/issues/2002) → [P27-C06 / #2007](https://github.com/Asymmetric-al/core/issues/2007) | Review-Off to On establishes a fresh review baseline without restoring previous task/attention identity; real review source is introduced by C06.                                                                                                    |
+| 22  | `AC27-C22-02`   | [P27-C05 / #2002](https://github.com/Asymmetric-al/core/issues/2002) → [P27-C07 / #2018](https://github.com/Asymmetric-al/core/issues/2018) | Full Off versus worker ordering includes actual review task effects and durable refresh worker, not only a policy-head update. C05 retains immediate admission/read/Off fences.                                                                      |
+| 23  | `AC27-C32-03`   | [P27-C08 / #2034](https://github.com/Asymmetric-al/core/issues/2034) → [P27-Q03 / #2061](https://github.com/Asymmetric-al/core/issues/2061) | The full derivative-privacy case proves optional ratings Off removes actual current bands while retaining independent finance. Compose real brief and rating sources at Q03; do not gate ordinary brief delivery on optional ratings implementation. |
+
+24. **Add one blocking edge:** [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) blocks [P27-F23 / #2026](https://github.com/Asymmetric-al/core/issues/2026). Canonical same-Tenant appeal identity and authorized appeal read shell, consumed only by explicit same-intake/multiple-appeal projections. Basic report and finance continuation remain independent of appeal enrollment. F23 already owns AC27-F61-01 displaying one intake through two authorized appeals; transferred F61-02 checks partial pending/recorded intake views on that same actual appeal source. No edge is removed. Total direct internal and existing-issue edges change from **139 to 140**.
+
+The source frontier remains **P27-A01, P27-C04, P27-F12, P27-P14 and P27-S01**. This is graph topology only: existing source qualification and specification integration still gate implementation. No ready-for-agent label is introduced. There is no new P27-P01 → P27-C01 dependency and no new enrollment requirement for voluntary shared updates.
+
+## Reviewable complete issue bodies
+
+Each draft includes its complete proposed replacement text, with a neutral implementation-ticket heading suitable for exact publication after approval. The unapproved status belongs to this review packet and manifest, not to the eventual issue body. The [baseline](baseline.json) retains the exact published body and SHA-256; [body-edits.json](body-edits.json) records the precise content edits so unrelated text preservation is independently checkable. Markdown whitespace may be formatted.
+
+| Issue                                                                | Primary cases: before → after | Complete proposed body          |
+| -------------------------------------------------------------------- | ----------------------------- | ------------------------------- |
+| [P27-A03 / #2005](https://github.com/Asymmetric-al/core/issues/2005) | 3 → 1                         | [Full draft](issues/P27-A03.md) |
+| [P27-A05 / #2033](https://github.com/Asymmetric-al/core/issues/2033) | 3 → 4                         | [Full draft](issues/P27-A05.md) |
+| [P27-A08 / #2050](https://github.com/Asymmetric-al/core/issues/2050) | 6 → 8                         | [Full draft](issues/P27-A08.md) |
+| [P27-C05 / #2002](https://github.com/Asymmetric-al/core/issues/2002) | 33 → 30                       | [Full draft](issues/P27-C05.md) |
+| [P27-C06 / #2007](https://github.com/Asymmetric-al/core/issues/2007) | 20 → 22                       | [Full draft](issues/P27-C06.md) |
+| [P27-C07 / #2018](https://github.com/Asymmetric-al/core/issues/2018) | 4 → 5                         | [Full draft](issues/P27-C07.md) |
+| [P27-C08 / #2034](https://github.com/Asymmetric-al/core/issues/2034) | 4 → 3                         | [Full draft](issues/P27-C08.md) |
+| [P27-F01 / #2008](https://github.com/Asymmetric-al/core/issues/2008) | 7 → 8                         | [Full draft](issues/P27-F01.md) |
+| [P27-F03 / #2025](https://github.com/Asymmetric-al/core/issues/2025) | 8 → 11                        | [Full draft](issues/P27-F03.md) |
+| [P27-F04 / #2029](https://github.com/Asymmetric-al/core/issues/2029) | 3 → 2                         | [Full draft](issues/P27-F04.md) |
+| [P27-F08 / #2020](https://github.com/Asymmetric-al/core/issues/2020) | 4 → 2                         | [Full draft](issues/P27-F08.md) |
+| [P27-F09 / #2037](https://github.com/Asymmetric-al/core/issues/2037) | 15 → 16                       | [Full draft](issues/P27-F09.md) |
+| [P27-F10 / #2044](https://github.com/Asymmetric-al/core/issues/2044) | 6 → 7                         | [Full draft](issues/P27-F10.md) |
+| [P27-F12 / #1996](https://github.com/Asymmetric-al/core/issues/1996) | 13 → 6                        | [Full draft](issues/P27-F12.md) |
+| [P27-F15 / #2038](https://github.com/Asymmetric-al/core/issues/2038) | 9 → 8                         | [Full draft](issues/P27-F15.md) |
+| [P27-F16 / #2051](https://github.com/Asymmetric-al/core/issues/2051) | 3 → 4                         | [Full draft](issues/P27-F16.md) |
+| [P27-F18 / #2039](https://github.com/Asymmetric-al/core/issues/2039) | 8 → 9                         | [Full draft](issues/P27-F18.md) |
+| [P27-F19 / #2056](https://github.com/Asymmetric-al/core/issues/2056) | 9 → 12                        | [Full draft](issues/P27-F19.md) |
+| [P27-F20 / #2048](https://github.com/Asymmetric-al/core/issues/2048) | 6 → 7                         | [Full draft](issues/P27-F20.md) |
+| [P27-F21 / #2009](https://github.com/Asymmetric-al/core/issues/2009) | 13 → 12                       | [Full draft](issues/P27-F21.md) |
+| [P27-F22 / #2021](https://github.com/Asymmetric-al/core/issues/2021) | 8 → 7                         | [Full draft](issues/P27-F22.md) |
+| [P27-F23 / #2026](https://github.com/Asymmetric-al/core/issues/2026) | 3 → 4                         | [Full draft](issues/P27-F23.md) |
+| [P27-P01 / #2004](https://github.com/Asymmetric-al/core/issues/2004) | 46 → 43                       | [Full draft](issues/P27-P01.md) |
+| [P27-P04 / #2012](https://github.com/Asymmetric-al/core/issues/2012) | 2 → 1                         | [Full draft](issues/P27-P04.md) |
+| [P27-Q03 / #2061](https://github.com/Asymmetric-al/core/issues/2061) | 25 → 29                       | [Full draft](issues/P27-Q03.md) |
+
+## Boundaries and rationale
+
+A fixture may establish already accepted source facts in a Given condition. It may not replace an actual later mutation, user journey or projection explicitly exercised by the acceptance scenario. This distinction avoids speculative extra dependencies. The rejected candidates and exact reasons are retained in [corrections.json](corrections.json).
+
+All source producers still implement and test their own authorization, transaction/history/effect intent, concurrency, idempotency, current-authority replay, accessible UI and failure paths. Moving a complete composition case does not postpone those safeguards to Q03 or other later tickets. Existing monitors, non-issue prerequisites, owner rulings, conditional activation gates and operational responses remain in force. Q03 receives four additional composed cases (25 → 29), with focused requirement and associated story references; it does not acquire unfinished source implementation.
+
+## Proposed graph and traceability
+
+- [corrections.json](corrections.json): 23 exact ownership transfers, one edge, source text, required producer closure and body hashes.
+- [tickets.json](tickets.json): all 68 proposed ticket allocations; `acceptance_ids` owns primary case allocation, while requirement/story/source references express contribution or context.
+- [dependencies.json](dependencies.json) and [graph.md](graph.md): corrected graph with unchanged frontier and qualification inputs.
+- [coverage.json](coverage.json): all 711 uniquely owned cases, 193 requirements, 193 stories, 141 monitors and 204 OpenSpec tasks.
+
+## Verification and approval sequence
+
+Run from the repository root:
+
+```sh
+python docs/features/donor-development/planning/implementation-corrections/verify.py
+```
+
+The default verifier is read-only and compares its reconstructed result with the stored verification record; `--write` explicitly regenerates that record after a reviewed packet change. The verifier checks exact baseline hashes against the publication index, unchanged identities and original edges, the single new edge, acyclicity and producer closure, exact unique case allocation, preserved source acceptance content, complete draft consistency, approved reference preservation and bounded issue-body size. [verification.json](verification.json) records the deterministic result. These checks establish planning consistency; they do not claim runtime, database, UX or integration proof.
+
+1. Review the 23 transfers, one edge and complete replacement bodies together. This packet requires approval under the user’s publication instruction §6: “Reuse an earlier approval only if it explicitly covers the same breakdown and dependency graph. Material changes require review.” It materially changes the approved planning graph and primary proof allocation.
+2. After approval, reread all affected issues and reject any baseline-hash mismatch; reconcile intervening edits explicitly before applying a body.
+3. Apply the approved body replacements and the single native blocker edge, preserving issue identity, parent, labels and unrelated content. Re-read actual bodies and native edges, then record a superseding publication ledger with 140 edges and exact approved hashes.
+4. Keep the original publication record as historical evidence. Do not dispatch implementation until the governing specification and each exact source qualification gate are satisfied.
+
+No user decision is reopened, parent issue modified, feature implemented or correction published by this packet.

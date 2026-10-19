@@ -48,6 +48,20 @@ permitted. Qualify the actual storage, authorization, current-read, atomic
 command and immutable-row enforcement seams before activation; the architecture
 choice is settled, while implementation evidence remains required.
 
+## E7 — Campaign temporal attribution exposed by Phase 27
+
+Phase 13 story 143 and its reporting exception use live source-code/campaign
+mapping, while its campaign clauses freeze posting-time campaign identity and
+prohibit mapping changes after gifts. The P13 owner must resolve prior-gift and
+previously-unmapped-code behavior, hierarchy versus source-code remapping,
+corrections/refunds, recurring-origin events and current/historical measures.
+ADR0206 posted-row immutability and ADR0207 Site attribution do not choose this
+reporting policy. Phase 27 D22/D29 and its formal specification preserve the
+conflict: affected received-toward-appeal results stay Unavailable until the exact
+source adapter is qualified; ordinary Requests/nonfinancial work and permitted
+source facts continue. Required native financial reporting is not removed.
+This is a source-policy gate, not a new Phase 27 founder fork or a runtime result.
+
 ## Engineering qualification, not a request to choose arbitrary facts
 
 The [Workflow register](../workflow-studio/12-owner-bindings-and-decisions.md)

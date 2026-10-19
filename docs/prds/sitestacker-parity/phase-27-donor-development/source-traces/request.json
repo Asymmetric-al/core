@@ -1,0 +1,2137 @@
+[
+  {
+    "decision": "D22",
+    "source": "AC01",
+    "requirements": ["REQ27-F01", "REQ27-F04", "REQ27-F13"],
+    "acceptance": ["AC27-F01-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC02",
+    "requirements": ["REQ27-F02", "REQ27-F15"],
+    "acceptance": ["AC27-F02-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC03",
+    "requirements": ["REQ27-F03", "REQ27-F17"],
+    "acceptance": ["AC27-F03-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC04",
+    "requirements": ["REQ27-F04", "REQ27-F10", "REQ27-F11"],
+    "acceptance": ["AC27-F04-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC05",
+    "requirements": ["REQ27-F04", "REQ27-F07", "REQ27-F15"],
+    "acceptance": ["AC27-F04-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC06",
+    "requirements": ["REQ27-F05", "REQ27-F06", "REQ27-F13"],
+    "acceptance": ["AC27-F05-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC07",
+    "requirements": ["REQ27-F05", "REQ27-F06"],
+    "acceptance": ["AC27-F05-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC08",
+    "requirements": ["REQ27-F06", "REQ27-F12", "REQ27-F14"],
+    "acceptance": ["AC27-F06-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC09",
+    "requirements": ["REQ27-F05", "REQ27-F06", "REQ27-F09"],
+    "acceptance": ["AC27-F05-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC10",
+    "requirements": ["REQ27-F07"],
+    "acceptance": ["AC27-F07-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC11",
+    "requirements": ["REQ27-F07", "REQ27-F08", "REQ27-F12"],
+    "acceptance": ["AC27-F07-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC12",
+    "requirements": ["REQ27-F07", "REQ27-F12", "REQ27-F15"],
+    "acceptance": ["AC27-F07-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC13",
+    "requirements": ["REQ27-F05", "REQ27-F15"],
+    "acceptance": ["AC27-F05-04"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC14",
+    "requirements": ["REQ27-F04", "REQ27-F14"],
+    "acceptance": ["AC27-F04-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC15",
+    "requirements": ["REQ27-F08"],
+    "acceptance": ["AC27-F08-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC16",
+    "requirements": ["REQ27-F03", "REQ27-F08", "REQ27-F10"],
+    "acceptance": ["AC27-F03-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC17",
+    "requirements": ["REQ27-F10", "REQ27-F11", "REQ27-F12"],
+    "acceptance": ["AC27-F10-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC18",
+    "requirements": ["REQ27-F10", "REQ27-F11"],
+    "acceptance": ["AC27-F10-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC19",
+    "requirements": ["REQ27-F12"],
+    "acceptance": ["AC27-F12-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC20",
+    "requirements": ["REQ27-F09", "REQ27-F16"],
+    "acceptance": ["AC27-F09-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC21",
+    "requirements": ["REQ27-F09", "REQ27-F16"],
+    "acceptance": ["AC27-F09-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC22",
+    "requirements": ["REQ27-F10", "REQ27-F11", "REQ27-F12"],
+    "acceptance": ["AC27-F10-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC23",
+    "requirements": ["REQ27-F11", "REQ27-F12"],
+    "acceptance": ["AC27-F11-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC24",
+    "requirements": ["REQ27-F04", "REQ27-F05", "REQ27-F15"],
+    "acceptance": ["AC27-F04-04"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC25",
+    "requirements": ["REQ27-F13"],
+    "acceptance": ["AC27-F13-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC26",
+    "requirements": ["REQ27-F13", "REQ27-F14"],
+    "acceptance": ["AC27-F13-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC27",
+    "requirements": ["REQ27-F09", "REQ27-F13", "REQ27-F14"],
+    "acceptance": ["AC27-F09-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC28",
+    "requirements": ["REQ27-F18"],
+    "acceptance": ["AC27-F18-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC29",
+    "requirements": ["REQ27-F07", "REQ27-F16", "REQ27-F18"],
+    "acceptance": ["AC27-F07-04"]
+  },
+  {
+    "decision": "D22",
+    "source": "AC30",
+    "requirements": ["REQ27-F17", "REQ27-F18"],
+    "acceptance": ["AC27-F17-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC01",
+    "requirements": ["REQ27-F19", "REQ27-F32", "REQ27-F34"],
+    "acceptance": ["AC27-F19-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC02",
+    "requirements": ["REQ27-F19", "REQ27-F20"],
+    "acceptance": ["AC27-F19-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC03",
+    "requirements": ["REQ27-F19", "REQ27-F24"],
+    "acceptance": ["AC27-F19-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC04",
+    "requirements": ["REQ27-F22", "REQ27-F23", "REQ27-F24"],
+    "acceptance": ["AC27-F22-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC05",
+    "requirements": ["REQ27-F22"],
+    "acceptance": ["AC27-F22-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC06",
+    "requirements": ["REQ27-F22", "REQ27-F23", "REQ27-F30"],
+    "acceptance": ["AC27-F22-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC07",
+    "requirements": ["REQ27-F23", "REQ27-F33"],
+    "acceptance": ["AC27-F23-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC08",
+    "requirements": ["REQ27-F24", "REQ27-F25", "REQ27-F26"],
+    "acceptance": ["AC27-F24-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC09",
+    "requirements": ["REQ27-F19", "REQ27-F21", "REQ27-F32"],
+    "acceptance": ["AC27-F19-04"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC10",
+    "requirements": ["REQ27-F20", "REQ27-F21", "REQ27-F29", "REQ27-F31"],
+    "acceptance": ["AC27-F20-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC11",
+    "requirements": ["REQ27-F20", "REQ27-F28", "REQ27-F29"],
+    "acceptance": ["AC27-F20-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC12",
+    "requirements": ["REQ27-F21"],
+    "acceptance": ["AC27-F21-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC13",
+    "requirements": ["REQ27-F29", "REQ27-F30", "REQ27-F31"],
+    "acceptance": ["AC27-F29-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC14",
+    "requirements": ["REQ27-F27", "REQ27-F30"],
+    "acceptance": ["AC27-F27-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC15",
+    "requirements": ["REQ27-F24", "REQ27-F25", "REQ27-F30"],
+    "acceptance": ["AC27-F24-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC16",
+    "requirements": ["REQ27-F21", "REQ27-F24", "REQ27-F30"],
+    "acceptance": ["AC27-F21-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC17",
+    "requirements": ["REQ27-F21", "REQ27-F23", "REQ27-F27", "REQ27-F30"],
+    "acceptance": ["AC27-F21-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC18",
+    "requirements": ["REQ27-F28", "REQ27-F31", "REQ27-F33"],
+    "acceptance": ["AC27-F28-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC19",
+    "requirements": ["REQ27-F27", "REQ27-F28", "REQ27-F34"],
+    "acceptance": ["AC27-F27-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC20",
+    "requirements": ["REQ27-F30", "REQ27-F31", "REQ27-F32"],
+    "acceptance": ["AC27-F30-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC21",
+    "requirements": ["REQ27-F32"],
+    "acceptance": ["AC27-F32-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC22",
+    "requirements": ["REQ27-F28", "REQ27-F32"],
+    "acceptance": ["AC27-F28-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC23",
+    "requirements": ["REQ27-F20", "REQ27-F28", "REQ27-F29"],
+    "acceptance": ["AC27-F20-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC24",
+    "requirements": ["REQ27-F25", "REQ27-F26", "REQ27-F33"],
+    "acceptance": ["AC27-F25-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC25",
+    "requirements": [
+      "REQ27-F27",
+      "REQ27-F30",
+      "REQ27-F31",
+      "REQ27-F34",
+      "REQ27-F35"
+    ],
+    "acceptance": ["AC27-F27-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC26",
+    "requirements": ["REQ27-F29", "REQ27-F36"],
+    "acceptance": ["AC27-F29-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC27",
+    "requirements": ["REQ27-F28", "REQ27-F33", "REQ27-F36"],
+    "acceptance": ["AC27-F28-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC28",
+    "requirements": ["REQ27-F25", "REQ27-F27", "REQ27-F34"],
+    "acceptance": ["AC27-F25-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC29",
+    "requirements": ["REQ27-F32", "REQ27-F37"],
+    "acceptance": ["AC27-F32-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "AC30",
+    "requirements": ["REQ27-F29", "REQ27-F30", "REQ27-F35", "REQ27-F37"],
+    "acceptance": ["AC27-F29-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC01",
+    "requirements": [
+      "REQ27-F38",
+      "REQ27-F39",
+      "REQ27-F40",
+      "REQ27-F48",
+      "REQ27-F51",
+      "REQ27-F52"
+    ],
+    "acceptance": ["AC27-F38-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC02",
+    "requirements": ["REQ27-F38", "REQ27-F44", "REQ27-F51", "REQ27-F53"],
+    "acceptance": ["AC27-F38-02"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC03",
+    "requirements": [
+      "REQ27-F40",
+      "REQ27-F42",
+      "REQ27-F44",
+      "REQ27-F45",
+      "REQ27-F46"
+    ],
+    "acceptance": ["AC27-F40-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC04",
+    "requirements": ["REQ27-F38", "REQ27-F41"],
+    "acceptance": ["AC27-F38-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC05",
+    "requirements": ["REQ27-F42", "REQ27-F43", "REQ27-F50", "REQ27-F51"],
+    "acceptance": ["AC27-F42-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC06",
+    "requirements": ["REQ27-F39", "REQ27-F41", "REQ27-F43", "REQ27-F48"],
+    "acceptance": ["AC27-F39-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC07",
+    "requirements": [
+      "REQ27-F41",
+      "REQ27-F42",
+      "REQ27-F43",
+      "REQ27-F46",
+      "REQ27-F47",
+      "REQ27-F48"
+    ],
+    "acceptance": ["AC27-F41-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC08",
+    "requirements": ["REQ27-F39", "REQ27-F48"],
+    "acceptance": ["AC27-F39-02"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC09",
+    "requirements": ["REQ27-F42", "REQ27-F43", "REQ27-F51", "REQ27-F53"],
+    "acceptance": ["AC27-F42-02"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC10",
+    "requirements": ["REQ27-F43", "REQ27-F45", "REQ27-F46", "REQ27-F47"],
+    "acceptance": ["AC27-F43-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC11",
+    "requirements": ["REQ27-F39", "REQ27-F47", "REQ27-F48", "REQ27-F52"],
+    "acceptance": ["AC27-F39-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC12",
+    "requirements": ["REQ27-F39", "REQ27-F40", "REQ27-F42", "REQ27-F43"],
+    "acceptance": ["AC27-F39-04"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC13",
+    "requirements": [
+      "REQ27-F40",
+      "REQ27-F41",
+      "REQ27-F42",
+      "REQ27-F43",
+      "REQ27-F45",
+      "REQ27-F50"
+    ],
+    "acceptance": ["AC27-F40-02"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC14",
+    "requirements": ["REQ27-F44", "REQ27-F45", "REQ27-F46", "REQ27-F47"],
+    "acceptance": ["AC27-F44-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC15",
+    "requirements": ["REQ27-F41", "REQ27-F44", "REQ27-F45", "REQ27-F46"],
+    "acceptance": ["AC27-F41-02"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC16",
+    "requirements": [
+      "REQ27-F42",
+      "REQ27-F43",
+      "REQ27-F44",
+      "REQ27-F45",
+      "REQ27-F46",
+      "REQ27-F50"
+    ],
+    "acceptance": ["AC27-F42-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC17",
+    "requirements": ["REQ27-F44", "REQ27-F45", "REQ27-F46", "REQ27-F51"],
+    "acceptance": ["AC27-F44-02"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC18",
+    "requirements": ["REQ27-F51"],
+    "acceptance": ["AC27-F51-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC19",
+    "requirements": ["REQ27-F50", "REQ27-F51"],
+    "acceptance": ["AC27-F50-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC20",
+    "requirements": ["REQ27-F40", "REQ27-F46", "REQ27-F49"],
+    "acceptance": ["AC27-F40-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC21",
+    "requirements": [
+      "REQ27-F41",
+      "REQ27-F43",
+      "REQ27-F49",
+      "REQ27-F50",
+      "REQ27-F54"
+    ],
+    "acceptance": ["AC27-F41-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC22",
+    "requirements": [
+      "REQ27-F38",
+      "REQ27-F39",
+      "REQ27-F40",
+      "REQ27-F41",
+      "REQ27-F42",
+      "REQ27-F43",
+      "REQ27-F48",
+      "REQ27-F49",
+      "REQ27-F50",
+      "REQ27-F54"
+    ],
+    "acceptance": ["AC27-F38-04"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC23",
+    "requirements": ["REQ27-F42", "REQ27-F50", "REQ27-F51"],
+    "acceptance": ["AC27-F42-04"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC24",
+    "requirements": [
+      "REQ27-F45",
+      "REQ27-F46",
+      "REQ27-F47",
+      "REQ27-F52",
+      "REQ27-F53"
+    ],
+    "acceptance": ["AC27-F45-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC25",
+    "requirements": [
+      "REQ27-F40",
+      "REQ27-F41",
+      "REQ27-F42",
+      "REQ27-F43",
+      "REQ27-F44",
+      "REQ27-F45",
+      "REQ27-F46",
+      "REQ27-F47",
+      "REQ27-F54"
+    ],
+    "acceptance": ["AC27-F40-04"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC26",
+    "requirements": ["REQ27-F47", "REQ27-F49", "REQ27-F50", "REQ27-F54"],
+    "acceptance": ["AC27-F47-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC27",
+    "requirements": ["REQ27-F38", "REQ27-F39", "REQ27-F52"],
+    "acceptance": ["AC27-F38-05"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC28",
+    "requirements": ["REQ27-F51", "REQ27-F55"],
+    "acceptance": ["AC27-F51-02"]
+  },
+  {
+    "decision": "D24",
+    "source": "AC29",
+    "requirements": [
+      "REQ27-F44",
+      "REQ27-F45",
+      "REQ27-F46",
+      "REQ27-F53",
+      "REQ27-F55"
+    ],
+    "acceptance": ["AC27-F44-03"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC01",
+    "requirements": [
+      "REQ27-F56",
+      "REQ27-F57",
+      "REQ27-F58",
+      "REQ27-F59",
+      "REQ27-F65",
+      "REQ27-F71"
+    ],
+    "acceptance": ["AC27-F56-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC02",
+    "requirements": ["REQ27-F57", "REQ27-F59", "REQ27-F60", "REQ27-F63"],
+    "acceptance": ["AC27-F57-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC03",
+    "requirements": ["REQ27-F58", "REQ27-F59", "REQ27-F60", "REQ27-F68"],
+    "acceptance": ["AC27-F58-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC04",
+    "requirements": ["REQ27-F56", "REQ27-F59", "REQ27-F61", "REQ27-F70"],
+    "acceptance": ["AC27-F56-02"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC05",
+    "requirements": ["REQ27-F61", "REQ27-F62", "REQ27-F63", "REQ27-F68"],
+    "acceptance": ["AC27-F61-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC06",
+    "requirements": [
+      "REQ27-F60",
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F64",
+      "REQ27-F67"
+    ],
+    "acceptance": ["AC27-F60-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC07",
+    "requirements": [
+      "REQ27-F59",
+      "REQ27-F60",
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F68"
+    ],
+    "acceptance": ["AC27-F59-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC08",
+    "requirements": [
+      "REQ27-F57",
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F64",
+      "REQ27-F65",
+      "REQ27-F70"
+    ],
+    "acceptance": ["AC27-F57-02"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC09",
+    "requirements": [
+      "REQ27-F57",
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F64",
+      "REQ27-F65"
+    ],
+    "acceptance": ["AC27-F57-03"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC10",
+    "requirements": [
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F68",
+      "REQ27-F70"
+    ],
+    "acceptance": ["AC27-F61-02"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC11",
+    "requirements": [
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F64",
+      "REQ27-F66",
+      "REQ27-F68"
+    ],
+    "acceptance": ["AC27-F62-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC12",
+    "requirements": [
+      "REQ27-F59",
+      "REQ27-F60",
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F64",
+      "REQ27-F67"
+    ],
+    "acceptance": ["AC27-F59-02"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC13",
+    "requirements": [
+      "REQ27-F58",
+      "REQ27-F59",
+      "REQ27-F60",
+      "REQ27-F67",
+      "REQ27-F68",
+      "REQ27-F69"
+    ],
+    "acceptance": ["AC27-F58-02"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC14",
+    "requirements": ["REQ27-F61", "REQ27-F62", "REQ27-F66", "REQ27-F67"],
+    "acceptance": ["AC27-F61-03"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC15",
+    "requirements": ["REQ27-F61", "REQ27-F62", "REQ27-F66", "REQ27-F67"],
+    "acceptance": ["AC27-F61-04"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC16",
+    "requirements": [
+      "REQ27-F59",
+      "REQ27-F60",
+      "REQ27-F65",
+      "REQ27-F66",
+      "REQ27-F67",
+      "REQ27-F69"
+    ],
+    "acceptance": ["AC27-F59-03"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC17",
+    "requirements": [
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F64",
+      "REQ27-F66",
+      "REQ27-F67"
+    ],
+    "acceptance": ["AC27-F61-05"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC18",
+    "requirements": [
+      "REQ27-F61",
+      "REQ27-F63",
+      "REQ27-F64",
+      "REQ27-F65",
+      "REQ27-F69",
+      "REQ27-F72"
+    ],
+    "acceptance": ["AC27-F61-06"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC19",
+    "requirements": ["REQ27-F59", "REQ27-F60", "REQ27-F69", "REQ27-F70"],
+    "acceptance": ["AC27-F59-04"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC20",
+    "requirements": [
+      "REQ27-F57",
+      "REQ27-F58",
+      "REQ27-F59",
+      "REQ27-F63",
+      "REQ27-F70"
+    ],
+    "acceptance": ["AC27-F57-04"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC21",
+    "requirements": ["REQ27-F70"],
+    "acceptance": ["AC27-F70-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC22",
+    "requirements": ["REQ27-F67", "REQ27-F69", "REQ27-F70"],
+    "acceptance": ["AC27-F67-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC23",
+    "requirements": ["REQ27-F59", "REQ27-F60", "REQ27-F65", "REQ27-F69"],
+    "acceptance": ["AC27-F59-05"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC24",
+    "requirements": ["REQ27-F57", "REQ27-F63", "REQ27-F68", "REQ27-F71"],
+    "acceptance": ["AC27-F57-05"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC25",
+    "requirements": [
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F66",
+      "REQ27-F67",
+      "REQ27-F72"
+    ],
+    "acceptance": ["AC27-F61-07"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC26",
+    "requirements": ["REQ27-F64", "REQ27-F67", "REQ27-F69", "REQ27-F72"],
+    "acceptance": ["AC27-F64-01"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC27",
+    "requirements": [
+      "REQ27-F56",
+      "REQ27-F65",
+      "REQ27-F69",
+      "REQ27-F71",
+      "REQ27-F72"
+    ],
+    "acceptance": ["AC27-F56-03"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC28",
+    "requirements": [
+      "REQ27-F60",
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F66",
+      "REQ27-F67",
+      "REQ27-F73"
+    ],
+    "acceptance": ["AC27-F60-02"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC29",
+    "requirements": [
+      "REQ27-F64",
+      "REQ27-F65",
+      "REQ27-F66",
+      "REQ27-F67",
+      "REQ27-F70",
+      "REQ27-F73"
+    ],
+    "acceptance": ["AC27-F64-02"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC30",
+    "requirements": [
+      "REQ27-F57",
+      "REQ27-F58",
+      "REQ27-F63",
+      "REQ27-F70",
+      "REQ27-F74"
+    ],
+    "acceptance": ["AC27-F57-06"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC31",
+    "requirements": [
+      "REQ27-F57",
+      "REQ27-F60",
+      "REQ27-F61",
+      "REQ27-F62",
+      "REQ27-F63",
+      "REQ27-F64",
+      "REQ27-F72"
+    ],
+    "acceptance": ["AC27-F57-07"]
+  },
+  {
+    "decision": "D25",
+    "source": "AC32",
+    "requirements": ["REQ27-F56", "REQ27-F72", "REQ27-F73", "REQ27-F74"],
+    "acceptance": ["AC27-F56-04"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC01",
+    "requirements": ["REQ27-F75", "REQ27-F87"],
+    "acceptance": ["AC27-F75-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC02",
+    "requirements": ["REQ27-F76", "REQ27-F87"],
+    "acceptance": ["AC27-F76-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC03",
+    "requirements": ["REQ27-F75", "REQ27-F88"],
+    "acceptance": ["AC27-F75-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC04",
+    "requirements": ["REQ27-F76", "REQ27-F86"],
+    "acceptance": ["AC27-F76-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC05",
+    "requirements": ["REQ27-F76", "REQ27-F86", "REQ27-F87"],
+    "acceptance": ["AC27-F76-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC06",
+    "requirements": ["REQ27-F76", "REQ27-F86"],
+    "acceptance": ["AC27-F76-04"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC07",
+    "requirements": ["REQ27-F77", "REQ27-F83", "REQ27-F85"],
+    "acceptance": ["AC27-F77-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC08",
+    "requirements": ["REQ27-F77", "REQ27-F86"],
+    "acceptance": ["AC27-F77-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC09",
+    "requirements": ["REQ27-F78", "REQ27-F79", "REQ27-F88"],
+    "acceptance": ["AC27-F78-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC10",
+    "requirements": ["REQ27-F84", "REQ27-F85", "REQ27-F86"],
+    "acceptance": ["AC27-F84-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC11",
+    "requirements": ["REQ27-F83", "REQ27-F84"],
+    "acceptance": ["AC27-F83-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC12",
+    "requirements": ["REQ27-F84"],
+    "acceptance": ["AC27-F84-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC13",
+    "requirements": ["REQ27-F85", "REQ27-F87"],
+    "acceptance": ["AC27-F85-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC14",
+    "requirements": ["REQ27-F79", "REQ27-F86", "REQ27-F87"],
+    "acceptance": ["AC27-F79-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC15",
+    "requirements": ["REQ27-F76", "REQ27-F79", "REQ27-F87"],
+    "acceptance": ["AC27-F76-05"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC16",
+    "requirements": ["REQ27-F80", "REQ27-F81"],
+    "acceptance": ["AC27-F80-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC17",
+    "requirements": ["REQ27-F78", "REQ27-F80", "REQ27-F81", "REQ27-F82"],
+    "acceptance": ["AC27-F78-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC18",
+    "requirements": ["REQ27-F80", "REQ27-F81", "REQ27-F82", "REQ27-F85"],
+    "acceptance": ["AC27-F80-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC19",
+    "requirements": ["REQ27-F80", "REQ27-F82"],
+    "acceptance": ["AC27-F80-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC20",
+    "requirements": ["REQ27-F85", "REQ27-F90"],
+    "acceptance": ["AC27-F85-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC21",
+    "requirements": ["REQ27-F80", "REQ27-F84", "REQ27-F85"],
+    "acceptance": ["AC27-F80-04"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC22",
+    "requirements": ["REQ27-F85", "REQ27-F86"],
+    "acceptance": ["AC27-F85-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC23",
+    "requirements": ["REQ27-F83", "REQ27-F85"],
+    "acceptance": ["AC27-F83-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC24",
+    "requirements": ["REQ27-F75", "REQ27-F83"],
+    "acceptance": ["AC27-F75-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC25",
+    "requirements": ["REQ27-F87"],
+    "acceptance": ["AC27-F87-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC26",
+    "requirements": ["REQ27-F87"],
+    "acceptance": ["AC27-F87-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC27",
+    "requirements": ["REQ27-F87", "REQ27-F90"],
+    "acceptance": ["AC27-F87-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC28",
+    "requirements": ["REQ27-F85", "REQ27-F87", "REQ27-F88"],
+    "acceptance": ["AC27-F85-04"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC29",
+    "requirements": ["REQ27-F79", "REQ27-F88"],
+    "acceptance": ["AC27-F79-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC30",
+    "requirements": ["REQ27-F85", "REQ27-F86", "REQ27-F90"],
+    "acceptance": ["AC27-F85-05"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC31",
+    "requirements": ["REQ27-F78", "REQ27-F79", "REQ27-F86"],
+    "acceptance": ["AC27-F78-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC32",
+    "requirements": ["REQ27-F82", "REQ27-F90"],
+    "acceptance": ["AC27-F82-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC33",
+    "requirements": ["REQ27-F88", "REQ27-F90"],
+    "acceptance": ["AC27-F88-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC34",
+    "requirements": ["REQ27-F89"],
+    "acceptance": ["AC27-F89-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC35",
+    "requirements": ["REQ27-F89"],
+    "acceptance": ["AC27-F89-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "AC36",
+    "requirements": ["REQ27-F89", "REQ27-F90"],
+    "acceptance": ["AC27-F89-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "R01",
+    "requirements": ["REQ27-F01"],
+    "acceptance": ["AC27-F01-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "R02",
+    "requirements": ["REQ27-F02"],
+    "acceptance": ["AC27-F02-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "R03",
+    "requirements": ["REQ27-F03"],
+    "acceptance": ["AC27-F03-01", "AC27-F03-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "R04",
+    "requirements": ["REQ27-F04"],
+    "acceptance": [
+      "AC27-F01-01",
+      "AC27-F04-01",
+      "AC27-F04-02",
+      "AC27-F04-03",
+      "AC27-F04-04"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R05",
+    "requirements": ["REQ27-F05"],
+    "acceptance": [
+      "AC27-F05-01",
+      "AC27-F05-02",
+      "AC27-F05-03",
+      "AC27-F05-04",
+      "AC27-F04-04"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R06",
+    "requirements": ["REQ27-F06"],
+    "acceptance": ["AC27-F05-01", "AC27-F05-02", "AC27-F06-01", "AC27-F05-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "R07",
+    "requirements": ["REQ27-F07"],
+    "acceptance": [
+      "AC27-F04-02",
+      "AC27-F07-01",
+      "AC27-F07-02",
+      "AC27-F07-03",
+      "AC27-F07-04"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R08",
+    "requirements": ["REQ27-F08"],
+    "acceptance": ["AC27-F07-02", "AC27-F08-01", "AC27-F03-02"]
+  },
+  {
+    "decision": "D22",
+    "source": "R09",
+    "requirements": ["REQ27-F09"],
+    "acceptance": ["AC27-F05-03", "AC27-F09-01", "AC27-F09-02", "AC27-F09-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "R10",
+    "requirements": ["REQ27-F10"],
+    "acceptance": [
+      "AC27-F04-01",
+      "AC27-F03-02",
+      "AC27-F10-01",
+      "AC27-F10-02",
+      "AC27-F10-03"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R11",
+    "requirements": ["REQ27-F11"],
+    "acceptance": [
+      "AC27-F04-01",
+      "AC27-F10-01",
+      "AC27-F10-02",
+      "AC27-F10-03",
+      "AC27-F11-01"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R12",
+    "requirements": ["REQ27-F12"],
+    "acceptance": [
+      "AC27-F06-01",
+      "AC27-F07-02",
+      "AC27-F07-03",
+      "AC27-F10-01",
+      "AC27-F12-01",
+      "AC27-F10-03",
+      "AC27-F11-01"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R13",
+    "requirements": ["REQ27-F13"],
+    "acceptance": [
+      "AC27-F01-01",
+      "AC27-F05-01",
+      "AC27-F13-01",
+      "AC27-F13-02",
+      "AC27-F09-03"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R14",
+    "requirements": ["REQ27-F14"],
+    "acceptance": ["AC27-F06-01", "AC27-F04-03", "AC27-F13-02", "AC27-F09-03"]
+  },
+  {
+    "decision": "D22",
+    "source": "R15",
+    "requirements": ["REQ27-F15"],
+    "acceptance": [
+      "AC27-F02-01",
+      "AC27-F04-02",
+      "AC27-F07-03",
+      "AC27-F05-04",
+      "AC27-F04-04"
+    ]
+  },
+  {
+    "decision": "D22",
+    "source": "R16",
+    "requirements": ["REQ27-F16"],
+    "acceptance": ["AC27-F09-01", "AC27-F09-02", "AC27-F07-04"]
+  },
+  {
+    "decision": "D22",
+    "source": "R17",
+    "requirements": ["REQ27-F17"],
+    "acceptance": ["AC27-F03-01", "AC27-F17-01"]
+  },
+  {
+    "decision": "D22",
+    "source": "R18",
+    "requirements": ["REQ27-F18"],
+    "acceptance": ["AC27-F18-01", "AC27-F07-04", "AC27-F17-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "R01",
+    "requirements": ["REQ27-F19"],
+    "acceptance": ["AC27-F19-01", "AC27-F19-02", "AC27-F19-03", "AC27-F19-04"]
+  },
+  {
+    "decision": "D23",
+    "source": "R02",
+    "requirements": ["REQ27-F20"],
+    "acceptance": ["AC27-F19-02", "AC27-F20-01", "AC27-F20-02", "AC27-F20-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "R03",
+    "requirements": ["REQ27-F21"],
+    "acceptance": [
+      "AC27-F19-04",
+      "AC27-F20-01",
+      "AC27-F21-01",
+      "AC27-F21-02",
+      "AC27-F21-03"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R04",
+    "requirements": ["REQ27-F22"],
+    "acceptance": ["AC27-F22-01", "AC27-F22-02", "AC27-F22-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "R05",
+    "requirements": ["REQ27-F23"],
+    "acceptance": ["AC27-F22-01", "AC27-F22-03", "AC27-F23-01", "AC27-F21-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "R06",
+    "requirements": ["REQ27-F24"],
+    "acceptance": [
+      "AC27-F19-03",
+      "AC27-F22-01",
+      "AC27-F24-01",
+      "AC27-F24-02",
+      "AC27-F21-02"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R07",
+    "requirements": ["REQ27-F25"],
+    "acceptance": ["AC27-F24-01", "AC27-F24-02", "AC27-F25-01", "AC27-F25-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "R08",
+    "requirements": ["REQ27-F26"],
+    "acceptance": ["AC27-F24-01", "AC27-F25-01"]
+  },
+  {
+    "decision": "D23",
+    "source": "R09",
+    "requirements": ["REQ27-F27"],
+    "acceptance": [
+      "AC27-F27-01",
+      "AC27-F21-03",
+      "AC27-F27-02",
+      "AC27-F27-03",
+      "AC27-F25-02"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R10",
+    "requirements": ["REQ27-F28"],
+    "acceptance": [
+      "AC27-F20-02",
+      "AC27-F28-01",
+      "AC27-F27-02",
+      "AC27-F28-02",
+      "AC27-F20-03",
+      "AC27-F28-03"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R11",
+    "requirements": ["REQ27-F29"],
+    "acceptance": [
+      "AC27-F20-01",
+      "AC27-F20-02",
+      "AC27-F29-01",
+      "AC27-F20-03",
+      "AC27-F29-02",
+      "AC27-F29-03"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R12",
+    "requirements": ["REQ27-F30"],
+    "acceptance": [
+      "AC27-F22-03",
+      "AC27-F29-01",
+      "AC27-F27-01",
+      "AC27-F24-02",
+      "AC27-F21-02",
+      "AC27-F21-03",
+      "AC27-F30-01",
+      "AC27-F27-03",
+      "AC27-F29-03"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R13",
+    "requirements": ["REQ27-F31"],
+    "acceptance": [
+      "AC27-F20-01",
+      "AC27-F29-01",
+      "AC27-F28-01",
+      "AC27-F30-01",
+      "AC27-F27-03"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R14",
+    "requirements": ["REQ27-F32"],
+    "acceptance": [
+      "AC27-F19-01",
+      "AC27-F19-04",
+      "AC27-F30-01",
+      "AC27-F32-01",
+      "AC27-F28-02",
+      "AC27-F32-02"
+    ]
+  },
+  {
+    "decision": "D23",
+    "source": "R15",
+    "requirements": ["REQ27-F33"],
+    "acceptance": ["AC27-F23-01", "AC27-F28-01", "AC27-F25-01", "AC27-F28-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "R16",
+    "requirements": ["REQ27-F34"],
+    "acceptance": ["AC27-F19-01", "AC27-F27-02", "AC27-F27-03", "AC27-F25-02"]
+  },
+  {
+    "decision": "D23",
+    "source": "R17",
+    "requirements": ["REQ27-F35"],
+    "acceptance": ["AC27-F27-03", "AC27-F29-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "R18",
+    "requirements": ["REQ27-F36"],
+    "acceptance": ["AC27-F29-02", "AC27-F28-03"]
+  },
+  {
+    "decision": "D23",
+    "source": "R19",
+    "requirements": ["REQ27-F37"],
+    "acceptance": ["AC27-F32-02", "AC27-F29-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "R01",
+    "requirements": ["REQ27-F38"],
+    "acceptance": [
+      "AC27-F38-01",
+      "AC27-F38-02",
+      "AC27-F38-03",
+      "AC27-F38-04",
+      "AC27-F38-05"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R02",
+    "requirements": ["REQ27-F39"],
+    "acceptance": [
+      "AC27-F38-01",
+      "AC27-F39-01",
+      "AC27-F39-02",
+      "AC27-F39-03",
+      "AC27-F39-04",
+      "AC27-F38-04",
+      "AC27-F38-05"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R03",
+    "requirements": ["REQ27-F40"],
+    "acceptance": [
+      "AC27-F38-01",
+      "AC27-F40-01",
+      "AC27-F39-04",
+      "AC27-F40-02",
+      "AC27-F40-03",
+      "AC27-F38-04",
+      "AC27-F40-04"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R04",
+    "requirements": ["REQ27-F41"],
+    "acceptance": [
+      "AC27-F38-03",
+      "AC27-F39-01",
+      "AC27-F41-01",
+      "AC27-F40-02",
+      "AC27-F41-02",
+      "AC27-F41-03",
+      "AC27-F38-04",
+      "AC27-F40-04"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R05",
+    "requirements": ["REQ27-F42"],
+    "acceptance": [
+      "AC27-F40-01",
+      "AC27-F42-01",
+      "AC27-F41-01",
+      "AC27-F42-02",
+      "AC27-F39-04",
+      "AC27-F40-02",
+      "AC27-F42-03",
+      "AC27-F38-04",
+      "AC27-F42-04",
+      "AC27-F40-04"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R06",
+    "requirements": ["REQ27-F43"],
+    "acceptance": [
+      "AC27-F42-01",
+      "AC27-F39-01",
+      "AC27-F41-01",
+      "AC27-F42-02",
+      "AC27-F43-01",
+      "AC27-F39-04",
+      "AC27-F40-02",
+      "AC27-F42-03",
+      "AC27-F41-03",
+      "AC27-F38-04",
+      "AC27-F40-04"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R07",
+    "requirements": ["REQ27-F44"],
+    "acceptance": [
+      "AC27-F38-02",
+      "AC27-F40-01",
+      "AC27-F44-01",
+      "AC27-F41-02",
+      "AC27-F42-03",
+      "AC27-F44-02",
+      "AC27-F40-04",
+      "AC27-F44-03"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R08",
+    "requirements": ["REQ27-F45"],
+    "acceptance": [
+      "AC27-F40-01",
+      "AC27-F43-01",
+      "AC27-F40-02",
+      "AC27-F44-01",
+      "AC27-F41-02",
+      "AC27-F42-03",
+      "AC27-F44-02",
+      "AC27-F45-01",
+      "AC27-F40-04",
+      "AC27-F44-03"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R09",
+    "requirements": ["REQ27-F46"],
+    "acceptance": [
+      "AC27-F40-01",
+      "AC27-F41-01",
+      "AC27-F43-01",
+      "AC27-F44-01",
+      "AC27-F41-02",
+      "AC27-F42-03",
+      "AC27-F44-02",
+      "AC27-F40-03",
+      "AC27-F45-01",
+      "AC27-F40-04",
+      "AC27-F44-03"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R10",
+    "requirements": ["REQ27-F47"],
+    "acceptance": [
+      "AC27-F41-01",
+      "AC27-F43-01",
+      "AC27-F39-03",
+      "AC27-F44-01",
+      "AC27-F45-01",
+      "AC27-F40-04",
+      "AC27-F47-01"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R11",
+    "requirements": ["REQ27-F48"],
+    "acceptance": [
+      "AC27-F38-01",
+      "AC27-F39-01",
+      "AC27-F41-01",
+      "AC27-F39-02",
+      "AC27-F39-03",
+      "AC27-F38-04"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R12",
+    "requirements": ["REQ27-F49"],
+    "acceptance": ["AC27-F40-03", "AC27-F41-03", "AC27-F38-04", "AC27-F47-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "R13",
+    "requirements": ["REQ27-F50"],
+    "acceptance": [
+      "AC27-F42-01",
+      "AC27-F40-02",
+      "AC27-F42-03",
+      "AC27-F50-01",
+      "AC27-F41-03",
+      "AC27-F38-04",
+      "AC27-F42-04",
+      "AC27-F47-01"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R14",
+    "requirements": ["REQ27-F51"],
+    "acceptance": [
+      "AC27-F38-01",
+      "AC27-F38-02",
+      "AC27-F42-01",
+      "AC27-F42-02",
+      "AC27-F44-02",
+      "AC27-F51-01",
+      "AC27-F50-01",
+      "AC27-F42-04",
+      "AC27-F51-02"
+    ]
+  },
+  {
+    "decision": "D24",
+    "source": "R15",
+    "requirements": ["REQ27-F52"],
+    "acceptance": ["AC27-F38-01", "AC27-F39-03", "AC27-F45-01", "AC27-F38-05"]
+  },
+  {
+    "decision": "D24",
+    "source": "R16",
+    "requirements": ["REQ27-F53"],
+    "acceptance": ["AC27-F38-02", "AC27-F42-02", "AC27-F45-01", "AC27-F44-03"]
+  },
+  {
+    "decision": "D24",
+    "source": "R17",
+    "requirements": ["REQ27-F54"],
+    "acceptance": ["AC27-F41-03", "AC27-F38-04", "AC27-F40-04", "AC27-F47-01"]
+  },
+  {
+    "decision": "D24",
+    "source": "R18",
+    "requirements": ["REQ27-F55"],
+    "acceptance": ["AC27-F51-02", "AC27-F44-03"]
+  },
+  {
+    "decision": "D25",
+    "source": "R01",
+    "requirements": ["REQ27-F56"],
+    "acceptance": ["AC27-F56-01", "AC27-F56-02", "AC27-F56-03", "AC27-F56-04"]
+  },
+  {
+    "decision": "D25",
+    "source": "R02",
+    "requirements": ["REQ27-F57"],
+    "acceptance": [
+      "AC27-F56-01",
+      "AC27-F57-01",
+      "AC27-F57-02",
+      "AC27-F57-03",
+      "AC27-F57-04",
+      "AC27-F57-05",
+      "AC27-F57-06",
+      "AC27-F57-07"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R03",
+    "requirements": ["REQ27-F58"],
+    "acceptance": [
+      "AC27-F56-01",
+      "AC27-F58-01",
+      "AC27-F58-02",
+      "AC27-F57-04",
+      "AC27-F57-06"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R04",
+    "requirements": ["REQ27-F59"],
+    "acceptance": [
+      "AC27-F56-01",
+      "AC27-F57-01",
+      "AC27-F58-01",
+      "AC27-F56-02",
+      "AC27-F59-01",
+      "AC27-F59-02",
+      "AC27-F58-02",
+      "AC27-F59-03",
+      "AC27-F59-04",
+      "AC27-F57-04",
+      "AC27-F59-05"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R05",
+    "requirements": ["REQ27-F60"],
+    "acceptance": [
+      "AC27-F57-01",
+      "AC27-F58-01",
+      "AC27-F60-01",
+      "AC27-F59-01",
+      "AC27-F59-02",
+      "AC27-F58-02",
+      "AC27-F59-03",
+      "AC27-F59-04",
+      "AC27-F59-05",
+      "AC27-F60-02",
+      "AC27-F57-07"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R06",
+    "requirements": ["REQ27-F61"],
+    "acceptance": [
+      "AC27-F56-02",
+      "AC27-F61-01",
+      "AC27-F60-01",
+      "AC27-F59-01",
+      "AC27-F61-02",
+      "AC27-F59-02",
+      "AC27-F61-03",
+      "AC27-F61-04",
+      "AC27-F61-05",
+      "AC27-F61-06",
+      "AC27-F61-07",
+      "AC27-F60-02",
+      "AC27-F57-07"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R07",
+    "requirements": ["REQ27-F62"],
+    "acceptance": [
+      "AC27-F61-01",
+      "AC27-F60-01",
+      "AC27-F59-01",
+      "AC27-F57-02",
+      "AC27-F57-03",
+      "AC27-F61-02",
+      "AC27-F62-01",
+      "AC27-F59-02",
+      "AC27-F61-03",
+      "AC27-F61-04",
+      "AC27-F61-05",
+      "AC27-F61-07",
+      "AC27-F60-02",
+      "AC27-F57-07"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R08",
+    "requirements": ["REQ27-F63"],
+    "acceptance": [
+      "AC27-F57-01",
+      "AC27-F61-01",
+      "AC27-F57-02",
+      "AC27-F57-03",
+      "AC27-F61-02",
+      "AC27-F62-01",
+      "AC27-F59-02",
+      "AC27-F61-05",
+      "AC27-F61-06",
+      "AC27-F57-04",
+      "AC27-F57-05",
+      "AC27-F61-07",
+      "AC27-F57-06",
+      "AC27-F57-07"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R09",
+    "requirements": ["REQ27-F64"],
+    "acceptance": [
+      "AC27-F60-01",
+      "AC27-F57-02",
+      "AC27-F57-03",
+      "AC27-F62-01",
+      "AC27-F59-02",
+      "AC27-F61-05",
+      "AC27-F61-06",
+      "AC27-F64-01",
+      "AC27-F64-02",
+      "AC27-F57-07"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R10",
+    "requirements": ["REQ27-F65"],
+    "acceptance": [
+      "AC27-F56-01",
+      "AC27-F57-02",
+      "AC27-F57-03",
+      "AC27-F59-03",
+      "AC27-F61-06",
+      "AC27-F59-05",
+      "AC27-F56-03",
+      "AC27-F64-02"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R11",
+    "requirements": ["REQ27-F66"],
+    "acceptance": [
+      "AC27-F62-01",
+      "AC27-F61-03",
+      "AC27-F61-04",
+      "AC27-F59-03",
+      "AC27-F61-05",
+      "AC27-F61-07",
+      "AC27-F60-02",
+      "AC27-F64-02"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R12",
+    "requirements": ["REQ27-F67"],
+    "acceptance": [
+      "AC27-F60-01",
+      "AC27-F59-02",
+      "AC27-F58-02",
+      "AC27-F61-03",
+      "AC27-F61-04",
+      "AC27-F59-03",
+      "AC27-F61-05",
+      "AC27-F67-01",
+      "AC27-F61-07",
+      "AC27-F64-01",
+      "AC27-F60-02",
+      "AC27-F64-02"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R13",
+    "requirements": ["REQ27-F68"],
+    "acceptance": [
+      "AC27-F58-01",
+      "AC27-F61-01",
+      "AC27-F59-01",
+      "AC27-F61-02",
+      "AC27-F62-01",
+      "AC27-F58-02",
+      "AC27-F57-05"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R14",
+    "requirements": ["REQ27-F69"],
+    "acceptance": [
+      "AC27-F58-02",
+      "AC27-F59-03",
+      "AC27-F61-06",
+      "AC27-F59-04",
+      "AC27-F67-01",
+      "AC27-F59-05",
+      "AC27-F64-01",
+      "AC27-F56-03"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R15",
+    "requirements": ["REQ27-F70"],
+    "acceptance": [
+      "AC27-F56-02",
+      "AC27-F57-02",
+      "AC27-F61-02",
+      "AC27-F59-04",
+      "AC27-F57-04",
+      "AC27-F70-01",
+      "AC27-F67-01",
+      "AC27-F64-02",
+      "AC27-F57-06"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R16",
+    "requirements": ["REQ27-F71"],
+    "acceptance": ["AC27-F56-01", "AC27-F57-05", "AC27-F56-03"]
+  },
+  {
+    "decision": "D25",
+    "source": "R17",
+    "requirements": ["REQ27-F72"],
+    "acceptance": [
+      "AC27-F61-06",
+      "AC27-F61-07",
+      "AC27-F64-01",
+      "AC27-F56-03",
+      "AC27-F57-07",
+      "AC27-F56-04"
+    ]
+  },
+  {
+    "decision": "D25",
+    "source": "R18",
+    "requirements": ["REQ27-F73"],
+    "acceptance": ["AC27-F60-02", "AC27-F64-02", "AC27-F56-04"]
+  },
+  {
+    "decision": "D25",
+    "source": "R19",
+    "requirements": ["REQ27-F74"],
+    "acceptance": ["AC27-F57-06", "AC27-F56-04"]
+  },
+  {
+    "decision": "D29",
+    "source": "R01",
+    "requirements": ["REQ27-F75"],
+    "acceptance": ["AC27-F75-01", "AC27-F75-02", "AC27-F75-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "R02",
+    "requirements": ["REQ27-F76"],
+    "acceptance": [
+      "AC27-F76-01",
+      "AC27-F76-02",
+      "AC27-F76-03",
+      "AC27-F76-04",
+      "AC27-F76-05"
+    ]
+  },
+  {
+    "decision": "D29",
+    "source": "R03",
+    "requirements": ["REQ27-F77"],
+    "acceptance": ["AC27-F77-01", "AC27-F77-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "R04",
+    "requirements": ["REQ27-F78"],
+    "acceptance": ["AC27-F78-01", "AC27-F78-02", "AC27-F78-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "R05",
+    "requirements": ["REQ27-F79"],
+    "acceptance": [
+      "AC27-F78-01",
+      "AC27-F79-01",
+      "AC27-F76-05",
+      "AC27-F79-02",
+      "AC27-F78-03"
+    ]
+  },
+  {
+    "decision": "D29",
+    "source": "R06",
+    "requirements": ["REQ27-F80"],
+    "acceptance": [
+      "AC27-F80-01",
+      "AC27-F78-02",
+      "AC27-F80-02",
+      "AC27-F80-03",
+      "AC27-F80-04"
+    ]
+  },
+  {
+    "decision": "D29",
+    "source": "R07",
+    "requirements": ["REQ27-F81"],
+    "acceptance": ["AC27-F80-01", "AC27-F78-02", "AC27-F80-02"]
+  },
+  {
+    "decision": "D29",
+    "source": "R08",
+    "requirements": ["REQ27-F82"],
+    "acceptance": ["AC27-F78-02", "AC27-F80-02", "AC27-F80-03", "AC27-F82-01"]
+  },
+  {
+    "decision": "D29",
+    "source": "R09",
+    "requirements": ["REQ27-F83"],
+    "acceptance": ["AC27-F77-01", "AC27-F83-01", "AC27-F83-02", "AC27-F75-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "R10",
+    "requirements": ["REQ27-F84"],
+    "acceptance": ["AC27-F84-01", "AC27-F83-01", "AC27-F84-02", "AC27-F80-04"]
+  },
+  {
+    "decision": "D29",
+    "source": "R11",
+    "requirements": ["REQ27-F85"],
+    "acceptance": [
+      "AC27-F77-01",
+      "AC27-F84-01",
+      "AC27-F85-01",
+      "AC27-F80-02",
+      "AC27-F85-02",
+      "AC27-F80-04",
+      "AC27-F85-03",
+      "AC27-F83-02",
+      "AC27-F85-04",
+      "AC27-F85-05"
+    ]
+  },
+  {
+    "decision": "D29",
+    "source": "R12",
+    "requirements": ["REQ27-F86"],
+    "acceptance": [
+      "AC27-F76-02",
+      "AC27-F76-03",
+      "AC27-F76-04",
+      "AC27-F77-02",
+      "AC27-F84-01",
+      "AC27-F79-01",
+      "AC27-F85-03",
+      "AC27-F85-05",
+      "AC27-F78-03"
+    ]
+  },
+  {
+    "decision": "D29",
+    "source": "R13",
+    "requirements": ["REQ27-F87"],
+    "acceptance": [
+      "AC27-F75-01",
+      "AC27-F76-01",
+      "AC27-F76-03",
+      "AC27-F85-01",
+      "AC27-F79-01",
+      "AC27-F76-05",
+      "AC27-F87-01",
+      "AC27-F87-02",
+      "AC27-F87-03",
+      "AC27-F85-04"
+    ]
+  },
+  {
+    "decision": "D29",
+    "source": "R14",
+    "requirements": ["REQ27-F88"],
+    "acceptance": [
+      "AC27-F75-02",
+      "AC27-F78-01",
+      "AC27-F85-04",
+      "AC27-F79-02",
+      "AC27-F88-01"
+    ]
+  },
+  {
+    "decision": "D29",
+    "source": "R15",
+    "requirements": ["REQ27-F89"],
+    "acceptance": ["AC27-F89-01", "AC27-F89-02", "AC27-F89-03"]
+  },
+  {
+    "decision": "D29",
+    "source": "R16",
+    "requirements": ["REQ27-F90"],
+    "acceptance": [
+      "AC27-F85-02",
+      "AC27-F87-03",
+      "AC27-F85-05",
+      "AC27-F82-01",
+      "AC27-F88-01",
+      "AC27-F89-03"
+    ]
+  }
+]
