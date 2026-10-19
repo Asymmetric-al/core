@@ -36,6 +36,7 @@ export type WorkflowStep = {
   run?: string;
   name?: string;
   if?: string;
+  env?: Record<string, unknown>;
   with?: Record<string, unknown>;
   [key: string]: unknown;
 };
@@ -46,6 +47,10 @@ export const SPEC_COMMENT_URL =
 /** Spec rev 3 §3 guard `G` (same-repo only on self-hosted heavy jobs). */
 export const SAME_REPO_GUARD =
   "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository";
+
+/** Fork-only step guard (inverse of same-repo success on PRs). */
+export const FORK_ONLY_STEP_GUARD =
+  "github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository";
 
 export const SELF_HOSTED_LABELS = [
   "self-hosted",
@@ -88,6 +93,10 @@ export function loadWorkflowJobs(relativePath: string): WorkflowJobs {
     throw new Error(`Missing jobs map in ${relativePath}`);
   }
   return doc.jobs;
+}
+
+export function normalizeWorkflowExpression(expression: string): string {
+  return expression.replace(/\s+/g, " ").trim();
 }
 
 export function normalizeRunsOn(
@@ -156,12 +165,27 @@ export function needsList(job: WorkflowJob): string[] {
 }
 
 export function containsSameRepoGuard(expression: string): boolean {
-  const compact = expression.replace(/\s+/g, " ");
-  return (
-    compact.includes("github.event_name != 'pull_request'") &&
-    compact.includes("github.event.pull_request.head.repo.full_name") &&
-    compact.includes("github.repository")
-  );
+  const compact = normalizeWorkflowExpression(expression);
+  const guard = normalizeWorkflowExpression(SAME_REPO_GUARD);
+
+  if (/head\.repo\.full_name\s*!=/.test(compact)) {
+    return false;
+  }
+  if (/github\.repository\s*!=/.test(compact)) {
+    return false;
+  }
+
+  return compact.includes(guard);
+}
+
+export function isForkOnlyStepGuard(expression: string | undefined): boolean {
+  if (!expression) return false;
+  const compact = normalizeWorkflowExpression(expression);
+  const guard = normalizeWorkflowExpression(FORK_ONLY_STEP_GUARD);
+  if (/head\.repo\.full_name\s*==/.test(compact)) {
+    return false;
+  }
+  return compact.includes(guard);
 }
 
 export function checkoutSteps(job: WorkflowJob): WorkflowStep[] {
@@ -182,113 +206,184 @@ export function stepRunText(job: WorkflowJob): string {
     .join("\n");
 }
 
-/** Shell gate jobs that fail when any need result is not `success` (skipped counts as failure). */
-export function shellGateFailsWhenAnyNeedNotSuccess(job: WorkflowJob): boolean {
-  const run = stepRunText(job);
+export function findCiGatePolicyStep(
+  job: WorkflowJob,
+): WorkflowStep | undefined {
+  return allSteps(job).find((step) => {
+    const run = step.run ?? "";
+    return run.includes("ci-build-policy.mjs") && run.includes("--gate");
+  });
+}
+
+export function ciGateStepReferencesHeavyNeeds(step: WorkflowStep): boolean {
+  const env = step.env ?? {};
+  const ciResults = String(env.CI_RESULTS ?? "");
   return (
-    run.includes('!= "success"') ||
-    run.includes("!= 'success'") ||
-    /"\$\{\{\s*needs\./.test(run)
+    ciResults.includes("needs.test-unit.result") &&
+    ciResults.includes("needs.build.result")
   );
 }
 
-export function gateTreatsSkippedAsFailureOnFork(
-  job: WorkflowJob,
-  heavyNeedIds: string[],
-): boolean {
-  const run = stepRunText(job);
-  const expr = ifExpression(job);
-  const needs = needsList(job);
-  const needsHeavy = heavyNeedIds.every((id) => needs.includes(id));
-  const always = expr.includes("always()");
-  const mentionsFork =
-    containsSameRepoGuard(run) ||
-    containsSameRepoGuard(expr) ||
-    run.includes("head.repo.full_name") ||
-    run.includes("fork PR");
-  const mentionsSkipped =
-    run.includes("skipped") ||
-    heavyNeedIds.some(
-      (id) =>
-        run.includes(`needs.${id}.result`) ||
-        run.includes(`needs['${id}'].result`) ||
-        run.includes(`"${id}"`),
-    );
-  return always && needsHeavy && mentionsFork && mentionsSkipped;
-}
+const CI_GATE_SUCCESS_RESULTS = {
+  plan: "success",
+  format: "success",
+  integrity: "success",
+  lint: "success",
+  typecheck: "success",
+  unit: "success",
+  build: "success",
+} as const;
 
-/** Hosted ci-gate fail-closed when fork PR skips heavy jobs (policy script path). */
-export function ciGatePolicyFailsWhenHeavySkippedWithBuildRequested(): boolean {
-  return !validateCiGate({
-    results: {
-      plan: "success",
-      format: "success",
-      integrity: "success",
-      lint: "success",
-      typecheck: "success",
-      unit: "skipped",
-      build: "skipped",
-    },
+const CI_GATE_FORK_SKIP_RESULTS = {
+  plan: "success",
+  format: "success",
+  integrity: "success",
+  lint: "success",
+  typecheck: "success",
+  unit: "skipped",
+  build: "skipped",
+} as const;
+
+export function ciGatePolicyPassesWhenSameRepoChecksSucceeded(): boolean {
+  return validateCiGate({
+    results: { ...CI_GATE_SUCCESS_RESULTS },
     buildRequested: true,
   });
 }
 
-export function ciGatePolicyPassesWhenSameRepoChecksSucceeded(): boolean {
-  return validateCiGate({
-    results: {
-      plan: "success",
-      format: "success",
-      integrity: "success",
-      lint: "success",
-      typecheck: "success",
-      unit: "success",
-      build: "success",
-    },
-    buildRequested: true,
+export function ciGatePolicyFailsWhenHeavyNeedsSkipped(
+  buildRequested: boolean,
+): boolean {
+  return !validateCiGate({
+    results: { ...CI_GATE_FORK_SKIP_RESULTS },
+    buildRequested,
   });
 }
 
 export function ciGateFailsClosedWhenHeavyNeedsSkippedOnFork(
   job: WorkflowJob,
-  heavyNeedIds: string[],
 ): boolean {
-  return (
-    ciGatePolicyFailsWhenHeavySkippedWithBuildRequested() ||
-    gateTreatsSkippedAsFailureOnFork(job, heavyNeedIds) ||
-    shellGateFailsWhenAnyNeedNotSuccess(job)
+  if (!ifExpression(job).includes("always()")) {
+    return false;
+  }
+
+  const needs = needsList(job);
+  if (!needs.includes("build") || !needs.includes("test-unit")) {
+    return false;
+  }
+
+  const policyStep = findCiGatePolicyStep(job);
+  if (!policyStep || !ciGateStepReferencesHeavyNeeds(policyStep)) {
+    return false;
+  }
+
+  const failsWhenSkipped =
+    ciGatePolicyFailsWhenHeavyNeedsSkipped(true) &&
+    ciGatePolicyFailsWhenHeavyNeedsSkipped(false);
+  const passesWhenSucceeded = ciGatePolicyPassesWhenSameRepoChecksSucceeded();
+
+  return failsWhenSkipped && passesWhenSucceeded;
+}
+
+export function substituteNeedsExpressions(
+  script: string,
+  results: Record<string, string>,
+): string {
+  let rendered = script;
+  for (const [needId, result] of Object.entries(results)) {
+    const escaped = needId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const patterns = [
+      new RegExp(`\\$\\{\\{\\s*needs\\.${escaped}\\.result\\s*\\}\\}`, "g"),
+      new RegExp(
+        `\\$\\{\\{\\s*needs\\['${escaped}'\\]\\.result\\s*\\}\\}`,
+        "g",
+      ),
+      new RegExp(
+        `\\$\\{\\{\\s*needs\\["${escaped}"\\]\\.result\\s*\\}\\}`,
+        "g",
+      ),
+    ];
+    for (const pattern of patterns) {
+      rendered = rendered.replace(pattern, result);
+    }
+  }
+  return rendered;
+}
+
+export function findPrimaryShellGateStep(
+  job: WorkflowJob,
+): WorkflowStep | undefined {
+  return allSteps(job).find(
+    (step) => typeof step.run === "string" && step.run.trim().length > 0,
   );
 }
 
-export function dependencyResultsGatePassesOnlyOnAllSuccess(
-  results: string[],
-): boolean {
-  return results.every((result) => result === "success");
+export function executeGateShellScript(
+  script: string,
+  results: Record<string, string>,
+): number {
+  const rendered = substituteNeedsExpressions(script, results);
+  const proc = spawnSync("bash", ["-c", rendered], {
+    encoding: "utf8",
+  });
+  return proc.status ?? 1;
+}
+
+export function buildNeedResultsForGateJob(
+  job: WorkflowJob,
+  overrides: Record<string, string>,
+): Record<string, string> {
+  const base = Object.fromEntries(
+    needsList(job).map((needId) => [needId, "success"]),
+  );
+  return { ...base, ...overrides };
 }
 
 export function hostedGateFailsClosedWhenHeavyNeedsSkipped(
   job: WorkflowJob,
   heavyNeedIds: string[],
 ): boolean {
-  const skipped = heavyNeedIds.map(() => "skipped");
-  const policyFails = !dependencyResultsGatePassesOnlyOnAllSuccess(skipped);
-  return (
-    policyFails ||
-    gateTreatsSkippedAsFailureOnFork(job, heavyNeedIds) ||
-    shellGateFailsWhenAnyNeedNotSuccess(job)
+  if (!ifExpression(job).includes("always()")) {
+    return false;
+  }
+
+  const needs = needsList(job);
+  if (!heavyNeedIds.every((needId) => needs.includes(needId))) {
+    return false;
+  }
+
+  const gateStep = findPrimaryShellGateStep(job);
+  if (!gateStep?.run) {
+    return false;
+  }
+
+  const successResults = buildNeedResultsForGateJob(job, {});
+  const skippedResults = buildNeedResultsForGateJob(
+    job,
+    Object.fromEntries(heavyNeedIds.map((needId) => [needId, "skipped"])),
   );
+
+  const exitAllSuccess = executeGateShellScript(gateStep.run, successResults);
+  const exitHeavySkipped = executeGateShellScript(gateStep.run, skippedResults);
+
+  return exitAllSuccess === 0 && exitHeavySkipped !== 0;
 }
 
 export function requiredJobFailsClosedOnFork(job: WorkflowJob): boolean {
-  const forkAwareRunsOn = isForkAwareRunsOnExpression(jobRunsOn(job));
-  const run = stepRunText(job);
-  const hasMessage =
-    run.includes(FORK_FAIL_MESSAGE) ||
-    allSteps(job).some(
-      (step) =>
-        (step.run?.includes(FORK_FAIL_MESSAGE) ?? false) ||
-        (step.name?.toLowerCase().includes("fork") ?? false),
-    );
-  return forkAwareRunsOn && hasMessage;
+  if (!isForkAwareRunsOnExpression(jobRunsOn(job))) {
+    return false;
+  }
+
+  return allSteps(job).some((step) => {
+    const run = step.run ?? "";
+    if (!run.includes(FORK_FAIL_MESSAGE)) {
+      return false;
+    }
+    if (!/\bexit\s+1\b/.test(run)) {
+      return false;
+    }
+    return isForkOnlyStepGuard(step.if);
+  });
 }
 
 export function assertMovedJobTimeoutMinutes(
