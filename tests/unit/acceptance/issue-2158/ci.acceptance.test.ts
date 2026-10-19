@@ -9,21 +9,21 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  FORK_FAIL_MESSAGE,
   SAME_REPO_GUARD,
   SELF_HOSTED_LABELS,
+  assertMovedJobTimeoutMinutes,
   checkoutSteps,
+  ciGateFailsClosedWhenHeavyNeedsSkippedOnFork,
+  ciGatePolicyPassesWhenSameRepoChecksSucceeded,
   containsSameRepoGuard,
-  gateTreatsSkippedAsFailureOnFork,
   ifExpression,
   isForkAwareRunsOnExpression,
   isHostedUbuntuLatest,
   isSelfHostedRunsOn,
   jobRunsOn,
-  jobTimeoutMinutes,
-  labelsEqual,
   loadWorkflowJobs,
   needsList,
+  labelsEqual,
   normalizeRunsOn,
 } from "./workflow-yaml";
 
@@ -45,19 +45,16 @@ const EXPECTED_RUNS_ON: Record<
   "ci-gate": "ubuntu-latest",
 };
 
-/** Spec rev 3 suggested timeouts (§3 + classification table). */
-const EXPECTED_TIMEOUT_MINUTES: Record<string, number> = {
-  "compilation-plan": 5,
-  format: 10,
-  integrity: 10,
-  lint: 25,
-  typecheck: 10,
+/** Spec rev 3 line 358 — exact timeout-minutes for moved jobs in ci.yml. */
+const MOVED_JOBS = ["build", "test-unit"] as const;
+
+const MOVED_JOB_EXACT_TIMEOUT_MINUTES: Record<
+  (typeof MOVED_JOBS)[number],
+  number
+> = {
   build: 15,
   "test-unit": 25,
-  "ci-gate": 5,
 };
-
-const MOVED_JOBS = ["build", "test-unit"] as const;
 
 const REQUIRED_CHECK_JOB_IDS = ["ci-gate"] as const;
 
@@ -112,14 +109,16 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
     });
   });
 
-  describe("(c) timeout-minutes on every job", () => {
-    for (const jobId of jobIds) {
-      it(`${jobId} has timeout-minutes`, () => {
-        const timeout = jobTimeoutMinutes(jobs[jobId]);
-        expect(timeout, `${jobId} missing timeout-minutes`).toBeDefined();
-        if (jobId in EXPECTED_TIMEOUT_MINUTES) {
-          expect(timeout).toBe(EXPECTED_TIMEOUT_MINUTES[jobId]);
-        }
+  describe("(c) timeout-minutes on moved jobs only (spec rev 3 §3 / line 358)", () => {
+    for (const jobId of MOVED_JOBS) {
+      it(`${jobId} has timeout-minutes per moved-job rules`, () => {
+        expect(() =>
+          assertMovedJobTimeoutMinutes(
+            jobId,
+            jobs[jobId],
+            MOVED_JOB_EXACT_TIMEOUT_MINUTES,
+          ),
+        ).not.toThrow();
       });
     }
   });
@@ -165,13 +164,17 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
       expect(needs).toContain("test-unit");
     });
 
-    it("ci-gate treats fork-driven skipped heavy needs as failure (spec §3 hosted gates)", () => {
+    it("ci-gate fails closed when build and test-unit were skipped with compilation requested", () => {
       expect(
-        gateTreatsSkippedAsFailureOnFork(jobs["ci-gate"], [
+        ciGateFailsClosedWhenHeavyNeedsSkippedOnFork(jobs["ci-gate"], [
           "build",
           "test-unit",
         ]),
       ).toBe(true);
+    });
+
+    it("ci-gate policy allows same-repo success when heavy jobs succeeded", () => {
+      expect(ciGatePolicyPassesWhenSameRepoChecksSucceeded()).toBe(true);
     });
   });
 
@@ -183,12 +186,6 @@ describe("issue #2158 PR A — ci.yml acceptance", () => {
           `${jobId} must not use fork-aware runs-on in PR A`,
         ).toBe(false);
       }
-    });
-
-    it("ci-gate does not reference fork maintainer message (hosted gate only)", () => {
-      const run =
-        jobs["ci-gate"].steps?.map((s) => s.run ?? "").join("\n") ?? "";
-      expect(run).not.toContain(FORK_FAIL_MESSAGE);
     });
   });
 

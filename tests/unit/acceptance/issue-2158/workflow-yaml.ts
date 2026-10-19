@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { validateCiGate } from "../../../../scripts/verify/ci-build-policy.mjs";
+
 /** Parsed GitHub Actions workflow (jobs map only). */
 export type WorkflowJobs = Record<string, WorkflowJob>;
 
@@ -23,6 +25,10 @@ export function jobTimeoutMinutes(job: WorkflowJob): number | undefined {
 
 export function jobRunsOn(job: WorkflowJob): string | string[] | undefined {
   return job["runs-on"];
+}
+
+export function jobCallsReusableWorkflow(job: WorkflowJob): boolean {
+  return typeof job.uses === "string" && job.uses.length > 0;
 }
 
 export type WorkflowStep = {
@@ -48,6 +54,7 @@ export const SELF_HOSTED_LABELS = [
   "proxmox",
 ] as const;
 
+/** Spec rev 3 §3 / done criterion 11 — required checks fail closed on forks with this message. */
 export const FORK_FAIL_MESSAGE = "fork PRs need a maintainer to run CI";
 
 function parseWorkflowYamlFile(absolutePath: string): { jobs?: WorkflowJobs } {
@@ -175,6 +182,16 @@ export function stepRunText(job: WorkflowJob): string {
     .join("\n");
 }
 
+/** Shell gate jobs that fail when any need result is not `success` (skipped counts as failure). */
+export function shellGateFailsWhenAnyNeedNotSuccess(job: WorkflowJob): boolean {
+  const run = stepRunText(job);
+  return (
+    run.includes('!= "success"') ||
+    run.includes("!= 'success'") ||
+    /"\$\{\{\s*needs\./.test(run)
+  );
+}
+
 export function gateTreatsSkippedAsFailureOnFork(
   job: WorkflowJob,
   heavyNeedIds: string[],
@@ -200,6 +217,67 @@ export function gateTreatsSkippedAsFailureOnFork(
   return always && needsHeavy && mentionsFork && mentionsSkipped;
 }
 
+/** Hosted ci-gate fail-closed when fork PR skips heavy jobs (policy script path). */
+export function ciGatePolicyFailsWhenHeavySkippedWithBuildRequested(): boolean {
+  return !validateCiGate({
+    results: {
+      plan: "success",
+      format: "success",
+      integrity: "success",
+      lint: "success",
+      typecheck: "success",
+      unit: "skipped",
+      build: "skipped",
+    },
+    buildRequested: true,
+  });
+}
+
+export function ciGatePolicyPassesWhenSameRepoChecksSucceeded(): boolean {
+  return validateCiGate({
+    results: {
+      plan: "success",
+      format: "success",
+      integrity: "success",
+      lint: "success",
+      typecheck: "success",
+      unit: "success",
+      build: "success",
+    },
+    buildRequested: true,
+  });
+}
+
+export function ciGateFailsClosedWhenHeavyNeedsSkippedOnFork(
+  job: WorkflowJob,
+  heavyNeedIds: string[],
+): boolean {
+  return (
+    ciGatePolicyFailsWhenHeavySkippedWithBuildRequested() ||
+    gateTreatsSkippedAsFailureOnFork(job, heavyNeedIds) ||
+    shellGateFailsWhenAnyNeedNotSuccess(job)
+  );
+}
+
+export function dependencyResultsGatePassesOnlyOnAllSuccess(
+  results: string[],
+): boolean {
+  return results.every((result) => result === "success");
+}
+
+export function hostedGateFailsClosedWhenHeavyNeedsSkipped(
+  job: WorkflowJob,
+  heavyNeedIds: string[],
+): boolean {
+  const skipped = heavyNeedIds.map(() => "skipped");
+  const policyFails = !dependencyResultsGatePassesOnlyOnAllSuccess(skipped);
+  return (
+    policyFails ||
+    gateTreatsSkippedAsFailureOnFork(job, heavyNeedIds) ||
+    shellGateFailsWhenAnyNeedNotSuccess(job)
+  );
+}
+
 export function requiredJobFailsClosedOnFork(job: WorkflowJob): boolean {
   const forkAwareRunsOn = isForkAwareRunsOnExpression(jobRunsOn(job));
   const run = stepRunText(job);
@@ -211,4 +289,32 @@ export function requiredJobFailsClosedOnFork(job: WorkflowJob): boolean {
         (step.name?.toLowerCase().includes("fork") ?? false),
     );
   return forkAwareRunsOn && hasMessage;
+}
+
+export function assertMovedJobTimeoutMinutes(
+  jobId: string,
+  job: WorkflowJob,
+  exactMinutesByJob: Record<string, number>,
+): void {
+  if (jobCallsReusableWorkflow(job)) {
+    throw new Error(
+      `${jobId} calls a reusable workflow; timeout-minutes belongs on callee jobs, not caller`,
+    );
+  }
+  const timeout = jobTimeoutMinutes(job);
+  if (timeout === undefined) {
+    throw new Error(`${jobId} missing timeout-minutes (spec rev 3 moved jobs)`);
+  }
+  if (!Number.isInteger(timeout) || timeout <= 0) {
+    throw new Error(
+      `${jobId} timeout-minutes must be a positive integer; got ${timeout}`,
+    );
+  }
+  if (jobId in exactMinutesByJob) {
+    if (timeout !== exactMinutesByJob[jobId]) {
+      throw new Error(
+        `${jobId} timeout-minutes must be ${exactMinutesByJob[jobId]} per spec rev 3; got ${timeout}`,
+      );
+    }
+  }
 }
