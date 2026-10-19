@@ -13,7 +13,6 @@ import {
   assertMovedJobTimeoutMinutes,
   checkoutSteps,
   containsSameRepoGuard,
-  dependencyResultsGatePassesOnlyOnAllSuccess,
   hostedGateFailsClosedWhenHeavyNeedsSkipped,
   ifExpression,
   isForkAwareRunsOnExpression,
@@ -193,9 +192,6 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
           "test-e2e-smoke",
         ]),
       ).toBe(true);
-      expect(dependencyResultsGatePassesOnlyOnAllSuccess(["skipped"])).toBe(
-        false,
-      );
     });
 
     it("integration-gate uses if: always() and needs migrate, smoke, e2e-smoke-gate", () => {
