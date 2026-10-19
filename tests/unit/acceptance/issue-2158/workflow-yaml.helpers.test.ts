@@ -70,6 +70,21 @@ describe("ciGateFailsClosedWhenHeavyNeedsSkippedOnFork", () => {
     );
   });
 
+  it("accepts PR A two-arg call listing build and test-unit", () => {
+    expect(
+      ciGateFailsClosedWhenHeavyNeedsSkippedOnFork(validCiGate, [
+        "build",
+        "test-unit",
+      ]),
+    ).toBe(true);
+  });
+
+  it("fails when requiredNeeds omits a heavy need", () => {
+    expect(
+      ciGateFailsClosedWhenHeavyNeedsSkippedOnFork(validCiGate, ["build"]),
+    ).toBe(false);
+  });
+
   it("fails when the gate only echoes", () => {
     const echoGate: WorkflowJob = {
       if: "always()",

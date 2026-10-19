@@ -215,13 +215,24 @@ export function findCiGatePolicyStep(
   });
 }
 
-export function ciGateStepReferencesHeavyNeeds(step: WorkflowStep): boolean {
+const DEFAULT_CI_GATE_HEAVY_NEEDS = ["build", "test-unit"] as const;
+
+export function ciGateStepReferencesNeedResults(
+  step: WorkflowStep,
+  needIds: readonly string[],
+): boolean {
   const env = step.env ?? {};
   const ciResults = String(env.CI_RESULTS ?? "");
-  return (
-    ciResults.includes("needs.test-unit.result") &&
-    ciResults.includes("needs.build.result")
+  return needIds.every(
+    (needId) =>
+      ciResults.includes(`needs.${needId}.result`) ||
+      ciResults.includes(`needs['${needId}'].result`) ||
+      ciResults.includes(`needs["${needId}"].result`),
   );
+}
+
+export function ciGateStepReferencesHeavyNeeds(step: WorkflowStep): boolean {
+  return ciGateStepReferencesNeedResults(step, DEFAULT_CI_GATE_HEAVY_NEEDS);
 }
 
 const CI_GATE_SUCCESS_RESULTS = {
@@ -262,18 +273,33 @@ export function ciGatePolicyFailsWhenHeavyNeedsSkipped(
 
 export function ciGateFailsClosedWhenHeavyNeedsSkippedOnFork(
   job: WorkflowJob,
+  requiredNeeds?: readonly string[],
 ): boolean {
+  const heavyNeedIds =
+    requiredNeeds !== undefined ? requiredNeeds : DEFAULT_CI_GATE_HEAVY_NEEDS;
+
+  if (heavyNeedIds.length === 0) {
+    return false;
+  }
+
   if (!ifExpression(job).includes("always()")) {
     return false;
   }
 
   const needs = needsList(job);
-  if (!needs.includes("build") || !needs.includes("test-unit")) {
+  if (!heavyNeedIds.every((needId) => needs.includes(needId))) {
     return false;
   }
 
   const policyStep = findCiGatePolicyStep(job);
-  if (!policyStep || !ciGateStepReferencesHeavyNeeds(policyStep)) {
+  if (
+    !policyStep ||
+    !ciGateStepReferencesNeedResults(policyStep, heavyNeedIds)
+  ) {
+    return false;
+  }
+
+  if (!heavyNeedIds.includes("build") || !heavyNeedIds.includes("test-unit")) {
     return false;
   }
 
