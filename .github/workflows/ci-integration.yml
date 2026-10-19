@@ -19,7 +19,8 @@ concurrency:
 
 jobs:
   migrate:
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
     timeout-minutes: 50
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
@@ -43,9 +44,17 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - name: Reject fork pull requests
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "fork PRs need a maintainer to run CI"
+          exit 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -79,7 +88,14 @@ jobs:
 
   smoke:
     needs: migrate
-    runs-on: ubuntu-latest
+    if: >-
+      always() &&
+      (needs.migrate.result == 'success' ||
+        (github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository))
+    runs-on: >-
+      ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || fromJSON('["self-hosted", "linux", "x64", "proxmox"]') }}
+    timeout-minutes: 10
     services:
       postgres:
         image: postgres:15-alpine
@@ -100,7 +116,16 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     steps:
+      - name: Reject fork pull requests
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "fork PRs need a maintainer to run CI"
+          exit 1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -140,7 +165,10 @@ jobs:
 
   test-e2e-smoke:
     needs: smoke
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, proxmox]
     timeout-minutes: 25
     services:
       postgres:
@@ -173,6 +201,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -267,8 +296,11 @@ jobs:
 
   test-e2e:
     needs: smoke
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, proxmox]
     timeout-minutes: 30
     services:
       postgres:
@@ -310,6 +342,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -451,11 +484,13 @@ jobs:
   # instant-nav.rig.md.
   instant-nav:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.base_ref == 'production') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/production')
+      (github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'pull_request' && github.base_ref == 'production') ||
+        (github.event_name == 'push' && github.ref == 'refs/heads/production')) &&
+      (github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository)
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, proxmox]
     timeout-minutes: 25
     env:
       SKIP_ENV_VALIDATION: "1"
