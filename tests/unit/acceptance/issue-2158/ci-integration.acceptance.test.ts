@@ -10,17 +10,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   FORK_FAIL_MESSAGE,
-  SELF_HOSTED_LABELS,
+  assertMovedJobTimeoutMinutes,
   checkoutSteps,
   containsSameRepoGuard,
-  gateTreatsSkippedAsFailureOnFork,
+  dependencyResultsGatePassesOnlyOnAllSuccess,
+  hostedGateFailsClosedWhenHeavyNeedsSkipped,
   ifExpression,
   isForkAwareRunsOnExpression,
   isHostedUbuntuLatest,
   isHostedUbuntuSlim,
   isSelfHostedRunsOn,
   jobRunsOn,
-  jobTimeoutMinutes,
   loadWorkflowJobs,
   needsList,
   requiredJobFailsClosedOnFork,
@@ -46,17 +46,7 @@ const EXPECTED_RUNS_ON: Record<string, RunsOnExpectation> = {
   "e2e-gate": "ubuntu-latest",
 };
 
-const EXPECTED_TIMEOUT_MINUTES: Record<string, number> = {
-  migrate: 50,
-  smoke: 10,
-  "test-e2e-smoke": 25,
-  "test-e2e": 30,
-  "e2e-smoke-gate": 5,
-  "instant-nav": 25,
-  "integration-gate": 5,
-  "e2e-gate": 5,
-};
-
+/** Spec rev 3 line 358 — exact timeout-minutes where rev 3 states the value for that moved job. */
 const MOVED_JOBS = [
   "migrate",
   "smoke",
@@ -64,6 +54,17 @@ const MOVED_JOBS = [
   "test-e2e",
   "instant-nav",
 ] as const;
+
+const MOVED_JOB_EXACT_TIMEOUT_MINUTES: Record<
+  (typeof MOVED_JOBS)[number],
+  number
+> = {
+  migrate: 50,
+  smoke: 10,
+  "test-e2e-smoke": 25,
+  "test-e2e": 30,
+  "instant-nav": 25,
+};
 
 const FORK_AWARE_REQUIRED = ["migrate", "smoke"] as const;
 
@@ -114,14 +115,16 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
     }
   });
 
-  describe("(c) timeout-minutes on every job", () => {
-    for (const jobId of jobIds) {
-      it(`${jobId} has timeout-minutes`, () => {
-        const timeout = jobTimeoutMinutes(jobs[jobId]);
-        expect(timeout, `${jobId} missing timeout-minutes`).toBeDefined();
-        if (jobId in EXPECTED_TIMEOUT_MINUTES) {
-          expect(timeout).toBe(EXPECTED_TIMEOUT_MINUTES[jobId]);
-        }
+  describe("(c) timeout-minutes on moved jobs only (spec rev 3 §3 / line 358)", () => {
+    for (const jobId of MOVED_JOBS) {
+      it(`${jobId} has timeout-minutes per moved-job rules`, () => {
+        expect(() =>
+          assertMovedJobTimeoutMinutes(
+            jobId,
+            jobs[jobId],
+            MOVED_JOB_EXACT_TIMEOUT_MINUTES,
+          ),
+        ).not.toThrow();
       });
     }
   });
@@ -170,7 +173,7 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
     });
   });
 
-  describe("(e) required migrate/smoke fail closed on fork PRs (spec §3)", () => {
+  describe("(e) required migrate/smoke fail closed on fork PRs (spec rev 3)", () => {
     for (const jobId of FORK_AWARE_REQUIRED) {
       it(`${jobId} uses fork-aware runs-on and fails with maintainer message`, () => {
         expect(requiredJobFailsClosedOnFork(jobs[jobId])).toBe(true);
@@ -184,12 +187,15 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
       expect(needsList(jobs["e2e-smoke-gate"])).toEqual(["test-e2e-smoke"]);
     });
 
-    it("e2e-smoke-gate treats fork-driven skipped test-e2e-smoke as failure", () => {
+    it("e2e-smoke-gate fails closed when test-e2e-smoke was skipped", () => {
       expect(
-        gateTreatsSkippedAsFailureOnFork(jobs["e2e-smoke-gate"], [
+        hostedGateFailsClosedWhenHeavyNeedsSkipped(jobs["e2e-smoke-gate"], [
           "test-e2e-smoke",
         ]),
       ).toBe(true);
+      expect(dependencyResultsGatePassesOnlyOnAllSuccess(["skipped"])).toBe(
+        false,
+      );
     });
 
     it("integration-gate uses if: always() and needs migrate, smoke, e2e-smoke-gate", () => {
@@ -201,9 +207,9 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
       ]);
     });
 
-    it("integration-gate treats fork-driven skipped dependencies as failure", () => {
+    it("integration-gate fails closed when fork-driven dependencies were skipped", () => {
       expect(
-        gateTreatsSkippedAsFailureOnFork(jobs["integration-gate"], [
+        hostedGateFailsClosedWhenHeavyNeedsSkipped(jobs["integration-gate"], [
           "migrate",
           "smoke",
           "e2e-smoke-gate",
@@ -227,8 +233,8 @@ describe("issue #2158 PR B — ci-integration.yml acceptance", () => {
     });
   });
 
-  describe("fork fail message is exact (spec §3 required checks)", () => {
-    it("uses the prescribed maintainer message text", () => {
+  describe("fork fail message is exact (spec rev 3 required checks)", () => {
+    it("uses the prescribed maintainer message text from spec rev 3", () => {
       expect(FORK_FAIL_MESSAGE).toBe("fork PRs need a maintainer to run CI");
     });
   });
