@@ -82,13 +82,10 @@ describe("ci-integration workflow contract", () => {
     expect(testE2eSmoke).toContain('E2E_AUTH_BYPASS: "true"');
     expect(testE2eSmoke).toContain('PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"');
     expect(testE2eSmoke).toContain("run: bun run test:e2e:smoke");
-    expect(testE2eSmoke).toContain("Start admin app");
-    expect(testE2eSmoke).toContain("Wait for admin health endpoint");
-    expect(testE2eSmoke).toContain(
-      'PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"',
-    );
-    expect(testE2eSmoke).toContain('PLAYWRIGHT_INCLUDE_ADMIN: "1"');
+    expect(testE2eSmoke).not.toContain("Start admin app");
+    expect(testE2eSmoke).toContain('PLAYWRIGHT_INCLUDE_ADMIN: "0"');
     expect(testE2eSmoke).toContain("playwright-smoke-report");
+    expect(testE2eSmoke).toContain("e2e-production-server.sh donor build");
 
     expect(testE2e).toContain("continue-on-error:");
     expect(testE2e).toContain("github.base_ref == 'develop'");
@@ -155,30 +152,32 @@ describe("ci-integration workflow contract", () => {
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
   });
 
-  it("installs Playwright before smoke dev servers and proves demo auth", () => {
+  it("installs Playwright before production smoke servers and proves demo auth", () => {
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
     const installAt = testE2eSmoke.indexOf("name: Install Playwright Chromium");
-    const startDonorAt = testE2eSmoke.indexOf("name: Start donor app");
+    const buildDonorAt = testE2eSmoke.indexOf(
+      "name: Build donor app (production)",
+    );
+    const startDonorAt = testE2eSmoke.indexOf(
+      "name: Start donor app (production)",
+    );
     const waitDonorAt = testE2eSmoke.indexOf(
       "name: Wait for donor health endpoint",
     );
-    const startAdminAt = testE2eSmoke.indexOf("name: Start admin app");
 
     expect(installAt).toBeGreaterThanOrEqual(0);
-    expect(startDonorAt).toBeGreaterThan(installAt);
+    expect(buildDonorAt).toBeGreaterThan(installAt);
+    expect(startDonorAt).toBeGreaterThan(buildDonorAt);
     expect(waitDonorAt).toBeGreaterThan(startDonorAt);
-    expect(startAdminAt).toBeGreaterThan(waitDonorAt);
-    expect(testE2eSmoke).toContain(
-      "http://127.0.0.1:3005/api/auth/demo-account",
-    );
+    expect(testE2eSmoke).toContain("/api/auth/demo-account");
   });
 
   it("keeps the blocking smoke job on the shared Bun install contract", () => {
     const smoke = jobBlock(workflow, "smoke");
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
 
-    expect(smoke).toContain("nohup bun run --cwd apps/donor dev");
-    expect(smoke).toContain("/tmp/donor-dev.log");
+    expect(smoke).toContain("e2e-production-server.sh donor build");
+    expect(smoke).toContain("e2e-production-server.sh donor start 3005");
     expect(testE2eSmoke).toContain("bun-version: ${{ env.BUN_VERSION }}");
     expect(testE2eSmoke).toContain("run: bun ci --no-cache --backend=copyfile");
     expect(testE2eSmoke).not.toContain('bun-version: "1.3.4"');
