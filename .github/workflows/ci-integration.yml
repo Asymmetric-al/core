@@ -178,6 +178,7 @@ jobs:
       # E2E_AUTH_ALLOWED_SUPABASE_REFS is needed (built-in fallback key +
       # implicit allowlist). A real Supabase project would require both.
       E2E_AUTH_BYPASS: "true"
+      PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
@@ -271,6 +272,7 @@ jobs:
       #   E2E_AUTH_ALLOWED_SUPABASE_REFS  — project ref of the demo Supabase project (never prod)
       E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
       E2E_AUTH_ALLOWED_SUPABASE_REFS: ${{ secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS }}
+      PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
       PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_INCLUDE_ADMIN: "1"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"

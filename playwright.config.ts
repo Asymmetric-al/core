@@ -9,6 +9,7 @@ import {
   getWorkerCount,
   isLocalHostname,
   normalizeLocalBaseUrl,
+  shouldOmitWebServerForPrestartedLocalServers,
   shouldReuseExistingServer,
 } from "./tests/e2e/playwright-shared";
 
@@ -219,11 +220,18 @@ const includeAdminServer =
 const defaultProjectTestIgnore =
   getDefaultProjectTestIgnore(includeAdminServer);
 
-const webServer = isRemoteBaseUrl
+const configuredWebServer = isRemoteBaseUrl
   ? undefined
   : includeAdminServer
     ? [donorServer, adminServer]
     : donorServer;
+
+const webServer = shouldOmitWebServerForPrestartedLocalServers(process.env, {
+  isRemoteBaseUrl,
+  includeAdminServer,
+})
+  ? undefined
+  : configuredWebServer;
 
 const donorAuthState = path.join(__dirname, ".auth", "donor.json");
 const adminAuthState = path.join(__dirname, ".auth", "admin.json");
