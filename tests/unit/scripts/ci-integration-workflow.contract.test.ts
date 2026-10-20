@@ -86,6 +86,11 @@ describe("ci-integration workflow contract", () => {
     expect(testE2eSmoke).toContain('PLAYWRIGHT_INCLUDE_ADMIN: "0"');
     expect(testE2eSmoke).toContain("playwright-smoke-report");
     expect(testE2eSmoke).toContain("e2e-production-server.sh donor build");
+    expect(testE2e).toContain("e2e-production-server.sh all build-all");
+    expect(testE2e.indexOf("all build-all")).toBeLessThan(
+      testE2e.indexOf("Start donor app (production)"),
+    );
+    expect(testE2e).not.toContain("Build missionary app (production)");
 
     expect(testE2e).toContain("continue-on-error:");
     expect(testE2e).toContain("github.base_ref == 'develop'");

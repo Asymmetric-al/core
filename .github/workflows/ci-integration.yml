@@ -314,10 +314,8 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"
-      - name: Build donor app (production)
-        run: bash scripts/github/e2e-production-server.sh donor build
-      - name: Build admin app (production)
-        run: bash scripts/github/e2e-production-server.sh admin build
+      - name: Build production apps for e2e (sequential)
+        run: bash scripts/github/e2e-production-server.sh all build-all
       - name: Start donor app (production)
         run: bash scripts/github/e2e-production-server.sh donor start 3005
       - name: Wait for donor health endpoint
@@ -344,8 +342,6 @@ jobs:
           CI: "1"
           PLAYWRIGHT_BONEYARD_TARGET: "admin"
         run: bun run test:e2e:boneyard:admin
-      - name: Build missionary app (production)
-        run: bash scripts/github/e2e-production-server.sh missionary build
       - name: Start missionary app (production)
         run: bash scripts/github/e2e-production-server.sh missionary start 4000
       - name: Wait for missionary health endpoint

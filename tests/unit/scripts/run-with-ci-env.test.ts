@@ -66,6 +66,19 @@ describe("run-with-ci-env", () => {
     });
   });
 
+  it("applies integration build heap cap for ci-build and build:* scripts", () => {
+    const env = normalizeEnvForCommand({ ASYM_E2E_INTEGRATION_BUILD: "1" }, [
+      "node",
+      "scripts/verify/ci-build.mjs",
+      "--",
+      "bun",
+      "run",
+      "build:admin",
+    ]);
+    expect(env.NODE_OPTIONS).toContain("--max-old-space-size=1536");
+    expect(env.NODE_ENV).toBe("production");
+  });
+
   it("does not override existing env values and keeps .env.local precedence", async () => {
     const tempRoot = await createTempDir("run-with-ci-env-order");
     await writeFile(

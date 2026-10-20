@@ -9,24 +9,75 @@ APP="${1:-}"
 ACTION="${2:-}"
 
 usage() {
-  echo "Usage: $0 <donor|admin|missionary> <build|start|wait> ..." >&2
+  echo "Usage: $0 <donor|admin|missionary|all> <build|build-all|start|wait|stop> ..." >&2
   exit 1
 }
 
 [[ -n "$APP" && -n "$ACTION" ]] || usage
 
-case "$APP" in
-  donor) APP_DIR="apps/donor"; BUILD_SCRIPT="build:donor" ;;
-  admin) APP_DIR="apps/admin"; BUILD_SCRIPT="build:admin" ;;
-  missionary) APP_DIR="apps/missionary"; BUILD_SCRIPT="build:missionary" ;;
-  *) echo "Unknown app: $APP" >&2; exit 1 ;;
-esac
-
 # Bound heap on 8 GiB self-hosted runners during next build/start.
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1536}"
+export ASYM_E2E_INTEGRATION_BUILD=1
+
+app_dir_for() {
+  case "$1" in
+    donor) echo "apps/donor" ;;
+    admin) echo "apps/admin" ;;
+    missionary) echo "apps/missionary" ;;
+    *) return 1 ;;
+  esac
+}
+
+build_script_for() {
+  case "$1" in
+    donor) echo "build:donor" ;;
+    admin) echo "build:admin" ;;
+    missionary) echo "build:missionary" ;;
+    *) return 1 ;;
+  esac
+}
+
+stop_app() {
+  local app="${1:?app required}"
+  local pidfile="/tmp/${app}-prod.pid"
+  if [[ -f "$pidfile" ]]; then
+    local pid
+    pid="$(cat "$pidfile" 2>/dev/null || true)"
+    if [[ -n "$pid" ]]; then
+      kill "$pid" 2>/dev/null || true
+      wait "$pid" 2>/dev/null || true
+    fi
+    rm -f "$pidfile"
+  fi
+}
+
+stop_all_apps() {
+  stop_app donor
+  stop_app admin
+  stop_app missionary
+}
+
+build_one_app() {
+  local app="${1:?app required}"
+  local build_script
+  build_script="$(build_script_for "$app")" || {
+    echo "Unknown app: $app" >&2
+    exit 1
+  }
+  stop_app "$app"
+  echo "==> E2E production build: ${app} (NODE_OPTIONS=${NODE_OPTIONS})"
+  node scripts/run-with-ci-env.mjs -- bun run "$build_script"
+}
 
 build_app() {
-  node scripts/run-with-ci-env.mjs -- bun run "$BUILD_SCRIPT"
+  build_one_app "$APP"
+}
+
+build_all_apps() {
+  stop_all_apps
+  build_one_app donor
+  build_one_app admin
+  build_one_app missionary
 }
 
 start_app() {
@@ -34,8 +85,13 @@ start_app() {
   local host="${2:-127.0.0.1}"
   local log="${3:-/tmp/${APP}-prod.log}"
   local pidfile="${4:-/tmp/${APP}-prod.pid}"
+  local app_dir
+  app_dir="$(app_dir_for "$APP")" || {
+    echo "Unknown app: $APP" >&2
+    exit 1
+  }
 
-  nohup node scripts/run-with-ci-env.mjs -- bun run --cwd "$APP_DIR" start -- \
+  nohup node scripts/run-with-ci-env.mjs -- bun run --cwd "$app_dir" start -- \
     --port "$port" --hostname "$host" >"$log" 2>&1 &
   echo $! >"$pidfile"
 }
@@ -67,6 +123,25 @@ wait_app() {
   done
 }
 
+case "$APP" in
+  donor | admin | missionary) ;;
+  all)
+    case "$ACTION" in
+      build-all) build_all_apps ;;
+      stop) stop_all_apps ;;
+      *)
+        echo "Unknown action for all: $ACTION" >&2
+        usage
+        ;;
+    esac
+    exit 0
+    ;;
+  *)
+    echo "Unknown app: $APP" >&2
+    exit 1
+    ;;
+esac
+
 case "$ACTION" in
   build) build_app ;;
   start)
@@ -77,6 +152,7 @@ case "$ACTION" in
     shift 2
     wait_app "$@"
     ;;
+  stop) stop_app "$APP" ;;
   *)
     echo "Unknown action: $ACTION" >&2
     usage

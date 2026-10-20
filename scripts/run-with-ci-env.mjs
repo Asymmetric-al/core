@@ -93,11 +93,35 @@ export function loadLocalEnvFiles({
   }
 }
 
+function commandLaunchesProductionBuild(commandParts = []) {
+  return commandParts.some(
+    (part) =>
+      part === "build" || /^build:/.test(part) || part.includes("ci-build.mjs"),
+  );
+}
+
+function ensureIntegrationBuildNodeOptions(env) {
+  if (env.ASYM_E2E_INTEGRATION_BUILD !== "1") {
+    return;
+  }
+
+  const cap = "--max-old-space-size=1536";
+  const existing = env.NODE_OPTIONS?.trim();
+  if (!existing) {
+    env.NODE_OPTIONS = cap;
+    return;
+  }
+
+  if (!/\b--max-old-space-size=\d+\b/.test(existing)) {
+    env.NODE_OPTIONS = `${existing} ${cap}`;
+  }
+}
+
 export function normalizeEnvForCommand(env, commandParts = []) {
   const launchesPlaywright = commandParts.some((part) =>
     part.includes("@playwright/test/cli.js"),
   );
-  const launchesBuild = commandParts.includes("build");
+  const launchesBuild = commandLaunchesProductionBuild(commandParts);
 
   if (launchesPlaywright || env.FORCE_COLOR !== undefined) {
     delete env.NO_COLOR;
@@ -105,6 +129,7 @@ export function normalizeEnvForCommand(env, commandParts = []) {
 
   if (launchesBuild) {
     env.NODE_ENV = "production";
+    ensureIntegrationBuildNodeOptions(env);
   }
 
   return env;
