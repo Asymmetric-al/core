@@ -106,6 +106,12 @@ const stages = [
   },
 ];
 
+function restoreAgentsMdAfterTurboInjection() {
+  // Turbo may append agent-guidance to AGENTS.md during lint/typecheck/build.
+  // Unit tests measure the committed root AGENTS.md budget from disk.
+  spawnSync("git", ["restore", "AGENTS.md"], { stdio: "ignore" });
+}
+
 function runStage(stage) {
   console.log(`==> CI preflight: ${stage.id}`);
   const env = {
@@ -174,7 +180,10 @@ function main() {
         .join(", ") || "not requested for routine development"
     }`,
   );
-  for (const stage of selected) if (!runStage(stage)) return 1;
+  for (const stage of selected) {
+    if (stage.id === "test-unit") restoreAgentsMdAfterTurboInjection();
+    if (!runStage(stage)) return 1;
+  }
   console.log("==> PASS ci:preflight");
   return 0;
 }
