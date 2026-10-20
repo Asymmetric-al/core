@@ -79,6 +79,8 @@ describe("ci-integration workflow contract", () => {
     const e2eGate = jobBlock(workflow, "e2e-gate");
 
     expect(testE2eSmoke).toContain("needs: smoke");
+    expect(testE2e).toContain("needs: [smoke, test-e2e-smoke]");
+    expect(testE2e).toContain("fetch-depth: 1");
     expect(testE2eSmoke).toContain('E2E_AUTH_BYPASS: "true"');
     expect(testE2eSmoke).toContain('PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"');
     expect(testE2eSmoke).toContain("run: bun run test:e2e:smoke");

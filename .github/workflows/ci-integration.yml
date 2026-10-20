@@ -238,7 +238,7 @@ jobs:
           retention-days: 7
 
   test-e2e:
-    needs: smoke
+    needs: [smoke, test-e2e-smoke]
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
@@ -285,7 +285,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -315,6 +315,7 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"
       - name: Build production apps for e2e (sequential)
+        timeout-minutes: 25
         run: bash scripts/github/e2e-production-server.sh all build-all
       - name: Start donor app (production)
         run: bash scripts/github/e2e-production-server.sh donor start 3005
