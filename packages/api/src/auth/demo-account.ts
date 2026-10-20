@@ -232,7 +232,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!isDemoEndpointEnabled()) {
+  if (!isDemoEndpointEnabled() && !isE2EAuthBypassEnabled()) {
     return NextResponse.json(
       {
         ok: false,
