@@ -1,6 +1,5 @@
 import { withSentryConfig } from "@sentry/nextjs/config";
 
-import { e2eIntegrationBuildExperimental } from "../../scripts/github/e2e-integration-next-experimental.mjs";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
@@ -39,7 +38,6 @@ const nextConfig: NextConfig & {
     "@asym/email",
   ],
   experimental: {
-    ...e2eIntegrationBuildExperimental(),
     agentUpgrade: "latest",
     globalNotFound: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],

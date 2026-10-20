@@ -71,7 +71,7 @@ describe("ci-integration workflow contract", () => {
     );
   });
 
-  it("keeps develop merges gated by smoke while full E2E stays informational", () => {
+  it("keeps develop merges gated by smoke while full E2E fails the workflow on error", () => {
     const testE2e = jobBlock(workflow, "test-e2e");
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
     const integrationGate = jobBlock(workflow, "integration-gate");
@@ -80,7 +80,7 @@ describe("ci-integration workflow contract", () => {
 
     expect(testE2eSmoke).toContain("needs: smoke");
     expect(testE2e).toContain("needs: [smoke, test-e2e-smoke]");
-    expect(testE2e).toContain("fetch-depth: 1");
+    expect(testE2e).toContain("fetch-depth: 0");
     expect(testE2eSmoke).toContain('E2E_AUTH_BYPASS: "true"');
     expect(testE2eSmoke).toContain('PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"');
     expect(testE2eSmoke).toContain("run: bun run test:e2e:smoke");
@@ -90,13 +90,11 @@ describe("ci-integration workflow contract", () => {
     expect(testE2eSmoke).toContain("e2e-production-server.sh donor build");
     expect(testE2e).toContain("e2e-production-server.sh all build-all");
     expect(testE2e.indexOf("all build-all")).toBeLessThan(
-      testE2e.indexOf("Start donor app (production)"),
+      testE2e.indexOf("Start donor app"),
     );
     expect(testE2e).not.toContain("Build missionary app (production)");
 
-    expect(testE2e).toContain("continue-on-error:");
-    expect(testE2e).toContain("github.base_ref == 'develop'");
-    expect(testE2e).toContain("refs/heads/develop");
+    expect(testE2e).not.toContain("continue-on-error:");
     expect(testE2e).toContain(
       "Use placeholder Supabase for non-production E2E",
     );
@@ -105,12 +103,7 @@ describe("ci-integration workflow contract", () => {
       "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
     );
     expect(testE2e).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key");
-
-    const continueOnError = testE2e
-      .split("\n")
-      .find((line) => line.includes("continue-on-error:"));
-    expect(continueOnError).toContain("github.base_ref == 'develop'");
-    expect(continueOnError).not.toContain("github.base_ref != 'production'");
+    expect(testE2e).toContain("ASYM_E2E_SERVER_MODE=dev");
 
     expect(integrationGate).toContain(
       "needs: [migrate, smoke, e2e-smoke-gate]",
@@ -166,7 +159,7 @@ describe("ci-integration workflow contract", () => {
       "name: Build donor app (production)",
     );
     const startDonorAt = testE2eSmoke.indexOf(
-      "name: Start donor app (production)",
+      "name: Start donor app (dev for hermetic demo auth)",
     );
     const waitDonorAt = testE2eSmoke.indexOf(
       "name: Wait for donor health endpoint",

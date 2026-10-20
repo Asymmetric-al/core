@@ -1,5 +1,6 @@
 {
   "$schema": "https://v2-10-0.turborepo.dev/schema.json",
+  "agentGuidance": false,
   "envMode": "loose",
   "cacheMaxAge": "14d",
   "cacheMaxSize": "10GB",

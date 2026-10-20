@@ -75,7 +75,7 @@ describe("run-with-ci-env", () => {
       "run",
       "build:admin",
     ]);
-    expect(env.NODE_OPTIONS).toContain("--max-old-space-size=1536");
+    expect(env.NODE_OPTIONS).toContain("--max-old-space-size=3072");
     expect(env.NODE_ENV).toBe("production");
   });
 

@@ -4,7 +4,6 @@ import { withEve } from "eve/next";
 
 import { normalizeEveVercelEnvironment } from "./eve-runtime-environment";
 import { copyMaplibreWorkerAssetsForApp } from "../../scripts/copy-maplibre-worker-assets.mjs";
-import { e2eIntegrationBuildExperimental } from "../../scripts/github/e2e-integration-next-experimental.mjs";
 import { loadWorkspaceEnvironment } from "../../scripts/load-workspace-env.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
@@ -67,7 +66,6 @@ export const nextConfig: NextConfig & {
     return webpackConfig;
   },
   experimental: {
-    ...e2eIntegrationBuildExperimental(),
     agentUpgrade: "latest",
     globalNotFound: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],

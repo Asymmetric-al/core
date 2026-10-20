@@ -400,21 +400,9 @@ describe("isE2EAuthBypassEnabled", () => {
     process.env.NODE_ENV = "development";
   });
 
-  it("is false in production without hermetic CI defaults", () => {
+  it("is false in production regardless of env flag", () => {
     process.env.NODE_ENV = "production";
     process.env.E2E_AUTH_BYPASS = "true";
-    delete process.env.ASYM_USE_CI_ENV_DEFAULTS;
-    expect(isE2EAuthBypassEnabled()).toBe(false);
-  });
-
-  it("allows bypass in production only for hermetic CI placeholder datasource", () => {
-    process.env.NODE_ENV = "production";
-    process.env.E2E_AUTH_BYPASS = "true";
-    process.env.ASYM_USE_CI_ENV_DEFAULTS = "1";
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
-    expect(isE2EAuthBypassEnabled()).toBe(true);
-
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://realproj12345.supabase.co";
     expect(isE2EAuthBypassEnabled()).toBe(false);
   });
 

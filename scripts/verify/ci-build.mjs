@@ -191,7 +191,7 @@ function run(command, args, label, environment) {
   console.log(`==> CI build: ${label}`);
   const env = { ...process.env, ...environment };
   if (env.ASYM_E2E_INTEGRATION_BUILD === "1") {
-    const cap = "--max-old-space-size=1536";
+    const cap = "--max-old-space-size=3072";
     const existing = env.NODE_OPTIONS?.trim();
     if (!existing) {
       env.NODE_OPTIONS = cap;

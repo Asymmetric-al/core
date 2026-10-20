@@ -93,36 +93,13 @@ interface SignedE2EAuthPayload extends E2EAuthSession {
   exp: number;
 }
 
-function isE2EAuthBypassFlagEnabled() {
+export function isE2EAuthBypassEnabled() {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
   const value = process.env.E2E_AUTH_BYPASS?.trim().toLowerCase();
   return value ? E2E_AUTH_BYPASS_VALUES.has(value) : false;
-}
-
-/**
- * Hermetic CI integration runs `next start` (NODE_ENV=production) while still
- * using the same placeholder Supabase + E2E_AUTH_BYPASS env as Playwright's old
- * `next dev` webServer (via scripts/run-with-ci-env.mjs). Real deployments must
- * not set ASYM_USE_CI_ENV_DEFAULTS or E2E_AUTH_BYPASS in production.
- */
-function isHermeticCiProductionE2EBypassAllowed() {
-  if (process.env.ASYM_USE_CI_ENV_DEFAULTS !== "1") {
-    return false;
-  }
-  return isSupabaseDatasourceAllowedForE2EBypass(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-  );
-}
-
-export function isE2EAuthBypassEnabled() {
-  if (!isE2EAuthBypassFlagEnabled()) {
-    return false;
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    return isHermeticCiProductionE2EBypassAllowed();
-  }
-
-  return true;
 }
 
 /** The canonical non-resolving Supabase placeholder host used across the repo. */
