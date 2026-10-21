@@ -11,6 +11,8 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -123,9 +125,37 @@ describe("#2066 command seam — injected detectors", () => {
       store: new InMemoryDocumentCutoverProofStore(),
     });
 
+    const stdout = output.join("\n");
     expect(exitCode).not.toBe(0);
     expect(createClientCalls.count).toBe(0);
-    expect(output.join("\n")).toMatch(/^CLEAN\b/m);
+    // #2067: the target schema version is read only through the real client,
+    // so the clean injected evidence stops on that blocker alone.
+    expect(stdout).toMatch(/^Status: complete$/m);
+    expect(stdout.match(/^ {4}- /gm)).toHaveLength(1);
+    expect(stdout).toContain("schema version unreadable");
+  });
+});
+
+describe("#2067 --verify on a malformed proof", () => {
+  it("exits 1 without contacting the target when the proof JSON lacks required fields", async () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "seam-2067-proof-"));
+    const file = path.join(dir, "proof.json");
+    writeFileSync(file, JSON.stringify({ proofSchemaVersion: "2" }));
+    try {
+      const exitCode = await runDocumentCutoverCommand({
+        argv: ["--verify", file],
+        env: {
+          SUPABASE_URL: LOOPBACK_URL,
+          DOCUMENT_CUTOVER_SUPABASE_READ_KEY: "seam-2067-fake-read-key",
+        },
+      });
+
+      expect(exitCode).toBe(1);
+      expect(createClientCalls.count).toBe(0);
+      expect(output.join("\n")).toMatch(/^INVALID proof/m);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

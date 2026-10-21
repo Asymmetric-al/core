@@ -13,7 +13,12 @@
  * consume the proof through its own separately authorized path.
  */
 
-export const DOCUMENT_CUTOVER_PROOF_SCHEMA_VERSION = "1";
+/**
+ * Version 2 (#2067) replaces the self-declared `attestation` with
+ * non-authorizing provenance (`recordedBy`, `proofPath`) and renames the
+ * whole-proof digest to `digest`.
+ */
+export const DOCUMENT_CUTOVER_PROOF_SCHEMA_VERSION = "2";
 
 export const DOCUMENT_CUTOVER_TOOL_VERSION = "1.0.0";
 
@@ -24,6 +29,18 @@ export const DOCUMENT_CUTOVER_TOOL_VERSION = "1.0.0";
  */
 export const DOCUMENT_CUTOVER_ASSESSMENT_MAX_AGE_MS = 60 * 60 * 1000;
 export const DOCUMENT_CUTOVER_PROOF_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Repository directory for committed proofs (#2067 Q4a). Each run writes a new
+ * `<ISO>-<proofId>.json` file here, never overwriting an existing one, and the
+ * file is committed through a PR. The owner's approving review of that PR is
+ * the go/no-go approval of record; nothing inside the proof authorizes work.
+ */
+export const DOCUMENT_CUTOVER_PROOFS_DIR = "docs/ops/document-cutover/proofs";
+
+/** Repo-committed owner and non-production project allowlist (#2067 Q6). */
+export const DOCUMENT_CUTOVER_ALLOWLIST_PATH =
+  "docs/ops/document-cutover/allowlist.json";
 
 export const DOCUMENT_CUTOVER_OUTCOMES = [
   "clean_preproduction_proof",
@@ -39,6 +56,9 @@ export const DOCUMENT_CUTOVER_SURFACE_KINDS = [
   "configuration",
   "prototype_test",
   "external_reference",
+  "user_account",
+  "report",
+  "integration",
 ] as const;
 export type DocumentCutoverSurfaceKind =
   (typeof DOCUMENT_CUTOVER_SURFACE_KINDS)[number];
@@ -55,6 +75,8 @@ export const DOCUMENT_CUTOVER_BLOCKING_CODES = [
   "external_reference_present",
   "retained_history_present",
   "active_job_present",
+  "report_present",
+  "integration_present",
   "detector_error",
   "detector_timeout",
   "permission_denied",
@@ -87,6 +109,8 @@ export const DOCUMENT_CUTOVER_RELIANCE_COUNT_KEYS = [
   "externalReferences",
   "retainedHistory",
   "activeJobs",
+  "reports",
+  "integrations",
 ] as const;
 export type DocumentCutoverRelianceCountKey =
   (typeof DOCUMENT_CUTOVER_RELIANCE_COUNT_KEYS)[number];
@@ -105,7 +129,10 @@ export interface DocumentCutoverEnvironmentIdentity {
   databaseProjectId: string;
   /** Object-store identity, e.g. the storage host serving artifact objects. */
   storageIdentity: string;
-  /** Latest applied schema migration version. */
+  /**
+   * Latest migration version applied to the target database, read from its
+   * migrations table (never from the checkout).
+   */
   schemaVersion: string;
   /** Git commit or equivalent code identity for the assessment run. */
   codeVersion: string;
@@ -120,7 +147,10 @@ export type DestructiveCutoverPlanAction =
   | "remove_job"
   | "remove_configuration"
   | "remove_test"
-  | "sever_external_reference";
+  | "sever_external_reference"
+  | "sever_integration"
+  | "remove_reports"
+  | "assert_no_reliance";
 
 export interface DestructiveCutoverPlanSurface {
   surfaceKind: DocumentCutoverSurfaceKind;
@@ -217,16 +247,14 @@ export interface DocumentCutoverOwnerIdentity {
   ownerRole: string;
 }
 
-export interface DocumentCutoverApprovalRecord {
-  approverId: string;
-  approvedAt: string;
+/**
+ * The owner's recorded go/no-go decision. It is not the approval of record:
+ * approval is the owner's approving GitHub review of the PR that commits the
+ * proof (#2067 Q6a), which the destructive consumer (#961) checks.
+ */
+export interface DocumentCutoverDecisionRecord {
   approvalStatement: string;
   decision: "go" | "no_go";
-}
-
-export interface DocumentCutoverAttestation {
-  attestedBy: string;
-  attestationContext: string;
 }
 
 export interface DocumentCutoverEnvironmentProof {
@@ -244,18 +272,26 @@ export interface DocumentCutoverEnvironmentProof {
   procedures: DocumentCutoverProcedureSet;
   evidence: DocumentCutoverSurfaceEvidence[];
   owner: DocumentCutoverOwnerIdentity;
-  approval: DocumentCutoverApprovalRecord;
+  approval: DocumentCutoverDecisionRecord;
   outcome: DocumentCutoverOutcome;
   blockingReasons: DocumentCutoverBlockingReason[];
-  attestation: DocumentCutoverAttestation;
   recordedAt: string;
-  /** SHA-256 over the canonical serialization of every field above. */
-  proofDigest: string;
+  /** Non-authorizing provenance: who ran the command that recorded the proof. */
+  recordedBy: string;
+  /** Repo-relative path the proof is committed at. */
+  proofPath: string;
+  /**
+   * SHA-256 over the canonical serialization of the proof without `digest`
+   * (every other field, including `recordedBy` and `proofPath`, is covered).
+   */
+  digest: string;
 }
 
 export interface DocumentCutoverProofVerificationFailure {
   code:
+    | "environment_mismatch"
     | "evidence_digest_mismatch"
+    | "legacy_attestation"
     | "outcome_inconsistent"
     | "plan_coverage_mismatch"
     | "plan_digest_mismatch"
@@ -272,11 +308,11 @@ export interface DocumentCutoverProofVerificationResult {
 }
 
 /**
- * Append-only persistence seam for proofs. Implementations must reject any
- * attempt to overwrite an existing proof id; reruns always append new records.
+ * Append-only sink for newly recorded proofs. Implementations must reject any
+ * attempt to overwrite an existing proof; reruns always append new records.
+ * The durable record is the proof file committed under
+ * `DOCUMENT_CUTOVER_PROOFS_DIR` through a PR, not any store.
  */
 export interface DocumentCutoverProofStore {
   append(proof: DocumentCutoverEnvironmentProof): Promise<void>;
-  getById(proofId: string): Promise<DocumentCutoverEnvironmentProof | null>;
-  list(): Promise<DocumentCutoverEnvironmentProof[]>;
 }

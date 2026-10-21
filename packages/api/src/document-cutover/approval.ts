@@ -4,11 +4,11 @@ import {
   digestDestructiveCutoverPlan,
   validateDestructiveCutoverPlan,
 } from "./plan";
+import { documentCutoverProofPath } from "./store";
 import { DOCUMENT_CUTOVER_ASSESSMENT_MAX_AGE_MS } from "./types";
 
 import type {
   DocumentCutoverAssessment,
-  DocumentCutoverAttestation,
   DocumentCutoverEnvironmentProof,
   DocumentCutoverOwnerIdentity,
   DocumentCutoverProofStore,
@@ -16,10 +16,10 @@ import type {
 
 export type DocumentCutoverApprovalErrorCode =
   | "approval_invalid"
-  | "approver_unauthorized"
   | "assessment_stale"
   | "assessment_tampered"
   | "owner_missing"
+  | "owner_unauthorized"
   | "unsafe_assessment";
 
 /**
@@ -40,22 +40,31 @@ export class DocumentCutoverApprovalError extends Error {
 export interface RecordDocumentCutoverApprovalInput {
   assessment: DocumentCutoverAssessment;
   owner: DocumentCutoverOwnerIdentity;
+  /**
+   * The owner's decision. There is no approver: the approval of record is the
+   * owner's approving review of the PR that commits the proof.
+   */
   approval: {
-    approverId: string;
     approvalStatement: string;
     decision: "go" | "no_go";
   };
-  attestation: DocumentCutoverAttestation;
   store: DocumentCutoverProofStore;
   /**
-   * Server-side identity allowlists. A `go` decision requires both lists to be
-   * present and non-empty, and the named owner/approver must appear in them —
-   * otherwise a caller could self-declare authorization and mint a clean proof.
-   * A `no_go` may omit them so stopped states stay auditable without a policy.
+   * Owner allowlist from the repo-committed allowlist file. A `go` decision
+   * requires a non-empty list containing the named owner, otherwise a caller
+   * could self-declare authorization and mint a clean proof. A `no_go` may
+   * omit it so stopped states stay auditable without a policy.
    */
   authorization?: {
     allowedOwnerIds?: readonly string[];
-    allowedApproverIds?: readonly string[];
+  };
+  /**
+   * Non-authorizing provenance: who ran the command, and the repo directory
+   * the proof file is committed under (default `DOCUMENT_CUTOVER_PROOFS_DIR`).
+   */
+  provenance?: {
+    recordedBy?: string;
+    proofDirectory?: string;
   };
   now?: () => Date;
   generateId?: () => string;
@@ -103,39 +112,25 @@ function unsafe(message: string): DocumentCutoverApprovalError {
 }
 
 /**
- * A clean `go` must bind to a configured authorization policy. Missing or empty
- * allowlists fail closed so self-declared identities cannot mint clean proofs.
+ * A clean `go` must bind to the committed owner allowlist. A missing or empty
+ * allowlist fails closed so self-declared owners cannot mint clean proofs.
  */
-function requireAuthorizedGoIdentities(
+function requireAuthorizedGoOwner(
   ownerId: string,
-  approverId: string,
   authorization: RecordDocumentCutoverApprovalInput["authorization"],
 ): void {
   const allowedOwners = authorization?.allowedOwnerIds;
-  const allowedApprovers = authorization?.allowedApproverIds;
 
   if (!allowedOwners || allowedOwners.length === 0) {
     throw new DocumentCutoverApprovalError(
-      "approver_unauthorized",
-      "A clean go requires a configured non-empty owner allowlist; self-declared owners are rejected.",
-    );
-  }
-  if (!allowedApprovers || allowedApprovers.length === 0) {
-    throw new DocumentCutoverApprovalError(
-      "approver_unauthorized",
-      "A clean go requires a configured non-empty approver allowlist; self-declared approvers are rejected.",
+      "owner_unauthorized",
+      "A clean go requires a non-empty owner allowlist; self-declared owners are rejected.",
     );
   }
   if (!allowedOwners.includes(ownerId)) {
     throw new DocumentCutoverApprovalError(
-      "approver_unauthorized",
-      "The named owner is not in the configured owner allowlist.",
-    );
-  }
-  if (!allowedApprovers.includes(approverId)) {
-    throw new DocumentCutoverApprovalError(
-      "approver_unauthorized",
-      "The named approver is not in the configured approver allowlist.",
+      "owner_unauthorized",
+      "The named owner is not in the owner allowlist.",
     );
   }
 }
@@ -226,6 +221,8 @@ function requireCleanAssessment(
 
 /**
  * Record the owner's go/no-go decision as an immutable, append-only proof.
+ * The proof carries non-authorizing provenance (`recordedBy`, `proofPath`) and
+ * a whole-proof `digest`; approval of record is the owner's PR review.
  *
  * - `go` is accepted only for a fully clean, fresh, untampered assessment and
  *   yields a `clean_preproduction_proof`.
@@ -247,39 +244,22 @@ export async function recordDocumentCutoverApproval(
       "A named accountable owner (id and role) is required before any proof is recorded.",
     );
   }
-  if (
-    !input.approval.approverId.trim() ||
-    !input.approval.approvalStatement.trim()
-  ) {
+  if (!input.approval.approvalStatement.trim()) {
     throw new DocumentCutoverApprovalError(
       "approval_invalid",
-      "An explicit approver identity and approval statement are required.",
+      "An explicit decision statement is required.",
     );
   }
 
   if (input.approval.decision === "go") {
-    requireAuthorizedGoIdentities(
-      input.owner.ownerId,
-      input.approval.approverId,
-      input.authorization,
-    );
+    requireAuthorizedGoOwner(input.owner.ownerId, input.authorization);
   } else {
-    // Optional membership checks for no_go when a policy is present.
+    // Optional membership check for no_go when a policy is present.
     const allowedOwners = input.authorization?.allowedOwnerIds;
     if (allowedOwners && !allowedOwners.includes(input.owner.ownerId)) {
       throw new DocumentCutoverApprovalError(
-        "approver_unauthorized",
-        "The named owner is not in the configured owner allowlist.",
-      );
-    }
-    const allowedApprovers = input.authorization?.allowedApproverIds;
-    if (
-      allowedApprovers &&
-      !allowedApprovers.includes(input.approval.approverId)
-    ) {
-      throw new DocumentCutoverApprovalError(
-        "approver_unauthorized",
-        "The named approver is not in the configured approver allowlist.",
+        "owner_unauthorized",
+        "The named owner is not in the owner allowlist.",
       );
     }
   }
@@ -297,8 +277,10 @@ export async function recordDocumentCutoverApproval(
       ? "clean_preproduction_proof"
       : "stop_the_line";
 
-  const body: Omit<DocumentCutoverEnvironmentProof, "proofDigest"> = {
-    proofId: generateId(),
+  const proofId = generateId();
+  const recordedAtIso = recordedAt.toISOString();
+  const body: Omit<DocumentCutoverEnvironmentProof, "digest"> = {
+    proofId,
     proofSchemaVersion: input.assessment.proofSchemaVersion,
     toolVersion: input.assessment.toolVersion,
     serializerVersion: input.assessment.serializerVersion,
@@ -311,22 +293,25 @@ export async function recordDocumentCutoverApproval(
     planDigest: input.assessment.planDigest,
     procedures: input.assessment.procedures,
     evidence: input.assessment.evidence,
-    owner: input.owner,
+    owner: { ownerId: input.owner.ownerId, ownerRole: input.owner.ownerRole },
     approval: {
-      approverId: input.approval.approverId,
-      approvedAt: recordedAt.toISOString(),
       approvalStatement: input.approval.approvalStatement,
       decision: input.approval.decision,
     },
     outcome,
     blockingReasons: input.assessment.blockingReasons,
-    attestation: input.attestation,
-    recordedAt: recordedAt.toISOString(),
+    recordedAt: recordedAtIso,
+    recordedBy: input.provenance?.recordedBy?.trim() || "unattributed",
+    proofPath: documentCutoverProofPath(
+      recordedAtIso,
+      proofId,
+      input.provenance?.proofDirectory,
+    ),
   };
 
   const proof: DocumentCutoverEnvironmentProof = {
     ...body,
-    proofDigest: await digestCanonicalValue(body),
+    digest: await digestCanonicalValue(body),
   };
 
   await input.store.append(proof);

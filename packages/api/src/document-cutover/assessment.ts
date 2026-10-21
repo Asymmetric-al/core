@@ -41,6 +41,8 @@ const RELIANCE_REASON_BY_KEY: Record<
   externalReferences: "external_reference_present",
   retainedHistory: "retained_history_present",
   activeJobs: "active_job_present",
+  reports: "report_present",
+  integrations: "integration_present",
 };
 
 export interface DocumentCutoverProcedureInput {
@@ -66,13 +68,16 @@ export interface AssessDocumentCutoverEnvironmentInput {
   /** Read-only loader for procedure documents; null means missing. */
   readProcedure: (reference: string) => Promise<string | null>;
   /**
-   * Operator-declared expectation of the target. Any mismatch with the
-   * server-resolved identity stops the line; an operator cannot substitute a
-   * different environment by pointing the tool somewhere else.
+   * Expectations of the target. Any mismatch with the server-resolved
+   * identity stops the line; an operator cannot substitute a different
+   * environment by pointing the tool somewhere else. `schemaVersion` is the
+   * checkout's latest migration, compared with the version the target
+   * database reports (an unreadable target version never matches).
    */
   expectedEnvironment?: {
     databaseProjectId?: string;
     environmentLabel?: string;
+    schemaVersion?: string;
   };
   detectorTimeoutMs?: number;
   now?: () => Date;
@@ -257,6 +262,15 @@ function environmentReasons(
       code: "environment_identity_mismatch",
       explanation:
         "The server-resolved environment label does not match the operator-declared target.",
+    });
+  }
+  if (
+    expected?.schemaVersion &&
+    expected.schemaVersion !== environment.schemaVersion
+  ) {
+    reasons.push({
+      code: "environment_identity_mismatch",
+      explanation: `The target database reports schema version ${environment.schemaVersion}, but the checkout's latest migration is ${expected.schemaVersion}; a mismatched or unreadable target schema version stops the line.`,
     });
   }
 

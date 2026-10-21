@@ -19,6 +19,9 @@ export class DocumentEnvironmentFixture {
   readonly storageObjects: string[] = [];
   readonly externalUrls: string[] = [];
   activeJobs = 0;
+  authUsers = 0;
+  migrationReports = 0;
+  docraptorRenders = 0;
   readonly attemptedWrites: string[] = [];
 
   seedRow(table: string, row: Record<string, unknown>): void {
@@ -49,6 +52,9 @@ export class DocumentEnvironmentFixture {
       storageObjects: this.storageObjects,
       externalUrls: this.externalUrls,
       activeJobs: this.activeJobs,
+      authUsers: this.authUsers,
+      migrationReports: this.migrationReports,
+      docraptorRenders: this.docraptorRenders,
     });
   }
 
@@ -149,6 +155,23 @@ export function buildFixtureDetectors(
       })),
   };
 
+  const countDetector = (
+    surfaceKind: "integration" | "report" | "user_account",
+    inspect: () => DocumentCutoverSurfaceInspection["relianceCounts"],
+  ): DocumentCutoverDetector => ({
+    detectorId: `fixture-${surfaceKind}-census`,
+    detectorVersion: "1",
+    surfaceKind,
+    surfaceIds: planSurfaceIds(surfaceKind),
+    inspectSurface:
+      overrides[surfaceKind] ??
+      (async () => ({
+        completeness: "complete",
+        detectorQuery: `fixture ${surfaceKind} census`,
+        relianceCounts: inspect(),
+      })),
+  });
+
   const inventoryDetector = (
     surfaceKind: "configuration" | "prototype_test" | "route",
   ): DocumentCutoverDetector => ({
@@ -170,6 +193,11 @@ export function buildFixtureDetectors(
     storageDetector,
     externalDetector,
     jobDetector,
+    countDetector("user_account", () => ({ users: fixture.authUsers })),
+    countDetector("report", () => ({ reports: fixture.migrationReports })),
+    countDetector("integration", () => ({
+      integrations: fixture.docraptorRenders,
+    })),
     inventoryDetector("route"),
     inventoryDetector("configuration"),
     inventoryDetector("prototype_test"),
