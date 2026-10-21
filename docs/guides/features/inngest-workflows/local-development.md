@@ -19,8 +19,8 @@ scope and `docs/guides/features/inngest-workflows/*.md` for workflow designs.
    INNGEST_DEV=1
    ```
 
-   Without `INNGEST_DEV=1` the SDK defaults to Cloud mode and `/api/inngest`
-   returns a 500 ("in cloud mode but no signing key").
+   Without `INNGEST_DEV=1` the SDK defaults to Cloud mode. Dev mode lets the
+   local server sync and execute workflows without a signing key.
 
    > **Troubleshooting:** if `/api/inngest` still reports cloud mode after
    > adding the variable to `.env.local`, set it on the dev process directly:
@@ -36,10 +36,18 @@ scope and `docs/guides/features/inngest-workflows/*.md` for workflow designs.
 3. Start the Inngest dev server, pointing it at the admin app:
 
    ```bash
-   npx --ignore-scripts=false inngest-cli@latest dev -u http://localhost:3030/api/inngest
+   bun run dev:workflows
    ```
 
-4. Open the dev server UI at `http://localhost:8288`. The
+   This uses the exact CLI release owned by the root script, binds to loopback
+   and discovers only the explicit Mission Control endpoint. The first run
+   downloads the versioned upstream binary. Requalify this launcher and the
+   local MCP endpoint together when changing the workflow cohort.
+
+   The script uses `npm exec` because Bun rewrites `npx` inside package scripts
+   to `bunx`, which skips the CLI's required native-binary install script.
+
+4. Open the dev server UI at `http://127.0.0.1:8288`. The
    `asym-core-workflows` app should appear under Apps with the
    `workflow-smoke` function discovered.
 
@@ -47,11 +55,12 @@ scope and `docs/guides/features/inngest-workflows/*.md` for workflow designs.
 
 - **Endpoint discovery:** `curl http://localhost:3030/api/inngest` returns
   function metadata (`function_count` ≥ 1) while `INNGEST_DEV=1` is set.
-- **No-op run:** in the dev server UI, invoke `workflow-smoke` with a safe
-  tenant-scoped envelope (no secrets, identifiers only):
+- **No-op run:** in the dev server UI, send this event with a safe tenant-scoped
+  envelope (no secrets, identifiers only):
 
   ```json
   {
+    "name": "workflows/smoke.requested",
     "data": {
       "tenantId": "11111111-1111-4111-8111-111111111111",
       "workflowName": "workflows/smoke.requested",
@@ -64,9 +73,21 @@ scope and `docs/guides/features/inngest-workflows/*.md` for workflow designs.
   The run completes with `acknowledged: true` and produces no business side
   effects.
 
-- **Unit tests:** `bunx vitest run tests/unit/packages/api/workflows/` covers
+- **Unit tests:** `bun run test:unit -- tests/unit/packages/api/workflows/` covers
   envelope validation, the no-op function, and the dispatch adapter without a
   running dev server.
+
+## Local process restarts
+
+Restart the app while keeping the dev server running when testing SDK deployment
+recovery. Completed step results and pending waits live in the orchestrator,
+outside the app process.
+
+Stopping the dev server discards its in-memory execution state. The optional
+`--persist` flag retains SQL history; it does not make local in-flight workflows
+survive a dev-server restart. Core production uses Inngest Cloud. Recheck this
+local limitation against the selected CLI release before relying on different
+restart behavior.
 
 ## Production note
 
