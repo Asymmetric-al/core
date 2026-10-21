@@ -6,8 +6,8 @@ if [[ "$PWD" != /src || $(id -u) != 0 ]]; then
   exit 1
 fi
 
-echo '==> Real local PostgreSQL migrations and synthetic fixtures'
-bash .oss-scanner/start-services.sh db
+echo '==> Reset disposable core_scanner database; replay current migrations and synthetic fixtures'
+bash .oss-scanner/start-services.sh reset-db
 for sql in tests/integration/supabase/donation-fee-replay-verification.sql tests/integration/supabase/eve-final-launch-verification.sql .oss-scanner/verify-rls.sql; do
   bash .oss-scanner/run-local.sh normal bash -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$1"' scanner-sql "$sql"
 done

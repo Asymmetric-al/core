@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mode=${1:-db}
-case "$mode" in db|apps|demo|stop) ;; *) echo 'Usage: start-services.sh db|apps|demo|stop' >&2; exit 2 ;; esac
+case "$mode" in db|reset-db|apps|demo|stop) ;; *) echo 'Usage: start-services.sh db|reset-db|apps|demo|stop' >&2; exit 2 ;; esac
 if [[ "$PWD" != /src || $(id -u) != 0 ]]; then
   echo 'Run this helper as root inside the scanner image at /src.' >&2
   exit 1
@@ -36,7 +36,8 @@ stop_apps() {
 
 if [[ "$mode" == stop ]]; then stop_apps; exit 0; fi
 
-if [[ "$mode" == db ]]; then
+if [[ "$mode" == db || "$mode" == reset-db ]]; then
+  if [[ "$mode" == reset-db ]]; then stop_apps; fi
   pg_bin=/usr/lib/postgresql/15/bin
   pg_data="$state/postgres"
   install -d -o postgres -g postgres "$pg_data" "$state/socket"
@@ -50,7 +51,14 @@ if [[ "$mode" == db ]]; then
   if ! as_postgres "$pg_bin/pg_ctl" -D "$pg_data" status >/dev/null 2>&1; then
     as_postgres "$pg_bin/pg_ctl" -D "$pg_data" -l "$pg_data/server.log" -o "-h 127.0.0.1 -p 55432 -k $state/socket -c max_connections=32 -c shared_buffers=128MB" -w -t 30 start
   fi
-  # Service initialization is repeatable, but never resets an existing database.
+  # Reset only this helper's fixed disposable database, never the cluster or an
+  # externally configured DATABASE_URL. Patch verification must replay current
+  # migrations rather than trust the ready marker from an earlier source tree.
+  if [[ "$mode" == reset-db ]]; then
+    rm -f "$state/database-ready"
+    as_postgres dropdb -h "$state/socket" -p 55432 --if-exists --force core_scanner
+  fi
+  # Ordinary db startup preserves investigator changes in an existing database.
   if ! as_postgres psql -h "$state/socket" -p 55432 -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname='core_scanner'" | grep -qx 1; then
     as_postgres createdb -h "$state/socket" -p 55432 core_scanner
   fi

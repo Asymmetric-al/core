@@ -89,6 +89,18 @@ Payload logs remain there for diagnosis. Stop app process groups explicitly with
 `./.oss-scanner/start-services.sh stop`. PostgreSQL remains available for SQL
 investigation until the disposable container exits.
 
+Ordinary `db` startup preserves an existing database. After editing migrations,
+bootstrap SQL, CMS migration code or seed data, use
+`./.oss-scanner/start-services.sh reset-db` to stop helper-owned apps and recreate
+only the disposable `core_scanner` database from the current source. This discards
+local investigation changes in that database; save any reproduction SQL first.
+Other databases and the PostgreSQL cluster remain intact. `test-offline.sh`
+always performs this reset before its checks, including on repeated runs, so its
+results cannot silently validate a schema left over from before a patch.
+If initialization is interrupted or a migration fails, inspect the retained logs,
+fix the cause and run `reset-db` before retrying; forward migrations are not
+idempotent and ordinary `db` startup cannot repair a partially initialized schema.
+
 For a separate UI demonstration (startup stops helper-owned normal apps):
 
 ```bash
@@ -131,7 +143,7 @@ verification. Code guards, roles and governance remain intact.
 
 ## Offline verification and patch investigation
 
-`test-offline.sh` runs bounded security-relevant Vitest tests, local migration/
+`test-offline.sh` resets the disposable local database and runs bounded security-relevant Vitest tests, local migration/
 database SQL checks, normal app health/denial/browser checks and a separate
 explicit demo preflight. Its exit status must propagate. Read its actual test
 selection and output; passing selected tests does not mean the full suite ran.
