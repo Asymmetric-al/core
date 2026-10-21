@@ -32,10 +32,7 @@ import {
 const WORKFLOW_PATH = ".github/workflows/ci-integration.yml";
 
 type RunsOnExpectation =
-  | "ubuntu-latest"
-  | "ubuntu-slim"
-  | "self-hosted"
-  | "fork-aware";
+  "ubuntu-latest" | "ubuntu-slim" | "self-hosted" | "fork-aware";
 
 /** Spec rev 3 before/after table — `runs-on after` for every job in ci-integration.yml. */
 const EXPECTED_RUNS_ON: Record<string, RunsOnExpectation> = {
