@@ -151,7 +151,10 @@ export function fakeDatabaseUrl(
   const host = projectRef
     ? "aws-0-us-east-1.pooler.supabase.com:6543"
     : "127.0.0.1:54322";
-  return `postgresql://${login}:${FAKE_DB_PASSWORD}@${host}/postgres`;
+  // #2169 round 3 ruling 1: a non-loopback reader URL must carry a TLS
+  // sslmode (require, verify-ca or verify-full); loopback may omit it.
+  const tls = projectRef ? "?sslmode=require" : "";
+  return `postgresql://${login}:${FAKE_DB_PASSWORD}@${host}/postgres${tls}`;
 }
 
 /** A direct-connection URL (`db.<ref>.supabase.co`) for the fake target. */
@@ -159,12 +162,12 @@ export function fakeDirectDatabaseUrl(
   projectRef: string,
   user: string = READER_ROLE,
 ): string {
-  return `postgresql://${user}:${FAKE_DB_PASSWORD}@db.${projectRef}.supabase.co:5432/postgres`;
+  return `postgresql://${user}:${FAKE_DB_PASSWORD}@db.${projectRef}.supabase.co:5432/postgres?sslmode=require`;
 }
 
 /** A pooler URL whose user carries no `.<ref>` suffix (ref unparseable). */
 export function fakePoolerUrlWithoutRef(user: string = READER_ROLE): string {
-  return `postgresql://${user}:${FAKE_DB_PASSWORD}@aws-0-us-east-1.pooler.supabase.com:6543/postgres`;
+  return `postgresql://${user}:${FAKE_DB_PASSWORD}@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require`;
 }
 
 export const LOCAL_TARGET_ENV: Record<string, string> = {

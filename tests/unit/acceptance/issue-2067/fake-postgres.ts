@@ -153,6 +153,11 @@ export interface FakePgConnectAttempt {
   effective: EffectiveConnection | null;
   /** Fields whose effective value depends on a PG* environment variable. */
   pgEnvInfluence: EffectiveField[];
+  /**
+   * The config object the gate passed, minus connectionString (which carries
+   * the password), e.g. to assert it never sets `ssl: false` (#2169 round 3).
+   */
+  gateConfig: Record<string, unknown>;
 }
 
 export interface FakePgData {
@@ -181,6 +186,12 @@ export interface FakePgState {
   hang: Set<string>;
   /** When true, `connect()` fails like an unreachable server (ECONNREFUSED). */
   refuseConnections: boolean;
+  /**
+   * When set, `connect()` fails like a TLS handshake whose certificate Node
+   * can't verify, with this error code (#2169 round 3 ruling 1, refined in
+   * comment 6312607834), e.g. SELF_SIGNED_CERT_IN_CHAIN.
+   */
+  tlsFailure: string | null;
   /** Called with the SQL of every write statement before it fails. */
   onWrite?: (sql: string) => void;
   data: FakePgData;
@@ -256,6 +267,7 @@ export function createFakePgState(data: FakePgData): FakePgState {
     rlsEmpty: new Set(),
     hang: new Set(),
     refuseConnections: false,
+    tlsFailure: null,
     data,
     reset() {
       this.roles = defaultRoles();
@@ -271,6 +283,7 @@ export function createFakePgState(data: FakePgData): FakePgState {
       this.rlsEmpty = new Set();
       this.hang = new Set();
       this.refuseConnections = false;
+      this.tlsFailure = null;
     },
   };
   return state;
@@ -1049,8 +1062,30 @@ export function createFakePgModule(
             : [],
         effective,
         pgEnvInfluence,
+        gateConfig:
+          this.config && typeof this.config === "object"
+            ? Object.fromEntries(
+                Object.entries(this.config).filter(
+                  ([key]) => key !== "connectionString" && key !== "password",
+                ),
+              )
+            : {},
       });
       try {
+        if (state.tlsFailure) {
+          const messages: Record<string, string> = {
+            SELF_SIGNED_CERT_IN_CHAIN:
+              "self-signed certificate in certificate chain",
+            UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+              "unable to verify the first certificate",
+          };
+          throw Object.assign(
+            new Error(
+              `${messages[state.tlsFailure] ?? state.tlsFailure} (acceptance fake)`,
+            ),
+            { code: state.tlsFailure },
+          );
+        }
         if (state.refuseConnections) {
           throw Object.assign(
             new Error("connect ECONNREFUSED 127.0.0.1:9 (acceptance fake)"),

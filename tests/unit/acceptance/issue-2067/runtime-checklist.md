@@ -107,3 +107,25 @@ Check on the PR:
 
 - [ ] Nits (ruling 6): the migration header points at `database-contract.ts`, and the deploy note says session mode (port 5432).
 - [ ] Ruling 7: develop (b0aec515) is merged, with the `tooling/shadscan/findings.json` conflict resolved, before any verdict.
+
+## PR #2169 round 3 — MINOR-A (TLS), MINOR-B (counts), nits
+
+Rulings: [6312557456](https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6312557456), with ruling 1 refined in [6312607834](https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6312607834). Red tests on 829d998a:
+
+| Ruling                                           | Tests                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 TLS, non-loopback (pooler and `db.<ref>` URLs) | `connection-config`: no sslmode, `disable`, `allow`, `prefer`, `no-verify` are a STOP before connecting, and the blocker names sslmode; `require`, `verify-ca`, `verify-full` connect with pg's resolved `ssl.rejectUnauthorized === true`, and the gate never passes `ssl: false`; a URL with no sslmode never reaches pg with `ssl: false` |
+| 1 TLS verification failure (refinement item 2)   | `connection-config`: fake-postgres raises `SELF_SIGNED_CERT_IN_CHAIN` / `UNABLE_TO_VERIFY_LEAF_SIGNATURE`; STOP naming `NODE_EXTRA_CA_CERTS` and the root CA, exactly one connect attempt, none with `ssl: false` or `rejectUnauthorized: false`, no proof                                                                                   |
+| 1 loopback may omit sslmode                      | `connection-config`: a 127.0.0.1 URL without sslmode records a clean proof                                                                                                                                                                                                                                                                   |
+| 2 MINOR-B                                        | `detectors`: users 3, reports 5, integrations 7 (with an empty `{}` report, a null report and non-docraptor renders mixed in) are pinned exactly, so a zero or a swap fails                                                                                                                                                                  |
+| 3 privileged roles                               | `connection-config` (f): `anon` and `pg_execute_server_program`, static and behaviour                                                                                                                                                                                                                                                        |
+| 3 `[::1]`                                        | `connection-config`: pg is handed `::1` (not `[::1]`) or the blocker names `::1`/IPv6; a real subprocess with a listener on `::1` never prints ENOTFOUND                                                                                                                                                                                     |
+| 3 empty host / multi-host                        | `connection-config`: an empty host's blocker says `host` and is not the generic "not a postgres:// URL" text; a multi-host blocker says "multiple hosts", "multi-host" or "more than one host" (keywords chosen by Acceptance; the ruling gives no wording)                                                                                  |
+
+The hosted fixtures in `command-harness.ts` (`fakeDatabaseUrl(user, ref)`, `fakeDirectDatabaseUrl`, `fakePoolerUrlWithoutRef`) now carry `?sslmode=require`, so the hosted controls stay valid under ruling 1.
+
+Check on the PR:
+
+- [ ] Ruling 1 refinement item 2: the Deploy prerequisites tell the operator to set `NODE_EXTRA_CA_CERTS` to Supabase's published root CA, and the documented session-pooler URL connects with full verification (Builder's confirmation).
+- [ ] Ruling 3: Builder's unit test for the effective-config layer exists.
+- [ ] #2174 (pinned CA via `ssl.ca`) stays a follow-up; `sslrootcert` stays banned.

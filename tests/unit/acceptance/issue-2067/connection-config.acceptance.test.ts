@@ -29,6 +29,14 @@
  *   SET ROLE session: current_user = reader, session_user = postgres); a
  *   session_user failure names `session_user` (follow-up ruling 5).
  * - (d) Messages that say PG* variables are never used/read stay true.
+ * - Round 3 ({@link https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6312557456}):
+ *   (1) a non-loopback reader URL with no sslmode, or sslmode disable, allow,
+ *   prefer or no-verify, is a STOP before connecting; the gate never passes
+ *   `ssl: false` to pg for it; require, verify-ca and verify-full connect;
+ *   loopback may omit sslmode. (3) `[::1]` is loopback or rejected clearly,
+ *   never ENOTFOUND; an empty host and a multi-host URL get their own
+ *   accurate blockers (keywords pinned, see below); anon and
+ *   pg_execute_server_program are privileged roles.
  * - (f) PRIVILEGED_ROLES covers authenticated, pg_read_all_data,
  *   pg_write_all_data, dashboard_user and every supabase_*_admin role
  *   (follow-up ruling 2), statically and by behaviour.
@@ -44,6 +52,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  LOCAL_TARGET_URL,
   REPO_ROOT,
   cleanTarget,
   cleanupProofFiles,
@@ -483,6 +492,9 @@ const REQUIRED_PRIVILEGED_ROLES = [
   // Follow-up ruling 2.
   "pg_read_all_data",
   "dashboard_user",
+  // Round-3 ruling 3 (nits).
+  "anon",
+  "pg_execute_server_program",
 ];
 
 describe("PR #2169 MINOR-4 (f) — PRIVILEGED_ROLES", () => {
@@ -523,6 +535,230 @@ describe("PR #2169 MINOR-4 (f) — PRIVILEGED_ROLES", () => {
       expect(run.exitCode, run.output).not.toBe(0);
       expect(run.output).toContain(role);
       expect(run.stored).toEqual([]);
+    },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// #2169 round 3 — rulings at
+// https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6312557456
+// ---------------------------------------------------------------------------
+
+/** The direct-connection URL for the hosted target (`db.<ref>.supabase.co`). */
+const directUrl = (query: string) =>
+  `postgresql://${READER_ROLE}:${PASSWORD}@db.${REF}.supabase.co:5432/postgres${query}`;
+
+const NON_LOOPBACK_URLS = [
+  ["pooler", (query: string) => poolerUrl(`:6543/postgres${query}`)],
+  ["direct", directUrl],
+] as const;
+
+/** Loopback target: SUPABASE_URL and the reader URL both on 127.0.0.1. */
+function loopbackEnv(databaseUrl: string): Record<string, string> {
+  return {
+    SUPABASE_URL: LOCAL_TARGET_URL,
+    NEXT_PUBLIC_SUPABASE_URL: LOCAL_TARGET_URL,
+    DOCUMENT_CUTOVER_DATABASE_URL: databaseUrl,
+  };
+}
+
+/**
+ * `rejectUnauthorized` of an `ssl` value as the gate passed it (an object) or
+ * as fake-postgres records pg's resolved value (objects are JSON strings).
+ */
+function rejectUnauthorizedOf(ssl: unknown): unknown {
+  let value = ssl;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value) as unknown;
+    } catch {
+      return undefined;
+    }
+  }
+  return value && typeof value === "object"
+    ? (value as { rejectUnauthorized?: unknown }).rejectUnauthorized
+    : undefined;
+}
+
+/** Connect attempts that would skip TLS or certificate verification. */
+const unverifiedAttempts = () =>
+  fakePg.connectAttempts.filter(
+    (attempt) =>
+      attempt.gateConfig.ssl === false ||
+      rejectUnauthorizedOf(attempt.gateConfig.ssl) === false ||
+      attempt.effective?.ssl === false ||
+      rejectUnauthorizedOf(attempt.effective?.ssl) === false,
+  );
+
+describe("PR #2169 round 3 ruling 1 (MINOR-A, refined in 6312607834) — TLS on non-loopback hosts", () => {
+  // `prefer` stays a STOP: 6312557456 lists it, and the refinement in
+  // 6312607834 (which only names no-verify/disable for removal) does not
+  // lift it.
+  const STOP_SSLMODES = [
+    ["no sslmode", ""],
+    ["sslmode=disable", "?sslmode=disable"],
+    ["sslmode=allow", "?sslmode=allow"],
+    ["sslmode=prefer", "?sslmode=prefer"],
+    ["sslmode=no-verify", "?sslmode=no-verify"],
+  ] as const;
+
+  describe.each(NON_LOOPBACK_URLS)("%s URL", (_kind, url) => {
+    it.each(STOP_SSLMODES)(
+      "%s is a STOP before connecting (blocker naming sslmode, no connect attempt, no proof)",
+      async (_label, query) => {
+        const run = await go({ DOCUMENT_CUTOVER_DATABASE_URL: url(query) });
+        expectRejectedBeforeConnecting(run);
+        expect(run.output).toMatch(/sslmode/i);
+      },
+    );
+
+    it.each(["require", "verify-ca", "verify-full"])(
+      "sslmode=%s connects with a resolved config of ssl.rejectUnauthorized === true (never ssl:false) and records one clean proof",
+      async (mode) => {
+        const run = await go({
+          DOCUMENT_CUTOVER_DATABASE_URL: url(`?sslmode=${mode}`),
+        });
+        expect(run.exitCode, run.output).toBe(0);
+        expect(run.stored).toHaveLength(1);
+        expect(fakePg.connectAttempts.length).toBeGreaterThan(0);
+        for (const attempt of fakePg.connectAttempts) {
+          expect(attempt.gateConfig.ssl).not.toBe(false);
+          expect(rejectUnauthorizedOf(attempt.effective?.ssl)).toBe(true);
+        }
+      },
+    );
+  });
+
+  it("a non-loopback URL with no sslmode never reaches pg with ssl:false (captured client config)", async () => {
+    await go({ DOCUMENT_CUTOVER_DATABASE_URL: poolerUrl(":6543/postgres") });
+    expect(
+      fakePg.connectAttempts.filter(
+        (attempt) => attempt.gateConfig.ssl === false,
+      ),
+      "pg client configs with ssl:false",
+    ).toEqual([]);
+  });
+
+  it.each(["SELF_SIGNED_CERT_IN_CHAIN", "UNABLE_TO_VERIFY_LEAF_SIGNATURE"])(
+    "a TLS verification failure (%s) is a STOP naming NODE_EXTRA_CA_CERTS and the Supabase root CA, after exactly one connect attempt and no unverified retry",
+    async (code) => {
+      const run = await go(
+        { DOCUMENT_CUTOVER_DATABASE_URL: CONTROL_URL },
+        () => {
+          fakePg.tlsFailure = code;
+        },
+      );
+      expect(run.exitCode, run.output).not.toBe(0);
+      expect(run.output).toContain("NODE_EXTRA_CA_CERTS");
+      expect(run.output).toMatch(/root CA/i);
+      expect(fakePg.connectAttempts).toHaveLength(1);
+      expect(unverifiedAttempts()).toEqual([]);
+      expect(run.stored).toEqual([]);
+      expect(run.files).toEqual([]);
+    },
+  );
+
+  it("loopback may omit sslmode: a 127.0.0.1 reader URL without sslmode records one clean proof", async () => {
+    const run = await go(
+      loopbackEnv(
+        `postgresql://${READER_ROLE}:${PASSWORD}@127.0.0.1:54322/postgres`,
+      ),
+    );
+    expect(run.exitCode, run.output).toBe(0);
+    expect(run.stored).toHaveLength(1);
+    expect(fakePg.connectAttempts.length).toBeGreaterThan(0);
+  });
+});
+
+describe("PR #2169 round 3 ruling 3 — [::1], empty host and multi-host URLs", () => {
+  const IPV6_LOOPBACK_URL = (port: number) =>
+    `postgresql://${READER_ROLE}:${PASSWORD}@[::1]:${port}/postgres`;
+
+  it("[::1] is either loopback (pg is handed the address ::1, never the bracketed text it would DNS-resolve) or rejected with a clear message before connecting", async () => {
+    const run = await go(loopbackEnv(IPV6_LOOPBACK_URL(54322)));
+    expect(run.output).not.toMatch(/ENOTFOUND/);
+    if (fakePg.connectAttempts.length === 0) {
+      expect(run.exitCode, run.output).not.toBe(0);
+      expect(run.output).toMatch(/::1|IPv6/i);
+      expect(run.stored).toEqual([]);
+    } else {
+      for (const attempt of fakePg.connectAttempts) {
+        expect(attempt.effective?.host).toBe("::1");
+      }
+      expect(run.exitCode, run.output).toBe(0);
+    }
+  });
+
+  it("real subprocess: [::1] with a listener on ::1 — the gate reaches the listener or names [::1]/IPv6 in its blocker, and never fails with ENOTFOUND", async () => {
+    let accepted = 0;
+    const server = createServer((socket) => {
+      accepted += 1;
+      socket.destroy();
+    });
+    await new Promise<void>((resolve) => server.listen(0, "::1", resolve));
+    const port = (server.address() as { port: number }).port;
+    try {
+      const child = spawn("bun", ["run", "cutover:assess:documents"], {
+        cwd: REPO_ROOT,
+        env: {
+          PATH: process.env.PATH,
+          HOME: process.env.HOME,
+          SUPABASE_URL: LOCAL_TARGET_URL,
+          DOCUMENT_CUTOVER_DATABASE_URL: IPV6_LOOPBACK_URL(port),
+        },
+      });
+      let output = "";
+      child.stdout.on("data", (chunk) => (output += String(chunk)));
+      child.stderr.on("data", (chunk) => (output += String(chunk)));
+      await new Promise<number | null>((resolve) => child.on("close", resolve));
+      expect(output).not.toMatch(/ENOTFOUND/);
+      if (accepted === 0) expect(output).toMatch(/::1|IPv6/i);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  }, 150_000);
+
+  // Keyword pins (the ruling gives no wording): an empty-host blocker says
+  // "host" and is not the generic "not a postgres:// URL" text; a multi-host
+  // blocker says "multiple hosts", "multi-host" or "more than one host".
+  it.each([
+    [
+      "@:6543 (empty host, explicit port)",
+      () => `postgresql://${LOGIN}:${PASSWORD}@:6543/postgres?sslmode=require`,
+    ],
+    [
+      "@/postgres (empty host, no port)",
+      () => `postgresql://${LOGIN}:${PASSWORD}@/postgres?sslmode=require`,
+    ],
+  ])(
+    "empty host %s: its own blocker naming the host, not the generic URL-format message",
+    async (_label, url) => {
+      const run = await go({ DOCUMENT_CUTOVER_DATABASE_URL: url() });
+      expectRejectedBeforeConnecting(run);
+      expect(run.output).toMatch(/\bhost\b/i);
+      expect(run.output).not.toMatch(/not a postgres:\/\/ URL/i);
+    },
+  );
+
+  it.each([
+    [
+      "two pooler hosts with ports",
+      () =>
+        `postgresql://${LOGIN}:${PASSWORD}@${POOLER_HOST}:6543,${POOLER_HOST}:6543/postgres?sslmode=require`,
+    ],
+    [
+      "two pooler hosts, one port",
+      () =>
+        `postgresql://${LOGIN}:${PASSWORD}@${POOLER_HOST},${POOLER_HOST}:6543/postgres?sslmode=require`,
+    ],
+  ])(
+    "multi-host URL (%s): its own blocker saying it names more than one host",
+    async (_label, url) => {
+      const run = await go({ DOCUMENT_CUTOVER_DATABASE_URL: url() });
+      expectRejectedBeforeConnecting(run);
+      expect(run.output).toMatch(
+        /multiple hosts|multi-host|more than one host/i,
+      );
     },
   );
 });

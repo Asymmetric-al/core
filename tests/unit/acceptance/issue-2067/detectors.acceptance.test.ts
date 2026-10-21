@@ -180,6 +180,102 @@ describe("issue #2067 — DC5 users, reports and integrations detectors", () => 
   });
 });
 
+/**
+ * #2169 round 3 ruling 2 (MINOR-B,
+ * https://github.com/Asymmetric-al/core/pull/2169#issuecomment-6312557456):
+ * the users, reports and integrations counts are pinned to distinct non-zero
+ * values, with rows that must not count mixed in, so forcing any one of them
+ * to 0 or swapping any two fails.
+ */
+describe("PR #2169 round 3 MINOR-B — users, reports and integrations counts are pinned", () => {
+  const USERS = 3;
+  const REPORTS = 5;
+  const INTEGRATIONS = 7;
+
+  function seedDistinctCounts(): void {
+    cleanTarget();
+    const tenant = "acceptance-2067-minor-b-tenant";
+    fakeDb.users = Array.from({ length: USERS }, (_, n) => ({
+      id: `acceptance-2067-minor-b-user-${n}`,
+    }));
+    fakeDb.tableRows.set("pdf_templates", [
+      ...Array.from({ length: REPORTS }, (_, n) => ({
+        id: `acceptance-2067-minor-b-report-${n}`,
+        tenant_id: tenant,
+        migration_report: { source: "unlayer", n },
+      })),
+      // Not reports: an empty report object and no report at all.
+      {
+        id: "acceptance-2067-minor-b-empty",
+        tenant_id: tenant,
+        migration_report: {},
+      },
+      {
+        id: "acceptance-2067-minor-b-null",
+        tenant_id: tenant,
+        migration_report: null,
+      },
+    ]);
+    fakeDb.tableRows.set("pdf_template_renders", [
+      ...Array.from({ length: INTEGRATIONS }, (_, n) => ({
+        id: `acceptance-2067-minor-b-render-${n}`,
+        tenant_id: tenant,
+        renderer: "docraptor",
+      })),
+      // Not integrations: another renderer.
+      {
+        id: "acceptance-2067-minor-b-native",
+        tenant_id: tenant,
+        renderer: "native",
+      },
+      {
+        id: "acceptance-2067-minor-b-native-2",
+        tenant_id: tenant,
+        renderer: "native",
+      },
+    ]);
+  }
+
+  const PINNED = [
+    ["users", /user/i, "users", USERS],
+    ["reports", /report/i, "reports", REPORTS],
+    ["integrations", /integration/i, "integrations", INTEGRATIONS],
+  ] as const;
+
+  it.each(PINNED)(
+    "the %s detector reports exactly its own count (users 3, reports 5, integrations 7) and the outcome is stop_the_line",
+    async (_name, pattern, key, expected) => {
+      seedDistinctCounts();
+      const { evidence, outcome } = await recordedEvidence();
+      const items = evidence.filter((item) => matchesNew(pattern, item));
+      expect(items.length).toBeGreaterThan(0);
+      for (const item of items) {
+        expect(item.completeness).toBe("complete");
+        expect(item.relianceCounts).toEqual({ [key]: expected });
+      }
+      expect(outcome).toBe("stop_the_line");
+    },
+  );
+
+  it("all three counts at once: users 3, reports 5, integrations 7 (no zero, no swap)", async () => {
+    seedDistinctCounts();
+    const { evidence } = await recordedEvidence();
+    const observed = Object.fromEntries(
+      PINNED.map(([name, pattern, key]) => [
+        name,
+        evidence
+          .filter((item) => matchesNew(pattern, item))
+          .map((item) => item.relianceCounts[key]),
+      ]),
+    );
+    expect(observed).toEqual({
+      users: [USERS],
+      reports: [REPORTS],
+      integrations: [INTEGRATIONS],
+    });
+  });
+});
+
 describe("issue #2067 — DC6 distinct-tenant counting", () => {
   it("DC6: N>1 rows from one tenant report tenants: 1, and the tenant ID does not appear in stdout or stderr", async () => {
     const tenantId = "7f3a2067-acce-4ance-8000-000000000042";
