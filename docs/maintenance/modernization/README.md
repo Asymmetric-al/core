@@ -20,8 +20,9 @@ maintained compatibility dependency with a current upstream reason and owner.
 - Locked graph, advisory reachability, overrides/patches, imported artifacts,
   CLI/MCP/Action/image/protocol pins, skills and documentation findings still
   require their complete owned evidence and closure records.
-- Reconcile ongoing OpenSpec PR #2172 and self-hosted CI PR #2160 before
-  duplicating their changes. OpenSpec #2172 merged as
+- OpenSpec PR #2172 is merged and reconciled. Self-hosted CI PR #2160
+  remains open; reconcile its owned changes before duplicating them. OpenSpec
+  #2172 merged as
   `5cf4855dc322eafcccfeca0dd528695ae72832d9` and is incorporated into the
   security checkpoint; #2160 remains a draft owned by its existing branch.
 
