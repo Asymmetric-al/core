@@ -4,6 +4,15 @@ import {
   resolveCompilation,
   validateCiGate,
 } from "../../../scripts/verify/ci-build-policy.mjs";
+import {
+  buildNeedResultsForGateJob,
+  executeGateShellScript,
+  findPrimaryShellGateStep,
+  ifExpression,
+  loadWorkflowJobs,
+  needsList,
+  substituteNeedsExpressions,
+} from "../acceptance/issue-2158/workflow-yaml";
 
 describe("development compilation policy", () => {
   const development = { event: "pull_request", baseBranch: "develop" };
@@ -124,4 +133,104 @@ describe("required CI gate", () => {
       ).toBe(false);
     }
   });
+});
+
+const NON_SUCCESS_RESULTS = ["skipped", "cancelled", "failure"] as const;
+
+describe("required CI gate rejects a non-success unit result (#2158 criterion 12)", () => {
+  const results = {
+    plan: "success",
+    format: "success",
+    integrity: "success",
+    lint: "success",
+    typecheck: "success",
+    unit: "success",
+    build: "success",
+  };
+
+  it("accepts all-success results as the control case", () => {
+    expect(validateCiGate({ results, buildRequested: true })).toBe(true);
+  });
+
+  it.each(NON_SUCCESS_RESULTS)(
+    "rejects unit %s when compilation was requested",
+    (unit) => {
+      expect(
+        validateCiGate({ results: { ...results, unit }, buildRequested: true }),
+      ).toBe(false);
+    },
+  );
+
+  it.each(NON_SUCCESS_RESULTS)(
+    "rejects unit %s even when compilation was not requested",
+    (unit) => {
+      expect(
+        validateCiGate({
+          results: { ...results, unit, build: "skipped" },
+          buildRequested: false,
+        }),
+      ).toBe(false);
+    },
+  );
+
+  it("rejects the fork-PR shape where guard G skipped both unit and build", () => {
+    for (const buildRequested of [true, false]) {
+      expect(
+        validateCiGate({
+          results: { ...results, unit: "skipped", build: "skipped" },
+          buildRequested,
+        }),
+      ).toBe(false);
+    }
+  });
+});
+
+describe("ci-integration hosted gates require success from each heavy need (#2158 criterion 12)", () => {
+  const jobs = loadWorkflowJobs(".github/workflows/ci-integration.yml");
+  const GATES = {
+    "e2e-smoke-gate": ["test-e2e-smoke"],
+    "integration-gate": ["migrate", "smoke", "e2e-smoke-gate"],
+  } as const;
+
+  for (const [gateId, heavyNeeds] of Object.entries(GATES)) {
+    describe(gateId, () => {
+      const job = jobs[gateId];
+      const script = (): string => {
+        const step = findPrimaryShellGateStep(job);
+        expect(step?.run, `${gateId} gate step`).toBeTruthy();
+        return step!.run!;
+      };
+      const run = (overrides: Record<string, string>): number => {
+        const results = buildNeedResultsForGateJob(job, overrides);
+        // Every expression must be rendered, so a bash "bad substitution"
+        // can never masquerade as the gate rejecting a result.
+        expect(substituteNeedsExpressions(script(), results)).not.toContain(
+          "${{",
+        );
+        return executeGateShellScript(script(), results);
+      };
+
+      it("runs under if: always() and needs exactly its heavy jobs", () => {
+        expect(job, `missing job ${gateId}`).toBeDefined();
+        expect(ifExpression(job)).toContain("always()");
+        expect([...needsList(job)].sort()).toEqual([...heavyNeeds].sort());
+      });
+
+      it("passes when every need succeeded", () => {
+        expect(run({})).toBe(0);
+      });
+
+      for (const need of heavyNeeds) {
+        it.each(NON_SUCCESS_RESULTS)(`rejects ${need} %s`, (result) => {
+          expect(run({ [need]: result })).not.toBe(0);
+        });
+      }
+
+      it("rejects when every heavy need was skipped (fork-PR shape)", () => {
+        expect(
+          run(Object.fromEntries(heavyNeeds.map((need) => [need, "skipped"]))),
+        ).not.toBe(0);
+      });
+    });
+  }
 });
