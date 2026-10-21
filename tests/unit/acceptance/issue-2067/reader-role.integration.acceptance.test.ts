@@ -565,6 +565,30 @@ describe.skipIf(!enabled)(
       ).toEqual(["true"]);
     });
 
+    it("PR #2169 MINOR-1 / review 6326220905: PUBLIC (aclexplode grantee 0) has no EXECUTE on any existing document_cutover function", () => {
+      // Existing functions only. Future-function defaults (pg_default_acl)
+      // are out of scope under MINOR-1 (6311002194).
+      const publicExecutable = adminOk(`
+        select p.oid::regprocedure::text
+        from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'document_cutover'
+          and (
+            has_function_privilege('public', p.oid, 'EXECUTE')
+            or exists (
+              select 1
+              from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+              where a.grantee = 0 and a.privilege_type = 'EXECUTE'
+            )
+          )
+        order by 1;
+      `);
+      expect(
+        publicExecutable,
+        `PUBLIC has EXECUTE on: ${publicExecutable.join(", ")}`,
+      ).toEqual([]);
+    });
+
     it("criterion 5 / ruling 10 (b): default privileges in document_cutover grant nothing to anon, authenticated or service_role (probe objects, rolled back)", () => {
       const result = admin(`
         begin;
