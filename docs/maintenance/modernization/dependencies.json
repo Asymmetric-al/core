@@ -1601,19 +1601,30 @@
           "target": "0.1.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "verified-maintained-compatibility-dependency",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase-labs/tanstack-db",
           "declared": "0.1.0",
-          "target": "0.1.0"
+          "target": "0.1.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "0.1.0",
+      "selectedTargetSource": "https://registry.npmjs.org/@supabase-labs/tanstack-db",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@supabase/ssr",
@@ -1656,40 +1667,54 @@
           "target": "0.12.7"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "verified-maintained-compatibility-dependency",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7"
+          "target": "0.12.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7"
+          "target": "0.12.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/auth/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7"
+          "target": "0.12.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/ssr",
           "declared": "0.12.7",
-          "target": "0.12.7"
+          "target": "0.12.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "0.12.7",
+      "selectedTargetSource": "https://registry.npmjs.org/@supabase/ssr",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@supabase/supabase-js",
@@ -1754,61 +1779,78 @@
           "target": "2.118.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
-          "declared": "2.117.3",
-          "target": "2.118.0"
+          "declared": "2.118.0",
+          "target": "2.118.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
-          "declared": "2.117.3",
-          "target": "2.118.0"
+          "declared": "2.118.0",
+          "target": "2.118.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/auth/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
-          "declared": "2.117.3",
-          "target": "2.118.0"
+          "declared": "2.118.0",
+          "target": "2.118.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
-          "declared": "2.117.3",
-          "target": "2.118.0"
+          "declared": "2.118.0",
+          "target": "2.118.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/graphql/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
-          "declared": "2.117.3",
-          "target": "2.118.0"
+          "declared": "2.118.0",
+          "target": "2.118.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/lib/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
-          "declared": "2.117.3",
-          "target": "2.118.0"
+          "declared": "2.118.0",
+          "target": "2.118.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@supabase/supabase-js",
-          "declared": "2.117.3",
-          "target": "2.118.0"
+          "declared": "2.118.0",
+          "target": "2.118.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "2.118.0",
+      "selectedTargetSource": "https://registry.npmjs.org/@supabase/supabase-js",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@t3-oss/env-nextjs",
@@ -1935,19 +1977,30 @@
           "target": "0.72.0"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "package.json",
           "section": "devDependencies",
           "declaredAs": "@tanstack/cli",
-          "declared": "^0.71.1",
-          "target": "0.72.0"
+          "declared": "0.72.0",
+          "target": "0.72.0",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "0.72.0",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/cli",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/db",
@@ -1977,26 +2030,38 @@
           "target": "0.15.1"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/db",
-          "declared": "^0.12.1",
-          "target": "0.15.1"
+          "declared": "0.15.2",
+          "target": "0.15.2",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/db",
-          "declared": "^0.12.1",
-          "target": "0.15.1"
+          "declared": "0.15.2",
+          "target": "0.15.2",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "0.15.2",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/db",
+      "refreshedAt": "2026-10-21T19:10:17.742143+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/query-db-collection",
@@ -2019,19 +2084,30 @@
           "target": "1.4.7"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/query-db-collection",
-          "declared": "^1.4.0",
-          "target": "1.4.7"
+          "declared": "1.4.8",
+          "target": "1.4.8",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "1.4.8",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/query-db-collection",
+      "refreshedAt": "2026-10-21T19:10:17.742143+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-db",
@@ -2061,26 +2137,38 @@
           "target": "0.5.11"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-db",
-          "declared": "^0.5.5",
-          "target": "0.5.11"
+          "declared": "0.5.12",
+          "target": "0.5.12",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-db",
-          "declared": "^0.5.5",
-          "target": "0.5.11"
+          "declared": "0.5.12",
+          "target": "0.5.12",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "0.5.12",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-db",
+      "refreshedAt": "2026-10-21T19:10:17.742143+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-devtools",
@@ -2103,19 +2191,30 @@
           "target": "0.10.13"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "verified-maintained-compatibility-dependency",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-devtools",
-          "declared": "^0.10.13",
-          "target": "0.10.13"
+          "declared": "0.10.13",
+          "target": "0.10.13",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "0.10.13",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-devtools",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-form",
@@ -2145,26 +2244,38 @@
           "target": "1.33.5"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "verified-maintained-compatibility-dependency",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-form",
           "declared": "1.33.5",
-          "target": "1.33.5"
+          "target": "1.33.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-form",
           "declared": "1.33.5",
-          "target": "1.33.5"
+          "target": "1.33.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "1.33.5",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-form",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-query",
@@ -2215,47 +2326,62 @@
           "target": "5.104.5"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
-          "declared": "^5.104.1",
-          "target": "5.104.5"
+          "declared": "5.104.5",
+          "target": "5.104.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
-          "declared": "^5.104.1",
-          "target": "5.104.5"
+          "declared": "5.104.5",
+          "target": "5.104.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
-          "declared": "^5.104.1",
-          "target": "5.104.5"
+          "declared": "5.104.5",
+          "target": "5.104.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
-          "declared": "^5.104.1",
-          "target": "5.104.5"
+          "declared": "5.104.5",
+          "target": "5.104.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query",
-          "declared": "^5.104.1",
-          "target": "5.104.5"
+          "declared": "5.104.5",
+          "target": "5.104.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "5.104.5",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-query",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-query-devtools",
@@ -2278,19 +2404,30 @@
           "target": "5.104.5"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-query-devtools",
-          "declared": "^5.104.1",
-          "target": "5.104.5"
+          "declared": "5.104.5",
+          "target": "5.104.5",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "5.104.5",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-query-devtools",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-store",
@@ -2313,19 +2450,30 @@
           "target": "0.11.2"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "verified-maintained-compatibility-dependency",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-store",
           "declared": "0.11.2",
-          "target": "0.11.2"
+          "target": "0.11.2",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "0.11.2",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-store",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-table",
@@ -2369,40 +2517,54 @@
           "target": "9.3.1"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
-          "declared": "9.2.6",
-          "target": "9.3.1"
+          "declared": "9.3.1",
+          "target": "9.3.1",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "apps/donor/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
-          "declared": "9.2.6",
-          "target": "9.3.1"
+          "declared": "9.3.1",
+          "target": "9.3.1",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
-          "declared": "9.2.6",
-          "target": "9.3.1"
+          "declared": "9.3.1",
+          "target": "9.3.1",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table",
-          "declared": "9.2.6",
-          "target": "9.3.1"
+          "declared": "9.3.1",
+          "target": "9.3.1",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "9.3.1",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-table",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-table-devtools",
@@ -2432,26 +2594,38 @@
           "target": "9.3.1"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table-devtools",
-          "declared": "9.2.5",
-          "target": "9.3.1"
+          "declared": "9.3.1",
+          "target": "9.3.1",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-table-devtools",
-          "declared": "9.2.5",
-          "target": "9.3.1"
+          "declared": "9.3.1",
+          "target": "9.3.1",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "9.3.1",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-table-devtools",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@tanstack/react-virtual",
@@ -2474,19 +2648,30 @@
           "target": "3.14.21"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "packages/ui/package.json",
           "section": "dependencies",
           "declaredAs": "@tanstack/react-virtual",
-          "declared": "^3.14.13",
-          "target": "3.14.21"
+          "declared": "3.14.21",
+          "target": "3.14.21",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         }
-      ]
+      ],
+      "selectedTarget": "3.14.21",
+      "selectedTargetSource": "https://registry.npmjs.org/@tanstack/react-virtual",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json"
     },
     {
       "name": "@testing-library/dom",
@@ -7034,75 +7219,97 @@
           "target": "4.6.7"
         }
       ],
-      "state": "unqualified",
-      "disposition": null,
-      "verification": [],
-      "note": "Initial target; refresh and freeze exact tested release at the owning checkpoint.",
+      "state": "implemented-awaiting-data-access-checkpoint-qualification",
+      "disposition": "upgraded",
+      "verification": [
+        "Historical baseline and initial-selection characterization are retained in data-access-qualification.json; overlapping test runs are not added.",
+        "Current coordinated patch selection: 143 files / 917 tests pass; adapter pristine-versus-patched regression and physical DB/Query identity verified.",
+        "All 15 product typechecks pass. Actual local Supabase SDK/SSR provider fixture passes 20 checks and restores its census. Live Auth, tenant and fund committed-response-loss probes also restore their census; 45 fixture regressions and 19 build-policy cases pass.",
+        "Current fresh Shadscan and React Doctor checks preserve all findings/classifications/reasons/floors, with 0 actionable Doctor findings and 294 exact exceptions.",
+        "Separate frozen installation and earlier full preflight passed. Final review fixes require repeated full repository gates, browser qualification, current-head CI/reviews/deployed previews and merged-develop readback."
+      ],
+      "note": "Selected data targets and test evidence are frozen in data-access-qualification.json; refresh official metadata again before final merge.",
       "currentUses": [
         {
           "path": "package.json",
           "section": "dependencies",
           "declaredAs": "held-pdf-zod-compat",
           "declared": "npm:zod@4.3.6",
-          "target": "4.6.7"
+          "target": null,
+          "state": "open-pdf-source-provenance",
+          "disposition": "remove-after-qualified-pdf-rebuild"
         },
         {
           "path": "apps/admin/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "^4.6.5",
-          "target": "4.6.7"
+          "declared": "4.6.7",
+          "target": "4.6.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "apps/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "^4.6.5",
-          "target": "4.6.7"
+          "declared": "4.6.7",
+          "target": "4.6.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/api/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "^4.6.5",
-          "target": "4.6.7"
+          "declared": "4.6.7",
+          "target": "4.6.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/database/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "^4.6.5",
-          "target": "4.6.7"
+          "declared": "4.6.7",
+          "target": "4.6.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/env/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "^4.6.5",
-          "target": "4.6.7"
+          "declared": "4.6.7",
+          "target": "4.6.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/eve-runtime/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "4.6.5",
-          "target": "4.6.7"
+          "declared": "4.6.7",
+          "target": "4.6.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "packages/missionary/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
-          "declared": "^4.6.5",
-          "target": "4.6.7"
+          "declared": "4.6.7",
+          "target": "4.6.7",
+          "state": "implemented-awaiting-data-access-checkpoint-qualification"
         },
         {
           "path": "vendor/react-pdf-packages/asym-pdf-template-schema/package.json",
           "section": "dependencies",
           "declaredAs": "zod",
           "declared": "4.3.6",
-          "target": "4.6.7"
+          "target": "4.6.7",
+          "state": "open-pdf-source-provenance",
+          "note": "Imported artifact declaration remains unchanged; source reconstruction and rebuilt package qualification own its final disposition."
         }
-      ]
+      ],
+      "selectedTarget": "4.6.7",
+      "selectedTargetSource": "https://registry.npmjs.org/zod",
+      "refreshedAt": "2026-10-21T18:02:50.761309+00:00",
+      "qualification": "data-access-qualification.json",
+      "remainingScope": "Imported PDF declarations/compatibility aliases remain open under source recovery; this checkpoint qualifies product/workspace usage only."
     }
   ],
   "manifestCoverage": {

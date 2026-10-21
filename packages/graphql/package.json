@@ -23,7 +23,7 @@
     "@asym/auth": "workspace:*",
     "@asym/database": "workspace:*",
     "@asym/lib": "workspace:*",
-    "@supabase/supabase-js": "2.117.3",
+    "@supabase/supabase-js": "2.118.0",
     "graphql": "16.14.2",
     "graphql-yoga": "5.24.2"
   },
