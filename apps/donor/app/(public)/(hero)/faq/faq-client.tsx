@@ -152,11 +152,9 @@ const CategoryButton = ({
 const FAQAccordionItem = ({
   item,
   value,
-  isOpen,
 }: {
   item: FAQItem;
   value: number;
-  isOpen: boolean;
 }) => {
   const reducedMotion = useReducedMotion();
   return (
@@ -165,27 +163,16 @@ const FAQAccordionItem = ({
       // Siblings below an opening panel slide to their new position with a
       // transform; the answer keeps stable initial markup instead of sweeping height.
       render={<motion.div layout="position" initial={false} />}
-      className={cn(
-        "border last:border-b rounded-2xl px-6 overflow-hidden transition-[border-color,background-color,box-shadow] duration-300",
-        isOpen
-          ? "border-ring bg-accent shadow-sm"
-          : "border-border bg-card hover:border-border",
-      )}
+      variant="card"
     >
       <AccordionTrigger>{item.question}</AccordionTrigger>
       <AccordionContent
         // This surface uses an opacity fade, not the shared height keyframes.
         render={(panelProps, state) => (
-          <div
-            {...panelProps}
-            hidden={state.open ? panelProps.hidden : true}
-            className={cn(
-              panelProps.className,
-              "data-open:animate-none data-closed:animate-none",
-            )}
-          />
+          <div {...panelProps} hidden={state.open ? panelProps.hidden : true} />
         )}
-        className="pb-6 text-muted-foreground leading-relaxed font-light"
+        variant="faq"
+        animation="none"
       >
         <motion.div
           initial={false}
@@ -343,7 +330,6 @@ export function FAQPageClient() {
                   key={`${item.category}-${item.question}`}
                   item={item}
                   value={idx}
-                  isOpen={openIndex === idx}
                 />
               ))}
             </Accordion>

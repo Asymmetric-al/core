@@ -28,11 +28,7 @@ export type CrmResourceType =
   | "report";
 
 export type CrmCommandStatus =
-  | "queued"
-  | "attempted"
-  | "succeeded"
-  | "failed"
-  | "skipped";
+  "queued" | "attempted" | "succeeded" | "failed" | "skipped";
 
 export interface ActorContext {
   userId: string;

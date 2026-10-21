@@ -1,8 +1,5 @@
 export type CrmReportSlice =
-  | "funds"
-  | "missionaries"
-  | "donors"
-  | "sync-failures";
+  "funds" | "missionaries" | "donors" | "sync-failures";
 
 export interface CrmReportFilters {
   dateFrom: string | null;

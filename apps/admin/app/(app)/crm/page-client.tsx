@@ -81,6 +81,59 @@ const missionControlCRMHandleBulkExport = (selected: CrmGridRow[]) => {
   );
 };
 
+function getCrmTagOptions(rows: CrmGridRow[]) {
+  const s = new Set<string>();
+  for (const r of rows) {
+    for (const t of r.tags ?? []) {
+      s.add(t);
+    }
+  }
+  return Array.from(s)
+    .sort()
+    .map((t) => ({ label: t, value: t }));
+}
+
+function getCrmFilterFields(
+  tagOptions: Array<{ label: string; value: string }>,
+): DataTableFilterField<CrmGridRow>[] {
+  return [
+    {
+      id: "recordType",
+      label: "Record type",
+      options: [
+        { label: "Individual", value: "individual" },
+        { label: "Organization", value: "Organization" },
+        { label: "Church", value: "Church" },
+      ],
+    },
+    {
+      id: "lifecycleStatus",
+      label: "Status",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+      ],
+    },
+    {
+      id: "portalAccessLabel",
+      label: "Portal",
+      options: [
+        { label: "Portal linked", value: "linked" },
+        { label: "No portal", value: "none" },
+      ],
+    },
+    ...(tagOptions.length > 0
+      ? [
+          {
+            id: "tags",
+            label: "Tags",
+            options: tagOptions,
+          } as DataTableFilterField<CrmGridRow>,
+        ]
+      : []),
+  ];
+}
+
 export default function MissionControlCRM() {
   const [view, setView] = useState<"table" | "kanban">("table");
   const queryClient = useQueryClient();
@@ -305,56 +358,11 @@ export default function MissionControlCRM() {
     });
   }, [giftParam, pathname, router, searchParams, selectedDonorId]);
 
-  const tagOptions = useMemo(() => {
-    const s = new Set<string>();
-    for (const r of rows) {
-      for (const t of r.tags ?? []) {
-        s.add(t);
-      }
-    }
-    return Array.from(s)
-      .sort()
-      .map((t) => ({ label: t, value: t }));
-  }, [rows]);
-
-  const filterFields = useMemo((): DataTableFilterField<CrmGridRow>[] => {
-    return [
-      {
-        id: "recordType",
-        label: "Record type",
-        options: [
-          { label: "Individual", value: "individual" },
-          { label: "Organization", value: "Organization" },
-          { label: "Church", value: "Church" },
-        ],
-      },
-      {
-        id: "lifecycleStatus",
-        label: "Status",
-        options: [
-          { label: "Active", value: "active" },
-          { label: "Inactive", value: "inactive" },
-        ],
-      },
-      {
-        id: "portalAccessLabel",
-        label: "Portal",
-        options: [
-          { label: "Portal linked", value: "linked" },
-          { label: "No portal", value: "none" },
-        ],
-      },
-      ...(tagOptions.length > 0
-        ? [
-            {
-              id: "tags",
-              label: "Tags",
-              options: tagOptions,
-            } as DataTableFilterField<CrmGridRow>,
-          ]
-        : []),
-    ];
-  }, [tagOptions]);
+  const tagOptions = useMemo(() => getCrmTagOptions(rows), [rows]);
+  const filterFields = useMemo(
+    () => getCrmFilterFields(tagOptions),
+    [tagOptions],
+  );
 
   const columns = useMemo(
     () =>

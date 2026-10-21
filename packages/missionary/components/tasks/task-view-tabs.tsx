@@ -5,12 +5,7 @@ import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 
 export type TaskView =
-  | "all"
-  | "my_tasks"
-  | "due_today"
-  | "overdue"
-  | "upcoming"
-  | "completed";
+  "all" | "my_tasks" | "due_today" | "overdue" | "upcoming" | "completed";
 
 interface TaskViewTabsProps {
   currentView: TaskView;

@@ -121,12 +121,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
   ```ts
   type Surface = string; // extensible text registry
   type SensitivityCategory =
-    | "public"
-    | "contact"
-    | "internal"
-    | "financial"
-    | "care"
-    | "security";
+    "public" | "contact" | "internal" | "financial" | "care" | "security";
   interface FieldPolicyRow {
     recordType: string;
     fieldKey: string;

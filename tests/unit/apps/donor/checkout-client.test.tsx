@@ -572,8 +572,7 @@ describe("CheckoutPageClient live card confirmation", () => {
   it("remounts the real Elements subtree for a returned key and requires an idempotent explicit retry", async () => {
     const donationResponses: Array<(response: Response) => void> = [];
     let completeConfirmation:
-      | ((result: { paymentIntent: { status: string } }) => void)
-      | undefined;
+      ((result: { paymentIntent: { status: string } }) => void) | undefined;
     const confirmation = new Promise<{ paymentIntent: { status: string } }>(
       (resolve) => {
         completeConfirmation = resolve;
@@ -795,8 +794,7 @@ describe("CheckoutPageClient live card confirmation", () => {
 
   it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
     let resolveConfirmation:
-      | ((value: { paymentIntent: { status: string } }) => void)
-      | null = null;
+      ((value: { paymentIntent: { status: string } }) => void) | null = null;
     const confirmationPromise = new Promise<{
       paymentIntent: { status: string };
     }>((resolve) => {
@@ -876,8 +874,7 @@ describe("CheckoutPageClient live card confirmation", () => {
 
   it("renders the original attempt snapshot after checkout params rerender", async () => {
     let resolveConfirmation:
-      | ((value: { paymentIntent: { status: string } }) => void)
-      | null = null;
+      ((value: { paymentIntent: { status: string } }) => void) | null = null;
     const confirmationPromise = new Promise<{
       paymentIntent: { status: string };
     }>((resolve) => {
@@ -942,8 +939,7 @@ describe("CheckoutPageClient live card confirmation", () => {
 
   it("keeps a stale non-success Stripe confirmation retryable after checkout params rerender", async () => {
     let resolveConfirmation:
-      | ((value: { paymentIntent: { status: string } }) => void)
-      | null = null;
+      ((value: { paymentIntent: { status: string } }) => void) | null = null;
     const confirmationPromise = new Promise<{
       paymentIntent: { status: string };
     }>((resolve) => {

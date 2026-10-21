@@ -527,7 +527,8 @@ type RelationshipField = BaseField & {
   hasMany?: boolean; // Allow multiple selections
   minRows?: number; // Min items when hasMany: true
   maxRows?: number; // Max items when hasMany: true
-  filterOptions?: // Limit selectable documents
+  filterOptions?:
+    // Limit selectable documents
     | Where // Static where query
     | ((args: FilterOptionsProps) => Where | boolean); // Dynamic filter
   admin?: BaseField["admin"] & {
@@ -611,7 +612,8 @@ type UploadField = BaseField & {
   hasMany?: boolean; // Allow multiple files
   minRows?: number; // Min items when hasMany: true
   maxRows?: number; // Max items when hasMany: true
-  filterOptions?: // Limit selectable files
+  filterOptions?:
+    // Limit selectable files
     Where | ((args: FilterOptionsProps) => Where | boolean);
   admin?: BaseField["admin"] & {
     isSortable?: boolean; // Allow drag-to-reorder when hasMany

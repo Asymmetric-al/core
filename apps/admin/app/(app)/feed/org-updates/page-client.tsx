@@ -1073,8 +1073,7 @@ function ComposeCard({
                 dispatchCompose({ type: "set-content", value })
               }
               placeholder={`Write your ${postType.toLowerCase()}…`}
-              className="rounded-xl sm:rounded-2xl"
-              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed"
+              variant="feed"
               toolbarPosition="bottom"
               proseInvert={false}
               actions={

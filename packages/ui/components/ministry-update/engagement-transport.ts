@@ -15,9 +15,7 @@ import type { ReactionKind, ReactionState } from "./normalize";
 
 /** Machine-readable failure categories for engagement persistence. */
 export type EngagementErrorCode =
-  | "unauthenticated"
-  | "not_found"
-  | "unavailable";
+  "unauthenticated" | "not_found" | "unavailable";
 
 /**
  * Error thrown by engagement transports.

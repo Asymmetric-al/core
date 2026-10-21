@@ -25,12 +25,7 @@ import { resolveGivingTrendState, selectGivingTrend } from "./analytics-data";
 
 type LooseChartProps = Record<string, unknown> & { children?: React.ReactNode };
 type RechartsComponentName =
-  | "BarChart"
-  | "Bar"
-  | "XAxis"
-  | "YAxis"
-  | "Tooltip"
-  | "ResponsiveContainer";
+  "BarChart" | "Bar" | "XAxis" | "YAxis" | "Tooltip" | "ResponsiveContainer";
 
 function loadRechartsComponent(name: RechartsComponentName) {
   return dynamic<LooseChartProps>(

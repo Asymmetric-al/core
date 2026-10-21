@@ -12,11 +12,7 @@ export interface SupportReportBucket {
 }
 
 export type SupportReportScopeKind =
-  | "all"
-  | "inbox"
-  | "agent"
-  | "team"
-  | "label";
+  "all" | "inbox" | "agent" | "team" | "label";
 
 export interface SupportReportScope {
   kind: SupportReportScopeKind;

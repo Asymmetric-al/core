@@ -46,9 +46,7 @@ type SupabaseAdminClient = NonNullable<
 
 /** Why an outbound email was blocked. */
 export type EmailConsentBlockReason =
-  | "do_not_contact"
-  | "do_not_email"
-  | "suppressed";
+  "do_not_contact" | "do_not_email" | "suppressed";
 
 export type EmailConsentDecision =
   | { allowed: true }

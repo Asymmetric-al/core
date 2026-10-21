@@ -80,8 +80,7 @@ class SupabaseQueryStub {
 
   then<TResult1 = QueryResult, TResult2 = never>(
     onfulfilled?:
-      | ((value: QueryResult) => TResult1 | PromiseLike<TResult1>)
-      | null,
+      ((value: QueryResult) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
     return this.resolve().then(onfulfilled, onrejected);

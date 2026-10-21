@@ -9,8 +9,8 @@
 
 - [x] 2.1 Freeze refreshed Next/React/Node targets and enforce the supported runtime with failing regression tests before the fix.
 - [x] 2.2 Upgrade the complete Next/React cohort and lock, preserving all three app configurations and native image processing.
-- [ ] 2.3 Pass frozen install, focused security/auth/cache/CMS/image tests, production instant-navigation rig, three builds and full preflight.
-- [ ] 2.4 Complete independent/current-head review, required CI, deployed-preview checks, merge and readback before longer migrations.
+- [x] 2.3 Pass frozen install, focused security/auth/cache/CMS/image tests, production instant-navigation rig, three builds and full preflight.
+- [x] 2.4 Complete independent/current-head review, required CI, deployed-preview checks, merge and readback before longer migrations.
 
 ## 3. Development tools and infrastructure
 

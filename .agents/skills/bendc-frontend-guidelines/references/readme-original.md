@@ -562,7 +562,7 @@ Don't use loops as they force you to use mutable objects. Rely on `array.prototy
 const sum = (arr) => {
   var sum = 0;
   var i = -1;
-  for (; arr[++i]; ) {
+  for (; arr[++i];) {
     sum += arr[i];
   }
   return sum;

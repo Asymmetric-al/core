@@ -82,9 +82,7 @@ export function FilterBuilder({
               combined with AND/OR logic.
             </SheetDescription>
           </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-            {content}
-          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">{content}</div>
           <SheetFooter>
             <Button
               variant="outline"

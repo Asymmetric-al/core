@@ -88,78 +88,36 @@ export function InboxSettingsForm() {
       title={`Inbox identity — ${inboxName}`}
       description="Default sender, signature, SLA, and off-hours behavior for this inbox."
     >
-      <SettingsRow
-        control
+      <InboxDefaultSelection
         label="Default signature"
         description="Applied when an agent has no personal signature yet."
-      >
-        <SearchableSelect
-          items={[
-            { value: "none", label: "No default signature" },
-            ...signatures.map((sig) => ({ value: sig.id, label: sig.name })),
-          ]}
-          value={draft.defaultSignatureId ?? "none"}
-          onValueChange={(value) => {
-            if (value === null) return;
-            setDraft({
-              ...draft,
-              defaultSignatureId: value === "none" ? null : value,
-            });
-          }}
-          aria-label="Default signature"
-          className="h-9 max-w-sm"
-        />
-      </SettingsRow>
-      <SettingsRow
-        control
+        emptyLabel="No default signature"
+        options={signatures}
+        value={draft.defaultSignatureId}
+        onChange={(defaultSignatureId) =>
+          setDraft({ ...draft, defaultSignatureId })
+        }
+      />
+      <InboxDefaultSelection
         label="Default SLA policy"
         description="Timer applied to new conversations routed to this inbox."
-      >
-        <SearchableSelect
-          items={[
-            { value: "none", label: "No SLA policy" },
-            ...(slaPolicies.data ?? []).map((row) => ({
-              value: row.id,
-              label: row.name,
-            })),
-          ]}
-          value={draft.defaultSlaPolicyId ?? "none"}
-          onValueChange={(value) => {
-            if (value === null) return;
-            setDraft({
-              ...draft,
-              defaultSlaPolicyId: value === "none" ? null : value,
-            });
-          }}
-          aria-label="Default SLA policy"
-          className="h-9 max-w-sm"
-        />
-      </SettingsRow>
-      <SettingsRow
-        control
+        emptyLabel="No SLA policy"
+        options={slaPolicies.data ?? []}
+        value={draft.defaultSlaPolicyId}
+        onChange={(defaultSlaPolicyId) =>
+          setDraft({ ...draft, defaultSlaPolicyId })
+        }
+      />
+      <InboxDefaultSelection
         label="Business hours"
         description="Used by the reports business-hours filter + off-hours routing rules."
-      >
-        <SearchableSelect
-          items={[
-            { value: "none", label: "24/7 coverage" },
-            ...(businessHours.data ?? []).map((row) => ({
-              value: row.id,
-              label: row.name,
-            })),
-          ]}
-          value={draft.defaultBusinessHoursId ?? "none"}
-          onValueChange={(value) => {
-            if (value === null) return;
-            setDraft({
-              ...draft,
-              defaultBusinessHoursId: value === "none" ? null : value,
-            });
-          }}
-          aria-label="Business hours"
-          className="h-9 max-w-sm"
-        />
-      </SettingsRow>
+        emptyLabel="24/7 coverage"
+        options={businessHours.data ?? []}
+        value={draft.defaultBusinessHoursId}
+        onChange={(defaultBusinessHoursId) =>
+          setDraft({ ...draft, defaultBusinessHoursId })
+        }
+      />
       <SettingsRow
         label="Round-robin assignment"
         description="Automatically distribute new inbound conversations across available agents."
@@ -225,5 +183,39 @@ export function InboxSettingsForm() {
         onCancel={() => setDraft(activeSettings)}
       />
     </SettingsPanel>
+  );
+}
+
+function InboxDefaultSelection({
+  label,
+  description,
+  emptyLabel,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  emptyLabel: string;
+  options: ReadonlyArray<{ id: string; name: string }>;
+  value: string | null;
+  onChange: (value: string | null) => void;
+}) {
+  return (
+    <SettingsRow control label={label} description={description}>
+      <SearchableSelect
+        items={[
+          { value: "none", label: emptyLabel },
+          ...options.map((row) => ({ value: row.id, label: row.name })),
+        ]}
+        value={value ?? "none"}
+        onValueChange={(nextValue) => {
+          if (nextValue === null) return;
+          onChange(nextValue === "none" ? null : nextValue);
+        }}
+        aria-label={label}
+        className="h-9 max-w-sm"
+      />
+    </SettingsRow>
   );
 }

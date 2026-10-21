@@ -25,13 +25,13 @@ Per-bot source files (one each) live next to this file in `docs/ai/pr-pipeline-b
 
 ## Universal settings (apply to every reviewer)
 
-| Setting        | Value                                                                                         |
+| Setting | Value |
 | -------------- | --------------------------------------------------------------------------------------------- | ---- | ------ | ---------- | ------------------------------------ |
-| **Trigger**    | GitHub → **Checks completed** (repo `Asymmetric-al/core`)                                     |
-| **Model**      | `composer-2.5` for reviewers; strongest available for the Final Merge Gate + Safe-Fix Planner |
-| **Tool**       | **Comment on Pull Request** — _Allow PR Approval OFF_                                         |
-| **First line** | the `SKIP-IF-DONE` guard (already in each prompt below)                                       |
-| **Last line**  | `SEVERITY: Blocker                                                                            | High | Medium | Suggestion | None` (already in each prompt below) |
+| **Trigger** | GitHub → **Checks completed** (repo `Asymmetric-al/core`) |
+| **Model** | `composer-2.5` for reviewers; strongest available for the Final Merge Gate + Safe-Fix Planner |
+| **Tool** | **Comment on Pull Request** — _Allow PR Approval OFF_ |
+| **First line** | the `SKIP-IF-DONE` guard (already in each prompt below) |
+| **Last line** | `SEVERITY: Blocker                                                                            | High | Medium | Suggestion | None` (already in each prompt below) |
 
 No reviewer needs a push, merge, label, or "open PR" tool. Reviewers only ever comment. Humans use
 the comments alongside GitHub required checks.

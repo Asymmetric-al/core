@@ -1,6 +1,10 @@
 "use client";
 
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Button,
+  ButtonLink,
+  buttonVariants,
+} from "@asym/ui/components/shadcn/button";
 import {
   Sheet,
   SheetContent,
@@ -422,22 +426,21 @@ function NavRailLink({
     <Tooltip>
       <TooltipTrigger
         render={
-          <Link
-            href={href}
-            onClick={onNavigate}
-            title={title}
-            aria-label={title}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              buttonVariants({
-                variant: active ? "secondary" : "ghost",
-                size: "sm",
-              }),
-              "justify-center gap-2 px-0 font-semibold text-xs",
-            )}
+          <ButtonLink
+            variant={active ? "secondary" : "ghost"}
+            size="icon-sm"
+            render={
+              <Link
+                href={href}
+                onClick={onNavigate}
+                title={title}
+                aria-label={title}
+                aria-current={active ? "page" : undefined}
+              />
+            }
           >
-            <Icon className="size-4 shrink-0" aria-hidden="true" />
-          </Link>
+            <Icon aria-hidden="true" />
+          </ButtonLink>
         }
       />
       <TooltipContent side="right">{title}</TooltipContent>

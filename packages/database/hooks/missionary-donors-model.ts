@@ -14,12 +14,7 @@ export type ActivityType =
   | "pledge_completed";
 
 export type GiftType =
-  | "Online"
-  | "Check"
-  | "Cash"
-  | "Bank Transfer"
-  | "Stock"
-  | "In-Kind";
+  "Online" | "Check" | "Cash" | "Bank Transfer" | "Stock" | "In-Kind";
 
 export type RecurringStatus = "active" | "completed" | "paused" | "cancelled";
 

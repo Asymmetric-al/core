@@ -8,10 +8,7 @@ import { ApiHttpError } from "../../shared/api-http-error";
 import type { EveAdminSessionIdentity, EveSessionAuthSnapshot } from "./types";
 
 export type EveRouteAuthFailure =
-  | "forbidden"
-  | "ownership_denied"
-  | "service_unavailable"
-  | "unauthenticated";
+  "forbidden" | "ownership_denied" | "service_unavailable" | "unauthenticated";
 
 export class EveRouteAuthError extends Error {
   constructor(

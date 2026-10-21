@@ -56,11 +56,7 @@ import type {
 } from "./types";
 
 type StatusBadgeVariant =
-  | "success"
-  | "warning"
-  | "info"
-  | "destructive"
-  | "secondary";
+  "success" | "warning" | "info" | "destructive" | "secondary";
 
 const statusConfig: Record<
   ContributionStatus,

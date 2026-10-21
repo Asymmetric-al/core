@@ -164,12 +164,7 @@ function NavSection({
                       render={
                         <SidebarMenuButton
                           tooltip={item.title}
-                          className={cn(
-                            "h-9 transition-colors",
-                            isActive
-                              ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                          )}
+                          isActive={isActive}
                         >
                           <AppIcon
                             icon={item.icon}
@@ -195,12 +190,6 @@ function NavSection({
                               <SidebarMenuSubButton
                                 render={<Link href={sub.href} />}
                                 isActive={subActive}
-                                className={cn(
-                                  "transition-colors",
-                                  subActive
-                                    ? "font-medium text-sidebar-accent-foreground"
-                                    : "text-sidebar-foreground/80 hover:text-sidebar-accent-foreground",
-                                )}
                               >
                                 <span className="truncate text-sm">
                                   {sub.title}
@@ -219,20 +208,9 @@ function NavSection({
             return (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
-                  render={
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-2.5"
-                    />
-                  }
+                  render={<Link href={item.href} />}
                   isActive={isActive}
                   tooltip={item.title}
-                  className={cn(
-                    "h-9 transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  )}
                 >
                   <AppIcon
                     icon={item.icon}

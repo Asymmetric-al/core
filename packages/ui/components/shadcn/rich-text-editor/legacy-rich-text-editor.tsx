@@ -16,6 +16,8 @@ export interface LegacyRichTextEditorProps {
   placeholder?: string;
   className?: string;
   contentClassName?: string;
+  /** Shared feed-composer density and shape, without consumer appearance overrides. */
+  variant?: "default" | "feed";
   disabled?: boolean;
   toolbarPosition?: "top" | "bottom";
   actions?: React.ReactNode;
@@ -34,6 +36,7 @@ export function LegacyRichTextEditor({
   placeholder,
   className,
   contentClassName,
+  variant = "default",
   disabled,
   toolbarPosition = "top",
   actions,
@@ -68,6 +71,7 @@ export function LegacyRichTextEditor({
       className={cn(
         "relative w-full overflow-hidden flex flex-col",
         disabled && "opacity-50 cursor-not-allowed",
+        variant === "feed" && "rounded-xl sm:rounded-2xl",
         className,
       )}
     >
@@ -78,6 +82,7 @@ export function LegacyRichTextEditor({
         disabled={disabled}
         placeholder={placeholder}
         proseInvert={proseInvert}
+        variant={variant}
         editorClassName={contentClassName}
         className="border-0 shadow-none ring-0 focus-within:ring-0 rounded-none ring-offset-0"
       >

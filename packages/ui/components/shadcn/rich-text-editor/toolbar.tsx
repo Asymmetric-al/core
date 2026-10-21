@@ -96,11 +96,7 @@ export interface EditorToolbarProps {
 
 type EditorToolbarState = typeof DEFAULT_TOOLBAR_STATE;
 type EditorToolbarSectionId =
-  | "formatting"
-  | "headings"
-  | "lists"
-  | "media"
-  | "history";
+  "formatting" | "headings" | "lists" | "media" | "history";
 
 function editorToolbarEnabledTools(
   tools: ToolbarTool[] | undefined,
@@ -494,8 +490,7 @@ export function EditorToolbar({
           canUndo: currentEditor.can().undo(),
           canRedo: currentEditor.can().redo(),
           existingHref: currentEditor.getAttributes("link").href as
-            | string
-            | undefined,
+            string | undefined,
         };
       },
     }) ?? DEFAULT_TOOLBAR_STATE;

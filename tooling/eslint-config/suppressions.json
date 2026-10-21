@@ -261,7 +261,7 @@
       "count": 128
     }
   },
-  "apps/admin/app/(app)/pdf/page-client.tsx": {
+  "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 2
     }
@@ -378,7 +378,7 @@
   },
   "apps/admin/app/mc-shell.tsx": {
     "shadcn/no-restyle": {
-      "count": 45
+      "count": 37
     }
   },
   "apps/admin/app/web-studio/web-studio-sections.tsx": {
@@ -714,9 +714,6 @@
   "apps/admin/features/support-hub/components/settings/SettingsRow.tsx": {
     "shadcn/no-arbitrary-values": {
       "count": 1
-    },
-    "shadcn/no-restyle": {
-      "count": 6
     }
   },
   "apps/admin/features/support-hub/components/settings/assignment/AssignmentRulesForm.tsx": {
@@ -789,7 +786,7 @@
   },
   "apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx": {
     "shadcn/no-restyle": {
-      "count": 8
+      "count": 4
     }
   },
   "apps/admin/features/support-hub/components/settings/labels/LabelsSettingsPanel.tsx": {
@@ -1004,7 +1001,7 @@
   },
   "apps/donor/app/(public)/(hero)/faq/faq-client.tsx": {
     "shadcn/no-arbitrary-values": {
-      "count": 2
+      "count": 1
     },
     "shadcn/no-inline-styles": {
       "count": 2
@@ -1154,7 +1151,7 @@
       "count": 4
     },
     "shadcn/no-restyle": {
-      "count": 14
+      "count": 8
     }
   },
   "apps/donor/features/giving/components/QuickGive.tsx": {
@@ -1405,11 +1402,6 @@
       "count": 4
     }
   },
-  "packages/ui/components/primitives/tanstack-form.tsx": {
-    "shadcn/require-static-classes": {
-      "count": 9
-    }
-  },
   "packages/ui/components/shadcn-studio/blocks/chart-missionary-metrics.tsx": {
     "shadcn/no-raw-colors": {
       "count": 2
@@ -1604,9 +1596,6 @@
   "packages/ui/components/shadcn/data-table/data-table-responsive-inner.tsx": {
     "shadcn/no-restyle": {
       "count": 2
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
     }
   },
   "packages/ui/components/shadcn/data-table/data-table-row-actions.tsx": {
@@ -1643,9 +1632,6 @@
     },
     "shadcn/no-restyle": {
       "count": 8
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
     }
   },
   "packages/ui/components/shadcn/data-table/filters/date-range-filter.tsx": {
@@ -1671,19 +1657,11 @@
   "packages/ui/components/shadcn/rich-text-editor/legacy-rich-text-editor.tsx": {
     "shadcn/no-restyle": {
       "count": 6
-    },
-    "shadcn/require-static-classes": {
-      "count": 1
     }
   },
   "packages/ui/components/shadcn/rich-text-editor/link-bubble-menu.tsx": {
     "shadcn/no-restyle": {
       "count": 20
-    }
-  },
-  "packages/ui/components/shadcn/rich-text-editor/post-content.tsx": {
-    "shadcn/require-static-classes": {
-      "count": 2
     }
   },
   "packages/ui/components/shadcn/rich-text-editor/toolbar.tsx": {
@@ -1696,7 +1674,7 @@
       "count": 1
     },
     "shadcn/require-static-classes": {
-      "count": 2
+      "count": 1
     }
   },
   "packages/ui/components/shadcn/select.tsx": {

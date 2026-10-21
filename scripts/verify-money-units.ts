@@ -20,8 +20,7 @@ type Analysis = {
 };
 
 type TableFetchResult =
-  | { ok: true; rows: Record<string, unknown>[] }
-  | { ok: false; error: string };
+  { ok: true; rows: Record<string, unknown>[] } | { ok: false; error: string };
 
 const SAMPLE_SIZE = Number.parseInt(
   process.env.MONEY_UNIT_SAMPLE_SIZE ?? "200",

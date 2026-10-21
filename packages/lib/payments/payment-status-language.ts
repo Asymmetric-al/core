@@ -13,11 +13,7 @@
  */
 
 export type PaymentRail =
-  | "card"
-  | "ach_debit"
-  | "wallet"
-  | "instant_bank"
-  | "unknown";
+  "card" | "ach_debit" | "wallet" | "instant_bank" | "unknown";
 
 export type DonationPaymentState =
   | "requires_action"
@@ -30,10 +26,7 @@ export type DonationPaymentState =
   | "dead_letter";
 
 export type PaymentStatusTone =
-  | "positive"
-  | "neutral"
-  | "attention"
-  | "destructive";
+  "positive" | "neutral" | "attention" | "destructive";
 
 export interface PaymentStatusDescription {
   label: string;

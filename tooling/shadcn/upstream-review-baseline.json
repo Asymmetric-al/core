@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "cliVersion": "4.21.4",
+  "cliVersion": "4.22.1",
   "meaning": "Complete reviewed official previews and local customizations are unchanged. This is not stock byte parity, a scanner score exemption, or authorization to overwrite shared components.",
   "normalization": "Source and preview hashes normalize CRLF to LF; previews remove ANSI and replace checkout root paths. Source/trailing whitespace and every explicit diff hunk remain significant.",
   "config": {
@@ -688,12 +688,14 @@
       "path": "components/shadcn/accordion.tsx",
       "diffComponent": "accordion",
       "owners": ["accordion"],
-      "localSha256": "de9be9e0110085d263430bb4dee52dfc3ae2a6c6a75cc205c9806042b3098178",
-      "diffSha256": "376a480439d8b3f531b5956af85ac3e28ec956d4bd35875bb9b1a5851b415768",
-      "reason": "Preserve renderable AccordionContentLayout and Core panel spacing/icon motion; upstream removes that public seam and changes trigger geometry. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "bf61eddf3efb083b5653069f9ab1cbd36fd5714f764a1b985025eed97e5498ce",
+      "diffSha256": "0514cc57d5d2e29192ee8266eca6e06f9595a95bf7b0733ee7a052aa93d5990b",
+      "reason": "Preserve renderable AccordionContentLayout and Core panel spacing/icon motion; upstream removes that public seam and changes trigger geometry. Core preserves functional className state callbacks through mergeBaseUIClassName. Core-owned card/FAQ variants and explicit animation selection retain the existing FAQ presentation and reduced-motion owner without consumer restyling.",
       "proofs": [
         "packages/ui/components/shadcn/accordion.tsx",
-        "docs/ai/rules/frontend.md"
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/modernization-owned-controls.test.tsx",
+        "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx"
       ],
       "localPath": "components/shadcn/accordion.tsx"
     },
@@ -810,9 +812,9 @@
         "sheet",
         "sidebar"
       ],
-      "localSha256": "04599b0e93621d62c3c43d6636bd6253d6b5576eb4b160f41a1e211a9e5426c0",
-      "diffSha256": "5c0f4f9e71ea14349c927aedde0490af9c53a16bd79b9119462a55426978755a",
-      "reason": "Preserve native disabled-submit locking, Base UI state callbacks, data-size/data-variant, maia variants and press-feedback motion; stock overwrite removes tested contracts. Core preserves functional className state callbacks through mergeBaseUIClassName. Public imports remain compatible through the typed entrypoint. React implementation and CVA helpers are separately guarded; canonical upstream diffs use the exact private implementation in a disposable source view.",
+      "localSha256": "0d6ef941609bc2afef2250a85d48252d7e6ce01154885bee0d6585f2f184d19a",
+      "diffSha256": "9799dcd61c22dbd87819616c0586e86a0eba44116dbb9bf2934f745e623887e0",
+      "reason": "Preserve native disabled-submit locking, Base UI state callbacks, data-size/data-variant, maia variants and press-feedback motion; stock overwrite removes tested contracts. Core preserves functional className state callbacks through mergeBaseUIClassName. Public imports remain compatible through the typed entrypoint. React implementation and CVA helpers are separately guarded; canonical upstream diffs use the exact private implementation in a disposable source view. ButtonLink reuses Maia variants through Base UI useRender, preserving native/router anchor semantics and ref/event forwarding; action Button semantics remain unchanged.",
       "proofs": [
         "packages/ui/components/shadcn/button-component.tsx",
         "docs/ai/rules/frontend.md",
@@ -820,7 +822,9 @@
         "tests/unit/packages/ui/base-ui-class-name.test.tsx",
         "tests/unit/packages/ui/shared-control-exports.test.ts",
         "tests/unit/scripts/design-system-health.test.ts",
-        "tests/unit/scripts/shadcn-upstream-review.test.ts"
+        "tests/unit/scripts/shadcn-upstream-review.test.ts",
+        "tests/unit/packages/ui/modernization-owned-controls.test.tsx",
+        "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx"
       ],
       "localPath": "components/shadcn/button-component.tsx"
     },
@@ -867,12 +871,14 @@
       "path": "components/shadcn/chart.tsx",
       "diffComponent": "chart",
       "owners": ["chart"],
-      "localSha256": "f943c0318b306417163bbcc9e9d2dd5c2a2c1102c89071478a0298a8e1314d4a",
-      "diffSha256": "2f954746f4050dad689d10b51d2f8ac40735e999376b85244bc9e140c598bc0a",
-      "reason": "Preserve Core ChartConfig and tooltip public types/formatting with current Recharts; upstream rewrites tooltip/config types and presentation, requiring typed consumer review.",
+      "localSha256": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632",
+      "diffSha256": "e8231b1096af70216ce6cf6b91a59ce4157a10568aa5983b9359baf61d45fad7",
+      "reason": "Preserve Core ChartConfig and tooltip public types/formatting with current Recharts; upstream rewrites tooltip/config types and presentation, requiring typed consumer review. The fill layout API owns aspect/height classes for existing charts with definite-height parents; ordinary aspect layout remains the default.",
       "proofs": [
         "packages/ui/components/shadcn/chart.tsx",
-        "docs/ai/rules/frontend.md"
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/modernization-owned-controls.test.tsx",
+        "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx"
       ],
       "localPath": "components/shadcn/chart.tsx"
     },
@@ -1187,12 +1193,14 @@
       "path": "components/shadcn/radio-group.tsx",
       "diffComponent": "radio-group",
       "owners": ["radio-group"],
-      "localSha256": "2be4b22801739d0faa3745f9e60ad6a41174edbb1948c1f8f6d23ffd987cac91",
-      "diffSha256": "509f8df028fa2b567ef8ab6f1881c4c3e49cca7d961a0f6ff361ea59878903cf",
-      "reason": "Preserve Base UI radio value serialization, keyboard behavior and Core indicator styling; upstream changes indicator/size presentation. Core preserves functional className state callbacks through mergeBaseUIClassName.",
+      "localSha256": "050697341410347d7362994e6d72466da0c856aa08e75132a54a5fd404d051dc",
+      "diffSha256": "e7a2d4be66cbf9399c0f2eef22ab3c8068339859e519bde6c005018d5da7f5ac",
+      "reason": "Preserve Base UI radio value serialization, keyboard behavior and Core indicator styling; upstream changes indicator/size presentation. Core preserves functional className state callbacks through mergeBaseUIClassName. Amount variants own existing preset presentation with native radio keyboard/form semantics; the ordinary indicator remains unchanged.",
       "proofs": [
         "packages/ui/components/shadcn/radio-group.tsx",
-        "docs/ai/rules/frontend.md"
+        "docs/ai/rules/frontend.md",
+        "tests/unit/packages/ui/modernization-owned-controls.test.tsx",
+        "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx"
       ],
       "localPath": "components/shadcn/radio-group.tsx"
     },
@@ -1499,7 +1507,7 @@
     },
     {
       "path": "components/shadcn/button-variants.ts",
-      "localSha256": "20c6e7ec828070858ad045f005b226498bbf46e6e6c33bda0a87b6851692f8aa",
+      "localSha256": "f8fef935fda3950da244b613742377add61e8cc5ea4d02a0f7d554ffbbacd9cc",
       "reason": "Typed public entrypoint or CVA helper for a mapped Core component. Preserve existing public imports, styles, native/ref/ARIA forwarding and implementation boundaries.",
       "proofs": [
         "tests/unit/packages/ui/shared-control-exports.test.ts",
@@ -1510,7 +1518,7 @@
     },
     {
       "path": "components/shadcn/button.ts",
-      "localSha256": "6f25835348ce22fcafa48af585b48d1664e84854c30baa92eb01581c26e1dff4",
+      "localSha256": "3f6ba1c249c05623233baa182de72339a94068d2dd48f2400c3c9928500cf39a",
       "reason": "Typed public entrypoint or CVA helper for a mapped Core component. Preserve existing public imports, styles, native/ref/ARIA forwarding and implementation boundaries.",
       "proofs": [
         "tests/unit/packages/ui/shared-control-exports.test.ts",
@@ -1901,7 +1909,7 @@
     },
     {
       "path": "packages/ui/components/primitives/map.tsx",
-      "localSha256": "3858c566f73483f900354c4ef52d3bcc7ff7f161698b8a5ed0d663db9080a192",
+      "localSha256": "87e8c7ca2a8b104437bc02a93719d25af65fb9acafe6299f7842a21860ecf59f",
       "reason": "Reviewed shared implementation/helper/token source supporting preserved component and custom-adapter public contracts.",
       "proofs": [
         "packages/ui/components/primitives/map.tsx",
@@ -2008,18 +2016,19 @@
     },
     {
       "path": "packages/ui/components/shadcn/button-variants.ts",
-      "localSha256": "20c6e7ec828070858ad045f005b226498bbf46e6e6c33bda0a87b6851692f8aa",
-      "reason": "Independently required public entrypoint and CVA helper supporting a mapped shared component; editable registry coverage cannot omit it.",
+      "localSha256": "f8fef935fda3950da244b613742377add61e8cc5ea4d02a0f7d554ffbbacd9cc",
+      "reason": "Independently required public entrypoint and CVA helper supporting a mapped shared component; editable registry coverage cannot omit it. The named icon-touch size uses the existing spacing-11 target for the preserved 44px touch floor; other size values remain unchanged.",
       "proofs": [
         "tests/unit/packages/ui/shared-control-exports.test.ts",
         "tests/unit/scripts/design-system-health.test.ts",
         "tests/unit/scripts/shadcn-upstream-review.test.ts",
-        "docs/ai/rules/frontend.md"
+        "docs/ai/rules/frontend.md",
+        "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts"
       ]
     },
     {
       "path": "packages/ui/components/shadcn/button.ts",
-      "localSha256": "6f25835348ce22fcafa48af585b48d1664e84854c30baa92eb01581c26e1dff4",
+      "localSha256": "3f6ba1c249c05623233baa182de72339a94068d2dd48f2400c3c9928500cf39a",
       "reason": "Independently required public entrypoint and CVA helper supporting a mapped shared component; editable registry coverage cannot omit it.",
       "proofs": [
         "tests/unit/packages/ui/shared-control-exports.test.ts",
@@ -2193,7 +2202,7 @@
     },
     {
       "path": "packages/ui/components/primitives/map.tsx",
-      "sha256": "3858c566f73483f900354c4ef52d3bcc7ff7f161698b8a5ed0d663db9080a192"
+      "sha256": "87e8c7ca2a8b104437bc02a93719d25af65fb9acafe6299f7842a21860ecf59f"
     },
     {
       "path": "packages/ui/components/primitives/motion-preset.tsx",
@@ -2225,7 +2234,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/accordion.tsx",
-      "sha256": "de9be9e0110085d263430bb4dee52dfc3ae2a6c6a75cc205c9806042b3098178"
+      "sha256": "bf61eddf3efb083b5653069f9ab1cbd36fd5714f764a1b985025eed97e5498ce"
     },
     {
       "path": "packages/ui/components/shadcn/alert-dialog.tsx",
@@ -2253,7 +2262,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/button-component.tsx",
-      "sha256": "04599b0e93621d62c3c43d6636bd6253d6b5576eb4b160f41a1e211a9e5426c0"
+      "sha256": "0d6ef941609bc2afef2250a85d48252d7e6ce01154885bee0d6585f2f184d19a"
     },
     {
       "path": "packages/ui/components/shadcn/button-group-component.tsx",
@@ -2277,7 +2286,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/chart.tsx",
-      "sha256": "f943c0318b306417163bbcc9e9d2dd5c2a2c1102c89071478a0298a8e1314d4a"
+      "sha256": "f6cb25353b3f08cecffcbe77761aa3f85df57025f8c90d0242f071fa0860a632"
     },
     {
       "path": "packages/ui/components/shadcn/checkbox.tsx",
@@ -2425,7 +2434,7 @@
     },
     {
       "path": "packages/ui/components/shadcn/radio-group.tsx",
-      "sha256": "2be4b22801739d0faa3745f9e60ad6a41174edbb1948c1f8f6d23ffd987cac91"
+      "sha256": "050697341410347d7362994e6d72466da0c856aa08e75132a54a5fd404d051dc"
     },
     {
       "path": "packages/ui/components/shadcn/resizable.tsx",
@@ -2572,6 +2581,14 @@
       "sha256": "1aecdf81b54568c18c0ad72983a325e07e931f05ac3f1826e31eabf4ae6c636f"
     },
     {
+      "path": "tests/fixtures/base-ui-compliance/specs/workspace-navigation.spec.ts",
+      "sha256": "b7d464d2c93a7664b0369abc2bf367ccf2cc26034980b9f3a5edc4b6bcae6d44"
+    },
+    {
+      "path": "tests/unit/cms/web-studio-nav-rail-semantics.test.tsx",
+      "sha256": "bb17a358ba4ab703cd1afe929c735616a3eb6358745cfebf03d30ad582cba7eb"
+    },
+    {
       "path": "tests/unit/packages/ui/base-ui-class-name.test.tsx",
       "sha256": "6f5c8c5deec30c904760f94027ffcfdd11226e484e8d276574e89a55fb583772"
     },
@@ -2624,6 +2641,10 @@
       "sha256": "3d2efdc90e897b07a73663ded6acb9ecf8a7e6fe90d2a17da85a741f18ecfca9"
     },
     {
+      "path": "tests/unit/packages/ui/modernization-owned-controls.test.tsx",
+      "sha256": "1be89854608b2c4b59fa9b1f167cd09c3eb67683e7b8171b9de381a82ca7fb63"
+    },
+    {
       "path": "tests/unit/packages/ui/shadscan-toaster-portal.test.tsx",
       "sha256": "09b13f93411d92f32e60ba6358285a011964cfb417c89a8af903a2db3a35aa5c"
     },
@@ -2649,7 +2670,7 @@
     },
     {
       "path": "tests/unit/scripts/shadcn-upstream-review.test.ts",
-      "sha256": "da053ea6d7d88e6af570af4c55d4d42f1266282f24e2b068bf8466152c78518a"
+      "sha256": "8a1250c2181465358d6ea3403672a068f2e5767e57eab2854d2f6d24e5105de2"
     }
   ],
   "sourceMappings": [

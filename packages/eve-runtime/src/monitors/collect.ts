@@ -65,10 +65,7 @@ async function collectCiFailures(
         type: "ci_failure",
         checkId: String(run.id),
         conclusion: run.conclusion as
-          | "action_required"
-          | "cancelled"
-          | "failure"
-          | "timed_out",
+          "action_required" | "cancelled" | "failure" | "timed_out",
         observedAt: run.updated_at,
         repository: "Asymmetric-al/core",
         safeUrl: run.html_url,

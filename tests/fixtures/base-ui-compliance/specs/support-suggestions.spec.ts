@@ -104,11 +104,9 @@ test("Support eight-item keyboard navigation keeps the active option within the 
     viewport.y + viewport.height + 1,
   );
   await expect(editor).toBeFocused();
-  // Axe 4.11 only exempts combobox-owned popups from its ordinary scroll-region
-  // check. This multiline textbox controls the list and scrolls it with arrows;
-  // its popup deliberately stays outside the Tab sequence (WAI-ARIA focus model).
-  // Record the entire report and reject every additional rule/node instead of
-  // disabling a rule or changing the editor role to satisfy that matcher.
+  // Current axe recognizes the textbox-owned popup focus model. Keep the
+  // complete report and require zero violations; the old scroll-region
+  // exception is no longer needed. DOM focus remains in the editor.
   const report = await new AxeBuilder({ page })
     .include('#support-suggestion-contracts [contenteditable="true"]')
     .include('[role="listbox"]')
@@ -117,23 +115,7 @@ test("Support eight-item keyboard navigation keeps the active option within the 
     body: JSON.stringify(report, null, 2),
     contentType: "application/json",
   });
-  expect(report.violations.map((violation) => violation.id)).toEqual([
-    "scrollable-region-focusable",
-  ]);
-  const [node] = report.violations[0]!.nodes;
-  expect(report.violations[0]!.nodes).toHaveLength(1);
-  expect(node!.html).toContain('role="presentation"');
-  const selector = node!.target[0];
-  if (typeof selector !== "string")
-    throw new Error("Unexpected Axe target shape");
-  expect(
-    await popup
-      .locator("ul")
-      .evaluate(
-        (element, selector) => document.querySelector(selector) === element,
-        selector,
-      ),
-  ).toBe(true);
+  expect(report.violations).toEqual([]);
   await editor.press("Enter");
   await expect(popup).toBeHidden();
   await expect(

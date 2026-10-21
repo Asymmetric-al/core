@@ -40,12 +40,7 @@ interface ContributionGridRow {
   subStatus: string | null;
   type: "One-time" | "Recurring" | "Pledge" | "In-kind";
   paymentMethod:
-    | "Credit Card"
-    | "Bank Transfer"
-    | "Check"
-    | "Cash"
-    | "PayPal"
-    | "Other";
+    "Credit Card" | "Bank Transfer" | "Check" | "Cash" | "PayPal" | "Other";
   source: "Online" | "Mobile" | "In-person" | "Mail" | "Phone" | "Import";
   fundId: string | null;
   fundCode: string | null;

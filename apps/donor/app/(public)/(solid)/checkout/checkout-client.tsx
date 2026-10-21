@@ -445,20 +445,21 @@ function SummaryCard({
   );
 }
 
+const checkoutSteps: { key: Step; label: string }[] = [
+  { key: "config", label: "AMOUNT" },
+  { key: "details", label: "DETAILS" },
+  { key: "payment", label: "PAYMENT" },
+];
+
 function StepIndicator({ currentStep }: { currentStep: Step }) {
-  const steps: { key: Step; label: string }[] = [
-    { key: "config", label: "AMOUNT" },
-    { key: "details", label: "DETAILS" },
-    { key: "payment", label: "PAYMENT" },
-  ];
-  const currentIdx = steps.findIndex((s) => s.key === currentStep);
+  const currentIdx = checkoutSteps.findIndex((s) => s.key === currentStep);
 
   return (
     <nav
       className="flex items-center justify-center gap-2 sm:gap-4 mb-20"
       aria-label="Checkout progress"
     >
-      {steps.map((s, idx) => (
+      {checkoutSteps.map((s, idx) => (
         <div key={s.key} className="flex items-center gap-2 sm:gap-4">
           <div className="flex flex-col items-center gap-2">
             <div
@@ -484,7 +485,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
               {s.label}
             </span>
           </div>
-          {idx < steps.length - 1 && (
+          {idx < checkoutSteps.length - 1 && (
             <div className="h-px w-4 sm:w-8 bg-muted mb-6" aria-hidden="true" />
           )}
         </div>
@@ -661,14 +662,11 @@ function ConfigStep({
                 key={val}
                 value={val}
                 nativeButton
-                render={(radioProps) => <button {...radioProps}>${val}</button>}
-                className={cn(
-                  "w-full h-24 rounded-2xl border-2 font-semibold font-display text-2xl press-feedback",
-                  amount === val && !customAmount
-                    ? "border-primary bg-primary text-primary-foreground shadow-sm ring-4 ring-ring/15"
-                    : "border-border bg-muted text-foreground hover:border-border hover:bg-accent",
-                )}
-              />
+                variant="amount"
+                render={<button />}
+              >
+                ${val}
+              </RadioGroupItem>
             ))}
           </RadioGroup>
 

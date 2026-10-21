@@ -27,7 +27,14 @@ describe("admin PDF Studio native UI", () => {
 
     expect(source).toContain("/api/pdf-templates/native/preview");
     expect(source).toContain("/api/pdf-templates/native/render");
-    expect(source).toMatch(
+    const paneSource = readFileSync(
+      join(
+        process.cwd(),
+        "apps/admin/app/(app)/pdf/native-pdf-document-builder-section.tsx",
+      ),
+      "utf8",
+    );
+    expect(paneSource).toMatch(
       /<iframe\b(?=[^>]*\s+title\s*=\s*"Native PDF authoring preview")(?=[^>]*\s+sandbox\s*=\s*"allow-same-origin")[^>]*>/,
     );
     expect(source).not.toContain("@asym/docraptor-client");

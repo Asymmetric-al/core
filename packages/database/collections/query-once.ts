@@ -32,15 +32,7 @@ type QueryExpression =
   | { type: string; [key: string]: unknown };
 
 type SimpleFilterOperator =
-  | "eq"
-  | "neq"
-  | "gt"
-  | "gte"
-  | "lt"
-  | "lte"
-  | "isNull"
-  | "in"
-  | "inArray";
+  "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "isNull" | "in" | "inArray";
 
 interface QueryIr {
   from:

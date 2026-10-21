@@ -102,10 +102,7 @@ export function applyCrmViewSettingsPatch(
 }
 
 export type CrmViewSettingsScope =
-  | "columns"
-  | "filtersSort"
-  | "pinnedAction"
-  | "all";
+  "columns" | "filtersSort" | "pinnedAction" | "all";
 
 export type CrmViewSettingsSource = "user" | "tenant_default" | "system";
 

@@ -59,8 +59,7 @@ export const FORK_FAIL_MESSAGE = "fork PRs need a maintainer to run CI";
 
 function parseWorkflowYamlFile(absolutePath: string): { jobs?: WorkflowJobs } {
   const bun = globalThis.Bun as
-    | { YAML: { parse(input: string): unknown } }
-    | undefined;
+    { YAML: { parse(input: string): unknown } } | undefined;
   const source = readFileSync(absolutePath, "utf8");
   if (bun?.YAML) {
     return bun.YAML.parse(source) as { jobs?: WorkflowJobs };

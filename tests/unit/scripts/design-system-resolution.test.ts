@@ -4,6 +4,8 @@ import {
   mkdirSync,
   mkdtempSync,
   realpathSync,
+  readFileSync,
+  utimesSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -83,6 +85,10 @@ for (const relative of [
   "packages/ui/components/shadcn/card.tsx",
   "packages/ui/components/shadcn/tooltip.tsx",
   "packages/ui/components/shadcn/dialog.tsx",
+  "packages/ui/components/shadcn/collapsible.tsx",
+  "packages/ui/components/shadcn/field.tsx",
+  "packages/ui/components/shadcn/label.tsx",
+  "packages/ui/components/shadcn/separator.tsx",
   "packages/ui/lib/utils.ts",
   "packages/ui/styles/globals.css",
 ])
@@ -347,6 +353,188 @@ describe("Core component resolution through actual ESLint configurations", () =>
     expect(messagesFor(result)).toHaveLength(1);
     expect(messagesFor(result)[0].message).toContain("<Button>");
     expect(messagesFor(result)[0].message).toContain("icon-xs");
+  });
+
+  it("keeps native render presentation caller-owned only for proven classless Base UI wrappers", async () => {
+    const result = await lintFixture(
+      'import { TooltipTrigger } from "@asym/ui/components/shadcn/tooltip"; import { DialogTrigger } from "@asym/ui/components/shadcn/dialog"; import { buttonVariants } from "@asym/ui/components/shadcn/button"; export const Probe=()=> <><TooltipTrigger render={<a className={buttonVariants({variant:"link"})}/>}/><DialogTrigger render={<button className="px-2 text-sm bg-primary"/>}/></>;',
+    );
+    expect(result.messages).toEqual([]);
+    const invalid = await lintFixture(
+      'import { DialogTrigger } from "@asym/ui/components/shadcn/dialog"; export const Probe=()=> <DialogTrigger render={<button className="bg-zinc-500 p-[13px] hovr:flex" style={{width:13}}/>}/>;',
+    );
+    expect(messagesFor(invalid)).toEqual([]);
+    expect(invalid.messages.map((message) => message.ruleId).sort()).toEqual([
+      "shadcn/no-arbitrary-values",
+      "shadcn/no-inline-styles",
+      "shadcn/no-raw-colors",
+      "shadcn/no-unknown-classes",
+    ]);
+  });
+
+  it("recognizes the real parenthesized classless Collapsible trigger", async () => {
+    const result = await lintFixture(
+      'import { CollapsibleTrigger } from "@asym/ui/components/shadcn/collapsible"; export const View=()=> <CollapsibleTrigger render={<button className="px-2 py-4 text-sm bg-primary"/>}/>;',
+    );
+    expect(result.messages).toEqual([]);
+    const opaque = await lintFixture(
+      'import { CollapsibleTrigger } from "@asym/ui/components/shadcn/collapsible"; export const View=()=> <CollapsibleTrigger render={<Unknown className="p-8"/>}/>;',
+    );
+    expect(messagesFor(opaque)).toHaveLength(1);
+  });
+
+  it("protects styled ButtonLink composition while retaining its supported variant API", async () => {
+    const valid = await lintFixture(
+      'import { ButtonLink } from "@asym/ui/components/shadcn/button"; import { TooltipTrigger } from "@asym/ui/components/shadcn/tooltip"; export const View=()=> <TooltipTrigger render={<ButtonLink href="/pages" variant="ghost" size="icon-sm"/>}/>;',
+    );
+    expect(valid.messages).toEqual([]);
+    const invalid = await lintFixture(
+      'import { ButtonLink } from "@asym/ui/components/shadcn/button"; import { TooltipTrigger } from "@asym/ui/components/shadcn/tooltip"; export const View=()=> <TooltipTrigger render={<ButtonLink href="/pages" className="p-8"/>}/>;',
+    );
+    expect(messagesFor(invalid)).toHaveLength(1);
+    expect(messagesFor(invalid)[0].message).toContain("<ButtonLink>");
+  });
+
+  it("retains a styled owner's protection on its native render target", async () => {
+    const result = await lintFixture(
+      'import { Button } from "@asym/ui/components/shadcn/button"; export const Probe=()=> <Button render={<a className="p-8"/>}/>;',
+    );
+    expect(messagesFor(result)).toHaveLength(1);
+    expect(messagesFor(result)[0].message).toContain("<Button>");
+  });
+
+  it("invalidates classless-owner proof when its own implementation gains styling", async () => {
+    const file = path.join(fixture, "packages/ui/components/shadcn/dialog.tsx");
+    const source = readFileSync(file, "utf8");
+    const probe =
+      'import { DialogTrigger } from "@asym/ui/components/shadcn/dialog"; export const Probe=()=> <DialogTrigger render={<button className="p-8"/>}/>;';
+    expect(messagesFor(await lintFixture(probe))).toEqual([]);
+    try {
+      writeFileSync(
+        file,
+        source.replace(
+          'data-slot="dialog-trigger" {...props}',
+          'data-slot="dialog-trigger" className="p-2" {...props}',
+        ),
+      );
+      const changed = new Date(Date.now() + 2000);
+      utimesSync(file, changed, changed);
+      const result = await lintFixture(probe);
+      expect(messagesFor(result)).toHaveLength(1);
+      expect(messagesFor(result)[0].message).toContain("<DialogTrigger>");
+    } finally {
+      writeFileSync(file, source);
+      const restored = new Date(Date.now() + 4000);
+      utimesSync(file, restored, restored);
+    }
+  });
+
+  it("retains conservative protection for an unresolved custom render component", async () => {
+    const result = await lintFixture(
+      'import { DialogTrigger } from "@asym/ui/components/shadcn/dialog"; export const Probe=()=> <DialogTrigger render={<Unknown className="p-8"/>}/>;',
+    );
+    expect(messagesFor(result)).toHaveLength(1);
+  });
+
+  it("does not infer classless ownership through an unknown higher-order component", async () => {
+    const file = path.join(fixture, "packages/ui/components/shadcn/dialog.tsx");
+    const source = readFileSync(file, "utf8");
+    try {
+      writeFileSync(
+        file,
+        source.replace(
+          /function DialogTrigger\(\{ \.\.\.props \}: DialogPrimitive.Trigger.Props\) \{[\s\S]*?\n\}/,
+          'const DialogTrigger = decorate(({ ...props }: DialogPrimitive.Trigger.Props) => { return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />; });',
+        ),
+      );
+      const result = await lintFixture(
+        'import { DialogTrigger } from "@asym/ui/components/shadcn/dialog"; export const Probe=()=> <DialogTrigger render={<button className="p-8"/>}/>;',
+      );
+      expect(messagesFor(result)).toHaveLength(1);
+    } finally {
+      writeFileSync(file, source);
+    }
+  });
+
+  it.each([
+    'import { Dialog as props } from "@base-ui/react/dialog"; export function Probe({ ...props }) { return <props.Trigger data-slot="probe" {...props} />; }',
+    'import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"; export const Probe = function DialogPrimitive({ ...props }) { return <DialogPrimitive.Trigger data-slot="probe" {...props} />; };',
+  ])(
+    "rejects lexical shadowing of the imported primitive: %s",
+    async (source) => {
+      const name = `shadow-${sequence++}`;
+      write(`packages/ui/components/shadcn/${name}.tsx`, source);
+      const result = await lintFixture(
+        `import { Probe } from "@asym/ui/components/shadcn/${name}"; export const View=()=> <Probe render={<button className="p-8"/>}/>;`,
+      );
+      expect(messagesFor(result)).toHaveLength(1);
+    },
+  );
+
+  it("preserves raw Base UI namespace provenance through aliased shared re-exports", async () => {
+    write(
+      "apps/donor/components/headless-field.ts",
+      'export { FieldPrimitive as Raw } from "@asym/ui/components/shadcn/field";',
+    );
+    for (const [specifier, imported] of [
+      ["@asym/ui/components/shadcn/field", "FieldPrimitive"],
+      ["../headless-field", "Raw"],
+    ]) {
+      const result = await lintFixture(
+        `import { ${imported} as Headless } from "${specifier}"; export const View=()=> <Headless.Label className="text-sm font-medium text-foreground"/>;`,
+      );
+      expect(result.messages).toEqual([]);
+    }
+    const styled = await lintFixture(
+      'import { FieldLabel as Heading } from "@asym/ui/components/shadcn/field"; export const View=()=> <Heading className="text-xl"/>;',
+    );
+    expect(messagesFor(styled)).toHaveLength(1);
+  });
+
+  it("keeps local namespace members attached to their styled owner", async () => {
+    write(
+      "packages/ui/components/shadcn/local-controls.ts",
+      'export * as Controls from "./button";',
+    );
+    const result = await lintFixture(
+      'import { Controls } from "@asym/ui/components/shadcn/local-controls"; export const View=()=> <Controls.Button className="p-8"/>;',
+    );
+    expect(messagesFor(result)).toHaveLength(1);
+    expect(messagesFor(result)[0].message).toContain("<Button>");
+    expect(messagesFor(result)[0].message).toContain("icon-xs");
+  });
+
+  it("does not treat arbitrary external namespace re-exports as raw Base UI", async () => {
+    write(
+      "node_modules/@fixture/styled-controls/package.json",
+      JSON.stringify({
+        name: "@fixture/styled-controls",
+        exports: "./index.tsx",
+      }),
+    );
+    write(
+      "node_modules/@fixture/styled-controls/index.tsx",
+      "export function Trigger({className, ...props}) { return <button className={className} {...props}/>; }",
+    );
+    write(
+      "packages/ui/components/shadcn/external-controls.ts",
+      'export * as ExternalControls from "@fixture/styled-controls";',
+    );
+    const result = await lintFixture(
+      'import { ExternalControls } from "@asym/ui/components/shadcn/external-controls"; export const View=()=> <ExternalControls.Trigger className="p-8"/>;',
+    );
+    expect(messagesFor(result)).toHaveLength(1);
+    const rawInvalid = await lintFixture(
+      'import { FieldPrimitive } from "@asym/ui/components/shadcn/field"; export const View=()=> <FieldPrimitive.Label className="bg-zinc-500 p-[13px] hovr:flex"/>;',
+    );
+    expect(messagesFor(rawInvalid)).toEqual([]);
+    expect(rawInvalid.messages.map((message) => message.ruleId).sort()).toEqual(
+      [
+        "shadcn/no-arbitrary-values",
+        "shadcn/no-raw-colors",
+        "shadcn/no-unknown-classes",
+      ],
+    );
   });
 
   it("retains trigger protection when the render target is opaque", async () => {

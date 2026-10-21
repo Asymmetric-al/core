@@ -89,8 +89,7 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 type StaffAuthResult =
-  | { ok: true; ctx: TenantCtx }
-  | { ok: false; response: Response };
+  { ok: true; ctx: TenantCtx } | { ok: false; response: Response };
 
 async function requireStaff(req: PayloadRequest): Promise<StaffAuthResult> {
   const ctx = getTenantContext(req);
@@ -445,8 +444,7 @@ async function createMissionaryGivingPageFromTemplate(
   });
 
   const matchedProfile = profileMatch.docs[0] as
-    | { id?: string | number }
-    | undefined;
+    { id?: string | number } | undefined;
   const missionaryProfileId =
     matchedProfile &&
     typeof matchedProfile === "object" &&

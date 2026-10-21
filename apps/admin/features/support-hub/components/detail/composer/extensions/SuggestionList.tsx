@@ -142,9 +142,6 @@ export const SuggestionList = React.forwardRef<
                   type="button"
                   id={optionId(index)}
                   role="option"
-                  aria-label={[item.label, item.description, item.hint]
-                    .filter(Boolean)
-                    .join(" ")}
                   aria-selected={isActive}
                   tabIndex={-1}
                   className={cn(
@@ -161,13 +158,13 @@ export const SuggestionList = React.forwardRef<
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-xs font-medium">
                       {item.label}
-                    </span>
+                    </span>{" "}
                     {item.description ? (
                       <span className="truncate text-xs text-popover-foreground">
                         {item.description}
                       </span>
                     ) : null}
-                  </div>
+                  </div>{" "}
                   {item.hint ? (
                     <span className="ml-2 inline-flex items-center rounded-md border border-border bg-popover px-1.5 py-0.5 font-mono text-xs text-popover-foreground">
                       {item.hint}

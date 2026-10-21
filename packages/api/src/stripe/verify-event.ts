@@ -10,9 +10,7 @@ import type Stripe from "stripe";
  */
 
 export type StripeWebhookVerificationReason =
-  | "missing_signature"
-  | "not_configured"
-  | "invalid_signature";
+  "missing_signature" | "not_configured" | "invalid_signature";
 
 export class StripeWebhookVerificationError extends Error {
   constructor(

@@ -1,11 +1,7 @@
 import { CONTRIBUTION_CORRECTION_MERGE_TAG_CATEGORY } from "./contribution-correction-tags";
 
 export type MergeTagValueType =
-  | "string"
-  | "currency"
-  | "date"
-  | "url"
-  | "number";
+  "string" | "currency" | "date" | "url" | "number";
 
 export interface MergeTagDefinition {
   key: string;

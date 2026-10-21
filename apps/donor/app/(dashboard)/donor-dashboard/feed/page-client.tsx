@@ -54,6 +54,8 @@ interface Post {
   saved?: boolean;
 }
 
+const feedFilters: FilterType[] = ["All", "Update", "Saved"];
+
 // --- Components ---
 
 const FeedFilter = ({
@@ -63,12 +65,10 @@ const FeedFilter = ({
   current: FilterType;
   onChange: (val: FilterType) => void;
 }) => {
-  const filters: FilterType[] = ["All", "Update", "Saved"];
-
   return (
     <div className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl border-b border-border/50 py-4 mb-8 transition-[background-color,border-color,backdrop-filter] duration-200">
       <div className="flex items-center gap-2 overflow-x-auto px-1 max-w-2xl mx-auto">
-        {filters.map((type) => (
+        {feedFilters.map((type) => (
           <Button
             key={type}
             variant={current === type ? "default" : "outline"}

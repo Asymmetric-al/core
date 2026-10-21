@@ -116,10 +116,7 @@ export type DocumentCutoverRelianceCountKey =
   (typeof DOCUMENT_CUTOVER_RELIANCE_COUNT_KEYS)[number];
 
 export type DocumentCutoverProductionClassification =
-  | "production"
-  | "protected_non_production"
-  | "non_production"
-  | "unknown";
+  "production" | "protected_non_production" | "non_production" | "unknown";
 
 export interface DocumentCutoverEnvironmentIdentity {
   /** Canonical label, e.g. "local", "preview", "production". */

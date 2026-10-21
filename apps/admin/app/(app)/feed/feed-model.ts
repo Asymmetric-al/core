@@ -4,11 +4,7 @@ export type ModerationAction = "approve" | "hide" | "flag" | "delete" | "edit";
 export type ModerationTab = "moderation" | "all";
 export type VisibilityFilter = "all" | Visibility;
 export type PostTypeFilter =
-  | "all"
-  | "update"
-  | "prayer request"
-  | "story"
-  | "announcement";
+  "all" | "update" | "prayer request" | "story" | "announcement";
 export type SortOption = "newest" | "oldest" | "engagement";
 
 interface ContentModerationUiState {

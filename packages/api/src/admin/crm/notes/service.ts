@@ -62,10 +62,7 @@ export interface CreateMissionControlCrmNoteInput {
   body: string;
   linkedRecordId?: string | null;
   linkedRecordType?:
-    | "donor_profile"
-    | "missionary_profile"
-    | "organization"
-    | null;
+    "donor_profile" | "missionary_profile" | "organization" | null;
   linkedRecordLabel?: string | null;
   visibility?: "standard" | "restricted";
 }

@@ -7,56 +7,59 @@ backend work and prose-only edits do not require this workflow.
 
 ## Vetted version and compatibility
 
-`@asym/eslint-config` pins `@shadcn/lint@0.2.0` with a Core-maintained
-Bun compatibility patch. The
-[published tarball](https://registry.npmjs.org/@shadcn/lint/-/lint-0.2.0.tgz)
-was released on 2026-09-22; Bun's lockfile records its integrity. Official
-documentation and relevant source/tests were reviewed at
-[`a89d047`](https://github.com/shadcn-ui/lint/tree/a89d04792f340bcea26af2d539a9eec7285fcc77),
-and the installed package was checked separately. The downloaded SHA-512
-matches registry integrity. npm's provenance payload names the same source
-commit and release run; its signature chain was not independently verified.
-Do not overstate that evidence as independent source-to-build attestation.
+`@asym/eslint-config` owns the exact `@shadcn/lint@0.2.3` pin and its
+Core-maintained Bun patch. The [published tarball](https://registry.npmjs.org/@shadcn/lint/-/lint-0.2.3.tgz)
+was checked against registry SHA-512 integrity on 2026-10-21. Versioned
+[source, documentation and tests](https://github.com/shadcn-ui/lint/tree/bceee0febd2b84340d1650e338c3458e12bd356d)
+were reviewed separately. npm's provenance payload identifies that commit and
+[release run](https://github.com/shadcn-ui/lint/actions/runs/39208030916/attempts/1).
+Its signature chain was not independently verified; this is not independent
+source-to-build attestation.
 
 The root `patchedDependencies` entry applies
-`tooling/eslint-config/patches/@shadcn%2Flint@0.2.0.patch` reproducibly during frozen installation.
-The patch lives under the tooling owner so a patch-only change selects its
-consumer workspaces through the dependency graph. It repairs component-owner
-lookup inside `componentFromImport`, preserving upstream node_modules guards,
-and validates exact contract classes through the actual Tailwind compiler
-when static grammar/theme indexes do not contain plugin-generated classes.
-Unknown classes and broken themes still fail. Core configuration
-still calls the public ESLint plugin and no private API. This is a local
-upstream-defect repair, not an official fixed release. The resolution suite
-covers canonical and local/mixed barrels, aliases, wrappers, unrelated
-same-name components and exact typography-plugin contracts. Review both
-repairs alongside every package upgrade.
+`tooling/eslint-config/patches/@shadcn%2Flint@0.2.3.patch` during frozen installation.
+The tooling owner maintains five narrowly scoped repairs that remain necessary
+in the published release:
 
-The release supports Node >=20.19, ESLint >=9.30, and Tailwind 4. Core's
-verified toolchain is Node 24.15.0, ESLint 9.39.5, Tailwind 4.2.2,
-Bun 1.3.14, and Turbo 2.10.0. Core's tooling peer requires ESLint
-`^9.39.2` for the flat-config `basePath` API; the root requires `^9.39.5`.
-ESLint 9 is API-compatible but reached
-[EOL on 2026-08-06](https://eslint.org/version-support/); migrating the
-existing Next.js/shared lint stack to ESLint 10 requires compatible framework
-plugins. The current published React plugin still calls removed
-`context.getFilename()` and the React, JSX-a11y and import plugins exclude
-ESLint 10 in their peers. Do not force the major or drop their checks.
+1. Resolve a consumer barrel through the defining component index, retaining
+   upstream `node_modules` guards and import identity.
+2. Validate exact plugin-generated contract classes with the actual Tailwind
+   compiler. Unknown classes and broken themes still fail.
+3. Find a component's exact named, relative CVA factory in its defining file,
+   with refreshed cache data. Keep upstream local-prop and barrel fallbacks.
+4. Attribute native `render` target presentation to the caller only when the
+   current source proves a classless Base UI Trigger wrapper. Parenthesized
+   JSX is equivalent. Styled owners, custom or opaque targets, higher-order
+   components, shadowed imports and unknown implementations remain protected.
+5. Preserve raw Base UI namespace-member provenance through shared re-exports.
+   Local styled members and other external components keep their contracts.
 
-Use the published ESLint plugin export and supported options. This release
-does not supply a CLI, recommended preset, or theme-path setting. Core runtime integration does
-not import private APIs or use the experimental project API; the narrowly
-maintained package repair above is the explicit source modification. Relevant
-upstream references are the pinned
-[rules](https://github.com/shadcn-ui/lint/blob/a89d04792f340bcea26af2d539a9eec7285fcc77/docs/rules.md),
-[analysis model](https://github.com/shadcn-ui/lint/blob/a89d04792f340bcea26af2d539a9eec7285fcc77/docs/how-it-works.md),
-and [troubleshooting](https://github.com/shadcn-ui/lint/blob/a89d04792f340bcea26af2d539a9eec7285fcc77/docs/troubleshooting.md).
+These are upstream-defect repairs, not an official fixed release. The
+resolution, variant, theme and suppression suites are removal criteria:
+remove each repair only when a current unpatched upstream package passes its
+behavioral regressions. Requalify the patch on every release; an old hold is
+not sufficient justification. Core configuration calls the public ESLint
+plugin and supported options, with no private runtime API.
 
-Version 0.2.0 adds Vue/Svelte support and repairs comment handling inside barrel
-export lists. Core remains a React/TSX repository and needs no additional
-parser. Keep the existing six-rule policy. The commented-barrel regression
-covers canonical control identity and the delegated title typography contract;
-comments must not turn legal title typography into a consumer override.
+The release supports Node >=20.19, ESLint >=9.30, the TypeScript ESLint parser
+
+> =8.40, and Tailwind 4. The qualified cohort uses Node 24.22.1, Bun 1.4.3,
+> ESLint 10.13.0, TypeScript ESLint 8.72.0, Next lint configuration 16.4.2,
+> Tailwind 4.3.3, and Turbo 2.11.10. ESLint 10 compatibility is verified with the
+> installed React, Hooks, JSX accessibility, import and unused-import plugins;
+> retain their checks. Product compilation uses TypeScript 7 while AST tooling
+> uses the maintained JavaScript compiler API described in the
+> [compiler boundary](../../../rules/typescript-future-proofing.md).
+
+Use the published plugin export. This release has no CLI or recommended
+preset. Keep the six-rule policy and Core's explicit ownership contracts.
+Relevant versioned upstream references are the
+[rules](https://github.com/shadcn-ui/lint/blob/bceee0febd2b84340d1650e338c3458e12bd356d/docs/rules.md),
+[analysis model](https://github.com/shadcn-ui/lint/blob/bceee0febd2b84340d1650e338c3458e12bd356d/docs/how-it-works.md),
+and [troubleshooting](https://github.com/shadcn-ui/lint/blob/bceee0febd2b84340d1650e338c3458e12bd356d/docs/troubleshooting.md).
+New upstream coverage must be reviewed against source and existing behavior.
+Fix real findings through owned variants or composition. Prune reduced legacy
+suppression counts; never regenerate or increase them to absorb new findings.
 
 ## Ownership and boundaries
 
@@ -97,6 +100,14 @@ Dialog, Popover and Sheet content expose width, min-width and max-width through
 their actual popup APIs. Those dimensions are caller-owned; height, scrolling,
 focus, color, shape and motion remain protected. This does not grant width
 overrides on ordinary Buttons or Inputs.
+
+For navigation that needs button presentation, use shared `ButtonLink` from
+`@asym/ui/components/shadcn/button`, with the same `variant` and `size` axes.
+It uses Base UI `useRender` to compose a router Link while keeping anchor
+semantics, refs, modified clicks and the router's handlers. `Button` is for
+actions: Base UI intentionally assigns button semantics even when its
+`render` target is an anchor. Do not use it for navigation or override the
+role to conceal the mismatch.
 
 For long dialog content, use the shared `DialogContent scrollable` API. It
 keeps the popup within the dynamic viewport using the existing spacing-scale

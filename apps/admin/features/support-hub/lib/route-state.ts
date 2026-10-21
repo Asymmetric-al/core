@@ -100,8 +100,7 @@ export function useSupportInboxState(): SupportInboxRouteStateApi {
       view: params[SUPPORT_INBOX_SEARCH_PARAM_KEYS.view],
       layout: params[SUPPORT_INBOX_SEARCH_PARAM_KEYS.layout],
       status: params[SUPPORT_INBOX_SEARCH_PARAM_KEYS.status] as
-        | SupportConversationStatus
-        | "all",
+        SupportConversationStatus | "all",
       q: params[SUPPORT_INBOX_SEARCH_PARAM_KEYS.q],
       labelSlugs: params[SUPPORT_INBOX_SEARCH_PARAM_KEYS.label],
       assignee: params[SUPPORT_INBOX_SEARCH_PARAM_KEYS.assignee],

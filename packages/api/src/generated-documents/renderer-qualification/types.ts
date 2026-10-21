@@ -141,9 +141,7 @@ export type HeldBackCaseId = (typeof HELD_BACK_CASE_IDS)[number];
 export type QualificationCaseId = HeldBackCaseId | OpenCaseId;
 
 export type QualificationOutputProfile =
-  | "accessible-archive-v1"
-  | "accessible-v1"
-  | "both";
+  "accessible-archive-v1" | "accessible-v1" | "both";
 
 export interface QualificationCaseExpectation {
   protected_facts: readonly string[];

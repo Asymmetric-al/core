@@ -512,11 +512,7 @@ export function MapOverlay({
   children: ReactNode;
   className?: string;
   position?:
-    | "top-left"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-right"
-    | "center";
+    "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
 }) {
   return (
     <div

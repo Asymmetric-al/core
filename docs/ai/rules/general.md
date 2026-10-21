@@ -45,7 +45,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 ### Documentation rule
 
-- If build steps change, update `README.md` and `docs/CONTRIBUTING.md`.
+- If build steps change, update `README.md` and `CONTRIBUTING.md`.
 
 ## Workflow
 

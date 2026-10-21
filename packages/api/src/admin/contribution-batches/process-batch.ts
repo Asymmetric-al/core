@@ -38,11 +38,7 @@ const RUNNING_ITEM_STALE_AFTER_MS = 5 * 60 * 1000;
 const OPEN_ITEM_STALE_AFTER_MS = 30 * 60 * 1000;
 
 type PersistedBatchItemStatus =
-  | "pending"
-  | "running"
-  | "succeeded"
-  | "skipped"
-  | "failed";
+  "pending" | "running" | "succeeded" | "skipped" | "failed";
 
 interface BatchItemSummary {
   processed: number;
