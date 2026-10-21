@@ -1,8 +1,15 @@
 import { test as base, expect } from "@playwright/test";
 
-export const test = base.extend<{ runtimeErrors: string[] }>({
+type Fixture = {
+  path: string;
+  heading: string;
+  themeAfterNavigation?: boolean;
+};
+
+export const test = base.extend<{ runtimeErrors: string[]; fixture: Fixture }>({
+  fixture: [{ path: "/", heading: "Base UI contracts" }, { option: true }],
   runtimeErrors: [
-    async ({ page }, use, testInfo) => {
+    async ({ page, fixture }, use, testInfo) => {
       const errors: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
       page.on("console", (message) => {
@@ -23,27 +30,34 @@ export const test = base.extend<{ runtimeErrors: string[] }>({
           await route.abort();
         }
       });
-      await page.addInitScript((dark) => {
-        const applyTheme = () => {
-          if (!document.documentElement) return false;
-          document.documentElement.classList.toggle("dark", dark);
-          return true;
-        };
-        if (!applyTheme()) {
-          const observer = new MutationObserver(() => {
-            if (applyTheme()) observer.disconnect();
-          });
-          observer.observe(document, { childList: true });
-        }
-      }, testInfo.project.use.colorScheme === "dark");
-      await page.goto("/");
+      if (!fixture.themeAfterNavigation)
+        await page.addInitScript((dark) => {
+          const applyTheme = () => {
+            if (!document.documentElement) return false;
+            document.documentElement.classList.toggle("dark", dark);
+            return true;
+          };
+          if (!applyTheme()) {
+            const observer = new MutationObserver(() => {
+              if (applyTheme()) observer.disconnect();
+            });
+            observer.observe(document, { childList: true });
+          }
+        }, testInfo.project.use.colorScheme === "dark");
+      await page.goto(fixture.path);
+      if (fixture.themeAfterNavigation) {
+        await page.evaluate(
+          (dark) => document.documentElement.classList.toggle("dark", dark),
+          testInfo.project.use.colorScheme === "dark",
+        );
+      }
       expect(
         await page.evaluate(
           () => matchMedia("(prefers-reduced-motion: reduce)").matches,
         ),
       ).toBe(testInfo.project.use.contextOptions?.reducedMotion === "reduce");
       await expect(
-        page.getByRole("heading", { name: "Base UI contracts", exact: true }),
+        page.getByRole("heading", { name: fixture.heading, exact: true }),
       ).toBeVisible();
       await use(errors);
       expect(

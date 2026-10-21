@@ -6,7 +6,7 @@ const reactDoctorRunner = "bunx";
 // Do not add `--bun` here: react-doctor spawns its rule engine over Node IPC
 // and calls `child.channel.unref()`, which Bun's ChildProcess lacks. Forcing
 // the Bun runtime makes every target fail before any rule executes.
-export const REACT_DOCTOR_VERSION = "0.9.17";
+export const REACT_DOCTOR_VERSION = "0.9.18";
 const baseArgs = [`react-doctor@${REACT_DOCTOR_VERSION}`];
 const offlineArgs = ["--no-score", "--no-supply-chain", "--no-telemetry"];
 

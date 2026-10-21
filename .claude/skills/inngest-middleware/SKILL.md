@@ -200,9 +200,7 @@ npm install @inngest/middleware-sentry
 import * as Sentry from "@sentry/node";
 import { sentryMiddleware } from "@inngest/middleware-sentry";
 
-Sentry.init({
-  /* your Sentry config */
-});
+Sentry.init({/* your Sentry config */});
 
 const inngest = new Inngest({
   id: "my-app",

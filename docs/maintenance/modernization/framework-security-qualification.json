@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "framework-security",
+  "owner": "AL-1965",
+  "status": "merged-and-qualified",
+  "versions": {
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "node": "24.22.1",
+    "bun": "1.4.3"
+  },
+  "pullRequest": {
+    "baseRefName": "develop",
+    "headRefOid": "32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa",
+    "mergeCommit": {
+      "oid": "dfaa201242c6ad468bf2d343aa18e8f223f67c5c"
+    },
+    "mergedAt": "2026-10-21T12:23:28Z",
+    "state": "MERGED",
+    "url": "https://github.com/Asymmetric-al/core/pull/2175"
+  },
+  "developReadback": {
+    "commit": "dfaa201242c6ad468bf2d343aa18e8f223f67c5c",
+    "qualifiedHeadIsAncestor": true,
+    "mergeCommitIsAncestor": true,
+    "verifiedAt": "2026-10-21T12:23:32.334972+00:00"
+  },
+  "localQualification": {
+    "runtime": "WSL Ubuntu-24.04 / Node 24.22.1 / Bun 1.4.3",
+    "command": "git push (normal pre-push full ci:preflight)",
+    "passedTestFiles": 890,
+    "passedTests": 7216,
+    "skippedTests": 4,
+    "expectedFailures": 1,
+    "skippedTestFiles": 2,
+    "appBuilds": ["admin", "donor", "missionary"],
+    "productionInstantNavigation": {
+      "passedTests": 7,
+      "commit": "b1b92df400d7e7d47d224801e1f1bf862ac5a238",
+      "laterDelta": "Node target already 24.22.1; final change only corrected OpenSpec reconciliation wording"
+    },
+    "nativeImage": "200 image/webp, valid 64px output",
+    "frozenInstall": true
+  },
+  "ci": [
+    {
+      "workflow": "CI",
+      "commit": "32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa",
+      "run": 39596748587,
+      "conclusion": "success",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39596748587"
+    },
+    {
+      "workflow": "CI Integration",
+      "commit": "32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa",
+      "run": 39596748543,
+      "conclusion": "success",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39596748543"
+    },
+    {
+      "workflow": "QA Smoke Preview Deploy",
+      "commit": "32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa",
+      "run": 39596959418,
+      "conclusion": "success",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39596959418"
+    },
+    {
+      "workflow": "CI",
+      "commit": "dfaa201242c6ad468bf2d343aa18e8f223f67c5c",
+      "run": 39599217628,
+      "conclusion": "success",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39599217628"
+    },
+    {
+      "workflow": "CI Integration",
+      "commit": "dfaa201242c6ad468bf2d343aa18e8f223f67c5c",
+      "run": 39599217716,
+      "conclusion": "success",
+      "url": "https://github.com/Asymmetric-al/core/actions/runs/39599217716"
+    }
+  ],
+  "previews": [
+    {
+      "name": "admin",
+      "id": "dpl_DxgJ29KAubJXK5uAJfv2JqGRSkaA",
+      "url": "admin-3s39q67le-asymmetric-al.vercel.app",
+      "head": "32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa",
+      "state": "READY",
+      "http": {
+        "type": "http",
+        "name": "admin",
+        "path": "/web-studio",
+        "success": true,
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "matchedPath": "/login",
+        "title": "Sign in | Mission Control",
+        "hasServerError": false
+      }
+    },
+    {
+      "name": "donor",
+      "id": "dpl_Ben5GqWVLz3xtB74QXQiVq2jTAeX",
+      "url": "donor-nme3bnh9w-asymmetric-al.vercel.app",
+      "head": "32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa",
+      "state": "READY",
+      "http": {
+        "type": "http",
+        "name": "donor",
+        "path": "/",
+        "success": true,
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "matchedPath": "/",
+        "title": "GiveHope | Direct Aid to Frontline Missionaries | GiveHope",
+        "hasServerError": false
+      }
+    },
+    {
+      "name": "missionary",
+      "id": "dpl_Cz595fnjP6fPjNoGGboet6gkJLgK",
+      "url": "missionary-c7uazvb3o-asymmetric-al.vercel.app",
+      "head": "32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa",
+      "state": "READY",
+      "http": {
+        "type": "http",
+        "name": "missionary",
+        "path": "/login",
+        "success": true,
+        "status": 200,
+        "contentType": "text/html; charset=utf-8",
+        "matchedPath": "/login",
+        "title": "Sign in | Missionary Dashboard",
+        "hasServerError": false
+      }
+    }
+  ],
+  "review": {
+    "changedFiles": 40,
+    "localRemoteFileSetEqual": true,
+    "unresolvedThreads": 0,
+    "codeRabbit": "success; one documentation finding corrected and resolved",
+    "independentReview": "source, runtime, lock graph and all changed-file coverage",
+    "hostedCodexCursor": "usage limited; not represented as completed reviews"
+  },
+  "nodeDistribution": {
+    "url": "https://nodejs.org/dist/v24.22.1/SHASUMS256.txt",
+    "file": "node-v24.22.1-linux-x64.tar.xz",
+    "sha256": "6c172a9ab6718f7b801fb5a7bd486af2ee5e32758086a04b84fcce2aa77095e6",
+    "checksumVerified": true,
+    "hostedVerification": "Vercel Node 24.x family; patch not exposed"
+  },
+  "followups": [
+    {
+      "finding": "Home Date.now warning also reproduces at baseline",
+      "owner": "telemetry cohort",
+      "status": "open"
+    },
+    {
+      "finding": "Explicit fixture mode loaded local environment inputs",
+      "owner": "tooling cohort",
+      "status": "implementation in progress"
+    }
+  ],
+  "productionExecution": false
+}

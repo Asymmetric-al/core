@@ -240,8 +240,8 @@ describe("shadcn upstream review gate", () => {
       runCli(["--version"]),
     ]);
     expect(versions.map((version) => version.trim())).toEqual([
-      "4.21.4",
-      "4.21.4",
+      "4.22.1",
+      "4.22.1",
     ]);
   });
 
@@ -508,7 +508,7 @@ describe("shadcn upstream review gate", () => {
     expect(existsSync(input.installerMarker)).toBe(false);
   });
 
-  it.each([undefined, "^4.21.4", "4.21.1", "4.20.4"])(
+  it.each([undefined, "^4.22.1", "4.21.1", "4.20.4"])(
     "rejects an absent or nonexact project CLI pin: %s",
     (version) => {
       const input = installedCliFixture();

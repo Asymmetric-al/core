@@ -5,6 +5,8 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { REACT_DOCTOR_VERSION } from "../../../scripts/react-doctor-first-party.mjs";
+
 import {
   findingIdentity,
   reviewReactDoctorFindings,
@@ -58,7 +60,7 @@ function fixture() {
   };
   const ledger = {
     schemaVersion: 1,
-    reactDoctorVersion: "0.9.17",
+    reactDoctorVersion: REACT_DOCTOR_VERSION,
     configHash: digest,
     exceptions: [record],
   };
@@ -136,7 +138,7 @@ describe("React Doctor evidence ledger", () => {
     };
     const ledger = {
       schemaVersion: 1,
-      reactDoctorVersion: "0.9.17",
+      reactDoctorVersion: REACT_DOCTOR_VERSION,
       configHash: digest,
       exceptions: [
         {
@@ -320,7 +322,7 @@ describe("React Doctor supported CLI report boundary", () => {
   };
   const report = {
     schemaVersion: 3,
-    version: "0.9.17",
+    version: REACT_DOCTOR_VERSION,
     mode: "full",
     ok: true,
     error: null,

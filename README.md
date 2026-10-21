@@ -375,6 +375,12 @@ Common commands:
 - `bun run verify:shadscan` (locked workspace audit, independent app floors and reviewed evidence; [guide](docs/guides/development/shadscan.md))
 - Canonical PR/push-readiness gate: `bun run ci:preflight` (routine development skips full compilation; dependency/build changes compile affected apps). Full QA/release checkpoint: `bun run ci:preflight -- --full`.
 
+Unit tests use Vitest's supported V8 coverage provider. Reports measure imported
+source under configured filters; they are not a whole-repository coverage census.
+Product builds use TypeScript 7, while AST/parser/editor tools retain the maintained
+TypeScript 6 API. See the [compiler boundary](docs/guides/typescript-6-readiness.md)
+and [tooling qualification record](docs/maintenance/modernization/development-tools.md).
+
 ### Git Hooks Setup
 
 Husky hooks:

@@ -84,11 +84,11 @@ export function AutomationDryRunPreview({
     [conversations.data],
   );
   const firstConversationId = rows[0]?.id ?? null;
-  const [selectedConversationId, setConversationId] = React.useState<
+  const [selectedConversationId, setSelectedConversationId] = React.useState<
     string | null
   >(firstConversationId);
   if (selectedConversationId === null && firstConversationId !== null) {
-    setConversationId(firstConversationId);
+    setSelectedConversationId(firstConversationId);
   }
   const conversationId = selectedConversationId ?? "";
 
@@ -112,7 +112,7 @@ export function AutomationDryRunPreview({
           disabled={rows.length === 0}
           onClick={() => {
             const next = rows[Math.floor(Math.random() * rows.length)];
-            if (next) setConversationId(next.id);
+            if (next) setSelectedConversationId(next.id);
           }}
           className="h-7 gap-1 rounded-lg px-2 font-bold uppercase tracking-wider"
         >
@@ -126,7 +126,7 @@ export function AutomationDryRunPreview({
           if (value === null) {
             return;
           }
-          setConversationId(value);
+          setSelectedConversationId(value);
         }}
         disabled={rows.length === 0}
         aria-label="Conversation to test"

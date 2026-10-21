@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -245,24 +251,42 @@ export function parseFailedTests(output) {
   });
 }
 
-function readCoverageCaveat(rootDir) {
+export function readCoverageCaveat(rootDir, { notBefore = 0 } = {}) {
   const summaryPath = path.join(rootDir, "coverage", "coverage-summary.json");
   if (!existsSync(summaryPath)) {
-    return "Coverage summary was not generated.";
+    return "Coverage unavailable: summary was not generated.";
   }
 
   try {
-    const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
-    if (summary?.meta?.provider === "custom-v8-raw") {
-      return `${summary.meta.note ?? "Custom coverage provider is active."} totalScripts: ${
-        summary.meta.totalScripts ?? "unknown"
-      }.`;
+    if (statSync(summaryPath).mtimeMs < notBefore) {
+      return "Coverage unavailable: summary predates this run.";
     }
+    const summary = JSON.parse(readFileSync(summaryPath, "utf8"));
+    const measured = [];
+    for (const name of ["lines", "statements", "branches", "functions"]) {
+      const metric = summary?.total?.[name];
+      if (
+        !metric ||
+        !Number.isInteger(metric.total) ||
+        metric.total <= 0 ||
+        !Number.isInteger(metric.covered) ||
+        metric.covered < 0 ||
+        metric.covered > metric.total ||
+        !Number.isFinite(metric.pct) ||
+        metric.pct < 0 ||
+        metric.pct > 100 ||
+        Math.abs(metric.pct - (metric.covered / metric.total) * 100) > 0.02
+      ) {
+        return `Coverage unavailable: ${name} has no valid measured totals.`;
+      }
+      measured.push(
+        `${name} ${metric.pct}% (${metric.covered}/${metric.total})`,
+      );
+    }
+    return `Measured source coverage: ${measured.join(", ")}. Scope follows configured source filters.`;
   } catch (error) {
-    return `Coverage summary could not be parsed: ${error.message}`;
+    return `Coverage unavailable: summary could not be parsed: ${error.message}`;
   }
-
-  return "Coverage summary generated.";
 }
 
 function uniqueFailureFiles(failures) {
@@ -484,6 +508,7 @@ async function main() {
   }
 
   const reportDir = path.resolve(rootDir, options.reportDir);
+  const startedAt = Date.now();
   const baseline = runCommand("bun", ["run", "test:unit"], {
     cwd: rootDir,
     env: {
@@ -501,7 +526,7 @@ async function main() {
     failures.length > 0 ? runTargetedReruns(failures, rootDir) : [];
   const report = buildReport({
     baseline,
-    coverageCaveat: readCoverageCaveat(rootDir),
+    coverageCaveat: readCoverageCaveat(rootDir, { notBefore: startedAt }),
     failures,
     reportDir: options.reportDir,
     reruns,

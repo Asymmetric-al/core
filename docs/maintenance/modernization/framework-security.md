@@ -1,7 +1,6 @@
 # Framework security checkpoint
 
-Status: implementation and qualification in progress. No merge or preview success
-is claimed until the evidence is recorded here.
+Status: **merged and qualified**. Production execution remains outside delivery.
 
 ## Frozen targets and upstream evidence
 
@@ -21,91 +20,71 @@ advisory output did not include all these upstream reports and is insufficient
 by itself. Native Sharp is already 0.35.5; decoder/output regressions remain
 part of this checkpoint.
 
-## Implementation evidence
+## Delivered behavior
 
-All direct Next/React runtime declarations move together, without narrowing
-library peer ranges. Node setup and local preflight enforce the Node 24 family
-at or above .node-version, and CI pins the exact tested release. Runtime tests
-cover old/new unsupported majors, older patches, malformed and prerelease values.
-The regressions failed before implementation; the focused 41-test suite passes
-(runtime/setup/preflight/config/native image coverage).
+All direct Next/React runtime declarations and the lock move together without
+narrowing library peer ranges. Node setup/preflight enforce the approved Node
+24 patch floor; CI freezes the tested patch. No app rendering configuration,
+schema, tenant boundary or payment serialization changed. Shadscan manifest
+proof hashes were reviewed and refreshed with identical classifications and
+floors. PDF compatibility dependencies remain owned by their later cohort.
 
-Bun retained lockfile format 1. The lock change adds only the patched Next and
-React cohort; it also prunes obsolete unreachable locked package records. The
-remaining PDF compatibility packages await their separate source migration.
-Shadscan manifest evidence was revalidated for the workspace root, admin,
-auth, database, library, missionary and UI packages. Ownership and locked
-Payload recovery/Sonner delegation remain unchanged. Regression tests cover
-those runtime delegates. No score floor, classification or finding suppression
-was weakened. The gate rejects stale hashes, so every changed manifest proof
-was inspected before its hash was refreshed.
+## Final qualification and merge
 
-Independent source review found no P0/P1 issues. Installed identities were
-independently verified across the apps/shared importers, including retained PDF
-compatibility dependencies. Frozen reinstall and lock-drift checks pass. The
-Final upstream metadata refresh on October 21 selected Node 24.22.1,
-released October 20. Its official distribution checksum was verified; local
-WSL now selects that patch. Earlier validation used Node 24.22.0 and must be
-repeated on the final target. Vercel reports Node 24.x for all
-three configured Core projects; this verifies the hosted family, not its patch.
+[PR #2175](https://github.com/Asymmetric-al/core/pull/2175) merged into develop on
+October 21 as `dfaa201242c6ad468bf2d343aa18e8f223f67c5c`, from qualified head
+`32d3ab6dbb6e41de37c57d6a2db3c456ab82ffaa`. Both commits were verified as develop
+ancestors; the merge tree equals the qualified tree. The
+[immutable checkpoint record](framework-security-qualification.json) retains
+exact versions, run IDs, deployment IDs, review coverage and readback.
 
-## Qualification evidence
+Normal full pre-push preflight passed on Node 24.22.1: 890 passing test files,
+7,216 passing tests, four skipped tests, one expected failure and two skipped
+files. All three real builds, frozen installation, workspace/lock, OpenSpec,
+skill parity, lint, typecheck and existing quality floors passed. The production
+donor instant-navigation rig passed seven tests and native image optimization
+returned valid WebP. Its last source delta was documentation wording only.
 
-The initial checkpoint head `de596f8ce246e59d0917be31ff371e7e69695b8e`
-passes the normal full pre-push preflight: all three real builds and 7,193
-passing unit tests. Frozen reinstall, workspace/lock checks, runtime/config/image
-regressions, CMS delegate and Sonner contracts pass. Production donor instant
-navigation passes seven tests; hermetic donor login/session/settings smoke
-passes five tests. Native image optimization returns valid WebP.
+[Exact-head CI](https://github.com/Asymmetric-al/core/actions/runs/39596748587),
+[integration](https://github.com/Asymmetric-al/core/actions/runs/39596748543) and
+[three-app authenticated preview smoke](https://github.com/Asymmetric-al/core/actions/runs/39596959418)
+passed. Each READY preview's project and commit were verified independently,
+with direct public/login/CMS-guard checks:
 
-[Current-head CI](https://github.com/Asymmetric-al/core/actions/runs/39584991299)
-and the required integration gates passed at that head. The
-[preview workflow](https://github.com/Asymmetric-al/core/actions/runs/39585529332)
-built all three applications and passed authenticated browser smoke for each:
+- [Admin](https://admin-3s39q67le-asymmetric-al.vercel.app)
+- [Donor](https://donor-nme3bnh9w-asymmetric-al.vercel.app)
+- [Missionary](https://missionary-c7uazvb3o-asymmetric-al.vercel.app)
 
-- [Admin](https://admin-6ro3zrzdl-asymmetric-al.vercel.app)
-- [Donor](https://donor-bvz3kj8nq-asymmetric-al.vercel.app)
-- [Missionary](https://missionary-1sp9r2irr-asymmetric-al.vercel.app)
+[Post-merge CI](https://github.com/Asymmetric-al/core/actions/runs/39599217628) and
+[post-merge integration](https://github.com/Asymmetric-al/core/actions/runs/39599217716)
+also passed. Policy-skipped instant-navigation workflow jobs are not counted
+as executed browser tests; the local production rig supplies that evidence.
+Vercel exposes Node 24.x for all three projects, without a verifiable patch.
 
-Vercel metadata confirms each preview's exact commit and expected project.
-Direct checks also pass the donor public page, admin CMS unauthenticated login
-guard, missionary login page and image serving. CodeRabbit reported no actionable
-findings; independent review includes its excluded lockfile. Hosted Codex/Cursor
-reviews could not run because their usage limits were reached.
+Paginated GraphQL/REST review reconciliation covered all 40 changed files,
+including the lockfile. CodeRabbit's documentation finding was corrected and
+its thread resolved; no unresolved threads remained. Independent reviewers
+covered source/runtime/lock behavior. Hosted Codex/Cursor reviews were usage
+limited and are not claimed as completed.
 
-## Outstanding qualification
+## Reconciliation and owned follow-ups
 
-The final pre-merge upstream refresh found Node 24.22.1. Exact runtime pins,
-setup floor and tests now include it. Full preflight passed at
-`ab628685abdec283a3359fe6a82b98f10791b4cc` with 890 passing test files and
-7,215 passing tests; final-head CI and previews must be repeated after this
-runtime refresh.
+OpenSpec [PR #2172](https://github.com/Asymmetric-al/core/pull/2172), merged as
+`5cf4855dc322eafcccfeca0dd528695ae72832d9`, is incorporated. Its accepted-contract
+reconciliation and OpenSpec 1.14.3 are reused. CI [PR #2160](https://github.com/Asymmetric-al/core/pull/2160)
+remains owned by its draft branch; this checkpoint does not duplicate it.
 
-OpenSpec [PR #2172](https://github.com/Asymmetric-al/core/pull/2172) merged as
-`5cf4855dc322eafcccfeca0dd528695ae72832d9` during qualification. Its OpenSpec
-1.14.3 update and accepted-contract reconciliation are reused. The only merge
-conflict was eight root manifest proof hashes; classification/rationale content
-was verified identical on both sides before hashing the combined manifest.
-A frozen installation, strict change validation and delta-compatibility checks
-pass with the combined tree. Fresh full preflight, exact-head CI/review/previews,
-merge and develop readback remain required after reconciliation. Previous-head
-preview success does not close those requirements.
+The combined gate exposed a pre-existing flaky subprocess deadline test.
+Controlled process events and time now prove expiry during backoff and a
+second attempt. All 136 tests in that file pass, retaining real subprocess
+integration cases. A deliberate deadline-reset mutant fails; production retry
+code is unchanged. Upstream UI proof hashes were refreshed without weakening
+scope or floors.
 
-The combined preflight exposed a pre-existing flaky 500 ms subprocess retry
-test. Its deadline checks now use controlled process events and time, covering
-expiry during both backoff and the second attempt. All 136 tests in the file
-pass, including the retained real subprocess integration cases. A deliberate
-per-attempt deadline-reset mutation fails the new regression; the production
-retry implementation is unchanged. The independently reviewed test hash was
-refreshed in the upstream UI baseline; its live comparison passes for 53
-installed components, 54 file diffs and 34 local adapters. No quality floor or
-test scope was reduced.
-
-The home-page Date.now warning also reproduces on the untouched baseline with
-the identical hermetic browser test, which passes there and on the patched
-release. The telemetry cohort owns its resolution. The CI environment wrapper's
-local credential loading in explicit fixture mode remains a tooling finding.
-No credential values were inspected.
+The home-page Date.now warning reproduces at the untouched baseline; telemetry
+owns it. Explicit fixture-mode local credential loading is owned by the tooling
+cohort. Neither finding is closed by this security checkpoint. No credential
+values were inspected.
 
 ## Rollback
 

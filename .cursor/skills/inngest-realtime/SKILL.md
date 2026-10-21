@@ -138,9 +138,7 @@ export const fulfillOrder = inngest.createFunction(
 
     // Inside step.run — use inngest.realtime.publish (already in a memoized step).
     const payment = await step.run("capture-payment", async () => {
-      const intent = await stripe.paymentIntents.create({
-        /* ... */
-      });
+      const intent = await stripe.paymentIntents.create({/* ... */});
 
       // Stream a partial update mid-step. No step-in-step wrapping needed.
       await inngest.realtime.publish(orderChannel(orderId).step, {

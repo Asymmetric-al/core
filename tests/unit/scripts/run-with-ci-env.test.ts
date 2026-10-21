@@ -91,6 +91,37 @@ describe("run-with-ci-env", () => {
     expect(env.SHARED).toBe("from-local");
   });
 
+  it("keeps explicit fixture mode independent of local credentials", async () => {
+    const tempRoot = await createTempDir("run-with-ci-env-fixture");
+    for (const file of [".env.local", ".env"]) {
+      await writeFile(
+        path.join(tempRoot, file),
+        "SUPABASE_SERVICE_ROLE_KEY=synthetic-local-secret\nE2E_AUTH_BYPASS=true\n",
+      );
+    }
+    const env: Record<string, string> = {
+      ASYM_USE_CI_ENV_DEFAULTS: "1",
+      E2E_AUTH_BYPASS: "false",
+    };
+
+    loadLocalEnvFiles({ repoRoot: tempRoot, env, loadEnvFile: undefined });
+
+    expect(env).toEqual({
+      ASYM_USE_CI_ENV_DEFAULTS: "1",
+      E2E_AUTH_BYPASS: "false",
+    });
+  });
+
+  it("still loads local inputs when fixture mode is explicitly disabled", async () => {
+    const tempRoot = await createTempDir("run-with-ci-env-live");
+    await writeFile(path.join(tempRoot, ".env.local"), "LOCAL_INPUT=fixture\n");
+    const env: Record<string, string> = { ASYM_USE_CI_ENV_DEFAULTS: "0" };
+
+    loadLocalEnvFiles({ repoRoot: tempRoot, env, loadEnvFile: undefined });
+
+    expect(env.LOCAL_INPUT).toBe("fixture");
+  });
+
   it("removes inherited NO_COLOR when launching Playwright", () => {
     const env = normalizeEnvForCommand(
       {

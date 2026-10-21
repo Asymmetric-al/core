@@ -10,7 +10,7 @@ import {
 describe("react-doctor first-party wrapper", () => {
   it("pins the audit and disables remote services even when callers omit offline flags", () => {
     const command = createReactDoctorCommand("apps/admin");
-    expect(command.args[0]).toBe("react-doctor@0.9.17");
+    expect(command.args[0]).toBe("react-doctor@0.9.18");
     expect(command.args).toEqual(
       expect.arrayContaining([
         "--no-score",
@@ -48,7 +48,7 @@ describe("react-doctor first-party wrapper", () => {
 
     expect(command.command).toBe("bunx");
     expect(command.args).toEqual([
-      "react-doctor@0.9.17",
+      "react-doctor@0.9.18",
       "apps/admin",
       "--verbose",
       "--scope",
@@ -72,7 +72,7 @@ describe("react-doctor first-party wrapper", () => {
     expect(
       createReactDoctorCommand("packages/ui", ["--fail-on=none"]).args,
     ).toEqual([
-      "react-doctor@0.9.17",
+      "react-doctor@0.9.18",
       "packages/ui",
       "--verbose",
       "--blocking=none",
@@ -91,7 +91,7 @@ describe("react-doctor first-party wrapper", () => {
         "none",
       ]).args,
     ).toEqual([
-      "react-doctor@0.9.17",
+      "react-doctor@0.9.18",
       "packages/ui",
       "--verbose",
       "--scope",
@@ -107,19 +107,19 @@ describe("react-doctor first-party wrapper", () => {
   it("wraps bunx through cmd.exe on Windows", () => {
     expect(
       createSpawnCommand(
-        { command: "bunx", args: ["react-doctor@0.9.17"] },
+        { command: "bunx", args: ["react-doctor@0.9.18"] },
         { platform: "win32", comSpec: "C:\\Windows\\System32\\cmd.exe" },
       ),
     ).toEqual({
       command: "C:\\Windows\\System32\\cmd.exe",
-      args: ["/d", "/s", "/c", "bunx", "react-doctor@0.9.17"],
+      args: ["/d", "/s", "/c", "bunx", "react-doctor@0.9.18"],
     });
   });
 
   it("spawns the command directly outside Windows", () => {
     const command = {
       command: "bunx",
-      args: ["react-doctor@0.9.17"],
+      args: ["react-doctor@0.9.18"],
     };
 
     expect(createSpawnCommand(command, { platform: "linux" })).toBe(command);

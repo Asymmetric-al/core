@@ -137,6 +137,14 @@ export function FormField({
   );
 }
 
+const socialIcons: Record<string, React.ElementType> = {
+  instagram: Instagram,
+  facebook: Facebook,
+  twitter: Twitter,
+  youtube: Youtube,
+  website: Globe,
+};
+
 export function SocialIcon({
   platform,
   url,
@@ -146,15 +154,7 @@ export function SocialIcon({
 }) {
   if (!url) return null;
 
-  const icons: Record<string, React.ElementType> = {
-    instagram: Instagram,
-    facebook: Facebook,
-    twitter: Twitter,
-    youtube: Youtube,
-    website: Globe,
-  };
-
-  const Icon = icons[platform] || Globe;
+  const Icon = socialIcons[platform] || Globe;
 
   return (
     <motion.div

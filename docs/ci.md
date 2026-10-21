@@ -254,7 +254,7 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 ### `test-unit`
 
 - _What it checks:_ Runs `bun run test:unit` (Vitest with coverage enabled, targets `tests/unit/**/*.test.ts(x)`, `environment: "node"`).
-- _Artifacts:_ Uploads generated `coverage/` as `unit-test-coverage` (`if-no-files-found: ignore`, retained for 7 days). Current development output includes `coverage-summary.json`, `coverage-final.json`, `v8-raw-coverage.json`, and `coverage-warnings.log`.
+- _Artifacts:_ Uploads generated `coverage/` as `unit-test-coverage` (`if-no-files-found: ignore`, retained for 7 days). The supported V8 provider emits measured `coverage-summary.json`, the standard Istanbul `coverage-final.json`, and an HTML report.
 - _Why it exists:_ Validates pure logic, utilities, and shared package behaviour without a browser or network.
 - _Debug locally:_ Run `bun run test:unit` to execute unit tests and generate coverage output in `coverage/`. For watch mode: `bunx vitest`.
 
@@ -276,7 +276,7 @@ To post only failing reports to a tracking issue:
 UNIT_FEEDBACK_GITHUB_ISSUE=203 bun run test:unit:feedback
 ```
 
-Current coverage caveat: the repo's custom raw V8 fallback provider writes coverage artifacts, but `coverage-summary.json` is not a line/statement/branch quality signal while it reports `totalScripts: 0`.
+Coverage uses `@vitest/coverage-v8` matching the exact Vitest release and runs under Node. Line, statement, branch and function metrics cover imported source files under the configured filters; they are not a whole-repository denominator. The unit feedback report validates measured totals and reports missing, malformed or zero-total summaries as unavailable. Historical fallback reports remain historical evidence, not measured coverage. A regression proves isolated-suite merging, uncovered source/branches, TypeScript source mapping and threshold enforcement.
 
 ---
 

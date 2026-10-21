@@ -17,7 +17,9 @@ The route most work travels. You have an idea and want it built.
 <!-- CORE-OVERLAY-START -->
 
 1. **Choose the grill depth.** Use **`/grill-with-docs`** for the normal codebase-backed interview: it is stateful, retaining what it learns in `CONTEXT.md` and ADRs. Use **`/grill-for-unknowns` instead** only when the user explicitly requests its map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet; it owns that session's grilling loop, so do not also run `/grilling` or `/grill-with-docs`. (No codebase? Use `/grill-me` — see Standalone.)
+
 <!-- CORE-OVERLAY-END -->
+
 2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer (state, business logic, a UI you have to see), detour through a prototype, bridged by **`/handoff`** in both directions (a prototype lives in its own directory, which is exactly what `/handoff` is for; see Phase boundaries):
    - **`/handoff`** out, then open a fresh session against that file,
    - **`/prototype`** to answer the question with throwaway code,
