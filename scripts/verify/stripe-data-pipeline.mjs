@@ -317,6 +317,8 @@ async function apiExposure(expected, environment, fetch) {
     );
     const body = await response.json();
     if (response.status === 406 && body.code === "PGRST106") return "passed";
+    // An anonymous privilege denial still proves the schema is exposed.
+    if (response.status === 401 && body?.code === "42501") return "failed";
     return response.status === 401 || response.status >= 500
       ? "incomplete"
       : "failed";

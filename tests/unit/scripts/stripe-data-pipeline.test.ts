@@ -290,8 +290,10 @@ describe("Stripe Data Pipeline verifier", () => {
     [406, { code: "PGRST106" }, "passed"],
     [200, {}, "failed"],
     [403, { code: "42501" }, "failed"],
+    [401, { code: "42501" }, "failed"],
     [401, { code: "invalid_key" }, "incomplete"],
     [503, {}, "incomplete"],
+    [503, { code: "42501" }, "incomplete"],
   ])(
     "requires hosted schema exclusion, HTTP %s => %s",
     async (status, body, check) => {
