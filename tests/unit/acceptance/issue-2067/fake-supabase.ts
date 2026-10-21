@@ -71,10 +71,7 @@ export function committedExposedSchemas(): string[] {
 const EXPOSED_SCHEMAS = new Set(committedExposedSchemas());
 
 export type FakeMode =
-  | "happy"
-  | "permission_denied"
-  | "unavailable"
-  | "unknown_shape";
+  "happy" | "permission_denied" | "unavailable" | "unknown_shape";
 
 type Row = Record<string, unknown>;
 

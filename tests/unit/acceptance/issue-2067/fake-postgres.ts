@@ -115,12 +115,7 @@ export interface FakePgQuery {
   user: string;
   text: string;
   kind:
-    | "identity"
-    | "function"
-    | "direct"
-    | "control"
-    | "write"
-    | "unsupported";
+    "identity" | "function" | "direct" | "control" | "write" | "unsupported";
   route?: FakePgRoute;
   fn?: string;
   args?: unknown[];
