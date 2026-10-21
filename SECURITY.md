@@ -8,11 +8,21 @@ We provide security updates only for the **latest stable release** of this proje
 
 As the project matures, we may adopt a more formal support policy (for example, supporting multiple release lines or LTS branches). Until then, please upgrade to the latest stable release to receive security fixes.
 
-| Version / Branch      | Supported                  |
-| --------------------- | -------------------------- |
-| Latest stable release | ✅                         |
-| Older releases        | ❌                         |
-| `main`                | ✅ (fixes land here first) |
+| Version / Branch      | Supported                           |
+| --------------------- | ----------------------------------- |
+| Latest stable release | ✅                                  |
+| Older releases        | ❌                                  |
+| `develop`             | ✅ (security fixes land here first) |
+| `production`          | ✅ (protected release branch)       |
+
+## Anthropic OSS Scanner contact
+
+The maintainer-designated primary security contact for Core's Anthropic OSS
+Scanner enrollment is **blake@globalfellowship.org**. This address is approved
+for public listing and receipt of program build notifications and findings.
+It does not change the private reporting route or commitments below.
+Maintainers operate the setup and triage reports using the
+[OSS Scanner runbook](.oss-scanner/README.md).
 
 ## Reporting a Vulnerability
 
