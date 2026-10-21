@@ -1,0 +1,21 @@
+{
+  "actual_sha256": "6234d205dc5b481291f1fd22a99679067a7b446e57b2b4fcdad7a6858abd3272",
+  "byte_identical": true,
+  "counts": {
+    "counterexample_families": 13,
+    "passed_outcome_assertions": 68,
+    "positive_controls": 4
+  },
+  "date": "2026-10-18",
+  "expected_sha256": "6234d205dc5b481291f1fd22a99679067a7b446e57b2b4fcdad7a6858abd3272",
+  "limits": [
+    "Finite synthetic semantic examples only; no real source, SQL/RLS, timing uniformity, locking/concurrency, browser, network, retention/restore, migration or usability proof.",
+    "Known-deadline branch only: lawful recorded expiry without precise date, no-ministry source scopes, and application-level error/empty distinction remain required release cases, not modeled positives.",
+    "prepare/disclose illustrates source evaluation before server release, not revocation recall of already emitted bytes; actual controlled client behavior is untested.",
+    "Source recipient/history/label/retention facts and independent Party grants are qualified fixture inputs, not implementation proof.",
+    "No earlier model, probe or verifier ran."
+  ],
+  "reviewer": "root",
+  "scope": "Read full new D34 model source and readme; independently executed new model once only",
+  "script_sha256": "561371d18104792e8ad9dd6d9f7c190a4645bc013b00bd342a41c706db791f95"
+}

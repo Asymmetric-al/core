@@ -84,6 +84,7 @@ jobs:
       - run: bun run skills:verify
       - run: bun run verify:phase25-spec
       - run: bun run verify:phase27-spec
+      - run: bun run verify:phase28-spec
       - run: bun run openspec:validate
       - run: bun run verify:openspec-deltas
       - name: Enforce complete Shadscan app floors and reviewed findings

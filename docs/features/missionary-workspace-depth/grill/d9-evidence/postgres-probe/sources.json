@@ -1,0 +1,174 @@
+{
+  "scope": "D9 fresh numeric/aggregate/joins/RLS/changelog sources; same-day D8 primary mechanism sources rechecked. Synthetic only.",
+  "fresh": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "status": 200,
+      "bytes": 102319,
+      "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+      "fetched_at": "2026-10-16T09:23:47.757312+00:00"
+    },
+    {
+      "name": "pg17-numeric",
+      "url": "https://www.postgresql.org/docs/17/datatype-numeric.html",
+      "final_url": "https://www.postgresql.org/docs/17/datatype-numeric.html",
+      "status": 200,
+      "bytes": 41303,
+      "sha256": "c035350808ecf8ddfde2fa06ac2de5f2f1677da43515e3d48c2ab6a9b36f85b5",
+      "text_sha256": "9bb586e726b2139bfb5bfedb8f5248279185b9f9817e9acc6ea03d1604e2a869",
+      "raw_path": "/tmp/phase28-d9-primary/pg17-numeric.html",
+      "text_path": "/tmp/phase28-d9-primary/pg17-numeric.txt",
+      "fetched_at": "2026-10-16T09:26:51.159327+00:00"
+    },
+    {
+      "name": "pg17-aggregate",
+      "url": "https://www.postgresql.org/docs/17/functions-aggregate.html",
+      "final_url": "https://www.postgresql.org/docs/17/functions-aggregate.html",
+      "status": 200,
+      "bytes": 75546,
+      "sha256": "5b5cbdd78f1cb2fc21821f6a27ae2b60cafe4b9e9a8ed896ab89a0895ea98175",
+      "text_sha256": "7059c494eea6b5bfa1e36a3e3969c2627f0c9a7a4da243229d2d66ea5c08df78",
+      "raw_path": "/tmp/phase28-d9-primary/pg17-aggregate.html",
+      "text_path": "/tmp/phase28-d9-primary/pg17-aggregate.txt",
+      "fetched_at": "2026-10-16T09:26:53.190713+00:00"
+    },
+    {
+      "name": "pg17-joins",
+      "url": "https://www.postgresql.org/docs/17/queries-table-expressions.html",
+      "final_url": "https://www.postgresql.org/docs/17/queries-table-expressions.html",
+      "status": 200,
+      "bytes": 72674,
+      "sha256": "9510e14bbf24b7e3c8f9bddd5986fffb501e2be17945c24c77e191a32653afdb",
+      "text_sha256": "7faa81681a09f5a59d60c364a552ba77db828422029787f1e701fe4b4d73b471",
+      "raw_path": "/tmp/phase28-d9-primary/pg17-joins.html",
+      "text_path": "/tmp/phase28-d9-primary/pg17-joins.txt",
+      "fetched_at": "2026-10-16T09:26:54.861004+00:00"
+    },
+    {
+      "name": "supabase-rls",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "final_url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "status": 200,
+      "bytes": 30344,
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "text_sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "raw_path": "/tmp/phase28-d9-primary/supabase-rls.md",
+      "text_path": "/tmp/phase28-d9-primary/supabase-rls.txt",
+      "fetched_at": "2026-10-16T09:26:55.938856+00:00"
+    }
+  ],
+  "same_day_reused": [
+    {
+      "name": "pg17-policies",
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "status": 200,
+      "bytes": 46910,
+      "sha256": "4a75de7338882ab78829708c3c4de9caa309508f8ba7261702889e3d211139e1",
+      "text_sha256": "ae1f8aa811fb152d5dd66117ae2426d6b986d95900c2a6f1a75a2d52fc33bee3",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-policies.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-policies.txt",
+      "read_at": "2026-10-16T08:40:25.983189+00:00"
+    },
+    {
+      "name": "pg17-functions",
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "status": 200,
+      "bytes": 51069,
+      "sha256": "785004cc71694c34b9d0a6b22e11681012a6a2d40862ff2ed61adc801f0bbb96",
+      "text_sha256": "ab859df881a1b8aa0f6b701439b5c6fb5071e44cc264e08d27e74c5956e56315",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-functions.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-functions.txt",
+      "read_at": "2026-10-16T08:40:30.300689+00:00"
+    },
+    {
+      "name": "pg17-view",
+      "url": "https://www.postgresql.org/docs/17/sql-createview.html",
+      "final_url": "https://www.postgresql.org/docs/17/sql-createview.html",
+      "status": 200,
+      "bytes": 38035,
+      "sha256": "d91c3a1a6e911b4323b26003cbb1db3015e4a35da400a23e6311f3eea27003c6",
+      "text_sha256": "884065b3a145a43f940f16ccf0ff9cfe5b0be7dd94bc68c4b4705466dd29dd51",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-view.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-view.txt",
+      "read_at": "2026-10-16T08:40:31.810154+00:00"
+    },
+    {
+      "name": "pg17-isolation",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "final_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "status": 200,
+      "bytes": 47618,
+      "sha256": "32a32972bb04a3d539cbbc89914ff80573023bd900a8710a03bda487feb03000",
+      "text_sha256": "457bf019a88dba9800363f44afe2ea21fb9ecc1a835c715b06165f401af84d12",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-isolation.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-isolation.txt",
+      "read_at": "2026-10-16T08:40:32.962475+00:00"
+    },
+    {
+      "name": "pg17-locks",
+      "url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+      "final_url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+      "status": 200,
+      "bytes": 46799,
+      "sha256": "ac8f5253bba1cbc0e358932019b94e013953dc3a7a0136a21e97fd47cdf9e0e5",
+      "text_sha256": "a9fec7f6fa1ed375362643246990318497846d3067c5d6ecbc585a3561ac36ec",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-locks.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-locks.txt",
+      "read_at": "2026-10-16T08:40:34.600075+00:00"
+    },
+    {
+      "name": "pg17-constraints",
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "final_url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "status": 200,
+      "bytes": 44707,
+      "sha256": "cce33512bf9c9dcc29db138e888b72710c8e38a1eff18e0c74afff1ff16f2f57",
+      "text_sha256": "2aa857ee64c37a1bbd73b81246bc585a8e0b480a994af9c800f7d8461f36fe24",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-constraints.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-constraints.txt",
+      "read_at": "2026-10-16T08:40:36.420627+00:00"
+    },
+    {
+      "name": "pg17-minor",
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "final_url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "status": 200,
+      "sha256": "2a8a151bf9d26b39772a66092482c4768cdc3296f56679125c220a6d3fc889b3",
+      "text_sha256": "b764c89523cf64f7d0b7a5403ea77faa09379ccb142288f1a5614f0c56f9889e",
+      "raw_path": "/tmp/phase28-d8-primary/pg17-minor.html",
+      "text_path": "/tmp/phase28-d8-primary/pg17-minor.txt",
+      "read_at": "2026-10-16T08:44:08.434803+00:00"
+    },
+    {
+      "name": "api-grants",
+      "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "final_url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "status": 200,
+      "sha256": "26e89e1faf5d95242f40be877bb92441eea35be76c9a8bea0b461b02bf4ee336",
+      "text_sha256": "3d4635cf9e89d218fcae8ab48e269dfbd2d82e9c927f0115db29d7ec0cb77528",
+      "raw_path": "/tmp/phase28-d8-primary/api-grants.html",
+      "text_path": "/tmp/phase28-d8-primary/api-grants.txt",
+      "read_at": "2026-10-16T08:44:09.109353+00:00"
+    }
+  ],
+  "local": [
+    {
+      "path": "docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md",
+      "sha256": "b7f3b5645f5bfc7cbaa853bad781df84d8fd715e40d9f7648dccb128fcb469e4"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-03-minimum-permission-role-scoped-projection-foundation.md",
+      "sha256": "3968c03730dab19fb6f557c8ff06c5c4d899ebb1237f086b23a2ec158f7dab7e"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-16-cross-prd-congruence-2026-07-13.md",
+      "sha256": "0f4e43b0fda94d50eff97233e4c5bca309d6cdc142b32556411f3911ef9dd1fe"
+    },
+    {
+      "path": "docs/features/missionary-workspace-depth/grill/phase28-q9-coaching-support-summary-research.md",
+      "sha256": "48ea58b40dd0c84a4f7c7da9eaccc5a1e2644c36265a152d45dd04829c489909"
+    }
+  ]
+}

@@ -15,8 +15,9 @@ Payload's form-builder plugin combines definition, submission storage, dynamic
 email, redirect, upload, and payment behavior. Resend provides transport, not
 business ownership or permanent idempotency. Phase 6/17 already owns
 communication planning and Email Studio publications, Phase 26 owns Support
-Hub, Phase 13 owns giving, Phase 29 owns governed files, Phase 32 owns
-subscriptions, Phase 34/37 owns application/workflow intake, and Phase 38 owns
+Hub, Phase 13 owns giving, Phase 29 owns governed files, Phase 28 owns native
+missionary newsletter enrollment and Phase 32 separately owns external sync,
+Phase 34/37 owns application/workflow intake, and Phase 38 owns
 classified care. D26 must compose those owners without recreating them.
 
 Core also already has a shared Inngest executor, product-owned dispatch ledger
@@ -119,10 +120,14 @@ replaceable adapters.
 > 13. **Purpose-aware product handoffs.** Donation uses Phase 13 Giving rather
 >     than a generic form. Applications use Phase 34/37's future certified
 >     definition and Mobilize adapter. Classified care/crisis uses Phase 38.
->     Uploads wait for Phase 29. Newsletter consent/confirmation uses the
->     Phase 32 subscription owner through Phase 3's consent seam. Disabled
->     choices state the exact setup action; D26 does not invent placeholder
->     records.
+>     Uploads wait for Phase 29. Native missionary newsletter Join uses the
+>     Phase 28 recipient-purpose owner through the qualified Phase 3/12 consent
+>     and public-intake seams (Phase 28 D6/D7/D42–D45 amendment, 2026-10-18).
+>     Phase 32 retains separately governed external synchronization; the Phase 25
+>     Request newsletter handoff remains request-only and creates no enrollment.
+>     Each adapter must be qualified before activation; CMS placement, Auth
+>     verification and contact import alone provide no consent. Disabled choices
+>     state the exact setup action; D26 creates no placeholder records.
 > 14. **Accessible visitor journey.** Forms are short, predominantly single-
 >     column, visibly labeled, grouped, mobile/zoom safe, and server validated.
 >     Errors preserve answers, focus and link an accessible summary, appear at

@@ -1,0 +1,3 @@
+{
+  "reason": "35/35 original assertions passed. Static review found read_task needed to reselect/lock the current task after its authority check so an intervening reassignment cannot release stale assignee data. The handoff race is expanded to exercise read and completion refusal; final fixture rerun. Not a Core finding."
+}

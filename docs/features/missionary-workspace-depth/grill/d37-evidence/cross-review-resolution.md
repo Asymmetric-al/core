@@ -1,0 +1,27 @@
+# D37 — independent cross-review and resolution
+
+October 18, 2026. The root author read the evidence, synthesized the guide design
+and requested bounded read-only review by the governance, UX and security
+researchers. The named-method researcher separately checked the source claims.
+No runtime/browser/database tests or older models/probes/verifiers were run.
+
+| Finding                                                                                                                                                         | Resolution in the main answer                                                                                                                                             | Why this is sufficient                                                                                    |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| P08 originally denied “a missionary” categorically, including someone with separately valid curator authority. Governance and UX independently identified this. | P08 now denies a missionary **without current guide-curation authority**, while preserving their separately qualified organization context.                               | Uses capability/context rather than a role-name shortcut; no new curator grant.                           |
+| The first draft could imply automatic recognition of any manually pasted private text. Governance required an honest bound.                                     | Ownership discussion, C04/C06 and P15 distinguish known source-bound conditions from authorized content review. Unknown arbitrary manual paste is not claimed detectable. | Keeps ADR0209 shared field/conditional resolution; no semantic classifier or per-value provenance engine. |
+| A blanket prohibition on browsing persistence could conflict with required security/resource access audit.                                                      | C13 prohibits new guide-specific behavioral tracking and preserves separately required minimized source/security audit.                                                   | Keeps optionality and no progress reporting without weakening required source audit.                      |
+| Recovery evidence could be disclosed without current read authority; P13's former “without a new authorization” was ambiguous. Security identified this.        | C10/P13 explicitly reauthorize outcome/current-state disclosure; recovery grants no new access or availability.                                                           | Separates durable accepted effect from who can see it now.                                                |
+| In-flight/cached responses after Disable or same-user context switch needed an explicit boundary.                                                               | C06/P14 require checks after waits/final governed release and reject known-obsolete responses; already delivered bytes remain unrecoverable.                              | Uses existing access/cache owners rather than a new delivery service or impossible recall promise.        |
+| A draft research row named Barnett without actual evidence and attributed quotas to Stewardship Ambassadors without proof. Root/source reviewer removed both.   | The row names only sourced Morton/Nouwen works; SA timing/method statements stay sourced, and no quota is inferred.                                                       | Claim scope matches the inspected primary material.                                                       |
+| A legacy SRS article URL later returned 404.                                                                                                                    | Methods note records the failed legacy URL, verified Via canonical HTTP 200 and search-indexed article-body limitation.                                                   | No invented live full-text access or full-book study; the exact evidence distinction is retained.         |
+| Two destinations could look like competing tasks; Home promotion could be treated as research-proven necessity.                                                 | Main journey gives one action prominence with a secondary resource link; evidence labels the Home invitation a proposed product judgment.                                 | Retains useful orientation without importing a task list or unproved efficacy claim.                      |
+
+The remaining main decision, six original adaptable content themes, draft/preview/
+publish/disable journeys, source ownership and optionality had no additional
+material cross-review conflict. Supporting notes may propose alternatives; the
+main answer identifies the reconciled recommendation. No self-contained note is
+allowed to silently ratify another decision.
+
+The review resolves documentation claims. It does not certify actual RLS,
+concurrency, composed accessibility, user comprehension or production performance.
+Those remain named future acceptance gates, rather than monitor-only risks.

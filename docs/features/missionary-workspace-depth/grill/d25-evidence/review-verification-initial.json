@@ -1,0 +1,21 @@
+{
+  "scope": "Documentation, provenance, preservation and synthetic-result checks only; no Core/runtime/DB/UI/capacity qualification",
+  "passed": true,
+  "local_references": 411,
+  "line_references": 112,
+  "anchor_references": 39,
+  "clauses": 18,
+  "proof_obligations": 24,
+  "material_findings": 14,
+  "categories": 22,
+  "prior_artifacts_unchanged": 20,
+  "d25_evidence_pins": 12,
+  "finite_counterexamples_reproduced": 17,
+  "independent_root_reproduction": true,
+  "q25_answered_a": true,
+  "d25_amendments_ratified": false,
+  "q26_posed": false,
+  "technical_fetches": 8,
+  "unavailable_temporary_source_paths": [],
+  "errors": []
+}

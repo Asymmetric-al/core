@@ -1,0 +1,182 @@
+[
+  {
+    "child": "crm_command_logs",
+    "conname": "crm_command_logs_actor_profile_id_fkey",
+    "parent": "profiles",
+    "confdeltype": "n",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (actor_profile_id) REFERENCES profiles(id) ON DELETE SET NULL"
+  },
+  {
+    "child": "crm_command_logs",
+    "conname": "crm_command_logs_tenant_id_fkey",
+    "parent": "tenants",
+    "confdeltype": "c",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+  },
+  {
+    "child": "crm_notes",
+    "conname": "crm_notes_tenant_id_fkey",
+    "parent": "tenants",
+    "confdeltype": "c",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"
+  },
+  {
+    "child": "donations",
+    "conname": "donations_donor_id_fkey",
+    "parent": "donors",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (donor_id) REFERENCES donors(id)"
+  },
+  {
+    "child": "donations",
+    "conname": "donations_fund_id_fkey",
+    "parent": "funds",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (fund_id) REFERENCES funds(id)"
+  },
+  {
+    "child": "donations",
+    "conname": "donations_missionary_id_fkey",
+    "parent": "missionaries",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (missionary_id) REFERENCES missionaries(id)"
+  },
+  {
+    "child": "donations",
+    "conname": "donations_tenant_id_fkey",
+    "parent": "tenants",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)"
+  },
+  {
+    "child": "donor_pledges",
+    "conname": "donor_pledges_donor_id_fkey",
+    "parent": "donors",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (donor_id) REFERENCES donors(id)"
+  },
+  {
+    "child": "donor_pledges",
+    "conname": "donor_pledges_missionary_id_fkey",
+    "parent": "missionaries",
+    "confdeltype": "n",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (missionary_id) REFERENCES missionaries(id) ON DELETE SET NULL"
+  },
+  {
+    "child": "donors",
+    "conname": "donors_missionary_id_fkey",
+    "parent": "profiles",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (missionary_id) REFERENCES profiles(id)"
+  },
+  {
+    "child": "donors",
+    "conname": "donors_profile_id_fkey",
+    "parent": "profiles",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (profile_id) REFERENCES profiles(id)"
+  },
+  {
+    "child": "donors",
+    "conname": "donors_tenant_id_fkey",
+    "parent": "tenants",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)"
+  },
+  {
+    "child": "funds",
+    "conname": "funds_missionary_id_fkey",
+    "parent": "missionaries",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (missionary_id) REFERENCES missionaries(id)"
+  },
+  {
+    "child": "funds",
+    "conname": "funds_tenant_id_fkey",
+    "parent": "tenants",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)"
+  },
+  {
+    "child": "missionaries",
+    "conname": "missionaries_profile_id_fkey",
+    "parent": "profiles",
+    "confdeltype": "c",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
+  },
+  {
+    "child": "missionaries",
+    "conname": "missionaries_tenant_id_fkey",
+    "parent": "tenants",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)"
+  },
+  {
+    "child": "missionary_tasks",
+    "conname": "missionary_tasks_donor_id_fkey",
+    "parent": "donors",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (donor_id) REFERENCES donors(id)"
+  },
+  {
+    "child": "missionary_tasks",
+    "conname": "missionary_tasks_missionary_id_fkey",
+    "parent": "profiles",
+    "confdeltype": "c",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (missionary_id) REFERENCES profiles(id) ON DELETE CASCADE"
+  },
+  {
+    "child": "profiles",
+    "conname": "profiles_id_fkey",
+    "parent": "auth.users",
+    "confdeltype": "c",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+  },
+  {
+    "child": "profiles",
+    "conname": "profiles_tenant_id_fkey",
+    "parent": "tenants",
+    "confdeltype": "a",
+    "condeferrable": false,
+    "condeferred": false,
+    "definition": "FOREIGN KEY (tenant_id) REFERENCES tenants(id)"
+  }
+]

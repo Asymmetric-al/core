@@ -1,0 +1,160 @@
+# Q33 — missionary reporting of actual offline gifts
+
+Research date: **October 18, 2026 UTC**, repository
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and current working tree.
+The [corrected D32 decision and required amendments](phase28-d32-combined-gift-fulfillment-follow-up-adversarial-review.md#explicit-ratification)
+are explicitly ratified. **The founder selected A, with tenant control and default Off.**
+The [D33 review](phase28-d33-missionary-offline-gift-report-adversarial-review.md)
+returns Accept with required amendments; the corrected decision and required
+amendments were explicitly ratified on October 18, 2026 UTC. This preserves the original product choice under the
+[founder boundary](phase28-founder-brief.md:21), not a formal
+specification, new financial model or implementation authorization.
+
+## The single choice
+
+Grace hands Maya a check for her ministry, payable to the organization. Finance
+has not recorded it yet. Maya actually has the check; Grace has not merely
+promised it or said it is in the mail.
+
+**Should Maya be able to report the check for finance from her workspace when the organization permits it?**
+
+- **A — Optional missionary reporting (recommended).** Maya reports what she
+  actually received and sees its permitted status. Finance continues the same
+  intake record.
+- **B — Staff-entered reporting.** Maya passes the details to authorized staff,
+  who create the report. Her workspace has no report-entry action.
+
+Both use the existing P15 intake. Reporting does not post money, issue a receipt,
+prove bank clearance or turn a promise into a received gift. Report and read
+permissions remain distinct from correction, routing and financial powers.
+
+A reduces the handoff needed to establish a tracked report where the organization
+permits missionary reporting. B is the strongest simpler alternative: fewer
+reporting actors and staff entry through the already specified source workflow.
+It may fit organizations that prefer a staff-mediated handoff. Neither option
+requires another finance entry of the same item, mandatory check photographs or
+a new preliminary report before otherwise valid financial entry. The choice is
+Maya's optional entry point, not a different intake model.
+
+## Why this is genuinely unresolved
+
+| Repository evidence                                                                                                                                                                                         | Established fact                                                                                                                                                                                                         | Remaining choice or limit                                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| [Founder brief: actual offline gifts](phase28-founder-brief.md:179)                                                                                                                                         | Phase 28 must handle actual offline gifts awaiting finance; P15 owns the reported-gift intake. Missionaries cannot manufacture posted money or receipts.                                                                 | Does not select missionary report-create authority or its workspace entry point.                                   |
+| [P15 D1](../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:429)                                                                                                                         | Offline money has one batch commit path. The ratified P27 extension already supplies a bounded operational intake before complete financial entry, with honest unknowns, independent permissions and exact continuation. | This is intended source behavior, not proof of a qualified implementation or an existing missionary report action. |
+| [P15 missionary story](../../../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md:408)                                                                                                           | Intended missionary visibility of designated offline gifts after the batch posts.                                                                                                                                        | Post-recording visibility does not grant pre-recording intake creation.                                            |
+| [P27 D25 required extension](../../donor-development/grill/phase27-d25-adversarial-review.md:166)                                                                                                           | Describes ordinary authorized staff reports and explicitly denies blanket missionary/finance authority.                                                                                                                  | A generic permission contract can support a later qualified actor; it does not itself select that product surface. |
+| [P27 requests: intake and interaction](../../../prds/sitestacker-parity/phase-27-donor-development/requests.md:75)                                                                                          | Actual receipt, separate recorder/holder/responsibility, incomplete facts, same-item continuation and phone-usable report/status/recovery. The staff scope adds no unqualified missionary view.                          | Phase 28 must choose the bounded missionary consumer journey and qualify its exact current permissions.            |
+| [REQ27-F59](../../../prds/sitestacker-parity/phase-27-donor-development/requests.md:587) and [owner reconciliation](../../../prds/sitestacker-parity/phase-27-donor-development/owner-reconciliation.md:25) | Reporting, reading, correction, routing, finance and receipt authority remain separate; a permitted minimal completion projection need not expose the whole financial record.                                            | No reporter role, possession or assignment grants additional powers.                                               |
+
+Independent program-governance, source-governance and UX reviewers checked this
+frontier and agreed that the missionary actor/entry choice remains open. They
+rejected generic combined task-completion/interaction logging as the next question:
+the [founder brief](phase28-founder-brief.md:123), D20 and D32 already establish
+recording genuine work once while keeping exact purposes distinct. Another gift
+classifier question is not needed to answer the offline handoff journey.
+
+**Current-code limit:** a targeted static search of
+`packages/api/src/missionary-portal` and `apps/missionary/app` for offline,
+awaiting-finance, intake and gift-report paths found anonymity handling for
+`unknown_offline` and an analytics exclusion comment, not a qualified intake
+surface. This limited search is not an exhaustive code audit or proof that no
+other package contains an implementation. Neither the current UI nor the source
+producer is asserted to work today. Qualification remains an engineering gate,
+not a product question delegated to the founder.
+
+## Fresh primary research and bounded lessons
+
+These official public pages were freshly opened on October 18, 2026. An undated
+page is not described as a recently released feature. Relative update text is
+reported as displayed. Documentation establishes comparable jobs and behavior,
+not measured Core user preference or authenticated usability results.
+
+| Source and date                                                                                                                                                      | Verified documented behavior                                                                                                                                            | Lesson and explicit boundary                                                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [TntConnect: Dealing with gifts](https://www.tntware.com/tntconnect/help/en/pages/gifts_dealingwith.aspx), undated                                                   | Describes recording gifts sent or handed directly to a missionary before forwarding them to the organization; later organization processing can require reconciliation. | Evidence that the handoff job exists in a comparable missionary product. Do not copy local money entries, inferred gift matching, automatic deletion or correction workarounds. Core already has one owner for this intake. |
+| [Blackbaud RE NXT: Manage gift batches](https://webfiles-sc1.blackbaud.com/files/support/helpfiles/rex/content/bb-gifts-batch.html), undated                         | Saved batch work can be resumed; approval supports data-quality review. Automatic batches start Unapproved before gift records are created.                             | Distinguish durable pending work from accepted financial outcomes. This does not establish missionary rights, require a second report approval or replace Core's commit semantics.                                          |
+| [Givebutter: Offline transactions](https://help.givebutter.com/en/articles/2705864-how-to-add-and-manage-offline-transactions), displayed “Updated over 2 weeks ago” | Admins/editors record donations received outside the platform. Saved offline transactions count toward campaign totals; no online payment processing occurs.            | A useful contrast: direct donation entry has financial/display consequences. Maya's proposed report must remain a bounded intake assertion, with no automatic received-support total or receipt authority.                  |
+
+The recommendation for A is a **product judgment** about reducing a reporting
+handoff while preserving organizational choice. The check scenario is
+illustrative. No interviews, user preference measurements, authenticated product
+tests or performance claims are supplied. Evidence of demand is the comparable
+documented job plus the founder's required outcome; usability and source
+qualification still require actual proof before release.
+
+## Journey and counterexamples checked before asking
+
+Under A, an eligible workspace could offer **Report an offline gift**. A short
+form records what Maya knows about actual receipt; it should not force invented
+donor, amount, currency or entity data. After authoritative acceptance, the
+existing source can show **Awaiting finance**, a permitted next step and the
+actual accountable role/person where disclosure permits. This is illustrative
+interaction direction, not a selected field schema or a new workflow engine.
+
+Finance continues the same occurrence through existing staging/commit or exactly
+reconciles an already recorded result. Maya sees only the status she may read.
+**Recorded by finance** and **Handling still needed** can both be true. A sent
+report, delivered check, posted gift, deposited check and cleared check remain
+distinct facts; a single misleading “Done” label must not collapse them.
+
+Under B, staff create that same report after Maya's handoff. The source's
+permitted status can still be visible where separately authorized; B does not
+remove ordinary posted-gift visibility or prohibit reporting through staff.
+
+The existing owner contract already resolves these boundaries; they are not
+additional questions for the founder:
+
+- A promise, payment request, donor claim of mailing, saved draft or date field
+  alone is not an assertion of actual receipt. A check payable personally to
+  Maya is not silently an organizational donation; keep source disposition and
+  organization handling rules explicit.
+- Unknown details stay unknown within the restricted operational envelope.
+  A reporter cannot create a canonical donor, financial entity or valuation
+  merely to satisfy the form. The eventual financial root must be complete.
+- One check with several designation lines remains one intake; different checks
+  remain distinct. Equal donor, amount, date or check number is not identity
+  proof. Independent reports retain their origins through qualified resolution.
+- A lost response or reconnect recovers the same accepted report; it does not
+  create another receipt assertion. A genuinely separate report is not silently
+  deduplicated by an unqualified heuristic.
+- Report, read, correct, route and finance permissions are separately checked
+  under current tenant/source scope. “Missionary” alone is not authorization.
+  A source-unavailable path must not become a local financial substitute.
+- Posting before physical handoff does not complete remaining handling; handoff
+  before posting does not create money. Mistakes, returns, loss, duplicates,
+  disputes and rejection have explicit source-owned dispositions.
+- Late correction, reversal or NSF changes financial facts without inventing
+  renewed possession. Staff departure, age or draft cleanup cannot erase real
+  unresolved handling work.
+- Routine reports require no new signature, photo upload, bank data collection,
+  second approver, donor checkout step or automatic donor contact. Existing
+  source-specific handling controls still apply.
+- The small report/status/recovery flow must use existing shared UI and plain
+  language, keyboard/screen-reader access, phone reflow, honest save/error states
+  and safe low-bandwidth retry. This does not expand the desktop finance grid to
+  mobile or introduce sensitive persistent browser drafts.
+
+## Decision status and next review boundary
+
+**Q33 is answered A.** The founder selected optional missionary reporting and
+explicitly required tenant disable and **Off by default**, without needless
+complexity. The [completed D33 review](phase28-d33-missionary-offline-gift-report-adversarial-review.md)
+returns **Accept with required amendments**. It defines the one organization-wide
+creation setting, current admission, accepted-work continuity, deliberate
+re-enable, honest source status, exact finance continuation and release proof.
+The corrected decision and required amendments were explicitly ratified on
+October 18, 2026 UTC. Ratification does not qualify implementation. The exact
+original question is preserved in [its snapshot](d33-evidence/q33-before-answer.txt),
+and the completed pre-ratification research is preserved in
+[its own snapshot](d33-evidence/q33-before-ratification.txt).
+
+No new glossary authority, formal PRD/ADR/OpenSpec, ticket, application/schema,
+provider, live-data operation or external communication is created. No earlier
+model, probe or verifier was rerun. D32 evidence and ratification are verified
+by the historical [ratification result](d32-evidence/ratification-verification.json).
+The original [D33 verification](d33-evidence/review-verification.json) preserves
+the selected/reviewed state. The
+[ratification verification](d33-evidence/ratification-verification.json) separately
+checks the unchanged decision and amendments, current status and preserved
+artifacts. No earlier verifier is rerun.

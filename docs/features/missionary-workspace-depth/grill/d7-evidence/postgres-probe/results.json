@@ -1,0 +1,783 @@
+{
+  "recorded_at": "2026-10-16T08:01:58.068399+00:00",
+  "scope": "Synthetic D7 authorization, release, RLS, atomicity and dispatch-admission mechanics only; no Core/Supabase/provider/human-intent qualification.",
+  "outcomes": 41,
+  "passed": 41,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "5291498868ebcd73e782728e91ae3938c4926e15a781f317fc0682bf763d0522",
+    "run.py": "fa55855f67dbf5f0b9d3ff46f6a827a5a14567caaf0dab8efce096f6438d8f91",
+    "sources.json": "2b8db3cf2f509cb0f9bc2ff13cb59cce352d8c81dd3d42c7d2b16b6378bee71e"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.issues SET content_revision=2 WHERE tenant=1 AND id=3; INSERT INTO probe.revisions VALUES(1,3,2,1,'content-two','audience-one');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "UPDATE probe.issues SET audience_revision=2 WHERE tenant=1 AND id=4; INSERT INTO probe.revisions VALUES(1,4,1,2,'content-one','audience-two');",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "actor_a",
+      "sql": "SELECT probe.authorize(1,'actor_a',6,1,1,'issue-6');",
+      "exit_code": 0,
+      "stdout": "accepted:6",
+      "stderr": ""
+    },
+    {
+      "role": "actor_a",
+      "sql": "SELECT probe.authorize(1,'actor_a',7,1,1,'issue-7');",
+      "exit_code": 0,
+      "stdout": "accepted:7",
+      "stderr": ""
+    },
+    {
+      "role": "actor_a",
+      "sql": "SELECT probe.authorize(1,'actor_a',8,1,1,'issue-8');",
+      "exit_code": 0,
+      "stdout": "accepted:8",
+      "stderr": ""
+    },
+    {
+      "role": "authority_manager",
+      "sql": "UPDATE probe.authority SET active=true WHERE tenant=1 AND actor='actor_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "actor_a",
+      "sql": "SELECT probe.authorize(1,'actor_a',9,1,1,'issue-9');",
+      "exit_code": 0,
+      "stdout": "accepted:9",
+      "stderr": ""
+    },
+    {
+      "role": "authority_manager",
+      "sql": "UPDATE probe.authority SET active=true WHERE tenant=1 AND actor='actor_a';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "actor_a",
+      "sql": "SELECT probe.authorize(1,'actor_a',10,1,1,'issue-10');",
+      "exit_code": 0,
+      "stdout": "accepted:10",
+      "stderr": ""
+    },
+    {
+      "role": "authority_manager",
+      "sql": "UPDATE probe.recipients SET eligible=true WHERE tenant=1 AND id=1;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "one_authorization_commits_source_release_audit_effects",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',1,1,1,'issue-1');",
+      "expected": "accepted:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "same_operation_doubleclick_recovers_same_release",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',1,1,1,'issue-1');",
+      "expected": "accepted_history:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted_history:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "different_request_key_same_issue_recovers_same_release",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',1,1,1,'different-key');",
+      "expected": "accepted_history:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted_history:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "new_retry_key_cannot_be_rebound_to_another_issue",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',2,1,1,'different-key');",
+      "expected": "operation_conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "operation_conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "one_source_issue_has_one_release_audit_two_recipient_effects",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT (SELECT count(*) FROM probe.releases WHERE tenant=1 AND issue=1)||':'||(SELECT count(*) FROM probe.audit WHERE tenant=1 AND issue=1)||':'||(SELECT count(*) FROM probe.effects WHERE tenant=1 AND issue=1);",
+      "expected": "1:1:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "1:1:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "approval_of_changed_already_released_meaning_conflicts",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',1,2,1,'changed');",
+      "expected": "release_conflict",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "release_conflict",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "source_audit_and_effects_rollback_on_injected_effect_failure",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',90,1,1,'issue-90');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"effects\" violates check constraint \"effects_issue_check\"\nCONTEXT:  SQL statement \"INSERT INTO probe.effects SELECT tenant,issue,member,contact_revision,tenant||':newsletter:'||issue||':'||member,'pending' FROM probe.audience WHERE tenant=p_tenant AND issue=p_issue AND audience_revision=p_audience\"\nPL/pgSQL function authorize(integer,text,integer,integer,integer,text) line 21 at SQL statement\nSCHEMA NAME:  probe\nTABLE NAME:  effects\nCONSTRAINT NAME:  effects_issue_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "failed_release_has_no_partial_source_audit_operation_or_intent",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT (SELECT state FROM probe.issues WHERE tenant=1 AND id=90)||':'||(SELECT count(*) FROM probe.releases WHERE issue=90)||':'||(SELECT count(*) FROM probe.audit WHERE issue=90)||':'||(SELECT count(*) FROM probe.effects WHERE issue=90)||':'||(SELECT count(*) FROM probe.operations WHERE issue=90);",
+      "expected": "draft:0:0:0:0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "draft:0:0:0:0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "stale_content_approval_is_rejected",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',3,1,1,'issue-3');",
+      "expected": "stale_approval",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "stale_approval",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "stale_audience_approval_is_rejected",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',4,1,1,'issue-4');",
+      "expected": "stale_approval",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "stale_approval",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "cross_tenant_argument_cannot_select_source",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(2,'actor_a',1,1,1,'issue-1');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "forged_actor_argument_is_rejected",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_other',2,1,1,'issue-2');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "other_actor_cannot_authorize_owner_issue",
+      "role": "actor_other",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_other',2,1,1,'issue-2');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "other_actor_can_authorize_their_own_issue",
+      "role": "actor_other",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_other',21,1,1,'issue-21');",
+      "expected": "accepted:21",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:21",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "forged_GUC_does_not_override_fixture_session_binding",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SET app.tenant='2'; SET app.actor='actor_a'; SELECT probe.authorize(2,'actor_a',1,1,1,'issue-1');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "raw_table_select_not_granted_to_actor",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.releases;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table releases\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "raw_source_update_not_granted_to_actor",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.issues SET actor='actor_other' WHERE tenant=1 AND id=2;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table issues\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "actor_cannot_call_dispatch_function",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.dispatch(1,1,1);",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for function dispatch\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "raw_RLS_old_row_scope_hides_other_actor",
+      "role": "mutation_probe",
+      "counterexample": false,
+      "sql": "WITH changed AS(UPDATE probe.raw_mutation_probe SET value='bad' WHERE id=2 RETURNING id) SELECT count(*) FROM changed;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "implicit_WITH_CHECK_rejects_new_tenant",
+      "role": "mutation_probe",
+      "counterexample": false,
+      "sql": "UPDATE probe.raw_mutation_probe SET tenant=2 WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: new row violates row-level security policy for table \"raw_mutation_probe\"\nLOCATION:  ExecWithCheckOptions, execMain.c:2199",
+      "passed": true
+    },
+    {
+      "name": "implicit_WITH_CHECK_rejects_new_actor",
+      "role": "mutation_probe",
+      "counterexample": false,
+      "sql": "UPDATE probe.raw_mutation_probe SET actor='actor_other' WHERE id=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: new row violates row-level security policy for table \"raw_mutation_probe\"\nLOCATION:  ExecWithCheckOptions, execMain.c:2199",
+      "passed": true
+    },
+    {
+      "name": "raw_RLS_positive_permitted_value_change",
+      "role": "mutation_probe",
+      "counterexample": false,
+      "sql": "UPDATE probe.raw_mutation_probe SET value='allowed' WHERE id=1; SELECT value FROM probe.raw_mutation_probe WHERE id=1;",
+      "expected": "allowed",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "allowed",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "cross_tenant_release_FK_rejects_mismatched_revision",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.releases VALUES(2,2,'actor_tenant_two',1,1,1);",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"releases\" violates foreign key constraint \"releases_tenant_issue_content_revision_audience_revision_fkey\"\nDETAIL:  Key (tenant, issue, content_revision, audience_revision)=(2, 2, 1, 1) is not present in table \"revisions\".\nSCHEMA NAME:  probe\nTABLE NAME:  releases\nCONSTRAINT NAME:  releases_tenant_issue_content_revision_audience_revision_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "approved_release_content_cannot_be_mutated_by_app_role",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.releases SET content_revision=2 WHERE tenant=1 AND issue=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table releases\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "simultaneous_different_keys_one_source_release",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "actor_a",
+      "second_role": "actor_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.authorize(1,'actor_a',5,1,1,'race-a'); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "accepted:5\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.authorize(1,'actor_a',5,1,1,'race-b'); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "accepted_history:5\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "accepted:5\nFIRST_READY\n",
+        "second": "accepted_history:5\nSECOND_DONE\n",
+        "final": "released|1|1|1:pending,2:pending"
+      }
+    },
+    {
+      "name": "cancel_first_fences_waiting_dispatch",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "actor_a",
+      "second_role": "dispatch_worker",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.cancel(1,6); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "canceled_remaining:2;not_recalled:0\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.dispatch(1,6,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "canceled:1:newsletter:6:1\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "canceled_remaining:2;not_recalled:0\nFIRST_READY\n",
+        "second": "canceled:1:newsletter:6:1\nSECOND_DONE\n",
+        "final": "canceled|1|1|1:canceled,2:canceled"
+      }
+    },
+    {
+      "name": "dispatch_first_cannot_recall_admitted_unknown",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "dispatch_worker",
+      "second_role": "actor_a",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.dispatch(1,7,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "admitted_unknown:1:newsletter:7:1\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.cancel(1,7); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "canceled_remaining:1;not_recalled:1\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "admitted_unknown:1:newsletter:7:1\nFIRST_READY\n",
+        "second": "canceled_remaining:1;not_recalled:1\nSECOND_DONE\n",
+        "final": "canceled|1|1|1:admitted_unknown,2:canceled"
+      }
+    },
+    {
+      "name": "unknown_retry_retains_exact_effect_without_replacement",
+      "role": "dispatch_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.dispatch(1,7,1);",
+      "expected": "admitted_unknown:1:newsletter:7:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "admitted_unknown:1:newsletter:7:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "changed_provider_effect_key_cannot_attach_evidence",
+      "role": "dispatch_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.provider_result(1,7,1,'invented-key');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "late_exact_provider_acceptance_preserves_canceled_remaining",
+      "role": "dispatch_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.provider_result(1,7,1,'1:newsletter:7:1');",
+      "expected": "accepted",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "accepted_effect_retry_does_not_create_new_pending_effect",
+      "role": "dispatch_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.dispatch(1,7,1);",
+      "expected": "accepted:1:newsletter:7:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted:1:newsletter:7:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "old_authorization_retry_cannot_reopen_canceled_issue",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',7,1,1,'after-cancel');",
+      "expected": "accepted_history:7",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "accepted_history:7",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "canceled_release_history_and_accepted_effect_remain_truthful",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT (SELECT state FROM probe.issues WHERE tenant=1 AND id=7)||':'||(SELECT count(*) FROM probe.effects WHERE tenant=1 AND issue=7)||':'||(SELECT state FROM probe.effects WHERE tenant=1 AND issue=7 AND member=2);",
+      "expected": "canceled:2:canceled",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "canceled:2:canceled",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "authority_revocation_first_fences_dispatch",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "authority_manager",
+      "second_role": "dispatch_worker",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.authority SET active=false,revision=revision+1 WHERE tenant=1 AND actor='actor_a'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.dispatch(1,8,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "blocked:1:newsletter:8:1\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "blocked:1:newsletter:8:1\nSECOND_DONE\n",
+        "final": "released|1|1|1:blocked,2:pending"
+      }
+    },
+    {
+      "name": "revoked_actor_cannot_authorize_new_issue",
+      "role": "actor_a",
+      "counterexample": false,
+      "sql": "SELECT probe.authorize(1,'actor_a',9,1,1,'issue-9');",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "re_enable_does_not_revive_unprocessed_old_epoch_effect",
+      "role": "dispatch_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.dispatch(1,8,2);",
+      "expected": "blocked:1:newsletter:8:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "blocked:1:newsletter:8:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "dispatch_first_then_revocation_preserves_unknown",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "dispatch_worker",
+      "second_role": "authority_manager",
+      "first": [
+        {
+          "sent": "BEGIN; SELECT probe.dispatch(1,9,1); SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "admitted_unknown:1:newsletter:9:1\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.authority SET active=false,revision=revision+1 WHERE tenant=1 AND actor='actor_a'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "admitted_unknown:1:newsletter:9:1\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "final": "released|1|1|1:admitted_unknown,2:pending"
+      }
+    },
+    {
+      "name": "recipient_withdrawal_first_fences_dispatch",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "authority_manager",
+      "second_role": "dispatch_worker",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.recipients SET eligible=false,revision=revision+1 WHERE tenant=1 AND id=1; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; SELECT probe.dispatch(1,10,1); SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "blocked:1:newsletter:10:1\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "blocked:1:newsletter:10:1\nSECOND_DONE\n",
+        "final": "released|1|1|1:blocked,2:pending"
+      }
+    },
+    {
+      "name": "contact_revision_change_cannot_retarget_old_effect",
+      "role": "dispatch_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.dispatch(1,10,1);",
+      "expected": "blocked:1:newsletter:10:1",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "blocked:1:newsletter:10:1",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unchanged_other_recipient_remains_independently_eligible",
+      "role": "dispatch_worker",
+      "counterexample": false,
+      "sql": "SELECT probe.dispatch(1,10,2);",
+      "expected": "admitted_unknown:1:newsletter:10:2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "admitted_unknown:1:newsletter:10:2",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "final_release_audit_and_recipient_effect_cardinality",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "SELECT (SELECT count(*) FROM probe.releases)||':'||(SELECT count(*) FROM probe.audit)||':'||(SELECT count(*) FROM probe.effects);",
+      "expected": "8:8:16",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "8:8:16",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

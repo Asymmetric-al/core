@@ -2887,12 +2887,12 @@
   {
     "actor": "authorized operator",
     "feature": "financial owner gates E7 and C-01",
-    "benefit": "unresolved source policy cannot turn into invented financial truth",
+    "benefit": "unqualified source implementations cannot turn settled policy into invented financial truth",
     "requirements": ["REQ27-Q15"],
     "acceptance": ["AC27-Q15-01", "AC27-Q15-02"],
     "id": "US27-Q15",
     "title": "Financial owner gates E7 and C-01",
-    "text": "As an authorized operator, I want financial owner gates E7 and C-01, so that unresolved source policy cannot turn into invented financial truth."
+    "text": "As an authorized operator, I want financial owner gates E7 and C-01, so that unqualified source implementations cannot turn settled policy into invented financial truth."
   },
   {
     "actor": "delivery owner",

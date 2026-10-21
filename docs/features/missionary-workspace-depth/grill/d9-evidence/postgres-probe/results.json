@@ -1,0 +1,485 @@
+{
+  "recorded_at": "2026-10-16T09:31:10.596302+00:00",
+  "scope": "Synthetic D9 exact scoped summary, coverage, numerical and concurrency mechanics only; not Core/P12/Supabase/Auth/PostgREST/API qualification.",
+  "outcomes": 25,
+  "passed": 25,
+  "failure": null,
+  "artifact_sha256": {
+    "setup.sql": "da6c98d74459cd2baa0976fcd502af4bd4690b06240bd4f3ef7911cf6ebea85c",
+    "run.py": "8d965b4a439987ecb24b7755c8af8aa3d5010c6889b0f86d9a3cdec24d64de14",
+    "sources.json": "cbe0f270abed4f705a9e5dc4e96568a586fa68980ba6302403d8cbc3ac01ebeb"
+  },
+  "helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "fixture_steps": [
+    {
+      "role": "source_manager",
+      "sql": "UPDATE probe.grants SET allowed=true,revision=revision+1 WHERE tenant=1 AND principal='coach_a' AND profile=1 AND module='expected';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "source_manager",
+      "sql": "UPDATE probe.grants SET allowed=true,revision=revision+1 WHERE tenant=1 AND principal='coach_a' AND profile=1 AND module='expected';",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; UPDATE probe.source_heads SET revision=revision+1 WHERE tenant=1 AND profile=1 AND module='expected'; INSERT INTO probe.facts SELECT f.tenant,f.profile,f.module,f.source_id,h.revision,f.amount_minor FROM probe.facts f JOIN probe.source_heads h USING(tenant,profile,module) WHERE f.tenant=1 AND f.profile=1 AND f.module='expected' AND f.revision=1; UPDATE probe.coverage c SET revision=h.revision,complete=true FROM probe.source_heads h WHERE (c.tenant,c.profile,c.module)=(h.tenant,h.profile,h.module) AND c.tenant=1 AND c.profile=1 AND c.module='expected'; COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "role": "postgres",
+      "sql": "BEGIN; UPDATE probe.source_heads SET revision=2 WHERE tenant=1 AND profile=1 AND module='received'; INSERT INTO probe.facts VALUES(1,1,'received',1,2,80),(1,1,'received',2,2,40); UPDATE probe.coverage SET revision=2 WHERE tenant=1 AND profile=1 AND module='received'; COMMIT;",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": [
+    {
+      "name": "expected_has_exact_currency_period_and_cohort",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'expected',true) AS x) SELECT x->>'currency'||':'||(x->>'period_start')||':'||(x->>'period_end_exclusive')||':'||(x->>'cohort')||':'||(x->>'amount_minor') FROM s;",
+      "expected": "USD:2026-10-01:2026-11-01:admitted-A:200",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "USD:2026-10-01:2026-11-01:admitted-A:200",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "received_remains_its_own_source_basis",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'received',true) AS x) SELECT x->>'basis'||':'||(x->>'amount_minor') FROM s;",
+      "expected": "synthetic_received_line_minor:150",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "synthetic_received_line_minor:150",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "zero_exponent_currency_is_not_scaled_or_mixed",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,2,'expected',true) AS x) SELECT x->>'currency'||':'||(x->>'amount_minor') FROM s;",
+      "expected": "JPY:300",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "JPY:300",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "coach_has_no_raw_financial_fact_select",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.facts;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table facts\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "coach_has_no_raw_historical_summary_select",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "SELECT * FROM probe.summaries;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table summaries\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "coach_cannot_rewrite_source_amount",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "UPDATE probe.facts SET amount_minor=0 WHERE tenant=1;",
+      "expected": null,
+      "expected_sqlstate": "42501",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  42501: permission denied for table facts\nLOCATION:  aclcheck_error, aclchk.c:2843",
+      "passed": true
+    },
+    {
+      "name": "fractional_minor_unit_rejected_not_rounded",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.facts VALUES(1,1,'expected',91,1,0.5);",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"facts\" violates check constraint \"facts_amount_minor_check\"\nDETAIL:  Failing row contains (1, 1, expected, 91, 1, 0.5).\nSCHEMA NAME:  probe\nTABLE NAME:  facts\nCONSTRAINT NAME:  facts_amount_minor_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "nonfinite_minor_unit_rejected",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.facts VALUES(1,1,'expected',92,1,'NaN');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"facts\" violates check constraint \"facts_amount_minor_check\"\nDETAIL:  Failing row contains (1, 1, expected, 92, 1, NaN).\nSCHEMA NAME:  probe\nTABLE NAME:  facts\nCONSTRAINT NAME:  facts_amount_minor_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "reversed_period_is_structurally_invalid",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.profiles VALUES(1,99,10,'USD','2026-11-01','2026-10-01','Etc/UTC','invalid');",
+      "expected": null,
+      "expected_sqlstate": "23514",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23514: new row for relation \"profiles\" violates check constraint \"profiles_check\"\nDETAIL:  Failing row contains (1, 99, 10, USD, 2026-11-01, 2026-10-01, Etc/UTC, invalid).\nSCHEMA NAME:  probe\nTABLE NAME:  profiles\nCONSTRAINT NAME:  profiles_check\nLOCATION:  ExecConstraints, execMain.c:2074",
+      "passed": true
+    },
+    {
+      "name": "cross_tenant_source_profile_reference_rejected",
+      "role": "postgres",
+      "counterexample": false,
+      "sql": "INSERT INTO probe.source_heads VALUES(1,21,'expected',1,'2026-10-16Z');",
+      "expected": null,
+      "expected_sqlstate": "23503",
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "ERROR:  23503: insert or update on table \"source_heads\" violates foreign key constraint \"source_heads_tenant_profile_fkey\"\nDETAIL:  Key (tenant, profile)=(1, 21) is not present in table \"profiles\".\nSCHEMA NAME:  probe\nTABLE NAME:  source_heads\nCONSTRAINT NAME:  source_heads_tenant_profile_fkey\nLOCATION:  ri_ReportViolation, ri_triggers.c:2599",
+      "passed": true
+    },
+    {
+      "name": "other_module_cannot_be_inferred_from_allowed_module",
+      "role": "coach_b",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'received',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "exact_target_period_cohort_tenant_ceiling",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,20,1,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.summary(1,10,4,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.summary(1,10,8,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.summary(2,20,21,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;",
+      "expected": "unavailable\nunavailable\nunavailable\nunavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\nunavailable\nunavailable\nunavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "complete_empty_coverage_can_legitimately_be_zero",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,3,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;",
+      "expected": "0",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "0",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "incomplete_coverage_is_not_zero",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,5,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "missing_coverage_is_not_zero",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,6,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "unsafe_join_and_sum_distinct_both_change_financial_grain",
+      "role": "coach_a",
+      "counterexample": true,
+      "sql": "SELECT probe.unsafe_join_totals();",
+      "expected": "300:230:100",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "300:230:100",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "ratio_reconstructs_hidden_received_value",
+      "role": "coach_b",
+      "counterexample": true,
+      "sql": "SELECT ((probe.summary(1,10,1,'expected',true)->>'amount_minor')::numeric * probe.unsafe_ratio())::numeric(20,0)||':'||(probe.summary(1,10,1,'received',false)->>'status');",
+      "expected": "150:unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "150:unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "large_exact_integer_survives_as_decimal_json_string",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,7,'expected',true) AS x) SELECT x->>'amount_minor'||':'||jsonb_typeof(x->'amount_minor') FROM s;",
+      "expected": "9007199254741000:string",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "9007199254741000:string",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "revoke_first_blocks_summary_generation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "coach_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.grants SET allowed=false,revision=revision+1 WHERE tenant=1 AND principal='coach_a' AND profile=1 AND module='expected'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "current": "false:2:1:0"
+      }
+    },
+    {
+      "name": "summary_first_then_revoke_preserves_history",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "coach_a",
+      "second_role": "source_manager",
+      "first": [
+        {
+          "sent": "BEGIN; WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "200\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.grants SET allowed=false,revision=revision+1 WHERE tenant=1 AND principal='coach_a' AND profile=1 AND module='expected'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "200\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "current": "false:4:1:0"
+      }
+    },
+    {
+      "name": "new_grant_revision_cannot_reuse_old_summary",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'expected',false) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "source_change_first_blocks_incomplete_generation",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "source_manager",
+      "second_role": "coach_a",
+      "first": [
+        {
+          "sent": "BEGIN; UPDATE probe.source_heads SET revision=revision+1 WHERE tenant=1 AND profile=1 AND module='expected'; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "FIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "unavailable\nSECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "FIRST_READY\n",
+        "second": "unavailable\nSECOND_DONE\n",
+        "current": "true:5:2:0"
+      }
+    },
+    {
+      "name": "summary_first_then_source_change_fences_cache",
+      "passed": true,
+      "actual_lock_wait": "Lock:transactionid",
+      "first_role": "coach_a",
+      "second_role": "source_manager",
+      "first": [
+        {
+          "sent": "BEGIN; WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'expected',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s; SELECT 'FIRST_READY';"
+        },
+        {
+          "received": "200\nFIRST_READY\n"
+        },
+        {
+          "sent": "COMMIT; SELECT 'FIRST_COMMITTED';"
+        },
+        {
+          "received": "FIRST_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "second": [
+        {
+          "sent": "BEGIN; UPDATE probe.source_heads SET revision=revision+1 WHERE tenant=1 AND profile=1 AND module='expected'; SELECT 'SECOND_DONE'; COMMIT;"
+        },
+        {
+          "received": "SECOND_DONE\n"
+        },
+        {
+          "sent": "SELECT 'SECOND_COMMITTED';"
+        },
+        {
+          "received": "SECOND_COMMITTED\n"
+        },
+        {
+          "sent": "ROLLBACK; \\q"
+        }
+      ],
+      "outcome": {
+        "first": "200\nFIRST_READY\n",
+        "second": "SECOND_DONE\n",
+        "current": "true:5:4:0"
+      }
+    },
+    {
+      "name": "changed_source_makes_materialized_total_unavailable",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'expected',false) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;",
+      "expected": "unavailable",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "name": "new_effective_source_fold_replaces_current_not_history",
+      "role": "coach_a",
+      "counterexample": false,
+      "sql": "WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'received',false) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;WITH s AS MATERIALIZED(SELECT probe.summary(1,10,1,'received',true) AS x) SELECT CASE x->>'status' WHEN 'available' THEN x->>'amount_minor' ELSE x->>'status' END FROM s;SELECT probe.summary(1,10,1,'received',false)->>'source_revision';",
+      "expected": "unavailable\n120\n2",
+      "expected_sqlstate": null,
+      "exit_code": 0,
+      "stdout": "unavailable\n120\n2",
+      "stderr": "",
+      "passed": true,
+      "retained_history_assertion": {
+        "expected": "1:150,2:120",
+        "actual": "1:150,2:120"
+      }
+    }
+  ]
+}

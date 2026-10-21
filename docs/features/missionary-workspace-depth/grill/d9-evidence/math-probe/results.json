@@ -1,0 +1,93 @@
+{
+  "runtime": "v24.19.0",
+  "source": "Actual repository model, redaction and dashboard presenter modules; native TypeScript stripping; one extensionless import resolved to its actual .ts file",
+  "passed": 9,
+  "checks": [
+    {
+      "name": "Aggregate adds USD and EUR minor units without a support currency",
+      "observation": {
+        "raisedCents": 30000,
+        "detailCurrencies": [
+          "USD",
+          "EUR"
+        ],
+        "aggregateHasCurrency": false
+      }
+    },
+    {
+      "name": "Recurring monthly field adds receipts from separate months",
+      "observation": {
+        "recurringMonthlyCents": 20000,
+        "receiptMonths": [
+          "2026-01",
+          "2026-09"
+        ]
+      }
+    },
+    {
+      "name": "Stored zero current funding overrides a settled receipt sum",
+      "observation": {
+        "raisedCents": 0,
+        "giftCount": 1,
+        "receiptAmountMinor": 10000
+      }
+    },
+    {
+      "name": "Over-goal numeric percentage is capped at 100 before presentation",
+      "observation": {
+        "raisedCents": 15000,
+        "goalCents": 10000,
+        "percentFunded": 100,
+        "remainingCents": 0
+      }
+    },
+    {
+      "name": "Missing goal/funding values become an unqualified numeric zero summary",
+      "observation": {
+        "goalCents": 0,
+        "raisedCents": 0,
+        "recurringMonthlyCents": 0,
+        "percentFunded": 0,
+        "activeDonorCount": 0,
+        "giftCount": 0,
+        "lastGiftAt": null
+      }
+    },
+    {
+      "name": "Partial refund fact is unused while full-refunded status excludes the row",
+      "observation": {
+        "raisedCents": 10000,
+        "partialRefundMinor": 4000,
+        "fullyRefundedRowIncluded": false
+      }
+    },
+    {
+      "name": "A gift whose donor is absent from loaded donor rows retains donorId",
+      "observation": {
+        "donorId": "donor-not-loaded",
+        "loadedDonorCount": 0
+      }
+    },
+    {
+      "name": "Missing currency defaults to USD and JPY is divided by 100",
+      "observation": {
+        "missingCurrencyBecomes": "USD",
+        "jpyAmountMinor": 10000,
+        "jpyAmount": 100
+      }
+    },
+    {
+      "name": "Portal recognizes succeeded and success as settled statuses",
+      "observation": {
+        "giftCount": 2,
+        "raisedCents": 20000
+      }
+    }
+  ],
+  "limits": [
+    "Checks assert observed current behavior, including defects; they do not certify desired financial semantics",
+    "No API, database, browser, React hook, JSX formatter, authorization, notification or provider pipeline executed",
+    "The extra refund_amount fixture is intentionally ignored by the current model, matching the separate static finding that its query does not select refund facts",
+    "Currency fixtures prove helper behavior, not that these values were observed in live production data"
+  ]
+}

@@ -1,0 +1,34 @@
+# D24 independent review reconciliation
+
+October 17, 2026, Asia/Bangkok. Six independent workstreams reviewed the
+[main decision](../phase28-d24-coaching-activity-summary-adversarial-review.md).
+They inspected source/owner evidence and the proposed contract; this is not
+production validation. The founder selected A and then continuation into future
+periods of the same selected target. Amendments remain proposed, not ratified.
+
+| Review                    | Consequential challenge                                                                                                                                                              | Reconciliation in the main review                                                                                                                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Owner/governance          | Ongoing access duration does not choose future or retained periods. Current-period-only would make an admitted period disappear at rollover.                                         | C07 explicitly follows the selected same target from the reviewed start and proposes retaining admitted periods under current rights/duration/qualified retention. D10 financial history is not inherited. No earlier periods or new targets are added. |
+| Owner/governance          | Organization Off followed by On could revive a saved nonterminal scope.                                                                                                              | C10 and staff journey require fences on affected current and pending activity scopes. Fresh deliberate inclusion is required after On, without another invitation for a still-valid coach. Temporary source unavailability is distinct.                 |
+| Owner/governance and UX   | Two personal targets can be identical in canonical measure, dates, scope and quantity but have different private names.                                                              | Maya's separately authorized selector may show her private label marked Not shared. Jordan's preview/payload remains canonical-only. C06/P08 bind the exact selected lineage without a new shared-name field.                                           |
+| Source semantics/database | A restricted count can become a misleading numerator against the full personal target; equal counts can still represent different cohorts.                                           | C05 requires compatible complete meaning or unavailable actual. P06 includes different cohorts with equal totals, plus valid aggregate-only access without raw source SELECT.                                                                           |
+| Period/privacy            | Percentages, remaining values, overlapping windows, successive releases and excluded-count badges reconstruct protected facts.                                                       | C06/P09/P10 assess the joint profile, source-qualified contributor unit and existing P12 floor. No arbitrary numeric threshold or new privacy platform is introduced.                                                                                   |
+| Period/privacy            | Invitation acceptance after rollover might reset the first period; a one-off target might accidentally acquire recurrence.                                                           | C07/P11 retain reviewed dates through delayed acceptance and require review if no longer admissible. A one-off target has no future recurring periods.                                                                                                  |
+| UX                        | Editing an existing share must load saved selections. Update copy must include newly recorded activity, not only corrections.                                                        | Maya's journey distinguishes first inclusion from editing and explains eligible newly recorded/corrected activity and applicable target changes.                                                                                                        |
+| UX/source semantics       | Calendar city names can reveal geography; partial comparison states contradict the initial simple contract.                                                                          | Only qualified calendar labels are exposed; canonical dates retain source meaning. The initial profile is compatible complete comparison or unavailable actual, with no reconstructing derivatives.                                                     |
+| Actual source census      | Existing query cleanup on signout/user switch must not be ignored, while same-user scope fencing is not established. An uncalled helper must not be described as a mounted exposure. | Main/current-source note preserve both distinctions. Existing broad source payloads are reuse hazards, not asserted deployed coach vulnerabilities.                                                                                                     |
+| Database                  | Pure projection checks/static field ceilings and historical migrations are not live source/P12 evidence or hosted grants.                                                            | C14/C16 and the evidence table explicitly require actual current producer/effective-access qualification. Omitted WITH CHECK behavior is stated accurately. No new SQL toy or old probe rerun is used as substitute.                                    |
+
+The owner, source-semantics, database and actual-source reviewers reported no
+remaining material conflict in the revised contract. UX and temporal refinements
+above were incorporated. Root then verified all 22 category dispositions,
+23 clauses, 32 future proof obligations, 14 findings and document/provenance
+consistency. The exact verification result is in
+[review-verification.json](review-verification.json).
+
+The new finite probe reproduced 18 unsafe arithmetic/state shortcuts. Its author
+independently reran it in a temporary directory and matched the original result;
+the retained result was not overwritten. No prior D23 probe or database experiment
+was rerun. This does not prove an inference-safe production profile, source
+coverage, accessible UI or deployment. Those gates remain explicit future proof,
+not unfinished research presented as delivered functionality.

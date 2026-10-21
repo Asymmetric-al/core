@@ -717,7 +717,11 @@ Acceptance criteria:
   or executable routing.
 - Every released Route Plan has exactly one Primary Outcome. Launch admits a
   certified Support Hub handoff or one governed Verified Email Destination;
-  other owner adapters appear only after certification.
+  other owner adapters appear only after certification. The Phase 28 native
+  newsletter adapter owns deliberate Join and its recipient purpose; Phase 32
+  external synchronization and Phase 25 request-only handoff remain distinct.
+  Page placement, an Auth-verified address or a prior request never creates
+  enrollment by itself. See [OA-06](phase-28-missionary-workspace-depth/owner-reconciliation.md#oa-06).
 - One transaction records the immutable occurrence, exact Route Plan, Primary
   work, optional staff notifications, optional visitor acknowledgement, and
   dispatch intents before returning **Received**, or records none.

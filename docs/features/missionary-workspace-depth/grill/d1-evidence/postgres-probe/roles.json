@@ -1,0 +1,50 @@
+[
+  {
+    "rolname": "actor_a",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolinherit": false
+  },
+  {
+    "rolname": "actor_b",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolinherit": false
+  },
+  {
+    "rolname": "bypass_actor",
+    "rolsuper": false,
+    "rolbypassrls": true,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolinherit": false
+  },
+  {
+    "rolname": "fixture_owner",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolinherit": false
+  },
+  {
+    "rolname": "gate_executor",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": false,
+    "rolcreaterole": false,
+    "rolinherit": false
+  },
+  {
+    "rolname": "gate_manager",
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcanlogin": true,
+    "rolcreaterole": false,
+    "rolinherit": false
+  }
+]

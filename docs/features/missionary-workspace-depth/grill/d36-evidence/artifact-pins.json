@@ -1,0 +1,17 @@
+{
+  "d36-evidence/comparable-periods.md": "d67d42ea25b8f2bbb408ba21f7a1e5759c6abeb7c8e21bd68392bda09f7cb13b",
+  "d36-evidence/counterexample-review.md": "0523fd5281b7a4b3636d3074ed059eda9b4b2b0bdc8b85171252ec10ed0f455f",
+  "d36-evidence/cross-review-resolution.md": "7e6daac4428fe3254f703656a8412e1bd05a77c8164af9f267968172d39876d1",
+  "d36-evidence/database-policy-safety.md": "48c6955b7ca2c2826b63989328725595688be5166a6e3073d93dd37c1520138e",
+  "d36-evidence/governance-temporal.md": "ec23fa9908e148aa70cbf2a82b4353ed2665b82abbe34923ae4ea0a975a6c449",
+  "d36-evidence/model-readme.md": "dc3baad61d17e87898ee29adea29cfbf7995844de668cd7140f9355d3d12d842",
+  "d36-evidence/prior-evidence-sha256.json": "66bdf2114e17683c1c9077429ec5fdee48b69d185916d177d1d8ce7484a060ba",
+  "d36-evidence/q36-before-answer.txt": "138d18303a6284630bdc8d4a39e229a4c5d48c0eb06a112fc64f550c2e7daed7",
+  "d36-evidence/root-reproduction.json": "f32f073c7c9b24b5f6acae3aa54c27bb4c82e3777b3ef93f2b85852221af3374",
+  "d36-evidence/temporal-counterexamples.json": "7e9891432317977edd6060551b947a992abdd64a219f77a79af183a9af26a466",
+  "d36-evidence/temporal-counterexamples.py": "a3243f85bd8b7ca4831fd6c2cdde1bddd1427648c7c2f849af9765a42034ef2e",
+  "d36-evidence/ux-and-primary-research.md": "62df75b74bf8d7d5997542fc952bbc37cf6176de4240a5d68d946f733cf44ec2",
+  "d36-evidence/verify-review.py": "c20f176f12bddc4d1a945fb3f90b639b08fce684b827913966e6c7cc6bbabff6",
+  "phase28-d36-configured-referral-period-adversarial-review.md": "cb445f6bee5957c077f727158a73e79fabbd96a5e639b10268dc1487cb171417",
+  "phase28-q36-referral-window-policy-research.md": "28f768832d51c2b73bb4c0eac79b98e5de5b04e760a758393c066f2d56c65e4c"
+}

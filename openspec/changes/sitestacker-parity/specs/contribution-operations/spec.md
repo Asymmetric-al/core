@@ -185,8 +185,10 @@ A source-qualified known absence MUST remain a valid result where the owner
 contract admits it, with exact scope/version and completeness proof. A failed
 lookup, unavailable evidence or missing required record MUST NOT default to
 that known absence or success. This sets no mandatory row-per-source cardinality.
-This architecture ruling does not settle C-01's staff-correction approval policy
-or prove that the schema and runtime have been implemented.
+This architecture ruling alone does not choose staff-correction approval. Phase
+28 D48 separately settles C-01 through the existing supported organization
+policy, preserving independent mandatory controls and current-policy admission.
+Neither ruling proves that schema and runtime have been implemented.
 
 #### Scenario: Operational transitions preserve all posted financial columns
 

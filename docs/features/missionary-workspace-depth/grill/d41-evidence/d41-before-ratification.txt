@@ -1,0 +1,506 @@
+# D41 — keep contact work in Asym
+
+Reviewed **October 18, 2026 (Asia/Bangkok)** against Core
+`9cada8f3d8ab59db391d3fd20df77fcadeb09813` and its research working tree.
+The founder selected **Q41 B — Keep contact work in Asym**, requested a clear,
+tenant-controlled native experience, and requested every-category adversarial
+review. **Disposition: Accept with required amendments.** The selected answer
+is recorded; the corrected wording and amendments below are **reviewed, pending
+explicit ratification**. No Q42 is posed in this answer review.
+
+This is a completed research/design review under the
+[founder boundary](phase28-founder-brief.md:21), not a formal PRD/OpenSpec,
+application/schema change, integration activation or release certification.
+No tickets, GitHub changes, live settings or external communications were made.
+No earlier model, database probe or verification program was executed.
+
+## Exact corrected decision to record
+
+> **B — Keep contact work in Asym.** This release adds no Phase 28 external
+> contact-update or contactability feed. Maya finds and maintains permitted
+> contact information through the existing native workspace and authoritative
+> contact owners. Ordinary work does not depend on an external fundraising tool.
+>
+> Authorized tenant administrators control missionary contact editing through
+> the existing permission system and D5's eligible source/field rules. They can
+> withhold that editing capability without deleting contact information or
+> changing independently authorized viewing, staff work or other purposes.
+> Current access determines whether Maya can edit, view or see nothing. There
+> is no new contact-sync switch, dormant connector, permission engine or routine
+> approval step.
+>
+> The separately governed giving feed retains its existing source-owned scope,
+> safe field floor, default-Off setup, current authorization, qualification and
+> stop-sharing rules. D41 neither widens nor removes those fields. A source
+> correction may still affect an already authorized giving projection under its
+> own contract; this is not synchronization of external contact records.
+>
+> Existing independently governed intake, communications, exports and other
+> source consequences retain their own permissions and limits. Contact editing
+> grants none of them. Saving updates only the selected eligible facts, preserves
+> other values and required history, and reports accepted, conflicted or unknown
+> outcomes honestly. No external contact-refresh obligation, automatic message
+> or second contact database is introduced.
+
+The amendment narrows ambiguous phrases such as “keep contact work in Asym” and
+“turn this off”; it does not reintroduce option A. The excluded feed is a release
+scope decision, not a disabled feature waiting for a tenant toggle. The useful
+tenant controls already exist in the accepted D5/P12 and P21/P31 contracts.
+
+## Evidence and confidence
+
+**Verified repository intent.** [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+and [CRM Core](../../../../openspec/specs/crm-core/spec.md:14) keep source truth
+behind Asym server contracts. [ADR-0097](../../../adr/0097-source-authoritative-missionary-support-feed.md:5)
+allows a later P28 relationship/contactability family only after separate
+ratification. B adds none. [P28 constraints](../../../prds/program-roadmap/owner-constraints.md:143)
+and [P31 constraints](../../../prds/program-roadmap/owner-constraints.md:451)
+preserve that seam; P30 owns inbound migration.
+
+**Verified predecessor decisions.** [D5](phase28-d5-adversarial-review.md#exact-corrected-decision-to-record)
+already ratifies tenant-controlled native contact correction, selected-field
+Save, source effects, concurrency, recovery and accessible states.
+[D17](phase28-d17-contact-import-adversarial-review.md) already bounds contact-file
+intake. [P21 D8](../../../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md:2444)
+already owns the optional giving feed and its qualification. D41 does not
+replace these with a new CRM, importer or integration architecture.
+
+**Verified boundary nuance.** The
+[P21 safe presentation floor](../../../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md:354)
+can contain permitted display name, coarse city/state and typed support context;
+it excludes email, phone, home address, notes and other protected material.
+These dashboard examples do not establish the external field list. External
+admission must be proved from P21's separately closed external field contract
+and the exact P31 subscription/adapter certification; D41 approves no example
+field for export. The external feed consumes only its exact authorized P21
+projections. Saying
+“no contact data ever leaves Asym” or “contact changes never affect the giving
+feed” would therefore be false. A permitted source change may affect an existing
+field without creating a new contact-update purpose. No cross-feed correlation
+may identify a hidden donor.
+
+**Current implementation observations, not deployment findings.** The fresh
+[source review](d41-evidence/source-and-authorization.md) identifies the reached
+UI/API/grant paths. Root independently inspected the mutation and settings
+surface. The ordinary editor is not proof that D5 is fully implemented:
+
+| Observed source                                                                      | Verified behavior                                                                                                                                                                                             | Consequence                                                                                                                                                             |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Native update schema](../../../../packages/api/src/missionary-portal/donor.ts:29)   | Requires a full profile including email and name of at least two characters; includes status, frequency, notes and household-related fields.                                                                  | A simple eligible correction can require unrelated data or submit facts outside its purpose. Use D5's qualified field inventory and selected changes.                   |
+| [Payload construction](../../../../packages/api/src/missionary-portal/donor.ts:73)   | Reconstructs the address with `country: "USA"` and writes the broad supplied snapshot.                                                                                                                        | A phone-only edit can overwrite unrelated or international values if submitted through this path. Do not bless it as the permanent native journey.                      |
+| [Server mutation](../../../../packages/api/src/missionary-portal/donor.ts:174)       | Uses server auth-derived tenant/profile scope and explicit recipient non-anonymity, but the reached action does not prove D5's current per-field tenant authority, revision fence or durable intent recovery. | Preserve its useful scoping and anonymity checks; qualify the complete source action instead of merely hiding controls.                                                 |
+| [Integration settings](../../../../apps/missionary/app/settings/page-client.tsx:242) | Renders fixed Mailchimp “Connected” and Zapier “Not Connected” presentation in the inspected component.                                                                                                       | A settings card is not connection evidence. Production presentation must reflect actual qualified owner state; D41 authorizes no connector cleanup or live disconnect.  |
+| [Roster pagination](../../../../packages/api/src/missionary-portal/donors.ts:450)    | Page size defaults to 50 and is bounded at 100 in this source.                                                                                                                                                | These are observed read limits, not capacity or response-time guarantees. Qualification must retain complete reachable native results and current permission filtering. |
+
+The source review also distinguishes the static field-policy foundation from
+dormant tenant overrides and examines direct browser creation/grants. These are
+existing native-work qualification gaps; D41 creates neither new field grants
+nor a broad authorization to rewrite every contact feature. The
+[active roster-safety OpenSpec](../../../../openspec/changes/fix-missionary-partner-roster-safety/specs/crm-core/spec.md:15)
+preserves legitimate named-partner edits as well as rejecting redacted edits.
+A blanket deny-all rollout would not satisfy the intended contract. The existing
+[mutation fixture](../../../../tests/unit/packages/api/missionary-portal/donor-mutations.test.ts:183)
+even expects a London address with country USA. That test was read, not run;
+its expectation demonstrates why passing legacy tests cannot establish correct
+international behavior.
+
+**Product judgment.** B removes an unproved additional disclosure/delivery
+surface and keeps one primary place to work. A's strongest benefit is avoiding
+duplicate entry for an organization deliberately retaining an incumbent tool.
+That benefit is credible, but no Asym design-partner need, adoption result or
+cost comparison was measured. The founder has now selected B; it is not a claim
+that every ministry should stop using every other product.
+
+**Unknowns.** Exact deployed grants, effective field capability coverage,
+production subscriptions, retained legacy data, provider certification,
+measured latency and usability outcomes were not exercised. They remain named
+qualification obligations below, not invented facts or permission to substitute
+an external tool. Earlier D5 database probes remain dated evidence, not a new
+D41 runtime result.
+
+## Primary research and what to adopt
+
+Research was retrieved October 18, 2026. Publisher dates are distinguished from
+retrieval; official documentation and vendor-reported feedback are not independent
+user studies. The [UX research](d41-evidence/ux-and-primary-research.md) and
+[root research](d41-evidence/root-research.md) retain source details and limits.
+
+| Source                                                                                                                                                                                                                                                                                                           | Evidence                                                                                                                                       | Adopt or reject for this decision                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [MPDX data-sync rules](https://help.mpdx.org/article/1021-mpdx-data-sync-rules-for-cru-staff), updated December 4, 2020                                                                                                                                                                                          | Reports staff frustration when old organization-sourced contact values reappeared after local edits.                                           | Explain source ownership and avoid competing editable copies. Do not copy its content matching or locked-field workaround. This is dated vendor-reported feedback.                                 |
+| [MPDX FAQ](https://help.mpdx.org/article/202-mpdx-faqs), updated September 25, 2024                                                                                                                                                                                                                              | Documents daily organization donation updates and installed-base limits after new-organization admission stopped in 2024.                      | No universal connector promise or real-time claim. Preserve exact existing provider qualification.                                                                                                 |
+| [DonorHub overview](https://www.tntware.com/donorhub/faqs/en/what-is-donorhub.aspx), undated                                                                                                                                                                                                                     | Describes the transition job of changing donation systems while staff retain MPD tools.                                                        | A's strongest alternative is real enough to consider; it is not a mandate to add a contact feed. Its marketing does not prove Asym compatibility.                                                  |
+| [HubSpot data sync](https://knowledge.hubspot.com/integrations/connect-and-use-hubspot-data-sync), updated October 2, 2026                                                                                                                                                                                       | Shows explicit direction, field review, activation review and health. Admission filters do not govern every later sync.                        | Learn truthful scope/status in the existing giving connection. Reject arbitrary mapping, two-way conflict ownership and initial-only authorization for Core. Add no HubSpot dependency.            |
+| [Planning Center profile overview](https://help.planningcenter.com/en/138573-profile-overview.html), publication October 15, 2026                                                                                                                                                                                | Edits are made in the existing profile; shared profile changes and login-method administration are distinct.                                   | Keep correction discoverable and explain the shared source effect. Do not copy broad editor rights or its name/household assumptions.                                                              |
+| [Virtuous permissions](https://support.virtuous.org/hc/en-us/articles/360050985731-How-Do-I-Manage-User-Permissions), updated November 24, 2025, and [Bloomerang mobile permissions](https://help.bloomerang.com/en/articles/17568879-bloomerang-crm-mobile-app-user-permissions), displayed “Updated this week” | Virtuous separates several contact/note/import powers; Bloomerang warns that old mobile versions did not enforce current web permissions.      | Reuse exact purpose permissions and test stale clients. Neither vendor's default access or mobile warning proves Asym runtime behavior.                                                            |
+| [W3C form notifications](https://www.w3.org/WAI/tutorials/forms/notifications/) and [status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html)                                                                                                                                          | Explain field-related errors, useful correction guidance and programmatically determinable status without unnecessary focus movement.          | Preserve permitted input, attach errors to fields, announce Save results and avoid toast-only or color-only truth. These establish accessibility practice, not a completed Core audit.             |
+| [PostgreSQL 17 RLS](https://www.postgresql.org/docs/17/ddl-rowsecurity.html)                                                                                                                                                                                                                                     | Distinguishes grants, effective old/new row policies, permissive-policy union and privileged bypass; omitted `WITH CHECK` can inherit `USING`. | Test actual effective policies and every reached privileged path. Do not diagnose a vulnerability solely from an omitted clause. Local config names major 17; deployed version remains unverified. |
+| [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) and [Data API exposure change](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically)                                                                              | Grants/exposure and RLS are separate, UPDATE requires applicable SELECT access, and views/privileged credentials need independent scrutiny.    | A server route or tenant filter alone is not qualification. Test the actual environment, including direct Data API paths, without granting broad access to make a form work.                       |
+
+The Supabase skill was used as guidance and checked against primary docs. Its
+overbroad statement about missing explicit `WITH CHECK` is not adopted; both
+PostgreSQL and Supabase document inherited behavior. The current changelog was
+fetched after the web reader failed. Relevant exposure/version entries were
+read; no upgrade, schema probe or deployment claim follows. This review adds no
+database feature or provider dependency.
+
+## Complete user journey and restrained design
+
+Reuse the native Partners/contact detail and D5 editor. Keep contact facts
+visually separate from giving information, notes and activity without duplicating
+the person. Use the existing shared Base UI/base-maia components, Zinc semantic
+tokens, typography and spacing from
+[the UI contract](../../../../packages/ui/AGENTS.md). A short readable detail
+section and one qualified Edit action are sufficient; no sync dashboard,
+integration warning banner or contact score is needed.
+
+| Moment                                | Experience                                                                                                                             | Required meaning                                                                                                                                                          |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Discover a person                     | Existing authorized list/search/detail; preserve search, scroll and selected record after editing.                                     | No global search, hidden counts or inference from a missing protected person. Existing imports remain D17-qualified.                                                      |
+| Read contact details                  | Show current permitted values with clear labels. Unknown values remain unknown.                                                        | No private overlay that contradicts the canonical contact, and no blank redacted input that could clear hidden data.                                                      |
+| Correct an eligible field             | **Edit contact details**, short field-scoped editor, then one **Save**.                                                                | Copy: “Changes update the shared contact details available to people with access.” Do not add routine staff approval or a second confirmation.                            |
+| Some fields are read-only             | Editable eligible inputs and ordinary readable text for the rest.                                                                      | Submit selected changes only; no hidden/full-profile payload. Do not imply the missionary can change login, consent or financial identity.                                |
+| No edit permission                    | Omit the misleading edit affordance; where useful explain “You can view these details, but your current access doesn't allow changes.” | No dead disabled form, invented approval queue or promise that staff must accept a request. Independently authorized staff work remains possible.                         |
+| Permission is unresolved              | Stable loading space or “Editing is temporarily unavailable. Try again.”                                                               | Unknown authority is not a configured tenant denial. Do not briefly enable editing or fall back to stale grants.                                                          |
+| Save succeeds                         | “Contact details updated.” Update the permitted native view without losing place.                                                      | Success follows source acceptance. It is neither contact verification nor proof that an external product changed. No routine “unsynced changes” badge.                    |
+| Validation fails                      | Specific field error and corrective guidance; keep still-permitted input.                                                              | A phone edit cannot require unrelated email completion or manufacture a US address. Errors persist accessibly until resolved.                                             |
+| Someone edited first                  | Explain the conflict and show only permitted current values alongside the still-permitted draft where helpful.                         | Deliberate review/retry; no silent overwrite or generic merge wizard. Hidden changes cannot be revealed through a conflict message.                                       |
+| Response is lost                      | Check the original save outcome; show an honest unresolved state if it cannot yet be determined.                                       | Do not say “not saved,” silently retry with a fresh intent or replay an old edit over a newer one.                                                                        |
+| Read access or tenant changes         | Remove affected cached/editor data and reject late responses.                                                                          | Keeping an unauthorized draft for copy/export is not recovery. Losing edit alone does not imply loss of independently permitted reading.                                  |
+| Use an existing giving connection     | In its existing settings, show its actual authorized categories and owner-qualified status.                                            | Contextual help only where relevant: “This connection shares the approved support information listed here. This release does not include a separate contact-update feed.” |
+| External product retains an old value | Asym shows its own current source truth; existing connection help explains its limited purpose.                                        | No automatic correction task, fictitious pending sync, auto-export workaround or promise of provider/local-copy erasure.                                                  |
+| Mobile or poor connection             | Short labels, readable wrap, stable focus, reachable Save/Cancel and explicit retry.                                                   | Native work has no live external contact-provider call. No restricted browser persistence or automatic offline replay is introduced.                                      |
+
+Use the shared-effect copy only for a D5 shared-contact correction. Restricted
+preparation retains its own current audience and source-specific wording;
+editing it does not imply promotion or sharing.
+
+International names, non-Latin text, one-character names and different phone/
+postal conventions must survive according to the qualified source rules. Do not
+split a display name into mandatory Western first/last fields, assume a country,
+or format identifiers as numbers. Allow copy/paste and appropriate input modes.
+Use localized labels and timestamps; there is no new deadline, calendar or
+timezone setting. Test 320 CSS-pixel reflow, zoom, keyboard-only operation,
+visible focus, screen-reader field/error relationships and status announcements.
+These are acceptance conditions, not claims of a rendered or tested prototype.
+
+### Tenant configuration, disabled states and existing data
+
+| Control or condition                               | Decision                                                                                                                                                                                                                   |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Missionary contact editing                         | Reuse D5's focused entry into existing P12 permissions and source/field policy. Show effective versus pending state and relevant scope. No duplicate D41 flag.                                                             |
+| Tenant wants missionaries read-only                | Authorized administration removes/withholds the applicable editing grants within its ceiling. Re-evaluate all relevant valid grants; removing one is not a cross-grant deny.                                               |
+| Tenant wants contact-sync Off                      | There is no new contact-update feed to enable or disable in this release. Do not show a permanently disabled toggle or “coming soon” card.                                                                                 |
+| Existing giving feed                               | Retain P21 D8 default-Off, deliberate qualified setup and Stop sharing. Its switch does not disable native editing, and native editing permission does not enable the feed.                                                |
+| Existing legitimate data or access                 | Preserve contacts, private preparation, prior corrections, provenance and independently valid rights. D41 is not a deletion, blanket role revocation or migration event.                                                   |
+| Unexpected legacy external-contact path discovered | Inventory exact source/authorization and stop unauthorized additional disclosure through its owning control. Preserve evidence and unrelated lawful services; do not delete rows or revoke all integrations speculatively. |
+| Re-enable an editing grant                         | Newly authorized corrections become possible. No automatic submission of an old draft, export, new subscription or historical replay follows.                                                                              |
+
+Giving-feed setup/health remains in the accepted
+[P21 settings journey](../../../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md:2682).
+It must not clutter every missionary's contact screen. No global banner claiming
+“nothing leaves Asym” is appropriate: existing independently authorized
+communications/exports and finance-safe fields still have their own contracts.
+
+## Ownership, invariants and database review
+
+| Authoritative fact                               | Owner and invariant                                                                                                                                                  |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Contact identity and eligible corrected values   | P4/P9 native sources; one authoritative correction, with no provider-owned winner or shadow contact store. D1 preparation is distinct and retains its audience.      |
+| Effective view/edit/admin capability             | P12 with source/field floors from existing owners; actor and active tenant assignment come from trusted context. A contact relationship is not an edit/export grant. |
+| Gift/support facts and external safe field floor | P13/P14/P16/P21 according to their existing contracts. Contact Save cannot manufacture money, consent, legal donor identity or support history.                      |
+| Giving subscription and delivery evidence        | P31 under ADR-0097; no new P28 contact resource is admitted. A disposable projection is not source authority.                                                        |
+| Import, communication and protected bytes        | P30/D17 intake, P6/P17 dispatch, P29 custody as applicable. D41 neither grants nor cancels these independent purposes.                                               |
+
+The selected no-build scope needs **no new table, enum, nullable flag, feed
+cursor, scheduled job, mapping language or retention period**. Review native
+correction using D5's existing boundary rather than treating absence of a new
+feed as proof that native storage is safe:
+
+- **Keys and relationships:** enforce tenant-aware references and the exact
+  allowed source/assignment scope. Shared phones/emails are not unique person
+  identity. Never derive ownership from a caller's contact ID or external ID.
+- **Mutation constraints:** current old-row access and valid resulting-row
+  state must both hold. Tenant, actor, author, owner, approval and audit fields
+  are server-derived or immutable for this action. A contact edit cannot move
+  the row into another tenant/owner/classification or turn hidden data visible.
+- **Grants and RLS:** test actual grants, SELECT/UPDATE policies, permissive
+  unions, inherited checks, view execution mode, functions/RPCs and service-role
+  paths. Browser denial does not qualify a privileged endpoint; a UI button is
+  not authorization. Missing/filtered targets are not successful saves.
+- **Field/null semantics:** omitted means unchanged; Clear is explicit and
+  source-valid. Reject the whole selected action if a submitted field is
+  forbidden/invalid. Do not convert missing/redacted display defaults into
+  authoritative values. Preserve international strings and field-specific proof.
+- **History and deletion:** mutable current contact facts and governed immutable
+  correction/authority evidence are distinct. No new append-only contact ledger
+  is warranted. Do not cascade a correction/removal into gifts, tasks, private
+  preparation or financial history. Existing retention/erasure rules apply to
+  source history, logs, caches, exports and backups.
+- **Money and dates:** no financial amount, currency, schedule or date type is
+  added or changed. Preserve exact existing financial units and histories; no
+  contact row may overwrite them. Audit instants use trusted source time.
+- **Indexes and capacity:** use existing scoped lookup/permission paths and
+  bounded native pagination. Validate actual plans and supported tenant cohorts
+  when the source action is implemented; no new speculative index or universal
+  latency/volume claim is justified here.
+- **Migration/backfill:** D41 requires no contact copying/backfill. Native D5
+  cutover still must preserve retained data, prevent old broad writers from
+  bypassing new checks and keep permitted edits functional. Rollback cannot
+  restore unsafe browser grants or a retired external CRM.
+
+The meaningful native lifecycle remains: view → authorized edit draft → source
+acceptance, rejection/conflict, or unknown outcome → current permitted result.
+Cancelling before submission abandons the draft; closing after submission does
+not prove cancellation. A true no-op creates no changed-value or interaction
+history. Accepted corrections retain their identity; delayed/repeated responses
+must not overwrite newer state. Permission changes are a separate lifecycle,
+and giving-feed publication/revocation is a third. D41 adds no fourth state
+machine and cannot make one axis impersonate another.
+
+## Exact required amendments
+
+These are proposed review clauses for the later authorized spec/design, not an
+assertion of implementation or a new formal specification.
+
+- **C01 — Bounded exclusion.** This release SHALL add no P28 external
+  contact-update/contactability resource, subscription option, serializer or
+  producer. Native contact work SHALL remain independent of that absent feature.
+  Any later addition requires a separate explicit product/owner decision and
+  ADR-0097 qualification; no dormant tenant toggle SHALL bypass it.
+- **C02 — Preserve existing giving meaning.** D41 SHALL neither widen nor remove
+  the already approved P21 financial projection or field floor. Its current
+  corrections, authorization, anonymity and P31 delivery rules SHALL remain
+  effective. Existing safe identity-field changes SHALL NOT be called contact
+  synchronization or used to infer permission for new contact methods. Giving
+  credentials/cursors SHALL not authorize contact-resource/field expansion, direct
+  CRM enrichment or writeback; unsupported requests SHALL fail before protected
+  enumeration while valid giving requests remain usable.
+- **C03 — Preserve independent purposes.** D17/P30 inbound contact intake,
+  qualified communications/print/export actions and unrelated owner contracts
+  SHALL retain their existing scope. D41 SHALL grant no new export, send,
+  subscription, consent, identity or financial power, and SHALL not create an
+  automatic export workaround or external-refresh task. Repeated D17 intake SHALL
+  not overwrite native corrections, merge people or restore consent; bound-row
+  discrepancies retain the existing reviewed source-correction path.
+- **C04 — Reuse tenant permissions.** Tenant administration SHALL reuse D5/P12
+  capability and eligible field/source controls, including current configured
+  versus effective/pending state. No new D41 master flag, per-contact ACL or
+  routine staff approval SHALL be added. Removing a grant SHALL preserve other
+  independently valid rights; missing authority SHALL not manufacture a grant.
+- **C05 — One qualified native correction.** Native correction SHALL satisfy
+  D5's complete actor/source/field inventory and preserve the active roster-safety
+  contract. Only selected eligible changes SHALL be submitted; Clear, omitted,
+  no-op, validation and owner-specific proof effects SHALL remain distinct.
+  Unrelated fields and lawful history SHALL remain unchanged.
+- **C06 — Trusted authorization and resulting state.** All reached server,
+  browser/Data API, RPC/view and privileged paths SHALL enforce exact current
+  tenant/assignment/source/purpose/field authority. Trusted server context SHALL
+  establish attribution. Effective old-row and resulting-row constraints SHALL
+  prevent cross-scope reassignment, protected-field promotion and audit spoofing.
+- **C07 — Atomicity, conflicts and recovery.** The existing source boundary SHALL
+  atomically accept the qualified correction and required evidence, fence relevant
+  concurrent source/permission changes and recover the same durable intent.
+  Retries SHALL not repeat accepted effects or overwrite later corrections;
+  uncertain responses SHALL remain uncertain until reconciled. Readback obeys
+  current access. No new generic transaction/retry framework is required by D41.
+- **C08 — Honest native UI.** The existing detail/editor SHALL show eligible
+  editing, read-only access, loading, temporary unavailability, validation,
+  conflict, accepted and unresolved states distinctly. One ordinary Save SHALL
+  suffice for the qualified correction. Read revocation or tenant changes SHALL
+  clear affected presentation/drafts and fence late responses.
+- **C09 — Accurate connection copy.** A qualified giving connection SHALL show
+  its exact shared scope and truthful preparation/fetch/application state under
+  P21/P31. Native contact screens SHALL not imply pending external synchronization.
+  No blanket “nothing leaves Asym,” guaranteed erasure, or fictitious Connected
+  state SHALL be presented. Explain D41's limit only where relevant.
+- **C10 — Accessibility and international use.** Shared base-maia primitives and
+  semantic tokens SHALL provide labeled controls, visible focus, keyboard/phone
+  access, useful field errors, status announcements and narrow-screen reflow.
+  Qualified source rules SHALL preserve international names/phones/addresses;
+  no unrelated required email or hardcoded country SHALL be introduced.
+- **C11 — Privacy and retention.** Native/contact/feed visibility SHALL remain
+  purpose-specific across lists, counts, searches, caches, logs, exports and
+  diagnostics. Private preparation, hidden identities and donor contactability
+  SHALL not be inferred or copied through the giving feed. Existing source
+  retention/erasure rules SHALL apply; D41 adds no permanent snapshot or backup.
+- **C12 — Compatibility and safe rollout.** No D41 data backfill or blanket
+  permission/feed revocation SHALL occur. Before the native correction release,
+  qualify retained records, old clients/writers, new source checks and actual
+  permissions. Preserve valid use, stop only unsafe paths and roll forward
+  without restoring retired CRM or unsafe grants. Inventory any discovered
+  legacy external-contact path under its owner before changing it.
+- **C13 — Bounded native performance.** Native list/detail/correction SHALL not
+  wait on a contact provider or perform new feed scans/fan-out. Existing pagination
+  and complete reachability SHALL be preserved; actual authorization/query and
+  phone/network budgets SHALL be measured for supported cohorts before release.
+- **C14 — Accountable evidence.** Source correction history, policy administration,
+  security decisions and P31 delivery evidence SHALL retain their separate
+  meanings. Correlation/outcome diagnostics SHALL be permission-scoped and
+  content-minimized; no full-contact dumps or synthetic sync backlog are allowed.
+- **C15 — Qualification and traceability.** The later authorized spec/design SHALL
+  trace D41 and P01–P30 below through D5/P9/P12 and P21/P31 owners, real positive
+  and negative tests, retained-data rollout and release evidence. An earlier
+  probe, passing document check or static settings page SHALL not certify runtime.
+- **C16 — Minimal scope.** D41 SHALL add no provider, dependency, new permission
+  service, generic sync engine, second CRM, AI classifier, contact-value score or
+  separate missionary data-entry system. Unreached platform risks SHALL not be
+  turned into new requirements merely because external contact sync is excluded.
+
+## Consolidated adversarial concerns
+
+Likelihood is a reasoned assessment of the stated failure mechanism, not a
+measured incident rate. Severity describes consequence if it occurs. Every
+concern narrows or clarifies B; none establishes a need to replace it with A.
+
+| ID  | What could go wrong and why it matters                                                                                                                                                                                   | Severity / likelihood; evidence                                                                                                                                                                   | Effect on answer; permanent response and exact clauses                                                                                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 | An absolute “no external contact data” rule removes approved giving display fields or blocks lawful communications/import/export. Conversely, a giving connection is mistaken for an address-book sync.                  | High / plausible wording risk. P21 floor, ADR-0097 and independently ratified D7/D15/D17 scopes.                                                                                                  | Narrow the release exclusion to the new P28 resource; preserve exact existing fields and purposes. C01–C03/C09; P01–P05.                                         |
+| F02 | “Customizable/Off” produces a new sync toggle or a duplicate permission flag, reopening A or conflicting with valid grants. Read-only users are told to request invented approval.                                       | Medium / plausible. User's generic customization request and existing D5 authority model.                                                                                                         | Reuse actual tenant permissions; no toggle for an excluded feature. C01/C04/C08/C16; P06–P09.                                                                    |
+| F03 | Existing full-row editor corrupts untouched values, international addresses or non-contact fields, while forcing unrelated email/name constraints. Native-only direction then makes an unsafe path the everyday default. | High / concrete conditional source mechanism. `donor.ts` schema/payload and D5 findings.                                                                                                          | Keep B; require D5's qualified inventory and selected-field atomic correction before calling native editing ready. C05/C10/C12; P10–P14.                         |
+| F04 | UI permissions differ from privileged API or database rights. Actor-controlled relationships, broad policies, dormant overrides or stale grants permit forbidden writes or deny legitimate work.                         | Critical / unresolved runtime, concrete qualification gap. Current scoped writer has useful tenant/anonymity predicates but not complete D5 proof; source evidence maps grants/policy foundation. | Enforce current effective action/field rights at every reached boundary and resulting state, with positive and negative proof. C04–C06/C11/C15; P07–P09/P15–P17. |
+| F05 | Two editors overwrite each other; a lost response causes a duplicate/replayed correction; disabling edit during Save is mistaken for rollback.                                                                           | High / plausible; revision/intent recovery is not demonstrated in the reached mutation. D5 already requires it.                                                                                   | Reuse source revision/intent/evidence boundary and honest outcomes; no new sync conflict engine. C07/C08/C14; P18–P21.                                           |
+| F06 | A source edit is conflated with verified email possession, login identity, consent, giving, public publication or private-note sharing; necessary source withdrawal effects are skipped.                                 | High / plausible; broad current fields and differing D5 source effects.                                                                                                                           | Preserve each exact source effect and independent authority. No blanket “Save has no side effects.” C03/C05/C07/C11; P12/P22/P23.                                |
+| F07 | Hidden/anonymous identities escape via caches, drafts, suggestion counts, exported artifacts or contact-to-giving correlation. Revoked users keep receiving late data.                                                   | Critical / plausible across required consumer surfaces; ADR-0097 and D5 privacy boundaries. No deployed leak claimed.                                                                             | Current scoped serialization before enumeration/egress; invalidate affected client state and minimize diagnostics. C06/C08/C11/C14; P16/P17/P23/P24.             |
+| F08 | Static Connected labels or “saved only here” promises mislead users about actual data destinations. Staff build manual workarounds or assume old external data was erased.                                               | Medium / observed placeholder presentation; external sync feedback in MPDX supports confusion risk.                                                                                               | Honest source success, exact giving scope and evidence-based connection health; no repeated warning wall. C02/C09/C14; P03/P04/P25.                              |
+| F09 | A migration deletes legacy identifiers/history, resets grants, revives unsafe writers on rollback, or treats old external data as authority. Existing work breaks despite no new feed being built.                       | High / plausible migration mistake; current native/legacy seams and ADR-0001.                                                                                                                     | No D41 backfill; source-preserving D5 cutover and owner-specific inventory/recovery. C12/C15; P26/P27.                                                           |
+| F10 | Native UX is inaccessible, loses drafts/context on slow connections, clips actions or rejects valid international values. Users abandon the native workflow for spreadsheets.                                            | Medium / plausible, with concrete hardcoded-country/schema issues; W3C and D5 journey. No abandonment rate measured.                                                                              | Short accessible source-shaped form, truthful feedback and actual representative user/network checks. C08/C10/C13; P11/P14/P20/P28/P29.                          |
+| F11 | “No new integration” is taken as proof of native scalability or data integrity. A capped or permission-expensive list hides records; an out-of-scope fix grows into a new platform.                                      | Medium / unmeasured capacity; observed native page limits are not load evidence.                                                                                                                  | Bounded existing queries, no provider dependency, supported-cohort measurements and narrow reuse. C13/C15/C16; P29.                                              |
+| F12 | Decision text, glossary, owner documents and UI disagree; “selected” is reported as deployed. No one can explain or repair a save or unintended disclosure.                                                              | High / plausible delivery/documentation hazard. Active changes and static findings differ from accepted owner intent.                                                                             | Preserve provenance, explicit future integration gates, source history and bounded operating signals. C14/C15; P30.                                              |
+
+## Every requested category
+
+Each Yes refers to the complete concern above, including impact, evidence,
+severity, likelihood, decision consequence and exact permanent amendment.
+
+| Category                                                      | Material concern?                           | Independent assessment and required response                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Problem validity, necessity, and alternatives                 | No material concern with B's selected scope | Native work is explicit founder intent; an additional external contact purpose is not required by the accepted giving feed. A's transition benefit was compared and remains credible but unmeasured. No new build is needed to exclude it. Preserve C01–C03.                      |
+| Brittleness                                                   | Yes — F01/F04/F08                           | Ambiguous contact/feed labels, stale authority and fixed connection presentation break under changed source values or configuration. C02/C06/C09.                                                                                                                                 |
+| Technical debt                                                | Yes — F02/F03/F09                           | Duplicated permissions, broad legacy payloads, shadow contacts and unsafe rollback entrench debt. Reuse D5, preserve source truth and avoid a new subsystem; C04/C05/C12/C16.                                                                                                     |
+| Edge cases                                                    | Yes — F01/F03/F05/F06/F07                   | Shared addresses, no email, international values, anonymous identity, simultaneous edit, revoke, lost response and existing giving fields need different outcomes. C02/C05–C11 and P01–P30.                                                                                       |
+| Footguns                                                      | Yes — F01/F02/F06/F08                       | A dead sync switch, broad “nothing leaves” claim, misleading Saved or contact-as-consent enables wrong decisions. C01–C04/C08/C09.                                                                                                                                                |
+| Tenant safety                                                 | Yes — F04/F07/F09                           | Tenant switches, other acting assignments, inherited grants, caches and migration can cross scopes. Trusted context and current source/field boundaries; C04/C06/C08/C11/C12.                                                                                                     |
+| Database, RLS, and authorization safety                       | Yes — F03/F04/F05/F07                       | Reviewed keys/references, defaults/null/Clear, history/delete behavior, money separation, indexes, migration, grants/RLS old/new predicates, views/RPCs and privileged paths. No new table is needed; actual D5 positive/negative source proof remains required. C05–C07/C11–C15. |
+| Overengineering                                               | Yes — F02/F11                               | A feature toggle, external-copy repair queue, mapping language or new capability service would rebuild rejected A. Reuse existing owners and remove speculative features; C01/C04/C13/C16.                                                                                        |
+| UX/UI and user friction                                       | Yes — F02/F03/F08/F10                       | Whole journey above covers discoverability, settings, view/edit/loading/error/conflict, phone use, localization and accurate external effects. No donor checkout change or extra confirmation is introduced. C08–C10.                                                             |
+| Source of truth, ownership, and domain invariants             | Yes — F01/F03/F06                           | Contact facts, permissions, preparation, money and feed delivery must retain separate authorities. No copied contact becomes a writer; C02–C07/C11.                                                                                                                               |
+| Hidden coupling                                               | Yes — F01/F02/F06/F08                       | Giving-feed Off, native edit permission, contact proof, consent and import are independent. Preserve exact source effects rather than coupling everything to Save; C02–C05/C09.                                                                                                   |
+| Failure modes                                                 | Yes — F04/F05/F08/F10                       | Source/permission outage, ambiguous accepted Save and failed readback require safe, visible recovery. External contact-provider failure cannot block native work. C06–C09/C13/C14.                                                                                                |
+| Lifecycle, temporal correctness, concurrency, and idempotency | Yes — F05/F06/F09                           | Edit, permission and giving-publication lifecycles are separate; accepted intent, conflict/retry, revocation and retained historical meaning are explicit. No new timing rules; C05–C08/C12.                                                                                      |
+| Data integrity risks                                          | Yes — F03/F05/F06/F09                       | Full snapshots, duplicate/reordered saves, invalid identity matching and unsafe legacy adoption can corrupt facts. C05–C07/C12.                                                                                                                                                   |
+| Security and privacy risks                                    | Yes — F04/F06/F07                           | Native-only is not permission to expose notes, household data or identities. Checked all disclosure surfaces, storage/retention and privileged paths; C06/C08/C11/C14.                                                                                                            |
+| Scalability and performance risks                             | Yes — F11                                   | Excluding a feed removes its new fan-out, but native query/authorization capacity is unmeasured. Observed 50/100 page sizes do not prove speed or completeness. C13/P29.                                                                                                          |
+| Operational burden                                            | Yes — F02/F08/F09/F12                       | New duplicate settings, fictitious sync repair and direct DB correction would create toil. Use existing source support/recovery and owner evidence; C04/C09/C12/C14/C16.                                                                                                          |
+| Observability and auditability gaps                           | Yes — F05/F08/F12                           | Technical logs are not correction history, policy effectivity or provider application evidence. Keep distinct minimized records and truthful outcomes; C07/C09/C14.                                                                                                               |
+| Dependency and integration risks                              | Yes — F01/F08                               | No vendor/package/protocol is added, but existing giving credentials, certified fields and delivery claims could be overextended. Preserve P21/P31 scope/currentness/removal limits; no universal MPDX availability or retired Twenty path. C02/C09/C12.                          |
+| Migration, rollout, and upgrade risks                         | Yes — F04/F09                               | Mixed old/new clients and grants need actual D5 qualification. D41 requires neither contact backfill nor blanket disconnect; roll-forward preserves data and independent services. C12/P26/P27.                                                                                   |
+| Testability, traceability, and proof                          | Yes — F12                                   | Precise absence/preservation rules, positive native edit proof, negative authority checks and current artifact status are needed. C15 with P01–P30; later formal/ticket transitions remain explicitly gated.                                                                      |
+| Other development hazards                                     | No additional material concern found        | Checked money arithmetic, public CMS publishing, donor checkout, AI/workflow bypass, new legal claims, hidden release flags and forced coaching. None is introduced; existing scope/privacy concerns cover reached consequences. C03/C16 prevent scope creep.                     |
+
+## Falsifiable acceptance criteria and pressure tests
+
+These are required future observable outcomes and adversarial design examples,
+not executed application, provider, RLS, load or usability tests.
+
+| ID  | Counterexample and required outcome                                                                                                                                                                                                                                                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P01 | No P28 contact resource can be selected, admitted, queued or serialized. A valid giving credential/cursor/subscription requesting a contact resource, extra contact fields or writeback through generic API/serializer paths is denied before protected enumeration; its authorized giving request still succeeds. No dormant toggle enables the excluded purpose. |
+| P02 | A qualified existing giving feed is enabled/disabled: its accepted scope/default/authorization/stop-sharing behavior remains unchanged; native contact work is independent.                                                                                                                                                                                        |
+| P03 | A permitted display-name/coarse-location source correction affects an already approved giving field: apply its owner contract without adding email/phone/home address or claiming contact-record sync.                                                                                                                                                             |
+| P04 | A missionary edits a phone/email: no new contact-feed update, external-refresh task or auto-export occurs; required independent source effects still apply.                                                                                                                                                                                                        |
+| P05 | A separately authorized D17 import, D7 print/export or D15 send retains its original scope/consent checks. Re-importing an old phone for a bound contact does not overwrite the current native correction; the existing reviewed discrepancy path applies. No reverse-sync workaround.                                                                             |
+| P06 | Tenant grants/withholds native contact editing: existing effective permission controls govern; no second flag or routine approval is required.                                                                                                                                                                                                                     |
+| P07 | One grant is removed while another valid same-context path survives: preserve that right; do not union distinct acting assignments or manufacture a global deny.                                                                                                                                                                                                   |
+| P08 | Unknown authorization or unavailable policy service: no stale edit fallback or false tenant-denial claim; independently permitted reads follow their own contract.                                                                                                                                                                                                 |
+| P09 | Contact is readable but not editable: useful read-only detail remains; no misleading Edit or permanent disabled form, and no private reason is disclosed.                                                                                                                                                                                                          |
+| P10 | Only phone changes: untouched name/email/address/status/frequency/notes remain unchanged. An omitted field is not Clear.                                                                                                                                                                                                                                           |
+| P11 | Existing contact has no email, a one-character/non-Latin name or non-US address: a separately valid eligible correction does not require unrelated data or fabricate a country.                                                                                                                                                                                    |
+| P12 | Submitted action includes one invalid/forbidden field, including a non-contact field: reject the whole selected action with a safe error; no partial success or silent dropping.                                                                                                                                                                                   |
+| P13 | Explicit source-valid Clear: change only that field and its exact required source consequences; no unrelated history/delete cascade.                                                                                                                                                                                                                               |
+| P14 | True source-confirmed no-op: no changed-value or supporter-interaction event; distinguish this from absent/forbidden target or unknown outcome.                                                                                                                                                                                                                    |
+| P15 | Caller spoofs tenant, owner, approval, role or audit actor, or attempts cross-tenant/assignment reassignment: deny at every reached path with no write or existence leak.                                                                                                                                                                                          |
+| P16 | Anonymous/restricted identity becomes hidden during edit: server denies forbidden correction, presentation/draft clears as required, and late responses do not redisclose values.                                                                                                                                                                                  |
+| P17 | Direct Data API, view/RPC and privileged-service paths exercise equivalent old/resulting-state limits; test grants and actual inherited policy behavior, including positive authorized use.                                                                                                                                                                        |
+| P18 | Two authorized people edit a relevant value concurrently: later stale submit conflicts rather than silently overwriting accepted truth.                                                                                                                                                                                                                            |
+| P19 | Save commits but response is lost: recover the same durable effect without a second write or false failure. Reusing intent with changed meaning is rejected.                                                                                                                                                                                                       |
+| P20 | Readback/telemetry fails after acceptance: preserve accepted source truth; offer recovery without replaying Save or claiming rollback.                                                                                                                                                                                                                             |
+| P21 | Edit permission changes while Save runs, or old draft reappears after re-enable: source ordering determines acceptance; no automatic replay and no revocation-as-undo fiction.                                                                                                                                                                                     |
+| P22 | Eligible email/postal correction needs proof or withdrawal: obey the exact existing owner prerequisites/effects; do not equate Save with verified login/consent or skip a mandatory fence.                                                                                                                                                                         |
+| P23 | Private preparation, notes, hidden household identity, financial data or contactability is correlated across screens/feed: no widened disclosure or inferred contact right. Editing restricted preparation does not promote/share it or display D5 shared-contact copy.                                                                                            |
+| P24 | Tenant switch, logout or read revocation precedes cached/late results: clear affected visible state and reject responses; logs/exports do not retain newly unauthorized copies as a workaround.                                                                                                                                                                    |
+| P25 | Connection health is unknown or provider removal unproved: do not show fixed Connected, fully synchronized or erased labels. Exact giving scope is understandable without a warning on every contact.                                                                                                                                                              |
+| P26 | Retained records/external identifiers exist: D41 does not copy/delete/re-own them or reset permissions. Any unsafe old writer is handled through the qualified native cutover.                                                                                                                                                                                     |
+| P27 | Mixed-version deployment/rollback: old full-snapshot clients cannot bypass current boundary; preserve legitimate current edits and source history without restoring retired CRM/unsafe grants.                                                                                                                                                                     |
+| P28 | Keyboard/screen reader, zoom, 320 CSS-pixel layout and long international values: actions, labels/errors and status remain usable; focus and list position recover predictably.                                                                                                                                                                                    |
+| P29 | Representative supported tenant/contact sizes, concurrent edits and slow/lost network: record actual query/authorization/UX results against the owner release budgets; no contact-provider call or hidden truncated roster.                                                                                                                                        |
+| P30 | Trace the selected B, exact amendments, glossary and owner obligations to later authorized specification/design, tickets, implementation and release evidence; no missing gate is called complete because this document passes.                                                                                                                                    |
+
+## Synthesis, ordering and proof gates
+
+1. **Before recording the reviewed answer:** settle the release scope, preserve
+   the giving floor and independent purposes, and define tenant customization as
+   existing native permissions. The corrected decision and C01–C04/C09 do this.
+   No unresolved product answer is needed to retain B. Exact amendments remain
+   pending the founder's explicit ratification.
+2. **At the later authorized specification/design transition:** integrate the
+   bounded exclusion with D5/P9/P12 and P21/P31, trace C01–C16/P01–P30 and the
+   accepted terminology, and preserve D17/communications and existing owners.
+   Do not create a new ADR solely to restate ADR-0097's non-admission rule.
+   Formal publication and tickets still require `/to-prd` and `/to-issues`.
+3. **Require implementation safeguards:** qualify the native field inventory,
+   real permissions/grants/RLS, selected-field writer, source conflict/retry
+   boundary and privacy-safe consumer states. Current static gaps belong to
+   this native correction delivery; they do not justify building A. Preserve
+   real allowed edits as well as denials.
+4. **Before releasing the affected native/connection presentation:** demonstrate
+   positive/negative authority and concurrency tests, retained-data/mixed-version
+   compatibility, current connection-state evidence and accessible mobile use.
+   Users must correctly identify where a correction is saved and what an existing
+   giving connection does. Any observed wrong access/sync/erasure interpretation
+   is a design blocker to fix and retest, not a warning to ignore.
+5. **Monitor only after those gates pass:** use the named signals below. No
+   monitoring substitutes for permission, source-integrity or privacy proof.
+
+| Gate                                | Accountable owner                                | Required evidence before affected release                                                                                                |
+| ----------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| G1 — native source and access       | P9/P4 contact owner with P12 authorization owner | Exact actor/field inventory, current predicates/grants/privileged paths, atomic selected changes and positive/negative P07–P24 results.  |
+| G2 — feed boundary and presentation | P21 source owner with P31 integration owner      | No admitted P28 contact family, preserved existing financial floor, actual connection states and no false synchronization/removal claim. |
+| G3 — safe adoption                  | Native source release owner                      | Retained-record and old/new-client evidence, no unintended copy/deletion/grant reset, safe roll-forward and recovery.                    |
+| G4 — usable native work             | P28 product/design and accessibility owners      | Representative missionary/staff editing and read-only journeys, international/mobile/network tests and measured source-owned budgets.    |
+
+These owner roles are accountability assignments for later delivery, not claims
+that named people have been assigned or that the gates passed today.
+
+| Monitored risk                  | Signal and threshold                                                                                                          | Owner                                            | Response                                                                                                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scope regression                | Any confirmed P28 contact-update family admitted or emitted in this release: threshold **1**                                  | P31 integration owner with security owner        | Stop affected unauthorized egress, preserve minimized evidence and fix admission/serialization; verify unaffected lawful giving delivery.                 |
+| Native corruption or disclosure | Any confirmed unauthorized field write, cross-scope disclosure or accepted edit overwriting unrelated values: threshold **1** | P9 contact owner with P12/security               | Contain the affected writer/disclosure path, use source correction and incident procedures, and requalify before resuming; do not erase business history. |
+| Misleading product copy         | Any reproducible report that a shipping state falsely says synced, erased or Saved: threshold **1**                           | P28 product owner with the relevant source owner | Reproduce and correct the state/copy; distinguish actual accepted source truth, then rerun affected journey tests.                                        |
+
+These zero-tolerance correctness signals are proposed operating requirements,
+not measured service levels. D41 adds no new sync-health dashboard or background
+auditor. Existing owner telemetry/support channels can carry them. General
+latency budgets must be measured and approved under G4 rather than invented here.
+
+## Traceability, independent review and verification limits
+
+The [original Q41](d41-evidence/q41-before-answer.txt), all D40 evidence and its
+ratified D40/Q40 records are pinned in the
+[preservation manifest](d41-evidence/prior-evidence-sha256.json). Earlier results
+remain historical. The current Q41/session/glossary record selected B distinctly
+from amendments awaiting ratification and future implementation.
+
+[Governance review](d41-evidence/governance.md),
+[source/authorization review](d41-evidence/source-and-authorization.md), and
+[UX/primary research](d41-evidence/ux-and-primary-research.md) independently
+challenge the scope. Their final reconciliation is recorded in
+[cross-review resolution](d41-evidence/cross-review-resolution.md).
+[New document verification](d41-evidence/review-verification.json) checks current
+references, status, 22-category coverage, clause/concern/criterion mappings and
+frozen evidence without executing earlier programs.
+
+No hosted database, provider credentials, actual migration, UI browser session,
+user interview or load test was run. The review is complete as a research and
+decision artifact; implementation/qualification is not claimed. **Accept with
+required amendments; selected B, amendments pending explicit ratification.**

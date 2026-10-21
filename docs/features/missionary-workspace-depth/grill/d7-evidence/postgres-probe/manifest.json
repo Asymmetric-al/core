@@ -1,0 +1,20 @@
+{
+  "recorded_utc": "2026-10-16T08:02:30.462130+00:00",
+  "purpose": "Synthetic D7 review artifacts; not deployment evidence",
+  "files_sha256": {
+    "README.md": "ee7aa885fb11fbe5a81e316e0c3a05e30cd2bf64660a85b298a5144944809598",
+    "run.py": "fa55855f67dbf5f0b9d3ff46f6a827a5a14567caaf0dab8efce096f6438d8f91",
+    "environment.json": "9984a6288d775e159acf541f6012c87fa336892ded75f557436b0ed18ec3d68b",
+    "sources.json": "2b8db3cf2f509cb0f9bc2ff13cb59cce352d8c81dd3d42c7d2b16b6378bee71e",
+    "setup.sql": "5291498868ebcd73e782728e91ae3938c4926e15a781f317fc0682bf763d0522",
+    "results.json": "f966f083c0032e04a5413b9d87f0e089c62127e111698a9867e99dbeea17166d",
+    "cleanup.json": "6d4fa30b8fd396e676d3f99b185c442dea6801219b05c24fe5720fe613623322",
+    "roles.json": "ffaf1421be4d27999cd6b3314114f4cdf576d7b25e73aeb14ede4b602d08d5e5",
+    "../database-lifecycle.md": "1b94e6e5eb155b65c60d5ad87d9c41918050a5736818134075f8c35e905d5ac1"
+  },
+  "d1_helper_sha256": "d3178980f19bd1c9b5184b0f9c56f73dfea83181d0141059361aa9451cb4d24a",
+  "outcomes": 41,
+  "passed": 41,
+  "actual_lock_wait_cases": 6,
+  "cleanup_verified": true
+}

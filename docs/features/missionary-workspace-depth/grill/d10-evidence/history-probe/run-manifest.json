@@ -1,0 +1,45 @@
+{
+  "kind": "research-only actual React hook history probe",
+  "cwd": "/workspace/core",
+  "source_hashes_match_before_after": true,
+  "source_sha256": {
+    "packages/lib/hooks/use-donation-metrics.ts": "5302505bcff42b63a444e5923b9ea9bdc4c713b83ea3de082534732c048838e6",
+    "apps/missionary/app/analytics/analytics-data.ts": "9dbea56ff40e07ad4738f7b13969ad68b44b786f4a8ea7a3958515d2cb6f208a"
+  },
+  "probe_sha256": "d98b6a92d6186e36284f105eaf040ebe5d6b7936f6c97370460c359b780edff5",
+  "installed_test_runtime_versions": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "jsdom": "26.1.0",
+    "@testing-library/react": "16.3.2"
+  },
+  "runs": [
+    {
+      "scenario": "utc",
+      "timezone": "UTC",
+      "started_at_utc": "2026-10-16T10:07:48.678862+00:00",
+      "finished_at_utc": "2026-10-16T10:07:49.404456+00:00",
+      "runtime": "v24.19.0",
+      "exit_code": 0,
+      "stderr": "",
+      "passed": 5,
+      "command": "TZ=UTC D10_PROBE_CASE=utc node --input-type=module < docs/features/missionary-workspace-depth/grill/d10-evidence/history-probe/probe.mjs",
+      "stdout_file": "docs/features/missionary-workspace-depth/grill/d10-evidence/history-probe/utc-results.json",
+      "stdout_sha256": "c4ee1997a0c3d2c9ff2f6031f293a37bceae6da1cc118f3a6e98399b92cb6fc0"
+    },
+    {
+      "scenario": "positive-offset",
+      "timezone": "Pacific/Kiritimati",
+      "started_at_utc": "2026-10-16T10:07:49.404820+00:00",
+      "finished_at_utc": "2026-10-16T10:07:49.883329+00:00",
+      "runtime": "v24.19.0",
+      "exit_code": 0,
+      "stderr": "",
+      "passed": 1,
+      "command": "TZ=Pacific/Kiritimati D10_PROBE_CASE=positive-offset node --input-type=module < docs/features/missionary-workspace-depth/grill/d10-evidence/history-probe/probe.mjs",
+      "stdout_file": "docs/features/missionary-workspace-depth/grill/d10-evidence/history-probe/positive-offset-results.json",
+      "stdout_sha256": "271a9bcb04d93a9fd488b9906c2c0aff1406a73fc35fed5b88fb2304d590b8ef"
+    }
+  ],
+  "scope": "Original source modules imported without copying or transforming math; fetch response and clock inputs controlled; real installed React/testing-library/jsdom; no live HTTP/browser/database/authorization proof."
+}

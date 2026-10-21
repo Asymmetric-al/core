@@ -1,0 +1,178 @@
+{
+  "generated_at_utc": "2026-10-18T14:33:27.002165+00:00",
+  "scope": "D44 standard-period ownership decision and unanswered Q45; documentary verification only.",
+  "all_checks_pass": true,
+  "check_count": 21,
+  "checks": [
+    {
+      "name": "33 direct frozen entries",
+      "pass": true,
+      "details": 33
+    },
+    {
+      "name": "All explicit recursive manifest hashes preserved",
+      "pass": true,
+      "details": {
+        "direct_entries": 33,
+        "explicit_manifests": 48,
+        "distinct_files": 502,
+        "hash_comparisons": 878,
+        "opaque_artifact_pin_files": 14,
+        "failures": []
+      }
+    },
+    {
+      "name": "d42 normative C01-C24 unchanged modulo whitespace",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "d43 normative C01-C15 unchanged modulo whitespace",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "completeness normative C01-C20 unchanged modulo whitespace",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "CONTEXT byte-identical",
+      "pass": true,
+      "details": {
+        "expected": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82",
+        "actual": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82"
+      }
+    },
+    {
+      "name": "Q44 A recorded as selected standard-period decision",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "D44 has no duration settings or numerical adoption",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "D44 distinguishes documentation from implementation",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "Q44 question status records answered A",
+      "pass": true,
+      "details": "# Phase 28 Q44 \u2014 who sets the newsletter confirmation period October 18, 2026. Core `9cada8f3d8ab59db391d3fd20df77fcadeb09813` and the research working tree. **Q44 answered A \u2014 One standard Asym period.** The [D44 decision](phase28-d44-standard-confirmation-period-decision.md) records the choice and clear UX without a timing setting. The original question below is dated context; numeric duration remains unselected. ## Why this is the next question The founder has explicitly ratified [D43 and C01"
+    },
+    {
+      "name": "Q45 remains unanswered without a D45",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "Q45 distinguishes two proposed elapsed-time choices",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "d44 references current Q45 frontier",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "q44 references current Q45 frontier",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "session references current Q45 frontier",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "coverage references current Q45 frontier",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "completeness references current Q45 frontier",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "d43 references current Q45 frontier",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "d42 references current Q45 frontier",
+      "pass": true,
+      "details": null
+    },
+    {
+      "name": "Session records one selected D44 decision",
+      "pass": true,
+      "details": [
+        "| D44 (answered Q44) | A selected and recorded, 2026-10-18 | [D44 decision](phase28-d44-standard-confirmation-period-decision.md): one standard finite Asym confirmation period, clear source-derived deadline and no tenant/Page/missionary/reader timing setting; inherited D42/D43 safeguards. Numeric duration remains open. |"
+      ]
+    },
+    {
+      "name": "All current local Markdown links, lines and anchors",
+      "pass": true,
+      "details": {
+        "documents": 9,
+        "local_links": 631,
+        "line_bounds": 11,
+        "heading_anchors": 83,
+        "external_links_not_fetched": 28,
+        "generated_report_links": 2,
+        "failures": []
+      }
+    }
+  ],
+  "errors": [],
+  "preservation": {
+    "direct_entries": 33,
+    "explicit_manifests": 48,
+    "distinct_files": 502,
+    "hash_comparisons": 878,
+    "opaque_artifact_pin_files": 14,
+    "failures": []
+  },
+  "normative_clause_counts": {
+    "d42": 24,
+    "d43": 15,
+    "completeness": 20
+  },
+  "links": {
+    "documents": 9,
+    "local_links": 631,
+    "line_bounds": 11,
+    "heading_anchors": 83,
+    "external_links_not_fetched": 28,
+    "generated_report_links": 2,
+    "failures": []
+  },
+  "current_file_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d44-standard-confirmation-period-decision.md": "3947baafdc7f93576c03934152f92ebfc3992f22487547b5962e98cbd474f3a8",
+    "docs/features/missionary-workspace-depth/grill/phase28-q44-newsletter-confirmation-period-research.md": "fed2f3c6e9ff86a55ed7d0dbf1aecf102202f34981f061fd79cade0b38cad1c1",
+    "docs/features/missionary-workspace-depth/grill/phase28-q45-newsletter-confirmation-duration-research.md": "ce9a34056d4ecaf9d6f0a38002cbdbe1feef6159e621268be6fe79bb3125a519",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "6913f92992cccc91921f1217e482ae6cb545e848f35228d833827baa4065a23a",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "32d5909f8fb82d252d835454924df22a24521ed58e53eeac6e7fc4787725d988",
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "bdaaf8db4443134f28e2fdf99c094cf27dd4c3a24ff25be2e7a4ebcb83b502ed",
+    "docs/features/missionary-workspace-depth/grill/phase28-d43-pending-newsletter-confirmation-adversarial-review.md": "141e5c12fca50eac2a1dd19d9c6166df034510eb8dfff4130dd6e6543bd3b5c5",
+    "docs/features/missionary-workspace-depth/grill/phase28-d42-verified-email-newsletter-signup-adversarial-review.md": "3822029823dc914685da1c2183a1d2951aa788a16ca8dfc7bb098efafeb61dec",
+    "CONTEXT.md": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82",
+    "docs/features/missionary-workspace-depth/grill/d44-evidence/prior-evidence-sha256.json": "d299768ecb23d2e1b08bb225f04888519564bb0cd05bbf46f11d93477958df0c",
+    "docs/features/missionary-workspace-depth/grill/d44-evidence/verify-d44.py": "4b39776d8ea062ac38cb7c1008b45bc94de87a9366812283764af33f0875c886"
+  },
+  "limits": [
+    "No previous checker, model, application, browser, provider or database program was executed/imported; prior program bytes were hashed only.",
+    "Only explicitly referenced *sha256.json manifests are recursively parsed as JSON data; artifact-pins.json historical mutable pins are not current assertions.",
+    "Normative C blocks are compared modulo whitespace; CONTEXT and frozen evidence use exact-byte SHA-256 checks.",
+    "Local Markdown links, reference definitions, balanced-parentheses/angle-wrapped paths, line bounds and heading anchors are checked across the listed current documents. External links are not fetched.",
+    "No 22-category review requirement or numeric duration adoption is invented for this concise control decision. Q45 options remain proposals.",
+    "The generated report is created before successful exit; self-links need no preexisting report. The report's own mutable bytes are not self-hashed.",
+    "No application/schema/formal/GitHub/live configuration changed, and no Auth/RLS, SQL concurrency, provider, accessibility or measured usability result is claimed."
+  ]
+}

@@ -1,0 +1,115 @@
+# Phase 28 Q44 — who sets the newsletter confirmation period
+
+October 18, 2026. Core `9cada8f3d8ab59db391d3fd20df77fcadeb09813` and the
+research working tree. **Q44 answered A — One standard Asym period.** The
+[D44 decision](phase28-d44-standard-confirmation-period-decision.md) records the
+choice and clear UX without a timing setting. The original question below is
+dated context; [D45](phase28-d45-seven-day-confirmation-decision.md) subsequently selects seven elapsed days.
+
+## Why this is the next question
+
+The founder has explicitly ratified
+[D43 and C01–C15/P01–P30](phase28-d43-pending-newsletter-confirmation-adversarial-review.md#explicit-ratification).
+An already accepted request can finish after its Page invitation is hidden,
+before its original deadline and under current rules. The organization can
+disable native signup through its source-owned control. This does not select
+the confirmation period or add a tenant timing setting.
+
+[D42](phase28-d42-verified-email-newsletter-signup-adversarial-review.md#explicit-ratification)
+already settles qualified immediate Join using a signed-in reader's current
+verified address; other readers confirm by email. Q44 concerns only the latter
+branch. It is neither an Auth sign-in expiry nor the duration of an established
+newsletter subscription.
+
+The [ratification/frontier audit](d43-evidence/ratification-scope.md) identifies
+one ready product choice: whether authorized organization staff should configure
+the finite confirmation period. This affects settings, support and reader
+expectations. The actual time calculation, source serialization and secure
+implementation are engineering obligations, not questions for the founder.
+
+## The single founder question
+
+**Q44 — Should newsletter confirmation use one standard time window, or may
+each organization choose its own finite window?**
+
+- **A — One standard Asym period (recommended).** Readers get the same supported
+  confirmation window. Staff have no additional timing setting to manage.
+- **B — An organization-set period.** Authorized staff choose a finite window
+  within supported limits. Readers still see the applicable deadline and never
+  have to choose a period themselves.
+
+Both options preserve tenant signup On/Off, the existing Page control and current
+recipient rules. Neither changes the deadline of an already accepted request,
+extends it on resend, enables automatic reminders or revives expired proof.
+After expiry, a reader can start a fresh deliberate request only through a
+currently authorized entry.
+
+**Recommendation A is a product judgment:** the organization already controls
+whether signup is offered and which proof path is allowed. A uniform supported
+period avoids another setting without adding steps for readers. B is justified
+if organizations need different confirmation windows enough to warrant that
+control. No representative tenant feedback establishing that need has yet been
+obtained, and it must not be invented from a general customization preference.
+The founder's choice determines the product policy.
+
+This question chooses **who controls the period**, not its numeric value. Neither
+answer silently adopts D6's proposed 72 hours or its separate 24-hour purge.
+The exact duration/default and any supported bounds must be explicitly resolved
+before activation. This is one decision, not a bundled retention choice or a
+predefined series of new configuration questions.
+
+## Current research and repository fit
+
+[Fresh primary research](d43-evidence/q44-primary-research.md) examines newsletter
+confirmation expiry and delayed completion. Documented practices vary: Brevo
+describes a 30-day confirmation link; Broadcast documents a 24-hour default with
+channel-level customization; Ortto describes no expiry. Those are facts about
+their products, not equivalent Core policies, a consensus duration or a mandate
+to copy their customization scope. Core's ratified finite-original-deadline
+requirement excludes indefinite confirmation regardless of competitor behavior.
+
+Mailchimp's confirmation troubleshooting discusses possible mail delay. This
+supports allowing reasonable completion time and explaining expiry/recovery;
+it does not supply a Core delivery SLA. OWASP's password-reset guidance supports
+purpose-appropriate finite capability validity but is not a newsletter duration
+rule. Security, lifecycle and retention controls remain separately owned.
+
+No authenticated competitor walkthrough, real message, user interview, hosted
+Supabase setting, production traffic measurement or legal determination was
+performed. The sources establish observable product documentation, not proof
+that one duration maximizes fundraising or signup conversion.
+
+Repository consequences under either answer:
+
+| Boundary              | Required treatment                                                                                                                                                                      |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D43 original deadline | Bind the adopted finite period at authoritative acceptance; do not recalculate pending requests from later settings or resend. Current stricter restrictions can still stop completion. |
+| D43 tenant disable    | Disabling signup blocks new/pending admissions while disabled; it does not pause or extend the original clock.                                                                          |
+| D42 immediate Join    | A qualified immediate subscription has no pending-confirmation window. Its independent proof, consent and current eligibility rules remain.                                             |
+| P17 protected action  | Use the existing exact doorway and native recipient-authority amendment; do not inherit an unrelated Auth/provider token lifetime or invent a second protocol.                          |
+| Staff configuration   | A adds no timing field. B uses the existing source-owned tenant settings and exact configuration authority; no Page/missionary/reader exceptions are implied.                           |
+| Reader UX             | Show the applicable original deadline in permitted email/protected review, with clear expiry and a safe available restart. No new countdown, wizard or compulsory account.              |
+| Privacy and retention | Confirmation usefulness, pending data cleanup, consent/withdrawal evidence and backup disposition remain distinct. A pending token's expiry is not a lawful retention schedule.         |
+
+## Decision-tree and continuation status
+
+Ratified D42 → ratified D43 → **D44 standard period selected** →
+[D45 seven elapsed days](phase28-d45-seven-day-confirmation-decision.md).
+The founder chose A for both control ownership and duration. No tenant timing
+control is added. Retained-data disposition remains separate; no old purge value
+is adopted. The [session continuation](phase28-session.md#next-conversation-step)
+tracks the current frontier after these answers.
+
+D1/D3/D6/D11–D13 surviving packets retain their recorded independent amendment
+status. Completeness C04/C05 and upstream E7/C-01 are unchanged. Those boundaries
+are not reopened merely to continue the interview. Phase 28 is not declared
+complete and no new feature module is proposed.
+
+The invoked [grill-with-docs](../../../ai/skills/grill-with-docs/SKILL.md),
+[grilling](../../../ai/skills/grilling/SKILL.md) and
+[domain-modeling](../../../ai/skills/domain-modeling/SKILL.md) skills apply under
+the [founder brief](phase28-founder-brief.md). Its one-meaningful-question rule
+governs. No glossary change is needed: no new term is resolved by ratification
+or question preparation. No formal ADR/PRD/OpenSpec, ticket, application/schema,
+live configuration or real communication changes. `/to-prd` and `/to-issues`
+remain separate explicit transitions. No earlier program/model/probe was run.

@@ -1,0 +1,3 @@
+{
+  "reason": "35/35 assertions passed with read/handoff fence. Review found source change to eligible history-only evidence could display a held task as pending even though completion correctly denied history-only origin. Extend the existing hold-resolution case: history-only repair stays held; qualified live evidence may return same unhandled task to pending. Not a Core finding."
+}

@@ -1,0 +1,16 @@
+{
+  "byte_identical": true,
+  "counts": {
+    "counterexample_families": 17,
+    "passed_outcome_assertions": 122,
+    "positive_controls": 6
+  },
+  "date": "2026-10-18",
+  "executor": "root independent reproduction after full revised source inspection",
+  "exit_code": 0,
+  "limits": "Finite synthetic semantic assertions, not Core runtime, SQL/RLS, real transactions/concurrency, network, privacy timing, retention/restore, migration, accessibility, usability or performance proof. Owner-provided fixture inputs and terminal correlation retirement remain unqualified.",
+  "output_sha256": "8ba26d98ede9e4c6abe13b435d30f5331fe8ce8261b9001c0f0f4b3074e87a02",
+  "runs": "One root reproduction of the revised new D35 model; author ran this revision once. Initial model and all older models/probes/verifiers were not executed.",
+  "source_sha256": "1461fe335eb24b41b2ea2b96f9c51e8125a9a08b5ff287fe4f4f0603996dd330",
+  "timezone": "Asia/Bangkok"
+}

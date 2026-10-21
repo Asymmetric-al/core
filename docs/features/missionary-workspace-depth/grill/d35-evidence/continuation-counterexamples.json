@@ -1,0 +1,380 @@
+{
+  "cases": [
+    {
+      "corrected": {
+        "effect": "none",
+        "outcome": "rejected",
+        "reason": "unavailable"
+      },
+      "id": "B01",
+      "kind": "counterexample",
+      "title": "History or missionary identity does not grant continuation under proposed default Off",
+      "unsafe": {
+        "has_history": true,
+        "infer_action": true
+      }
+    },
+    {
+      "corrected": {
+        "effect": "none",
+        "outcome": "rejected",
+        "reason": "stale_review"
+      },
+      "id": "B02",
+      "kind": "counterexample",
+      "schedule": [
+        "review On",
+        "Off accepted",
+        "continuation attempted"
+      ],
+      "title": "Off before acceptance fences a previously reviewed command",
+      "unsafe": "accept cached On"
+    },
+    {
+      "corrected": {
+        "effect": "none",
+        "outcome": "rejected",
+        "reason": "stale_review"
+      },
+      "id": "B03",
+      "kind": "counterexample",
+      "schedule": [
+        "review revision1",
+        "Off revision2",
+        "On revision3",
+        "old intent retried"
+      ],
+      "title": "On-Off-On never upgrades an unaccepted stale intent",
+      "unsafe": "boolean is On, execute old intent"
+    },
+    {
+      "corrected": {
+        "action_revoked": {
+          "effect": "none",
+          "outcome": "rejected",
+          "reason": "stale_review"
+        },
+        "assignment_generation_changed": {
+          "outcome": "unavailable"
+        },
+        "membership_ended": {
+          "outcome": "unavailable"
+        }
+      },
+      "id": "B04",
+      "kind": "counterexample",
+      "title": "Current scoped capability and membership cannot be replaced by role or captured authority",
+      "unsafe": "missionary role or old grant is enough"
+    },
+    {
+      "corrected": {
+        "cannot_pursue": "rejected",
+        "invalidated": "rejected",
+        "revoked": "rejected",
+        "withdrawn": "rejected"
+      },
+      "id": "B05",
+      "kind": "counterexample",
+      "title": "A past deadline cannot turn adverse dispositions into ordinary expiry",
+      "unsafe": true
+    },
+    {
+      "corrected": {
+        "foreign_tenant": "unavailable",
+        "hold_only": "unavailable",
+        "merge_not_requalified": "unavailable",
+        "other_entity": "unavailable",
+        "other_ministry": "unavailable",
+        "reassigned_without_current_action_proof": "unavailable",
+        "source_privacy_revoked": "unavailable",
+        "unknown_expiry": "rejected"
+      },
+      "id": "B06",
+      "kind": "counterexample",
+      "title": "Exact source scope and eligibility survive neither reassignment nor a broad organization setting",
+      "unsafe": "any retained expired row in the organization"
+    },
+    {
+      "corrected": {
+        "cycles": 2,
+        "old_cycle_unchanged": true,
+        "same_referral": true
+      },
+      "id": "B07",
+      "kind": "counterexample",
+      "title": "Continuation preserves the stable referral and earlier expiry/cycle provenance",
+      "unsafe": {
+        "overwrite_loses_original_expiry": true
+      }
+    },
+    {
+      "corrected": {
+        "client_before_recovery": {
+          "effect": "unknown",
+          "outcome": "unknown"
+        },
+        "effects": 1,
+        "recovered": {
+          "accepted_cycle": 2,
+          "effect": "effect-1",
+          "outcome": "accepted"
+        }
+      },
+      "id": "B08",
+      "kind": "counterexample",
+      "schedule": [
+        "source accepts",
+        "response lost",
+        "Off and action revocation",
+        "same intent recovery"
+      ],
+      "title": "Lost accepted response recovers once even Off without rollback or a second transition",
+      "unsafe": "retry either fails as a fresh command or repeats the effect"
+    },
+    {
+      "corrected": {
+        "current_active": false,
+        "cycles": 2,
+        "receipt_refers_to_accepted_cycle": 2
+      },
+      "id": "B09",
+      "kind": "counterexample",
+      "title": "An old accepted command after later expiry never starts another cycle",
+      "unsafe": {
+        "currently_expired": true,
+        "reapply_old_continue": true
+      }
+    },
+    {
+      "corrected": {
+        "mayathenstaff": [
+          "accepted",
+          "rejected"
+        ],
+        "staffthenmaya": [
+          "accepted",
+          "rejected"
+        ]
+      },
+      "id": "B10",
+      "kind": "counterexample",
+      "title": "Two authorized actors contending for one expired cycle produce one continuation",
+      "unsafe": "both saw Expired and append separate active cycles"
+    },
+    {
+      "corrected": {
+        "cycle_change": "conflict",
+        "different_qualified_source": "conflict",
+        "original_effects": 1,
+        "other_target_effects": 0,
+        "window_change": "conflict"
+      },
+      "id": "B11",
+      "kind": "counterexample",
+      "title": "Same intent identity cannot be reused for a changed payload",
+      "unsafe": "same key authorizes new terms"
+    },
+    {
+      "corrected": {
+        "already_ended": "rejected",
+        "policy_absent": "rejected",
+        "policy_appeared_after_absence_review": "stale_review",
+        "source_changed": "stale_review",
+        "unqualified": "rejected",
+        "window_changed": "stale_review",
+        "window_elapsed_while_waiting": "rejected"
+      },
+      "id": "B12",
+      "kind": "counterexample",
+      "title": "A browser deadline or stale source/window evidence cannot define continuation terms",
+      "unsafe": "choose a new deadline and trust precheck"
+    },
+    {
+      "corrected": {
+        "context_changed": {
+          "outcome": "unavailable"
+        },
+        "result_grant_revoked": {
+          "outcome": "unavailable"
+        },
+        "source_result_privacy_revoked": {
+          "outcome": "unavailable"
+        }
+      },
+      "id": "B13",
+      "kind": "counterexample",
+      "title": "Accepted-effect recovery still needs current safe response authority",
+      "unsafe": "send the cached success body to any retry"
+    },
+    {
+      "corrected": {
+        "active_read": false,
+        "active_relation": true,
+        "contact_consent": false,
+        "private_context": false
+      },
+      "id": "B14",
+      "kind": "counterexample",
+      "title": "The renewed active relation never reinstates revoked read grants or contact consent",
+      "unsafe": {
+        "active_relation": true,
+        "infer_all_access": true
+      }
+    },
+    {
+      "corrected": {
+        "both_sources_preserved": true,
+        "collision_after_review": "stale_review",
+        "existing_conflict": "rejected"
+      },
+      "id": "B15",
+      "kind": "counterexample",
+      "title": "A distinct incompatible active occurrence is not this intent or a merge target",
+      "unsafe": {
+        "infer_already_accepted_or_merge": true,
+        "same_party_and_context": true
+      }
+    },
+    {
+      "corrected": {
+        "original_rejection": {
+          "effect": "none",
+          "outcome": "rejected",
+          "reason": "unavailable"
+        },
+        "same_intent_after_expiry": {
+          "effect": "none",
+          "outcome": "rejected",
+          "reason": "unavailable"
+        },
+        "source_effects": 0
+      },
+      "id": "B16",
+      "kind": "counterexample",
+      "schedule": [
+        "active at5: same intent definitively rejected",
+        "clock20: same source/cycle/policy/authority revisions",
+        "unsafe: discard terminal correlation and accept",
+        "corrected: recover terminal no-effect"
+      ],
+      "title": "Time alone cannot upgrade a definitively rejected intent",
+      "unsafe": {
+        "accepted_cycle": 2,
+        "effect": "effect-1",
+        "outcome": "accepted"
+      }
+    },
+    {
+      "corrected": {
+        "copied_staff_intent": "rejected",
+        "cross_actor_recovery": "unavailable",
+        "missionary_direct_staff_path": "rejected",
+        "original_performer": "maya",
+        "unauthorized_probe_business_records": 0
+      },
+      "id": "B17",
+      "kind": "counterexample",
+      "title": "Another actor cannot recover or own the original intent and a caller cannot select staff authority",
+      "unsafe": "same key or direct staff route bypasses actor/action binding"
+    },
+    {
+      "corrected": {
+        "active_relation_required_before_action": false,
+        "current_qualified_active_read": true,
+        "explicit_effects": 1,
+        "old_retention_and_purged_body_unchanged": true,
+        "read_alone_effects": 0,
+        "source_qualified_new_cycle_retention_trigger": 20
+      },
+      "id": "C01",
+      "kind": "positive_control",
+      "title": "Deliberate qualified continuation activates current work without unrelated effects",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "missionary_setting": "Off",
+        "staff_effects": 1
+      },
+      "id": "C02",
+      "kind": "positive_control",
+      "title": "Independent currently scoped staff authority survives changes to missionary permission",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "initial_transport_result": {
+          "effect": "unknown",
+          "outcome": "unknown"
+        },
+        "resolved_effects": 1
+      },
+      "id": "C03",
+      "kind": "positive_control",
+      "title": "An unchanged transport-unknown intent may resolve once under still-current authority",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "later_separate_cycle": 3,
+        "new_review_effects": 1,
+        "stale_intent_effects": 0
+      },
+      "id": "C04",
+      "kind": "positive_control",
+      "title": "Fresh deliberate intents can follow a definite stale failure and a later ordinary expiry",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "accepted_effects": 1,
+        "current_active_read": false,
+        "relevant_action_basis_unchanged": true
+      },
+      "id": "C05",
+      "kind": "positive_control",
+      "title": "An unrelated current read-permission change does not reject still-authorized continuation",
+      "unsafe": null
+    },
+    {
+      "corrected": {
+        "new_intent": "accepted",
+        "old_intent": "rejected",
+        "source_effects": 1
+      },
+      "id": "C06",
+      "kind": "positive_control",
+      "title": "Terminal rejection does not prevent a new deliberate intent on the now-expired source",
+      "unsafe": null
+    }
+  ],
+  "counts": {
+    "counterexample_families": 17,
+    "passed_outcome_assertions": 122,
+    "positive_controls": 6
+  },
+  "decision": "D35 missionary continuation when organization permits; independently authorized staff can still act",
+  "evidence_kind": "bounded_stdlib_continuation_semantic_model",
+  "fixture_time": "Arbitrary ordered instants: initial cycle [0,10), acceptance20, qualified window end30; later acceptance40/end50. No duration selected.",
+  "limitations": [
+    "Only this finite synthetic standard-library model runs; no previous model/probe/verifier, app, database, network, provider or private data is exercised.",
+    "Source eligibility, identity qualification, current scoped grants, membership generations and positive new-window evidence are owner-qualified fixture inputs, not implemented P9/P12 producers.",
+    "Review revisions stand for relevant continuation authority/source/terms, not a mandate to reject on every global P12 epoch change. Real P12 must freshly resolve current facts; its revision dependency implementation is unproved.",
+    "Serialized execute models a required outcome; it proves no SQL/RLS, lock ordering, database transaction, real concurrency, worker failure recovery or distributed cache enforcement.",
+    "intent_outcomes illustrates narrow existing source/audit correlation for accepted and definitively rejected intents, not a proposed table, generic command journal, provider ledger or crm_command_logs implementation. Durable no-effect correlation is a required owner proof, not an established producer.",
+    "Terminal correlation remains present for this finite run. Lawful expiry/purge of recovery evidence, its admissibility fence, retention policy and crash durability are not tested or chosen; old commands must not become newly admissible when evidence disappears.",
+    "No per-attack business journal is implied: current actor/action/source qualification precedes terminal lifecycle adjudication; unauthorized probes create no outcome record, and irreversibly stale relevant revisions can reject replay without one.",
+    "The limited receipt means the original continuation was accepted, not that its cycle remains active. Current response disclosure is modeled logically, not transport/timing/privacy proven.",
+    "Window values and retention triggers are arbitrary source-qualified inputs. No product duration, fresh-referrer requirement, override hierarchy or renewal policy is selected.",
+    "The incompatible-active-occurrence fixture and its revision are owner-qualified inputs; no edge uniqueness constraint, collision classifier, merge or reconciliation producer is proved.",
+    "Old personal-data retention and absent bodies remain unchanged; this does not prohibit a valid new cycle's own source-governed retention trigger or prove any real retention/erasure/restore behavior.",
+    "History and active reads cover only no-action/current-grant seams; the full D34 projection, consent, contactability, grant expiry, principal transitions, canonical merges and UI late-response enforcement are not implemented.",
+    "Synthetic counters show no modeled task/send/interaction effect; no actual integrations, consumed-work producer, outbox or external provider behavior is tested.",
+    "A finite list of interleavings is not exhaustive scheduling, formal verification, release readiness or a deployed permission grant."
+  ],
+  "policy": "One proposed organization-wide missionary permission, initially Off for new/unconfigured. P12 scopes and independent staff authority remain separate.",
+  "reproduction": "python3 docs/features/missionary-workspace-depth/grill/d35-evidence/continuation-counterexamples.py",
+  "revision_reason": "Root found time-only eligibility could upgrade a definitively rejected active-source intent. Revised model retains minimal terminal no-effect correlation in the same abstract owner outcome mechanism and adds actor/path boundaries.",
+  "script_sha256": "1461fe335eb24b41b2ea2b96f9c51e8125a9a08b5ff287fe4f4f0603996dd330",
+  "status": "proposed owner contract illustration, not ratification or runtime proof"
+}

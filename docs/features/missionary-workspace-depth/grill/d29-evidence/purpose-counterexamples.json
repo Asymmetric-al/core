@@ -1,0 +1,437 @@
+{
+  "actor_policy": "Founder selected authorized staff and missionaries when the organization permits; exact current action/scope permission remains an abstract qualified input, not an inferred role grant",
+  "counterexamples": [
+    {
+      "corrected_observation": "four unavailable",
+      "id": "B01",
+      "name": "Memo, imported tag or generic checkbox becomes an authorized purpose",
+      "passed": true,
+      "unsafe_observation": "four false admissions",
+      "variants": [
+        {
+          "corrected": "unavailable",
+          "input": "raw_memo",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "input": "imported_special_tag",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "input": "staff_checkbox",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "input": "ai_prose_classification",
+          "unsafe": "admitted"
+        }
+      ]
+    },
+    {
+      "corrected_observation": "five unavailable",
+      "id": "B02",
+      "name": "Frequency, missing commitment, size or appeal stands in for purpose",
+      "passed": true,
+      "unsafe_observation": "five false admissions",
+      "variants": [
+        {
+          "corrected": "unavailable",
+          "cue": "paid_once",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "cue": "no_recorded_commitment",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "cue": "no_visible_commitment",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "cue": "larger_than_history",
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "cue": "appeal_link",
+          "unsafe": "admitted"
+        }
+      ]
+    },
+    {
+      "corrected_observation": "unavailable",
+      "id": "B03",
+      "name": "Confirmed purpose on a pending payment creates received-gift work",
+      "passed": true,
+      "unsafe_observation": "admitted"
+    },
+    {
+      "corrected_observation": {
+        "asserted_source_revision": 1,
+        "current_eligible_portions": [
+          {
+            "allocation": "allocation-1",
+            "currency": "USD",
+            "minor": 200
+          }
+        ],
+        "gift": "gift-1",
+        "original_asserted_portions": [
+          {
+            "allocation": "allocation-1",
+            "currency": "USD",
+            "minor": 200
+          }
+        ],
+        "status": "qualified"
+      },
+      "id": "B04",
+      "name": "Purpose of one portion labels or exposes the whole gift",
+      "passed": true,
+      "rejected_bindings": [
+        {
+          "mismatch": "unrelated allocation",
+          "result": "unavailable"
+        },
+        {
+          "mismatch": "wrong currency",
+          "result": "unavailable"
+        },
+        {
+          "mismatch": "exceeds allocation",
+          "result": "unavailable"
+        }
+      ],
+      "unsafe_observation": {
+        "currency": "USD",
+        "minor": 1000
+      }
+    },
+    {
+      "corrected_observation": {
+        "separate_currency_groups": {
+          "EUR": 200,
+          "USD": 200
+        }
+      },
+      "id": "B05",
+      "limit": "Grouping fixture only; no FX, financial fold or amount-rule implementation",
+      "name": "A grouped task invents a mixed-currency additional-support total",
+      "passed": true,
+      "unsafe_observation": {
+        "untyped_minor_total": 400
+      }
+    },
+    {
+      "corrected_observation": "withdraw only invalidity; hold unknown; preserve amount",
+      "id": "B06",
+      "name": "Old purpose overrides contradiction or guesses an unresolved refund portion",
+      "passed": true,
+      "unsafe_observation": "additional remains active",
+      "variants": [
+        {
+          "amount_reason": "active",
+          "corrected_additional_reason": "withdrawn",
+          "source": "contradiction",
+          "unsafe_additional_reason": "active"
+        },
+        {
+          "amount_reason": "active",
+          "corrected_additional_reason": "unavailable",
+          "source": "unknown_partial_refund",
+          "unsafe_additional_reason": "active"
+        }
+      ]
+    },
+    {
+      "actor_choice": "Selected authorized staff and organization-permitted missionaries; role membership alone supplies no action/scope grant",
+      "corrected_observation": "three unavailable",
+      "id": "B07",
+      "name": "A gift reader or privileged caller bypasses current purpose scope",
+      "passed": true,
+      "unsafe_observation": "three unchecked writes",
+      "variants": [
+        {
+          "corrected": "unavailable",
+          "scope_failure": "wrong tenant",
+          "unsafe": "recorded"
+        },
+        {
+          "corrected": "unavailable",
+          "scope_failure": "wrong subject",
+          "unsafe": "recorded"
+        },
+        {
+          "corrected": "unavailable",
+          "scope_failure": "no confirmation permission",
+          "unsafe": "recorded"
+        }
+      ]
+    },
+    {
+      "corrected_observation": {
+        "members": 1,
+        "reasons": [
+          "above_commitment",
+          "additional",
+          "amount"
+        ]
+      },
+      "id": "B08",
+      "name": "Each evidence ID, policy revision or qualifying flag creates another task member",
+      "passed": true,
+      "unsafe_observation": {
+        "members": 5
+      }
+    },
+    {
+      "corrected_observation": "already_handled",
+      "id": "B09",
+      "name": "Later confirmation or criterion version reopens an already-handled member",
+      "original_coverage": {
+        "gifts": [
+          "gift-1"
+        ],
+        "outcome": "done",
+        "status": "handled"
+      },
+      "passed": true,
+      "unsafe_observation": "new_task"
+    },
+    {
+      "corrected_observation": "five fenced writes",
+      "id": "B10",
+      "name": "A prepared confirmation bypasses later correction or revocation",
+      "passed": true,
+      "schedules": [
+        {
+          "corrected": "unavailable",
+          "order": [
+            "prepare",
+            "revocation",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "unavailable",
+          "order": [
+            "prepare",
+            "financial_correction",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "reevaluate",
+          "order": [
+            "prepare",
+            "purpose_correction",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "reevaluate",
+          "order": [
+            "prepare",
+            "survivor_scope_correction",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        },
+        {
+          "corrected": "reevaluate",
+          "order": [
+            "prepare",
+            "criterion_revision",
+            "accept"
+          ],
+          "unsafe": "admitted"
+        }
+      ],
+      "unsafe_observation": "five stale admissions"
+    },
+    {
+      "corrected_observation": "four unavailable",
+      "id": "B11",
+      "name": "Recent recording or policy version manufactures a live occurrence",
+      "passed": true,
+      "unsafe_observation": "four historical/unsupported admissions",
+      "variants": [
+        {
+          "corrected": "unavailable",
+          "origin": "historical_import",
+          "unsafe": "new_live_task"
+        },
+        {
+          "corrected": "unavailable",
+          "origin": "preactivation_history",
+          "unsafe": "new_live_task"
+        },
+        {
+          "corrected": "unavailable",
+          "origin": "historical_reclassification",
+          "unsafe": "new_live_task"
+        },
+        {
+          "corrected": "unavailable",
+          "origin": "unsupported_donor_origin",
+          "unsafe": "new_live_task"
+        }
+      ]
+    },
+    {
+      "corrected_observation": {
+        "changed_selected_source": {
+          "status": "conflict"
+        },
+        "covered": [
+          "gift-1"
+        ],
+        "residue": [
+          "gift-2"
+        ]
+      },
+      "id": "B12",
+      "name": "Completion or retry resolves the latest group instead of the reviewed set",
+      "passed": true,
+      "schedules": [
+        [
+          "review gift-1",
+          "gift-2 arrives",
+          "finish",
+          "retry"
+        ],
+        [
+          "review both",
+          "gift-1 changes",
+          "finish"
+        ]
+      ],
+      "unsafe_observation": {
+        "covered": [
+          "gift-1",
+          "gift-2"
+        ]
+      }
+    },
+    {
+      "corrected_observation": {
+        "asserted_source_revision": 1,
+        "current_eligible_portions": [
+          {
+            "allocation": "additional",
+            "currency": "USD",
+            "minor": 1500
+          }
+        ],
+        "gift": "gift-1",
+        "original_asserted_portions": [
+          {
+            "allocation": "additional",
+            "currency": "USD",
+            "minor": 2500
+          }
+        ],
+        "status": "qualified"
+      },
+      "current_reason": "active",
+      "fixture": "Originally 25 additional of 125 total; owner-certifies 15 additional survives",
+      "id": "B13",
+      "name": "A known refund invalidates or rewrites the original donor-stated amount",
+      "passed": true,
+      "unsafe_observation": {
+        "revalidating_against_current_remainder": "rejects original assertion",
+        "rewritten_assertion_minor": 1500
+      }
+    },
+    {
+      "corrected_observation": {
+        "after_owner_proves_no_survivor": "withdrawn",
+        "independent_amount_reason": "active",
+        "original_asserted_minor": 2500,
+        "while_unresolved": "unavailable"
+      },
+      "id": "B14",
+      "name": "A mixed refund is allocated proportionally without owner evidence",
+      "passed": true,
+      "unsafe_observation": {
+        "guessed_additional_minor": 2300
+      }
+    }
+  ],
+  "evidence_kind": "finite semantic counterexamples and controls, not implementation verification",
+  "limitations": [
+    "Finite synthetic cases and selected orderings only; no exhaustive state-space, actual concurrency, SQL, RLS, transaction, lock, runtime or production proof.",
+    "No application code, database, provider, private data, prior model or network is accessed; the structures are not a proposed schema, queue or duplicate financial/task ledger.",
+    "Received support, exact portion compatibility, recipient route, current permission and D29 cohort are qualified input facts; actual P13/P14/P16/P12 producers and enforcement of the selected actor classes are not implemented or tested.",
+    "One canonical direct-support profile and one compatible task-purpose family are represented; recognition attribution, aliases, noncash, household/DAF routes and complete P16 application logic are outside the model.",
+    "Captured criterion revision is an invalidation/deduplication input, not a proposed D29 settings control, amount threshold or complete activation-policy history implementation.",
+    "Amounts are positive synthetic integer minor units. Currency separation is demonstrated without FX or source financial-fold implementation; precision, supported exponents and production ranges remain untested.",
+    "Original assertions bind their referenced source snapshot; current positive surviving support is a separate revision-bound owner certification. These input facts are not an implemented refund/attribution producer.",
+    "Unknown partial refund is a synthetic owning-source state; corrected logic does not calculate refund allocation or infer how much remains additionally designated. Proportional arithmetic occurs only in the explicitly unsafe B14 alternative.",
+    "Reviewed-set and durable membership behavior is an abstract existing-owner effect; task routing, transactional persistence, crash recovery, actual UI inspection and production one-current-task uniqueness are unproven.",
+    "Authorization checks show modeled current disclosure denial; no cache eviction, timing side-channel, protected-body storage or offline recall is demonstrated.",
+    "Return values expose synthetic internal diagnoses for review and are not proposed end-user error messages or permission to reveal hidden records.",
+    "No interactions, sends, financial application or first-support obligation are produced. Passing the model does not implement the selected actor policy, ratify remaining amendments, amend a source owner or establish release readiness."
+  ],
+  "positive_controls": [
+    {
+      "financial_facts_unchanged": true,
+      "id": "P01",
+      "name": "Small confirmed additional portion qualifies without appeal or amount rule",
+      "passed": true,
+      "portion_minor": 200,
+      "result": "admitted"
+    },
+    {
+      "after_receipt": "admitted",
+      "before_receipt": "unavailable",
+      "id": "P02",
+      "name": "Pre-receipt affirmation can link later to qualified received money",
+      "passed": true
+    },
+    {
+      "affirmed_at": 30,
+      "id": "P03",
+      "name": "Actual later first affirmation admits an uncovered originally live cohort gift",
+      "passed": true,
+      "received_at": 10,
+      "recorded_at": 35,
+      "result": "admitted"
+    },
+    {
+      "id": "P04",
+      "member_count": 1,
+      "name": "Correction repairs only the same unconsumed reason without an outward effect",
+      "passed": true,
+      "restored": "active",
+      "withdrawn": "withdrawn"
+    },
+    {
+      "current_eligible_minor": 1500,
+      "id": "P05",
+      "member_count": 1,
+      "name": "Whole-additional scope remains qualified after an owner-resolved partial refund",
+      "original_asserted_minor": 12500,
+      "passed": true,
+      "reason": "active"
+    }
+  ],
+  "reproduce": "python3 docs/features/missionary-workspace-depth/grill/d29-evidence/purpose-counterexamples.py > /tmp/d29-purpose-counterexamples.json",
+  "script_sha256": "17e7e655ccf3341e994ff2503a4fd69ee11abbe28508582ee17067421da834a3",
+  "summary": {
+    "all_passed": true,
+    "assertions_passed": 47,
+    "counterexample_families": 14,
+    "positive_controls": 5
+  },
+  "temporal_contract": "Proposed: both received support and actual affirmed purpose; only an originally live D29-enabled cohort can gain a new unconsumed reason"
+}

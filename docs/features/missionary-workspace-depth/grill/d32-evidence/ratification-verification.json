@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-18",
+  "historical_pin_validation": {
+    "count": 20,
+    "main_document": "Exact preserved pre-ratification snapshot"
+  },
+  "limits": "Read-only structural/hash checks. No model, probe or earlier verifier executed; no source, SQL/RLS, concurrency, provider, migration, performance, accessibility or usability qualification.",
+  "links": {
+    "anchors": 50,
+    "line_references": 82,
+    "local": 474,
+    "source_documents": 14
+  },
+  "preserved_artifacts": {
+    "D29": 20,
+    "D30": 19,
+    "D31": 19,
+    "D32_original_evidence_plus_review_snapshot": 22
+  },
+  "review": {
+    "categories": 22,
+    "clauses": 24,
+    "findings": 18,
+    "proofs": 36
+  },
+  "scope": "D32 ratification and Q33 frontier documentation only",
+  "status": "passed",
+  "status_checks": [
+    "D32 and all amendments ratified",
+    "Q32 answered A",
+    "organization-wide setting retained",
+    "D31 remains ratified",
+    "Q33 one unanswered A/B choice",
+    "no Q34",
+    "session and conceptual glossary consistent"
+  ],
+  "unchanged_exact_sections": ["decision", "C01-C24", "P01-P36"]
+}

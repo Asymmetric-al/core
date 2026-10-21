@@ -1,0 +1,250 @@
+{
+  "generated_at_utc": "2026-10-18T14:17:46.735713+00:00",
+  "scope": "New D43 ratification documentary verifier; prior files are opaque bytes or JSON data only.",
+  "all_checks_pass": true,
+  "check_count": 23,
+  "checks": [
+    {
+      "name": "Exactly 22 direct frozen entries",
+      "pass": true,
+      "detail": 22
+    },
+    {
+      "name": "All recursively referenced explicit SHA-256 manifest entries preserved",
+      "pass": true,
+      "detail": {
+        "direct_entries": 22,
+        "explicit_manifests": 47,
+        "distinct_frozen_files": 491,
+        "hash_comparisons": 845,
+        "historical_pin_files_hashed_without_following_pins": 14,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Corrected D43 decision preserved modulo whitespace",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "review C01-C15 preserved modulo whitespace",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "d42 C01-C24 preserved modulo whitespace",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "completeness C01-C20 preserved modulo whitespace",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "All 30 D43 proof rows preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All 22 unique explicit category verdicts preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "CONTEXT remains byte-identical to ratification baseline",
+      "pass": true,
+      "detail": {
+        "expected": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82",
+        "actual": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82"
+      }
+    },
+    {
+      "name": "D43 explicitly ratified in current review status",
+      "pass": true,
+      "detail": [
+        "# Phase 28 D43 \u2014 finish an accepted signup after its invitation is hidden",
+        "`work`, and the research working tree. **Q43 answered A. Disposition: Accept",
+        "with required amendments, explicitly ratified.** The founder has ratified the",
+        "Q43 A alone ratified its implementation. There is no extra setting deciding",
+        "explicitly adopts the corrected D43 A decision, C01\u2013C15, P01\u2013P30 as future proof,",
+        "amendment statuses are not adopted by implication. D42's ratified behavior,",
+        "All 16 original D43 evidence files and six exact pre-ratification documents are",
+        "[preserved](d43-evidence/ratification-evidence-sha256.json). The",
+        "[new ratification verification](d43-evidence/ratification-verification.json)",
+        "executing any earlier program. [Scope reconciliation](d43-evidence/ratification-scope.md)"
+      ]
+    },
+    {
+      "name": "Q43 records ratified A",
+      "pass": true,
+      "detail": [
+        "# Phase 28 Q43 \u2014 finishing a signup after the Page entry is hidden",
+        "research working tree. **Q43 answered A.** The [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)",
+        "records **Accept with required amendments, explicitly ratified**. The founder",
+        "has ratified the corrected decision and C01\u2013C15/P01\u2013P30. The original question and",
+        "The founder has explicitly ratified",
+        "but their selected directions should not be re-asked. Ratified completeness",
+        "**Q43 \u2014 When Maya turns off \u201cShow newsletter signup on this page,\u201d what should",
+        "[Fresh primary research](d42-evidence/q43-primary-research.md) opened four official",
+        "already captured by ratified D42; this question does not silently amend it.",
+        "The [completed D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md)"
+      ]
+    },
+    {
+      "name": "Session D43 decision register says ratified",
+      "pass": true,
+      "detail": [
+        "| D43 (answered Q43) | A and required amendments explicitly ratified, 2026-10-18 | [D43 review](phase28-d43-pending-newsletter-confirmation-adversarial-review.md#explicit-ratification): accepted pending requests may finish after Page-entry Off before their original deadline and under current rules; existing protected action, bounded tenant signup-disable semantics and no extra pending-mode setting. |"
+      ]
+    },
+    {
+      "name": "Q44 prepared and unanswered",
+      "pass": true,
+      "detail": [
+        "# Phase 28 Q44 \u2014 who sets the newsletter confirmation period",
+        "research working tree. **Question prepared; unanswered. No D44 recorded.**",
+        "The founder has explicitly ratified",
+        "[D43 and C01\u2013C15/P01\u2013P30](phase28-d43-pending-newsletter-confirmation-adversarial-review.md#explicit-ratification).",
+        "verified address; other readers confirm by email. Q44 concerns only the latter",
+        "The [ratification/frontier audit](d43-evidence/ratification-scope.md) identifies",
+        "**Q44 \u2014 Should newsletter confirmation use one standard time window, or may",
+        "[Fresh primary research](d43-evidence/q44-primary-research.md) examines newsletter",
+        "to copy their customization scope. Core's ratified finite-original-deadline",
+        "| D43 original deadline | Bind the adopted finite period at authoritative acceptance; do not recalculate pending requests from later settings or resend. Current stricter restrictions can still stop completion. |"
+      ]
+    },
+    {
+      "name": "review points to current unanswered Q44 frontier",
+      "pass": true,
+      "detail": [
+        "supports the next single question, [Q44 \u2014 confirmation period](phase28-q44-newsletter-confirmation-period-research.md).",
+        "Q44 is unanswered; no duration or new timing control is inferred.",
+        "changed. No Q44 was asked in the original answer review. The subsequent",
+        "ratified continuation prepares [Q44](phase28-q44-newsletter-confirmation-period-research.md)"
+      ]
+    },
+    {
+      "name": "q43 points to current unanswered Q44 frontier",
+      "pass": true,
+      "detail": [
+        "The subsequent continuation prepares [Q44 \u2014 confirmation period](phase28-q44-newsletter-confirmation-period-research.md),"
+      ]
+    },
+    {
+      "name": "session points to current unanswered Q44 frontier",
+      "pass": true,
+      "detail": [
+        "| Q44 | Prepared, unanswered | [Confirmation-period research](phase28-q44-newsletter-confirmation-period-research.md): one standard finite Asym window or an organization-set finite window? No D44 answer, numeric duration or timing editor is adopted. |",
+        "| Remaining approval and owner gates | Prior empty-frontier conclusion superseded by the completeness review | D1/D3/D6/D11\u2013D13 retain selected/reviewed amendment status. E7 and C-01 remain upstream policy rulings. Completeness C04/C05 are explicitly ratified and require formal owner reconciliation, not another policy question. D42 and its required amendments are explicitly ratified; Q43 A and D43 amendments are explicitly ratified; Q44 addresses confirmation-period control, and finite timing/retention remains separate. First-use/context/daily-loop composition and actual source/provider/migration/UI/user proof remain required. See the [completeness review](phase28-completeness-adversarial-review.md). |",
+        "[Q44 \u2014 confirmation-period control](phase28-q44-newsletter-confirmation-period-research.md),",
+        "D6's proposed 72-hour/24-hour values remain unadopted. No Q44 is asked in this",
+        "### Q44 frontier \u2014 confirmation-period control",
+        "[Q44](phase28-q44-newsletter-confirmation-period-research.md): whether all",
+        "Q44 is unanswered; no D44 is recorded. No prior adopted choice is reopened."
+      ]
+    },
+    {
+      "name": "coverage points to current unanswered Q44 frontier",
+      "pass": true,
+      "detail": [
+        "ratified. Q44 addresses the remaining confirmation-period choice. No formal specification, implementation or activation is",
+        "and future proof. [Q44](phase28-q44-newsletter-confirmation-period-research.md)",
+        "are explicitly ratified. [Q44](phase28-q44-newsletter-confirmation-period-research.md)"
+      ]
+    },
+    {
+      "name": "completeness points to current unanswered Q44 frontier",
+      "pass": true,
+      "detail": [
+        "explicitly ratified. [Q44](phase28-q44-newsletter-confirmation-period-research.md)"
+      ]
+    },
+    {
+      "name": "d42 points to current unanswered Q44 frontier",
+      "pass": true,
+      "detail": [
+        "ratified. [Q44](phase28-q44-newsletter-confirmation-period-research.md) addresses"
+      ]
+    },
+    {
+      "name": "Scope audit recommends Q44 without inventing its answer",
+      "pass": true,
+      "detail": [
+        "> **Q44 \u2014 Who sets the newsletter confirmation window?** A reader may need to",
+        "numeric period, Q44 decision, runtime result or new feature requirement."
+      ]
+    },
+    {
+      "name": "Ratification distinguishes planning from implementation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Q44 does not silently adopt a finite policy",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Current local Markdown links and anchors resolve",
+      "pass": true,
+      "detail": {
+        "documents": 10,
+        "local_targets": 624,
+        "line_checks": 13,
+        "heading_checks": 84,
+        "external_targets_not_fetched": 37,
+        "generated_report_targets": 2,
+        "failures": []
+      }
+    }
+  ],
+  "errors": [],
+  "preservation": {
+    "direct_entries": 22,
+    "explicit_manifests": 47,
+    "distinct_frozen_files": 491,
+    "hash_comparisons": 845,
+    "historical_pin_files_hashed_without_following_pins": 14,
+    "mismatches": []
+  },
+  "links": {
+    "documents": 10,
+    "local_targets": 624,
+    "line_checks": 13,
+    "heading_checks": 84,
+    "external_targets_not_fetched": 37,
+    "generated_report_targets": 2,
+    "failures": []
+  },
+  "counts": {
+    "d43_clauses": 15,
+    "d43_proof_rows": 30,
+    "category_rows": 22,
+    "category_yes": 21,
+    "category_no": 1
+  },
+  "current_file_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d43-pending-newsletter-confirmation-adversarial-review.md": "5493f04037ed0ff6a0a2a776dc5393cf41d5d6d63f544702d8e79e655818dcbf",
+    "docs/features/missionary-workspace-depth/grill/phase28-q43-pending-newsletter-confirmation-research.md": "5f615f4c6563c371d0191bedcd70426921f750bc075f6f40ddba4077af1c350a",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "2709f2581db8f60a4ae8ca5688db8e3297dd1beb7f2516726408bbba6eac29bd",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "5ab94e63830acf19e66e866aa275a5152dbbcb13cdf0f726b76798ed4c816872",
+    "docs/features/missionary-workspace-depth/grill/phase28-completeness-adversarial-review.md": "a8a3d8819d14839a8c07f0fb8570b21a0f6a25ac81bce24c7b7302d2f524644e",
+    "docs/features/missionary-workspace-depth/grill/phase28-d42-verified-email-newsletter-signup-adversarial-review.md": "46927a7d82717ac5a6fb59dd8c8e7ccd05e4fb717cef401dbab6f8035e09f4a6",
+    "CONTEXT.md": "32bab1136dc5f999943e57753b1ac4d1c96a132b80ce4d86e18c18cb2e46aa82",
+    "docs/features/missionary-workspace-depth/grill/phase28-q44-newsletter-confirmation-period-research.md": "1c786e36053d2a2d6a883e416f3e30de80dee20a8586bc6cc60c6b8a5985696d",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/ratification-scope.md": "908567c59bae9366e1c5ddb338a078f7cbb2d266fb0fcea266924f0fab3cba20",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/q44-primary-research.md": "1c59ef359f1e8707a8fb1c1926c5e11946aca728a530aff7dda0db71703e765e",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/ratification-evidence-sha256.json": "57451328b4f61922f0c950f140b18605c07953929c71774e8e17dbe6be1ac453",
+    "docs/features/missionary-workspace-depth/grill/d43-evidence/verify-ratification.py": "b6f72d9ebcd3ba32475ffbdd4f4c44cbb13cc9fcc9ff5e16d894bf685964d2b0"
+  },
+  "limits": [
+    "No older program/model/source checker was read as code, imported or executed; explicit SHA-256 manifest JSON was parsed as data.",
+    "Historical artifact-pins.json files are byte evidence only; their mutable-document pins are not asserted against today's documents.",
+    "Normative prose/table comparison normalizes whitespace; CONTEXT preservation compares exact bytes by its prior manifest digest.",
+    "All Markdown local destinations and reference definitions in ten selected current documents are checked, including angle-wrapped parentheses paths. External web targets are not fetched.",
+    "This checker writes its own report before successful completion; links to that generated output do not require a preexisting older report.",
+    "Status checks distinguish the current frontier from retained historical passages; they do not ratify a Q44 option or publish formal artifacts.",
+    "No application behavior, live Auth/RLS/database, SQL concurrency, browser, provider, migration, performance or usability test ran. No GitHub or formal specification was changed."
+  ]
+}

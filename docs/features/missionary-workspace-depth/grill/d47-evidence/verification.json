@@ -1,0 +1,82 @@
+{
+  "generated_at_utc": "2026-10-18T14:54:27.386593+00:00",
+  "scope": "D47 whole-day selection; Q48 unresolved C-01 question. Documentary checks only; no previous program/model executed.",
+  "all_checks_pass": true,
+  "checks": [
+    {
+      "name": "Only scoped existing documents changed",
+      "pass": true,
+      "detail": [
+        "phase28-q47-coaching-end-date-research.md",
+        "phase28-session.md",
+        "phase28-q11-coaching-duration-research.md",
+        "phase28-post-d41-coverage-synthesis.md",
+        "phase28-d11-coaching-duration-decision.md",
+        "phase28-post-d46-amendment-reconciliation.md"
+      ]
+    },
+    {
+      "name": "Earlier evidence unchanged",
+      "pass": true,
+      "detail": 787
+    },
+    {
+      "name": "Glossary unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Original D11 preserved",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase28-d42-verified-email-newsletter-signup-adversarial-review.md unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase28-d43-pending-newsletter-confirmation-adversarial-review.md unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase28-completeness-adversarial-review.md unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D11 clauses changed only to record selected C02 convention",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D47 records inclusive day with earlier-limit precedence",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Q48 unanswered and no C-01 ruling inferred",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Local file and line references resolve",
+      "pass": true,
+      "detail": {
+        "count": 612,
+        "broken": []
+      }
+    }
+  ],
+  "current_file_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-q47-coaching-end-date-research.md": "5c5c5cb1504e4a7473eb9dc4c3f00e653b5bcc337bcfc48855227c81c6b30508",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "9b462877fb82eeaedf71999e04310e937269dee77ff4c62a44bdefd8872d9532",
+    "docs/features/missionary-workspace-depth/grill/phase28-q11-coaching-duration-research.md": "c3144da095e153ca490f80dcace87dbf40e0d153780ff120142ea15ba6315ffa",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d41-coverage-synthesis.md": "fbc925374b5b78593d3f6427c6940b3f991a95f70f274851fd09faf6f4a6ade4",
+    "docs/features/missionary-workspace-depth/grill/phase28-d11-coaching-duration-decision.md": "3842b2627587e20c2f26efa963ce60ea291fcd018ab8ee7d4a0afd1cb3931f97",
+    "docs/features/missionary-workspace-depth/grill/phase28-post-d46-amendment-reconciliation.md": "657707eaad70307114425a5aae671b5dbce7a0a7e96d291ecc11e95d6678424d",
+    "docs/features/missionary-workspace-depth/grill/phase28-q48-posted-gift-correction-approval-research.md": "0dcb4c5c2a459be83d41cae6229946b06527b5a9821afbeafce04ca496384b5a",
+    "docs/features/missionary-workspace-depth/grill/phase28-d47-coaching-share-through-date-decision.md": "1da3e7f1d9d300de59d29b79215583d920b1b68a021183157554b91dfc7ec86a"
+  }
+}

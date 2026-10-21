@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "date": "2026-10-18 Asia/Bangkok",
+  "scope": "Ratification wording/status, Q38 research links and evidence preservation only.",
+  "exact_corrected_decision_unchanged": true,
+  "C01_C16_unchanged": true,
+  "P01_P24_unchanged": true,
+  "D37_ratified_Q38_unanswered": true,
+  "preserved_D37_evidence_and_snapshots": 14,
+  "preserved_D36_evidence": 20,
+  "checked_documents": 11,
+  "local_links": 568,
+  "line_references": 112,
+  "anchors": 67,
+  "prior_programs_executed": false,
+  "runtime_or_user_study_proof": false,
+  "current_artifact_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d37-starting-guide-research-and-design.md": "2f08ed477bc9366b83c808306b6c730f22a903b082708a5a55969819d805b7bc",
+    "docs/features/missionary-workspace-depth/grill/phase28-q37-getting-started-guidance-research.md": "ddfb85b34378c4738994cbd609408572382d04580ba7fffa48a028114791b42b",
+    "docs/features/missionary-workspace-depth/grill/phase28-q38-referral-period-scope-research.md": "047926bd239748e3d1b58aeef85cbb881589b024b6d0fbf0137f486d6515aa26",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "2b3c42b9a9e3a1e9628a3ae29c4668728ad3ca6d130bf7a445e2126ba7769d30",
+    "CONTEXT.md": "a7d3d1ccb7a0038d9c45e32ae05e444145a0216030e514f32772e882aebf26ab",
+    "docs/features/missionary-workspace-depth/grill/d37-evidence/verify-ratification.py": "baeb17468bad06eb313dbf84eb50465ff1f7d7ec8bc31e0988ed020e82a3ddfe"
+  }
+}

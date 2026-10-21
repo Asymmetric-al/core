@@ -1,0 +1,525 @@
+#!/usr/bin/env python3
+"""D35 finite semantic examples, not an implemented referral command.
+
+Times are arbitrary ordered fixture instants. Qualified windows, exact source
+eligibility and current grants are supplied owner facts. No schema is proposed.
+"""
+
+from copy import deepcopy
+from dataclasses import dataclass, field, replace
+from hashlib import sha256
+import json
+from pathlib import Path
+
+
+UNAVAILABLE = {"outcome": "unavailable"}
+UNKNOWN = {"outcome": "unknown", "effect": "unknown"}
+
+
+@dataclass(frozen=True)
+class Actor:
+    identity: str = "maya"
+    tenant: str = "tenant-a"
+    ministry: str = "ministry-alpha"
+    entity: str = "entity-a"
+    assignment_generation: int = 1
+    membership_current: bool = True
+    action_revision: int = 1
+    read_revision: int = 1
+    missionary_action: bool = True
+    staff_action: bool = False
+    result_read: bool = True
+    history_read: bool = True
+    active_read: bool = True
+
+
+@dataclass(frozen=True)
+class Cycle:
+    ordinal: int
+    started_at: int
+    expires_at: int
+    actor: str
+    intent: str
+    retention_trigger: int | None
+
+
+@dataclass(frozen=True)
+class Source:
+    identity: str = "referral-1"
+    party: str = "party-grace"
+    tenant: str = "tenant-a"
+    ministry: str = "ministry-alpha"
+    entity: str = "entity-a"
+    revision: int = 1  # Relevant continuation basis, not every read-field change.
+    disposition: str = "ordinary_window"
+    expiry_known: bool = True
+    identity_qualified: bool = True
+    action_floor: bool = True
+    history_floor: bool = True
+    result_floor: bool = True
+    active_read_floor: bool = True
+    retention: str = "ordinary_readable"
+    # Current source-qualified action contexts, not ownership or a role label.
+    qualified_contexts: frozenset = frozenset({("maya", "ministry-alpha", 1), ("staff", "ministry-alpha", 1)})
+    cycles: tuple = (Cycle(1, 0, 10, "source-before-fixture", "initial", 0),)
+    old_personal_data_retention_deadline: int = 100
+    old_body_present: bool = False
+    private_context_read: bool = False
+    contact_consent: bool = False
+    consumed_tasks: tuple = ("already-handled-task",)
+    created_tasks: tuple = ()
+    sends: int = 0
+    actual_interactions: int = 0
+
+
+@dataclass(frozen=True)
+class Window:
+    revision: int = 1
+    policy_present: bool = True
+    source_qualified: bool = True
+    expires_at: int = 30
+    new_cycle_retention_trigger: int | None = 20
+
+
+@dataclass(frozen=True)
+class Command:
+    actor: str
+    context: tuple
+    key: str
+    path: str
+    referral: str
+    reviewed_policy: int
+    reviewed_authority: int
+    reviewed_source: int
+    reviewed_cycle: int
+    reviewed_window: int
+    reviewed_collision: int
+
+
+@dataclass
+class World:
+    now: int = 20
+    # Proposed newly configured/unconfigured organization setting, not ratified here.
+    missionary_enabled: bool = False
+    policy_revision: int = 1
+    context_tenant: str = "tenant-a"
+    context_ministry: str = "ministry-alpha"
+    context_entity: str = "entity-a"
+    actors: dict = field(default_factory=lambda: {
+        "maya": Actor(),
+        "staff": Actor(identity="staff", missionary_action=False, staff_action=True),
+    })
+    source: Source = field(default_factory=Source)
+    window: Window = field(default_factory=Window)
+    # A source-qualified incompatible active occurrence, not every same-Party edge.
+    collision: Source | None = None
+    collision_revision: int = 1
+    accepted_effects: dict = field(default_factory=dict)
+    audit: tuple = ()
+
+    def context(self, actor):
+        return (self.context_tenant, actor.identity, self.context_ministry,
+                self.context_entity, actor.assignment_generation)
+
+    def exact_scope(self, actor):
+        return (actor.membership_current
+                and self.context_tenant == actor.tenant == self.source.tenant
+                and self.context_ministry == actor.ministry == self.source.ministry
+                and self.context_entity == actor.entity == self.source.entity)
+
+    def ordinary_expired(self):
+        return (self.source.disposition == "ordinary_window" and self.source.expiry_known
+                and self.now >= self.source.cycles[-1].expires_at)
+
+    def active(self):
+        return (self.source.disposition == "ordinary_window" and self.source.expiry_known
+                and self.source.cycles[-1].started_at <= self.now < self.source.cycles[-1].expires_at)
+
+    def review(self, actor="maya", key="intent-1", path="missionary"):
+        principal = self.actors[actor]
+        return Command(actor, self.context(principal), key, path, self.source.identity,
+                       self.policy_revision, principal.action_revision, self.source.revision,
+                       self.source.cycles[-1].ordinal, self.window.revision,
+                       self.collision_revision)
+
+    def set_policy(self, enabled):
+        if enabled != self.missionary_enabled:
+            self.missionary_enabled = enabled
+            self.policy_revision += 1
+
+    def safe_result(self, actor, command, receipt):
+        if (not self.exact_scope(actor) or self.context(actor) != command.context
+                or not actor.result_read or not self.source.result_floor):
+            return UNAVAILABLE
+        # Historical acceptance evidence; never a claim the source is still Active.
+        return dict(receipt)
+
+    def execute(self, command, request_actor=None):
+        actor = self.actors.get(request_actor or command.actor)
+        if (actor is None or actor.identity != command.actor or not self.exact_scope(actor)
+                or self.context(actor) != command.context or command.referral != self.source.identity):
+            return UNAVAILABLE
+        semantic_key = (command.context, command.key)
+        prior = self.accepted_effects.get(semantic_key)
+        if prior is not None:
+            original, receipt = prior
+            if original != command:
+                return self.safe_result(actor, command, {"outcome": "conflict", "effect": "none"})
+            return self.safe_result(actor, command, receipt)
+
+        def reject(reason):
+            # A definite no-effect result; no deferred or queued command is created.
+            return {"outcome": "rejected", "effect": "none", "reason": reason}
+
+        if actor.action_revision != command.reviewed_authority:
+            return reject("stale_review")
+        if command.path == "missionary":
+            if self.policy_revision != command.reviewed_policy:
+                return reject("stale_review")
+            if not self.missionary_enabled or not actor.missionary_action:
+                return reject("unavailable")
+        elif command.path == "staff":
+            if not actor.staff_action:
+                return reject("unavailable")
+        else:
+            return reject("unavailable")
+        if (self.source.revision != command.reviewed_source
+                or self.source.cycles[-1].ordinal != command.reviewed_cycle
+                or self.window.revision != command.reviewed_window
+                or self.collision_revision != command.reviewed_collision):
+            return reject("stale_review")
+        if (not self.ordinary_expired() or not self.source.identity_qualified
+                or not self.source.action_floor or self.source.retention != "ordinary_readable"
+                or self.collision is not None
+                or (actor.identity, actor.ministry, actor.assignment_generation) not in self.source.qualified_contexts):
+            return reject("unavailable")
+        if (not self.window.policy_present or not self.window.source_qualified
+                or self.window.expires_at <= self.now):
+            return reject("unavailable")
+
+        # One abstract serialized owner acceptance: source/history, audit and
+        # recoverable accepted effect agree. This is not a database mechanism.
+        cycle = Cycle(command.reviewed_cycle + 1, self.now, self.window.expires_at,
+                      actor.identity, command.key, self.window.new_cycle_retention_trigger)
+        receipt = {"outcome": "accepted", "effect": "effect-" + str(len(self.audit) + 1),
+                   "accepted_cycle": cycle.ordinal}
+        self.source = replace(self.source, revision=self.source.revision + 1,
+                              cycles=self.source.cycles + (cycle,))
+        self.audit += ((actor.identity, command.key, cycle.ordinal),)
+        self.accepted_effects[semantic_key] = (command, receipt)
+        return self.safe_result(actor, command, receipt)
+
+    def read_history(self, actor="maya"):
+        principal = self.actors[actor]
+        if (self.exact_scope(principal) and principal.history_read and self.source.history_floor
+                and self.ordinary_expired()):
+            return {"status": "Expired"}  # Only the no-action seam, not D34's full projection.
+        return UNAVAILABLE
+
+    def active_read(self, actor="maya"):
+        principal = self.actors[actor]
+        return (self.exact_scope(principal) and principal.active_read and self.active()
+                and self.source.active_read_floor)
+
+
+ASSERTIONS = 0
+CASES = []
+
+
+def expect(actual, expected):
+    global ASSERTIONS
+    ASSERTIONS += 1
+    if actual != expected:
+        raise AssertionError({"actual": actual, "expected": expected})
+    return actual
+
+
+def record(identity, title, unsafe, corrected, schedule=None, control=False):
+    row = {"id": identity, "title": title, "kind": "positive_control" if control else "counterexample",
+           "unsafe": unsafe, "corrected": corrected}
+    if schedule:
+        row["schedule"] = schedule
+    CASES.append(row)
+
+
+def run():
+    w = World()
+    expect(w.read_history(), {"status": "Expired"})
+    result = w.execute(w.review())
+    expect((result["outcome"], len(w.source.cycles), len(w.audit)), ("rejected", 1, 0))
+    record("B01", "History or missionary identity does not grant continuation under proposed default Off",
+           {"has_history": True, "infer_action": True}, result)
+
+    w = World(missionary_enabled=True)
+    command = w.review()
+    w.set_policy(False)
+    result = w.execute(command)
+    expect((result["outcome"], result["effect"], len(w.accepted_effects)), ("rejected", "none", 0))
+    expect(w.active(), False)
+    record("B02", "Off before acceptance fences a previously reviewed command", "accept cached On",
+           result, ["review On", "Off accepted", "continuation attempted"])
+
+    w.set_policy(True)
+    expect(w.missionary_enabled, True)
+    result = w.execute(command)
+    expect((result["reason"], len(w.source.cycles)), ("stale_review", 1))
+    record("B03", "On-Off-On never upgrades an unaccepted stale intent", "boolean is On, execute old intent",
+           result, ["review revision1", "Off revision2", "On revision3", "old intent retried"])
+
+    failures = {}
+    for label, changes in (("action_revoked", {"missionary_action": False, "action_revision": 2}),
+                           ("membership_ended", {"membership_current": False, "action_revision": 2}),
+                           ("assignment_generation_changed", {"assignment_generation": 2, "action_revision": 2})):
+        w = World(missionary_enabled=True)
+        command = w.review()
+        w.actors["maya"] = replace(w.actors["maya"], **changes)
+        failures[label] = w.execute(command)
+        expect(len(w.source.cycles), 1)
+        expect(failures[label]["outcome"] in {"rejected", "unavailable"}, True)
+    w = World(missionary_enabled=True)
+    w.actors["maya"] = replace(w.actors["maya"], missionary_action=False)
+    expect(w.execute(w.review())["outcome"], "rejected")
+    record("B04", "Current scoped capability and membership cannot be replaced by role or captured authority",
+           "missionary role or old grant is enough", failures)
+
+    rejected = {}
+    for disposition in ("withdrawn", "invalidated", "revoked", "cannot_pursue"):
+        w = World(missionary_enabled=True, source=replace(Source(), disposition=disposition))
+        rejected[disposition] = w.execute(w.review())["outcome"]
+        expect((rejected[disposition], len(w.audit)), ("rejected", 0))
+    record("B05", "A past deadline cannot turn adverse dispositions into ordinary expiry", 20 >= 10, rejected)
+
+    rejected = {}
+    for label, changes in (
+        ("reassigned_without_current_action_proof", {"qualified_contexts": frozenset({("new-person", "ministry-alpha", 1)})}),
+        ("merge_not_requalified", {"identity_qualified": False}),
+        ("source_privacy_revoked", {"action_floor": False}),
+        ("hold_only", {"retention": "hold_only"}),
+        ("unknown_expiry", {"expiry_known": False}),
+        ("foreign_tenant", {"tenant": "tenant-b"}),
+        ("other_ministry", {"ministry": "ministry-other"}),
+        ("other_entity", {"entity": "entity-other"}),
+    ):
+        w = World(missionary_enabled=True, source=replace(Source(), **changes))
+        rejected[label] = w.execute(w.review())["outcome"]
+        expect(rejected[label] in {"rejected", "unavailable"}, True)
+        expect(len(w.source.cycles), 1)
+    record("B06", "Exact source scope and eligibility survive neither reassignment nor a broad organization setting",
+           "any retained expired row in the organization", rejected)
+
+    w = World(missionary_enabled=True)
+    old = deepcopy(w.source)
+    naive_overwrite = replace(old, cycles=(replace(old.cycles[-1], expires_at=30),))
+    expect(naive_overwrite.cycles[0].expires_at == old.cycles[0].expires_at, False)
+    expect(w.execute(w.review())["outcome"], "accepted")
+    expect((w.source.identity, w.source.cycles[0]), (old.identity, old.cycles[0]))
+    expect(len(w.source.cycles), 2)
+    record("B07", "Continuation preserves the stable referral and earlier expiry/cycle provenance",
+           {"overwrite_loses_original_expiry": True}, {"same_referral": True, "cycles": 2, "old_cycle_unchanged": True})
+
+    w = World(missionary_enabled=True)
+    command = w.review()
+    accepted = w.execute(command)
+    transport_result = UNKNOWN  # Accepted response was lost; no actual transport runs.
+    w.set_policy(False)
+    w.actors["maya"] = replace(w.actors["maya"], missionary_action=False, action_revision=2)
+    expect(w.execute(command), accepted)
+    expect((len(w.source.cycles), len(w.audit), len(w.accepted_effects), w.active()), (2, 1, 1, True))
+    record("B08", "Lost accepted response recovers once even Off without rollback or a second transition",
+           "retry either fails as a fresh command or repeats the effect",
+           {"client_before_recovery": transport_result, "recovered": accepted, "effects": 1},
+           ["source accepts", "response lost", "Off and action revocation", "same intent recovery"])
+
+    w.now = 30
+    expect(w.ordinary_expired(), True)
+    expect(w.execute(command), accepted)
+    expect(len(w.source.cycles), 2)
+    record("B09", "An old accepted command after later expiry never starts another cycle",
+           {"currently_expired": True, "reapply_old_continue": True},
+           {"receipt_refers_to_accepted_cycle": 2, "current_active": False, "cycles": 2})
+
+    results = {}
+    for order in (("maya", "staff"), ("staff", "maya")):
+        w = World(missionary_enabled=True)
+        commands = {"maya": w.review(key="maya-intent"),
+                    "staff": w.review(actor="staff", key="staff-intent", path="staff")}
+        outcomes = [w.execute(commands[actor])["outcome"] for actor in order]
+        expect(outcomes, ["accepted", "rejected"])
+        expect((len(w.source.cycles), len(w.audit)), (2, 1))
+        results["then".join(order)] = outcomes
+    record("B10", "Two authorized actors contending for one expired cycle produce one continuation",
+           "both saw Expired and append separate active cycles", results)
+
+    w = World(missionary_enabled=True)
+    command = w.review()
+    expect(w.execute(command)["outcome"], "accepted")
+    changed = replace(command, reviewed_window=2)
+    expect(w.execute(changed), {"outcome": "conflict", "effect": "none"})
+    expect((len(w.source.cycles), len(w.audit)), (2, 1))
+    record("B11", "Same intent identity cannot be reused for a changed payload", "same key authorizes new terms",
+           {"result": "conflict", "effects": 1})
+
+    results = {}
+    for label, window in (("unqualified", replace(Window(), source_qualified=False)),
+                          ("policy_absent", replace(Window(), policy_present=False)),
+                          ("already_ended", replace(Window(), expires_at=20))):
+        w = World(missionary_enabled=True, window=window)
+        results[label] = w.execute(w.review())["outcome"]
+        expect((results[label], len(w.audit)), ("rejected", 0))
+    for label in ("window_changed", "source_changed"):
+        w = World(missionary_enabled=True)
+        command = w.review()
+        if label == "window_changed":
+            w.window = replace(w.window, revision=2, expires_at=40)
+        else:
+            w.source = replace(w.source, revision=2, action_floor=False)
+        results[label] = w.execute(command)["reason"]
+        expect((results[label], len(w.audit)), ("stale_review", 0))
+    w = World(missionary_enabled=True, window=replace(Window(), policy_present=False))
+    command = w.review()
+    w.window = Window(revision=2)
+    results["policy_appeared_after_absence_review"] = w.execute(command)["reason"]
+    expect((results["policy_appeared_after_absence_review"], len(w.audit)), ("stale_review", 0))
+    w = World(missionary_enabled=True)
+    command = w.review()
+    w.now = 30
+    results["window_elapsed_while_waiting"] = w.execute(command)["outcome"]
+    expect((results["window_elapsed_while_waiting"], len(w.audit)), ("rejected", 0))
+    record("B12", "A browser deadline or stale source/window evidence cannot define continuation terms",
+           "choose a new deadline and trust precheck", results)
+
+    results = {}
+    for change in ("result_grant_revoked", "source_result_privacy_revoked", "context_changed"):
+        w = World(missionary_enabled=True)
+        command = w.review()
+        accepted = w.execute(command)
+        if change == "result_grant_revoked":
+            w.actors["maya"] = replace(w.actors["maya"], result_read=False, read_revision=2)
+        elif change == "source_result_privacy_revoked":
+            w.source = replace(w.source, result_floor=False)
+        else:
+            w.context_ministry = "ministry-other"
+        results[change] = expect(w.execute(command), UNAVAILABLE)
+        expect((len(w.source.cycles), len(w.audit)), (2, 1))
+        expect(accepted["outcome"], "accepted")
+    record("B13", "Accepted-effect recovery still needs current safe response authority",
+           "send the cached success body to any retry", results)
+
+    w = World(missionary_enabled=True)
+    w.actors["maya"] = replace(w.actors["maya"], active_read=False)
+    expect(w.execute(w.review())["outcome"], "accepted")
+    expect((w.active(), w.active_read()), (True, False))
+    expect((w.source.private_context_read, w.source.contact_consent), (False, False))
+    record("B14", "The renewed active relation never reinstates revoked read grants or contact consent",
+           {"active_relation": True, "infer_all_access": True},
+           {"active_relation": True, "active_read": False, "private_context": False, "contact_consent": False})
+
+    other = replace(Source(), identity="referral-other", cycles=(Cycle(1, 15, 40, "source-other", "other-intent", 15),))
+    w = World(missionary_enabled=True, collision=other)
+    before = (deepcopy(w.source), deepcopy(w.collision))
+    expect((other.party, other.tenant, other.ministry), (w.source.party, w.source.tenant, w.source.ministry))
+    expect(w.execute(w.review())["outcome"], "rejected")
+    expect((w.source, w.collision, len(w.audit)), (*before, 0))
+    w = World(missionary_enabled=True)
+    command = w.review()
+    w.collision = other
+    w.collision_revision = 2
+    expect(w.execute(command)["reason"], "stale_review")
+    expect((len(w.source.cycles), w.collision, len(w.audit)), (1, other, 0))
+    record("B15", "A distinct incompatible active occurrence is not this intent or a merge target",
+           {"same_party_and_context": True, "infer_already_accepted_or_merge": True},
+           {"existing_conflict": "rejected", "collision_after_review": "stale_review", "both_sources_preserved": True})
+
+    w = World(missionary_enabled=True)
+    before = deepcopy(w.source)
+    expect(w.read_history(), {"status": "Expired"})
+    expect((w.source, len(w.audit), len(w.accepted_effects)), (before, 0, 0))
+    expect((w.active(), w.active_read()), (False, False))
+    result = w.execute(w.review())
+    expect(result["outcome"], "accepted")
+    expect(w.active_read(), True)
+    for name in ("old_personal_data_retention_deadline", "old_body_present", "private_context_read",
+                 "contact_consent", "consumed_tasks", "created_tasks", "sends", "actual_interactions"):
+        expect(getattr(w.source, name), getattr(before, name))
+    expect(w.source.cycles[-1].retention_trigger, 20)
+    record("C01", "Deliberate qualified continuation activates current work without unrelated effects", None,
+           {"read_alone_effects": 0, "explicit_effects": 1, "current_qualified_active_read": True,
+            "active_relation_required_before_action": False,
+            "old_retention_and_purged_body_unchanged": True, "source_qualified_new_cycle_retention_trigger": 20}, control=True)
+
+    w = World()
+    command = w.review(actor="staff", path="staff")
+    w.set_policy(True)
+    w.set_policy(False)
+    expect(w.execute(command)["outcome"], "accepted")
+    expect((w.missionary_enabled, len(w.audit)), (False, 1))
+    record("C02", "Independent currently scoped staff authority survives changes to missionary permission", None,
+           {"missionary_setting": "Off", "staff_effects": 1}, control=True)
+
+    w = World(missionary_enabled=True)
+    command = w.review()
+    transport_result = UNKNOWN  # Request did not reach source; not a definite rejection.
+    expect(len(w.audit), 0)
+    expect(w.execute(command)["outcome"], "accepted")
+    expect(w.execute(command)["accepted_cycle"], 2)
+    expect(len(w.audit), 1)
+    record("C03", "An unchanged transport-unknown intent may resolve once under still-current authority", None,
+           {"initial_transport_result": transport_result, "resolved_effects": 1}, control=True)
+
+    w = World(missionary_enabled=True)
+    stale = w.review(key="old-unaccepted")
+    w.set_policy(False)
+    expect(w.execute(stale)["effect"], "none")
+    w.set_policy(True)
+    expect(w.execute(stale)["outcome"], "rejected")
+    expect(len(w.audit), 0)
+    fresh = w.review(key="deliberate-fresh-review")
+    expect(w.execute(fresh)["outcome"], "accepted")
+    w.now = 40
+    w.window = Window(revision=2, expires_at=50, new_cycle_retention_trigger=40)
+    later = w.review(key="later-deliberate-cycle")
+    expect(w.execute(later)["accepted_cycle"], 3)
+    expect((len(w.source.cycles), len(w.audit)), (3, 2))
+    record("C04", "Fresh deliberate intents can follow a definite stale failure and a later ordinary expiry", None,
+           {"stale_intent_effects": 0, "new_review_effects": 1, "later_separate_cycle": 3}, control=True)
+
+    w = World(missionary_enabled=True)
+    command = w.review()
+    w.actors["maya"] = replace(w.actors["maya"], active_read=False, read_revision=2)
+    expect(w.execute(command)["outcome"], "accepted")
+    expect((w.active(), w.active_read()), (True, False))
+    expect((len(w.audit), w.actors["maya"].action_revision), (1, command.reviewed_authority))
+    record("C05", "An unrelated current read-permission change does not reject still-authorized continuation", None,
+           {"accepted_effects": 1, "current_active_read": False, "relevant_action_basis_unchanged": True}, control=True)
+
+    print(json.dumps({
+        "evidence_kind": "bounded_stdlib_continuation_semantic_model",
+        "decision": "D35 missionary continuation when organization permits; independently authorized staff can still act",
+        "status": "proposed owner contract illustration, not ratification or runtime proof",
+        "fixture_time": "Arbitrary ordered instants: initial cycle [0,10), acceptance20, qualified window end30; later acceptance40/end50. No duration selected.",
+        "policy": "One proposed organization-wide missionary permission, initially Off for new/unconfigured. P12 scopes and independent staff authority remain separate.",
+        "script_sha256": sha256(Path(__file__).read_bytes()).hexdigest(),
+        "reproduction": "python3 docs/features/missionary-workspace-depth/grill/d35-evidence/continuation-counterexamples.py",
+        "counts": {"counterexample_families": sum(row["kind"] == "counterexample" for row in CASES),
+                   "positive_controls": sum(row["kind"] == "positive_control" for row in CASES),
+                   "passed_outcome_assertions": ASSERTIONS},
+        "limitations": [
+            "Only this finite synthetic standard-library model runs; no previous model/probe/verifier, app, database, network, provider or private data is exercised.",
+            "Source eligibility, identity qualification, current scoped grants, membership generations and positive new-window evidence are owner-qualified fixture inputs, not implemented P9/P12 producers.",
+            "Review revisions stand for relevant continuation authority/source/terms, not a mandate to reject on every global P12 epoch change. Real P12 must freshly resolve current facts; its revision dependency implementation is unproved.",
+            "Serialized execute models a required outcome; it proves no SQL/RLS, lock ordering, database transaction, real concurrency, worker failure recovery or distributed cache enforcement.",
+            "accepted_effects is abstract same-intent recovery evidence, not a proposed table, generic command journal, provider ledger or crm_command_logs implementation.",
+            "The limited receipt means the original continuation was accepted, not that its cycle remains active. Current response disclosure is modeled logically, not transport/timing/privacy proven.",
+            "Window values and retention triggers are arbitrary source-qualified inputs. No product duration, fresh-referrer requirement, override hierarchy or renewal policy is selected.",
+            "The incompatible-active-occurrence fixture and its revision are owner-qualified inputs; no edge uniqueness constraint, collision classifier, merge or reconciliation producer is proved.",
+            "Old personal-data retention and absent bodies remain unchanged; this does not prohibit a valid new cycle's own source-governed retention trigger or prove any real retention/erasure/restore behavior.",
+            "History and active reads cover only no-action/current-grant seams; the full D34 projection, consent, contactability, grant expiry, principal transitions, canonical merges and UI late-response enforcement are not implemented.",
+            "Synthetic counters show no modeled task/send/interaction effect; no actual integrations, consumed-work producer, outbox or external provider behavior is tested.",
+            "A finite list of interleavings is not exhaustive scheduling, formal verification, release readiness or a deployed permission grant.",
+        ],
+        "cases": CASES,
+    }, indent=2, sort_keys=True))
+
+
+if __name__ == "__main__":
+    run()

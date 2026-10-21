@@ -1,0 +1,144 @@
+{
+  "scope": "D24 technical primary provenance; temporary body paths may expire. Public UX and privacy retrieval references are retained in their evidence notes.",
+  "fresh": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "fetched_at": "2026-10-17T05:15:50.503369+00:00",
+      "sha256": "15b3d0d1a7dc3b3f2c0af4788e49acfdf2d2edbd2613f22de0705fa43b1cf58b",
+      "raw_path": "/tmp/phase28-d24-primary/supabase-changelog.md"
+    }
+  ],
+  "same_day_reused": [
+    {
+      "name": "pg17-policies",
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "status": 200,
+      "bytes": 46910,
+      "sha256": "1772bf6791789204d77a0ed3e35c0ff2f7ea988fb71f64a0b4b3a19908fad6a6",
+      "text_sha256": "ae1f8aa811fb152d5dd66117ae2426d6b986d95900c2a6f1a75a2d52fc33bee3",
+      "raw_path": "/tmp/phase28-d21-primary/pg17-policies.html",
+      "text_path": "/tmp/phase28-d21-primary/pg17-policies.txt",
+      "fetched_at": "2026-10-17T03:56:52.656824+00:00"
+    },
+    {
+      "name": "pg17-rls",
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "status": 200,
+      "bytes": 31181,
+      "sha256": "4cdf084d8e36009d03790c508585bd7c4c237aac4165dbbc9173866dbffc980e",
+      "text_sha256": "8e09cd6e88a959aa4f812b7e84147b893dbcfae833fa5cf52d083f3bc50da04a",
+      "raw_path": "/tmp/phase28-d21-primary/pg17-rls.html",
+      "text_path": "/tmp/phase28-d21-primary/pg17-rls.txt",
+      "fetched_at": "2026-10-17T03:56:52.431806+00:00"
+    },
+    {
+      "name": "pg17-functions",
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "status": 200,
+      "bytes": 51069,
+      "sha256": "887e05c52a98890006d7d63cd1dcbb933309376ff78967bef6693f247dddbf43",
+      "text_sha256": "ab859df881a1b8aa0f6b701439b5c6fb5071e44cc264e08d27e74c5956e56315",
+      "raw_path": "/tmp/phase28-d21-primary/pg17-functions.html",
+      "text_path": "/tmp/phase28-d21-primary/pg17-functions.txt",
+      "fetched_at": "2026-10-17T03:56:53.025706+00:00"
+    },
+    {
+      "name": "supabase-rls",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security.md",
+      "status": 200,
+      "bytes": 30344,
+      "sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "text_sha256": "9398df00c60160ffbbdf9b53f02e61bd34db000d291152a3268a00a95e4cdac8",
+      "raw_path": "/tmp/phase28-d21-primary/supabase-rls.md",
+      "text_path": "/tmp/phase28-d21-primary/supabase-rls.txt",
+      "fetched_at": "2026-10-17T03:56:50.984597+00:00"
+    },
+    {
+      "name": "api-grants",
+      "url": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+      "status": 200,
+      "bytes": 163465,
+      "sha256": "be770c815eee8e30aaeca7a01d387d1dd46b9f55ef143b31a8beaf5d4e3ca794",
+      "text_sha256": "3d4635cf9e89d218fcae8ab48e269dfbd2d82e9c927f0115db29d7ec0cb77528",
+      "raw_path": "/tmp/phase28-d21-primary/api-grants.html",
+      "text_path": "/tmp/phase28-d21-primary/api-grants.txt",
+      "fetched_at": "2026-10-17T03:56:51.752095+00:00"
+    },
+    {
+      "name": "pg17-minor",
+      "url": "https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes",
+      "status": 200,
+      "bytes": 246967,
+      "sha256": "b64a044eaa30033c49be8c6ad8a9282b3a44ccffe1c9cbadffbc1a8da98bbb31",
+      "text_sha256": "b764c89523cf64f7d0b7a5403ea77faa09379ccb142288f1a5614f0c56f9889e",
+      "raw_path": "/tmp/phase28-d21-primary/pg17-minor.html",
+      "text_path": "/tmp/phase28-d21-primary/pg17-minor.txt",
+      "fetched_at": "2026-10-17T03:56:52.272493+00:00"
+    },
+    {
+      "name": "pg17-isolation",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "status": 200,
+      "sha256": "e3475df0c76b214dbda0bc681015099763b83778e1355e17ee7b908e6fd38a26",
+      "text_sha256": "457bf019a88dba9800363f44afe2ea21fb9ecc1a835c715b06165f401af84d12",
+      "raw_path": "/tmp/phase28-d22-primary/pg17-isolation.html",
+      "text_path": "/tmp/phase28-d22-primary/pg17-isolation.txt",
+      "fetched_at": "2026-10-17T04:18:33.149311+00:00"
+    },
+    {
+      "name": "pg17-locks",
+      "url": "https://www.postgresql.org/docs/17/explicit-locking.html",
+      "status": 200,
+      "sha256": "cce2f9f92449f15fcb9927c23f164701652ed352470838d5db5a1bd930a77193",
+      "text_sha256": "a9fec7f6fa1ed375362643246990318497846d3067c5d6ecbc585a3561ac36ec",
+      "raw_path": "/tmp/phase28-d22-primary/pg17-locks.html",
+      "text_path": "/tmp/phase28-d22-primary/pg17-locks.txt",
+      "fetched_at": "2026-10-17T04:18:32.807549+00:00"
+    },
+    {
+      "name": "pg17-aggregate",
+      "url": "https://www.postgresql.org/docs/17/functions-aggregate.html",
+      "fetched_at": "2026-10-17T04:50:30.647538+00:00",
+      "sha256": "e9ac98094fea4cd404351b04fe7f738432507ef4c82b4f7071b3f5d62bfa0732",
+      "text_sha256": "950cc0dbf3e4a7fab349db5acc82d5877ae11b6ca55cfec410a6d87a4c4b14b7",
+      "raw_path": "/tmp/phase28-d23-primary/pg17-aggregate.html",
+      "text_path": "/tmp/phase28-d23-primary/pg17-aggregate.txt"
+    },
+    {
+      "name": "pg17-view",
+      "url": "https://www.postgresql.org/docs/17/sql-createview.html",
+      "fetched_at": "2026-10-17T04:50:29.737517+00:00",
+      "sha256": "528ba275d3b79ff228d32985c6833387b50ca918b275c96cf7c43bbd95ad1ef4",
+      "text_sha256": "346425f4f31604e17fdf5aabe3f366cc64803653cf917aca7880d9520e15b5a1",
+      "raw_path": "/tmp/phase28-d23-primary/pg17-view.html",
+      "text_path": "/tmp/phase28-d23-primary/pg17-view.txt"
+    },
+    {
+      "name": "pg17-materialized",
+      "url": "https://www.postgresql.org/docs/17/rules-materializedviews.html",
+      "fetched_at": "2026-10-17T04:50:29.202445+00:00",
+      "sha256": "a7c2b5fef11016931489a3257e95d6c540fed2d12f800f63f0429edb9baa7677",
+      "text_sha256": "506ea2bcc76521f3752b1b192cb9ab1050bb75dec40a71de7f20a11a41092b98",
+      "raw_path": "/tmp/phase28-d23-primary/pg17-materialized.html",
+      "text_path": "/tmp/phase28-d23-primary/pg17-materialized.txt"
+    }
+  ],
+  "root_web_rechecks": [
+    {
+      "url": "https://knowledge.hubspot.com/dashboards/manage-your-dashboards",
+      "retrieval_ref": "turn858294view0"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-share-reports",
+      "retrieval_ref": "turn858294view1"
+    },
+    {
+      "url": "https://help.mpdx.org/article/1253-mpdx-quick-reference-guide-reports",
+      "retrieval_ref": "turn858294view2"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security",
+      "retrieval_ref": "turn858294view3"
+    }
+  ]
+}

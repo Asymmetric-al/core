@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "date": "2026-10-18",
+  "scope": "Exact D38 decision/amendments, ratification status, Q39 references and evidence preservation only",
+  "D38_ratified_Q39_unanswered": true,
+  "exact_corrected_decision_unchanged": true,
+  "C01_C16_unchanged": true,
+  "P01_P24_unchanged": true,
+  "preserved_D38_evidence_and_snapshots": 11,
+  "preserved_D37_evidence_and_Q38_snapshot": 18,
+  "preserved_D36_evidence": 20,
+  "checked_documents": 9,
+  "local_links": 532,
+  "line_references": 67,
+  "anchors": 75,
+  "prior_programs_executed": false,
+  "runtime_or_user_study_proof": false,
+  "current_artifact_sha256": {
+    "docs/features/missionary-workspace-depth/grill/phase28-d38-separate-referral-periods-adversarial-review.md": "49427f3b66e6e26aecb515c98764e378ed4b08564c3196932ecc01e62dc48708",
+    "docs/features/missionary-workspace-depth/grill/phase28-q38-referral-period-scope-research.md": "64b647ed98a839f51c60e4d4d56a9e795f91136434a16878c1e90f1bf22a1e37",
+    "docs/features/missionary-workspace-depth/grill/phase28-q39-initial-referral-clock-research.md": "b10f81c05a70e8f35f97e9fcea64699d259482d1f18424484f136b33fc673573",
+    "docs/features/missionary-workspace-depth/grill/phase28-session.md": "2956d3afe4619575013c81bec23c87d5cbc8eb545f95540155d6bb96bff2023c",
+    "docs/features/missionary-workspace-depth/grill/d38-evidence/authorization-and-time.md": "52de06188172cc9aa9aa2ad48da97736c8ce3017a423de7bb31bd3e508a8f663",
+    "docs/features/missionary-workspace-depth/grill/d38-evidence/cross-review-resolution.md": "81e486f5528d9a586bc416467a24281e589c91aca0577e4a86f33b047f8ba784",
+    "docs/features/missionary-workspace-depth/grill/d38-evidence/governance.md": "eac5469947140d02f3cd6b90500af0c84592379d99cf092f1fe7541c5466017c",
+    "docs/features/missionary-workspace-depth/grill/d38-evidence/root-research.md": "3084fa3f22fe3ce4290b78b572f28be75095e6b64c77f992f47a96e79a92558a",
+    "docs/features/missionary-workspace-depth/grill/d38-evidence/ux-and-comparisons.md": "15811888d91b9195aa2b29833eda11acf46c3ede6f4ecf2e04d7a620c351c693",
+    "CONTEXT.md": "7a3767ca99ebdd681c0689e4ffa67375915ba5aaa8a9f1af0374bddd833cc218",
+    "docs/features/missionary-workspace-depth/grill/d38-evidence/verify-ratification.py": "adbb7e3b86a235aa7882b1548034ba89a8300ad53f439a1d0b94e8f76f291fa9"
+  }
+}
