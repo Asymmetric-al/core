@@ -8,12 +8,10 @@ export type MemberCareContext = {
 };
 
 type AuthResult =
-  | { ok: true; context: MemberCareContext }
-  | { ok: false; response: Response };
+  { ok: true; context: MemberCareContext } | { ok: false; response: Response };
 
 type JsonResult<T = unknown> =
-  | { ok: true; body: T }
-  | { ok: false; response: Response };
+  { ok: true; body: T } | { ok: false; response: Response };
 
 export async function requireMemberCareAccess(
   request?: Request,

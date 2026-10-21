@@ -10,9 +10,7 @@
 import type { OfflineContributionRequest } from "../../schemas/contributions-offline";
 
 export type ReceiptStatus =
-  | "pending"
-  | "no_receipt_requested"
-  | "not_receiptable";
+  "pending" | "no_receipt_requested" | "not_receiptable";
 
 /**
  * Receipt eligibility (§11.2/§11.3):

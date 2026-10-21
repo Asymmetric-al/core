@@ -6,11 +6,7 @@ import type {
 export type ContributionBatchRiskLevel = "low" | "high";
 export type ContributionBatchExecutionMode = "immediate" | "background";
 export type ContributionBatchStatus =
-  | "running"
-  | "complete"
-  | "complete_with_issues"
-  | "failed"
-  | "cancelled";
+  "running" | "complete" | "complete_with_issues" | "failed" | "cancelled";
 
 export interface ContributionBatchSummary {
   processed: number;

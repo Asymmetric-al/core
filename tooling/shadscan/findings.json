@@ -1210,7 +1210,7 @@
         },
         {
           "path": "apps/missionary/app/profile/use-profile-page-view.ts",
-          "sha256": "0514c9488a5cdaeb8ea7b84379474d641991ccd6a6f24a9e3801d6c26bdcf6bc"
+          "sha256": "668f1131d741a8e09fe84e3874ed3c2b5754bbcee6eeb5e399746d8552d0fe54"
         },
         {
           "path": "packages/ui/components/primitives/labeled-field.tsx",
@@ -1449,7 +1449,7 @@
       "proof": [
         {
           "path": "apps/missionary/app/analytics/page-client.tsx",
-          "sha256": "da1211f0590d8b98abe638aa9bb1961c64bb26a83eb4be25bb7404b1b5e4800a"
+          "sha256": "722f29632379bc30b5ccf31654ba9a39733fc827422834cb074e93f78876ffb0"
         },
         {
           "path": "packages/ui/components/primitives/chart-wrappers.tsx",
@@ -2256,7 +2256,7 @@
       "proof": [
         {
           "path": "packages/missionary/components/tasks/task-view-tabs.tsx",
-          "sha256": "03160415da6d5f8248d9092eb4cbec1de84c43488ce37e21b1b79830498ddd1e"
+          "sha256": "a1da12399c709b73765f7cc95b411287f49bc468c15dd02ea6c1a55fac1ddfe7"
         },
         {
           "path": "tests/unit/packages/missionary/shadscan-task-controls.test.tsx",

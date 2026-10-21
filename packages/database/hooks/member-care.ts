@@ -12,10 +12,7 @@ import { parseJsonResponse } from "../http/parse-json-response";
 import { getAdminSurfaceQueryKey } from "../query-keys";
 
 export type MemberCarePriority =
-  | "Healthy"
-  | "Needs Attention"
-  | "At Risk"
-  | "Crisis";
+  "Healthy" | "Needs Attention" | "At Risk" | "Crisis";
 
 export type MemberCareActivityType =
   | "Video Call"

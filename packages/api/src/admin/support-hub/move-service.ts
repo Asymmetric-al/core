@@ -310,14 +310,12 @@ export async function bulkMoveSupportConversations(
     // Every item fails the same way; still fall through so the batch record
     // is written exactly like any other all-failed bulk move.
     items.push(
-      ...input.conversationIds.map(
-        (conversationId): BulkMoveItemResult => ({
-          conversationId,
-          status: "failed",
-          code: "destination_not_found",
-          message: MOVE_FAILURE_MESSAGES.destination_not_found,
-        }),
-      ),
+      ...input.conversationIds.map((conversationId): BulkMoveItemResult => ({
+        conversationId,
+        status: "failed",
+        code: "destination_not_found",
+        message: MOVE_FAILURE_MESSAGES.destination_not_found,
+      })),
     );
   }
 

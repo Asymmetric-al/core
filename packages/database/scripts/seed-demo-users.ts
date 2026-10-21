@@ -1,12 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 type DemoRole =
-  | "admin"
-  | "missionary"
-  | "donor"
-  | "delivery"
-  | "ticketing"
-  | "machinery";
+  "admin" | "missionary" | "donor" | "delivery" | "ticketing" | "machinery";
 
 type SeedSummaryStatus = "created" | "updated" | "skipped";
 

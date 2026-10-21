@@ -977,8 +977,7 @@ function resolveOperationAvailability({
   detail: OperationDetail;
   detailLoadBlock: { reason: string; nextStep: string } | null;
   availability:
-    | NonNullable<OperationDetail>["actionAvailability"][number]
-    | null;
+    NonNullable<OperationDetail>["actionAvailability"][number] | null;
 }) {
   const failedRetryScopes =
     operation.actionType === "retry_staged_gift"

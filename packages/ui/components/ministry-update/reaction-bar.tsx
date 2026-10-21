@@ -47,9 +47,7 @@ import type {
 
 /** How the comment affordance behaves. */
 type CommentsMode =
-  | "dialog"
-  | "hidden"
-  | { onOpen: (updateId: string) => void };
+  "dialog" | "hidden" | { onOpen: (updateId: string) => void };
 
 /** Props for {@link ReactionBar}. */
 export interface ReactionBarProps {

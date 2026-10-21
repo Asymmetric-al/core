@@ -90,8 +90,7 @@ export function buildDonorSettingsPatch(
 }
 
 export type DonorProfileSettingsPatchResult =
-  | { ok: true; patch: DonorSettingsPatch }
-  | { ok: false; errorMessage: string };
+  { ok: true; patch: DonorSettingsPatch } | { ok: false; errorMessage: string };
 
 export function buildDonorProfileSettingsPatch(input: {
   firstName: string;

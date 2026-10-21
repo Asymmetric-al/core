@@ -1,7 +1,5 @@
 export type SupportQueueId =
-  | "donor_care"
-  | "missionary_support"
-  | "mobilization";
+  "donor_care" | "missionary_support" | "mobilization";
 
 export type SupportTicketStatus = "open" | "waiting" | "resolved" | "escalated";
 

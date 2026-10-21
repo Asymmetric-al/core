@@ -10,28 +10,16 @@
  */
 
 export type SharedContributionPaymentStatus =
-  | "completed"
-  | "pending"
-  | "failed"
-  | "refunded";
+  "completed" | "pending" | "failed" | "refunded";
 
 export type SharedContributionReceiptStatus =
-  | "sent"
-  | "pending"
-  | "failed"
-  | "not_sent";
+  "sent" | "pending" | "failed" | "not_sent";
 
 export type SharedContributionCrmPostStatus =
-  | "not_required"
-  | "queued"
-  | "posted"
-  | "failed"
-  | "blocked";
+  "not_required" | "queued" | "posted" | "failed" | "blocked";
 
 export type SharedContributionRefundState =
-  | "none"
-  | "partial_refund"
-  | "refunded";
+  "none" | "partial_refund" | "refunded";
 
 export type SharedContributionCorrectionState = "none" | "pending" | "applied";
 
@@ -41,9 +29,7 @@ export type SharedContributionCorrectionState = "none" | "pending" | "applied";
  * reconciliation gap.
  */
 export type SharedContributionRecurringLinkState =
-  | "agreement_linked"
-  | "provider_only"
-  | "none";
+  "agreement_linked" | "provider_only" | "none";
 
 export interface SharedContributionDesignationSummary {
   fundId: string | null;
@@ -55,10 +41,7 @@ export interface SharedContributionDesignationSummary {
 }
 
 export type ContributionDesignationFundType =
-  | "missionary"
-  | "project"
-  | "campaign"
-  | "general";
+  "missionary" | "project" | "campaign" | "general";
 
 /**
  * One donor-intent allocation line (ADR-CD-008 / ADR-CD-010). Lines are equal

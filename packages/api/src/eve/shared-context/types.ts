@@ -35,10 +35,7 @@ export type EveSharedContextProvenanceKind =
   (typeof EVE_SHARED_CONTEXT_PROVENANCE_KINDS)[number];
 
 export type EveSharedContextRelationship =
-  | "independent"
-  | "supports"
-  | "contradicts"
-  | "supersedes";
+  "independent" | "supports" | "contradicts" | "supersedes";
 
 export type EveSharedContextValue =
   | boolean

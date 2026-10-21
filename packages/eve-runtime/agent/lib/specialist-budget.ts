@@ -89,9 +89,7 @@ export type EveSpecialistModelStepReservation =
   | {
       allowed: false;
       reason:
-        | "budget_exhausted"
-        | "metering_incomplete"
-        | "rate_limit_exhausted";
+        "budget_exhausted" | "metering_incomplete" | "rate_limit_exhausted";
     };
 
 export function reserveEveSpecialistModelStep(input: {

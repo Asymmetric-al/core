@@ -226,8 +226,7 @@ function createSupabaseStub(initialRows: ViewRow[] = []) {
                 }
                 if (payload.pinned_action_id !== undefined) {
                   row.pinned_action_id = payload.pinned_action_id as
-                    | string
-                    | null;
+                    string | null;
                 }
                 if (payload.settings !== undefined) {
                   row.settings = payload.settings as Record<string, unknown>;

@@ -98,8 +98,8 @@ export const POST = withOperation(
     const amountInCents = feeQuote.chargedAmountCents;
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
     let extraPaymentIntentMetadata:
-      | GiftProcessingFeeStripeMetadata
-      | undefined = toGiftProcessingFeeStripeMetadata(feeQuote);
+      GiftProcessingFeeStripeMetadata | undefined =
+      toGiftProcessingFeeStripeMetadata(feeQuote);
 
     const begin = await beginGiftIntake({
       rpc: async (fn, rpcArgs) => {

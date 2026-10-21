@@ -12,12 +12,10 @@ export type SupportHubContext = {
 };
 
 type AuthResult =
-  | { ok: true; context: SupportHubContext }
-  | { ok: false; response: Response };
+  { ok: true; context: SupportHubContext } | { ok: false; response: Response };
 
 type JsonResult<T = unknown> =
-  | { ok: true; body: T }
-  | { ok: false; response: Response };
+  { ok: true; body: T } | { ok: false; response: Response };
 
 /**
  * Auth gate for every Support Hub route handler. Mirrors

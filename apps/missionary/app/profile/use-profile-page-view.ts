@@ -50,8 +50,7 @@ type ProfilePageUiAction =
   | {
       type: "SET_VALIDATION_ERRORS";
       payload:
-        | ValidationErrors
-        | ((prev: ValidationErrors) => ValidationErrors);
+        ValidationErrors | ((prev: ValidationErrors) => ValidationErrors);
     };
 
 function profilePageUiReducer(

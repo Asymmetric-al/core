@@ -28,8 +28,7 @@ export interface EveServiceSessionIdentity extends EveSessionIdentityBase {
 }
 
 export type EveSessionIdentity =
-  | EveAdminSessionIdentity
-  | EveServiceSessionIdentity;
+  EveAdminSessionIdentity | EveServiceSessionIdentity;
 
 export type EveAdminIdentityResolution =
   | { ok: false; reason: "forbidden" | "unauthenticated" }

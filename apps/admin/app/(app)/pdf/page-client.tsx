@@ -1077,8 +1077,7 @@ function NativePdfDocumentBuilderSection({
 }
 
 type ExportPdfResult =
-  | { ok: true; url?: string }
-  | { ok: false; error: unknown };
+  { ok: true; url?: string } | { ok: false; error: unknown };
 
 async function runExportPdf(
   editor: LegacyUnlayerDocumentEditorHandle,
@@ -1135,8 +1134,7 @@ async function runDeletePdfTemplate(
 }
 
 type SaveTemplateResult =
-  | { ok: true; templateId: string }
-  | { ok: false; error: string };
+  { ok: true; templateId: string } | { ok: false; error: string };
 
 async function runSaveTemplate(options: {
   editor: LegacyUnlayerDocumentEditorHandle;

@@ -19,9 +19,7 @@
 import type { DonorMatchConfidence, DonorMatchSignal } from "./donor-matching";
 
 export type MergeCandidateStatus =
-  | "open"
-  | "resolved_merged"
-  | "resolved_rejected";
+  "open" | "resolved_merged" | "resolved_rejected";
 export type MergeActorType = "staff" | "agent";
 export type ReviewableDonorMatchConfidence = Extract<
   DonorMatchConfidence,

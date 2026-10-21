@@ -15,9 +15,7 @@ import { ApiHttpError } from "../../shared/api-http-error";
  */
 
 export type CorrectionApprovalOwnershipMode =
-  | "no_approval_required"
-  | "one_approver"
-  | "separation_of_duties";
+  "no_approval_required" | "one_approver" | "separation_of_duties";
 
 export interface CorrectionApprovalPolicy {
   ownershipMode: CorrectionApprovalOwnershipMode;

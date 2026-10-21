@@ -16,9 +16,7 @@ export interface CrmRelatedLinkReference {
 
 export type DuplicateConfidence = "none" | "low" | "medium" | "high";
 export type DuplicateRecommendation =
-  | "ignore"
-  | "merge_candidate"
-  | "link_candidate";
+  "ignore" | "merge_candidate" | "link_candidate";
 
 export interface CrmIdentityFingerprintInput {
   tenantId: string;

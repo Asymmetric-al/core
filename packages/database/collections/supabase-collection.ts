@@ -91,8 +91,7 @@ export function defineSupabaseCollection<TSchema extends z.ZodType>(
       : undefined),
   };
   let collection:
-    | ReturnType<typeof createSupabaseCollection<TSchema>>
-    | undefined;
+    ReturnType<typeof createSupabaseCollection<TSchema>> | undefined;
 
   return {
     metadata,

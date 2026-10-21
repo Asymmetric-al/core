@@ -1,9 +1,5 @@
 export type MissionControlTaskStatus =
-  | "open"
-  | "in_progress"
-  | "completed"
-  | "dismissed"
-  | "suppressed";
+  "open" | "in_progress" | "completed" | "dismissed" | "suppressed";
 
 export type MissionControlUrgency = "normal" | "high" | "critical";
 
@@ -23,9 +19,7 @@ export type MissionControlIssueType =
   | "recurring_gift_issue";
 
 export type MissionControlTaskAssignmentMode =
-  | "actor_only"
-  | "queue_only"
-  | "actor_and_queue";
+  "actor_only" | "queue_only" | "actor_and_queue";
 
 export type MissionControlLinkedRecordType =
   | "donor"

@@ -19,18 +19,10 @@ export type StagedGiftStatus =
   | "voided";
 
 export type StagedGiftReceiptStatus =
-  | "not_required"
-  | "pending"
-  | "sent"
-  | "failed"
-  | "suppressed";
+  "not_required" | "pending" | "sent" | "failed" | "suppressed";
 
 export type StagedGiftCrmPostStatus =
-  | "not_required"
-  | "queued"
-  | "posted"
-  | "failed"
-  | "blocked";
+  "not_required" | "queued" | "posted" | "failed" | "blocked";
 
 export interface StagedGiftRow {
   id: string;

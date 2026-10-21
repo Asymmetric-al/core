@@ -28,10 +28,7 @@ type SupabaseAdmin = AdminSupabaseClient;
 type JsonRecord = Record<string, unknown>;
 
 export type CorrectionRequestStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "superseded";
+  "pending" | "approved" | "rejected" | "superseded";
 
 export interface ContributionCorrectionRequest {
   id: string;
