@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import { runUnitTests } from "../../../scripts/verify/unit-tests.mjs";
 
 const repoRoot = process.cwd();
 
@@ -46,13 +48,30 @@ describe("setup script contracts", () => {
   });
 
   it("keeps the Windows unit-test preflight on the cross-platform Bun version script", () => {
-    const script = readScript("scripts/verify/unit-tests.mjs");
+    const spawn = vi
+      .fn()
+      .mockReturnValueOnce({ error: new Error("Node dispatch unavailable") })
+      .mockReturnValueOnce({ status: 0 })
+      .mockReturnValueOnce({ status: 0 });
 
-    expect(script).toContain('spawnSync("bun", ["run", "verify:bun-version"]');
-    expect(script).toContain('shell: process.platform === "win32"');
-    expect(script).not.toContain(
-      'spawnSync("bash", ["scripts/verify/bun-version.sh"]',
+    expect(runUnitTests("win32", spawn)).toBe(0);
+    expect(spawn).toHaveBeenNthCalledWith(
+      1,
+      process.execPath,
+      [path.join(repoRoot, "scripts/verify/bun-version.mjs")],
+      { shell: false, stdio: "inherit" },
     );
+    expect(spawn).toHaveBeenNthCalledWith(
+      2,
+      "bun",
+      ["run", "verify:bun-version"],
+      { shell: false, stdio: "inherit" },
+    );
+    expect(spawn.mock.calls[2]?.[0]).toBe(process.execPath);
+    expect(spawn.mock.calls[2]?.[1][0]).toBe(
+      path.join(repoRoot, "node_modules/vitest/vitest.mjs"),
+    );
+    expect(spawn).toHaveBeenCalledTimes(3);
   });
 
   it("checks all PowerShell prerequisites before running external verification", () => {

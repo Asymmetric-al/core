@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (
 );
 
 CREATE SCHEMA IF NOT EXISTS auth;
+-- Match Supabase's public identity-helper access, without granting table access.
+GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
 
 CREATE TABLE IF NOT EXISTS auth.instances (
   id UUID PRIMARY KEY DEFAULT extensions.gen_random_uuid(),

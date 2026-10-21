@@ -1,13 +1,18 @@
 import fs from "node:fs/promises";
 
+import { validateNodeVersion } from "./verify/node-version.mjs";
+
+validateNodeVersion(
+  process.versions.node,
+  (
+    await fs.readFile(new URL("../.node-version", import.meta.url), "utf8")
+  ).trim(),
+);
+
 let hasFailure = false;
 
 function log(message) {
   console.log(`==> ${message}`);
-}
-
-function warn(message) {
-  console.warn(`warning: ${message}`);
 }
 
 function fail(message) {
@@ -34,15 +39,33 @@ function isPlaceholder(value) {
 
 function looksLikeUrl(value) {
   try {
-    const url = new URL(stripCrLf(value));
-    return url.protocol === "http:" || url.protocol === "https:";
+    const url = new URL(value);
+    return (
+      ["http:", "https:"].includes(url.protocol) &&
+      !url.username &&
+      !url.password &&
+      !url.search &&
+      !url.hash
+    );
   } catch {
     return false;
   }
 }
 
-function looksLikeSupabaseAnonJwt(value) {
-  return stripCrLf(value).startsWith("eyJ");
+function publicKeyType(value) {
+  if (/^sb_publishable_\S+$/.test(value)) return "publishable";
+  // This classification cannot authenticate a JWT. The Auth gateway validates
+  // the actual API key below; decoding only rejects privileged public inputs.
+  try {
+    const parts = value.split(".");
+    if (parts.length !== 3) return null;
+    const claims = JSON.parse(
+      Buffer.from(parts[1], "base64url").toString("utf8"),
+    );
+    return claims.role === "anon" ? "legacy-anon" : null;
+  } catch {
+    return null;
+  }
 }
 
 function parseEnvLine(line) {
@@ -120,73 +143,48 @@ if (isPlaceholder(supabaseUrl)) {
 
 if (isPlaceholder(supabaseAnonKey)) {
   fail(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY appears to be a placeholder. Set it to your Supabase anon public key (Project Settings -> API).",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY appears to be a placeholder. Set it to your Supabase publishable key (Project Settings -> API Keys).",
   );
 }
 
 if (!looksLikeUrl(supabaseUrl)) {
   fail(
-    `NEXT_PUBLIC_SUPABASE_URL must start with http:// or https:// (got: ${supabaseUrl})`,
+    "NEXT_PUBLIC_SUPABASE_URL must be HTTP(S) without credentials, query parameters or a fragment.",
   );
 }
 
-if (supabaseAnonKey.startsWith("sb_secret_")) {
+if (!publicKeyType(supabaseAnonKey)) {
   fail(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY looks like a secret key (sb_secret_*). Do NOT use secrets in NEXT_PUBLIC_* vars. Use the Supabase anon public key (Project Settings -> API).",
-  );
-}
-
-if (supabaseAnonKey.startsWith("sb_publishable_")) {
-  fail(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY looks like a publishable key (sb_publishable_*). Use the Supabase anon public key (Project Settings -> API).",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY must be a browser-safe publishable key or supported legacy anon JWT. Secret and privileged keys are forbidden in NEXT_PUBLIC_* variables.",
   );
 }
 
 if (hasFailure) process.exit(1);
 
-if (!looksLikeSupabaseAnonJwt(supabaseAnonKey)) {
-  warn(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY does not look like the typical Supabase anon JWT (usually starts with eyJ...). If the REST check fails, re-copy the anon public key from Project Settings -> API.",
+log("Checking Supabase Auth health...");
+const healthCode = await fetchStatus(`${supabaseUrl}/auth/v1/health`, {
+  headers: { apikey: supabaseAnonKey },
+});
+if (healthCode !== 200) {
+  fail(
+    healthCode === 0
+      ? "Supabase Auth health check failed (no response). Verify network connectivity and NEXT_PUBLIC_SUPABASE_URL."
+      : `Supabase Auth health check failed with HTTP ${healthCode}.`,
   );
 }
 
-log(`Checking Supabase host reachability (${supabaseUrl})...`);
-const hostCode = await fetchStatus(supabaseUrl);
-if (![200, 301, 302, 401, 403, 404].includes(hostCode)) {
-  if (hostCode === 0) {
-    fail(
-      "Supabase URL check failed (no response). Verify network connectivity and NEXT_PUBLIC_SUPABASE_URL.",
-    );
-  } else {
-    fail(
-      `Supabase URL check failed with HTTP ${hostCode}. Verify NEXT_PUBLIC_SUPABASE_URL.`,
-    );
-  }
-}
-
-const restRoot = `${supabaseUrl}/rest/v1/`;
-log("Checking anon key is accepted by Supabase REST API...");
-const restCode = await fetchStatus(restRoot, {
-  headers: {
-    apikey: supabaseAnonKey,
-    Authorization: `Bearer ${supabaseAnonKey}`,
-  },
+log("Checking the public API key through Supabase Auth...");
+const keyCode = await fetchStatus(`${supabaseUrl}/auth/v1/settings`, {
+  // Publishable keys are API keys, not JWT user sessions. Legacy anon keys
+  // also work in this header. Do not depend on REST's optional OpenAPI route.
+  headers: { apikey: supabaseAnonKey },
 });
-
-if (![200, 404].includes(restCode)) {
-  if (restCode === 401 || restCode === 403) {
-    fail(
-      `Anon key was rejected (HTTP ${restCode}). Ensure NEXT_PUBLIC_SUPABASE_ANON_KEY is the anon public key for this project URL (Project Settings -> API).`,
-    );
-  } else if (restCode === 0) {
-    fail(
-      "Supabase REST check failed (no response). Verify network connectivity, URL, and key.",
-    );
-  } else {
-    fail(
-      `Supabase REST check failed with HTTP ${restCode}. Verify network, URL, and key.`,
-    );
-  }
+if (keyCode !== 200) {
+  fail(
+    keyCode === 0
+      ? "Supabase public-key check failed (no response). Verify network, URL and key."
+      : `Supabase public-key check failed with HTTP ${keyCode}. Verify the project's publishable key in API Keys settings.`,
+  );
 }
 
 if (hasFailure) process.exit(1);

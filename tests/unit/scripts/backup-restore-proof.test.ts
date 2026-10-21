@@ -15,6 +15,19 @@ describe("backup restore proof helpers", () => {
     });
   });
 
+  it("rejects a restore with the correct count but changed markers", () => {
+    expect(
+      buildBackupRestoreSummary({
+        sourceContainer: "source",
+        targetContainer: "target",
+        rowCount: 3,
+        minMarker: "corrupted",
+        maxMarker: "phase11-gamma",
+        dumpFile: "proof.dump",
+      }).status,
+    ).toBe("failed");
+  });
+
   it("formats isolated restore evidence without production access", () => {
     const summary = buildBackupRestoreSummary({
       sourceContainer: "source",
@@ -29,6 +42,8 @@ describe("backup restore proof helpers", () => {
 
     expect(summary.status).toBe("passed");
     expect(summary.productionTouched).toBe(false);
+    expect(summary.scope).toBe("synthetic-transport-smoke");
+    expect(report).toContain("does not qualify product migrations");
     expect(report).toContain("Status: PASSED");
     expect(report).toContain("Production touched: no");
   });

@@ -8,10 +8,12 @@ if [[ "$PWD" != /src || $(id -u) != 0 ]]; then
   exit 1
 fi
 state=/tmp/core-oss-scanner
+pg_major=17
+pg_bin="/usr/lib/postgresql/$pg_major/bin"
 mkdir -p "$state"
 trap 'echo "Scanner service setup failed; inspect logs in /tmp/core-oss-scanner." >&2' ERR
 as_postgres() {
-  runuser -u postgres -- env -i HOME=/var/lib/postgresql LANG=C.UTF-8 PATH=/usr/lib/postgresql/15/bin:/usr/bin:/bin "$@"
+  runuser -u postgres -- env -i HOME=/var/lib/postgresql LANG=C.UTF-8 PATH="$pg_bin:/usr/bin:/bin" "$@"
 }
 
 stop_apps() {
@@ -37,9 +39,15 @@ stop_apps() {
 if [[ "$mode" == stop ]]; then stop_apps; exit 0; fi
 
 if [[ "$mode" == db || "$mode" == reset-db ]]; then
-  if [[ "$mode" == reset-db ]]; then stop_apps; fi
-  pg_bin=/usr/lib/postgresql/15/bin
   pg_data="$state/postgres"
+  if [[ -f "$pg_data/PG_VERSION" ]]; then
+    existing_pg_major=$(cat "$pg_data/PG_VERSION")
+    if [[ "$existing_pg_major" != "$pg_major" ]]; then
+      printf 'Scanner database major %s is incompatible with PostgreSQL %s; use a fresh disposable container.\n' "$existing_pg_major" "$pg_major" >&2
+      exit 1
+    fi
+  fi
+  if [[ "$mode" == reset-db ]]; then stop_apps; fi
   install -d -o postgres -g postgres "$pg_data" "$state/socket"
   if [[ ! -f "$pg_data/PG_VERSION" ]]; then
     pwfile=$(mktemp)

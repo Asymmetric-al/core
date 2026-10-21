@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "checkpoint": "development-tools",
   "owner": "@asym/eslint-config and Core maintainers",
-  "status": "implementation-under-qualification",
+  "status": "qualified-merged",
   "baseCommit": "dfaa201242c6ad468bf2d343aa18e8f223f67c5c",
   "versions": {
     "eslint": "10.13.0",
@@ -80,7 +80,7 @@
       "passed": true,
       "completedAt": "2026-10-21T15:48:01.495276+00:00",
       "testedLockSha256": "8c24d3918c15097db16c94fad96cb768053c6bc81d01f8c2aaf31ac075add60e",
-      "finalCompatibleLockRefreshRequalification": "Required through normal push hook and current-head CI before merge",
+      "finalCompatibleLockRefreshRequalification": "Passed normal push hook and exact-head CI on the final lock",
       "builds": ["admin", "donor", "missionary"],
       "unit": {
         "filesPassed": 893,
@@ -91,14 +91,54 @@
       },
       "environment": "Clean CI fixture defaults; owned opaque environment symlink temporarily detached and restored without reading or copying its target contents",
       "vitestMaxWorkers": 4,
-      "logSha256": "65d9db4a638081aa2ed9d7fe565dd185ed92a71b384c964def1852aa029ec996"
+      "logSha256": "65d9db4a638081aa2ed9d7fe565dd185ed92a71b384c964def1852aa029ec996",
+      "finalTestedLockSha256": "43b8f29aabc2d1958df440ff28e569754fd5a1e1e6c86a4dcc9737a1ed2ab1f2"
     },
-    "deployedPreviews": "pending",
-    "merge": "pending",
+    "deployedPreviews": {
+      "head": "3c4a499223c38a20f8b3307bf637007e587f9584",
+      "allReady": true,
+      "admin": {
+        "id": "dpl_DNRZC2yp7QR5FiRbj8u6M6GVoSBy",
+        "url": "https://admin-3qv2jmum7-asymmetric-al.vercel.app"
+      },
+      "donor": {
+        "id": "dpl_GNbs5bqGhj8YxBho2AHHJeax5MXY",
+        "url": "https://donor-ip6b102vg-asymmetric-al.vercel.app"
+      },
+      "missionary": {
+        "id": "dpl_CzfEy93MkHBZdoMY3cqkgZrGzRNc",
+        "url": "https://missionary-akesdvnws-asymmetric-al.vercel.app"
+      },
+      "independentHTTP": "All six public/guard/login fetches returned 200 with HTML, expected login forms and no Next error document",
+      "providerLimit": "Hosted Node patch number is not independently observable; build runtime 24.22.1 was qualified"
+    },
+    "merge": "Merged 2026-10-21T16:32:43Z; exact head is an ancestor of develop",
     "independentReview": {
       "source": "Complete immutable diff plus targeted final behavior, ledger and coverage reviews",
       "patchSha256": "3828dfdeabf2401a708da5a0ae61a9c922bfe5f4e2ac2a7cb57ff4f54e32a07f",
-      "remaining": "Exact-head provider review reconciliation; final compatible lock-only delta independently approved"
+      "remaining": "None for this checkpoint; CodeRabbit skipped 246 files over its 100-file limit and is not counted as approval. Independent reviews and final immutable tree/delta reconciliation cover all 280 paths."
+    },
+    "cleanInstall": {
+      "head": "3c4a499223c38a20f8b3307bf637007e587f9584",
+      "command": "bun ci --no-cache --backend=copyfile",
+      "passed": true,
+      "noLockDrift": true,
+      "freshWorkspaceAndIdentityTests": 34,
+      "opaqueVendorDatabaseNotMaterialized": true
+    },
+    "currentHeadCI": {
+      "ci": "https://github.com/Asymmetric-al/core/actions/runs/39633034768",
+      "integration": "https://github.com/Asymmetric-al/core/actions/runs/39633034381",
+      "preview": "https://github.com/Asymmetric-al/core/actions/runs/39633068558",
+      "conclusion": "success",
+      "fullE2EAndPreviewSmokePassed": true
+    },
+    "postMergeCI": {
+      "head": "8906631256bc1dd95d4d7ba8c11a7409d3763161",
+      "ci": "https://github.com/Asymmetric-al/core/actions/runs/39635725993",
+      "integration": "https://github.com/Asymmetric-al/core/actions/runs/39635725824",
+      "conclusion": "success",
+      "fullE2EAndSmokePassed": true
     }
   },
   "boundaries": [
@@ -203,5 +243,8 @@
       "remainingToolingAdvisories": 19,
       "limitation": "Inherited paths remain open; absence of a regression is not unreachability evidence."
     }
-  }
+  },
+  "qualifiedHead": "3c4a499223c38a20f8b3307bf637007e587f9584",
+  "mergeCommit": "8906631256bc1dd95d4d7ba8c11a7409d3763161",
+  "pullRequest": "https://github.com/Asymmetric-al/core/pull/2176"
 }

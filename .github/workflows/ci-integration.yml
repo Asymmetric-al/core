@@ -30,7 +30,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -48,7 +48,7 @@ jobs:
           fetch-depth: 0
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -60,6 +60,8 @@ jobs:
         run: bash scripts/github/install-postgresql-client.sh
       - name: Apply migrations
         run: node scripts/verify/supabase-migrations.mjs
+      - name: Verify disposable Supabase Auth compatibility
+        run: psql "$DATABASE_URL" -f tests/integration/supabase/bootstrap-auth-compat-verification.sql -v ON_ERROR_STOP=1
       - name: Apply Payload migrations
         run: bun run cms:migrate
       - name: Verify Payload migration status
@@ -86,7 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -107,7 +109,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -148,7 +150,7 @@ jobs:
     timeout-minutes: 25
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -179,7 +181,7 @@ jobs:
           fetch-depth: 0
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install PostgreSQL client
@@ -276,7 +278,7 @@ jobs:
     timeout-minutes: 30
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -314,7 +316,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install PostgreSQL client
@@ -474,7 +476,7 @@ jobs:
           persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0

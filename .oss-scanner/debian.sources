@@ -1,0 +1,14 @@
+# Refresh both archives together and requalify the complete scanner image.
+Types: deb
+URIs: https://snapshot.debian.org/archive/debian/20261021T000000Z/
+Suites: trixie trixie-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no
+
+Types: deb
+URIs: https://snapshot.debian.org/archive/debian-security/20261021T000000Z/
+Suites: trixie-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Check-Valid-Until: no
