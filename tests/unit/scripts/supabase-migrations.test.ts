@@ -78,7 +78,8 @@ function runVerifier(
     `#!/usr/bin/env node
 const fs = require("node:fs");
 const args = process.argv.slice(2);
-fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify(args) + "\\n");
+const stdinSql = args.includes("-f") || args.includes("-c") ? null : fs.readFileSync(0, "utf8");
+fs.appendFileSync(${JSON.stringify(calls)}, JSON.stringify({ args, stdinSql }) + "\\n");
 const data = ${JSON.stringify({ rows, schema, catalog: supplement.local_catalog.result })};
 const mode = ${JSON.stringify(mode)};
 if (!args.includes("-c")) process.exit(0);
@@ -116,7 +117,7 @@ if (sql.includes("public.field_policies")) {
       ? readFileSync(calls, "utf8")
           .trim()
           .split("\n")
-          .map((line) => JSON.parse(line))
+          .map((line) => JSON.parse(line).args)
       : [],
   };
 }
@@ -131,13 +132,20 @@ itPosix(
     expect(result.stdout.indexOf("exactly 172 candidate columns")).toBeLessThan(
       result.stdout.indexOf("forward Supabase migrations"),
     );
+    const probeIndex = result.calls.findIndex(
+      (args: string[]) => !args.includes("-f") && !args.includes("-c"),
+    );
+    expect(probeIndex).toBeGreaterThan(1);
     const queryIndex = result.calls.findIndex((args: string[]) =>
       args.includes("-c"),
     );
-    expect(queryIndex).toBeGreaterThan(1);
+    expect(queryIndex).toBeGreaterThan(probeIndex);
+    expect(result.stdout).toContain(
+      "verify PostgreSQL upgrade preflight detects mixed-case callers",
+    );
     expect(
       result.calls
-        .slice(0, queryIndex)
+        .slice(0, probeIndex)
         .every((args: string[]) => args.includes("-f")),
     ).toBe(true);
     expect(

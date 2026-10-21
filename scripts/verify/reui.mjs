@@ -4,13 +4,21 @@ import * as http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  createMcpSession,
+  MCP_MODERN_VERSIONS,
+  McpHttpError,
+  McpRpcError,
+} from "../lib/mcp-session.mjs";
+
+import { encodeMcpHeader, mcpToolHeaders } from "../lib/mcp-http-headers.mjs";
+
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
 const MCP_URL = "https://mcp.reui.io";
 const REGISTRY_URL = "https://reui.io/r/{style}/{name}.json";
-const PROTOCOL_VERSION = "2025-06-18";
 // Match the file discriminators in Core's installed shadcn registry schema.
 const REGISTRY_FILE_TYPES = new Set([
   "registry:file",
@@ -190,23 +198,31 @@ function rpcMessage(text, id, optional = false) {
     throw new Error("MCP response did not match the request");
   }
   if (message.error) {
-    throw new Error(`MCP JSON-RPC error (${message.error.code ?? "unknown"})`);
+    throw new McpRpcError(message.error.code, message.error.data);
   }
   return message.result;
 }
 
 async function readRpc(response, id) {
-  if (!response.headers.get("content-type")?.includes("text/event-stream")) {
-    return rpcMessage(await response.text(), id);
-  }
+  const sse = response.headers
+    .get("content-type")
+    ?.includes("text/event-stream");
   const reader = response.body?.getReader();
-  if (!reader) throw new Error("MCP returned an empty SSE response");
+  if (!reader) throw new Error("MCP returned an empty response");
   const decoder = new TextDecoder();
   let pending = "";
+  let bytes = 0;
   try {
     for (;;) {
       const { done, value } = await reader.read();
+      bytes += value?.byteLength ?? 0;
+      if (bytes > 4 * 1024 * 1024)
+        throw new Error("MCP response exceeds the byte limit");
       pending += decoder.decode(value, { stream: !done });
+      if (!sse) {
+        if (done) return rpcMessage(pending, id);
+        continue;
+      }
       const events = pending.split(/\r?\n\r?\n/);
       pending = events.pop();
       if (done && pending.trim()) events.push(pending);
@@ -249,46 +265,86 @@ function usableRegistryFile(file) {
 async function liveChecks(key, fetchImpl) {
   let id = 0;
   let session;
-  let protocol;
+  const toolSchemas = new Map();
   const baseHeaders = {
     Authorization: `Bearer ${key}`,
     "X-Reui-Style": "base-maia",
     Accept: "application/json, text/event-stream",
     "Content-Type": "application/json",
   };
-  async function rpc(method, params, notification = false) {
+  async function request(
+    method,
+    params,
+    { protocol, notification = false } = {},
+  ) {
     const requestId = notification ? undefined : ++id;
     const headers = { ...baseHeaders };
-    if (session) headers["Mcp-Session-Id"] = session;
+    const modern = MCP_MODERN_VERSIONS.includes(protocol);
+    if (session && !modern) headers["Mcp-Session-Id"] = session;
     if (protocol) headers["MCP-Protocol-Version"] = protocol;
+    if (modern) {
+      headers["Mcp-Method"] = method;
+      if (method === "tools/call") {
+        headers["Mcp-Name"] = encodeMcpHeader(params.name);
+        Object.assign(
+          headers,
+          mcpToolHeaders(toolSchemas.get(params.name), params.arguments),
+        );
+      }
+    }
     const response = await fetchImpl(MCP_URL, {
       method: "POST",
       headers,
       body: JSON.stringify({ jsonrpc: "2.0", id: requestId, method, params }),
       signal: AbortSignal.timeout(15_000),
+      redirect: "error",
     });
-    if (!response.ok) throw new Error(`${method} HTTP ${response.status}`);
-    session = response.headers.get("Mcp-Session-Id") ?? session;
+    if (!response.ok) {
+      // Modern HTTP version errors carry negotiation information in the JSON-RPC
+      // body even with HTTP400. Plain legacy400/404 responses permit fallback.
+      if (
+        method === "server/discover" &&
+        [400, 404].includes(response.status)
+      ) {
+        try {
+          await readRpc(response, requestId);
+        } catch (error) {
+          if (error instanceof McpRpcError) {
+            error.status = response.status;
+            throw error;
+          }
+        }
+      }
+      throw new McpHttpError(method, response.status);
+    }
+    if (!modern) session = response.headers.get("Mcp-Session-Id") ?? session;
     if (notification) return;
     return readRpc(response, requestId);
   }
+  const negotiated = await createMcpSession({
+    request,
+    clientInfo: { name: "core-reui-readiness", version: "2.0.0" },
+  });
+  if (!negotiated.capabilities?.tools) {
+    throw new Error("MCP discovery or initialization lacks tool capabilities");
+  }
+  const { rpc } = negotiated;
   const call = async (name, args = {}) =>
     toolValue(await rpc("tools/call", { name, arguments: args }), name);
-  const initialized = await rpc("initialize", {
-    protocolVersion: PROTOCOL_VERSION,
-    capabilities: {},
-    clientInfo: { name: "core-reui-readiness", version: "1.0.0" },
-  });
-  if (!initialized?.capabilities?.tools || !initialized?.serverInfo?.name) {
-    throw new Error("MCP initialization lacks tool capabilities");
-  }
-  if (![PROTOCOL_VERSION, "2025-03-26"].includes(initialized.protocolVersion)) {
-    throw new Error("ReUI negotiated an unsupported MCP protocol version");
-  }
-  protocol = initialized.protocolVersion;
-  await rpc("notifications/initialized", undefined, true);
   const listed = await rpc("tools/list", {});
-  const available = new Set(listed?.tools?.map((tool) => tool.name));
+  const available = new Set();
+  for (const tool of listed?.tools ?? []) {
+    if (negotiated.mode === "modern") {
+      try {
+        mcpToolHeaders(tool);
+      } catch {
+        // An invalid annotation excludes this tool. Required ones fail below.
+        continue;
+      }
+      toolSchemas.set(tool.name, tool);
+    }
+    available.add(tool.name);
+  }
   const missing = REQUIRED_TOOLS.filter((name) => !available.has(name));
   if (missing.length)
     throw new Error(`MCP missing capabilities: ${missing.join(", ")}`);

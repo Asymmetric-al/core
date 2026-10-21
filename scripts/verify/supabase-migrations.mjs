@@ -3,6 +3,8 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { buildPostgresUpgradeProbe } from "../lib/postgres-upgrade-preflight.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
 const databaseUrl = process.env.DATABASE_URL?.trim();
@@ -32,12 +34,13 @@ if (!localHosts.has(parsedDatabaseUrl.hostname)) {
   process.exit(1);
 }
 
-function runPsql(label, args) {
+function runPsql(label, args, input) {
   console.log(`==> ${label}`);
   const result = spawnSync(psqlBin, args, {
     cwd: repoRoot,
     env: process.env,
-    stdio: "inherit",
+    stdio: input === undefined ? "inherit" : ["pipe", "inherit", "inherit"],
+    ...(input === undefined ? {} : { input }),
   });
 
   if (result.error) {
@@ -79,6 +82,12 @@ for (const fileName of migrationFiles) {
 
   runPsql(`apply ${fileName}`, args);
 }
+
+runPsql(
+  "verify PostgreSQL upgrade preflight detects mixed-case callers",
+  [databaseUrl, "-v", "ON_ERROR_STOP=1"],
+  buildPostgresUpgradeProbe(),
+);
 
 console.log("==> verify reviewed field-policy census");
 const censusResult = spawnSync(

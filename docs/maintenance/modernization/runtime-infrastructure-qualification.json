@@ -1,0 +1,452 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "runtime-infrastructure",
+  "status": "implemented-awaiting-final-gates-review-ci-previews-and-merge",
+  "sourceBase": "8906631256bc1dd95d4d7ba8c11a7409d3763161",
+  "capturedAt": "2026-10-21T17:08:51.106036+00:00",
+  "owner": "Core CI and operations maintainers",
+  "versions": {
+    "node": "24.22.1",
+    "bun": "1.4.3",
+    "vercel": "65.0.0",
+    "supabase": "2.121.0",
+    "nextDevtoolsMcp": "0.4.0",
+    "shadcn": "4.22.1",
+    "boneyard": "1.10.0",
+    "postgresCiAndRestore": "17.11",
+    "mcpModern": "2026-07-28",
+    "mcpActualNegotiated": "2025-11-25",
+    "githubRest": "2026-03-10"
+  },
+  "postgresCommittedRunners": {
+    "steps": [
+      {
+        "name": "migrations",
+        "exitCode": 0,
+        "seconds": 8.87,
+        "log": "/tmp/core-modernization-infra-pg17-v2-migrations.log",
+        "sha256": "90236309381ef87e7f8dfc7af648c309cf1a80f3661a0a5cdc170196c675f03d"
+      },
+      {
+        "name": "payload-migrations",
+        "exitCode": 0,
+        "seconds": 5.99,
+        "log": "/tmp/core-modernization-infra-pg17-v2-payload-migrations.log",
+        "sha256": "2a3aabbddcfa10b122f64d21be30df299328514bae7c1413bb8876ad1b60e7be"
+      },
+      {
+        "name": "payload-status",
+        "exitCode": 0,
+        "seconds": 2.46,
+        "log": "/tmp/core-modernization-infra-pg17-v2-payload-status.log",
+        "sha256": "b9e6237a0d756226eace0d6f370d196937db0f261a9c926c1bcf921d3b501918"
+      },
+      {
+        "name": "seed",
+        "exitCode": 0,
+        "seconds": 0.25,
+        "log": "/tmp/core-modernization-infra-pg17-v2-seed.log",
+        "sha256": "567ca883e55aa0b5d909ce36ba9ce2b49ca7b59c6d9af85a8a0751e545acb247"
+      },
+      {
+        "name": "auth-access",
+        "exitCode": 0,
+        "seconds": 0.04,
+        "log": "/tmp/core-modernization-infra-pg17-v2-auth-access.log",
+        "sha256": "2e9fd42fc3ba1154bae3d1bbfcc9f54c77025207f9940814bbf2fc7e903d1b88"
+      },
+      {
+        "name": "donation-fee-replay",
+        "exitCode": 0,
+        "seconds": 0.06,
+        "log": "/tmp/core-modernization-infra-pg17-v2-donation-fee-replay.log",
+        "sha256": "42eab4b9225d76be79e0b7dcdf7de38320eeabae6811b0db4a243181e8807d8c"
+      }
+    ],
+    "allPassed": true,
+    "productionTouched": false,
+    "environmentInputs": "synthetic only; owned opaque symlink detached without reading target"
+  },
+  "supabaseLocalCoreStack": {
+    "capturedAt": "2026-10-21T17:07:02.716789+00:00",
+    "projectId": "asym-modernization-20261021",
+    "cliVersion": "2.121.0",
+    "configSourceSha256": "7cdce53e88195be2facbc3adb2b65ca114922a0c45e9564308949647e34d3e1c",
+    "localApiChecks": [
+      {
+        "endpoint": "/auth/v1/health",
+        "status": 200
+      },
+      {
+        "endpoint": "/auth/v1/settings",
+        "status": 200
+      },
+      {
+        "endpoint": "/rest/v1/campaigns",
+        "status": 200,
+        "publicFixtureRowsReturned": 1
+      }
+    ],
+    "setupVerifierExitCode": 0,
+    "setupVerifierKeyKind": "publishable",
+    "databaseVersionMigrationProfileCounts": null,
+    "services": [
+      {
+        "name": "/supabase_pg_meta_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/postgres-meta:v0.100.0",
+        "state": "running",
+        "health": "healthy",
+        "repoDigests": [
+          "public.ecr.aws/supabase/postgres-meta@sha256:145325b7e39f8ef4931d6e8cfd3f6f4d655de09d72a2ccc96d9513542c2202bd"
+        ],
+        "ports": {}
+      },
+      {
+        "name": "/supabase_storage_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/storage-api:v1.82.1",
+        "state": "running",
+        "health": "healthy",
+        "repoDigests": [
+          "public.ecr.aws/supabase/storage-api@sha256:ec2ad41411eac8fc2b769b4bb00d1af32ae37eca3745c15bdb329db27d218934"
+        ],
+        "ports": {}
+      },
+      {
+        "name": "/supabase_rest_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/postgrest:v16.4",
+        "state": "running",
+        "health": "not-configured",
+        "repoDigests": [
+          "public.ecr.aws/supabase/postgrest@sha256:d155c6718ed9a9f990d159a2ab7c0a3f16944dbb6d0a0344557421042acfe0df"
+        ],
+        "ports": {}
+      },
+      {
+        "name": "/supabase_realtime_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/realtime:v2.143.4",
+        "state": "running",
+        "health": "healthy",
+        "repoDigests": [
+          "public.ecr.aws/supabase/realtime@sha256:35e99d3f1cbba5aa5585e8ac3cf70ecc54909ee4aee0626effed93c60fb41439"
+        ],
+        "ports": {}
+      },
+      {
+        "name": "/supabase_inbucket_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/mailpit:v1.31.3",
+        "state": "running",
+        "health": "healthy",
+        "repoDigests": [
+          "public.ecr.aws/supabase/mailpit@sha256:ed9b00c609e77e99c79b93f1178255ebc271868920f2c69a8d166bd5634ed10d"
+        ],
+        "ports": {
+          "8025/tcp": [
+            {
+              "HostIp": "",
+              "HostPort": "55324"
+            }
+          ]
+        }
+      },
+      {
+        "name": "/supabase_auth_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/gotrue:v2.197.0",
+        "state": "running",
+        "health": "healthy",
+        "repoDigests": [
+          "public.ecr.aws/supabase/gotrue@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b"
+        ],
+        "ports": {}
+      },
+      {
+        "name": "/supabase_kong_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/kong:2.8.1",
+        "state": "running",
+        "health": "healthy",
+        "repoDigests": [
+          "public.ecr.aws/supabase/kong@sha256:1b53405d8680a09d6f44494b7990bf7da2ea43f84a258c59717d4539abf09f6d"
+        ],
+        "ports": {
+          "8000/tcp": [
+            {
+              "HostIp": "",
+              "HostPort": "55321"
+            }
+          ]
+        }
+      },
+      {
+        "name": "/supabase_db_asym-modernization-20261021",
+        "image": "public.ecr.aws/supabase/postgres:17.11.0.004",
+        "state": "running",
+        "health": "healthy",
+        "repoDigests": [
+          "public.ecr.aws/supabase/postgres@sha256:b15d862126dd2dac02da524696ccfde2dcce2ceaee0a58973b2727befe492706"
+        ],
+        "ports": {
+          "5432/tcp": [
+            {
+              "HostIp": "",
+              "HostPort": "55322"
+            }
+          ]
+        }
+      }
+    ],
+    "productionTouched": false,
+    "rawStatusOrKeysPersisted": false,
+    "excludedServices": [
+      "studio",
+      "imgproxy",
+      "edge-runtime",
+      "logflare",
+      "vector",
+      "supavisor"
+    ],
+    "database": {
+      "serverVersion": "17.11",
+      "migrationCount": 81,
+      "profileCount": 1
+    },
+    "canonicalMigrations": 81
+  },
+  "mcpStdio": {
+    "capturedAt": "2026-10-21T16:38:12.080Z",
+    "commandsReadFromPinnedProjectConfig": true,
+    "noLocalEnvironmentFileInCheckout": true,
+    "noCredentialsForwarded": true,
+    "onlyDiscoveryInitializeAndToolListing": true,
+    "results": [
+      {
+        "name": "next-devtools",
+        "command": "bunx",
+        "args": ["-y", "next-devtools-mcp@0.4.0"],
+        "mode": "legacy",
+        "protocol": "2025-11-25",
+        "serverInfo": {
+          "name": "next-devtools-mcp",
+          "version": "0.4.0"
+        },
+        "tools": ["browser_eval", "nextjs_docs", "nextjs_index", "nextjs_call"],
+        "stderrBytes": 79,
+        "success": true
+      },
+      {
+        "name": "shadcn",
+        "command": "npx",
+        "args": ["--yes", "shadcn@4.22.1", "mcp"],
+        "mode": "legacy",
+        "protocol": "2025-11-25",
+        "serverInfo": {
+          "name": "shadcn",
+          "version": "1.0.0"
+        },
+        "tools": [
+          "get_project_registries",
+          "list_items_in_registries",
+          "search_items_in_registries",
+          "view_items_in_registries",
+          "get_item_examples_from_registries",
+          "get_add_command_for_items",
+          "get_audit_checklist"
+        ],
+        "stderrBytes": 0,
+        "success": true
+      }
+    ]
+  },
+  "tests": {
+    "protocolAndHeaderTests": 82,
+    "operationalWorkflowTests": 33,
+    "setupAndCliContracts": 63,
+    "note": "Overlapping suites are reported separately, never summed as unique tests. Final full preflight remains required.",
+    "latestFocusedInfrastructureTests": 41,
+    "postgresMixedCaseProbe": "Actual catalogue query injected into a temporary mixed-case function regression; red exit3, fixed green exit0. Required by the normal local-only Supabase migration verifier.",
+    "staleContractCorrections": "Full unit run identified two assertions for superseded Boneyard selector and shell dispatch. Updated assertions preserve origin-only URLs and verify Node/Bun fallback ordering with argument arrays and shell:false.",
+    "staleContractCorrectionResult": {
+      "command": "bun run test:unit tests/unit/scripts/boneyard-scripts.test.ts tests/unit/scripts/setup-scripts.test.ts tests/unit/scripts/unit-tests-runner.test.ts tests/unit/scripts/unit-tests-runner.contract.test.ts",
+      "filesPassed": 4,
+      "testsPassed": 22,
+      "coverage": "real V8 enabled; installed CLI dispatch and actual filter forwarding verified",
+      "logSha256": "a9c88d98fb0bbbfe79a58f7cf699492437da24acce28eaf46eb3899dddd9e621"
+    }
+  },
+  "independentReview": {
+    "base": "8906631256bc1dd95d4d7ba8c11a7409d3763161",
+    "initialPatchSha256": "ff5e9e854f7a2e60b92c71118a071d2e548cf0406b97d5620fe38536ec7d9cbd",
+    "initialCoverage": "All42 files:33 non-MCP and9 MCP paths; no important findings. Subsequent delta review still required.",
+    "mcpFinalDelta": {
+      "sha256": "cbe15c9ca866d35f54475b1646fd18ed05a66438693dbc2f6ef2bae23ffe91d1",
+      "status": "approved; no important findings; independent byte-boundary and downgrade probes passed"
+    },
+    "postgresAndEvidenceFinalDelta": {
+      "sha256": "b268a765ed0d458723b3a47e8e7e5e03666c4b6f82ed73b4b747f09dffb1ed09",
+      "status": "approved after fixing mixed-case catalogue detection; actual regression red/green and fresh all-six PostgreSQL qualification verified"
+    },
+    "rootManifestProofs": {
+      "status": "approved; exactly eight SHA updates after six exact Boneyard launcher pins; all118 ledger entries and policy unchanged"
+    }
+  },
+  "hostedPostgres": "hosted-postgres-qualification.json",
+  "limitations": [
+    "No production writes, migrations, environment sync or deployment.",
+    "Native Windows argument policy is contract-tested; native Windows runtime was not executed.",
+    "Local CLI core stack excludes Studio, image proxy, Edge Runtime, analytics/vector and pooler.",
+    "Supabase CLI-managed image paths remain owned by that current upstream cohort and need full-image advisory reconciliation.",
+    "Full custom executable drift checking, imported-skill commands, Stripe CLI sandbox and nested security closure remain campaign tasks.",
+    "WSL hosted CLI config-diff lacks CLI authentication; provider catalogue/API inspection passed separately. No hosted configuration push occurred."
+  ],
+  "supabaseLocalAuthLifecycle": {
+    "capturedAt": "2026-10-21T17:11:12.556242+00:00",
+    "projectId": "asym-modernization-20261021",
+    "checks": [
+      {
+        "operation": "local-signup",
+        "status": 200,
+        "errorCode": null
+      },
+      {
+        "operation": "password-login",
+        "status": 200,
+        "errorCode": null
+      },
+      {
+        "operation": "refresh-session",
+        "status": 200,
+        "errorCode": null
+      },
+      {
+        "operation": "logout",
+        "status": 204,
+        "errorCode": null
+      },
+      {
+        "operation": "delete-isolated-test-user",
+        "status": 200,
+        "errorCode": null
+      }
+    ],
+    "allPassed": true,
+    "productionTouched": false,
+    "externalEmail": false,
+    "credentialsOrIdentityPersisted": false
+  },
+  "supabaseLocalStackCleanup": {
+    "projectId": "asym-modernization-20261021",
+    "exitCode": 0,
+    "volumesPreserved": true,
+    "commandUsedNoBackupOrAllFlag": true,
+    "rawOutputWithheld": true
+  },
+  "mcpLicensedHTTP": {
+    "capturedAt": "2026-10-21T17:23:03.018Z",
+    "credentialInput": "user-supplied ephemeral stdin",
+    "credentialsPersisted": false,
+    "productionWrites": false,
+    "passed": true,
+    "checks": [
+      "canonical ReUI skill and all mirrors",
+      "Base UI/base-maia authenticated registry",
+      "Codex, Claude, and Cursor MCP auth/style forwarding",
+      "authenticated MCP tools and Pro plan",
+      "Pro block discovery and Base UI component API",
+      "paid Base UI registry source retrieval"
+    ]
+  },
+  "shadscanRootProofRequalification": {
+    "reason": "Six existing root Boneyard commands now use the tested exact1.10.0 selector. Root identity, all dependency/tool versions, workspace declarations, application ownership and design-system inputs are unchanged. The8root library-applicability classifications remain valid.",
+    "rootManifestBefore": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+    "rootManifestAfter": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553",
+    "changedScripts": {
+      "boneyard:admin": {
+        "before": "cd apps/admin && bunx boneyard-js build http://localhost:3030",
+        "after": "cd apps/admin && bunx boneyard-js@1.10.0 build http://localhost:3030"
+      },
+      "boneyard:missionary": {
+        "before": "cd apps/missionary && bunx boneyard-js build http://localhost:4000",
+        "after": "cd apps/missionary && bunx boneyard-js@1.10.0 build http://localhost:4000"
+      },
+      "boneyard:donor": {
+        "before": "cd apps/donor && bunx boneyard-js build http://localhost:3000",
+        "after": "cd apps/donor && bunx boneyard-js@1.10.0 build http://localhost:3000"
+      },
+      "boneyard:admin:force": {
+        "before": "cd apps/admin && bunx boneyard-js build http://localhost:3030 --force",
+        "after": "cd apps/admin && bunx boneyard-js@1.10.0 build http://localhost:3030 --force"
+      },
+      "boneyard:missionary:force": {
+        "before": "cd apps/missionary && bunx boneyard-js build http://localhost:4000 --force",
+        "after": "cd apps/missionary && bunx boneyard-js@1.10.0 build http://localhost:4000 --force"
+      },
+      "boneyard:donor:force": {
+        "before": "cd apps/donor && bunx boneyard-js build http://localhost:3000 --force",
+        "after": "cd apps/donor && bunx boneyard-js@1.10.0 build http://localhost:3000 --force"
+      }
+    },
+    "proofUpdates": [
+      {
+        "entry": 0,
+        "proof": 1,
+        "rule": "command-menu-hotkey-present",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      },
+      {
+        "entry": 1,
+        "proof": 1,
+        "rule": "command-menu-present",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      },
+      {
+        "entry": 2,
+        "proof": 1,
+        "rule": "error-boundary-present",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      },
+      {
+        "entry": 3,
+        "proof": 1,
+        "rule": "metadata-configured",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      },
+      {
+        "entry": 4,
+        "proof": 1,
+        "rule": "shadcn-config-present",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      },
+      {
+        "entry": 5,
+        "proof": 1,
+        "rule": "theme-hotkey-present",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      },
+      {
+        "entry": 6,
+        "proof": 1,
+        "rule": "theme-provider-configured",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      },
+      {
+        "entry": 7,
+        "proof": 1,
+        "rule": "toast-provider-present",
+        "old": "68932532365ce169b4ba10659aa5d8eaad7de96f2fcf01032d4b737f14b0e597",
+        "new": "acdd46d455209508f0f44ebb00b79574378df0e7e1b55424282af6e66297c553"
+      }
+    ],
+    "allOtherLedgerFieldsUnchanged": true,
+    "ledgerSha256": "1c97ed514794193517c49066a48b41a714b3f1c0e6c986d47136f93bad4ed750"
+  },
+  "legacyMcpSetupRemoval": {
+    "paths": ["scripts/setup-codex-mcp.sh", "scripts/setup/codex-mcp.sh"],
+    "trackedCallers": 0,
+    "verification": "git grep across tracked sources excludes only the two removed definitions; no callers. Project configuration and AGENTS optional-helper routing replace the obsolete global-server requirement."
+  }
+}

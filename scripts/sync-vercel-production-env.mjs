@@ -217,56 +217,62 @@ export function envEntriesForProject(projectKey, env, options = {}) {
     }));
 }
 
-function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+export function runVercelCommand(args, options = {}, execute = spawnSync) {
+  const result = execute("vercel", args, {
     encoding: "utf8",
     stdio: ["pipe", "pipe", "pipe"],
+    shell: false,
     ...options,
   });
 
   if (result.status !== 0) {
-    const stderr = result.stderr ? result.stderr.trim() : "";
-    const stdout = result.stdout ? result.stdout.trim() : "";
+    // CLI output can reflect submitted values. Keep provider output and tokens
+    // out of logs even on authentication, validation or transport failures.
     throw new Error(
-      [
-        `${command} failed with exit code ${result.status ?? "unknown"}.`,
-        stderr ? `stderr: ${stderr}` : null,
-        stdout ? `stdout: ${stdout}` : null,
-      ]
-        .filter(Boolean)
-        .join("\n"),
+      `vercel failed with exit code ${result.status ?? "unknown"}.`,
     );
   }
-
-  return result.stdout ?? "";
 }
 
-function withLinkedProject(project, scope, token, fn) {
+export function withLinkedProject(
+  project,
+  scope,
+  token,
+  fn,
+  runCommand = runVercelCommand,
+) {
   const cwd = mkdtempSync(
     path.join(os.tmpdir(), `asym-vercel-sync-${project.key}-`),
   );
   writeFileSync(path.join(cwd, ".gitignore"), ".vercel\n", "utf8");
 
   try {
-    run("vercel", [
-      "link",
-      "--yes",
-      "--project",
-      project.project,
-      "--scope",
-      scope,
-      "--token",
-      token,
-      "--cwd",
-      cwd,
-    ]);
+    runCommand(
+      [
+        "link",
+        "--yes",
+        "--project",
+        project.project,
+        "--scope",
+        scope,
+        "--cwd",
+        cwd,
+      ],
+      { env: { ...process.env, VERCEL_TOKEN: token } },
+    );
     return fn(cwd);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
 }
 
-function addVercelEnv({ cwd, scope, token, entry }) {
+export function addVercelEnv({
+  cwd,
+  scope,
+  token,
+  entry,
+  runCommand = runVercelCommand,
+}) {
   const args = [
     "env",
     "add",
@@ -276,8 +282,6 @@ function addVercelEnv({ cwd, scope, token, entry }) {
     "--force",
     "--scope",
     scope,
-    "--token",
-    token,
     "--cwd",
     cwd,
   ];
@@ -286,7 +290,10 @@ function addVercelEnv({ cwd, scope, token, entry }) {
     args.push("--sensitive");
   }
 
-  run("vercel", args, { input: entry.value });
+  runCommand(args, {
+    input: entry.value,
+    env: { ...process.env, VERCEL_TOKEN: token },
+  });
 }
 
 function printValidationFailure({ missing, invalid }) {

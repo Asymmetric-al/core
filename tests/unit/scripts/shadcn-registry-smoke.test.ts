@@ -232,7 +232,7 @@ describe("shadcn registry smoke helpers", () => {
         "/d",
         "/s",
         "/c",
-        "npx --yes shadcn@latest view button --cwd packages/ui",
+        "npx --yes shadcn@4.22.1 view button --cwd packages/ui",
       ],
     });
     expect(
@@ -244,7 +244,7 @@ describe("shadcn registry smoke helpers", () => {
       command: "npx",
       args: [
         "--yes",
-        "shadcn@latest",
+        "shadcn@4.22.1",
         "view",
         "button",
         "--cwd",
