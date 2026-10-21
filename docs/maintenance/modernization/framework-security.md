@@ -7,13 +7,13 @@ is claimed until the evidence is recorded here.
 
 - Next / @next/env / @next/playwright / eslint-config-next: **16.4.2**.
 - React / React DOM: **19.3.1**. Existing React type packages stay at 19.3.0.
-- Node: **24.22.0 LTS**; Bun: **1.4.3**.
+- Node: **24.22.1 LTS**; Bun: **1.4.3**.
 - [Official October 14 security release](https://nextjs.org/blog/nextjs-security-update-october-14-2026).
 - [Cache Components RCE](https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr).
 - [Server Actions denial of service](https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r).
 - [React RSC advisory](https://github.com/react/react/security/advisories/GHSA-xqc2-xf4c-x3h3).
 - [Image optimization advisory](https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw).
-- [Node 24.22.0 release](https://nodejs.org/en/blog/release/v24.22.0).
+- [Node 24.22.1 official release archive](https://nodejs.org/en/download/archive/v24.22.1).
 
 All three applications enable Cache Components. The official advisory requires
 patching even without a known exploitable cache-return shape. Automated npm
@@ -43,7 +43,10 @@ was inspected before its hash was refreshed.
 Independent source review found no P0/P1 issues. Installed identities were
 independently verified across the apps/shared importers, including retained PDF
 compatibility dependencies. Frozen reinstall and lock-drift checks pass. The
-local WSL default now selects Node 24.22.0. Vercel reports Node 24.x for all
+Final upstream metadata refresh on October 21 selected Node 24.22.1,
+released October 20. Its official distribution checksum was verified; local
+WSL now selects that patch. Earlier validation used Node 24.22.0 and must be
+repeated on the final target. Vercel reports Node 24.x for all
 three configured Core projects; this verifies the hosted family, not its patch.
 
 ## Qualification evidence
@@ -71,6 +74,12 @@ findings; independent review includes its excluded lockfile. Hosted Codex/Cursor
 reviews could not run because their usage limits were reached.
 
 ## Outstanding qualification
+
+The final pre-merge upstream refresh found Node 24.22.1. Exact runtime pins,
+setup floor and tests now include it. Full preflight passed at
+`ab628685abdec283a3359fe6a82b98f10791b4cc` with 890 passing test files and
+7,215 passing tests; final-head CI and previews must be repeated after this
+runtime refresh.
 
 OpenSpec [PR #2172](https://github.com/Asymmetric-al/core/pull/2172) merged as
 `5cf4855dc322eafcccfeca0dd528695ae72832d9` during qualification. Its OpenSpec

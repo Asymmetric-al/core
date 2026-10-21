@@ -17,7 +17,7 @@ their existing rollout settings.
 
 1. Patch Next/React first. Official October 14 advisories cover Cache Components,
    RSC/Server Actions and image processing; npm audit alone misses relevant
-   advisories. Qualify 16.4.2 / 19.3.1 / Node 24.22.0, refreshing official
+   advisories. Qualify 16.4.2 / 19.3.1 / Node 24.22.1, refreshing official
    metadata before each checkpoint. Keep Bun 1.4.3. CI freezes exact runtime
    releases; setup permits current qualified Node 24 patches only.
 2. Track all findings and test evidence in docs/maintenance/modernization/.

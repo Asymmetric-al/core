@@ -37,7 +37,7 @@ donor 61, missionary 47. Existing floors remain binding.
 
 | Checkpoint             | Exact initial target                                            | Status       | Qualification                                                              |
 | ---------------------- | --------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------- |
-| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.0, Bun 1.4.3   | Implementing | [Checkpoint record](framework-security.md)                                 |
+| Framework security     | Next family 16.4.2, React/DOM 19.3.1, Node 24.22.1, Bun 1.4.3   | Implementing | [Checkpoint record](framework-security.md)                                 |
 | Tools / infrastructure | Supported ESLint 10, current tools and reproducible executables | Pending      | Not qualified                                                              |
 | Data / workflows / API | Current supported cohorts, GraphQL 17 product / 16 CMS boundary | Pending      | Not qualified                                                              |
 | Payload                | Public 4.0.0-beta.3 coherent cohort                             | Pending      | Migration/restore rehearsal required                                       |
