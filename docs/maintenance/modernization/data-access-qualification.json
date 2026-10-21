@@ -737,9 +737,9 @@
         "tests/integration/supabase/client-runtime-verification.mjs": "af37168e5fdd904aeab4c5d1db583a4885f605e06e2e24447968e3c3438b3e1a",
         "tests/unit/scripts/supabase-client-runtime-safety.test.ts": "a439125ecb15e2620b3f595bda6a88417b7d62a995f131e5998178ebf49e41f1"
       },
-      "red": "8 meaningful failures /56pass across4files against extracted legacy deletion; no missing-export or import failures",
-      "green": "64pass across4files; all previous51 retained",
-      "lint": "clean0warnings"
+      "red": "8 meaningful failures / 56 pass across 4 files against extracted legacy deletion; no missing-export or import failures",
+      "green": "64 pass across 4 files; all previous 51 retained",
+      "lint": "clean, 0 warnings"
     },
     "tableCreationJournal": "Record each reserved tenant/fund ID, ownership fields, attempted state and acknowledgement before awaiting its only insert. Names include the random run marker. Never remove an unattempted reservation.",
     "tableCleanup": "For each attempted row, separately verify ID plus run-specific name and tenant/slug ownership, delete only a matching owned row, then confirm that exact ID is absent. Each operation retains the 16-second budget. A missing unacknowledged creation is unresolved because its server transaction may still commit later, even when global counts currently match. Any failure suppresses fixture-census-restored and preserves the primary verification failure.",
