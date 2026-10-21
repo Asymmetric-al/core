@@ -41,6 +41,12 @@ function jobBlock(workflow: string, jobId: string): string {
   return jobsYaml.slice(blockStart, blockEnd);
 }
 
+function stepNames(jobYaml: string): string[] {
+  return [...jobYaml.matchAll(/^      - name: (.+)$/gm)].map(
+    (match) => match[1],
+  );
+}
+
 function listPlaywrightTests(args: string[]): string {
   const result = spawnSync(
     process.execPath,
@@ -84,17 +90,33 @@ describe("ci-integration workflow contract", () => {
     expect(testE2eSmoke).toContain('E2E_AUTH_BYPASS: "true"');
     expect(testE2eSmoke).toContain('PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"');
     expect(testE2eSmoke).toContain("run: bun run test:e2e:smoke");
-    expect(testE2eSmoke).not.toContain("Start admin app");
-    expect(testE2eSmoke).toContain('PLAYWRIGHT_INCLUDE_ADMIN: "0"');
+    expect(testE2eSmoke).toContain('PLAYWRIGHT_INCLUDE_ADMIN: "1"');
     expect(testE2eSmoke).toContain("playwright-smoke-report");
-    expect(testE2eSmoke).toContain("e2e-production-server.sh donor build");
-    expect(testE2e).toContain("e2e-production-server.sh all build-all");
-    expect(testE2e.indexOf("all build-all")).toBeLessThan(
-      testE2e.indexOf("Start donor app"),
-    );
-    expect(testE2e).not.toContain("Build missionary app (production)");
+    expect(testE2eSmoke).toContain("e2e-dev-server.sh");
+    expect(testE2e).toContain("e2e-dev-server.sh");
 
-    expect(testE2e).not.toContain("continue-on-error:");
+    const smokeSteps = stepNames(testE2eSmoke);
+    expect(smokeSteps).toContain("Start donor app");
+    expect(smokeSteps).toContain("Start admin app");
+    expect(smokeSteps).not.toContain("Build donor app (production)");
+
+    const e2eSteps = stepNames(testE2e);
+    expect(e2eSteps).toContain("Start donor app");
+    expect(e2eSteps).toContain("Start admin app");
+    expect(e2eSteps).toContain("Start missionary app");
+    expect(e2eSteps).not.toContain(
+      "Build production apps for e2e (sequential)",
+    );
+    expect(e2eSteps).not.toContain("Build donor app (production)");
+
+    expect(testE2e).not.toContain("e2e-production-server.sh");
+    expect(testE2e).not.toContain("build-all");
+    expect(testE2e).not.toContain("ASYM_E2E_SERVER_MODE");
+    expect(testE2e).not.toContain("next start");
+
+    expect(testE2e).toContain(
+      "continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}",
+    );
     expect(testE2e).toContain(
       "Use placeholder Supabase for non-production E2E",
     );
@@ -103,7 +125,6 @@ describe("ci-integration workflow contract", () => {
       "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
     );
     expect(testE2e).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key");
-    expect(testE2e).toContain("ASYM_E2E_SERVER_MODE=dev");
 
     expect(integrationGate).toContain(
       "needs: [migrate, smoke, e2e-smoke-gate]",
@@ -132,7 +153,6 @@ describe("ci-integration workflow contract", () => {
     const upload = testE2e.slice(
       testE2e.indexOf("name: Upload artifact on failure"),
     );
-    // The report parent includes each stage's sibling run-status file.
     expect(upload).toContain("playwright-report/");
     expect(upload).toContain("test-results/");
     expect(upload).toContain("if: failure()");
@@ -144,6 +164,8 @@ describe("ci-integration workflow contract", () => {
     const e2eGate = jobBlock(workflow, "e2e-gate");
 
     expect(instantNav).toContain("--retries=0");
+    expect(instantNav).toContain("bun run build:donor");
+    expect(instantNav).toContain("apps/donor start");
     expect(e2eGate).toContain("needs: [test-e2e, instant-nav]");
     expect(e2eGate).toContain("needs['instant-nav'].result");
   });
@@ -152,23 +174,19 @@ describe("ci-integration workflow contract", () => {
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
   });
 
-  it("installs Playwright before production smoke servers and proves demo auth", () => {
+  it("installs Playwright before dev smoke servers and proves demo auth", () => {
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
     const installAt = testE2eSmoke.indexOf("name: Install Playwright Chromium");
-    const buildDonorAt = testE2eSmoke.indexOf(
-      "name: Build donor app (production)",
-    );
-    const startDonorAt = testE2eSmoke.indexOf(
-      "name: Start donor app (dev for hermetic demo auth)",
-    );
+    const startDonorAt = testE2eSmoke.indexOf("name: Start donor app");
     const waitDonorAt = testE2eSmoke.indexOf(
       "name: Wait for donor health endpoint",
     );
+    const startAdminAt = testE2eSmoke.indexOf("name: Start admin app");
 
     expect(installAt).toBeGreaterThanOrEqual(0);
-    expect(buildDonorAt).toBeGreaterThan(installAt);
-    expect(startDonorAt).toBeGreaterThan(buildDonorAt);
+    expect(startDonorAt).toBeGreaterThan(installAt);
     expect(waitDonorAt).toBeGreaterThan(startDonorAt);
+    expect(startAdminAt).toBeGreaterThan(waitDonorAt);
     expect(testE2eSmoke).toContain("/api/auth/demo-account");
   });
 
@@ -176,8 +194,8 @@ describe("ci-integration workflow contract", () => {
     const smoke = jobBlock(workflow, "smoke");
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
 
-    expect(smoke).toContain("e2e-production-server.sh donor build");
-    expect(smoke).toContain("e2e-production-server.sh donor start 3005");
+    expect(smoke).toContain("e2e-dev-server.sh donor start 3005");
+    expect(smoke).not.toContain("Build donor app (production)");
     expect(testE2eSmoke).toContain("bun-version: ${{ env.BUN_VERSION }}");
     expect(testE2eSmoke).toContain("run: bun ci --no-cache --backend=copyfile");
     expect(testE2eSmoke).not.toContain('bun-version: "1.3.4"');

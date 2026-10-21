@@ -1,4 +1,6 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { pathToFileURL } from "node:url";
 
 import {
@@ -106,7 +108,26 @@ const stages = [
   },
 ];
 
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
+
+/** Turbo may inject agent guidance into AGENTS.md during build on agent hosts. */
+function restoreRootAgentsMdFromGit() {
+  const result = spawnSync("git", ["checkout", "--", "AGENTS.md"], {
+    cwd: REPO_ROOT,
+    stdio: "pipe",
+    encoding: "utf8",
+  });
+  if (result.status === 0) {
+    console.log(
+      "==> Restored AGENTS.md from git (turbo agent-guidance cleanup)",
+    );
+  }
+}
+
 function runStage(stage) {
+  if (stage.id === "test-unit") {
+    restoreRootAgentsMdFromGit();
+  }
   console.log(`==> CI preflight: ${stage.id}`);
   const env = {
     ...process.env,

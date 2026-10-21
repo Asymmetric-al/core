@@ -100,23 +100,6 @@ function commandLaunchesProductionBuild(commandParts = []) {
   );
 }
 
-function ensureIntegrationBuildNodeOptions(env) {
-  if (env.ASYM_E2E_INTEGRATION_BUILD !== "1") {
-    return;
-  }
-
-  const cap = "--max-old-space-size=3072";
-  const existing = env.NODE_OPTIONS?.trim();
-  if (!existing) {
-    env.NODE_OPTIONS = cap;
-    return;
-  }
-
-  if (!/\b--max-old-space-size=\d+\b/.test(existing)) {
-    env.NODE_OPTIONS = `${existing} ${cap}`;
-  }
-}
-
 export function normalizeEnvForCommand(env, commandParts = []) {
   const launchesPlaywright = commandParts.some((part) =>
     part.includes("@playwright/test/cli.js"),
@@ -129,7 +112,6 @@ export function normalizeEnvForCommand(env, commandParts = []) {
 
   if (launchesBuild) {
     env.NODE_ENV = "production";
-    ensureIntegrationBuildNodeOptions(env);
   }
 
   return env;

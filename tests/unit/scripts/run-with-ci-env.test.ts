@@ -66,8 +66,8 @@ describe("run-with-ci-env", () => {
     });
   });
 
-  it("applies integration build heap cap for ci-build and build:* scripts", () => {
-    const env = normalizeEnvForCommand({ ASYM_E2E_INTEGRATION_BUILD: "1" }, [
+  it("sets NODE_ENV=production for ci-build and build:* scripts", () => {
+    const env = normalizeEnvForCommand({}, [
       "node",
       "scripts/verify/ci-build.mjs",
       "--",
@@ -75,7 +75,6 @@ describe("run-with-ci-env", () => {
       "run",
       "build:admin",
     ]);
-    expect(env.NODE_OPTIONS).toContain("--max-old-space-size=3072");
     expect(env.NODE_ENV).toBe("production");
   });
 

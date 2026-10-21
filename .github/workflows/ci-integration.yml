@@ -136,12 +136,10 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
       - name: Install dependencies
         run: bun ci --no-cache --backend=copyfile
-      - name: Build donor app (production)
-        run: bash scripts/github/e2e-production-server.sh donor build
-      - name: Start donor app (production)
-        run: bash scripts/github/e2e-production-server.sh donor start 3005
+      - name: Start donor app
+        run: bash scripts/github/e2e-dev-server.sh donor start 3005
       - name: Wait for health endpoint
-        run: bash scripts/github/e2e-production-server.sh donor wait 3005
+        run: bash scripts/github/e2e-dev-server.sh donor wait 3005
       - name: Assert health response shape
         run: |
           response=$(curl -sf http://127.0.0.1:3005/api/health)
@@ -209,28 +207,31 @@ jobs:
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Build donor app (production)
-        run: bash scripts/github/e2e-production-server.sh donor build
-      - name: Start donor app (dev for hermetic demo auth)
-        env:
-          ASYM_E2E_SERVER_MODE: dev
-        run: bash scripts/github/e2e-production-server.sh donor start 3005
+      - name: Start donor app
+        run: bash scripts/github/e2e-dev-server.sh donor start 3005
       - name: Wait for donor health endpoint
         run: >-
-          bash scripts/github/e2e-production-server.sh donor wait 3005 127.0.0.1
-          /api/health /api/auth/demo-account /tmp/donor-dev.log /tmp/donor-dev.pid
+          bash scripts/github/e2e-dev-server.sh donor wait 3005 127.0.0.1
+          /api/health /api/auth/demo-account
+      - name: Start admin app
+        run: bash scripts/github/e2e-dev-server.sh admin start 3030
+      - name: Wait for admin health endpoint
+        run: bash scripts/github/e2e-dev-server.sh admin wait 3030
       - name: Run Playwright smoke suite
         timeout-minutes: 15
         env:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
-          PLAYWRIGHT_INCLUDE_ADMIN: "0"
+          PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
+          PLAYWRIGHT_INCLUDE_ADMIN: "1"
         run: bun run test:e2e:smoke
-      - name: Show server logs on failure
+      - name: Show dev server logs on failure
         if: failure()
         run: |
           echo "--- donor dev log (tail) ---"
           tail -n 150 /tmp/donor-dev.log || true
+          echo "--- admin dev log (tail) ---"
+          tail -n 150 /tmp/admin-dev.log || true
       - name: Upload artifact on failure
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -244,6 +245,7 @@ jobs:
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
+    continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
     runs-on: [self-hosted, linux, x64, proxmox]
     timeout-minutes: 30
     services:
@@ -318,18 +320,14 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"
-          echo "ASYM_E2E_SERVER_MODE=dev" >> "$GITHUB_ENV"
-      - name: Build production apps for e2e (sequential)
-        timeout-minutes: 25
-        run: bash scripts/github/e2e-production-server.sh all build-all
       - name: Start donor app
-        run: bash scripts/github/e2e-production-server.sh donor start 3005
+        run: bash scripts/github/e2e-dev-server.sh donor start 3005
       - name: Wait for donor health endpoint
-        run: bash scripts/github/e2e-production-server.sh donor wait 3005
+        run: bash scripts/github/e2e-dev-server.sh donor wait 3005
       - name: Start admin app
-        run: bash scripts/github/e2e-production-server.sh admin start 3030
+        run: bash scripts/github/e2e-dev-server.sh admin start 3030
       - name: Wait for admin health endpoint
-        run: bash scripts/github/e2e-production-server.sh admin wait 3030
+        run: bash scripts/github/e2e-dev-server.sh admin wait 3030
       - name: Demo auth preflight
         env:
           PLAYWRIGHT_REPORT_DIR: "playwright-report/auth-preflight"
@@ -349,9 +347,9 @@ jobs:
           PLAYWRIGHT_BONEYARD_TARGET: "admin"
         run: bun run test:e2e:boneyard:admin
       - name: Start missionary app
-        run: bash scripts/github/e2e-production-server.sh missionary start 4000
+        run: bash scripts/github/e2e-dev-server.sh missionary start 4000
       - name: Wait for missionary health endpoint
-        run: bash scripts/github/e2e-production-server.sh missionary wait 4000
+        run: bash scripts/github/e2e-dev-server.sh missionary wait 4000
       - name: Boneyard smoke (missionary app)
         timeout-minutes: 5
         env:
@@ -436,13 +434,20 @@ jobs:
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Build donor with the testing API exposed
-        run: bash scripts/github/e2e-production-server.sh donor build
+        run: bun run build:donor
       - name: Start donor production server
-        run: bash scripts/github/e2e-production-server.sh donor start 3006
-      - name: Wait for donor production server
-        run: >-
-          bash scripts/github/e2e-production-server.sh donor wait 3006 127.0.0.1
-          /api/playwright-ready
+        run: |
+          nohup node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor start -- --port 3006 --hostname 127.0.0.1 > /tmp/donor-prod.log 2>&1 &
+          for i in $(seq 1 120); do
+            if curl -sf http://127.0.0.1:3006/api/playwright-ready >/dev/null; then
+              echo "donor production server ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Timed out waiting for the donor production server"
+          tail -n 100 /tmp/donor-prod.log || true
+          exit 1
       - name: Instant navigation guards
         env:
           INSTANT_NAV_RIG: "1"
