@@ -154,6 +154,19 @@ export function fakeDatabaseUrl(
   return `postgresql://${login}:${FAKE_DB_PASSWORD}@${host}/postgres`;
 }
 
+/** A direct-connection URL (`db.<ref>.supabase.co`) for the fake target. */
+export function fakeDirectDatabaseUrl(
+  projectRef: string,
+  user: string = READER_ROLE,
+): string {
+  return `postgresql://${user}:${FAKE_DB_PASSWORD}@db.${projectRef}.supabase.co:5432/postgres`;
+}
+
+/** A pooler URL whose user carries no `.<ref>` suffix (ref unparseable). */
+export function fakePoolerUrlWithoutRef(user: string = READER_ROLE): string {
+  return `postgresql://${user}:${FAKE_DB_PASSWORD}@aws-0-us-east-1.pooler.supabase.com:6543/postgres`;
+}
+
 export const LOCAL_TARGET_ENV: Record<string, string> = {
   SUPABASE_URL: LOCAL_TARGET_URL,
   NEXT_PUBLIC_SUPABASE_URL: LOCAL_TARGET_URL,
@@ -468,19 +481,14 @@ export function allowlistedOwner(): AllowlistOwner {
 }
 
 /**
- * `authorization` for direct `recordDocumentCutoverApproval` calls: the
- * allowlisted owners in every candidate shape (addendum 4 m2 moves the role
- * check into the library; the shape is not pinned by the spec). See
- * ./owner-role-library.acceptance.test.ts.
+ * `authorization` for direct `recordDocumentCutoverApproval` calls. Addendum 4
+ * m2 moves the role check into the library; Samson's ruling 5 (2026-10-20
+ * 11:03 PM PT) pins the shape to the allowlist's own `owners: [{ id, role }]`.
+ * See ./owner-role-library.acceptance.test.ts.
  */
 export function authorizationFor(owners: AllowlistOwner[]) {
   return {
-    allowedOwnerIds: owners.map((owner) => owner.id),
     owners: owners.map((owner) => ({ id: owner.id, role: owner.role })),
-    allowedOwners: owners.map((owner) => ({
-      ownerId: owner.id,
-      ownerRole: owner.role,
-    })),
   };
 }
 

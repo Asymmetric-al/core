@@ -10,12 +10,8 @@
  * proof; the same call with the allowlisted id and a different role must be
  * rejected and record nothing.
  *
- * The spec does not pin how the library receives the allowlisted roles. Until
- * Scope rules, `authorization` carries the committed allowlist in each of
- * these shapes at once, and the implementation may read any one of them:
- * `allowedOwnerIds: string[]` (kept for no_go and older callers),
- * `owners: [{ id, role }]` (the allowlist.json shape),
- * `allowedOwners: [{ ownerId, ownerRole }]` (the proof `owner` shape).
+ * Ruling 5 (Samson, 2026-10-20 11:03 PM PT): `authorization` is
+ * `{ owners: [{ id, role }] }`, the allowlist.json shape.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */

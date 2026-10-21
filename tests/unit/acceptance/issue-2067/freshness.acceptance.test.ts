@@ -50,8 +50,8 @@ async function approveAt(ageMs: number): Promise<unknown> {
       approvalStatement: "Acceptance #2067 freshness boundary.",
       decision: "go",
     },
-    // Addendum 4 m2: the library also checks the owner's role, so the
-    // authorization carries the allowlisted owner in every candidate shape.
+    // Addendum 4 m2 / ruling 5: the library checks id and role against
+    // `authorization.owners: [{ id, role }]`.
     authorization: {
       ...authorizationFor([owner]),
       allowedApproverIds: [owner.id],

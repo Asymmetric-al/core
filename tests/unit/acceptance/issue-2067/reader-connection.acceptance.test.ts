@@ -38,6 +38,7 @@ import {
   proofRunMarker,
   runCommand,
 } from "./command-harness";
+import { DOCUMENT_CUTOVER_FUNCTION_NAMES } from "./document-cutover-contract";
 import { createFakePgModule, fakePg } from "./fake-postgres";
 import { fakeDb, makeFakeClient } from "./fake-supabase";
 import {
@@ -126,25 +127,17 @@ describe("issue #2067 addendum 4 — criterion 1: the restricted role works", ()
     expect(fakePg.unsupported).toEqual([]);
   });
 
-  it("criterion 1: the census, the schema version and every detector result come from document_cutover.* function calls", async () => {
+  it("criterion 1 (ruling 2): the gate calls every function of the pinned contract by its exact name, and only those", async () => {
     cleanTarget();
     await goRun();
-    const routes = new Set(
+    const called = new Set(
       fakePg.queries
         .filter((query) => query.kind === "function")
-        .map((query) => query.route),
+        .map((query) => query.fn),
     );
-    const expected: FakePgRoute[] = [
-      "schema_version",
-      "users",
-      "table",
-      "storage",
-      "external",
-      "jobs",
-      "reports",
-      "integrations",
-    ];
-    expect([...routes].sort()).toEqual([...expected].sort());
+    expect([...called].sort()).toEqual(
+      [...DOCUMENT_CUTOVER_FUNCTION_NAMES].sort(),
+    );
     const tables = new Set(
       fakePg.queries
         .filter((query) => query.route === "table")

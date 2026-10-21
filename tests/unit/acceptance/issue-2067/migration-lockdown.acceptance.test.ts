@@ -21,17 +21,74 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { REPO_ROOT } from "./command-harness";
+import {
+  DOCUMENT_CUTOVER_FUNCTIONS,
+  NUMERIC_RESULT_TYPES,
+} from "./document-cutover-contract";
 import { committedExposedSchemas } from "./fake-supabase";
 import { PHASE_18_PROTOTYPE_DOCUMENT_TABLES } from "../../../../packages/api/src/document-cutover";
 
 const MIGRATIONS_DIR = path.join(REPO_ROOT, "supabase", "migrations");
 const READER = "document_cutover_reader";
 const REVOKED_ROLES = ["public", "anon", "authenticated", "service_role"];
+// Ruling 10 option (b) (Samson, 2026-10-20 11:15 PM PT): the per-schema
+// default-privilege revokes stay for the named roles only. A per-schema
+// `REVOKE ... FROM PUBLIC` is a no-op in Postgres; PUBLIC is handled by the
+// explicit per-function revokes instead.
 const DEFAULT_PRIVILEGE_ROLES = ["anon", "authenticated", "service_role"];
+const BOOTSTRAP_SQL = path.join(
+  REPO_ROOT,
+  "scripts",
+  "sql",
+  "supabase-compat-bootstrap.sql",
+);
+
+/** `bigint` / `table (a bigint, b bigint)` -> column types; null if not parseable. */
+function resultColumns(
+  returnsClause: string,
+): Array<{ name: string; type: string }> | null {
+  const clause = returnsClause.trim().toLowerCase();
+  if (/^setof\b/.test(clause)) return null;
+  const table =
+    /^table\s*\(([\s\S]*?)\)\s*(language|stable|immutable|volatile|security|set|strict|parallel|cost|leakproof|called|returns|$)/.exec(
+      clause,
+    );
+  if (table) {
+    return (table[1] as string).split(",").map((column) => {
+      const [name, ...type] = column.trim().replace(/"/g, "").split(/\s+/);
+      return { name: name ?? "", type: type.join(" ") };
+    });
+  }
+  const scalar =
+    /^([a-z_][a-z0-9_ ]*?)(\s+(language|stable|immutable|volatile|security|set|strict|parallel|cost|leakproof|called|returns)\b|$)/.exec(
+      clause,
+    );
+  return scalar ? [{ name: "", type: (scalar[1] as string).trim() }] : null;
+}
+
+function argumentList(args: string): Array<{ name: string; type: string }> {
+  if (!args.trim()) return [];
+  return args.split(",").map((arg) => {
+    const parts = arg
+      .trim()
+      .toLowerCase()
+      .replace(/"/g, "")
+      .replace(/\s+default\s+[\s\S]*$/, "")
+      .replace(/^in\s+/, "")
+      .split(/\s+/);
+    return parts.length > 1
+      ? { name: parts[0] as string, type: parts.slice(1).join(" ") }
+      : { name: "", type: parts[0] as string };
+  });
+}
 
 interface MigrationFunction {
   file: string;
   name: string;
+  /** Raw argument list between the parentheses. */
+  args: string;
+  /** Text between `returns` and `as $tag$` (return clause plus options). */
+  returnsClause: string;
   attributes: string;
   body: string;
 }
@@ -71,6 +128,8 @@ function migrationFunctions(): MigrationFunction[] {
       out.push({
         file,
         name: (match[1] as string).toLowerCase(),
+        args: match[2] ?? "",
+        returnsClause: match[3] ?? "",
         attributes: `${match[3] ?? ""} ${match[6] ?? ""}`,
         body: match[5] ?? "",
       });
@@ -272,12 +331,12 @@ describe("issue #2067 addendum 4 — criterion 5: the migration is locked down (
   });
 
   it.each(REVOKED_ROLES)(
-    "criterion 5: REVOKE ALL on schema document_cutover from %s",
+    "criterion 5 / ruling 10: REVOKE ALL (or USAGE) on schema document_cutover from %s",
     (role) => {
       requireMigration();
       const revoked = statements().some(
         (statement) =>
-          /^revoke\s+all(\s+privileges)?\s+on\s+schema\s+"?document_cutover"?\s+from\s/.test(
+          /^revoke\s+(all(\s+privileges)?|([a-z]+\s*,\s*)*usage(\s*,\s*[a-z]+)*)\s+on\s+schema\s+"?document_cutover"?\s+from\s/.test(
             statement,
           ) && granteeList(statement, "from").includes(role),
       );
@@ -286,22 +345,68 @@ describe("issue #2067 addendum 4 — criterion 5: the migration is locked down (
   );
 
   it.each(REVOKED_ROLES)(
-    "criterion 5: REVOKE ALL on every document_cutover function from %s",
+    "criterion 5 / ruling 10: every document_cutover function has an explicit REVOKE EXECUTE (or ALL) ON FUNCTION document_cutover.<name> FROM %s after it is created",
     (role) => {
       requireMigration();
-      const names = migrationFunctions().map(({ name }) => name);
+      const all = statements();
+      const created = new Map<string, number>();
+      all.forEach((statement, index) => {
+        const match =
+          /^create\s+(or\s+replace\s+)?function\s+"?document_cutover"?\s*\.\s*"?([a-z_][a-z0-9_]*)"?/.exec(
+            statement,
+          );
+        if (match && !created.has(match[2] as string)) {
+          created.set(match[2] as string, index);
+        }
+      });
       const covered = new Set<string>();
-      for (const statement of statements()) {
-        if (!/^revoke\s+all(\s+privileges)?\s+on\s/.test(statement)) continue;
-        if (!granteeList(statement, "from").includes(role)) continue;
+      all.forEach((statement, index) => {
+        if (
+          !/^revoke\s+(all(\s+privileges)?|execute)\s+on\s+(function|routine)s?\s/.test(
+            statement,
+          ) ||
+          !granteeList(statement, "from").includes(role)
+        ) {
+          return;
+        }
+        // Explicit per-function form only (ruling 10 (b)): `ON ALL FUNCTIONS
+        // IN SCHEMA` is not matched by this regex.
         const scope = functionsCovered(statement, "revoke");
-        if (scope === "all") names.forEach((name) => covered.add(name));
-        else scope.forEach((name) => covered.add(name));
-      }
+        if (scope === "all") return;
+        for (const name of scope) {
+          if (index > (created.get(name) ?? Infinity)) covered.add(name);
+        }
+      });
+      const names = migrationFunctions().map(({ name }) => name);
       expect(names.length).toBeGreaterThan(0);
       expect(names.filter((name) => !covered.has(name))).toEqual([]);
     },
   );
+
+  it("ruling 10: GRANT EXECUTE on document_cutover functions goes only to document_cutover_reader", () => {
+    requireMigration();
+    const bad = statements().filter(
+      (statement) =>
+        /^grant\s/.test(statement) &&
+        /\son\s+(all\s+)?(function|routine)s?\s/.test(statement) &&
+        /document_cutover(?!_reader)/.test(
+          statement.split(/\sto\s/)[0] ?? "",
+        ) &&
+        granteeList(statement, "to").some((role) => role !== READER),
+    );
+    expect(bad).toEqual([]);
+  });
+
+  it("ruling 10: no GRANT on schema document_cutover (USAGE or otherwise) to any role but document_cutover_reader", () => {
+    requireMigration();
+    const bad = statements().filter(
+      (statement) =>
+        /^grant\s[^;]*\son\s+schema\s+[^;]*"?document_cutover"?(\s|,)/.test(
+          `${statement} `,
+        ) && granteeList(statement, "to").some((role) => role !== READER),
+    );
+    expect(bad).toEqual([]);
+  });
 
   it("criterion 5: no GRANT on document_cutover objects to PUBLIC, anon, authenticated or service_role", () => {
     requireMigration();
@@ -383,7 +488,7 @@ describe("issue #2067 addendum 4 — criterion 5: the migration is locked down (
   });
 
   it.each(DEFAULT_PRIVILEGE_ROLES)(
-    "criterion 5: ALTER DEFAULT PRIVILEGES in schema document_cutover revokes from %s",
+    "criterion 5 / ruling 10 (b): ALTER DEFAULT PRIVILEGES in schema document_cutover revokes from %s",
     (role) => {
       requireMigration();
       const hardened = statements().some(
@@ -395,4 +500,144 @@ describe("issue #2067 addendum 4 — criterion 5: the migration is locked down (
       expect(hardened).toBe(true);
     },
   );
+});
+
+describe("issue #2067 addendum 4 — rulings 2 and 11: the functions match the pinned contract and return counts only (static SQL)", () => {
+  it("ruling 2: the migration defines exactly the contract's document_cutover functions, by name", () => {
+    requireMigration();
+    expect(
+      [...new Set(migrationFunctions().map(({ name }) => name))].sort(),
+    ).toEqual(DOCUMENT_CUTOVER_FUNCTIONS.map(({ name }) => name).sort());
+  });
+
+  it.each(DOCUMENT_CUTOVER_FUNCTIONS.map((fn) => [fn.name, fn] as const))(
+    "ruling 2: document_cutover.%s has the contract's arguments and result columns",
+    (_name, contract) => {
+      requireMigration();
+      const fn = migrationFunctions().find(
+        ({ name }) => name === contract.name,
+      );
+      expect(
+        fn,
+        `no document_cutover.${contract.name} in the migration`,
+      ).toBeDefined();
+      expect(argumentList(fn?.args ?? "")).toEqual(
+        contract.args.map((arg) => ({ name: arg.name, type: arg.type })),
+      );
+      const columns = resultColumns(fn?.returnsClause ?? "");
+      expect(columns, fn?.returnsClause).not.toBeNull();
+      if (contract.columns.length === 1) {
+        expect(columns?.map(({ type }) => type)).toEqual(["bigint"]);
+      } else {
+        expect(columns).toEqual(
+          contract.columns.map((column) => ({
+            name: column.name,
+            type: column.type,
+          })),
+        );
+      }
+    },
+  );
+
+  it("ruling 11: every document_cutover function returns numeric columns only (no SETOF, record, text, uuid, json or table rows)", () => {
+    requireMigration();
+    const bad = migrationFunctions()
+      .map((fn) => ({ fn, columns: resultColumns(fn.returnsClause) }))
+      .filter(
+        ({ columns }) =>
+          columns === null ||
+          columns.length === 0 ||
+          columns.some(({ type }) => !NUMERIC_RESULT_TYPES.has(type)),
+      )
+      .map(
+        ({ fn }) =>
+          `${fn.name}: returns ${fn.returnsClause.trim().split(/\s+language\b/i)[0]}`,
+      );
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("issue #2067 addendum 4 — ruling 9: the reader role is created idempotently and never dropped", () => {
+  it("ruling 9: no file under supabase/ (migrations, rollbacks, seeds) drops document_cutover_reader", () => {
+    const hits: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const full = path.join(dir, name);
+        if (statSync(full).isDirectory()) {
+          walk(full);
+          continue;
+        }
+        if (!name.endsWith(".sql")) continue;
+        const sql = stripComments(readFileSync(full, "utf8"));
+        if (
+          new RegExp(
+            `drop\\s+(role|user)\\s+(if\\s+exists\\s+)?[^;]*\\b${READER}\\b`,
+            "i",
+          ).test(sql) ||
+          new RegExp(`drop\\s+owned\\s+by\\s+[^;]*\\b${READER}\\b`, "i").test(
+            sql,
+          )
+        ) {
+          hits.push(path.relative(REPO_ROOT, full));
+        }
+      }
+    };
+    walk(path.join(REPO_ROOT, "supabase"));
+    expect(hits).toEqual([]);
+  });
+
+  it("ruling 9: CREATE ROLE document_cutover_reader appears only inside a DO block guarded by NOT EXISTS on pg_roles / pg_authid", () => {
+    requireMigration();
+    const sql = allSql();
+    const creates = [
+      ...sql.matchAll(new RegExp(`create\\s+role\\s+"?${READER}"?`, "gi")),
+    ];
+    expect(creates.length).toBeGreaterThan(0);
+    const blocks = [...sql.matchAll(/\bdo\s+(\$[a-z_]*\$)([\s\S]*?)\1/gi)].map(
+      (match) => (match[2] as string).replace(/\s+/g, " ").toLowerCase(),
+    );
+    const guarded = blocks.filter((body) =>
+      new RegExp(
+        `if\\s+not\\s+exists\\s*\\(\\s*select\\s[^)]*\\bfrom\\s+(pg_catalog\\.)?(pg_roles|pg_authid)\\b[^)]*rolname\\s*=\\s*'${READER}'[^)]*\\)\\s*then\\s+create\\s+role\\s+"?${READER}"?`,
+      ).test(body),
+    );
+    const insideBlocks = blocks.reduce(
+      (total, body) =>
+        total +
+        [...body.matchAll(new RegExp(`create\\s+role\\s+"?${READER}"?`, "g"))]
+          .length,
+      0,
+    );
+    expect(insideBlocks, "a CREATE ROLE outside a DO block").toBe(
+      creates.length,
+    );
+    expect(
+      guarded.length,
+      "the DO block does not guard CREATE ROLE with IF NOT EXISTS",
+    ).toBe(insideBlocks);
+  });
+});
+
+describe("issue #2067 addendum 4 — ruling 7: the CI Integration compat bootstrap provides the Supabase roles and schema", () => {
+  const bootstrap = () =>
+    stripComments(readFileSync(BOOTSTRAP_SQL, "utf8")).toLowerCase();
+
+  it.each(["anon", "authenticated", "service_role", "authenticator"])(
+    "ruling 7: scripts/sql/supabase-compat-bootstrap.sql creates role %s",
+    (role) => {
+      expect(bootstrap()).toMatch(
+        new RegExp(`create\\s+role\\s+"?${role}"?(\\s|;)`),
+      );
+    },
+  );
+
+  it("ruling 7: scripts/sql/supabase-compat-bootstrap.sql creates schema supabase_migrations with schema_migrations (version)", () => {
+    const sql = bootstrap();
+    expect(sql).toMatch(
+      /create\s+schema\s+(if\s+not\s+exists\s+)?"?supabase_migrations"?/,
+    );
+    expect(sql).toMatch(
+      /create\s+table\s+(if\s+not\s+exists\s+)?"?supabase_migrations"?\s*\.\s*"?schema_migrations"?\s*\([^;]*\bversion\b/,
+    );
+  });
 });

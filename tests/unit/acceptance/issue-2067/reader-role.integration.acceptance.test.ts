@@ -10,10 +10,18 @@
  *
  * Skipped unless `DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL` is set. Set it to
  * an admin connection for a disposable database with every migration
- * applied, e.g. the local Supabase stack after `supabase start` (use the DB
- * URL that `supabase status` prints):
+ * applied.
  *
- *   DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL=postgresql://postgres:<local-db-password>@127.0.0.1:54322/postgres \
+ * Ruling 7 (Samson, 2026-10-20 11:03 PM PT): the CI Integration job runs it
+ * on the existing `postgres:15` service container with
+ * scripts/sql/supabase-compat-bootstrap.sql applied first and the migrations
+ * applied by scripts/verify/supabase-migrations.mjs — NOT `supabase start`.
+ * The bootstrap must provide the roles anon, authenticated, service_role and
+ * authenticator and the supabase_migrations schema (schema_migrations with a
+ * version column); Builder extends it. The "CI bootstrap" test below checks
+ * that precondition. Locally the same layout works on any Postgres 15+:
+ *
+ *   DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL=postgresql://postgres:<local-db-password>@127.0.0.1:5432/<disposable-db> \
  *     bun x vitest run tests/unit/acceptance/issue-2067/reader-role.integration.acceptance.test.ts
  *
  * The admin role must be able to ALTER ROLE document_cutover_reader (CREATEROLE
@@ -40,20 +48,34 @@
  *    to the reader role and requires the table-census function to count every
  *    row (Supabase's `postgres` owns the functions and has BYPASSRLS).
  *
- * The table-census function is located by the Acceptance contract in
- * ./fake-postgres.ts: a `document_cutover` function whose name contains
- * `table` and that takes one text argument (the table name); its first
- * result column is the row count. Scope ruling requested on names.
+ * Function names, arguments and result columns come from the pinned
+ * contract in ./document-cutover-contract.ts (ruling 2); the census is
+ * `document_cutover.table_census(p_table text)`. Ruling 9 (idempotent,
+ * never-dropped role), ruling 10 option (b) (every function in pg_proc is
+ * executable only by the reader and its owner, PUBLIC included; schema USAGE
+ * only for the reader and owner) and ruling 11 (numeric result columns only)
+ * are checked against the catalog. The static half of ruling 10 is in
+ * ./migration-lockdown.acceptance.test.ts: the explicit per-function
+ * REVOKE ... FROM PUBLIC, anon, authenticated, service_role, GRANT EXECUTE
+ * only to the reader and no schema grant to anyone else are exactly the
+ * statements that produce the ACLs checked here.
  *
  * Owned by Acceptance. Implementers must not edit this file to satisfy their PR.
  */
 
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
+import path from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { REPO_ROOT } from "./command-harness";
+import {
+  DOCUMENT_CUTOVER_FUNCTIONS,
+  NUMERIC_RESULT_TYPES,
+  contractFunction,
+} from "./document-cutover-contract";
 import { PHASE_18_PROTOTYPE_DOCUMENT_TABLES } from "../../../../packages/api/src/document-cutover";
 
 const ADMIN_URL = process.env.DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL ?? "";
@@ -169,6 +191,59 @@ function callSql(fn: CutoverFunction): string {
   return `select * from document_cutover.${fn.name}(${args.join(", ")});`;
 }
 
+interface ResultColumn {
+  fn: string;
+  name: string;
+  type: string;
+  retset: string;
+}
+
+/** Output columns (OUT/TABLE args) or the scalar return type of every function. */
+function listResultColumns(): ResultColumn[] {
+  return adminOk(`
+    select p.proname, coalesce(u.n, ''), format_type(u.t, null), p.proretset::text
+    from pg_proc p
+    join pg_namespace ns on ns.oid = p.pronamespace,
+    lateral unnest(
+      coalesce(p.proallargtypes, array[p.prorettype]),
+      coalesce(p.proargmodes, array['o'::"char"]),
+      case when p.proallargtypes is null then array[''::text] else p.proargnames end
+    ) as u(t, m, n)
+    where ns.nspname = 'document_cutover' and u.m in ('o', 't', 'b')
+    order by 1, 2;
+  `).map((line) => {
+    const [fn, name, type, retset] = line.split("\t") as [
+      string,
+      string,
+      string,
+      string,
+    ];
+    return { fn, name, type, retset };
+  });
+}
+
+/** DO blocks in the document_cutover migration(s) that create the reader role. */
+function readerRoleDoBlocks(): string[] {
+  const dir = path.join(REPO_ROOT, "supabase", "migrations");
+  return readdirSync(dir)
+    .filter((file) => file.endsWith(".sql") && !file.startsWith("rollback"))
+    .map((file) => readFileSync(path.join(dir, file), "utf8"))
+    .filter((sql) =>
+      /create\s+schema\s+(if\s+not\s+exists\s+)?"?document_cutover"?/i.test(
+        sql,
+      ),
+    )
+    .flatMap((sql) => [
+      ...sql.matchAll(
+        /\bdo\s+(\$[a-z_]*\$)[\s\S]*?\1\s*(language\s+plpgsql\s*)?;/gi,
+      ),
+    ])
+    .map((match) => match[0])
+    .filter((block) =>
+      new RegExp(`create\\s+role\\s+"?${READER}"?`, "i").test(block),
+    );
+}
+
 const enabled = ADMIN_URL.length > 0;
 
 describe.skipIf(!enabled)(
@@ -216,6 +291,73 @@ describe.skipIf(!enabled)(
       );
       expect(rows).toEqual(["f\tf\tf\tf\tf"]);
       expect(functions.length).toBeGreaterThan(0);
+    });
+
+    it("ruling 7 (CI bootstrap): the database provides roles anon, authenticated, service_role, authenticator and supabase_migrations.schema_migrations(version)", () => {
+      const roles = adminOk(`
+        select rolname from pg_roles
+        where rolname in ('anon', 'authenticated', 'service_role', 'authenticator')
+        order by 1;
+      `);
+      expect(roles).toEqual([
+        "anon",
+        "authenticated",
+        "authenticator",
+        "service_role",
+      ]);
+      expect(
+        adminOk(`
+          select a.attname from pg_attribute a
+          where a.attrelid = to_regclass('supabase_migrations.schema_migrations')
+            and a.attname = 'version' and not a.attisdropped;
+        `),
+      ).toEqual(["version"]);
+    });
+
+    it("ruling 2: the database's document_cutover functions are exactly the pinned contract (names and argument types)", () => {
+      expect(
+        functions.map((fn) => `${fn.name}(${fn.argTypes.join(",")})`).sort(),
+      ).toEqual(
+        DOCUMENT_CUTOVER_FUNCTIONS.map(
+          (fn) => `${fn.name}(${fn.args.map((arg) => arg.type).join(",")})`,
+        ).sort(),
+      );
+    });
+
+    it("ruling 11: every document_cutover function's result columns are numeric (pg_proc), single-row scalars or TABLE columns named as in the contract", () => {
+      const columns = listResultColumns();
+      const nonNumeric = columns
+        .filter((column) => !NUMERIC_RESULT_TYPES.has(column.type))
+        .map(
+          (column) =>
+            `${column.fn}.${column.name || "<return>"}: ${column.type}`,
+        );
+      expect(nonNumeric).toEqual([]);
+      for (const fn of DOCUMENT_CUTOVER_FUNCTIONS) {
+        const mine = columns.filter((column) => column.fn === fn.name);
+        if (fn.columns.length > 1) {
+          expect(
+            mine.map((column) => column.name),
+            fn.name,
+          ).toEqual(fn.columns.map((column) => column.name).sort());
+        } else {
+          expect(mine, fn.name).toHaveLength(1);
+          // A scalar SETOF would be a row stream, not a count.
+          if (mine[0]?.name === "")
+            expect(mine[0]?.retset, fn.name).toBe("false");
+        }
+      }
+    });
+
+    it("ruling 9: the migration's CREATE ROLE DO block is idempotent — re-running it with the role present succeeds (rolled back)", () => {
+      const blocks = readerRoleDoBlocks();
+      expect(
+        blocks.length,
+        "no DO block creating document_cutover_reader",
+      ).toBeGreaterThan(0);
+      const result = admin(`begin;\n${blocks.join("\n")}\nrollback;`);
+      expect(result.stderr).toBe("");
+      expect(result.status).toBe(0);
     });
 
     it("document_cutover_reader has no membership (direct or inherited) in postgres, service_role or authenticator", () => {
@@ -358,7 +500,47 @@ describe.skipIf(!enabled)(
       expect(functionAcl).toEqual([]);
     });
 
-    it("criterion 5: default privileges in document_cutover grant nothing to anon, authenticated or service_role (probe objects, rolled back)", () => {
+    it("ruling 10 (b): every function actually in schema document_cutover (pg_proc) is executable only by document_cutover_reader and its owner — PUBLIC (grantee 0) or any other role is a violation", () => {
+      const violations = adminOk(`
+        select p.oid::regprocedure::text || ' -> ' ||
+               case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
+        from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace,
+        lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+        where n.nspname = 'document_cutover'
+          and a.privilege_type = 'EXECUTE'
+          and (a.grantee = 0 or a.grantee not in (p.proowner, '${READER}'::regrole))
+        order by 1;
+      `);
+      expect(violations).toEqual([]);
+      const missingReader = adminOk(`
+        select p.oid::regprocedure::text
+        from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'document_cutover'
+          and not has_function_privilege('${READER}', p.oid, 'EXECUTE')
+        order by 1;
+      `);
+      expect(missingReader).toEqual([]);
+    });
+
+    it("ruling 10 (b): no role other than document_cutover_reader and the schema owner has USAGE (or any privilege) on schema document_cutover", () => {
+      const violations = adminOk(`
+        select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end || ':' || a.privilege_type
+        from pg_namespace n,
+        lateral aclexplode(coalesce(n.nspacl, acldefault('n', n.nspowner))) a
+        where n.nspname = 'document_cutover'
+          and (a.grantee = 0 or a.grantee not in (n.nspowner, '${READER}'::regrole))
+        order by 1;
+      `);
+      expect(violations).toEqual([]);
+      expect(
+        adminOk(
+          `select has_schema_privilege('${READER}', 'document_cutover', 'USAGE')::text;`,
+        ),
+      ).toEqual(["true"]);
+    });
+
+    it("criterion 5 / ruling 10 (b): default privileges in document_cutover grant nothing to anon, authenticated or service_role (probe objects, rolled back)", () => {
       const result = admin(`
         begin;
         create function document_cutover.acceptance_2067_probe() returns integer language sql as 'select 1';
@@ -381,15 +563,17 @@ describe.skipIf(!enabled)(
     });
 
     it("criterion 6: a forced-RLS detector table that has rows is still fully counted by its detector function (reader role, rolled back)", () => {
+      const censusName =
+        contractFunction("table_census")?.name ?? "table_census";
       const census = functions.find(
         (fn) =>
-          /table/.test(fn.name) &&
+          fn.name === censusName &&
           fn.argTypes.length === 1 &&
-          /^(text|character varying|name)$/.test(fn.argTypes[0] ?? ""),
+          fn.argTypes[0] === "text",
       );
       expect(
         census,
-        "no document_cutover table-census function (name contains 'table', one text argument) — see the contract in fake-postgres.ts",
+        `no document_cutover.${censusName}(text) — see ./document-cutover-contract.ts`,
       ).toBeDefined();
       const marker = `acceptance-2067-rls-${randomBytes(6).toString("hex")}`;
       const result = admin(`
@@ -424,6 +608,10 @@ describe.skipIf(!enabled)(
       const trueCount = Number(tagged.get("TRUE_COUNT")?.[0]);
       expect(trueCount).toBeGreaterThanOrEqual(3);
       expect(Number(tagged.get("READER_COUNT")?.[0])).toBe(trueCount);
+      // Ruling 11: the census row carries counts only.
+      for (const value of tagged.get("READER_COUNT") ?? []) {
+        expect(value).toMatch(/^\d+$/);
+      }
     });
 
     it("criterion 3 (real connection): the gate run with DOCUMENT_CUTOVER_DATABASE_URL set to the admin connection exits non-zero with an identity blocker", () => {
@@ -473,6 +661,6 @@ describe.skipIf(!enabled)(
 describe.skipIf(enabled)(
   "issue #2067 addendum 4 — real stack (skipped)",
   () => {
-    it.skip("set DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL (admin URL of a disposable DB with all migrations, e.g. postgresql://postgres:<local-db-password>@127.0.0.1:54322/postgres after `supabase start`) to run the real-stack test", () => {});
+    it.skip("set DOCUMENT_CUTOVER_IT_ADMIN_DATABASE_URL (admin URL of a disposable Postgres 15+ DB with scripts/sql/supabase-compat-bootstrap.sql and all migrations applied, as in CI Integration) to run the real-stack test", () => {});
   },
 );

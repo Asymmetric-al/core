@@ -33,12 +33,14 @@ import {
   cleanTarget,
   cleanupProofFiles,
   decisionArgs,
+  fakeDatabaseUrl,
   listProofFiles,
   markedStatement,
   newProofFiles,
   proofRunMarker,
   runCommand,
 } from "./command-harness";
+import { READER_ROLE } from "./document-cutover-contract";
 import { fakePg } from "./fake-postgres";
 import { fakeDb } from "./fake-supabase";
 import { InMemoryDocumentCutoverProofStore } from "../../../../packages/api/src/document-cutover";
@@ -102,6 +104,25 @@ describe("issue #2067 addendum 4 — criterion 3: DOCUMENT_CUTOVER_DATABASE_URL 
     expect(stored).toEqual([]);
     expect(files).toEqual([]);
     expect(fakeDb.clients).toEqual([]);
+  });
+
+  it("ruling 1 (URL only, no PG* fallback): with DOCUMENT_CUTOVER_DATABASE_URL missing but PGHOST/PGUSER/PGPASSWORD/PGDATABASE and DATABASE_URL set, --decision go exits non-zero with a blocker naming DOCUMENT_CUTOVER_DATABASE_URL, opens no connection and writes no proof", async () => {
+    const { result, output, stored, files } = await goWithEnv({
+      SUPABASE_URL: LOCAL_TARGET_URL,
+      PGHOST: "127.0.0.1",
+      PGPORT: "54322",
+      PGUSER: READER_ROLE,
+      PGPASSWORD: ["acceptance", "2067", "pg", "env", "fake"].join("-"),
+      PGDATABASE: "postgres",
+      DATABASE_URL: fakeDatabaseUrl(),
+    });
+
+    expect(result.exitCode).not.toBe(0);
+    expect(output).toMatch(DATABASE_URL_BLOCKER);
+    expect(stored).toEqual([]);
+    expect(files).toEqual([]);
+    expect(fakePg.connections).toEqual([]);
+    expect(fakePg.fallbackAttempts).toBe(0);
   });
 
   it("criterion 3 (missing URL): `bun run cutover:assess:documents` with only SUPABASE_SERVICE_ROLE_KEY exits non-zero with a blocker naming DOCUMENT_CUTOVER_DATABASE_URL", () => {

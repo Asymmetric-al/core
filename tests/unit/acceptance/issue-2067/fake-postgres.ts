@@ -41,30 +41,24 @@
  * '<mode>')`. Membership is transitive (direct or inherited) and superusers
  * are members of every role, as in Postgres.
  *
- * ## The `document_cutover` function contract (Acceptance proposal; names and
- * columns are NOT pinned by the spec — Scope ruling requested)
+ * ## The `document_cutover` function contract (pinned; Samson's ruling 2)
  *
- * The fake routes a call by keywords in the function name, so Builder may
- * choose names within these routes. Canonical names in parentheses.
+ * Exact names, arguments and result columns live in
+ * ./document-cutover-contract.ts; the fake routes by EXACT name. Any other
+ * `document_cutover.<fn>` is unsupported (XX000). A scalar function's column
+ * is the select-list alias if the query gives one, otherwise the function
+ * name (as Postgres names it for both `SELECT f()` and `SELECT * FROM f()`).
+ * Every value is a numeric string, as `pg` returns `bigint` (ruling 11: counts
+ * only; the schema version is the 14-digit version as a bigint). The table
+ * census takes the table name (a `'literal'` or `$n` parameter) and serves
+ * only the prototype tables. Data comes from `fakeDb` in ./fake-supabase.ts,
+ * so one seeding drives both the pre- and post-addendum-4 read paths.
  *
- * | route          | name keyword (canonical)                          | result row |
- * | -------------- | ------------------------------------------------- | ---------- |
- * | schema version | `schema_version` / `migration_version` (`schema_version()`) | `{ <col>: '<14-digit version>' }` text |
- * | user census    | `user` (`auth_user_count()`)                      | `{ <col>: '<n>' }` bigint |
- * | table census   | `table` (`table_census(p_table text)`)            | `{ row_count: '<n>', tenant_count: '<n>' }` |
- * | storage        | `storage` / `bucket` / `object` (`artifact_storage_census()`) | `{ referenced_rows: '<n>', bucket_objects: '<n>' }` |
- * | external refs  | `external` / `url` (`external_reference_count()`) | `{ <col>: '<n>' }` |
- * | batch jobs     | `job` (`batch_job_count()`)                       | `{ <col>: '<n>' }` |
- * | reports        | `report` (`migration_report_count()`)             | `{ <col>: '<n>' }` |
- * | integrations   | `integration` / `renderer` (`renderer_integration_count()`) | `{ <col>: '<n>' }` |
+ * ## Connection (ruling 1)
  *
- * `<col>` is the select-list alias if the query gives one, otherwise the
- * function name (Postgres names a scalar function's column after the
- * function, for both `SELECT f()` and `SELECT * FROM f()`). Counts are
- * strings, as `pg` returns `bigint`. The table census takes the table name as
- * its first argument (a `'literal'` or `$n` parameter) and serves only the
- * prototype tables. Data comes from `fakeDb` in ./fake-supabase.ts, so one
- * seeding drives both the pre- and post-addendum-4 read paths.
+ * Only a connection string is accepted: a `Client` / `Pool` built without
+ * `connectionString` (which the real driver would complete from `PG*` env
+ * vars) is recorded in `state.fallbackAttempts` and refused.
  *
  * ## Scenario switches
  *
@@ -80,11 +74,14 @@
  *   Identity queries are unaffected.
  */
 
+import { READER_ROLE, contractFunction } from "./document-cutover-contract";
 import { fakeDb } from "./fake-supabase";
+
+import type { DocumentCutoverRoute } from "./document-cutover-contract";
 
 type Row = Record<string, unknown>;
 
-export const READER_ROLE = "document_cutover_reader";
+export { READER_ROLE };
 
 export interface FakePgRole {
   rolsuper: boolean;
@@ -95,15 +92,7 @@ export interface FakePgRole {
   memberOf: string[];
 }
 
-export type FakePgRoute =
-  | "schema_version"
-  | "users"
-  | "table"
-  | "storage"
-  | "external"
-  | "jobs"
-  | "reports"
-  | "integrations";
+export type FakePgRoute = DocumentCutoverRoute;
 
 export interface FakePgQuery {
   user: string;
@@ -132,6 +121,8 @@ export interface FakePgState {
   /** Overrides the role derived from the connection string, when set. */
   sessionUserOverride: string | null;
   connections: Array<{ connectionString: string | undefined; user: string }>;
+  /** Clients built without a connection string (PG* env fallback). */
+  fallbackAttempts: number;
   queries: FakePgQuery[];
   directReads: string[];
   writes: string[];
@@ -205,6 +196,7 @@ export function createFakePgState(data: FakePgData): FakePgState {
     roles: defaultRoles(),
     sessionUserOverride: null,
     connections: [],
+    fallbackAttempts: 0,
     queries: [],
     directReads: [],
     writes: [],
@@ -217,6 +209,7 @@ export function createFakePgState(data: FakePgData): FakePgState {
       this.roles = defaultRoles();
       this.sessionUserOverride = null;
       this.connections = [];
+      this.fallbackAttempts = 0;
       this.queries = [];
       this.directReads = [];
       this.writes = [];
@@ -537,22 +530,9 @@ function evalIdentity(sql: string, ctx: EvalContext): Row[] {
 // ---------------------------------------------------------------------------
 
 function routeFor(fn: string, args: unknown[]): FakePgRoute | undefined {
-  const name = fn.toLowerCase();
-  if (/schema_version|migration_version/.test(name)) return "schema_version";
-  if (/user/.test(name)) return "users";
-  if (
-    /table/.test(name) ||
-    (typeof args[0] === "string" &&
-      (PROTOTYPE_TABLES as readonly string[]).includes(args[0]))
-  ) {
-    return "table";
-  }
-  if (/storage|bucket|object/.test(name)) return "storage";
-  if (/external|url/.test(name)) return "external";
-  if (/job/.test(name)) return "jobs";
-  if (/report/.test(name)) return "reports";
-  if (/integration|renderer|docraptor/.test(name)) return "integrations";
-  return undefined;
+  const contract = contractFunction(fn);
+  if (!contract || contract.args.length !== args.length) return undefined;
+  return contract.route;
 }
 
 function parseArgs(raw: string, values: unknown[]): unknown[] {
@@ -589,6 +569,12 @@ function routeRow(
         throw new FakePgError(
           "42P01",
           'relation "supabase_migrations.schema_migrations" does not exist (acceptance fake)',
+        );
+      }
+      if (!/^\d{14}$/.test(version)) {
+        throw new FakePgError(
+          "22P02",
+          `acceptance fake: schema version ${version} is not a 14-digit bigint`,
         );
       }
       return { [fn]: version };
@@ -760,7 +746,7 @@ async function dispatch(
         state.unsupported.push(sql);
         throw new FakePgError(
           "XX000",
-          `acceptance fake: document_cutover.${fn} matches no route of the documented contract (see fake-postgres.ts)`,
+          `acceptance fake: document_cutover.${fn} is not in the pinned contract (document-cutover-contract.ts)`,
         );
       }
       if (mode === "permission_denied") {
@@ -876,22 +862,28 @@ function sessionUserFor(
   if (state.sessionUserOverride) {
     return { connectionString, user: state.sessionUserOverride };
   }
-  let user = typeof config === "object" ? config?.user : undefined;
-  if (connectionString) {
-    try {
-      const parsed = new URL(connectionString);
-      if (parsed.username) user = decodeURIComponent(parsed.username);
-    } catch {
-      throw new FakePgError(
-        "08001",
-        "invalid connection string (acceptance fake)",
-      );
-    }
-  }
-  if (!user) {
+  if (!connectionString) {
+    state.fallbackAttempts += 1;
     throw new FakePgError(
       "08001",
-      "no connection string or user given (acceptance fake): the gate must not fall back to PG* env vars",
+      "no connection string given (acceptance fake): the gate must use DOCUMENT_CUTOVER_DATABASE_URL only, never PG* env vars",
+    );
+  }
+  let user: string | undefined;
+  try {
+    const parsed = new URL(connectionString);
+    if (parsed.username) user = decodeURIComponent(parsed.username);
+  } catch {
+    throw new FakePgError(
+      "08001",
+      "invalid connection string (acceptance fake)",
+    );
+  }
+  if (!user) {
+    state.fallbackAttempts += 1;
+    throw new FakePgError(
+      "08001",
+      "connection string has no user (acceptance fake): PGUSER fallback is not allowed",
     );
   }
   // Supabase pooler user: `<role>.<project-ref>`.
