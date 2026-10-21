@@ -3,8 +3,10 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 
 import {
+  createTrackedFixtureRows,
   createTrackedFixtureUser,
   fixtureAuthUserCleanupOperations,
+  fixtureTableCleanupOperations,
   isDeniedSelfRoleUpdate,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
@@ -55,6 +57,10 @@ async function verify(input) {
     input.simulateLostUserCreationResponse === undefined ||
       typeof input.simulateLostUserCreationResponse === "boolean",
   );
+  assert.ok(
+    input.simulateLostTableCreationResponse === undefined ||
+      ["tenants", "funds"].includes(input.simulateLostTableCreationResponse),
+  );
   const { url } = await verifyLocalFixtureTarget(input);
   checks.push("local-target-bound-to-owned-gateway");
 
@@ -64,6 +70,7 @@ async function verify(input) {
   const { createClient } = require("@supabase/supabase-js");
   const { createServerClient } = require("@supabase/ssr");
   let simulateLostResponse = input.simulateLostUserCreationResponse === true;
+  let simulateLostTableResponse = input.simulateLostTableCreationResponse;
   const global = {
     fetch: async (request, init) => {
       const response = await fetch(request, {
@@ -85,6 +92,18 @@ async function verify(input) {
         checks.push("simulated-committed-user-creation-response-loss");
         throw new TypeError("Synthetic fixture creation response loss");
       }
+      if (
+        simulateLostTableResponse &&
+        init?.method === "POST" &&
+        requestUrl.pathname === `/rest/v1/${simulateLostTableResponse}` &&
+        response.ok
+      ) {
+        const table = simulateLostTableResponse;
+        simulateLostTableResponse = undefined;
+        await response.arrayBuffer();
+        checks.push(`simulated-committed-${table}-creation-response-loss`);
+        throw new TypeError("Synthetic fixture table response loss");
+      }
       return response;
     },
   };
@@ -103,6 +122,28 @@ async function verify(input) {
   const users = [];
   const runId = randomUUID();
   const fundId = randomUUID();
+  const tenantRows = tenantIds.map((id) => ({
+    id,
+    name: `SDK qualification fixture ${runId}`,
+    slug: `sdk-qualification-${id}`,
+  }));
+  const fundRows = [
+    {
+      id: fundId,
+      tenant_id: tenantIds[0],
+      name: `SDK qualification fund ${runId}`,
+      goal_amount: 12345,
+      currency: "USD",
+    },
+  ];
+  const tableJournal = [
+    ...tenantRows.map((row) => ({ table: "tenants", row })),
+    ...fundRows.map((row) => ({ table: "funds", row })),
+  ].map((entry) => ({
+    ...entry,
+    creationAttempted: false,
+    creationAcknowledged: false,
+  }));
   const cookies = new Map();
   const server = () =>
     createServerClient(url.href, input.PUBLIC_KEY, {
@@ -137,12 +178,11 @@ async function verify(input) {
   try {
     step = "create-owned-fixtures";
     successful(
-      await admin.from("tenants").insert(
-        tenantIds.map((id) => ({
-          id,
-          name: "SDK qualification fixture",
-          slug: `sdk-qualification-${id}`,
-        })),
+      await createTrackedFixtureRows(
+        admin,
+        tableJournal,
+        "tenants",
+        tenantRows,
       ),
     );
     for (const tenantId of tenantIds) {
@@ -263,13 +303,7 @@ async function verify(input) {
       });
     await bounded(subscribed, "Realtime subscription deadline");
     successful(
-      await admin.from("funds").insert({
-        id: fundId,
-        tenant_id: tenantIds[0],
-        name: "SDK qualification fund",
-        goal_amount: 12345,
-        currency: "USD",
-      }),
+      await createTrackedFixtureRows(admin, tableJournal, "funds", fundRows),
     );
     const event = await bounded(changed, "Realtime delivery deadline");
     check(
@@ -321,21 +355,9 @@ async function verify(input) {
           assert.ok(results.every((result) => result === "ok"));
         },
       },
-      {
-        label: "delete-fund",
-        run: async () =>
-          cleanupSuccessful(
-            await admin.from("funds").delete().eq("id", fundId),
-          ),
-      },
+      ...fixtureTableCleanupOperations(admin, tableJournal, "funds"),
       ...fixtureAuthUserCleanupOperations(admin.auth.admin, users),
-      {
-        label: "delete-tenants",
-        run: async () =>
-          cleanupSuccessful(
-            await admin.from("tenants").delete().in("id", tenantIds),
-          ),
-      },
+      ...fixtureTableCleanupOperations(admin, tableJournal, "tenants"),
       {
         label: "restore-census",
         run: async () =>

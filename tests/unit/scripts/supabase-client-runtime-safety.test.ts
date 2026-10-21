@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  createTrackedFixtureRows,
   createTrackedFixtureUser,
   fixtureAuthUserCleanupOperations,
+  fixtureTableCleanupOperations,
   runFixtureCleanup,
   verifyLocalFixtureTarget,
 } from "../../integration/supabase/client-runtime-checks.mjs";
@@ -76,7 +78,11 @@ describe("owned local SDK target", () => {
           containers,
         }),
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow(
+      containers === null
+        ? "Malformed local inspection"
+        : "API target is not the owned local gateway",
+    );
   });
 
   it.each(["ssh://example.invalid", "tcp://127.0.0.1:2375"])(
@@ -86,7 +92,7 @@ describe("owned local SDK target", () => {
         verifyLocalFixtureTarget(target, {
           inspect: async () => ({ endpoint, containers: [kong] }),
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("A local Docker socket is required");
     },
   );
 
@@ -101,7 +107,7 @@ describe("owned local SDK target", () => {
           }),
         },
       ),
-    ).rejects.toThrow();
+    ).rejects.toThrow("API target is not the owned local gateway");
   });
 
   it("fails closed when Docker cannot provide independent evidence", async () => {
@@ -111,8 +117,203 @@ describe("owned local SDK target", () => {
           throw new Error("Synthetic Docker failure");
         },
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow("Synthetic Docker failure");
   });
+});
+
+type FixtureRow = { id: string; name: string; [key: string]: string | number };
+type TableInsertResult = { data: null; error: { code: string } | null };
+
+function fakeTable(table: string) {
+  const rows = new Map<string, FixtureRow>();
+  const insert = vi.fn(
+    async (values: FixtureRow[]): Promise<TableInsertResult> => {
+      for (const row of values) rows.set(row.id, { ...row });
+      return { data: null, error: null };
+    },
+  );
+  const read = vi.fn(async (id: string) => ({
+    data: rows.get(id) ?? null,
+    error: null,
+  }));
+  const remove = vi.fn(async (_column: string, id: string) => {
+    rows.delete(id);
+    return { data: null, error: null };
+  });
+  const admin = {
+    from: vi.fn((name: string) => {
+      expect(name).toBe(table);
+      return {
+        insert,
+        select: () => ({
+          eq: (_column: string, id: string) => ({
+            maybeSingle: () => read(id),
+          }),
+        }),
+        delete: () => ({ eq: remove }),
+      };
+    }),
+  };
+  const row: FixtureRow = {
+    id: "44444444-4444-4444-8444-444444444444",
+    name: "SDK qualification owned run",
+  };
+  if (table === "tenants") row.slug = "sdk-qualification-owned-run";
+  else row.tenant_id = "22222222-2222-4222-8222-222222222222";
+  return { rows, admin, insert, read, remove, row };
+}
+
+describe("ambiguous fixture table creation", () => {
+  it("journals reserved identities before awaiting the table insert", async () => {
+    const fixture = fakeTable("tenants");
+    const journal: object[] = [];
+    fixture.insert.mockImplementation(async () => {
+      expect(journal).toEqual([
+        expect.objectContaining({
+          table: "tenants",
+          row: fixture.row,
+          creationAttempted: true,
+          creationAcknowledged: false,
+        }),
+      ]);
+      return { data: null, error: null };
+    });
+    await createTrackedFixtureRows(fixture.admin, journal, "tenants", [
+      fixture.row,
+    ]);
+    expect(journal).toEqual([
+      expect.objectContaining({ creationAcknowledged: true }),
+    ]);
+  });
+
+  it.each(["tenants", "funds"])(
+    "recovers a committed %s row after a thrown lost response",
+    async (table) => {
+      const fixture = fakeTable(table);
+      const insert = fixture.insert.getMockImplementation()!;
+      fixture.insert.mockImplementation(async (values) => {
+        await insert(values);
+        throw new Error("Synthetic table response loss");
+      });
+      const journal: object[] = [];
+      await expect(
+        createTrackedFixtureRows(fixture.admin, journal, table, [fixture.row]),
+      ).rejects.toThrow("Synthetic table response loss");
+      const failures = await runFixtureCleanup(
+        fixtureTableCleanupOperations(fixture.admin, journal, table),
+      );
+      expect(failures).toEqual([]);
+      expect(fixture.rows.size).toBe(0);
+    },
+  );
+
+  it.each(["tenants", "funds"])(
+    "recovers a committed %s row after a resolved transport error",
+    async (table) => {
+      const fixture = fakeTable(table);
+      const insert = fixture.insert.getMockImplementation()!;
+      fixture.insert.mockImplementation(async (values) => {
+        await insert(values);
+        return { data: null, error: { code: "" } };
+      });
+      const journal: object[] = [];
+      const result = await createTrackedFixtureRows(
+        fixture.admin,
+        journal,
+        table,
+        [fixture.row],
+      );
+      expect(result.error).not.toBeNull();
+      const failures = await runFixtureCleanup(
+        fixtureTableCleanupOperations(fixture.admin, journal, table),
+      );
+      expect(failures).toEqual([]);
+      expect(fixture.rows.size).toBe(0);
+    },
+  );
+
+  it.each(["tenants", "funds"])(
+    "does not certify cleanup before an in-flight %s insert commits",
+    async (table) => {
+      const fixture = fakeTable(table);
+      fixture.insert.mockRejectedValue(new Error("Synthetic table timeout"));
+      const journal: object[] = [];
+      await expect(
+        createTrackedFixtureRows(fixture.admin, journal, table, [fixture.row]),
+      ).rejects.toThrow("Synthetic table timeout");
+      const census = vi.fn(() => expect(fixture.rows.size).toBe(0));
+      const failures = await runFixtureCleanup([
+        ...fixtureTableCleanupOperations(fixture.admin, journal, table),
+        { label: "census", run: census },
+      ]);
+      expect(census).toHaveBeenCalledOnce();
+      fixture.rows.set(fixture.row.id, fixture.row);
+      expect(failures.length).toBeGreaterThan(0);
+      expect(fixture.remove).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["tenants", "funds"])(
+    "preserves an unrelated %s row at a reserved identity",
+    async (table) => {
+      const fixture = fakeTable(table);
+      const unrelated = { ...fixture.row, name: "Another run owns this row" };
+      fixture.rows.set(unrelated.id, unrelated);
+      fixture.insert.mockRejectedValue(new Error("UUID already exists"));
+      const journal: object[] = [];
+      await expect(
+        createTrackedFixtureRows(fixture.admin, journal, table, [fixture.row]),
+      ).rejects.toThrow("UUID already exists");
+      const failures = await runFixtureCleanup(
+        fixtureTableCleanupOperations(fixture.admin, journal, table),
+      );
+      expect(failures.length).toBeGreaterThan(0);
+      expect(fixture.remove).not.toHaveBeenCalled();
+      expect(fixture.rows.get(unrelated.id)).toEqual(unrelated);
+    },
+  );
+
+  it.each(["tenants", "funds"])(
+    "fails when an acknowledged %s deletion leaves its exact identity present",
+    async (table) => {
+      const fixture = fakeTable(table);
+      const journal: object[] = [];
+      await createTrackedFixtureRows(fixture.admin, journal, table, [
+        fixture.row,
+      ]);
+      fixture.remove.mockImplementation(async () => ({
+        data: null,
+        error: null,
+      }));
+      const failures = await runFixtureCleanup(
+        fixtureTableCleanupOperations(fixture.admin, journal, table),
+      );
+      expect(failures.length).toBeGreaterThan(0);
+      expect(fixture.rows.get(fixture.row.id)).toEqual(fixture.row);
+    },
+  );
+
+  it.each(["tenants", "funds"])(
+    "never removes a reserved %s identity whose creation was not attempted",
+    async (table) => {
+      const fixture = fakeTable(table);
+      fixture.rows.set(fixture.row.id, fixture.row);
+      const journal = [
+        {
+          table,
+          row: fixture.row,
+          creationAttempted: false,
+          creationAcknowledged: false,
+        },
+      ];
+      const failures = await runFixtureCleanup(
+        fixtureTableCleanupOperations(fixture.admin, journal, table),
+      );
+      expect(failures).toEqual([]);
+      expect(fixture.admin.from).not.toHaveBeenCalled();
+      expect(fixture.rows.get(fixture.row.id)).toEqual(fixture.row);
+    },
+  );
 });
 
 type FixtureUser = {

@@ -4,7 +4,7 @@
   "status": "implemented-awaiting-full-qualification-and-merge",
   "owner": "Core API and CMS maintainers",
   "capturedAt": "2026-10-21T22:26:47.378259+00:00",
-  "temporaryStackBase": "b350a6880d95c39631cdd9e5bf5747909db63974",
+  "temporaryStackBase": "a47024f8d646341ccaba0a0c852a2453473516bf",
   "mustRequalifyOnMergedDevelop": true,
   "releaseMetadataRefreshedAt": "2026-10-21T20:31:23.330472+00:00",
   "targets": [
@@ -349,7 +349,7 @@
   },
   "initialTemporaryStackBase": "c48420906f78760b39f2de877b31a736fd0c474f",
   "infrastructureStackBase": "2e1ebf397af60eb1b0613561f2535b96770ec6ca",
-  "previousTemporaryStackBase": "1dcdade63e012898f237663a634eca28c8275193",
+  "previousTemporaryStackBase": "b350a6880d95c39631cdd9e5bf5747909db63974",
   "initialFullPrePush": {
     "startedAt": "2026-10-21T21:28:20.473070+00:00",
     "completedAt": "2026-10-21T21:40:34.642377+00:00",
@@ -470,10 +470,144 @@
     "limits": "Read-only CMS protocol/mount checks with a temporary CMS-select-only database role and no provider credentials. Authenticated editor and hosted preview flows remain separate qualification. The temporary role was removed and all table data stayed unchanged."
   },
   "inheritedDataReviewFixes": {
+    "mergedDevelop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+    "qualifiedDataHead": "1e5b7f55e783bf016892d2d54dcd317271ca877b",
+    "integration": {
+      "capturedAt": "2026-10-21T23:43:41.187888+00:00",
+      "headBefore": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+      "incomingMergedDevelop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+      "paths": [
+        "docs/maintenance/modernization/data-access-qualification.json",
+        "docs/maintenance/modernization/data-access.md",
+        "docs/maintenance/modernization/dependencies.json",
+        "tests/integration/supabase/client-runtime-checks.mjs",
+        "tests/integration/supabase/client-runtime-verification.mjs",
+        "tests/unit/scripts/supabase-client-runtime-safety.test.ts"
+      ],
+      "lockUnchanged": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+      "rootManifestUnchanged": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+      "owned2LedgerRowsPreserved": true,
+      "other127RowsEqualMergedDevelop": true,
+      "allOtherTopFieldsPreserved": true,
+      "status": "uncommitted merge for qualification docs update"
+    },
+    "dataQualificationArtifact": "core-modernization-data-final-merge-qualification-1e5b7f55.json",
+    "dataQualificationSha256": "37ee23bd9ff2e48592a28ce6e4a42183364f51fb248b604f34e613d7a25d3347",
+    "dataMergedReadback": {
+      "capturedAt": "2026-10-21T23:41:25.740504+00:00",
+      "pr": {
+        "baseRefName": "develop",
+        "headRefOid": "1e5b7f55e783bf016892d2d54dcd317271ca877b",
+        "mergeCommit": {
+          "oid": "a47024f8d646341ccaba0a0c852a2453473516bf"
+        },
+        "mergedAt": "2026-10-21T23:41:21Z",
+        "state": "MERGED",
+        "url": "https://github.com/Asymmetric-al/core/pull/2181"
+      },
+      "mergedTreeMatchesQualifiedHead": true,
+      "qualifiedHeadIsAncestorOfDevelop": true,
+      "develop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+      "postMergeCi": "pending readback"
+    },
+    "sourceReview": "All six inherited data paths match the reviewed merged checkpoint, except the shared dependency ledger intentionally preserves the two separately reviewed GraphQL rows. No inherited implementation was modified."
+  },
+  "historicalPreviousTemporaryStackBase": "1dcdade63e012898f237663a634eca28c8275193",
+  "releaseMetadataRefreshOnMergedDevelop": {
+    "capturedAt": "2026-10-21T23:50:23.613331+00:00",
+    "targets": {
+      "graphql": "17.0.2",
+      "graphql-yoga": "5.24.6",
+      "cmsGraphql": "16.14.2"
+    },
+    "allSelectedTargetsCurrent": true,
+    "graphqlSource": "https://registry.npmjs.org/graphql",
+    "yogaSource": "https://registry.npmjs.org/graphql-yoga/latest",
+    "cmsSelection": "Highest stable maintained major-16 release required by current Payload; product latest is major17.",
+    "integrities": {
+      "graphql": "sha512-FRWbddMxfkjiB7z+aQDWIR+E34xo9I8c9mtK2RPv8PmMzKRvrdsreHL/Ui/TmwHJfhHChEtsFPyMHKI+xuarQQ==",
+      "graphql-yoga": "sha512-IpRSnLfxbv1oiNTghzYjb0QPCn4p1y+8uoXJ0MkC5aNJAko2PSba89ByJXHIxoQAILZ3PKZaVcaEtlDJw4YQxw==",
+      "cmsGraphql": "sha512-Chq1s4CY7jmh8gO2qvLIJyfCDIN+EHLFW/9iShnp1z8FjBQMoodWP1kDC36VAMXXIvAjj4ARa7ntfAV2BrjsbA=="
+    }
+  },
+  "previousPublished020Qualification": {
+    "head": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+    "fullPrePush": {
+      "startedAt": "2026-10-21T22:31:27.873117+00:00",
+      "completedAt": "2026-10-21T22:39:16.191811+00:00",
+      "head": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+      "exitCode": 0,
+      "logSha256": "4c90d964c6714172470bcb6d3675aec41df403ce1fa61fd6224d2128f157e487"
+    },
+    "filesPassed": 901,
+    "filesSkipped": 2,
+    "testsPassed": 7384,
+    "testsExpectedFail": 1,
+    "testsSkipped": 4,
+    "ci": {
+      "capturedAt": "2026-10-21T23:50:22.780585+00:00",
+      "head": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+      "runs": [
+        {
+          "conclusion": "success",
+          "databaseId": 39688047870,
+          "headSha": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+          "status": "completed",
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39688047870"
+        },
+        {
+          "conclusion": "success",
+          "databaseId": 39688047864,
+          "headSha": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+          "status": "completed",
+          "url": "https://github.com/Asymmetric-al/core/actions/runs/39688047864"
+        }
+      ]
+    },
+    "scope": "Historical exact published020 qualification before integrating the final data checkpoint; current merged-base release gates remain pending."
+  },
+  "historicalInheritedDataReviewFixes": {
     "head": "b350a6880d95c39631cdd9e5bf5747909db63974",
     "sourceReview": "The independently approved data fixture ownership, lost-Auth-response cleanup and build-selection fixes are inherited without modification. Only the shared dependency ledger merges the separately reviewed data and product GraphQL rows.",
     "graphqlInstallationInputsUnchanged": true,
     "productImplementationUnchanged": true,
     "compiledProofSourceHead": "f915c7de74411ccb748ce81e741edc378ecc37b3"
+  },
+  "currentMergedBaseContractTests": {
+    "startedAt": "2026-10-21T23:47:04.733924+00:00",
+    "completedAt": "2026-10-21T23:47:06.907541+00:00",
+    "headBeforeMerge": "02063aff0d76f4fc3cedd176306f14f256e5cc6a",
+    "incomingDevelop": "a47024f8d646341ccaba0a0c852a2453473516bf",
+    "exitCode": 0,
+    "logSha256": "fafcfced3fc42862f0dd427396e6760cf1f857e0134a3fde5925f9f90897a8f1",
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "files": [
+      "tests/unit/packages/database/supabase-adapter-compatibility.test.ts",
+      "tests/unit/packages/database/tanstack-runtime-identity.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-checks.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-verification.test.ts",
+      "tests/unit/scripts/supabase-client-runtime-safety.test.ts",
+      "tests/unit/scripts/ci-build-policy.test.ts",
+      "tests/unit/graphql-gift-engagement-adapters.test.ts",
+      "tests/unit/graphql-http-contract.test.ts",
+      "tests/unit/graphql-runtime-boundary.test.ts"
+    ],
+    "totals": [" Test Files  9 passed (9)", "      Tests  115 passed (115)"]
+  },
+  "compiledEvidenceInputEquivalence": {
+    "sourceHead": "f915c7de74411ccb748ce81e741edc378ecc37b3",
+    "currentMergeBase": "a47024f8d646341ccaba0a0c852a2453473516bf",
+    "checkedPaths": [
+      "apps",
+      "packages",
+      "package.json",
+      "bun.lock",
+      "turbo.json",
+      "tooling/typescript-config"
+    ],
+    "changedPaths": [],
+    "lockSha256": "9c30e57d8059dd8f880c764ed3f8bf09f3f8cf525eb122160e10cc96b01c05f2",
+    "rootManifestSha256": "d09b78e4f892963da00201a0d5c5144929b2e94b510e298e1155f4e277bbf6c5",
+    "scope": "All tracked application/package source plus root package/lock/Turbo and shared TypeScript configuration match the previously compiled product/CMS evidence. New data fixture/test/qualification changes are outside these compiled inputs."
   }
 }

@@ -38,9 +38,16 @@ repairs remain owned by the PDF provenance checkpoint.
 The normal full pre-push passed all 15 product typechecks, all three app builds
 and the repository gates at the initial published head: 900 test files passed,
 2 existing files skipped; 7,364 tests passed, 1 expected failure and 4 existing
-tests skipped. The branch now also inherits the independently reviewed data
-fixture and build-selection fixes; its GraphQL implementation and installation
-inputs stay unchanged. Requalify the full gates after that merge.
+tests skipped. The subsequent published `02063aff` passed full pre-push with
+901 test files and 7,384 passing tests; its exact-head CI and full integration/E2E
+also passed. These are historical qualifications before the final data merge.
+
+The branch now integrates merged `develop` at `a47024f8`, including the complete
+reviewed Auth, tenant/fund cleanup and build-selection fixes. All 115 selected
+data/GraphQL contracts pass in nine files. The application/package source, root
+package and lock, Turbo and shared TypeScript inputs match the existing compiled
+proofs exactly. Full release gates, current-head CI and previews remain required
+on this merged base.
 
 Nine compiled product HTTP cases match the previous GraphQL 16 stack in exact
 status and complete public response, including production error masking and
@@ -56,7 +63,7 @@ authenticated editor and deployed-preview flows still require separate evidence.
 This checkpoint changes no database schema or public route. Revert the complete
 checkpoint's manifests, lockfile and owned evidence together if qualification
 fails, then rerun affected gates. Requalified app builds and repository gates, the
-compiled-evidence delta review, current-head CI, CMS/product previews and
+updated-base evidence review, current-head CI, CMS/product previews and
 merged-develop readback remain required. No production operation was executed.
 
 Sources: [versioned GraphQL 17 migration guide](https://github.com/graphql/graphql-js/blob/v17.0.2/website/pages/upgrade-guides/v16-v17.mdx),
